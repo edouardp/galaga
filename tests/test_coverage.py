@@ -5,7 +5,7 @@ import numpy as np
 from ga import (
     Algebra, Multivector, gp, op, grade, reverse, involute, conjugate,
     left_contraction, right_contraction, hestenes_inner, scalar_product,
-    scalar, dual, undual, norm, norm2, unit, inverse, ip,
+    scalar, dual, undual, complement, uncomplement, norm, norm2, unit, inverse, ip,
     normalize, normalise, grades,
     commutator, anticommutator,
     even_grades, odd_grades, squared,
@@ -1340,3 +1340,67 @@ class TestCoverageGaps:
         R1 = cl3.rotor(e1 ^ e2, radians=1.0)
         R2 = cl3.rotor_from_bivector(e1 ^ e2, radians=1.0)
         assert np.allclose(R1.data, R2.data)
+
+
+class TestComplement:
+    """Tests for complement() and uncomplement()."""
+
+    def test_complement_grade_mapping(self):
+        """complement maps grade-k to grade-(n-k)."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, e3 = alg.basis_vectors()
+        # grade 1 -> grade 2
+        assert complement(e1) == e2 ^ e3
+        # grade 2 -> grade 1
+        assert complement(e1 ^ e2) == e3
+        # grade 0 -> grade 3
+        assert complement(alg.identity) == alg.I
+        # grade 3 -> grade 0
+        assert complement(alg.I) == alg.identity
+
+    def test_complement_product_is_pseudoscalar(self):
+        """x * complement(x) = I for all basis blades."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, e3 = alg.basis_vectors()
+        I = alg.I
+        for x in [alg.identity, e1, e2, e3, e1^e2, e1^e3, e2^e3, I]:
+            assert x * complement(x) == I
+
+    def test_complement_roundtrip(self):
+        """uncomplement(complement(x)) = x."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, e3 = alg.basis_vectors()
+        for x in [e1, e1^e2, alg.I, 3*e1 + 2*e2, alg.identity]:
+            assert np.allclose(uncomplement(complement(x)).data, x.data)
+
+    def test_complement_pga(self):
+        """complement works in degenerate PGA algebra Cl(3,0,1)."""
+        alg = Algebra((1, 1, 1, 0))
+        e1, e2, e3, e0 = alg.basis_vectors()
+        I = alg.I
+        # x * complement(x) = I for basis blades
+        for x in [e1, e0, e1^e2, e1^e2^e3, e0^e1, I]:
+            assert x * complement(x) == I
+
+    def test_complement_pga_roundtrip(self):
+        """Roundtrip in PGA."""
+        alg = Algebra((1, 1, 1, 0))
+        e1, e2, e3, e0 = alg.basis_vectors()
+        for x in [e1, e0, e1^e2^e3, 2*e1 + 3*e0]:
+            assert np.allclose(uncomplement(complement(x)).data, x.data)
+
+    def test_complement_linearity(self):
+        """complement is linear."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors()
+        x = 3*e1 + 2*e2
+        assert np.allclose(complement(x).data, (3*complement(e1) + 2*complement(e2)).data)
+
+    def test_complement_sta(self):
+        """complement works in Cl(1,3) spacetime algebra."""
+        alg = Algebra((1, -1, -1, -1))
+        g0, g1, g2, g3 = alg.basis_vectors()
+        I = alg.I
+        for x in [g0, g1, g0^g1, g0^g1^g2]:
+            assert x * complement(x) == I
+            assert np.allclose(uncomplement(complement(x)).data, x.data)

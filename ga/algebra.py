@@ -97,7 +97,7 @@ class Algebra:
                       If False (default), ``repr()`` uses ASCII for copy-paste.
     """
 
-    __slots__ = ("_sig", "_dim", "_n", "_mul_index", "_mul_sign", "_grade_masks", "_names", "_latex_names", "_repr_unicode")
+    __slots__ = ("_sig", "_dim", "_n", "_mul_index", "_mul_sign", "_grade_masks", "_names", "_latex_names", "_repr_unicode", "_complement_sign")
 
     # Built-in naming presets: (code_names, unicode_names, latex_names)
     # code_names  → used in repr() (ASCII-safe)
@@ -172,6 +172,22 @@ class Algebra:
             self._grade_masks[k] = np.array(
                 [bin(i).count("1") == k for i in range(self._dim)], dtype=bool
             )
+
+        # Precompute complement signs: complement(e_S) = sign[S] * e_{S^c}
+        # The complement is metric-independent — it maps grade-k to grade-(n-k)
+        # by index set complement, with the sign chosen so that
+        # e_S * complement(e_S) = pseudoscalar for all basis blades.
+        full = self._dim - 1
+        comp_sign = np.zeros(self._dim)
+        for s in range(self._dim):
+            sc = full ^ s
+            # Count swaps: for each bit in S^c, count bits in S above it
+            swaps = 0
+            for i in range(self._n):
+                if sc & (1 << i):
+                    swaps += bin(s >> (i + 1)).count("1")
+            comp_sign[s] = (-1) ** swaps
+        self._complement_sign = comp_sign
 
     def _blade_product(self, a: int, b: int) -> tuple[int, float]:
         """Compute the geometric product of two basis blades given as bitmask indices.
@@ -868,6 +884,38 @@ def undual(x: Multivector) -> Multivector:
     """
     I = x.algebra.pseudoscalar()
     return left_contraction(x, I)
+
+
+def complement(x: Multivector) -> Multivector:
+    """Right complement: metric-independent duality.
+
+    Maps grade-k to grade-(n-k) by replacing each basis blade's index set
+    with its complement, with a sign chosen so that
+    ``x * complement(x)`` is proportional to the pseudoscalar.
+
+    Unlike ``dual()``, this works in **all** signatures including degenerate
+    algebras (PGA). It is purely combinatorial — no metric is used.
+    """
+    alg = x.algebra
+    full = alg.dim - 1
+    out = np.zeros(alg.dim)
+    for i in range(alg.dim):
+        if x.data[i] != 0:
+            out[full ^ i] += alg._complement_sign[i] * x.data[i]
+    return Multivector(alg, out)
+
+
+def uncomplement(x: Multivector) -> Multivector:
+    """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
+    alg = x.algebra
+    full = alg.dim - 1
+    out = np.zeros(alg.dim)
+    for i in range(alg.dim):
+        if x.data[i] != 0:
+            # Inverse sign: complement_sign[S^c] since we're going backwards
+            j = full ^ i
+            out[j] += alg._complement_sign[j] * x.data[i]
+    return Multivector(alg, out)
 
 
 def norm2(x: Multivector) -> float:
