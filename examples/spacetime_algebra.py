@@ -44,7 +44,7 @@ def _():
         even_grades, odd_grades, left_contraction,
     )
 
-    return Algebra, grade, np, simplify, sym
+    return Algebra, np
 
 
 @app.cell
@@ -91,7 +91,7 @@ def _(mo):
 def _(g0, g1, g2, g3, mo):
     mo.vstack([
         mo.md("**Boost generators** (square to $+1$):"),
-        mo.md(f"- $(\\gamma_0 \\gamma_1)^2 = $ `{(g0*g1)*(g0*g1)}`"),
+        mo.md(f"- $(gamma_0 gamma_1)^2 = $ `{(g0*g1)*(g0*g1)}`"),
         mo.md(f"- $(\\gamma_0 \\gamma_2)^2 = $ `{(g0*g2)*(g0*g2)}`"),
         mo.md(f"- $(\\gamma_0 \\gamma_3)^2 = $ `{(g0*g3)*(g0*g3)}`"),
         mo.md(""),
@@ -108,28 +108,27 @@ def _(mo):
     mo.md(r"""
     ## Interactive Lorentz Boost
 
-    A boost in the $\gamma_0 \gamma_1$ plane with rapidity $    arphi$:
+    A boost in the $\gamma_0 \gamma_1$ plane with rapidity $
+    arphi$:
 
-    $$R = \cosh(    arphi/2) + \sinh(    arphi/2)\, \gamma_0 \gamma_1$$
-
-    The sandwich product $R \gamma_0 	ilde{R}$ boosts the rest-frame
-    timelike vector into a moving frame.
+    $$R = \cosh(
+    arphi/2) + \sinh(
+    arphi/2)\, \gamma_0 \gamma_1$$
     """)
     return
 
 
-@app.cell
-def _(mo):
+app._unparsable_cell(
+    r"""
     rapidity_slider = mo.ui.slider(
         start=-3.0, stop=3.0, step=0.05, value=0.5,
-        label="Rapidity φ",
-    )
-    rapidity_slider
-    return (rapidity_slider,)
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g0, g1, grade, mo, np, rapidity_slider, sta, sym):
+app._unparsable_cell(
+    r"""
     _phi = rapidity_slider.value
     _R = sta.scalar(np.cosh(_phi / 2)) + np.sinh(_phi / 2) * (g0 * g1)
 
@@ -150,18 +149,19 @@ def _(g0, g1, grade, mo, np, rapidity_slider, sta, sym):
         mo.md(f"$\\beta = v/c = \\tanh(\\varphi) = {_beta:.4f}$"),
         mo.md(f"$\\gamma = \\cosh(\\varphi) = {_gamma_factor:.4f}$"),
         mo.md(f"Symbolic: {_expr.latex(wrap='$')}"),
-        mo.md(f"Result: `{_boosted}`"),
-        mo.md(f"Components: $t' = {_t:.4f}\\gamma_0,\\; x' = {_x:.4f}\\gamma_1$"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
-    ### Boost — Minkowski Diagram
-    """)
-    return
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
+
+    def _(mo):
+    """,
+    name="_"
+)
 
 
 @app.cell
@@ -209,35 +209,29 @@ def _(g0, g1, np, rapidity_slider, sta):
     ax.set_xlabel("x", fontsize=12)
     ax.set_ylabel("t", fontsize=12)
     ax.set_title(f"Minkowski Diagram — φ = {_phi:.2f}", fontsize=14)
-    ax.legend(loc="upper left", fontsize=9)
-    plt.tight_layout()
-    fig
     return
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Interactive Spatial Rotation
-
-    Rotations in STA use spacelike bivectors ($\gamma_i \gamma_j$).
-    The rotor is $R = \cos(	heta/2) - \sin(	heta/2)\, \gamma_1 \gamma_2$.
-    """)
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
+app._unparsable_cell(
+    r"""
     rot_slider = mo.ui.slider(
         start=0, stop=360, step=1, value=45,
-        label="θ (degrees)",
-    )
-    rot_slider
-    return (rot_slider,)
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g1, g2, grade, mo, np, rot_slider, sta, sym):
+app._unparsable_cell(
+    r"""
     _theta = np.radians(rot_slider.value)
     _R = sta.rotor_from_plane_angle(g1 ^ g2, _theta)
     _rotated = _R * g1 * ~_R
@@ -251,29 +245,26 @@ def _(g1, g2, grade, mo, np, rot_slider, sta, sym):
     mo.vstack([
         mo.md(f"$\\theta = {rot_slider.value}°$"),
         mo.md(f"Symbolic: {_expr.latex(wrap='$')}"),
-        mo.md(f"Result: `{_rotated}`"),
-        mo.md(f"$\\gamma_1' = {_vy:.4f}\\gamma_1 + {_vz:.4f}\\gamma_2$"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Electromagnetic Field Bivector
 
     In STA, the electromagnetic field is a single bivector $F$:
 
-    $$F = \mathbf{E} + I\mathbf{B}$$
-
-    where $\mathbf{E} = E^i \gamma_i \gamma_0$ (electric) and
-    $I\mathbf{B}$ encodes the magnetic field via the pseudoscalar.
-    """)
-    return
+    $$F = \\mathbf{E} + I\\mathbf{B}$$
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g0, g1, g2, g3, mo):
+app._unparsable_cell(
+    r"""
     # Electric field in x-direction, magnetic field in z-direction
     _E = 2 * g1 * g0
     _B_mag = 3 * g2 * g3  # This is I * (B in z-direction)
@@ -287,35 +278,31 @@ def _(g0, g1, g2, g3, mo):
         mo.md(f"Magnetic field: $IB = 3\\gamma_2\\gamma_3$ → `{_B_mag}`"),
         mo.md(f"EM bivector: $F = E + IB$ → `{_F}`"),
         mo.md(f"$F^2 = $ `{_F2}`"),
-        mo.md(f"Scalar part ($E^2 - B^2$): `{_F2.scalar_part}`"),
-        mo.md(f"Pseudoscalar part ($2\\mathbf{{E}} \\cdot \\mathbf{{B}}$): grade-4 of $F^2$"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ### Boosting the EM Field
-
-    Under a Lorentz boost, $F 	o R F 	ilde{R}$. Drag the rapidity
-    to see how the electric and magnetic fields mix.
-    """)
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
+app._unparsable_cell(
+    r"""
     em_rapidity = mo.ui.slider(
         start=-2.0, stop=2.0, step=0.05, value=0.0,
-        label="Boost rapidity φ",
-    )
-    em_rapidity
-    return (em_rapidity,)
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(em_rapidity, g0, g1, g2, g3, mo, np, sta):
+app._unparsable_cell(
+    r"""
     _phi = em_rapidity.value
     _R = sta.scalar(np.cosh(_phi / 2)) + np.sinh(_phi / 2) * (g0 * g1)
 
@@ -332,27 +319,25 @@ def _(em_rapidity, g0, g1, g2, g3, mo, np, sta):
     mo.vstack([
         mo.md(f"$\\varphi = {_phi:.2f}$"),
         mo.md(f"Original: $F = $ `{_F}`"),
-        mo.md(f"Boosted: $F' = RFR̃ = $ `{_F_prime}`"),
-        mo.md(f"$F'^2 = $ `{_F2}` (Lorentz invariant — should not change!)"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Relative Vectors (Pauli Algebra)
 
-    The relative (spatial) vectors are $\sigma_i = \gamma_i \gamma_0$.
+    The relative (spatial) vectors are $\\sigma_i = \\gamma_i \\gamma_0$.
     These are bivectors in STA but behave like the Pauli matrices:
-    $\sigma_i^2 = 1$, $\sigma_i \sigma_j = -\sigma_j \sigma_i$ for $i
-    eq j$.
-    """)
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g0, g1, g2, g3, mo):
+app._unparsable_cell(
+    r"""
     _s1 = g1 * g0
     _s2 = g2 * g0
     _s3 = g3 * g0
@@ -363,24 +348,22 @@ def _(g0, g1, g2, g3, mo):
         mo.md(f"$\\sigma_3 = \\gamma_3\\gamma_0 = $ `{_s3}`"),
         mo.md(""),
         mo.md(f"$\\sigma_1^2 = $ `{_s1 * _s1}`"),
-        mo.md(f"$\\sigma_1 \\sigma_2 = $ `{_s1 * _s2}` (bivector in spatial plane)"),
-        mo.md(f"$\\sigma_1 \\sigma_2 \\sigma_3 = $ `{_s1 * _s2 * _s3}` (= $I$, the pseudoscalar)"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Symbolic Identities
+    """,
+    name="_"
+)
 
-    Verify key STA identities using the symbolic layer.
-    """)
-    return
 
-
-@app.cell
-def _(g0, g1, g2, g3, mo, np, simplify, sta, sym):
+app._unparsable_cell(
+    r"""
     _R = sym(sta.rotor_from_plane_angle(g1 ^ g2, np.pi / 3), "R")
     _v = sym(g0, "p")
     _F = sym(2 * g1 * g0 + 3 * g2 * g3, "F")
@@ -388,25 +371,22 @@ def _(g0, g1, g2, g3, mo, np, simplify, sta, sym):
     _identities = [
         ("R̃R̃ = R", simplify(~~_R)),
         ("RR̃ = 1", simplify(_R * ~_R)),
-        ("F + F = 2F", simplify(_F + _F)),
-    ]
-    mo.md("\n".join(f"- `{name}` → ${result.latex()}$" for name, result in _identities))
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Composition of Boosts
-
-    Two successive boosts along different axes don't commute —
-    their composition includes a spatial rotation (Thomas-Wigner rotation).
-    """)
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g0, g1, g2, mo, np, sta):
+app._unparsable_cell(
+    r"""
     _phi1, _phi2 = 0.8, 0.6
 
     _R1 = sta.scalar(np.cosh(_phi1 / 2)) + np.sinh(_phi1 / 2) * (g0 * g1)
@@ -423,33 +403,32 @@ def _(g0, g1, g2, mo, np, sta):
         mo.md(f"$R_1 R_2 = $ `{_R12}`"),
         mo.md(f"$R_2 R_1 = $ `{_R21}`"),
         mo.md(f"$(R_1 R_2)(R_2 R_1)^{{\\sim}} = $ `{_diff}`"),
-        mo.md("This residual rotor is the **Thomas-Wigner rotation**."),
-        mo.md(f"It has a spatial bivector component ($\\gamma_1\\gamma_2$), confirming it's a pure rotation."),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
     ## Velocity Addition
-
-    Drag two rapidity sliders to compose boosts along the x-axis.
-    Rapidities add: $    arphi_{	ext{total}} =     arphi_1 +     arphi_2$.
-    """)
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
+app._unparsable_cell(
+    r"""
     phi1_slider = mo.ui.slider(start=-2, stop=2, step=0.05, value=0.5, label="φ₁")
-    phi2_slider = mo.ui.slider(start=-2, stop=2, step=0.05, value=0.3, label="φ₂")
-    mo.hstack([phi1_slider, phi2_slider])
-    return phi1_slider, phi2_slider
+
+    def _(mo):
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(g0, g1, mo, np, phi1_slider, phi2_slider, sta):
+app._unparsable_cell(
+    r"""
     _p1, _p2 = phi1_slider.value, phi2_slider.value
 
     _R1 = sta.scalar(np.cosh(_p1 / 2)) + np.sinh(_p1 / 2) * (g0 * g1)
@@ -467,18 +446,19 @@ def _(g0, g1, mo, np, phi1_slider, phi2_slider, sta):
         mo.md(f"$\\varphi_1 = {_p1:.2f}$ → $v_1/c = {_v1:.4f}$"),
         mo.md(f"$\\varphi_2 = {_p2:.2f}$ → $v_2/c = {_v2:.4f}$"),
         mo.md(f"Einstein addition: $(v_1 + v_2)/(1 + v_1 v_2) = {_v_einstein:.4f}$"),
-        mo.md(f"Rapidity addition: $\\tanh(\\varphi_1 + \\varphi_2) = {_v_total:.4f}$"),
-        mo.md(f"Composed rotor applied to $\\gamma_0$: `{_boosted}`"),
-    ])
-    return
+    """,
+    name="_"
+)
 
 
-@app.cell
-def _(mo):
-    mo.md(r"""
-    ### Velocity Addition Plot
-    """)
-    return
+app._unparsable_cell(
+    """
+    mo.md(r\"\"\"
+
+    def _(mo):
+    """,
+    name="_"
+)
 
 
 @app.cell
@@ -516,9 +496,6 @@ def _(np, phi1_slider, phi2_slider):
     ax.set_ylabel("v_total / c", fontsize=12)
     ax.set_title("Relativistic Velocity Addition", fontsize=14)
     ax.legend(fontsize=10)
-    ax.grid(True, alpha=0.3)
-    plt.tight_layout()
-    fig
     return
 
 

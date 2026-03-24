@@ -1,0 +1,291 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.21.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "9c66f852d7ac79b9f9f59171b20225ae",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "2613e2e7ccc3df8f0eaaa3dd2646787c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"spacetime-algebra-sta\">Spacetime Algebra (STA)</h1>\n<span class=\"paragraph\">The Spacetime Algebra is Cl(1,3) \u2014 one timelike dimension (<marimo-tex class=\"arithmatex\">||(\\gamma_0^2 = +1||)</marimo-tex>)\nand three spacelike (<marimo-tex class=\"arithmatex\">||(\\gamma_i^2 = -1||)</marimo-tex>). It encodes special relativity,\nelectromagnetism, and the Dirac equation in a single algebraic framework.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "07c4b00da079af83b6451280013b0881",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "ade42ff18d8fdf86365661373abf122a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "21572bcfb616d6c29c743ce2861f4d6b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"basis-vectors-and-signature\">Basis Vectors and Signature</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "483815862ac3678c2d97e87aebe16424",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">\u03b3\u2080\u00b2 = <code>1</code> (timelike)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">\u03b3\u2081\u00b2 = <code>-1</code> (spacelike)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">\u03b3\u2082\u00b2 = <code>-1</code> (spacelike)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">\u03b3\u2083\u00b2 = <code>-1</code> (spacelike)</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Pseudoscalar I = <code>\ud835\udc70</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">I\u00b2 = <code>-1</code></span></span></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "8e7c1d887a3e0db5f77335a6dbab5a16",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"bivectors-boosts-and-rotations\">Bivectors \u2014 Boosts and Rotations</h2>\n<span class=\"paragraph\">In STA, bivectors split into two types:</span>\n<ul>\n<li><strong>Timelike bivectors</strong> (<marimo-tex class=\"arithmatex\">||(\\gamma_0 \\gamma_i||)</marimo-tex>): generate Lorentz boosts</li>\n<li><strong>Spacelike bivectors</strong> (<marimo-tex class=\"arithmatex\">||(\\gamma_i \\gamma_j||)</marimo-tex>): generate spatial rotations</li>\n</ul></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "68bfbba6c6a38c4107ccf06eb51d9cee",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Boost generators</strong> (square to <marimo-tex class=\"arithmatex\">||(+1||)</marimo-tex>):</span></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(gamma_0 gamma_1)^2 = $ <code>1</code></li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(\\gamma_0 \\gamma_2)^2 = $ <code>1</code></li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(\\gamma_0 \\gamma_3)^2 = $ <code>1</code></li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Rotation generators</strong> (square to <marimo-tex class=\"arithmatex\">||(-1||)</marimo-tex>):</span></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(\\gamma_1 \\gamma_2)^2 = $ <code>-1</code></li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(\\gamma_1 \\gamma_3)^2 = $ <code>-1</code></li>\n</ul></span><span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li>$(\\gamma_2 \\gamma_3)^2 = $ <code>-1</code></li>\n</ul></span></div>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "c60c17cac2700a9e56fe84aa6dc3cb73",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"interactive-lorentz-boost\">Interactive Lorentz Boost</h2>\n<span class=\"paragraph\">A boost in the <marimo-tex class=\"arithmatex\">||(\\gamma_0 \\gamma_1||)</marimo-tex> plane with rapidity $\narphi$:</span>\n<marimo-tex class=\"arithmatex\">||[R = \\cosh(\narphi/2) + \\sinh(\narphi/2)\\, \\gamma_0 \\gamma_1||]</marimo-tex></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "fad039c0dc9b8bc6e6a835d0a254b30d",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "syntax",
+          "evalue": "line 1\n    rapidity_slider = mo.ui.slider(\n                                  ^\nSyntaxError: '(' was never closed\n",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "b00db6df694b5b8893b73b9ba2b1e63a",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "syntax",
+          "evalue": "line 16\n    mo.vstack([\n              ^\nSyntaxError: '[' was never closed\n",
+          "traceback": []
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "0275ba5f7ae608d138a8aebc34bb293c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "ac7c07fbfc102ea8298098d8882106ef",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "711ac06bb804ad05184db1d12f84c7b9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "ad1053ce158004a7e042fd9a75a805c4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "dfb821fcba59b4e4e22bfd2f37e2829e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "373565673c83b99ea0ed79793eddd692",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "20e49fec2fa03ac8e48fdccf4ca4765a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "2ddc7c26ceca8d131866f51d54cee448",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "d8c07f83a7e2208cb1023d3247e34636",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "a25baf9af29da1720ef87b5020d10f41",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "4c3f39814cb792957a7425fb592b15a7",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "e393ac809715c6c8899ff3ffd7f62a58",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "7ddf1497442cdbcf5bfa007ccde31336",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "4eae55941aae9ad32942eb97cc216c71",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "41306e6b3a9262bad8cdbd355248a60c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "f59353e6ab47e126dfee192ac02c8deb",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "4a1e0b1b2639a4c14cb3bde73c9318f3",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "807f02882590354fd192992ffb90737d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "64fbdf4bcee35152a46409b11994914e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "0275ba5f7ae608d138a8aebc34bb293c",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TRpd",
+      "code_hash": "4e35cc20343b1effcbdea2fb05893303",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}
