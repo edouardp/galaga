@@ -153,7 +153,7 @@ def _(R, grade, v):
 
 @app.cell
 def _(mo, sandwich_expr):
-    mo.hstack([mo.md("Evaluating:"), sandwich_expr, mo.md("="), sandwich_expr.eval()])
+    mo.hstack([mo.md("Evaluating:"), sandwich_expr, mo.md("="), sandwich_expr.eval()], justify="start")
     return
 
 
@@ -247,7 +247,7 @@ def _(R, squared):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Arithmetic & Operator Sugar
@@ -297,7 +297,7 @@ def _(R, a, b, grade, inverse, mo, norm, op, v):
         ("Sandwich", grade(R * v * ~R, 1)),
     ]
     mo.vstack([
-        mo.hstack([mo.md(f"**{name}:**"), e, mo.md("="), e.eval()])
+        mo.hstack([mo.md(f"**{name}:**"), e, mo.md("="), e.eval()], justify="start")
         for name, e in exprs
     ])
     return
@@ -323,7 +323,7 @@ def _(alg, e1, e2, grade, mo, np, sym):
 
     mo.vstack([
         mo.md(r"Rotate $v = e_1$ by $90°$ in the $e_1 e_2$ plane:"),
-        mo.hstack([rotated, mo.md("="), rotated.eval()]),
+        mo.hstack([rotated, mo.md("="), rotated.eval()], justify="start"),
     ])
     return
 
@@ -372,10 +372,7 @@ def _(R, a, grade, inverse, mo, norm, unit, v):
         ("⟨v⟩₂ (v is grade-1)", simplify(grade(v, 2))),
         ("a − (−a)", simplify(a - (-a))),
     ]
-    mo.vstack([
-        mo.md(f"- `{name}` → {result.latex(wrap='$')}")
-        for name, result in _rules
-    ])
+    mo.md("\n".join(f"- `{name}` → ${result.latex()}$" for name, result in _rules))
     return
 
 

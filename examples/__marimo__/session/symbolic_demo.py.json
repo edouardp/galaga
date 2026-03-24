@@ -202,12 +202,12 @@
     },
     {
       "id": "ZHCJ",
-      "code_hash": "61b4897b2a0861bb1e2c9c96053979d9",
+      "code_hash": "11371aff8d9d2c34355452e4ef8754eb",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: space-between;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Evaluating:</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(-e_{1} - 2 e_{2}||)</marimo-tex></span></span></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Evaluating:</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(-e_{1} - 2 e_{2}||)</marimo-tex></span></span></div>"
           }
         }
       ],
@@ -229,19 +229,40 @@
     {
       "id": "qnkX",
       "code_hash": "c283a567fb982a925e0d1e4de333bd30",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\tilde{R}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "TqIu",
       "code_hash": "935075da2797629c947c679b60b103e4",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(v^\\dagger||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Vxnm",
       "code_hash": "49068081308554d0ca683419b3729aa2",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\bar{v}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -260,31 +281,66 @@
     {
       "id": "ulZA",
       "code_hash": "08f6726b0862d6a9c5efc04b6a3f35a5",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(v^*||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ecfG",
       "code_hash": "ca59d0bc9fed078e20b9e89a7661574e",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(v^{*^{-1}}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "Pvdt",
       "code_hash": "50c7e9ac4bfd5131d3108232a9b2626e",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\lVert v \\rVert||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "ZBYS",
       "code_hash": "43fe269de650f8d10aa564a32727197d",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\hat{v}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "aLJB",
       "code_hash": "669ab26f75d876eb41b0c08b60ce30f4",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(v^{-1}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -303,19 +359,40 @@
     {
       "id": "xXTn",
       "code_hash": "c0f15f96884fc3172be20d61fc3a00b4",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle A \\rangle_{\\text{even}}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "AjVT",
       "code_hash": "82add059f4a1aad779de19a1c39b525a",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle v \\rangle_{\\text{odd}}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "pHFh",
       "code_hash": "98291cf5321babe8b4aa93fe8a494572",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(R^2||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -334,25 +411,53 @@
     {
       "id": "aqbW",
       "code_hash": "4cc0d03c7d577c8204d58d152375ddc9",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(a + b||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "TRpd",
       "code_hash": "03f3bf8fecca7e1e602a83a9b7562a11",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(a - b||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "TXez",
       "code_hash": "2f75f6d05d4d2bff19d4ede36db787fc",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(3 a||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
       "id": "dNNg",
       "code_hash": "0d391c28e85a439993f8da08bcced3e0",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\left(a + b\\right) R||)</marimo-tex></span></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -370,8 +475,15 @@
     },
     {
       "id": "wlCL",
-      "code_hash": "67e02b3505889cd6add6606679a6e9c4",
-      "outputs": [],
+      "code_hash": "f0548358d2df3dffe74c39461224a3ad",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Wedge:</strong></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(a \\wedge b||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(e_{12}||)</marimo-tex></span></span></div><div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Norm:</strong></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\lVert v \\rVert||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span>2.23606797749979</span></div><div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Inverse:</strong></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(a^{-1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(e_{1}||)</marimo-tex></span></span></div><div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Sandwich:</strong></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(-e_{1} - 2 e_{2}||)</marimo-tex></span></span></div></div>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -389,8 +501,15 @@
     },
     {
       "id": "wAgl",
-      "code_hash": "58fb7b23687a3b846928307866fc9f83",
-      "outputs": [],
+      "code_hash": "7b1d701d1ce48e909bcaca6470ba3bdc",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Rotate <marimo-tex class=\"arithmatex\">||(v = e_1||)</marimo-tex> by <marimo-tex class=\"arithmatex\">||(90\u00b0||)</marimo-tex> in the <marimo-tex class=\"arithmatex\">||(e_1 e_2||)</marimo-tex> plane:</span></span><div style='display: flex;flex: 1;flex-direction: row;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">=</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(e_{2}||)</marimo-tex></span></span></div></div>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -409,7 +528,14 @@
     {
       "id": "dGlV",
       "code_hash": "b63ea5b1b93c7d9f0bf48d12494a4f3e",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>.latex()</code> \u2192 <code>\\langle R v \\tilde{R} \\rangle_{1}</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>.latex(wrap='$')</code> \u2192 <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span></div>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -427,8 +553,15 @@
     },
     {
       "id": "lgWD",
-      "code_hash": "b1f7de6b803ff5ea6e9520029d63b531",
-      "outputs": [],
+      "code_hash": "87be84e7eb1797fb15c9a125a5a22504",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><ul>\n<li><code>~~v</code> \u2192 <marimo-tex class=\"arithmatex\">||(v||)</marimo-tex></li>\n<li><code>inverse(inverse(v))</code> \u2192 <marimo-tex class=\"arithmatex\">||(v||)</marimo-tex></li>\n<li><code>a \u2227 a</code> \u2192 <marimo-tex class=\"arithmatex\">||(0||)</marimo-tex></li>\n<li><code>a + a</code> \u2192 <marimo-tex class=\"arithmatex\">||(2 a||)</marimo-tex></li>\n<li><code>3(2v)</code> \u2192 <marimo-tex class=\"arithmatex\">||(6 v||)</marimo-tex></li>\n<li><code>R~R</code> \u2192 <marimo-tex class=\"arithmatex\">||(1||)</marimo-tex></li>\n<li><code>\u2016unit(v)\u2016</code> \u2192 <marimo-tex class=\"arithmatex\">||(1||)</marimo-tex></li>\n<li><code>\u27e8v\u27e9\u2081 (v is grade-1)</code> \u2192 <marimo-tex class=\"arithmatex\">||(v||)</marimo-tex></li>\n<li><code>\u27e8v\u27e9\u2082 (v is grade-1)</code> \u2192 <marimo-tex class=\"arithmatex\">||(0||)</marimo-tex></li>\n<li><code>a \u2212 (\u2212a)</code> \u2192 <marimo-tex class=\"arithmatex\">||(2 a||)</marimo-tex></li>\n</ul></span>"
+          }
+        }
+      ],
       "console": []
     },
     {
@@ -447,7 +580,14 @@
     {
       "id": "fwwy",
       "code_hash": "d0e75e28bfa529544ce994ecf7188e5d",
-      "outputs": [],
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>v = 3e\u2081 + 4e\u2082 + 5e\u2083</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>v.vector_part</code> \u2192 <code>[3. 4. 5.]</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>v.scalar_part</code> \u2192 <code>0.0</code></span></span><span class=\"markdown prose dark:prose-invert contents\"></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>mv = 7 + v + e\u2081\u2082</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>mv.vector_part</code> \u2192 <code>[3. 4. 5.]</code></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><code>mv.scalar_part</code> \u2192 <code>7.0</code></span></span></div>"
+          }
+        }
+      ],
       "console": []
     },
     {

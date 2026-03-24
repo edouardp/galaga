@@ -390,10 +390,7 @@ def _(g0, g1, g2, g3, mo, np, simplify, sta, sym):
         ("RR̃ = 1", simplify(_R * ~_R)),
         ("F + F = 2F", simplify(_F + _F)),
     ]
-    mo.vstack([
-        mo.md(f"- `{name}` → {result.latex(wrap='$')}")
-        for name, result in _identities
-    ])
+    mo.md("\n".join(f"- `{name}` → ${result.latex()}$" for name, result in _identities))
     return
 
 
