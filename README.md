@@ -338,6 +338,42 @@ print(expr)          # ⟨RvR̃⟩₁
 print(expr.eval())   # -e₁ - 2e₂
 ```
 
+### LaTeX Output
+
+Every expression has a `.latex()` method for use in documents, notebooks, and markdown:
+
+```python
+expr = grade(R * v * ~R, 1)
+print(expr.latex())  # \langle R v \tilde{R} \rangle_{1}
+```
+
+In Jupyter notebooks, expressions render automatically via `_repr_latex_()`.
+
+Full LaTeX rendering table:
+
+| Expression | Code | Unicode | LaTeX |
+|---|---|---|---|
+| Geometric product | `R * v * ~R` | `RvR̃` | `R v \tilde{R}` |
+| Wedge | `a ^ b` | `a∧b` | `a \wedge b` |
+| Left contraction | `a \| b` | `a⌋b` | `a \;\lrcorner\; b` |
+| Right contraction | `right_contraction(a, b)` | `a⌊b` | `a \;\llcorner\; b` |
+| Hestenes inner | `hestenes_inner(a, b)` | `A·B` | `A \cdot B` |
+| Scalar product | `scalar_product(a, b)` | `A∗B` | `A * B` |
+| Reverse | `~R` | `R̃` | `\tilde{R}` |
+| Involute | `involute(v)` | `v̂` | `v^\dagger` |
+| Conjugate | `conjugate(v)` | `v̄` | `\bar{v}` |
+| Dual | `dual(v)` | `v⋆` | `v^*` |
+| Undual | `undual(v)` | `v⋆⁻¹` | `v^{*^{-1}}` |
+| Norm | `norm(v)` | `‖v‖` | `\lVert v \rVert` |
+| Unit | `unit(v)` | `v̂` | `\hat{v}` |
+| Inverse | `v.inv` | `v⁻¹` | `v^{-1}` |
+| Grade projection | `grade(A * B, 2)` | `⟨AB⟩₂` | `\langle A B \rangle_{2}` |
+| Even grades | `even(A)` | `⟨A⟩₊` | `\langle A \rangle_{\text{even}}` |
+| Odd grades | `odd(A)` | `⟨A⟩₋` | `\langle A \rangle_{\text{odd}}` |
+| Squared | `squared(R)` or `R.sq` | `R²` | `R^2` |
+| Addition | `a + b` | `a + b` | `a + b` |
+| Scalar multiply | `3 * a` | `3a` | `3 a` |
+
 ### Drop-in Functions
 
 The symbolic module provides drop-in replacements for all `ga` functions. They detect `Expr` arguments and build trees; with plain `Multivector` arguments they delegate to the numeric core:
