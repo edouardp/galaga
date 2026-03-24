@@ -483,11 +483,3 @@ uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 - Symbolic rendering and evaluation tests
 - Edge cases and error handling
 
-$$v$$
-
-$v$
-
-$$
-v
-$$
-
