@@ -547,15 +547,15 @@ print(sandwich(R, v).eval()) # e₂
 
 Short names for experienced users, long names for readability:
 
-```python
-gp  ↔  geometric_product
-op  ↔  wedge  ↔  outer_product
-ip  ↔  inner_product
-reverse  ↔  rev
-unit  ↔  normalize  ↔  normalise
-sandwich  ↔  sw
-alg.rotor  ↔  alg.rotor_from_bivector  ↔  alg.rotor_from_plane_angle
-```
+| Short | Long |
+|---|---|
+| `gp` | `geometric_product` |
+| `op` | `wedge`, `outer_product` |
+| `ip` | `inner_product` |
+| `rev` | `reverse` |
+| `unit` | `normalize`, `normalise` |
+| `sw` | `sandwich` |
+| `alg.rotor` | `alg.rotor_from_bivector`, `alg.rotor_from_plane_angle` |
 
 ## Recipes
 
