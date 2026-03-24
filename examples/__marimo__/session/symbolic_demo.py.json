@@ -571,7 +571,7 @@
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='yOPj-0' random-id='31f839db-c0a0-7605-c016-0b0a5a94f5ca'><marimo-slider data-initial-value='90' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Angle (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='yOPj-0' random-id='5ace883a-71d6-2794-4dbb-4c27a534cd92'><marimo-slider data-initial-value='90' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Angle (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
           }
         }
       ],
@@ -579,15 +579,40 @@
     },
     {
       "id": "fwwy",
-      "code_hash": "aec32f6e1a69e97e4033e2490674fb82",
+      "code_hash": "bc1a908db62ec23735aa3253e46f741b",
       "outputs": [
         {
-          "type": "error",
-          "ename": "multiple-defs",
-          "evalue": "The variable 'expr' was defined by another cell",
-          "traceback": []
+          "type": "data",
+          "data": {
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\theta = 180\u00b0||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Symbolic: <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Result: <marimo-tex class=\"arithmatex\">||(\\;||)</marimo-tex> <code>-e\u2081</code></span></span></div>"
+          }
         }
       ],
+      "console": []
+    },
+    {
+      "id": "LJZf",
+      "code_hash": "78f442ef9dd6313fbee9681f2ed06809",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"2d-rotation-visualizer\">2D Rotation Visualizer</h2>\n<span class=\"paragraph\">Drag the slider to rotate <marimo-tex class=\"arithmatex\">||(e_1||)</marimo-tex> (blue) \u2192 rotated vector (red) in the <marimo-tex class=\"arithmatex\">||(e_1 e_2||)</marimo-tex> plane.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "urSm",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "jxvo",
+      "code_hash": null,
+      "outputs": [],
       "console": []
     },
     {

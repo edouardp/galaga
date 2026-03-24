@@ -394,6 +394,72 @@ def _(alg, angle_slider, e1, e2, grade, mo, np, sym):
 
 
 @app.cell
+def _(mo):
+    mo.md("""
+    ## 2D Rotation Visualizer
+    Drag the slider to rotate $e_1$ (blue) → rotated vector (red) in the $e_1 e_2$ plane.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    plot_angle = mo.ui.slider(
+        start=0, stop=360, step=1, value=45, label="θ (degrees)"
+    )
+    plot_angle
+    return (plot_angle,)
+
+
+@app.cell
+def _(alg, e1, e2, grade, np, plot_angle, sym):
+    import matplotlib.pyplot as plt
+    import matplotlib
+    matplotlib.rcParams.update({"figure.facecolor": "white"})
+
+    _theta = np.radians(plot_angle.value)
+    _R = alg.rotor_from_plane_angle(e1 ^ e2, _theta)
+    _v_rot = _R * e1 * ~_R
+
+    # Extract x,y components
+    _vx = grade(_v_rot, 1).data[1]
+    _vy = grade(_v_rot, 1).data[2]
+
+    fig, ax = plt.subplots(figsize=(5, 5))
+    ax.set_xlim(-1.4, 1.4)
+    ax.set_ylim(-1.4, 1.4)
+    ax.set_aspect("equal")
+    ax.grid(True, alpha=0.3)
+    ax.axhline(0, color="k", lw=0.5)
+    ax.axvline(0, color="k", lw=0.5)
+
+    # Draw unit circle
+    _t = np.linspace(0, 2 * np.pi, 100)
+    ax.plot(np.cos(_t), np.sin(_t), "k-", alpha=0.1)
+
+    # Original vector (e1)
+    ax.quiver(0, 0, 1, 0, angles="xy", scale_units="xy", scale=1, color="steelblue", width=0.02, label="$e_1$")
+    # Rotated vector
+    ax.quiver(0, 0, _vx, _vy, angles="xy", scale_units="xy", scale=1, color="crimson", width=0.02, label=f"$R e_1 \\tilde{{R}}$")
+
+    # Arc showing angle
+    _arc_t = np.linspace(0, _theta, 50)
+    ax.plot(0.3 * np.cos(_arc_t), 0.3 * np.sin(_arc_t), "k-", alpha=0.4)
+
+    ax.legend(loc="upper left", fontsize=12)
+    ax.set_title(f"θ = {plot_angle.value}°", fontsize=14)
+
+    # Symbolic expression
+    _R_s = sym(_R, "R")
+    _v_s = sym(e1, "v")
+    _expr = grade(_R_s * _v_s * ~_R_s, 1)
+
+    plt.tight_layout()
+    fig
+    return
+
+
+@app.cell
 def _():
     return
 
