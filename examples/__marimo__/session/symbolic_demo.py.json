@@ -1,0 +1,353 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.21.1",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "dGlV",
+      "code_hash": null,
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "02e37c0914a7cd31e79861626e9a5017",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h1 id=\"geometric-algebra-symbolic-expressions\">Geometric Algebra \u2014 Symbolic Expressions</h1>\n<span class=\"paragraph\">This notebook demonstrates the symbolic layer of the <code>ga</code> library.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "6d5b7a8d8c510e9b6da2c7f0ef2ebc4e",
+      "outputs": [
+        {
+          "type": "error",
+          "ename": "exception",
+          "evalue": "cannot import name 'Algebra' from 'ga' (/Users/edouard/.cache/uv/archive-v0/aod14NlWCLDE49geICBiY/lib/python3.13/site-packages/ga/__init__.py)",
+          "traceback": []
+        }
+      ],
+      "console": [
+        {
+          "type": "stream",
+          "name": "stderr",
+          "text": "<span class=\"codehilite\"><div class=\"highlight\"><pre><span></span><span class=\"gt\">Traceback (most recent call last):</span>\n  File <span class=\"nb\">&quot;/var/folders/10/nwsp4sjj19z1gsndkmxzn0cw0000gn/T/marimo_68943/__marimo__cell_vblA_.py&quot;</span>, line <span class=\"m\">2</span>, in <span class=\"n\">&lt;module&gt;</span>\n<span class=\"w\">    </span><span class=\"kn\">from</span><span class=\"w\"> </span><span class=\"nn\">ga</span><span class=\"w\"> </span><span class=\"kn\">import</span> <span class=\"n\">Algebra</span>\n<span class=\"gr\">ImportError</span>: <span class=\"n\">cannot import name &#39;Algebra&#39; from &#39;ga&#39; (/Users/edouard/.cache/uv/archive-v0/aod14NlWCLDE49geICBiY/lib/python3.13/site-packages/ga/__init__.py)</span>\n</pre></div>\n</span>",
+          "mimetype": "application/vnd.marimo+traceback"
+        }
+      ]
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "43d348101fe80b2efde40bb15577daf7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"setup-3d-euclidean-algebra\">Setup \u2014 3D Euclidean Algebra</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "8f62b39c4f8dd3405020a439037722ad",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "96351bdcc7c4c0a4086d93bfcdc42666",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"products\">Products</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "c48ef1a54f450934ead9dee3111f72ae",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "5a946b58c6b1ad80d7ecc2f133ffc0ad",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "ad2c73c45592342bc05b2b05d5291a25",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "08ce9b680cb8b367b490a110c5d89da9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "db931be739c1cd6657ba813af60ad897",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "7a38e8b8f4edc1394e27ad6d8e1b9e55",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "42503d904d15dc84f79e8df649373d67",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"sandwich-product-grade-projection\">Sandwich Product &amp; Grade Projection</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "af12a50492ffdfe87d3efb7d45e3202e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "c9f7692a23f105553c78d2c01277a19a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "8888e43c1faf3c4dde92c51fbbbe4d37",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"unary-operations\">Unary Operations</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "c283a567fb982a925e0d1e4de333bd30",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "935075da2797629c947c679b60b103e4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "49068081308554d0ca683419b3729aa2",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "9393cff98ebe3e74b872ddc84c38dcd2",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"dual-norm-unit-inverse\">Dual, Norm, Unit, Inverse</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "08f6726b0862d6a9c5efc04b6a3f35a5",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ulZA",
+      "code_hash": "ca59d0bc9fed078e20b9e89a7661574e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ecfG",
+      "code_hash": "50c7e9ac4bfd5131d3108232a9b2626e",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "Pvdt",
+      "code_hash": "43fe269de650f8d10aa564a32727197d",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "ZBYS",
+      "code_hash": "669ab26f75d876eb41b0c08b60ce30f4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aLJB",
+      "code_hash": "9a060517fe852b9e28ca32536241b36c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"even-odd-grades-squared\">Even / Odd Grades, Squared</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nHfw",
+      "code_hash": "c0f15f96884fc3172be20d61fc3a00b4",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "xXTn",
+      "code_hash": "82add059f4a1aad779de19a1c39b525a",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "AjVT",
+      "code_hash": "98291cf5321babe8b4aa93fe8a494572",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "pHFh",
+      "code_hash": "cdb66083f8fa75d961c42533439492f7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"arithmetic-operator-sugar\">Arithmetic &amp; Operator Sugar</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "NCOB",
+      "code_hash": "4cc0d03c7d577c8204d58d152375ddc9",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "aqbW",
+      "code_hash": "03f3bf8fecca7e1e602a83a9b7562a11",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TRpd",
+      "code_hash": "2f75f6d05d4d2bff19d4ede36db787fc",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "TXez",
+      "code_hash": "0d391c28e85a439993f8da08bcced3e0",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "dNNg",
+      "code_hash": "02a0e4ece675b85ff52fd5efc02b93ba",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"evaluating-expressions\">Evaluating Expressions</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "yCnT",
+      "code_hash": "7ae9c30697d9634ee930e65585952828",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "wlCL",
+      "code_hash": "8522ffb9193455ecd41ca0714c71c38b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"rotation-demo\">Rotation Demo</h2></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "kqZH",
+      "code_hash": "7f5caaf3b420adc4bb631072d4285664",
+      "outputs": [],
+      "console": []
+    },
+    {
+      "id": "wAgl",
+      "code_hash": "be4a48c98a191ceebb56e26e835dc3d8",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><h2 id=\"latex-output\">LaTeX Output</h2>\n<span class=\"paragraph\">Every expression has <code>.latex()</code> for raw LaTeX and <code>.latex(wrap='$')</code> for inline math.</span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "rEll",
+      "code_hash": "b63ea5b1b93c7d9f0bf48d12494a4f3e",
+      "outputs": [],
+      "console": []
+    }
+  ]
+}

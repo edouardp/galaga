@@ -1,17 +1,33 @@
 import marimo
 
+__generated_with = "0.21.1"
 app = marimo.App()
 
 
 @app.cell
 def _():
+    import sys
+    from pathlib import Path
+
+    _root = str(Path(__file__).resolve().parent.parent)
+    if _root not in sys.path:
+        sys.path.insert(0, _root)
+    return
+
+
+@app.cell
+def _():
     import marimo as mo
+
     return (mo,)
 
 
 @app.cell
 def _(mo):
-    mo.md("# Geometric Algebra — Symbolic Expressions\nThis notebook demonstrates the symbolic layer of the `ga` library.")
+    mo.md("""
+    # Geometric Algebra — Symbolic Expressions
+    This notebook demonstrates the symbolic layer of the `ga` library.
+    """)
     return
 
 
@@ -25,18 +41,37 @@ def _():
         left_contraction, right_contraction, hestenes_inner, scalar_product,
         even_grades, odd_grades,
     )
+
     return (
-        Algebra, np,
-        sym, gp, op, grade, grades, reverse, involute, conjugate,
-        dual, undual, norm, unit, inverse, squared,
-        left_contraction, right_contraction, hestenes_inner, scalar_product,
-        even_grades, odd_grades,
+        Algebra,
+        conjugate,
+        dual,
+        even_grades,
+        gp,
+        grade,
+        hestenes_inner,
+        inverse,
+        involute,
+        left_contraction,
+        norm,
+        np,
+        odd_grades,
+        op,
+        reverse,
+        right_contraction,
+        scalar_product,
+        squared,
+        sym,
+        undual,
+        unit,
     )
 
 
 @app.cell
 def _(mo):
-    mo.md("## Setup — 3D Euclidean Algebra")
+    mo.md("""
+    ## Setup — 3D Euclidean Algebra
+    """)
     return
 
 
@@ -52,17 +87,19 @@ def _(Algebra, sym):
     b = sym(e2, "b")
     A = sym(e1 * e2, "A")
     B = sym(e2 * e3, "B")
-    return alg, e1, e2, e3, R, v, a, b, A, B
+    return A, B, R, a, alg, b, e1, e2, v
 
 
 @app.cell
 def _(mo):
-    mo.md("## Products")
+    mo.md("""
+    ## Products
+    """)
     return
 
 
 @app.cell
-def _(R, v, a, b, A, B, gp, op, left_contraction, right_contraction, hestenes_inner, scalar_product):
+def _(a, b, gp):
     # Each expression renders as LaTeX automatically in marimo
     gp(a, b)
     return
@@ -100,12 +137,14 @@ def _(A, B, scalar_product):
 
 @app.cell
 def _(mo):
-    mo.md("## Sandwich Product & Grade Projection")
+    mo.md("""
+    ## Sandwich Product & Grade Projection
+    """)
     return
 
 
 @app.cell
-def _(R, v, grade):
+def _(R, grade, v):
     # The classic rotor sandwich: grade-1 projection of R v R̃
     expr = grade(R * v * ~R, 1)
     expr
@@ -114,13 +153,17 @@ def _(R, v, grade):
 
 @app.cell
 def _(expr, mo):
-    mo.md(f"Evaluating: {expr.latex(wrap='$')} = `{expr.eval()}`")
+    mo.md(f"""
+    Evaluating: {expr.latex(wrap='$')} = `{expr.eval()}`
+    """)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## Unary Operations")
+    mo.md("""
+    ## Unary Operations
+    """)
     return
 
 
@@ -131,56 +174,60 @@ def _(R, reverse):
 
 
 @app.cell
-def _(v, involute):
+def _(involute, v):
     involute(v)
     return
 
 
 @app.cell
-def _(v, conjugate):
+def _(conjugate, v):
     conjugate(v)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## Dual, Norm, Unit, Inverse")
+    mo.md("""
+    ## Dual, Norm, Unit, Inverse
+    """)
     return
 
 
 @app.cell
-def _(v, dual):
+def _(dual, v):
     dual(v)
     return
 
 
 @app.cell
-def _(v, undual):
+def _(undual, v):
     undual(v)
     return
 
 
 @app.cell
-def _(v, norm):
+def _(norm, v):
     norm(v)
     return
 
 
 @app.cell
-def _(v, unit):
+def _(unit, v):
     unit(v)
     return
 
 
 @app.cell
-def _(v, inverse):
+def _(inverse, v):
     inverse(v)
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("## Even / Odd Grades, Squared")
+    mo.md("""
+    ## Even / Odd Grades, Squared
+    """)
     return
 
 
@@ -191,7 +238,7 @@ def _(A, even_grades):
 
 
 @app.cell
-def _(v, odd_grades):
+def _(odd_grades, v):
     odd_grades(v)
     return
 
@@ -204,7 +251,9 @@ def _(R, squared):
 
 @app.cell
 def _(mo):
-    mo.md("## Arithmetic & Operator Sugar")
+    mo.md("""
+    ## Arithmetic & Operator Sugar
+    """)
     return
 
 
@@ -227,7 +276,7 @@ def _(a):
 
 
 @app.cell
-def _(a, b, R):
+def _(R, a, b):
     # Parenthesization is automatic
     (a + b) * R
     return
@@ -235,12 +284,14 @@ def _(a, b, R):
 
 @app.cell
 def _(mo):
-    mo.md("## Evaluating Expressions")
+    mo.md("""
+    ## Evaluating Expressions
+    """)
     return
 
 
 @app.cell
-def _(mo, a, b, op, norm, inverse, grade, R, v):
+def _(R, a, b, grade, inverse, mo, norm, op, v):
     exprs = [
         ("Wedge", op(a, b)),
         ("Norm", norm(v)),
@@ -256,12 +307,14 @@ def _(mo, a, b, op, norm, inverse, grade, R, v):
 
 @app.cell
 def _(mo):
-    mo.md("## Rotation Demo")
+    mo.md("""
+    ## Rotation Demo
+    """)
     return
 
 
 @app.cell
-def _(alg, e1, e2, np, sym, grade, mo):
+def _(alg, e1, e2, grade, mo, np, sym):
     theta = np.pi / 2
     Bplane = e1 ^ e2
     Rot = alg.rotor_from_plane_angle(Bplane, theta)
@@ -280,12 +333,15 @@ def _(alg, e1, e2, np, sym, grade, mo):
 
 @app.cell
 def _(mo):
-    mo.md("## LaTeX Output\nEvery expression has `.latex()` for raw LaTeX and `.latex(wrap='$')` for inline math.")
+    mo.md("""
+    ## LaTeX Output
+    Every expression has `.latex()` for raw LaTeX and `.latex(wrap='$')` for inline math.
+    """)
     return
 
 
 @app.cell
-def _(R, v, grade, mo):
+def _(R, grade, mo, v):
     sandwich = grade(R * v * ~R, 1)
     mo.vstack([
         mo.md(f"`.latex()` → `{sandwich.latex()}`"),
