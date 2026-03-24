@@ -185,7 +185,7 @@ def _(conjugate, v):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Dual, Norm, Unit, Inverse
@@ -223,7 +223,7 @@ def _(inverse, v):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Even / Odd Grades, Squared
@@ -305,7 +305,7 @@ def _(R, a, b, grade, inverse, mo, norm, op, v):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Rotation Demo

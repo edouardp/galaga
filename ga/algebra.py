@@ -644,6 +644,7 @@ outer_product = op
 rev = reverse
 normalize = unit
 normalise = unit
+norm_squared = norm2
 even = even_grades
 odd = odd_grades
 

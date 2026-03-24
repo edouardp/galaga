@@ -38,6 +38,7 @@ from ga.algebra import (
     squared,
     sandwich,
     sw,
+    norm_squared,
     # Aliases
     geometric_product,
     wedge,
@@ -90,6 +91,7 @@ __all__ = [
     "rev",
     "normalize",
     "normalise",
+    "norm_squared",
     "ip",
     "inner_product",
 ]
