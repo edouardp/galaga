@@ -331,7 +331,7 @@ def _(alg, e1, e2, grade, mo, np, sym):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## LaTeX Output
