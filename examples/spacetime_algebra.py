@@ -1,5 +1,6 @@
 import marimo
 
+__generated_with = "0.21.1"
 app = marimo.App()
 
 
@@ -17,16 +18,17 @@ def _():
 @app.cell
 def _():
     import marimo as mo
+
     return (mo,)
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     # Spacetime Algebra (STA)
 
-    The Spacetime Algebra is Cl(1,3) — one timelike dimension ($\\gamma_0^2 = +1$)
-    and three spacelike ($\\gamma_i^2 = -1$). It encodes special relativity,
+    The Spacetime Algebra is Cl(1,3) — one timelike dimension ($\gamma_0^2 = +1$)
+    and three spacelike ($\gamma_i^2 = -1$). It encodes special relativity,
     electromagnetism, and the Dirac equation in a single algebraic framework.
     """)
     return
@@ -41,48 +43,46 @@ def _():
         dual, norm, unit, inverse, sandwich, simplify,
         even_grades, odd_grades, left_contraction,
     )
-    return (
-        Algebra, np,
-        sym, gp, op, grade, reverse, involute, conjugate,
-        dual, norm, unit, inverse, sandwich, simplify,
-        even_grades, odd_grades, left_contraction,
-    )
+
+    return Algebra, grade, np, simplify, sym
 
 
 @app.cell
 def _(Algebra):
     sta = Algebra((1, -1, -1, -1), names="gamma")
     g0, g1, g2, g3 = sta.basis_vectors()
-    return sta, g0, g1, g2, g3
+    return g0, g1, g2, g3, sta
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
-    mo.md("## Basis Vectors and Signature")
+    mo.md("""
+    ## Basis Vectors and Signature
+    """)
     return
 
 
 @app.cell
 def _(g0, g1, g2, g3, mo, sta):
     mo.vstack([
-        mo.md(f"$\\gamma_0^2 = $ `{g0 * g0}` (timelike)"),
-        mo.md(f"$\\gamma_1^2 = $ `{g1 * g1}` (spacelike)"),
-        mo.md(f"$\\gamma_2^2 = $ `{g2 * g2}` (spacelike)"),
-        mo.md(f"$\\gamma_3^2 = $ `{g3 * g3}` (spacelike)"),
-        mo.md(f"Pseudoscalar $I = $ `{sta.I}`"),
-        mo.md(f"$I^2 = $ `{sta.I * sta.I}`"),
+        mo.md(f"γ₀² = `{g0 * g0}` (timelike)"),
+        mo.md(f"γ₁² = `{g1 * g1}` (spacelike)"),
+        mo.md(f"γ₂² = `{g2 * g2}` (spacelike)"),
+        mo.md(f"γ₃² = `{g3 * g3}` (spacelike)"),
+        mo.md(f"Pseudoscalar I = `{sta.I}`"),
+        mo.md(f"I² = `{sta.I * sta.I}`"),
     ])
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Bivectors — Boosts and Rotations
 
     In STA, bivectors split into two types:
-    - **Timelike bivectors** ($\\gamma_0 \\gamma_i$): generate Lorentz boosts
-    - **Spacelike bivectors** ($\\gamma_i \\gamma_j$): generate spatial rotations
+    - **Timelike bivectors** ($\gamma_0 \gamma_i$): generate Lorentz boosts
+    - **Spacelike bivectors** ($\gamma_i \gamma_j$): generate spatial rotations
     """)
     return
 
@@ -108,11 +108,11 @@ def _(mo):
     mo.md("""
     ## Interactive Lorentz Boost
 
-    A boost in the $\\gamma_0 \\gamma_1$ plane with rapidity $\\varphi$:
+    A boost in the $\gamma_0 \gamma_1$ plane with rapidity $    arphi$:
 
-    $$R = \\cosh(\\varphi/2) + \\sinh(\\varphi/2)\\, \\gamma_0 \\gamma_1$$
+    $$R = \cosh(    arphi/2) + \sinh(    arphi/2)\, \gamma_0 \gamma_1$$
 
-    The sandwich product $R \\gamma_0 \\tilde{R}$ boosts the rest-frame
+    The sandwich product $R \gamma_0 	ilde{R}$ boosts the rest-frame
     timelike vector into a moving frame.
     """)
     return
@@ -146,24 +146,26 @@ def _(g0, g1, grade, mo, np, rapidity_slider, sta, sym):
     _expr = grade(_R_s * _g0_s * ~_R_s, 1)
 
     mo.vstack([
-        mo.md(f"$\\varphi = {_phi:.2f}$"),
-        mo.md(f"$\\beta = v/c = \\tanh(\\varphi) = {_beta:.4f}$"),
-        mo.md(f"$\\gamma = \\cosh(\\varphi) = {_gamma_factor:.4f}$"),
+        mo.md(f"φ = {_phi:.2f}"),
+        mo.md(f"β = v/c = tanh(φ) = {_beta:.4f}"),
+        mo.md(f"γ = cosh(φ) = {_gamma_factor:.4f}"),
         mo.md(f"Symbolic: {_expr.latex(wrap='$')}"),
         mo.md(f"Result: `{_boosted}`"),
-        mo.md(f"Components: $t' = {_t:.4f}\\gamma_0,\\; x' = {_x:.4f}\\gamma_1$"),
+        mo.md(f"Components: t' = {_t:.4f} γ₀, x' = {_x:.4f} γ₁"),
     ])
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("### Boost — Minkowski Diagram")
+    mo.md("""
+    ### Boost — Minkowski Diagram
+    """)
     return
 
 
 @app.cell
-def _(g0, g1, mo, np, rapidity_slider, sta):
+def _(g0, g1, np, rapidity_slider, sta):
     import matplotlib.pyplot as plt
     import matplotlib
     matplotlib.rcParams.update({"figure.facecolor": "white"})
@@ -218,8 +220,8 @@ def _(mo):
     mo.md("""
     ## Interactive Spatial Rotation
 
-    Rotations in STA use spacelike bivectors ($\\gamma_i \\gamma_j$).
-    The rotor is $R = \\cos(\\theta/2) - \\sin(\\theta/2)\\, \\gamma_1 \\gamma_2$.
+    Rotations in STA use spacelike bivectors ($\gamma_i \gamma_j$).
+    The rotor is $R = \cos(	heta/2) - \sin(	heta/2)\, \gamma_1 \gamma_2$.
     """)
     return
 
@@ -247,10 +249,10 @@ def _(g1, g2, grade, mo, np, rot_slider, sta, sym):
     _vy, _vz = _rotated.vector_part[1], _rotated.vector_part[2]
 
     mo.vstack([
-        mo.md(f"$\\theta = {rot_slider.value}°$"),
+        mo.md(f"θ = {rot_slider.value}°"),
         mo.md(f"Symbolic: {_expr.latex(wrap='$')}"),
         mo.md(f"Result: `{_rotated}`"),
-        mo.md(f"$\\gamma_1' = {_vy:.4f}\\gamma_1 + {_vz:.4f}\\gamma_2$"),
+        mo.md(f"γ₁' = {_vy:.4f} γ₁ + {_vz:.4f} γ₂"),
     ])
     return
 
@@ -262,16 +264,16 @@ def _(mo):
 
     In STA, the electromagnetic field is a single bivector $F$:
 
-    $$F = \\mathbf{E} + I\\mathbf{B}$$
+    $$F = \mathbf{E} + I\mathbf{B}$$
 
-    where $\\mathbf{E} = E^i \\gamma_i \\gamma_0$ (electric) and
-    $I\\mathbf{B}$ encodes the magnetic field via the pseudoscalar.
+    where $\mathbf{E} = E^i \gamma_i \gamma_0$ (electric) and
+    $I\mathbf{B}$ encodes the magnetic field via the pseudoscalar.
     """)
     return
 
 
 @app.cell
-def _(g0, g1, g2, g3, mo, sta):
+def _(g0, g1, g2, g3, mo):
     # Electric field in x-direction, magnetic field in z-direction
     _E = 2 * g1 * g0
     _B_mag = 3 * g2 * g3  # This is I * (B in z-direction)
@@ -281,12 +283,12 @@ def _(g0, g1, g2, g3, mo, sta):
     _F2 = _F * _F
 
     mo.vstack([
-        mo.md(f"Electric field: $E = 2\\gamma_1\\gamma_0$ → `{_E}`"),
-        mo.md(f"Magnetic field: $IB = 3\\gamma_2\\gamma_3$ → `{_B_mag}`"),
-        mo.md(f"EM bivector: $F = E + IB$ → `{_F}`"),
-        mo.md(f"$F^2 = $ `{_F2}`"),
-        mo.md(f"Scalar part ($E^2 - B^2$): `{_F2.scalar_part}`"),
-        mo.md(f"Pseudoscalar part ($2\\mathbf{{E}} \\cdot \\mathbf{{B}}$): grade-4 of $F^2$"),
+        mo.md(f"Electric field: E = 2γ₁γ₀ → `{_E}`"),
+        mo.md(f"Magnetic field: IB = 3γ₂γ₃ → `{_B_mag}`"),
+        mo.md(f"EM bivector: F = E + IB → `{_F}`"),
+        mo.md(f"F² = `{_F2}`"),
+        mo.md(f"Scalar part (E² − B²): `{_F2.scalar_part}`"),
+        mo.md(f"Pseudoscalar part (2E·B): grade-4 of F²"),
     ])
     return
 
@@ -296,7 +298,7 @@ def _(mo):
     mo.md("""
     ### Boosting the EM Field
 
-    Under a Lorentz boost, $F \\to R F \\tilde{R}$. Drag the rapidity
+    Under a Lorentz boost, $F 	o R F 	ilde{R}$. Drag the rapidity
     to see how the electric and magnetic fields mix.
     """)
     return
@@ -328,10 +330,10 @@ def _(em_rapidity, g0, g1, g2, g3, mo, np, sta):
     _F2 = _F_prime * _F_prime
 
     mo.vstack([
-        mo.md(f"$\\varphi = {_phi:.2f}$"),
-        mo.md(f"Original: $F = $ `{_F}`"),
-        mo.md(f"Boosted: $F' = RFR̃ = $ `{_F_prime}`"),
-        mo.md(f"$F'^2 = $ `{_F2}` (Lorentz invariant — should not change!)"),
+        mo.md(f"φ = {_phi:.2f}"),
+        mo.md(f"Original: F = `{_F}`"),
+        mo.md(f"Boosted: F' = RFR̃ = `{_F_prime}`"),
+        mo.md(f"F'² = `{_F2}` (Lorentz invariant — should not change!)"),
     ])
     return
 
@@ -341,9 +343,10 @@ def _(mo):
     mo.md("""
     ## Relative Vectors (Pauli Algebra)
 
-    The relative (spatial) vectors are $\\sigma_i = \\gamma_i \\gamma_0$.
+    The relative (spatial) vectors are $\sigma_i = \gamma_i \gamma_0$.
     These are bivectors in STA but behave like the Pauli matrices:
-    $\\sigma_i^2 = 1$, $\\sigma_i \\sigma_j = -\\sigma_j \\sigma_i$ for $i \\neq j$.
+    $\sigma_i^2 = 1$, $\sigma_i \sigma_j = -\sigma_j \sigma_i$ for $i
+    eq j$.
     """)
     return
 
@@ -355,13 +358,13 @@ def _(g0, g1, g2, g3, mo):
     _s3 = g3 * g0
 
     mo.vstack([
-        mo.md(f"$\\sigma_1 = \\gamma_1\\gamma_0 = $ `{_s1}`"),
-        mo.md(f"$\\sigma_2 = \\gamma_2\\gamma_0 = $ `{_s2}`"),
-        mo.md(f"$\\sigma_3 = \\gamma_3\\gamma_0 = $ `{_s3}`"),
+        mo.md(f"σ₁ = γ₁γ₀ = `{_s1}`"),
+        mo.md(f"σ₂ = γ₂γ₀ = `{_s2}`"),
+        mo.md(f"σ₃ = γ₃γ₀ = `{_s3}`"),
         mo.md(""),
-        mo.md(f"$\\sigma_1^2 = $ `{_s1 * _s1}`"),
-        mo.md(f"$\\sigma_1 \\sigma_2 = $ `{_s1 * _s2}` (bivector in spatial plane)"),
-        mo.md(f"$\\sigma_1 \\sigma_2 \\sigma_3 = $ `{_s1 * _s2 * _s3}` (= $I$, the pseudoscalar)"),
+        mo.md(f"σ₁² = `{_s1 * _s1}`"),
+        mo.md(f"σ₁σ₂ = `{_s1 * _s2}` (bivector in spatial plane)"),
+        mo.md(f"σ₁σ₂σ₃ = `{_s1 * _s2 * _s3}` (= I, the pseudoscalar)"),
     ])
     return
 
@@ -377,7 +380,7 @@ def _(mo):
 
 
 @app.cell
-def _(g0, g1, g2, mo, np, simplify, sta, sym):
+def _(g0, g1, g2, g3, mo, np, simplify, sta, sym):
     _R = sym(sta.rotor_from_plane_angle(g1 ^ g2, np.pi / 3), "R")
     _v = sym(g0, "p")
     _F = sym(2 * g1 * g0 + 3 * g2 * g3, "F")
@@ -420,11 +423,11 @@ def _(g0, g1, g2, mo, np, sta):
 
     mo.vstack([
         mo.md(f"Boost x (φ={_phi1}), then boost y (φ={_phi2}):"),
-        mo.md(f"$R_1 R_2 = $ `{_R12}`"),
-        mo.md(f"$R_2 R_1 = $ `{_R21}`"),
-        mo.md(f"$(R_1 R_2)(R_2 R_1)^{{\\sim}} = $ `{_diff}`"),
+        mo.md(f"R₁R₂ = `{_R12}`"),
+        mo.md(f"R₂R₁ = `{_R21}`"),
+        mo.md(f"(R₁R₂)(R₂R₁)~ = `{_diff}`"),
         mo.md("This residual rotor is the **Thomas-Wigner rotation**."),
-        mo.md(f"It has a spatial bivector component ($\\gamma_1\\gamma_2$), confirming it's a pure rotation."),
+        mo.md("It has a spatial bivector component (γ₁γ₂), confirming it's a pure rotation."),
     ])
     return
 
@@ -435,7 +438,7 @@ def _(mo):
     ## Velocity Addition
 
     Drag two rapidity sliders to compose boosts along the x-axis.
-    Rapidities add: $\\varphi_{\\text{total}} = \\varphi_1 + \\varphi_2$.
+    Rapidities add: $    arphi_{	ext{total}} =     arphi_1 +     arphi_2$.
     """)
     return
 
@@ -445,7 +448,7 @@ def _(mo):
     phi1_slider = mo.ui.slider(start=-2, stop=2, step=0.05, value=0.5, label="φ₁")
     phi2_slider = mo.ui.slider(start=-2, stop=2, step=0.05, value=0.3, label="φ₂")
     mo.hstack([phi1_slider, phi2_slider])
-    return (phi1_slider, phi2_slider)
+    return phi1_slider, phi2_slider
 
 
 @app.cell
@@ -464,23 +467,25 @@ def _(g0, g1, mo, np, phi1_slider, phi2_slider, sta):
     _boosted = _R_total * g0 * ~_R_total
 
     mo.vstack([
-        mo.md(f"$\\varphi_1 = {_p1:.2f}$ → $v_1/c = {_v1:.4f}$"),
-        mo.md(f"$\\varphi_2 = {_p2:.2f}$ → $v_2/c = {_v2:.4f}$"),
-        mo.md(f"Einstein addition: $(v_1 + v_2)/(1 + v_1 v_2) = {_v_einstein:.4f}$"),
-        mo.md(f"Rapidity addition: $\\tanh(\\varphi_1 + \\varphi_2) = {_v_total:.4f}$"),
-        mo.md(f"Composed rotor applied to $\\gamma_0$: `{_boosted}`"),
+        mo.md(f"φ₁ = {_p1:.2f} → v₁/c = {_v1:.4f}"),
+        mo.md(f"φ₂ = {_p2:.2f} → v₂/c = {_v2:.4f}"),
+        mo.md(f"Einstein addition: (v₁ + v₂)/(1 + v₁v₂) = {_v_einstein:.4f}"),
+        mo.md(f"Rapidity addition: tanh(φ₁ + φ₂) = {_v_total:.4f}"),
+        mo.md(f"Composed rotor applied to γ₀: `{_boosted}`"),
     ])
     return
 
 
 @app.cell
 def _(mo):
-    mo.md("### Velocity Addition Plot")
+    mo.md("""
+    ### Velocity Addition Plot
+    """)
     return
 
 
 @app.cell
-def _(mo, np, phi1_slider, phi2_slider):
+def _(np, phi1_slider, phi2_slider):
     import matplotlib.pyplot as plt
     import matplotlib
     matplotlib.rcParams.update({"figure.facecolor": "white"})
