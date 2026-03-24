@@ -350,5 +350,48 @@ def _(R, grade, mo, v):
     return
 
 
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(mo):
+    mo.md("""
+    ## Interactive Rotor
+    Drag the slider to rotate $e_1$ in the $e_1 e_2$ plane.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    angle_slider = mo.ui.slider(
+        start=0, stop=360, step=1, value=90, label="Angle (degrees)"
+    )
+    angle_slider
+    return (angle_slider,)
+
+
+@app.cell
+def _(alg, angle_slider, e1, e2, grade, mo, np, sym):
+    _theta = np.radians(angle_slider.value)
+    _B = e1 ^ e2
+    _R = alg.rotor_from_plane_angle(_B, _theta)
+    _v = e1
+
+    R_s = sym(_R, "R")
+    v_s = sym(_v, "v")
+    expr = grade(R_s * v_s * ~R_s, 1)
+    result = expr.eval()
+
+    mo.vstack([
+        mo.md(f"$\\theta = {angle_slider.value}°$"),
+        mo.md(f"Symbolic: {expr.latex(wrap='$')}"),
+        mo.md(f"Result: $\\;$ `{result}`"),
+    ])
+    return (expr,)
+
+
 if __name__ == "__main__":
     app.run()
