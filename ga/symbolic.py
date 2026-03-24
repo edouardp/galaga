@@ -636,6 +636,17 @@ def squared(x):
     return _alg.squared(x)
 
 
+def sandwich(r, x):
+    if isinstance(r, Expr) or isinstance(x, Expr):
+        r = r if isinstance(r, Expr) else sym(r, str(r))
+        x = x if isinstance(x, Expr) else sym(x, str(x))
+        return Gp(Gp(r, x), Reverse(r))
+    return _alg.sandwich(r, x)
+
+
+sw = sandwich
+
+
 def even_grades(x):
     if isinstance(x, Expr):
         return Even(x)

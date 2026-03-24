@@ -628,6 +628,14 @@ def squared(x: Multivector) -> Multivector:
     return gp(x, x)
 
 
+def sandwich(r: Multivector, x: Multivector) -> Multivector:
+    """Sandwich product: r x r̃."""
+    return gp(gp(r, x), reverse(r))
+
+
+sw = sandwich
+
+
 # --- Aliases ---
 
 geometric_product = gp

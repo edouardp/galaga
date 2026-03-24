@@ -36,6 +36,8 @@ from ga.algebra import (
     even,
     odd,
     squared,
+    sandwich,
+    sw,
     # Aliases
     geometric_product,
     wedge,
@@ -80,6 +82,8 @@ __all__ = [
     "even",
     "odd",
     "squared",
+    "sandwich",
+    "sw",
     "geometric_product",
     "wedge",
     "outer_product",
