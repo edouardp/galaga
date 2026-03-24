@@ -33,25 +33,28 @@ def _():
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
     from ga import (
-        Algebra, scalar, norm, grade, commutator,
-        even_grades, exp, log,
+        Algebra, scalar, norm, grade, lie_bracket, squared,
+        even_grades, exp, log, jordan_product, commutator, anticommutator
     )
-    from ga.symbolic import sym, grade as sym_grade, simplify, norm as sym_norm
+    from ga import symbolic as sym
+    Sym = sym.sym
     import galaga_marimo as gm
 
     return (
         Algebra,
+        Sym,
+        anticommutator,
         commutator,
         exp,
         gm,
+        jordan_product,
+        lie_bracket,
         log,
         np,
         plt,
         scalar,
-        simplify,
+        squared,
         sym,
-        sym_grade,
-        sym_norm,
     )
 
 
@@ -86,7 +89,7 @@ def _(gm):
 
 @app.cell(hide_code=True)
 def _(gm):
-    gm.md(t"""
+    gm.md("""
     ## The Algebra of Spin
 
     We work in Cl(3,0) — three Euclidean basis vectors. The pseudoscalar $I = e_1 e_2 e_3$
@@ -99,7 +102,17 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, commutator, gm, scalar):
+def _(
+    Algebra,
+    Sym,
+    anticommutator,
+    commutator,
+    gm,
+    jordan_product,
+    lie_bracket,
+    squared,
+    sym,
+):
     alg = Algebra((1, 1, 1), repr_unicode=True)
     e1, e2, e3 = alg.basis_vectors()
     I = alg.I
@@ -109,24 +122,33 @@ def _(Algebra, commutator, gm, scalar):
     B23 = e2 ^ e3
     B31 = e3 ^ e1
 
-    _c12 = commutator(B12, B23)
-    _c23 = commutator(B23, B31)
-    _c31 = commutator(B31, B12)
-    _s12 = scalar(B12 * B12)
-    _s23 = scalar(B23 * B23)
-    _s31 = scalar(B31 * B31)
-    _sI = scalar(I * I)
+    B12_s = Sym(B12, "e_{12}")
+    B23_s = Sym(B23, "e_{23}")
+    B31_s = Sym(B31, "e_{31}")
+
+    I_s = Sym(I, "I")
+
     gm.md(t"""**Bivector basis** (each squares to $-1$, like $i$):
-    - {B12}, $\\quad e_{{12}}^2 = {_s12:text}$
-    - {B23}, $\\quad e_{{23}}^2 = {_s23:text}$
-    - {B31}, $\\quad e_{{31}}^2 = {_s31:text}$
+    - {sym.squared(B12_s)} = {squared(B12)}
+    - {sym.squared(B23_s)} = {squared(B23)}
+    - {sym.squared(B31_s)} = {squared(B31)}
 
-    **Commutation relations** — bivectors form a Lie algebra (isomorphic to $\\mathfrak{{su}}(2)$):
-    - $[e_{{12}},\\, e_{{23}}]$ = {_c12}
-    - $[e_{{23}},\\, e_{{31}}]$ = {_c23}
-    - $[e_{{31}},\\, e_{{12}}]$ = {_c31}
+    **Commutator**:
+    - {sym.commutator(B12_s, B23_s)} = {commutator(B12, B23)}
 
-    **Pseudoscalar** {I}, $\\quad I^2 = {_sI:text}$
+    **Anti-commutator**:
+    - {sym.anticommutator(B12_s, B23_s)} = {anticommutator(B12, B23)}
+
+    **Lie bracket** $[A, B] = \\frac{{1}}{{2}}(AB - BA)$ — bivectors form $\\mathfrak{{su}}(2)$:
+    - {sym.lie_bracket(B12_s, B23_s)} = {lie_bracket(B12, B23)}
+    - {sym.lie_bracket(B23_s, B31_s)} = {lie_bracket(B23, B31)}
+    - {sym.lie_bracket(B31_s, B12_s)} = {lie_bracket(B31, B12)}
+
+    **Jordan product** $A \\circ B = \\frac{{1}}{{2}}\\{{A,B\\}} = \\frac{{1}}{{2}}(AB + BA)$ — the symmetric part:
+    - {sym.jordan_product(B12_s, B23_s)} = {jordan_product(B12, B23)}
+    - {sym.jordan_product(B12_s, B12_s)} = {jordan_product(B12, B12)}
+
+    **Pseudoscalar** {I_s}, $\\quad$ {sym.squared(I_s)} = {squared(I)}
 
     $I$ commutes with all even elements and plays the role of $i$ in the Pauli algebra.""")
     return alg, e1, e2, e3
@@ -611,15 +633,15 @@ def _(gm):
 
 
 @app.cell
-def _(alg, e1, e2, e3, gm, simplify, sym, sym_grade, sym_norm):
-    _R = sym(alg.rotor(e1 ^ e2, radians=0.5), "ψ")
-    _v = sym(e3, "e₃")
+def _(Sym, alg, e1, e2, e3, gm, sym):
+    _R = Sym(alg.rotor(e1 ^ e2, radians=0.5), "ψ")
+    _v = Sym(e3, "e₃")
 
     _rules = [
-        ("Double reverse: ~~ψ", simplify(~~_R)),
-        ("Rotor normalization: ψ~ψ", simplify(_R * ~_R)),
-        ("Sandwich grade: ⟨ψ e₃ ~ψ⟩₁", simplify(sym_grade(_R * _v * ~_R, 1))),
-        ("Norm of unit: ‖unit(e₃)‖", simplify(sym_norm(sym(e3 / 1.0, "n̂")))),
+        ("Double reverse: ~~ψ", sym.simplify(~~_R)),
+        ("Rotor normalization: ψ~ψ", sym.simplify(_R * ~_R)),
+        ("Sandwich grade: ⟨ψ e₃ ~ψ⟩₁", sym.simplify(sym.grade(_R * _v * ~_R, 1))),
+        ("Norm of unit: ‖unit(e₃)‖", sym.simplify(sym.norm(Sym(e3 / 1.0, "n̂")))),
     ]
 
     _lines = "\n".join(f"- {name} $\\;\\to\\;$ ${result.latex()}$" for name, result in _rules)

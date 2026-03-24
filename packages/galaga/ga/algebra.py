@@ -830,13 +830,31 @@ def scalar_product(a: Multivector, b: Multivector) -> Multivector:
 
 
 def commutator(a: Multivector, b: Multivector) -> Multivector:
-    """Commutator product: (ab - ba) / 2."""
-    return (gp(a, b) - gp(b, a)) * 0.5
+    """Commutator: ab - ba."""
+    return gp(a, b) - gp(b, a)
 
 
 def anticommutator(a: Multivector, b: Multivector) -> Multivector:
-    """Anticommutator product: (ab + ba) / 2."""
-    return (gp(a, b) + gp(b, a)) * 0.5
+    """Anticommutator: ab + ba."""
+    return gp(a, b) + gp(b, a)
+
+
+def lie_bracket(a: Multivector, b: Multivector) -> Multivector:
+    """Lie bracket: ½(ab - ba).
+
+    The half-scaled commutator under which bivectors form a Lie algebra
+    with clean structure constants: [Bᵢ, Bⱼ] = εᵢⱼₖ Bₖ.
+    """
+    return commutator(a, b) * 0.5
+
+
+def jordan_product(a: Multivector, b: Multivector) -> Multivector:
+    """Jordan product: ½(ab + ba).
+
+    The symmetric part of the geometric product. For vectors,
+    this equals the inner product: a ∘ b = a · b.
+    """
+    return anticommutator(a, b) * 0.5
 
 
 # --- Unary operations ---

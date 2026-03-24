@@ -280,7 +280,7 @@ def _(alg, e1, e2, gm, mo, np):
     _B = e1 ^ e2
 
     mo.vstack([
-        gm.md(t"**θ = {deg}°:** rotor = {alg.rotor(_B, radians=np.radians(deg))}")
+        gm.md(t"**θ = {deg}°:** rotor = {alg.rotor(_B, np.radians(deg))}")
         for deg in angles
     ])
     return

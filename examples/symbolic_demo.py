@@ -41,12 +41,15 @@ def _():
         sym, gp, op, grade, reverse, involute, conjugate,
         dual, undual, norm, unit, inverse, squared,
         left_contraction, right_contraction, hestenes_inner, scalar_product,
+        commutator, anticommutator, lie_bracket, jordan_product,
         even_grades, odd_grades,
     )
     import galaga_marimo as gm
 
     return (
         Algebra,
+        anticommutator,
+        commutator,
         conjugate,
         dual,
         even_grades,
@@ -56,7 +59,9 @@ def _():
         hestenes_inner,
         inverse,
         involute,
+        jordan_product,
         left_contraction,
+        lie_bracket,
         norm,
         np,
         odd_grades,
@@ -136,6 +141,30 @@ def _(A, B, hestenes_inner):
 @app.cell
 def _(A, B, scalar_product):
     scalar_product(A, B)
+    return
+
+
+@app.cell
+def _(a, b, commutator):
+    commutator(a, b)
+    return
+
+
+@app.cell
+def _(a, anticommutator, b):
+    anticommutator(a, b)
+    return
+
+
+@app.cell
+def _(a, b, lie_bracket):
+    lie_bracket(a, b)
+    return
+
+
+@app.cell
+def _(a, b, jordan_product):
+    jordan_product(a, b)
     return
 
 
@@ -311,12 +340,27 @@ def _(gm):
 
 
 @app.cell
-def _(R, a, b, gm, grade, inverse, mo, norm, op, v):
+def _(
+    R,
+    a,
+    b,
+    gm,
+    grade,
+    inverse,
+    jordan_product,
+    lie_bracket,
+    mo,
+    norm,
+    op,
+    v,
+):
     exprs = [
         ("Wedge", op(a, b)),
         ("Norm", norm(v)),
         ("Inverse", inverse(a)),
         ("Sandwich", grade(R * v * ~R, 1)),
+        ("Lie bracket", lie_bracket(a, b)),
+        ("Jordan product", jordan_product(a, b)),
     ]
     mo.vstack([
         gm.md(t"**{name}:** {e} = {e.eval()}")

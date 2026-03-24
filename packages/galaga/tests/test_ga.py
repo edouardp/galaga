@@ -6,6 +6,7 @@ from ga import (
     Algebra, gp, op, left_contraction, right_contraction, hestenes_inner,
     scalar_product, reverse, involute, conjugate, grade, grades, scalar,
     dual, undual, norm2, norm, unit, inverse, commutator, anticommutator,
+    lie_bracket, jordan_product,
     is_scalar, is_vector, is_bivector, is_even, wedge, geometric_product, rev,
     exp, log, project, reject, reflect, sandwich,
 )

@@ -1,0 +1,37 @@
+[project]
+name = "galaga"
+version = "0.1.0"
+description = "Numeric geometric algebra for Python — named functions, no ambiguity, unicode pretty-printing"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Edouard Poor" }]
+keywords = ["geometric-algebra", "clifford-algebra", "multivector", "bivector", "rotor", "mathematics", "physics"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Typing :: Typed",
+]
+dependencies = [
+    "numpy>=2.4.3",
+]
+
+[project.urls]
+Homepage = "https://github.com/edouard/galaga"
+Repository = "https://github.com/edouard/galaga"
+Issues = "https://github.com/edouard/galaga/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["ga"]

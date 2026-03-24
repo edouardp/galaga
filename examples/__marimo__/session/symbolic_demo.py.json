@@ -46,7 +46,7 @@
     },
     {
       "id": "bkHC",
-      "code_hash": "86055ed9d08c57f9b941ddb0838fdc3e",
+      "code_hash": "90625fe13b50a52255a88c4b8e19e886",
       "outputs": [
         {
           "type": "data",
@@ -176,6 +176,58 @@
     },
     {
       "id": "nWHF",
+      "code_hash": "c447c06f65b6248b0f809fe60bfe8882",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||([a,\\, b]||)</marimo-tex></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "32f3e363857e7df60319a1576514e36a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\{a,\\, b\\}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "0c51b930d905ea56758437390cae6274",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\tfrac{1}{2}[a,\\, b]||)</marimo-tex></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "ac782d28047911cac44e3f626d094a3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\tfrac{1}{2}\\{a,\\, b\\}||)</marimo-tex></span></span>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
       "code_hash": "255c9401bd3d3e77ac9d7d2829de6af9",
       "outputs": [
         {
@@ -188,7 +240,7 @@
       "console": []
     },
     {
-      "id": "iLit",
+      "id": "TqIu",
       "code_hash": "c9512565ef6194ca664dc41ec0de7a53",
       "outputs": [
         {
@@ -201,7 +253,7 @@
       "console": []
     },
     {
-      "id": "ZHCJ",
+      "id": "Vxnm",
       "code_hash": "c36be852e5bfea67858f2e980c30f79d",
       "outputs": [
         {
@@ -214,7 +266,7 @@
       "console": []
     },
     {
-      "id": "ROlb",
+      "id": "DnEU",
       "code_hash": "d8558d066e216b580afde9220f69799d",
       "outputs": [
         {
@@ -227,7 +279,7 @@
       "console": []
     },
     {
-      "id": "qnkX",
+      "id": "ulZA",
       "code_hash": "5f13a76f646a7fd67c237e32b1b4f576",
       "outputs": [
         {
@@ -240,7 +292,7 @@
       "console": []
     },
     {
-      "id": "TqIu",
+      "id": "ecfG",
       "code_hash": "a0796cbd9f13aeaf27a14892e251d08a",
       "outputs": [
         {
@@ -253,7 +305,7 @@
       "console": []
     },
     {
-      "id": "Vxnm",
+      "id": "Pvdt",
       "code_hash": "1334ee1535e8a83153f6c5df63c0c725",
       "outputs": [
         {
@@ -266,7 +318,7 @@
       "console": []
     },
     {
-      "id": "DnEU",
+      "id": "ZBYS",
       "code_hash": "c283a567fb982a925e0d1e4de333bd30",
       "outputs": [
         {
@@ -279,7 +331,7 @@
       "console": []
     },
     {
-      "id": "ulZA",
+      "id": "aLJB",
       "code_hash": "935075da2797629c947c679b60b103e4",
       "outputs": [
         {
@@ -292,7 +344,7 @@
       "console": []
     },
     {
-      "id": "ecfG",
+      "id": "nHfw",
       "code_hash": "49068081308554d0ca683419b3729aa2",
       "outputs": [
         {
@@ -305,7 +357,7 @@
       "console": []
     },
     {
-      "id": "Pvdt",
+      "id": "xXTn",
       "code_hash": "2efda42b99601caca59ffb61432cf81b",
       "outputs": [
         {
@@ -318,7 +370,7 @@
       "console": []
     },
     {
-      "id": "ZBYS",
+      "id": "AjVT",
       "code_hash": "08f6726b0862d6a9c5efc04b6a3f35a5",
       "outputs": [
         {
@@ -331,7 +383,7 @@
       "console": []
     },
     {
-      "id": "aLJB",
+      "id": "pHFh",
       "code_hash": "ca59d0bc9fed078e20b9e89a7661574e",
       "outputs": [
         {
@@ -344,7 +396,7 @@
       "console": []
     },
     {
-      "id": "nHfw",
+      "id": "NCOB",
       "code_hash": "50c7e9ac4bfd5131d3108232a9b2626e",
       "outputs": [
         {
@@ -357,7 +409,7 @@
       "console": []
     },
     {
-      "id": "xXTn",
+      "id": "aqbW",
       "code_hash": "43fe269de650f8d10aa564a32727197d",
       "outputs": [
         {
@@ -370,7 +422,7 @@
       "console": []
     },
     {
-      "id": "AjVT",
+      "id": "TRpd",
       "code_hash": "669ab26f75d876eb41b0c08b60ce30f4",
       "outputs": [
         {
@@ -383,7 +435,7 @@
       "console": []
     },
     {
-      "id": "pHFh",
+      "id": "TXez",
       "code_hash": "ad685919939ec8c291533291ada92175",
       "outputs": [
         {
@@ -396,7 +448,7 @@
       "console": []
     },
     {
-      "id": "NCOB",
+      "id": "dNNg",
       "code_hash": "c0f15f96884fc3172be20d61fc3a00b4",
       "outputs": [
         {
@@ -409,7 +461,7 @@
       "console": []
     },
     {
-      "id": "aqbW",
+      "id": "yCnT",
       "code_hash": "82add059f4a1aad779de19a1c39b525a",
       "outputs": [
         {
@@ -422,7 +474,7 @@
       "console": []
     },
     {
-      "id": "TRpd",
+      "id": "wlCL",
       "code_hash": "98291cf5321babe8b4aa93fe8a494572",
       "outputs": [
         {
@@ -435,7 +487,7 @@
       "console": []
     },
     {
-      "id": "TXez",
+      "id": "kqZH",
       "code_hash": "224389879d22352537e8b38f3a97794f",
       "outputs": [
         {
@@ -448,7 +500,7 @@
       "console": []
     },
     {
-      "id": "dNNg",
+      "id": "wAgl",
       "code_hash": "4cc0d03c7d577c8204d58d152375ddc9",
       "outputs": [
         {
@@ -461,7 +513,7 @@
       "console": []
     },
     {
-      "id": "yCnT",
+      "id": "rEll",
       "code_hash": "03f3bf8fecca7e1e602a83a9b7562a11",
       "outputs": [
         {
@@ -474,7 +526,7 @@
       "console": []
     },
     {
-      "id": "wlCL",
+      "id": "dGlV",
       "code_hash": "2f75f6d05d4d2bff19d4ede36db787fc",
       "outputs": [
         {
@@ -487,7 +539,7 @@
       "console": []
     },
     {
-      "id": "kqZH",
+      "id": "SdmI",
       "code_hash": "0d391c28e85a439993f8da08bcced3e0",
       "outputs": [
         {
@@ -500,7 +552,7 @@
       "console": []
     },
     {
-      "id": "wAgl",
+      "id": "lgWD",
       "code_hash": "de51c35fd94b182af265cd34b2fc5fb4",
       "outputs": [
         {
@@ -513,20 +565,20 @@
       "console": []
     },
     {
-      "id": "rEll",
-      "code_hash": "ed5bc0e7028687eb9945141adab0c546",
+      "id": "yOPj",
+      "code_hash": "8ac1f04d18dbe73080cdc74310c571cd",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Wedge:</strong> <marimo-tex class=\"arithmatex\">||(a \\wedge b||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(e_{12}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Norm:</strong> <marimo-tex class=\"arithmatex\">||(\\lVert v \\rVert||)</marimo-tex> = 2.23606797749979</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Inverse:</strong> <marimo-tex class=\"arithmatex\">||(a^{-1}||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(e_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Sandwich:</strong> <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(-e_{1} - 2 e_{2}||)</marimo-tex></span></span></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Wedge:</strong> <marimo-tex class=\"arithmatex\">||(a \\wedge b||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(e_{12}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Norm:</strong> <marimo-tex class=\"arithmatex\">||(\\lVert v \\rVert||)</marimo-tex> = 2.23606797749979</span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Inverse:</strong> <marimo-tex class=\"arithmatex\">||(a^{-1}||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(e_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Sandwich:</strong> <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(-e_{1} - 2 e_{2}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Lie bracket:</strong> <marimo-tex class=\"arithmatex\">||([a,\\, b]_{\\times}||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(e_{12}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><strong>Jordan product:</strong> <marimo-tex class=\"arithmatex\">||(a \\circ b||)</marimo-tex> = <marimo-tex class=\"arithmatex\">||(0||)</marimo-tex></span></span></div>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "dGlV",
+      "id": "fwwy",
       "code_hash": "1774093192126a3a776a841d1ce362c8",
       "outputs": [
         {
@@ -539,7 +591,7 @@
       "console": []
     },
     {
-      "id": "SdmI",
+      "id": "LJZf",
       "code_hash": "31866bead272d02154c54434aff46fdd",
       "outputs": [
         {
@@ -552,7 +604,7 @@
       "console": []
     },
     {
-      "id": "lgWD",
+      "id": "urSm",
       "code_hash": "7a5a342883b0f987a403ea728c08a2c6",
       "outputs": [
         {
@@ -565,7 +617,7 @@
       "console": []
     },
     {
-      "id": "yOPj",
+      "id": "jxvo",
       "code_hash": "e968eefcafe4744caeedd6beb11d9622",
       "outputs": [
         {
@@ -578,7 +630,7 @@
       "console": []
     },
     {
-      "id": "fwwy",
+      "id": "mWxS",
       "code_hash": "69c1b0323f23156f4f370fff4169cb60",
       "outputs": [
         {
@@ -591,7 +643,7 @@
       "console": []
     },
     {
-      "id": "LJZf",
+      "id": "CcZR",
       "code_hash": "e9d8312ac783f5cba37b4cb00233f77b",
       "outputs": [
         {
@@ -604,7 +656,7 @@
       "console": []
     },
     {
-      "id": "urSm",
+      "id": "YWSi",
       "code_hash": "6e6048d38aea61816d686fb96154460b",
       "outputs": [
         {
@@ -617,7 +669,7 @@
       "console": []
     },
     {
-      "id": "jxvo",
+      "id": "zlud",
       "code_hash": "fa67f46766e3872d77c6b12d65af4209",
       "outputs": [
         {
@@ -630,7 +682,7 @@
       "console": []
     },
     {
-      "id": "mWxS",
+      "id": "tZnO",
       "code_hash": "29f028f48b56483209948027ae6de10e",
       "outputs": [
         {
@@ -643,33 +695,33 @@
       "console": []
     },
     {
-      "id": "CcZR",
+      "id": "xvXZ",
       "code_hash": "9ff23e9e777baeab375e24b1b32e8082",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='CcZR-0' random-id='d7205359-11af-6a8c-3466-e073d940dd3a'><marimo-slider data-initial-value='90' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Angle (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='xvXZ-0' random-id='4efbb2be-98fd-8999-d361-af397a2b4561'><marimo-slider data-initial-value='90' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;Angle (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "YWSi",
+      "id": "CLip",
       "code_hash": "603cbc35620a45202536731e23b9424b",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\theta = 67\u00b0||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Symbolic: <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Result: <marimo-tex class=\"arithmatex\">||(0.390731 e_{1} + 0.920505 e_{2}||)</marimo-tex></span></span></div>"
+            "text/html": "<div style='display: flex;flex: 1;flex-direction: column;justify-content: flex-start;align-items: normal;flex-wrap: nowrap;gap: 0.5rem'><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\theta = 90\u00b0||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Symbolic: <marimo-tex class=\"arithmatex\">||(\\langle R v \\tilde{R} \\rangle_{1}||)</marimo-tex></span></span><span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">Result: <marimo-tex class=\"arithmatex\">||(e_{2}||)</marimo-tex></span></span></div>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "zlud",
+      "id": "YECM",
       "code_hash": "e280d06c65d8dbf133101064c9728747",
       "outputs": [
         {
@@ -682,20 +734,20 @@
       "console": []
     },
     {
-      "id": "tZnO",
+      "id": "cEAS",
       "code_hash": "6dc92ab6c106429258395f88dc530db5",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/html": "<marimo-ui-element object-id='tZnO-0' random-id='0837605b-7baa-dff5-3095-9ba8f0f55f1f'><marimo-slider data-initial-value='45' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;\u03b8 (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
+            "text/html": "<marimo-ui-element object-id='cEAS-0' random-id='176ba26d-846a-e395-454b-c2f93c5128cc'><marimo-slider data-initial-value='45' data-label='&quot;&lt;span class=&#92;&quot;markdown prose dark:prose-invert contents&#92;&quot;&gt;&lt;span class=&#92;&quot;paragraph&#92;&quot;&gt;\u03b8 (degrees)&lt;/span&gt;&lt;/span&gt;&quot;' data-start='0' data-stop='360' data-step='1' data-steps='[]' data-debounce='false' data-disabled='false' data-orientation='&quot;horizontal&quot;' data-show-value='false' data-include-input='false' data-full-width='false'></marimo-slider></marimo-ui-element>"
           }
         }
       ],
       "console": []
     },
     {
-      "id": "xvXZ",
+      "id": "iXej",
       "code_hash": "b1d1c59c36a4304dfbbb4333d8fd92b4",
       "outputs": [
         {
@@ -708,16 +760,9 @@
       "console": []
     },
     {
-      "id": "CLip",
+      "id": "fcPa",
       "code_hash": null,
-      "outputs": [
-        {
-          "type": "data",
-          "data": {
-            "text/plain": ""
-          }
-        }
-      ],
+      "outputs": [],
       "console": []
     }
   ]
