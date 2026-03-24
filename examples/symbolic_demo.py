@@ -146,15 +146,15 @@ def _(mo):
 @app.cell
 def _(R, grade, v):
     # The classic rotor sandwich: grade-1 projection of R v R̃
-    expr = grade(R * v * ~R, 1)
-    expr
-    return (expr,)
+    sandwich_expr = grade(R * v * ~R, 1)
+    sandwich_expr
+    return (sandwich_expr,)
 
 
 @app.cell
-def _(expr, mo):
+def _(mo, sandwich_expr):
     mo.md(f"""
-    Evaluating: {expr.latex(wrap='$')} = `{expr.eval()}`
+    Evaluating: {sandwich_expr.latex(wrap='$')} = `{sandwich_expr.eval()}`
     """)
     return
 
@@ -382,15 +382,20 @@ def _(alg, angle_slider, e1, e2, grade, mo, np, sym):
 
     R_s = sym(_R, "R")
     v_s = sym(_v, "v")
-    expr = grade(R_s * v_s * ~R_s, 1)
-    result = expr.eval()
+    _expr = grade(R_s * v_s * ~R_s, 1)
+    _result = _expr.eval()
 
     mo.vstack([
         mo.md(f"$\\theta = {angle_slider.value}°$"),
-        mo.md(f"Symbolic: {expr.latex(wrap='$')}"),
-        mo.md(f"Result: $\\;$ `{result}`"),
+        mo.md(f"Symbolic: {_expr.latex(wrap='$')}"),
+        mo.md(f"Result: $\\;$ `{_result}`"),
     ])
-    return (expr,)
+    return
+
+
+@app.cell
+def _():
+    return
 
 
 if __name__ == "__main__":
