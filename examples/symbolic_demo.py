@@ -90,7 +90,7 @@ def _(Algebra, sym):
     return A, B, R, a, alg, b, e1, e2, e3, v
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Products
@@ -135,7 +135,7 @@ def _(A, B, scalar_product):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Sandwich Product & Grade Projection
@@ -159,7 +159,7 @@ def _(mo, sandwich_expr):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Unary Operations
@@ -282,7 +282,7 @@ def _(R, a, b):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Evaluating Expressions
@@ -382,12 +382,7 @@ def _(R, a, grade, inverse, mo, norm, unit, v):
     return
 
 
-@app.cell
-def _():
-    return
-
-
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Extracting Components
@@ -412,7 +407,7 @@ def _(alg, e1, e2, e3, mo):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
     ## Interactive Rotor
