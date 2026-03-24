@@ -44,6 +44,13 @@ def _wrap(node: Expr, parent_op: str) -> str:
     return s
 
 
+def _latex_wrap(node: Expr, parent_op: str) -> str:
+    s = node.latex()
+    if _needs_parens(node, parent_op):
+        return rf"\left({s}\right)"
+    return s
+
+
 Numeric = Union[int, float]
 
 
@@ -52,6 +59,14 @@ class Expr:
 
     def eval(self) -> _alg.Multivector:
         raise NotImplementedError
+
+    def latex(self) -> str:
+        """Return LaTeX representation of this expression."""
+        raise NotImplementedError
+
+    def _repr_latex_(self) -> str:
+        """Jupyter notebook integration."""
+        return f"${self.latex()}$"
 
     # --- Operators build expression trees ---
 
@@ -124,6 +139,9 @@ class Sym(Expr):
     def __str__(self) -> str:
         return self._name
 
+    def latex(self) -> str:
+        return self._name
+
     def __repr__(self) -> str:
         return f"Sym({self._name})"
 
@@ -140,6 +158,9 @@ class Scalar(Expr):
     def __str__(self) -> str:
         return f"{self._value:g}"
 
+    def latex(self) -> str:
+        return f"{self._value:g}"
+
 
 # --- Binary ops ---
 
@@ -153,6 +174,9 @@ class Gp(Expr):
     def __str__(self):
         return _wrap(self.a, "gp") + _wrap(self.b, "gp")
 
+    def latex(self):
+        return _latex_wrap(self.a, "gp") + " " + _latex_wrap(self.b, "gp")
+
 
 class Op(Expr):
     def __init__(self, a: Expr, b: Expr):
@@ -163,6 +187,9 @@ class Op(Expr):
 
     def __str__(self):
         return f"{_wrap(self.a, 'op')}∧{_wrap(self.b, 'op')}"
+
+    def latex(self):
+        return rf"{_latex_wrap(self.a, 'op')} \wedge {_latex_wrap(self.b, 'op')}"
 
 
 class Lc(Expr):
@@ -175,6 +202,9 @@ class Lc(Expr):
     def __str__(self):
         return f"{_wrap(self.a, 'lc')}⌋{_wrap(self.b, 'lc')}"
 
+    def latex(self):
+        return rf"{_latex_wrap(self.a, 'lc')} \;\lrcorner\; {_latex_wrap(self.b, 'lc')}"
+
 
 class Rc(Expr):
     def __init__(self, a: Expr, b: Expr):
@@ -185,6 +215,9 @@ class Rc(Expr):
 
     def __str__(self):
         return f"{_wrap(self.a, 'rc')}⌊{_wrap(self.b, 'rc')}"
+
+    def latex(self):
+        return rf"{_latex_wrap(self.a, 'rc')} \;\llcorner\; {_latex_wrap(self.b, 'rc')}"
 
 
 class Hi(Expr):
@@ -197,6 +230,9 @@ class Hi(Expr):
     def __str__(self):
         return f"{_wrap(self.a, 'hi')}·{_wrap(self.b, 'hi')}"
 
+    def latex(self):
+        return rf"{_latex_wrap(self.a, 'hi')} \cdot {_latex_wrap(self.b, 'hi')}"
+
 
 class Sp(Expr):
     def __init__(self, a: Expr, b: Expr):
@@ -207,6 +243,9 @@ class Sp(Expr):
 
     def __str__(self):
         return f"{_wrap(self.a, 'sp')}∗{_wrap(self.b, 'sp')}"
+
+    def latex(self):
+        return rf"{_latex_wrap(self.a, 'sp')} * {_latex_wrap(self.b, 'sp')}"
 
 
 class Add(Expr):
@@ -219,6 +258,9 @@ class Add(Expr):
     def __str__(self):
         return f"{self.a} + {self.b}"
 
+    def latex(self):
+        return f"{self.a.latex()} + {self.b.latex()}"
+
 
 class Sub(Expr):
     def __init__(self, a: Expr, b: Expr):
@@ -229,6 +271,9 @@ class Sub(Expr):
 
     def __str__(self):
         return f"{self.a} - {self.b}"
+
+    def latex(self):
+        return f"{self.a.latex()} - {self.b.latex()}"
 
 
 class ScalarMul(Expr):
@@ -243,6 +288,11 @@ class ScalarMul(Expr):
             return f"-{self.x}"
         return f"{self.k:g}{_wrap(self.x, 'gp')}"
 
+    def latex(self):
+        if self.k == -1:
+            return f"-{self.x.latex()}"
+        return f"{self.k:g} {_latex_wrap(self.x, 'gp')}"
+
 
 class Neg(Expr):
     def __init__(self, x: Expr):
@@ -253,6 +303,9 @@ class Neg(Expr):
 
     def __str__(self):
         return f"-{self.x}"
+
+    def latex(self):
+        return f"-{self.x.latex()}"
 
 
 # --- Unary ops ---
@@ -267,6 +320,9 @@ class Reverse(Expr):
     def __str__(self):
         return f"{self.x}{_REVERSE}"
 
+    def latex(self):
+        return rf"\tilde{{{self.x.latex()}}}"
+
 
 class Involute(Expr):
     def __init__(self, x: Expr):
@@ -278,6 +334,9 @@ class Involute(Expr):
     def __str__(self):
         return f"{self.x}{_INVOLUTE}"
 
+    def latex(self):
+        return rf"{self.x.latex()}^\dagger"
+
 
 class Conjugate(Expr):
     def __init__(self, x: Expr):
@@ -288,6 +347,9 @@ class Conjugate(Expr):
 
     def __str__(self):
         return f"{self.x}{_CONJUGATE}"
+
+    def latex(self):
+        return rf"\bar{{{self.x.latex()}}}"
 
 
 class Grade(Expr):
@@ -301,6 +363,9 @@ class Grade(Expr):
         sub = str(self.k).translate(_SUBSCRIPTS)
         return f"⟨{self.x}⟩{sub}"
 
+    def latex(self):
+        return rf"\langle {self.x.latex()} \rangle_{{{self.k}}}"
+
 
 class Dual(Expr):
     def __init__(self, x: Expr):
@@ -311,6 +376,9 @@ class Dual(Expr):
 
     def __str__(self):
         return f"{self.x}⋆"
+
+    def latex(self):
+        return rf"{self.x.latex()}^*"
 
 
 class Undual(Expr):
@@ -323,6 +391,9 @@ class Undual(Expr):
     def __str__(self):
         return f"{self.x}⋆⁻¹"
 
+    def latex(self):
+        return rf"{self.x.latex()}^{{*^{{-1}}}}"
+
 
 class Norm(Expr):
     def __init__(self, x: Expr):
@@ -334,6 +405,9 @@ class Norm(Expr):
     def __str__(self):
         return f"‖{self.x}‖"
 
+    def latex(self):
+        return rf"\lVert {self.x.latex()} \rVert"
+
 
 class Unit(Expr):
     def __init__(self, x: Expr):
@@ -344,10 +418,12 @@ class Unit(Expr):
 
     def __str__(self):
         s = str(self.x)
-        # Use combining circumflex for single-char names
         if len(s) == 1:
             return f"{s}{_HAT}"
         return f"{self.x}/‖{self.x}‖"
+
+    def latex(self):
+        return rf"\hat{{{self.x.latex()}}}"
 
 
 class Inverse(Expr):
@@ -360,6 +436,9 @@ class Inverse(Expr):
     def __str__(self):
         return f"{self.x}⁻¹"
 
+    def latex(self):
+        return rf"{self.x.latex()}^{{-1}}"
+
 
 class Squared(Expr):
     def __init__(self, x: Expr):
@@ -370,6 +449,9 @@ class Squared(Expr):
 
     def __str__(self):
         return f"{self.x}²"
+
+    def latex(self):
+        return rf"{self.x.latex()}^2"
 
 
 class Even(Expr):
@@ -382,6 +464,9 @@ class Even(Expr):
     def __str__(self):
         return f"⟨{self.x}⟩₊"
 
+    def latex(self):
+        return rf"\langle {self.x.latex()} \rangle_{{\text{{even}}}}"
+
 
 class Odd(Expr):
     def __init__(self, x: Expr):
@@ -392,6 +477,9 @@ class Odd(Expr):
 
     def __str__(self):
         return f"⟨{self.x}⟩₋"
+
+    def latex(self):
+        return rf"\langle {self.x.latex()} \rangle_{{\text{{odd}}}}"
 
 
 # --- Helper ---

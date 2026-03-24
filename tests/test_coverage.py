@@ -695,3 +695,137 @@ class TestSymbolicGradeEvenOdd:
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sodd_grades(v)) == "⟨v⟩₋"
+
+
+class TestLatex:
+    """Tests for .latex() output on all expression types."""
+
+    def test_sym(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        assert sym(e1, "v").latex() == "v"
+
+    def test_gp(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        R = sym(e1*e2, "R")
+        v = sym(e1, "v")
+        assert (R * v).latex() == "R v"
+
+    def test_sandwich_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        from ga.symbolic import grade as sgrade
+        R = sym(e1*e2, "R")
+        v = sym(e1, "v")
+        assert sgrade(R * v * ~R, 1).latex() == r"\langle R v \tilde{R} \rangle_{1}"
+
+    def test_wedge(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        assert (a ^ b).latex() == r"a \wedge b"
+
+    def test_left_contraction(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        assert slc(a, b).latex() == r"a \;\lrcorner\; b"
+
+    def test_right_contraction(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        assert src(a, b).latex() == r"a \;\llcorner\; b"
+
+    def test_hestenes_inner(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "A"), sym(e2, "B")
+        assert shi(a, b).latex() == r"A \cdot B"
+
+    def test_scalar_product(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "A"), sym(e2, "B")
+        assert ssp(a, b).latex() == "A * B"
+
+    def test_reverse(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        R = sym(e1*e2, "R")
+        assert (~R).latex() == r"\tilde{R}"
+
+    def test_involute(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sinvolute(v).latex() == r"v^\dagger"
+
+    def test_conjugate(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sconjugate(v).latex() == r"\bar{v}"
+
+    def test_dual(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sdual(v).latex() == "v^*"
+
+    def test_undual(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sundual(v).latex() == "v^{*^{-1}}"
+
+    def test_norm(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert snorm(v).latex() == r"\lVert v \rVert"
+
+    def test_unit(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sunit(v).latex() == r"\hat{v}"
+
+    def test_inverse(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sinverse(v).latex() == "v^{-1}"
+
+    def test_squared(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        R = sym(e1*e2, "R")
+        assert ssq(R).latex() == "R^2"
+
+    def test_even(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert seven(v).latex() == r"\langle v \rangle_{\text{even}}"
+
+    def test_odd(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert sodd(v).latex() == r"\langle v \rangle_{\text{odd}}"
+
+    def test_add(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        assert (a + b).latex() == "a + b"
+
+    def test_sub(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        assert (a - b).latex() == "a - b"
+
+    def test_neg(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        a = sym(e1, "a")
+        assert (-a).latex() == "-a"
+
+    def test_scalar_mul(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        a = sym(e1, "a")
+        assert (3 * a).latex() == "3 a"
+        assert (-1 * a).latex() == "-a"
+
+    def test_parens(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        a, b = sym(e1, "a"), sym(e2, "b")
+        R = sym(e1*e2, "R")
+        assert ((a + b) * R).latex() == r"\left(a + b\right) R"
+
+    def test_repr_latex(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert v._repr_latex_() == "$v$"
+        assert (~v)._repr_latex_() == r"$\tilde{v}$"
