@@ -581,8 +581,8 @@ perpendicular = np.isclose(scalar(a | b), 0)  # inner product vanishes
 Rotors compose by geometric product — apply `R1` first, then `R2`:
 
 ```python
-R_total = R2 * R1
-v_rotated = R_total * v * ~R_total
+R_final = R2 * R1
+v_rotated = R_final * v * ~R_final
 ```
 
 Order matters: `R2 * R1` means "do R1, then R2" (right-to-left, like matrix multiplication).
