@@ -204,7 +204,7 @@ class Expr:
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
-            return ScalarMul(1.0 / other, self)
+            return ScalarDiv(self, other)
         return NotImplemented
 
     # Convenience properties matching Multivector
@@ -490,6 +490,21 @@ class ScalarMul(Expr):
         return f"{self.k:g} {_latex_wrap(self.x, 'gp')}"
 
 
+class ScalarDiv(Expr):
+    """Division by a scalar: x / k."""
+    def __init__(self, x, k: Numeric):
+        self.x, self.k = _coerce(x), k
+
+    def eval(self):
+        return self.x.eval() / self.k
+
+    def __str__(self):
+        return f"{_wrap(self.x, 'gp')}/{self.k:g}"
+
+    def _latex(self):
+        return rf"\frac{{{self.x._latex()}}}{{{self.k:g}}}"
+
+
 class Neg(Expr):
     def __init__(self, x):
         self.x = _coerce(x)
@@ -726,6 +741,8 @@ def _eq(a: Expr, b: Expr) -> bool:
         return a._value == b._value
     if isinstance(a, ScalarMul):
         return a.k == b.k and _eq(a.x, b.x)
+    if isinstance(a, ScalarDiv):
+        return a.k == b.k and _eq(a.x, b.x)
     if isinstance(a, Neg):
         return _eq(a.x, b.x)
     if isinstance(a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd)):
@@ -797,6 +814,8 @@ def _known_grade(e: Expr) -> int | None:
         return _known_grade(e.x)
     if isinstance(e, ScalarMul):
         return _known_grade(e.x)
+    if isinstance(e, ScalarDiv):
+        return _known_grade(e.x)
     if isinstance(e, Unit):
         return _known_grade(e.x)
     return None
@@ -809,6 +828,8 @@ def _simplify(e: Expr) -> Expr:
         e = type(e)(_simplify(e.a), _simplify(e.b))
     elif isinstance(e, ScalarMul):
         e = ScalarMul(e.k, _simplify(e.x))
+    elif isinstance(e, ScalarDiv):
+        e = ScalarDiv(_simplify(e.x), e.k)
     elif isinstance(e, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd)):
         e = type(e)(_simplify(e.x))
     elif isinstance(e, Neg):

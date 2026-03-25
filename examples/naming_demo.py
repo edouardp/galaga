@@ -500,7 +500,7 @@ def _(Algebra, exp, gm, reverse, sandwich):
     t0, x1, x2, x3 = sta2.basis_vectors()
 
     # Boost rapidity
-    rapidity = 0.5  # corresponds to v ≈ 0.46c
+    rapidity = sta2.scalar(0.5).name("φ", latex=r"\varphi")  # corresponds to v ≈ 0.46c
 
     # Boost bivector (timelike — squares to +1)
     boost_plane = (t0 * x1).name("B", latex=r"\hat{B}")
@@ -513,9 +513,9 @@ def _(Algebra, exp, gm, reverse, sandwich):
     p_boosted = sandwich(Lambda, p_rest)
 
     gm.md(t"""
-    Boost in the {t0}{x1} plane with rapidity φ = {rapidity}:
+    Boost in the {t0}{x1} plane with rapidity {rapidity} = {rapidity.eval()}:
 
-    {Lambda} = exp({boost_plane} · φ/2) = {Lambda.eval()}
+    {Lambda} = exp({boost_plane} · {rapidity/2}) = {Lambda.eval()}
 
     Particle at rest: {p_rest} = {t0}
 

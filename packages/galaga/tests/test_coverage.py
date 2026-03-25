@@ -278,7 +278,7 @@ class TestSymbolicOperators:
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         expr = a / 2
-        assert "0.5" in str(expr)
+        assert str(expr) == "a/2"
 
     def test_truediv_notimplemented(self, cl3):
         e1, _, _ = cl3.basis_vectors()

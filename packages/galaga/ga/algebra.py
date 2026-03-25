@@ -739,10 +739,10 @@ class Multivector:
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
             if self._is_lazy:
-                from ga.symbolic import ScalarMul
+                from ga.symbolic import ScalarDiv
                 return self._lazy_result(
                     self.data / other,
-                    ScalarMul(1.0 / other, self._to_expr()),
+                    ScalarDiv(self._to_expr(), other),
                 )
             return Multivector(self.algebra, self.data / other)
         return NotImplemented
