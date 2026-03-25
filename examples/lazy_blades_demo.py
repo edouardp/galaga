@@ -271,7 +271,24 @@ def _(e1, e2):
 
 @app.cell
 def _(e1, e2):
-    B = (e1^e2).name('B')
+    Bi = (e1^e2).name('Bi')
+    return (Bi,)
+
+
+@app.cell
+def _(Bi):
+    Bi
+    return
+
+
+@app.cell
+def _(Bi):
+    Bi.anon()
+    return
+
+
+@app.cell
+def _():
     return
 
 

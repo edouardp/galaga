@@ -1261,3 +1261,23 @@ class TestLazyBladesFullWorkflow:
         assert "v" in str(unit(v))
         assert "v" in str(inverse(v))
         assert "v" in str(squared(v))
+
+
+class TestBladeHighDimension:
+    """Tests for blade() ambiguity guard in high dimensions."""
+
+    def test_blade_works_for_9d(self):
+        alg = Algebra(tuple([1] * 9))
+        b = alg.blade("e19")
+        assert b is not None
+
+    def test_blade_errors_for_10d_default_names(self):
+        alg = Algebra(tuple([1] * 10))
+        with pytest.raises(ValueError, match="ambiguous"):
+            alg.blade("e110")
+
+    def test_blade_works_for_10d_custom_names(self):
+        names = ([f"v{i}" for i in range(10)], [f"v{i}" for i in range(10)])
+        alg = Algebra(tuple([1] * 10), names=names)
+        b = alg.blade("v0v1")
+        assert b is not None

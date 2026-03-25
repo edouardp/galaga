@@ -295,7 +295,12 @@ class Algebra:
         return Multivector(self, data)
 
     def blade(self, name: str) -> Multivector:
-        """Lookup a basis blade by name, e.g. 'e1', 'e12', 'e123', or custom names."""
+        """Lookup a basis blade by name, e.g. 'e1', 'e12', 'e123', or custom names.
+
+        For the default 'e' naming scheme, indices are parsed digit-by-digit
+        (e.g. 'e12' means e₁∧e₂). This is ambiguous for algebras with more
+        than 9 dimensions — use custom names in that case.
+        """
         if name == "1" or name == "":
             return self.scalar(1.0)
         # Try custom code names first
@@ -311,9 +316,14 @@ class Algebra:
                 mv._name_unicode = self._blade_name(bitmask, unicode=True)
                 mv._name_latex = self._blade_latex(bitmask)
                 return mv
-        # Default e-index parsing
+        # Default e-index parsing (digit-by-digit, only valid for n <= 9)
         if not name.startswith("e"):
             raise ValueError(f"Invalid blade name: {name!r}")
+        if self._n > 9:
+            raise ValueError(
+                f"Digit-by-digit blade parsing is ambiguous for {self._n}D algebras. "
+                f"Use custom names: Algebra(sig, names=(code_names, unicode_names))"
+            )
         indices = [int(ch) for ch in name[1:]]
         bitmask = 0
         for idx in indices:
