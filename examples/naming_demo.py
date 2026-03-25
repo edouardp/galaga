@@ -283,7 +283,7 @@ def _(e1, e2, gm, simplify, sym):
             _d.line(f"| {label}: ${expr.latex()}$ | ${simplify(expr).latex()}$ |")
 
     _d.render()
-    return
+    return (v,)
 
 
 @app.cell(hide_code=True)
@@ -554,38 +554,14 @@ def _(gm):
 
 
 @app.cell
-def _(e1):
-    e1
+def _(v):
+    v
     return
 
 
 @app.cell
-def _(e1, e2):
-    e1^e2
-    return
-
-
-@app.cell
-def _(B):
-    B
-    return
-
-
-@app.cell
-def _(B):
-    B.eval()
-    return
-
-
-@app.cell
-def _(B):
-    B.eager()
-    return
-
-
-@app.cell
-def _(B):
-    B
+def _(R):
+    R.eval()
     return
 
 

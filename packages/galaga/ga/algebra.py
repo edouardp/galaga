@@ -528,10 +528,23 @@ class Multivector:
         """Prefer lazy symbolic representation for future operations."""
         return self._copy_with(_is_lazy=True)
 
-    def eager(self) -> Multivector:
-        """Force eager evaluation in-place. Preserves the name. Returns self."""
+    def eager(self, name: str | None = None) -> Multivector:
+        """Force eager evaluation in-place. Strips name unless one is given.
+
+        Args:
+            name: If provided, set this as the display name (named eager).
+                  If omitted, the name is cleared (anonymous eager).
+        """
         self._is_lazy = False
         self._expr = None
+        if name is not None:
+            self._name = name
+            self._name_latex = name
+            self._name_unicode = name
+        else:
+            self._name = None
+            self._name_latex = None
+            self._name_unicode = None
         return self
 
     def eval(self) -> Multivector:

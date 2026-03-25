@@ -71,10 +71,17 @@ class TestLazyEagerMethods:
     def test_eager_on_lazy(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
-        Be = B.eager()
-        assert Be._is_lazy is False
-        assert Be._name == "B"  # name preserved
-        assert Be is B  # mutates in-place
+        B.eager()
+        assert B._is_lazy is False
+        assert B._name is None  # eager() strips name by default
+
+    def test_eager_with_name(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        B = (e1 ^ e2).name("B")
+        B.eager("B")
+        assert B._is_lazy is False
+        assert B._name == "B"
+        assert str(B) == "B"
 
     def test_eval_is_eager(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
@@ -87,7 +94,8 @@ class TestLazyEagerMethods:
 
     def test_chaining_name_eager(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
-        B = (e1 ^ e2).name("B").eager()
+        B = (e1 ^ e2).name("B")
+        B.eager("B")
         assert B._name == "B"
         assert B._is_lazy is False
 
@@ -115,7 +123,8 @@ class TestDisplayRules:
 
     def test_named_eager_prints_name(self, cl3):
         e1, _, _ = cl3.basis_vectors()
-        v = e1.name("v").eager()
+        v = e1.name("v")
+        v.eager("v")
         assert str(v) == "v"
 
     def test_anon_lazy_prints_expr(self, cl3):
@@ -285,10 +294,10 @@ class TestSpecUseCases:
         """Evaluate but keep the name."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
-        Be = B.eager()
-        assert str(Be) == "B"
+        B.eager("B")
+        assert str(B) == "B"
         # anon reveals concrete form
-        s = str(Be.anon())
+        s = str(B.anon())
         assert s != "B"
 
     def test_use_case_5_rename(self, cl3):
@@ -344,9 +353,9 @@ class TestSpecUseCases:
         """Evaluate without losing developer labels."""
         e1, e2, _ = cl3.basis_vectors()
         psi = (3 * e1 + 4 * e2).name("psi")
-        psi_eval = psi.eager()
-        assert str(psi_eval) == "psi"
-        s = str(psi_eval.anon())
+        psi.eager("psi")
+        assert str(psi) == "psi"
+        s = str(psi.anon())
         assert s != "psi"
 
 
