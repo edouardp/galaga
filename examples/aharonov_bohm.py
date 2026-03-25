@@ -322,9 +322,9 @@ def _(I, flux_slider, gm, np, scalar, sta):
     _P_ga = scalar(_Psi * ~_Psi) / 2  # normalised (each path has unit amplitude)
     _P_formula = (1 + np.cos(_delta_phi)) / 2
 
-    gm.md(t"""$\\psi_1 = {_psi1}, \\quad \\psi_2 = {_psi2}$
+    gm.md(t"""$\\psi_1 =$ {_psi1}, $\\quad \\psi_2 =$ {_psi2}
 
-    $\\Psi = \\psi_1 + \\psi_2 = {_Psi}$
+    $\\Psi = \\psi_1 + \\psi_2 =$ {_Psi}
 
     $\\langle \\Psi\\tilde\\Psi \\rangle_0 / 2 = {_P_ga:.6f}$
 

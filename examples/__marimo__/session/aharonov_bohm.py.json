@@ -215,12 +215,12 @@
     },
     {
       "id": "qnkX",
-      "code_hash": "df8d7b3a931f6c84f5b7c9092059b924",
+      "code_hash": "d064c61d30eb9ad44e7cf28e99451311",
       "outputs": [
         {
           "type": "data",
           "data": {
-            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\">$\\psi_1 = <marimo-tex class=\"arithmatex\">||(0.375416 - 0.926857 I||)</marimo-tex>, \\quad \\psi_2 = <marimo-tex class=\"arithmatex\">||(0.375416 + 0.926857 I||)</marimo-tex>$</span>\n<span class=\"paragraph\">$\\Psi = \\psi_1 + \\psi_2 = <marimo-tex class=\"arithmatex\">||(0.750831||)</marimo-tex>$</span>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle \\Psi\\tilde\\Psi \\rangle_0 / 2 = 0.281874||)</marimo-tex></span>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\frac{1 + \\cos(\\Delta\\phi)}{2} = 0.515705||)</marimo-tex> \u2713</span>\n<span class=\"paragraph\">The cosine comes from the geometric product \u2014 the cross terms\n<marimo-tex class=\"arithmatex\">||(\\langle \\psi_1 \\tilde\\psi_2 + \\psi_2 \\tilde\\psi_1 \\rangle_0||)</marimo-tex>\ngive <marimo-tex class=\"arithmatex\">||(2\\cos(\\Delta\\phi)||)</marimo-tex>.</span></span>"
+            "text/markdown": "<span class=\"markdown prose dark:prose-invert contents\"><span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\psi_1 =||)</marimo-tex> <marimo-tex class=\"arithmatex\">||(0.375416 - 0.926857 I||)</marimo-tex>, <marimo-tex class=\"arithmatex\">||(\\quad \\psi_2 =||)</marimo-tex> <marimo-tex class=\"arithmatex\">||(0.375416 + 0.926857 I||)</marimo-tex></span>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\Psi = \\psi_1 + \\psi_2 =||)</marimo-tex> <marimo-tex class=\"arithmatex\">||(0.750831||)</marimo-tex></span>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\langle \\Psi\\tilde\\Psi \\rangle_0 / 2 = 0.281874||)</marimo-tex></span>\n<span class=\"paragraph\"><marimo-tex class=\"arithmatex\">||(\\frac{1 + \\cos(\\Delta\\phi)}{2} = 0.515705||)</marimo-tex> \u2713</span>\n<span class=\"paragraph\">The cosine comes from the geometric product \u2014 the cross terms\n<marimo-tex class=\"arithmatex\">||(\\langle \\psi_1 \\tilde\\psi_2 + \\psi_2 \\tilde\\psi_1 \\rangle_0||)</marimo-tex>\ngive <marimo-tex class=\"arithmatex\">||(2\\cos(\\Delta\\phi)||)</marimo-tex>.</span></span>"
           }
         }
       ],
