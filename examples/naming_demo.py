@@ -31,6 +31,7 @@ def _():
         Algebra, gp, op, grade, reverse, involute, conjugate,
         dual, norm, unit, inverse, exp, log, sandwich, scalar,
         left_contraction, hestenes_inner, even_grades, odd_grades,
+        squared
     )
     from ga.symbolic import (
         sym, simplify, grade as sgrade, reverse as srev,
@@ -38,7 +39,7 @@ def _():
     )
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, np, reverse, sandwich, scalar, simplify, sym
+    return Algebra, exp, gm, np, reverse, sandwich, simplify, squared, sym
 
 
 @app.cell(hide_code=True)
@@ -230,11 +231,11 @@ def _(alg, e1, e2, exp, gm, np, reverse):
     gm.md(t"""
     Named angle: {theta_s}
 
-    Half-angle bivector: -B·θ/2 = {half_angle}
+    Half-angle bivector: {half_angle} = {half_angle.eval()}
 
-    Rotor: {_R_s} = exp(half_angle) = {_R_s.eval()}
+    Rotor: {_R_s} = {exp(half_angle)} = {_R_s.eval()}
 
-    Reverse: {reverse(_R_s)}
+    Reverse: {reverse(_R_s)} = {reverse(_R_s).eval()}
     """)
     return
 
@@ -274,7 +275,7 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, gm, scalar):
+def _(Algebra, gm, squared):
     sta = Algebra((1, -1, -1, -1), names="gamma")
     g0, g1, g2, g3 = sta.basis_vectors()
 
@@ -290,16 +291,16 @@ def _(Algebra, gm, scalar):
     F_em = F_val.name("F", latex=r"\mathcal{F}")
 
     # Lorentz invariant: F² = E² - B² (in natural units)
-    F_sq = scalar(F_val * F_val)
+    F_sq = squared(F_val)
 
     gm.md(t"""
     The electromagnetic field bivector:
 
-    {F_em} = {E_field} + {I_sta*B_field} = {F_em.anon()}
+    {F_em} = {E_field} + {I_sta*B_field} = {F_em.eval()}
 
     The field squared (Lorentz invariant):
 
-    {F_em}² = {F_sq:g}
+    {F_sq} = {F_sq:g}
 
     This invariant tells us whether the field is electric-dominated
     (positive) or magnetic-dominated (negative).

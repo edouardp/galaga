@@ -674,10 +674,16 @@ class Squared(Expr):
         return _alg.gp(self.x.eval(), self.x.eval())
 
     def __str__(self):
-        return f"{self.x}²"
+        s = str(self.x)
+        if isinstance(self.x, (Add, Sub)):
+            s = f"({s})"
+        return f"{s}²"
 
     def _latex(self):
-        return rf"{self.x._latex()}^2"
+        l = self.x._latex()
+        if isinstance(self.x, (Add, Sub)):
+            l = rf"\left({l}\right)"
+        return rf"{l}^2"
 
 
 class Exp(Expr):
