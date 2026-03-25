@@ -74,13 +74,16 @@ class TestLazyEagerMethods:
         Be = B.eager()
         assert Be._is_lazy is False
         assert Be._name == "B"  # name preserved
+        assert Be is B  # mutates in-place
 
     def test_eval_is_eager(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         Be = B.eval()
         assert Be._is_lazy is False
-        assert Be._name == "B"
+        assert Be._name is None  # eval() returns anonymous
+        assert Be is not B       # eval() returns a new copy
+        assert Be == B           # same value
 
     def test_chaining_name_eager(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
@@ -246,8 +249,9 @@ class TestSymAlias:
         e1, e2, _ = cl3.basis_vectors()
         R = sym(e1 * e2, "R")
         Re = R.eval()
-        assert str(Re) == "R"
         assert Re._is_lazy is False
+        assert Re._name is None  # eval() returns anonymous
+        assert Re == e1 * e2     # same value
 
 
 # ============================================================

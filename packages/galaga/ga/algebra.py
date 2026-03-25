@@ -529,12 +529,17 @@ class Multivector:
         return self._copy_with(_is_lazy=True)
 
     def eager(self) -> Multivector:
-        """Force eager evaluation, preserving the name."""
-        return self._copy_with(_is_lazy=False, _expr=None)
+        """Force eager evaluation in-place. Preserves the name. Returns self."""
+        self._is_lazy = False
+        self._expr = None
+        return self
 
     def eval(self) -> Multivector:
-        """Evaluate to concrete form. Equivalent to ``.eager()``."""
-        return self.eager()
+        """Return a new anonymous eager copy — the concrete numeric result."""
+        return self._copy_with(
+            _is_lazy=False, _expr=None,
+            _name=None, _name_latex=None, _name_unicode=None,
+        )
 
     def _to_expr(self):
         """Convert this MV to an Expr node for use in expression trees.

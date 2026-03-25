@@ -731,8 +731,8 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 | `.name(label, *, latex=, unicode=, ascii=)` | Assign display name (makes lazy by default) |
 | `.anon()` | Remove display name, preserve lazy/eager state |
 | `.lazy()` | Prefer symbolic representation |
-| `.eager()` | Force concrete evaluation, preserve name |
-| `.eval()` | Alias for `.eager()` |
+| `.eager()` | Force eager evaluation in-place, preserve name |
+| `.eval()` | Return a new anonymous eager copy |
 | `.inv` | Inverse |
 | `.dag` | Reverse (dagger) |
 | `.sq` | Squared (geometric product with self) |

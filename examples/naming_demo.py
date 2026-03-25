@@ -121,7 +121,7 @@ def _(B, e3, gm):
     ```
 
     - `x` = {x} — symbolic expression
-    - `x.eager()` = {x.eager().anon()} — concrete result
+    - `x.eager()` = {x.eval()} — concrete result
     - Names don't propagate: `x._name` = `{x._name}`
     """)
     return
@@ -184,7 +184,7 @@ def _(e1, e2, exp, gm, np):
     ```
 
     - Symbolic: {v_out}
-    - Concrete: {v_out.eager().anon()}
+    - Concrete: {v_out.eval()}
 
     The rotor itself: {R.anon()}
     """)
@@ -200,7 +200,7 @@ def _(R, e1, e2, e3, gm):
         _d.line("|---|---|---|")
         for _v in [e1, e2, e3]:
             rotated = R * _v * ~R
-            _d.line(f"| ${_v.latex()}$ | ${rotated.latex()}$ | ${rotated.eager().anon().latex()}$ |")
+            _d.line(f"| ${_v.latex()}$ | ${rotated.latex()}$ | ${rotated.eval().latex()}$ |")
 
     _d.render()
     return
@@ -268,10 +268,10 @@ def _(e1, e2, gm, simplify, sym):
     v = sym(e1, "v")
     R_s = sym(e1 * e2, "R")
 
-    with gm.doc() as d:
-        d.md(t"### Algebraic identities")
-        d.text("| Expression | Simplified |")
-        d.line("|---|---|")
+    with gm.doc() as _d:
+        _d.md(t"### Algebraic identities")
+        _d.text("| Expression | Simplified |")
+        _d.line("|---|---|")
 
         cases = [
             ("Double reverse", ~~v),
@@ -280,7 +280,9 @@ def _(e1, e2, gm, simplify, sym):
             ("Rotor normalisation", R_s * ~R_s),
         ]
         for label, expr in cases:
-            d.line(f"| {label}: ${expr.latex()}$ | ${simplify(expr).latex()}$ |")
+            _d.line(f"| {label}: ${expr.latex()}$ | ${simplify(expr).latex()}$ |")
+
+    _d.render()
     return
 
 
@@ -322,7 +324,7 @@ def _(Algebra, gm):
 
     Plane through all three: {pi} = {pi.anon()}
     """)
-    return
+    return (L,)
 
 
 @app.cell(hide_code=True)
@@ -405,7 +407,7 @@ def _(e1, e2, e3, exp, gm, np):
     Apply to {e1}:
 
     - Symbolic: {v_result}
-    - Concrete: {v_result.eager().anon()}
+    - Concrete: {v_result.eval()}
     """)
     return
 
@@ -470,12 +472,14 @@ def _(e1, e2, gm):
     # Anonymous + Lazy (.anon() on a named lazy, or .lazy())
     al = nl.anon()
 
-    with gm.doc() as d:
-        d.md(t"### All four quadrants")
-        d.text("| | Anonymous | Named |")
-        d.line("|---|---|---|")
-        d.line(f"| **Eager** | `e1 + e2` → ${ae.latex()}$ | `(e1+e2).name(\"w\").eager()` → ${ne.latex()}$ |")
-        d.line(f"| **Lazy** | `B.anon()` → ${al.latex()}$ | `(e1^e2).name(\"B\")` → ${nl.latex()}$ |")
+    with gm.doc() as _d:
+        _d.md(t"### All four quadrants")
+        _d.text("| | Anonymous | Named |")
+        _d.line("|---|---|---|")
+        _d.line(f"| **Eager** | `e1 + e2` → ${ae.latex()}$ | `(e1+e2).name(\"w\").eager()` → ${ne.latex()}$ |")
+        _d.line(f"| **Lazy** | `B.anon()` → ${al.latex()}$ | `(e1^e2).name(\"B\")` → ${nl.latex()}$ |")
+
+    _d.render()
     return
 
 
@@ -491,7 +495,7 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, exp, gm, sandwich):
+def _(Algebra, L, exp, gm, sandwich):
     sta2 = Algebra((1, -1, -1, -1), names="gamma")
     t0, x1, x2, x3 = sta2.basis_vectors()
 
@@ -502,7 +506,7 @@ def _(Algebra, exp, gm, sandwich):
     boost_plane = (t0 * x1).name("B", latex=r"\hat{B}")
 
     # Boost rotor: exp(B * φ/2) — note: no minus sign for timelike bivectors
-    L = exp((t0 * x1) * rapidity / 2).name("Λ", latex=r"\Lambda")
+    Lambda = exp((t0 * x1) * rapidity / 2).name("Λ", latex=r"\Lambda")
 
     # Boost a particle at rest: p = m*γ₀
     p_rest = t0.name("p", latex=r"p_{\\text{rest}}")
@@ -511,11 +515,11 @@ def _(Algebra, exp, gm, sandwich):
     gm.md(t"""
     Boost in the {t0}{x1} plane with rapidity φ = {rapidity}:
 
-    {L} = exp({boost_plane} · φ/2) = {L.anon()}
+    {Lambda} = exp({boost_plane} · φ/2) = {L.anon()}
 
     Particle at rest: {p_rest} = {t0}
 
-    After boost: {L}{p_rest}{L}̃ = {p_boosted.eager().anon()}
+    After boost: {Lambda}{p_rest}{Lambda}̃ = {p_boosted.eval()}
 
     The boosted 4-momentum has both time and space components — the
     particle is now moving!
@@ -536,7 +540,8 @@ def _(gm):
     | `.name("B", latex=r"\\mathcal{{B}}")` | With format overrides |
     | `.anon()` | Remove name, keep lazy/eager |
     | `.lazy()` | Prefer symbolic display |
-    | `.eager()` / `.eval()` | Force concrete, keep name |
+    | `.eager()` | Force eager in-place, keep name |
+    | `.eval()` | Return new anonymous eager copy |
 
     **Key rules:**
     - Lazy is contagious — lazy + anything = lazy
