@@ -286,7 +286,7 @@ def _(Algebra, gm, scalar):
 
     # Full EM field bivector: F = E + IB
     I_sta = sta.pseudoscalar()
-    F_val = E_field.eager() + I_sta * B_field.eager()
+    F_val = E_field + I_sta * B_field
     F_em = F_val.name("F", latex=r"\mathcal{F}")
 
     # Lorentz invariant: F² = E² - B² (in natural units)
@@ -295,7 +295,7 @@ def _(Algebra, gm, scalar):
     gm.md(t"""
     The electromagnetic field bivector:
 
-    {F_em} = {E_field} + I{B_field} = {F_em.anon()}
+    {F_em} = {E_field} + {I_sta*B_field} = {F_em.anon()}
 
     The field squared (Lorentz invariant):
 
