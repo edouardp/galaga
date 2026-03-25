@@ -895,14 +895,8 @@ class Multivector:
         return result
 
     def __repr__(self) -> str:
-        """ASCII representation (or Unicode if ``repr_unicode=True`` on the algebra)."""
-        if self._name is not None:
-            if self.algebra._repr_unicode and self._name_unicode is not None:
-                return self._name_unicode
-            return self._name
-        if self._is_lazy and self._expr is not None:
-            return repr(self._expr)
-        return self._format(unicode=self.algebra._repr_unicode)
+        """Unicode representation (same as str)."""
+        return self.__str__()
 
     def __str__(self) -> str:
         """Unicode representation, e.g. ``3 + 2e₁ - e₃``."""

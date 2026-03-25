@@ -46,25 +46,25 @@ class TestNamingPresets:
         sta = Algebra((1, -1, -1, -1), names="gamma")
         g0, g1, g2, g3 = sta.basis_vectors()
         assert "γ₀" in str(g0)
-        assert "g0" in repr(g0)
+        assert "γ₀" in repr(g0)
 
     def test_sigma_preset(self):
         alg = Algebra((1, 1, 1), names="sigma")
         s1, s2, s3 = alg.basis_vectors()
         assert "σ₁" in str(s1)
-        assert "s1" in repr(s1)
+        assert "σ₁" in repr(s1)
 
     def test_sigma_xyz_preset(self):
         alg = Algebra((1, 1, 1), names="sigma_xyz")
         sx, sy, sz = alg.basis_vectors()
         assert "σₓ" in str(sx)
-        assert "x" in repr(sx)
+        assert "σₓ" in repr(sx)
 
     def test_custom_names(self):
         alg = Algebra((1, 1), names=(["a", "b"], ["𝐚", "𝐛"]))
         a, b = alg.basis_vectors()
         assert str(a) == "𝐚"
-        assert repr(a) == "a"
+        assert repr(a) == "𝐚"
 
     def test_custom_names_wrong_length(self):
         with pytest.raises(ValueError, match="must have 2 entries"):
@@ -90,8 +90,8 @@ class TestNamingPresets:
         a, b, c = alg.basis_vectors()
         # Non-pseudoscalar bivector uses custom names
         assert str(a * b) == "𝐚𝐛"
-        assert repr(a * b) == "ab"
-        # Pseudoscalar still shows as I/𝑰
+        assert repr(a * b) == "𝐚𝐛"
+        # Pseudoscalar still shows as 𝑰
         assert str(a * b * c) == "𝑰"
 
 

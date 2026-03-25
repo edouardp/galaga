@@ -148,17 +148,16 @@ class TestMultivector:
         r = 3 + 2 * e1 - e2
         s = repr(r)
         assert "3" in s
-        assert "e1" in s
-        assert "e2" in s
+        assert "e₁" in s
+        assert "e₂" in s
 
     def test_repr_zero(self, cl3):
         z = cl3.scalar(0)
         assert repr(z) == "0"
 
-    def test_repr_unicode_false_by_default(self, cl3):
+    def test_repr_matches_str(self, cl3):
         e1, _, _ = cl3.basis_vectors()
-        assert repr(e1) == "e1"
-        assert str(e1) != repr(e1)  # str uses unicode subscripts
+        assert repr(e1) == str(e1)
 
     def test_repr_unicode_true(self):
         alg = Algebra((1, 1, 1), repr_unicode=True)
