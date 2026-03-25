@@ -11,7 +11,7 @@ from ga import (
     commutator, anticommutator, lie_bracket, jordan_product,
     even_grades, odd_grades, squared,
     even_grades, odd_grades,
-    is_rotor,
+    is_rotor, is_even,
     sandwich, sw,
 )
 from ga.symbolic import (
@@ -718,6 +718,39 @@ class TestIsRotor:
     def test_vector_not_rotor(self, cl3):
         e1, _, _ = cl3.basis_vectors()
         assert not is_rotor(e1)
+
+
+class TestRotorValidation:
+    def test_rejects_vector(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        with pytest.raises(ValueError, match="odd-grade"):
+            cl3.rotor(e1, radians=0.5)
+
+    def test_rejects_trivector(self, cl3):
+        e1, e2, e3 = cl3.basis_vectors()
+        with pytest.raises(ValueError, match="odd-grade"):
+            cl3.rotor(e1 ^ e2 ^ e3, radians=0.5)
+
+    def test_accepts_bivector(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        R = cl3.rotor(e1 ^ e2, radians=0.5)
+        assert is_rotor(R)
+
+    def test_accepts_scalar(self, cl3):
+        R = cl3.rotor(cl3.scalar(1.0), radians=0.5)
+        assert is_even(R)
+
+    def test_normalizes_non_unit_bivector(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        R1 = cl3.rotor(e1 ^ e2, radians=0.5)
+        R2 = cl3.rotor(3 * (e1 ^ e2), radians=0.5)
+        assert np.allclose(R1.data, R2.data)
+
+    def test_sta_pseudoscalar_u1(self):
+        sta = Algebra((1, -1, -1, -1))
+        I = sta.I
+        R = sta.rotor(I, radians=0.5)
+        assert is_even(R)
 
     def test_scaled_rotor_not_rotor(self, cl3):
         e1, e2, _ = cl3.basis_vectors()

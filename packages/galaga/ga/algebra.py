@@ -310,22 +310,31 @@ class Algebra:
         return bitmask
 
     def rotor(self, B: Multivector, radians: float | None = None, degrees: float | None = None) -> Multivector:
-        """Create a rotor R = cos(θ/2) - sin(θ/2)B for rotation by θ in plane B.
+        """Create a rotor R = cos(θ/2) - sin(θ/2)B̂ for rotation by θ in plane B.
 
-        B should be a unit bivector. Specify the angle as ``radians=`` or
-        ``degrees=``. A positional second argument is treated as radians.
+        B must be an even multivector (scalar, bivector, pseudoscalar in even
+        dimensions, or any combination). It does not need to be unit — it is
+        normalized automatically. This allows bivectors (spatial rotations),
+        scalars (identity), and pseudoscalars like I in STA (U(1) phase).
 
         Args:
-            B: Unit bivector defining the rotation plane.
+            B: Even multivector defining the rotation generator (normalized internally).
             radians: Rotation angle in radians.
             degrees: Rotation angle in degrees (converted internally).
+
+        Raises:
+            ValueError: If B has any odd-grade components.
         """
         if radians is not None and degrees is not None:
             raise ValueError("Specify radians= or degrees=, not both")
         if radians is None and degrees is None:
             raise ValueError("Specify radians= or degrees=")
+        if not is_even(B):
+            odd = [k for k in range(self._n + 1) if k % 2 == 1 and not np.allclose(grade(B, k).data, 0)]
+            raise ValueError(f"B must be an even multivector, but has odd-grade components: {odd}")
         theta = radians if radians is not None else np.radians(degrees)
-        return self.scalar(np.cos(theta / 2)) - np.sin(theta / 2) * B
+        B_hat = unit(B)
+        return self.scalar(np.cos(theta / 2)) - np.sin(theta / 2) * B_hat
 
     # Aliases
     rotor_from_bivector = rotor
