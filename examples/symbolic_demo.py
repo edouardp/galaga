@@ -41,6 +41,7 @@ def _():
         sym, gp, op, grade, reverse, involute, conjugate,
         dual, undual, norm, unit, inverse, squared,
         left_contraction, right_contraction, hestenes_inner, scalar_product,
+        doran_lasenby_inner,
         commutator, anticommutator, lie_bracket, jordan_product,
         even_grades, odd_grades,
     )
@@ -51,6 +52,7 @@ def _():
         anticommutator,
         commutator,
         conjugate,
+        doran_lasenby_inner,
         dual,
         even_grades,
         gm,
@@ -110,37 +112,63 @@ def _(gm):
 @app.cell
 def _(a, b, gp):
     # Each expression renders as LaTeX automatically in marimo
+    # Aliases:
+    #   geometric_product(a, b)
+    #   a * b
     gp(a, b)
     return
 
 
 @app.cell
 def _(a, b, op):
+    # Aliases:
+    #   wedge(a, b)
+    #   outer_product(a, b)
+    #   a ^ b
     op(a, b)
     return
 
 
 @app.cell
 def _(a, b, left_contraction):
+    # Aliases:
+    #   ip(a, b, mode="left")
     left_contraction(a, b)
     return
 
 
 @app.cell
 def _(a, b, right_contraction):
+    # Aliases:
+    #   ip(a, b, mode="right")
     right_contraction(a, b)
     return
 
 
 @app.cell
 def _(A, B, hestenes_inner):
+    # Aliases:
+    #   ip(A, B, mode="hestenes")
     hestenes_inner(A, B)
     return
 
 
 @app.cell
 def _(A, B, scalar_product):
+    # Aliases:
+    #   ip(A, B, mode="scalar")
     scalar_product(A, B)
+    return
+
+
+@app.cell
+def _(a, b, doran_lasenby_inner):
+    # Aliases:
+    #   dorst_inner(a, b)
+    #   ip(a, b)
+    #   ip(a, b, mode="doran_lasenby")
+    #   a | b
+    doran_lasenby_inner(a, b)
     return
 
 
@@ -218,6 +246,9 @@ def _(gm):
 
 @app.cell
 def _(R, reverse):
+    # Aliases:
+    #   rev(R)
+    #   ~R
     reverse(R)
     return
 
@@ -262,6 +293,9 @@ def _(norm, v):
 
 @app.cell
 def _(unit, v):
+    # Aliases:
+    #   normalize(v)
+    #   normalise(v)
     unit(v)
     return
 
