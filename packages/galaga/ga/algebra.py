@@ -958,8 +958,12 @@ class Multivector:
             terms = []
             for i in range(alg.dim):
                 c = self.data[i]
-                if abs(c) < 1e-12:
-                    continue
+                if coeff_format:
+                    if c == 0.0:
+                        continue
+                else:
+                    if abs(c) < 1e-12:
+                        continue
                 name = alg._blade_latex(i)
                 if coeff_format:
                     formatted_c = format(c, coeff_format)
