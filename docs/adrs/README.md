@@ -16,7 +16,7 @@ helps future contributors understand why certain choices were made.
 | [001](001-use-architectural-decision-records.md) | Use Architectural Decision Records | Accepted |
 | [002](002-named-functions-as-api-contract.md) | Named Functions as the Stable API Contract | Accepted |
 | [003](003-explicit-inner-product-variants.md) | Explicit Inner Product Variants | Accepted |
-| [004](004-two-layer-architecture.md) | Two-Layer Architecture (Numeric + Symbolic) | Accepted |
+| [004](004-two-layer-architecture.md) | Two-Layer Architecture (Numeric + Symbolic) | Superseded by 018 |
 | [005](005-separate-marimo-helper-package.md) | Separate Marimo Notebook Helper Package | Accepted |
 | [006](006-renderer-supports-repr-latex.md) | Renderer Supports Both .latex() and _repr_latex_() | Accepted |
 | [007](007-integer-only-pow.md) | Integer-Only Multivector Exponentiation | Accepted |
@@ -25,11 +25,14 @@ helps future contributors understand why certain choices were made.
 | [010](010-complement-vs-dual.md) | Complement vs Dual — Metric-Independent Duality | Accepted |
 | [011](011-precomputed-multiplication-tables.md) | Precomputed Multiplication Tables | Accepted |
 | [012](012-unicode-repr-opt-in.md) | Unicode Repr with Opt-In Flag | Accepted |
-| [013](013-symbolic-drop-in-pattern.md) | Symbolic Drop-In Replacement Pattern | Accepted |
+| [013](013-symbolic-drop-in-pattern.md) | Symbolic Drop-In Replacement Pattern | Superseded by 018 |
 | [014](014-fixed-point-simplification.md) | Fixed-Point Simplification | Accepted |
 | [015](015-uv-workspace-monorepo.md) | uv Workspace for Monorepo | Accepted |
 | [016](016-t-string-rendering.md) | T-String Rendering in Marimo Notebooks | Accepted |
 | [017](017-doran-lasenby-inner-as-pipe.md) | Doran–Lasenby Inner Product as the \| Operator | Accepted |
+| [018](018-unified-naming-evaluation-semantics.md) | Unified Naming and Evaluation Semantics on Multivector | Accepted |
+| [019](019-basis-blades-named-eager.md) | Basis Blades as Named Eager Multivectors | Accepted |
+| [020](020-lazy-propagation-through-operators.md) | Lazy Propagation Through Operators | Accepted |
 
 ## Creating New ADRs
 

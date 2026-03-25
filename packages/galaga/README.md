@@ -7,6 +7,7 @@ A numeric geometric algebra library with a stable, programmer-first API.
 - **No ambiguity** — every inner product variant has its own name
 - **Unicode pretty-printing** — `3 + 2e₁ - e₃`, `γ₀γ₁`, `σₓσᵧ`
 - **Symbolic expression trees** — write `grade(R * v * ~R, 1)` and see `⟨RvR̃⟩₁`
+- **Naming and evaluation** — `.name("B")`, `.anon()`, `.lazy()`, `.eager()` on any multivector
 
 ## Install
 
@@ -376,13 +377,57 @@ Coefficients of ±1 are suppressed: `e₁₂` not `1e₁₂`, `-e₃` not `-1e�
 
 ## Symbolic Expressions
 
-Build expression trees that render as mathematical notation, then evaluate to get numeric results.
+Name multivectors and build expression trees that render as mathematical notation.
+
+### Naming and Evaluation
+
+Any multivector can be named and made symbolic with `.name()`:
 
 ```python
-from ga.symbolic import sym, grade, reverse, dual, norm, unit, inverse, gp, op
-
 alg = Algebra((1, 1, 1))
 e1, e2, e3 = alg.basis_vectors()
+
+B = (e1 ^ e2).name("B")
+print(B)              # B
+print(B.anon())       # e₁₂  (reveal concrete value)
+print(B.eager())      # B    (name preserved)
+print(B.eager().anon())  # e₁₂
+```
+
+Naming and evaluation are orthogonal axes:
+
+| | **Anonymous** | **Named** |
+|---|---|---|
+| **Eager** | `e1 + e2` → `e₁ + e₂` | `e1` → `e₁` (basis blades) |
+| **Lazy** | `B.anon()` → expr tree | `B = (e1^e2).name("B")` → `B` |
+
+### Lazy Propagation
+
+When a lazy value participates in an operation, the result is lazy:
+
+```python
+B = (e1 ^ e2).name("B")
+x = B + e3
+print(x)              # B + e₃  (symbolic)
+print(x.eager())      # e₁₂ + e₃  (concrete)
+```
+
+Names don't propagate — the result is anonymous but named operands appear by name in the expression tree.
+
+### Name Format Overrides
+
+```python
+v = e1.name("v", latex=r"\mathbf{v}", unicode="𝐯")
+print(v)              # 𝐯
+v.latex()             # \mathbf{v}
+```
+
+### sym() Compatibility
+
+`sym()` still works as a convenience alias:
+
+```python
+from ga.symbolic import sym, grade, reverse, simplify
 
 R = sym(e1 * e2, "R")
 v = sym(e1 + 2*e2, "v")
@@ -391,14 +436,11 @@ v = sym(e1 + 2*e2, "v")
 ### Rendering
 
 ```python
+R = (e1 * e2).name("R")
+v = e1.name("v")
+
 print(R * v * ~R)                     # RvR̃
 print(grade(R * v * ~R, 1))           # ⟨RvR̃⟩₁
-print(op(sym(e1, "a"), sym(e2, "b"))) # a∧b
-print(dual(sym(e1, "v")))             # v⋆
-print(norm(sym(e1, "v")))             # ‖v‖
-print(unit(sym(e1, "v")))             # v̂
-print(inverse(sym(e1, "v")))          # v⁻¹
-print(reverse(sym(e1*e2, "R")))       # R̃
 ```
 
 Full rendering table:
@@ -429,13 +471,16 @@ Full rendering table:
 
 ### Evaluation
 
-Every symbolic expression can be evaluated to a concrete `Multivector`:
+Every lazy multivector can be evaluated to its concrete form:
 
 ```python
 expr = grade(R * v * ~R, 1)
 print(expr)          # ⟨RvR̃⟩₁
-print(expr.eval())   # -e₁ - 2e₂
+print(expr.eval())   # concrete Multivector result
 ```
+
+`.eval()` and `.eager()` are equivalent — both return a concrete multivector
+while preserving the name.
 
 ### LaTeX Output
 
@@ -491,16 +536,18 @@ Full LaTeX rendering table:
 
 ### Drop-in Functions
 
-The symbolic module provides drop-in replacements for all `ga` functions. They detect `Expr` arguments and build trees; with plain `Multivector` arguments they delegate to the numeric core:
+The symbolic module provides drop-in replacements for all `ga` functions. They detect lazy `Multivector` or `Expr` arguments and build trees; with plain eager `Multivector` arguments they delegate to the numeric core:
 
 ```python
 from ga.symbolic import gp, grade, reverse
 
-# With Sym → builds expression tree
-grade(R * v * ~R, 1)   # returns Expr
+# With lazy/named MV → builds expression tree
+R = (e1 * e2).name("R")
+v = e1.name("v")
+grade(R * v * ~R, 1)   # returns lazy Multivector with expr tree
 
-# With Multivector → returns Multivector directly
-grade(e1 + e2, 1)      # returns Multivector
+# With eager MV → returns Multivector directly (zero overhead)
+grade(e1 + e2, 1)      # returns eager Multivector
 ```
 
 ### Simplification
@@ -529,6 +576,8 @@ simplify(grade(v, 1))      # v         (v is known grade-1)
 simplify(grade(v, 2))      # 0         (v has no grade-2)
 ```
 
+`simplify()` accepts both `Expr` objects and lazy `Multivector` objects.
+
 Grade is auto-detected from the multivector data, so `sym(e1, "v")` knows it's grade-1 and `sym(e1^e2, "B")` knows it's grade-2. Simplification runs to a fixed point, so cascading rules like `a - (-a) → a + a → 2a` resolve fully.
 
 ## Sandwich Product
@@ -543,10 +592,10 @@ sw(R, e1)           # same thing, short alias
 Works in the symbolic layer too:
 
 ```python
-from ga.symbolic import sym, sandwich
+from ga.symbolic import sandwich
 
-R = sym(alg.rotor(e1^e2, radians=np.pi/2), "R")
-v = sym(e1, "v")
+R = (alg.rotor(e1^e2, radians=np.pi/2)).name("R")
+v = e1.name("v")
 print(sandwich(R, v))        # RvR̃
 print(sandwich(R, v).eval()) # e₂
 ```
@@ -676,9 +725,14 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 
 ### `Multivector`
 
-| Property | Description |
+| Property / Method | Description |
 |---|---|
 | `[k]` | Grade-k projection (`x[2]` = `grade(x, 2)`) |
+| `.name(label, *, latex=, unicode=, ascii=)` | Assign display name (makes lazy by default) |
+| `.anon()` | Remove display name, preserve lazy/eager state |
+| `.lazy()` | Prefer symbolic representation |
+| `.eager()` | Force concrete evaluation, preserve name |
+| `.eval()` | Alias for `.eager()` |
 | `.inv` | Inverse |
 | `.dag` | Reverse (dagger) |
 | `.sq` | Squared (geometric product with self) |
@@ -755,7 +809,7 @@ uv run pytest tests/ -v                          # run all tests
 uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 ```
 
-349 tests, 99% coverage. Tests include:
+532 tests, 98% coverage. Tests include:
 - Algebraic identities (associativity, distributivity, reverse-of-product)
 - Golden tests for Cl(2,0), Cl(3,0), Cl(1,3)
 - All five inner products with mixed-grade cases where they diverge
@@ -763,5 +817,8 @@ uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 - Projection/rejection complement property, reflection involution
 - Symbolic rendering, evaluation, simplification rules
 - LaTeX output for both `Multivector` and `Expr`
+- Naming/evaluation semantics: `.name()`, `.anon()`, `.lazy()`, `.eager()`
+- Lazy propagation through all operators
+- All 10 spec use cases from the symbolic redesign
 - Edge cases and error handling
 

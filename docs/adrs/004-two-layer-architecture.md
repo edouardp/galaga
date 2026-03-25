@@ -1,10 +1,17 @@
 ---
-status: accepted
+status: superseded
 date: 2026-03-25
 deciders: edouard
+superseded-by: ADR-018
 ---
 
 # ADR-004: Two-Layer Architecture (Numeric + Symbolic)
+
+> **Note:** This ADR is partially superseded by [ADR-018](018-unified-naming-evaluation-semantics.md).
+> The two modules (`ga.algebra` and `ga.symbolic`) still exist, but the boundary
+> has shifted: `Multivector` now handles both naming and lazy evaluation natively.
+> The `Expr` tree is an internal implementation detail, not a public type users
+> work with directly. `sym()` returns a `Multivector`, not an `Expr`.
 
 ## Context and Problem Statement
 
