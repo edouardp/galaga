@@ -790,6 +790,7 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 
 - **`naming_demo.py`** — Naming and evaluation API: `.name()`, `.anon()`, `.lazy()`, `.eager()`, real-world examples
+- **`lazy_blades_demo.py`** — Lazy basis blades: `basis_vectors(lazy=True)` for fully symbolic workflows
 - **`symbolic_demo.py`** — Symbolic expression trees, rendering, simplification, LaTeX output
 - **`spacetime_algebra.py`** — Spacetime Algebra Cl(1,3): boosts, rotations, EM field, Thomas–Wigner rotation
 - **`quantum_physics.py`** — Quantum spin-½: Bloch sphere, measurement, Stern–Gerlach, Larmor precession
