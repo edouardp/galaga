@@ -364,21 +364,21 @@ def _(Algebra, gm):
     R_pt = (0 * pe1 + 0 * pe2 + 1 * pe3 + pe0).name("R")
 
     # Line through two points: L = P ∧ Q
-    L = (P.eager() ^ Q.eager()).name("L", latex=r"\ell")
+    L = (P ^ Q).name("L", latex=r"\ell")
 
     # Plane through three points: π = P ∧ Q ∧ R
-    pi = (P.eager() ^ Q.eager() ^ R_pt.eager()).name("π", latex=r"\pi")
+    pi = (P ^ Q ^ R_pt).name("π", latex=r"\pi")
 
     gm.md(t"""
     Three points on the unit axes:
 
-    - {P} = {P.anon()}
-    - {Q} = {Q.anon()}
-    - {R_pt} = {R_pt.anon()}
+    - {P} = {P.eval()}
+    - {Q} = {Q.eval()}
+    - {R_pt} = {R_pt.eval()}
 
-    Line through {P} and {Q}: {L} = {L.anon()}
+    Line through {P} and {Q}: {L} = {L.eval()}
 
-    Plane through all three: {pi} = {pi.anon()}
+    Plane through all three: {pi} = {pi.eval()}
     """)
     return
 
@@ -406,18 +406,18 @@ def _(Algebra, exp, gm, np, sandwich):
     psi_x = exp(-(s2 * s3) * np.pi / 4).name("ψₓ", latex=r"\psi_x")
 
     # Spin expectation: the vector part of ψ σ₃ ψ̃ gives the spin direction
-    spin_up = sandwich(psi_up.eager(), s3)
-    spin_x = sandwich(psi_x.eager(), s3)
+    spin_up = sandwich(psi_up, s3)
+    spin_x = sandwich(psi_x, s3)
 
     gm.md(t"""
-    Spin-up along z: {psi_up} = {psi_up.anon()}
+    Spin-up along z: {psi_up} = {psi_up.eval()}
 
-    Spin-up along x: {psi_x} = {psi_x.anon()}
+    Spin-up along x: {psi_x} = {psi_x.eval()}
 
     **Spin measurement** (sandwich ψσ₃ψ̃):
 
-    - {psi_up}: ψσ₃ψ̃ = {spin_up} → spin points along +z ✓
-    - {psi_x}: ψσ₃ψ̃ = {spin_x} → no z-component (spin along x)
+    - {psi_up}: ψσ₃ψ̃ = {spin_up.eval()} → spin points along +z ✓
+    - {psi_x}: ψσ₃ψ̃ = {spin_x.eval()} → no z-component (spin along x)
 
     The sandwich product rotates the measurement axis into the spin
     frame — a purely geometric operation, no matrices needed.
