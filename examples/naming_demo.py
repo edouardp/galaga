@@ -194,13 +194,15 @@ def _(e1, e2, exp, gm, np):
 @app.cell
 def _(R, e1, e2, e3, gm):
     # Rotate all three basis vectors
-    with gm.doc() as d:
-        d.md(t"### Rotating all basis vectors")
-        d.text("| Input | Symbolic | Result |")
-        d.line("|---|---|---|")
-        for v in [e1, e2, e3]:
-            rotated = R * v * ~R
-            d.line(f"| ${v.latex()}$ | ${rotated.latex()}$ | ${rotated.eager().anon().latex()}$ |")
+    with gm.doc() as _d:
+        _d.md(t"### Rotating all basis vectors")
+        _d.text("| Input | Symbolic | Result |")
+        _d.line("|---|---|---|")
+        for _v in [e1, e2, e3]:
+            rotated = R * _v * ~R
+            _d.line(f"| ${_v.latex()}$ | ${rotated.latex()}$ | ${rotated.eager().anon().latex()}$ |")
+
+    _d.render()
     return
 
 

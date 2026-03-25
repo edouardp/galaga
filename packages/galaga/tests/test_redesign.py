@@ -875,3 +875,47 @@ class TestSymbolicDropInWithLazyMV:
         for mode in ("doran_lasenby", "hestenes", "left", "right", "scalar"):
             result = ip(a, e2, mode=mode)
             assert "a" in str(result)
+
+
+class TestSandwichLazy:
+    """Tests for laziness-aware sandwich()."""
+
+    def test_sandwich_lazy_rotor(self, cl3):
+        from ga import sandwich
+        e1, e2, _ = cl3.basis_vectors()
+        R = (e1 * e2).name("R")
+        v = e1.name("v")
+        result = sandwich(R, v)
+        assert result._is_lazy
+        assert "R" in str(result)
+        assert "v" in str(result)
+
+    def test_sandwich_lazy_concrete_correct(self, cl3):
+        from ga import sandwich, gp, reverse
+        e1, e2, _ = cl3.basis_vectors()
+        R = (e1 * e2).name("R")
+        result = sandwich(R, e1)
+        expected = gp(gp(e1 * e2, e1), reverse(e1 * e2))
+        assert result.eager() == expected
+
+    def test_sandwich_eager_stays_eager(self, cl3):
+        from ga import sandwich
+        e1, e2, _ = cl3.basis_vectors()
+        result = sandwich(e1 * e2, e1)
+        assert result._is_lazy is False
+
+    def test_sandwich_one_lazy_operand(self, cl3):
+        from ga import sandwich
+        e1, e2, _ = cl3.basis_vectors()
+        R = (e1 * e2).name("R")
+        # lazy rotor, eager vector
+        result = sandwich(R, e1)
+        assert result._is_lazy
+        assert "R" in str(result)
+
+    def test_sw_alias_lazy(self, cl3):
+        from ga import sw
+        e1, e2, _ = cl3.basis_vectors()
+        R = (e1 * e2).name("R")
+        result = sw(R, e1)
+        assert result._is_lazy
