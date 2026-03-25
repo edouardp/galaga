@@ -1028,3 +1028,86 @@ class TestMVDivision:
         # This should work (e1+e2 is invertible)
         result = e1 / (e1 + e2)
         assert result is not None
+
+
+class TestDivExprNode:
+    """Tests for the Div expression node and symbolic MV/MV division."""
+
+    def test_div_preserves_names(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        a = cl3.scalar(10.0).name("a")
+        b = cl3.scalar(2.0).name("b")
+        result = a / b
+        assert "a" in str(result)
+        assert "b" in str(result)
+
+    def test_div_latex(self, cl3):
+        a = cl3.scalar(10.0).name("a", latex=r"\alpha")
+        b = cl3.scalar(2.0).name("b", latex=r"\beta")
+        result = a / b
+        assert r"\frac{\alpha}{\beta}" == result.latex()
+
+    def test_div_eval_correct(self, cl3):
+        a = cl3.scalar(10.0).name("a")
+        b = cl3.scalar(2.0).name("b")
+        result = a / b
+        assert result.eval().scalar_part == 5.0
+
+    def test_div_product_in_denominator(self, cl3):
+        hbar = cl3.scalar(1.055e-34).name("ℏ", latex=r"\hbar")
+        m = cl3.scalar(9.109e-31).name("m", latex=r"m_e")
+        c = cl3.scalar(3e8).name("c", latex=r"c")
+        lam = hbar / (m * c)
+        assert "ℏ" in str(lam)
+        assert "m" in str(lam)
+        assert "c" in str(lam)
+        assert r"\frac{\hbar}{m_e c}" == lam.latex()
+
+    def test_div_eager_by_eager_stays_eager(self, cl3):
+        a = cl3.scalar(10.0)
+        b = cl3.scalar(2.0)
+        result = a / b
+        assert result._is_lazy is False
+        assert result.scalar_part == 5.0
+
+    def test_div_lazy_by_eager(self, cl3):
+        a = cl3.scalar(10.0).name("a")
+        b = cl3.scalar(2.0)
+        result = a / b
+        assert result._is_lazy is True
+        assert "a" in str(result)
+
+    def test_div_eager_by_lazy(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        a = cl3.scalar(10.0)
+        b = cl3.scalar(2.0).name("b")
+        result = a / b
+        assert result._is_lazy is True
+        assert "b" in str(result)
+
+    def test_scalar_div_still_works(self, cl3):
+        """Division by int/float still uses ScalarDiv."""
+        v = cl3.scalar(6.0).name("v")
+        result = v / 3
+        assert str(result) == "v/3"
+
+    def test_exp_node(self, cl3):
+        from ga import exp
+        e1, e2, _ = cl3.basis_vectors()
+        B = (e1 ^ e2).name("B")
+        theta = cl3.scalar(0.5).name("θ", latex=r"\theta")
+        R = exp(B * theta)
+        assert "exp" in str(R)
+        assert "B" in str(R)
+        assert "θ" in str(R)
+        assert r"e^{" in R.latex()
+
+    def test_exp_eval(self, cl3):
+        from ga import exp
+        import numpy as np
+        e1, e2, _ = cl3.basis_vectors()
+        B = (e1 ^ e2).name("B")
+        R = exp(B * cl3.scalar(np.pi / 4).name("θ"))
+        concrete = R.eval()
+        assert concrete._is_lazy is False
+        assert abs(concrete.scalar_part - np.cos(np.pi / 4)) < 1e-10
