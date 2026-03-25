@@ -1111,3 +1111,52 @@ class TestDivExprNode:
         concrete = R.eval()
         assert concrete._is_lazy is False
         assert abs(concrete.scalar_part - np.cos(np.pi / 4)) < 1e-10
+
+
+class TestSquaredParens:
+    """Tests for parenthesization in Squared node."""
+
+    def test_squared_single_term_no_parens(self, cl3):
+        from ga import squared
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert str(squared(v)) == "v²"
+
+    def test_squared_add_gets_parens(self, cl3):
+        from ga import squared
+        e1, e2, _ = cl3.basis_vectors()
+        a = e1.name("a")
+        b = e2.name("b")
+        result = squared(a + b)
+        assert str(result) == "(a + b)²"
+
+    def test_squared_sub_gets_parens(self, cl3):
+        from ga import squared
+        e1, e2, _ = cl3.basis_vectors()
+        a = e1.name("a")
+        b = e2.name("b")
+        result = squared(a - b)
+        assert str(result) == "(a - b)²"
+
+    def test_squared_product_no_parens(self, cl3):
+        from ga import squared
+        e1, e2, _ = cl3.basis_vectors()
+        a = e1.name("a")
+        b = e2.name("b")
+        result = squared(a * b)
+        assert "(" not in str(result)
+
+    def test_squared_latex_add_gets_parens(self, cl3):
+        from ga import squared
+        e1, e2, _ = cl3.basis_vectors()
+        a = e1.name("a")
+        b = e2.name("b")
+        result = squared(a + b)
+        assert r"\left(" in result.latex()
+        assert r"\right)" in result.latex()
+
+    def test_squared_latex_single_no_parens(self, cl3):
+        from ga import squared
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert result.latex() == "v^2" if (result := squared(v)) else False
