@@ -47,8 +47,9 @@ pga = Algebra((1, 1, 1, 0))        # Cl(3,0,1) — Projective GA
 ### Constructors
 
 ```python
-alg.basis_vectors()     # (e₁, e₂, e₃)
-alg.pseudoscalar()      # e₁₂₃ (also alg.I)
+alg.basis_vectors()              # (e₁, e₂, e₃) — named + eager
+alg.basis_vectors(lazy=True)     # (e₁, e₂, e₃) — named + lazy (symbolic)
+alg.pseudoscalar()               # e₁₂₃ (also alg.I)
 alg.identity            # scalar 1 (𝟙)
 alg.scalar(5.0)         # 5
 alg.vector([1, 2, 3])   # e₁ + 2e₂ + 3e₃
@@ -426,6 +427,29 @@ print(v)              # 𝐯
 v.latex()             # \mathbf{v}
 ```
 
+### Lazy Basis Blades
+
+For fully symbolic workflows, use `lazy=True` — every operation builds an
+expression tree automatically:
+
+```python
+e1, e2, e3 = alg.basis_vectors(lazy=True)
+
+e1 ^ e2              # e₁∧e₂  (not e₁₂)
+e1 * e2              # e₁e₂
+3 * e1 + e2          # 3e₁ + e₂
+(e1 ^ e2).eval()     # e₁₂  (concrete when you need it)
+```
+
+Division renders as fractions, `exp()` renders symbolically:
+
+```python
+theta = alg.scalar(0.5).name("θ")
+B = (e1 ^ e2).name("B")
+print(-B * theta / 2)     # -Bθ/2
+print(exp(-B * theta / 2))  # exp(-Bθ/2)
+```
+
 ### sym() Compatibility
 
 `sym()` still works as a convenience alias:
@@ -717,7 +741,7 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 
 | Method / Property | Description |
 |---|---|
-| `basis_vectors()` | Tuple of basis 1-vectors |
+| `basis_vectors(lazy=False)` | Tuple of basis 1-vectors (lazy=True for symbolic) |
 | `pseudoscalar()` | Unit pseudoscalar |
 | `I` | Unit pseudoscalar (property) |
 | `identity` | Scalar 1 |
@@ -815,7 +839,7 @@ uv run pytest tests/ -v                          # run all tests
 uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 ```
 
-532 tests, 98% coverage. Tests include:
+576 tests, 98% coverage. Tests include:
 - Algebraic identities (associativity, distributivity, reverse-of-product)
 - Golden tests for Cl(2,0), Cl(3,0), Cl(1,3)
 - All five inner products with mixed-grade cases where they diverge
@@ -825,6 +849,8 @@ uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 - LaTeX output for both `Multivector` and `Expr`
 - Naming/evaluation semantics: `.name()`, `.anon()`, `.lazy()`, `.eager()`
 - Lazy propagation through all operators
+- Lazy basis blades: `basis_vectors(lazy=True)`
+- MV / MV division, ScalarDiv/Div/Exp expression nodes
 - All 10 spec use cases from the symbolic redesign
 - Edge cases and error handling
 

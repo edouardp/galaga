@@ -1191,3 +1191,73 @@ class TestBasisVectorsLazy:
         assert str(e1) == "e₁"
         assert str(e2) == "e₂"
         assert str(e3) == "e₃"
+
+
+class TestLazyBladesFullWorkflow:
+    """End-to-end tests with basis_vectors(lazy=True)."""
+
+    def test_wedge_symbolic(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        assert "∧" in str(e1 ^ e2)
+
+    def test_gp_symbolic(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        result = e1 * e2
+        assert "e₁" in str(result)
+        assert "e₂" in str(result)
+
+    def test_add_symbolic(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        assert "+" in str(e1 + e2)
+
+    def test_scalar_div_symbolic(self, cl3):
+        e1, _, _ = cl3.basis_vectors(lazy=True)
+        result = e1 / 2
+        assert "/2" in str(result)
+
+    def test_exp_symbolic(self, cl3):
+        from ga import exp
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        result = exp(B)
+        assert "exp" in str(result)
+
+    def test_rotor_workflow(self, cl3):
+        from ga import exp, reverse
+        import numpy as np
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        theta = cl3.scalar(np.pi / 4).name("θ")
+        B = (e1 ^ e2).name("B")
+        R = exp(-B * theta / 2).name("R")
+        v_rot = R * e1 * ~R
+        assert "R" in str(v_rot)
+        concrete = v_rot.eval()
+        assert abs(concrete.data[1] - np.cos(np.pi / 4)) < 1e-10
+
+    def test_division_symbolic(self, cl3):
+        e1, _, _ = cl3.basis_vectors(lazy=True)
+        a = cl3.scalar(10.0).name("a")
+        b = cl3.scalar(2.0).name("b")
+        result = a / b
+        assert "a" in str(result)
+        assert "b" in str(result)
+
+    def test_named_scalar_in_expr(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        m = cl3.scalar(5.0).name("m")
+        result = m * e1
+        assert "m" in str(result)
+
+    def test_all_module_functions_lazy(self, cl3):
+        """All module-level functions produce symbolic output with lazy blades."""
+        from ga import reverse, involute, conjugate, grade, dual, unit, inverse, squared
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        v = (e1 + e2).name("v")
+        assert "ṽ" in str(reverse(v)) or "v" in str(reverse(v))
+        assert "v" in str(involute(v))
+        assert "v" in str(conjugate(v))
+        assert "v" in str(grade(v, 1))
+        assert "v" in str(dual(v))
+        assert "v" in str(unit(v))
+        assert "v" in str(inverse(v))
+        assert "v" in str(squared(v))

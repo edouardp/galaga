@@ -42,7 +42,7 @@ Every multivector independently controls two things:
 
 `.name("B")` makes an object named + lazy by default. `.eager()` forces concrete evaluation in-place and strips the name (or `.eager("B")` to keep it). `.eval()` returns a new anonymous eager copy without mutating the original. `.anon()` removes the name while preserving the lazy/eager state.
 
-Basis blades are **named + eager** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead.
+Basis blades are **named + eager** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead. Use `basis_vectors(lazy=True)` for fully symbolic workflows where every operation builds an expression tree.
 
 ## 7. Lazy is contagious
 

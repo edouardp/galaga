@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
 
-    return (mo,)
+    return
 
 
 @app.cell
@@ -34,7 +34,21 @@ def _():
     from ga.symbolic import simplify
     import galaga_marimo as gm
 
-    return Algebra, dual, exp, gm, grade, inverse, log, norm, np, op, reverse, sandwich, scalar, simplify, squared, unit
+    return (
+        Algebra,
+        dual,
+        exp,
+        gm,
+        grade,
+        inverse,
+        norm,
+        np,
+        op,
+        reverse,
+        simplify,
+        squared,
+        unit,
+    )
 
 
 @app.cell(hide_code=True)
@@ -76,11 +90,6 @@ def _(e1, e2, e3, gm):
     return
 
 
-# ============================================================
-# Products stay symbolic
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -91,23 +100,20 @@ def _(gm):
 
 @app.cell
 def _(e1, e2, e3, gm, op):
-    with gm.doc() as d:
-        d.text("| Expression | Symbolic | Concrete |")
-        d.line("|---|---|---|")
-        exprs = [
+    with gm.doc() as _d:
+        _d.text("| Expression | Symbolic | Concrete |")
+        _d.line("|---|---|---|")
+        _exprs = [
             ("e₁e₂", e1 * e2),
             ("e₁∧e₂", e1 ^ e2),
             ("e₁·e₁", e1 | e1),
             ("e₁∧e₂∧e₃", op(op(e1, e2), e3)),
         ]
-        for label, expr in exprs:
-            d.line(f"| {label} | ${expr.latex()}$ | ${expr.eval().latex()}$ |")
+        for _label, _expr in _exprs:
+            _d.line(f"| {_label} | ${_expr.latex()}$ | ${_expr.eval().latex()}$ |")
+
+    _d.render()
     return
-
-
-# ============================================================
-# Rotation
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -126,24 +132,19 @@ def _(alg, e1, e2, exp, gm, np, reverse):
     B = (e1 ^ e2).name("B")
     R = exp(-B * theta / 2).name("R")
 
-    v = e1
-    v_rot = R * v * ~R
+    _v = e1
+    _v_rot = R * _v * ~R
 
     gm.md(t"""
     Rotation plane: {B} = {B.eval()}
 
     Rotor: {R} = exp(-{B}{theta}/2) = {R.eval()}
 
-    Rotated vector: {v_rot} = {v_rot.eval()}
+    Rotated vector: {_v_rot} = {_v_rot.eval()}
 
     Reverse: {reverse(R)} = {reverse(R).eval()}
     """)
-    return B, R, theta, v_rot
-
-
-# ============================================================
-# Grade projection
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -167,11 +168,6 @@ def _(e1, e2, e3, gm, grade):
     - Grade 3: {grade(mv, 3)} = {grade(mv, 3).eval()}
     """)
     return
-
-
-# ============================================================
-# Unary operations
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -205,11 +201,6 @@ def _(dual, e1, e2, gm, inverse, norm, reverse, squared, unit):
     return
 
 
-# ============================================================
-# Simplification
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -223,23 +214,25 @@ def _(e1, e2, gm, simplify):
     a = e1
     b = e2
 
-    with gm.doc() as d:
-        d.text("| Expression | Simplified |")
-        d.line("|---|---|")
-        cases = [
+    with gm.doc() as _d:
+        _d.text("| Expression | Simplified |")
+        _d.line("|---|---|")
+        _cases = [
             ("~~a", ~~a),
             ("a - a", a - a),
             ("a + a", a + a),
             ("a ∧ a", a ^ a),
         ]
-        for label, expr in cases:
-            d.line(f"| {label} | ${simplify(expr).latex()}$ |")
+        for _label, _expr in _cases:
+            _d.line(f"| {_label} | ${simplify(_expr).latex()}$ |")
+
+    _d.render()
     return
 
 
-# ============================================================
-# Comparison: eager vs lazy
-# ============================================================
+@app.cell
+def _():
+    return
 
 
 @app.cell(hide_code=True)
@@ -267,6 +260,18 @@ def _(Algebra, gm):
     Eager shows concrete results. Lazy shows the expression structure.
     Both have the same `.eval()` values.
     """)
+    return
+
+
+@app.cell
+def _(e1, e2):
+    e1^e2
+    return
+
+
+@app.cell
+def _(e1, e2):
+    B = (e1^e2).name('B')
     return
 
 

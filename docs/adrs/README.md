@@ -33,6 +33,7 @@ helps future contributors understand why certain choices were made.
 | [018](018-unified-naming-evaluation-semantics.md) | Unified Naming and Evaluation Semantics on Multivector | Accepted |
 | [019](019-basis-blades-named-eager.md) | Basis Blades as Named Eager Multivectors | Accepted |
 | [020](020-lazy-propagation-through-operators.md) | Lazy Propagation Through Operators | Accepted |
+| [021](021-lazy-basis-blades.md) | Lazy Basis Blades via basis_vectors(lazy=True) | Accepted |
 
 ## Creating New ADRs
 
