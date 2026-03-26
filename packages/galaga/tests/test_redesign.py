@@ -515,11 +515,11 @@ class TestAdditionalCoverage:
         assert str(x) == "a - b"
 
     def test_sym_latex_rendering(self, cl3):
-        """Sym._latex returns name_latex."""
+        """Sym.latex() returns name_latex."""
         from ga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         s = Sym(e1, "v", name_latex=r"\mathbf{v}")
-        assert s._latex() == r"\mathbf{v}"
+        assert s.latex() == r"\mathbf{v}"
 
     def test_symbolic_reverse_lazy_mv(self, cl3):
         from ga.symbolic import reverse

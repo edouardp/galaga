@@ -76,66 +76,6 @@ _CONJUGATE = "\u0304"    # combining macron: x̄
 _DAGGER = "\u0020\u0334" # †
 
 
-def _needs_parens(node: Expr, parent_op: str) -> bool:
-    """Determine if a child node needs parentheses in the context of a parent operation.
-
-    Addition and subtraction nodes need wrapping when they appear inside
-    multiplicative operations (gp, op, contractions, etc.) to preserve
-    mathematical precedence in the rendered output.
-    Sym and Neg nodes never need parens — they're atomic or already wrapped.
-    """
-    if isinstance(node, (Sym, Neg)):
-        return False
-    if isinstance(node, (Add, Sub)):
-        return parent_op in ("gp", "op", "lc", "rc", "hi", "dli", "sp", "jordan")
-    if isinstance(node, ScalarMul):
-        return parent_op == "op"
-    return False
-
-
-def _needs_postfix_parens(node: Expr) -> bool:
-    """Determine if a node needs parentheses when a postfix decoration is applied.
-
-    Postfix unary ops (reverse, involute, conjugate, dual, inverse, squared)
-    append a combining character or suffix. This only reads correctly on a
-    single atomic symbol. Anything else needs wrapping.
-    """
-    return not isinstance(node, (Sym, Scalar))
-
-
-def _wrap(node: Expr, parent_op: str) -> str:
-    s = str(node)
-    if _needs_parens(node, parent_op):
-        return f"({s})"
-    return s
-
-
-def _postfix_wrap(node: Expr) -> str:
-    """Wrap for postfix decoration if needed."""
-    s = str(node)
-    if _needs_postfix_parens(node):
-        return f"({s})"
-    return s
-
-
-def _postfix_wrap_latex(node: Expr) -> str:
-    """Wrap for postfix LaTeX decoration if needed."""
-    s = node._latex()
-    if _needs_postfix_parens(node):
-        return rf"\left({s}\right)"
-    return s
-
-
-def _latex_wrap(node: Expr, parent_op: str) -> str:
-    s = node._latex()
-    if _needs_parens(node, parent_op):
-        return rf"\left({s}\right)"
-    return s
-
-
-Numeric = Union[int, float]
-
-
 def _coerce(x):
     """Coerce a value to Expr if needed. Used by node constructors."""
     if isinstance(x, Expr):
@@ -157,11 +97,11 @@ class Expr:
     Every node in the expression tree inherits from this. The class provides:
     - Operator overloads that build tree nodes (``__mul__`` → ``Gp``, etc.)
     - ``eval()`` to recursively compute the concrete ``Multivector`` result
-    - ``latex()`` / ``_latex()`` for LaTeX rendering
+    - Rendering via ``ga.render`` (unicode and LaTeX)
     - ``_repr_latex_()`` for automatic Jupyter/marimo rendering
     - Convenience properties (``.inv``, ``.dag``, ``.sq``) matching ``Multivector``
 
-    Subclasses must implement ``eval()``, ``__str__()``, and ``_latex()``.
+    Subclasses must implement ``eval()``.
     """
 
     def eval(self) -> _alg.Multivector:
@@ -170,22 +110,19 @@ class Expr:
     def __repr__(self) -> str:
         return str(self)
 
-    def latex(self, wrap: str | None = None) -> str:
-        """Return LaTeX representation.
+    def __str__(self) -> str:
+        from ga.render import render
+        return render(self)
 
-        Args:
-            wrap: Optional delimiter — '$' for inline, '$$' for display block.
-        """
-        raw = self._latex()
+    def latex(self, wrap: str | None = None) -> str:
+        """Return LaTeX representation."""
+        from ga.render import render_latex
+        raw = render_latex(self)
         if wrap == "$":
             return f"${raw}$"
         if wrap == "$$":
             return f"$$\n{raw}\n$$"
         return raw
-
-    def _latex(self) -> str:
-        """Override in subclasses to provide LaTeX output."""
-        raise NotImplementedError
 
     def _repr_latex_(self) -> str:
         """Jupyter notebook integration."""
@@ -281,11 +218,7 @@ class Sym(Expr):
     def eval(self) -> _alg.Multivector:
         return self._mv
 
-    def __str__(self) -> str:
-        return self._name
 
-    def _latex(self) -> str:
-        return self._name_latex
 
     def __repr__(self) -> str:
         return self._name_ascii
@@ -309,11 +242,7 @@ class Scalar(Expr):
     def eval(self) -> _alg.Multivector:
         raise TypeError("Scalar has no algebra context; use in combination with Sym nodes")
 
-    def __str__(self) -> str:
-        return f"{self._value:g}"
 
-    def _latex(self) -> str:
-        return f"{self._value:g}"
 
 
 # --- Binary ops ---
@@ -325,11 +254,7 @@ class Gp(Expr):
     def eval(self):
         return _alg.gp(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return _wrap(self.a, "gp") + _wrap(self.b, "gp")
 
-    def _latex(self):
-        return _latex_wrap(self.a, "gp") + " " + _latex_wrap(self.b, "gp")
 
 
 class Op(Expr):
@@ -339,11 +264,7 @@ class Op(Expr):
     def eval(self):
         return _alg.op(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'op')}∧{_wrap(self.b, 'op')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'op')} \wedge {_latex_wrap(self.b, 'op')}"
 
 
 class Lc(Expr):
@@ -353,11 +274,7 @@ class Lc(Expr):
     def eval(self):
         return _alg.left_contraction(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'lc')}⌋{_wrap(self.b, 'lc')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'lc')} \;\lrcorner\; {_latex_wrap(self.b, 'lc')}"
 
 
 class Rc(Expr):
@@ -367,11 +284,7 @@ class Rc(Expr):
     def eval(self):
         return _alg.right_contraction(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'rc')}⌊{_wrap(self.b, 'rc')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'rc')} \;\llcorner\; {_latex_wrap(self.b, 'rc')}"
 
 
 class Hi(Expr):
@@ -381,11 +294,7 @@ class Hi(Expr):
     def eval(self):
         return _alg.hestenes_inner(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'hi')}·{_wrap(self.b, 'hi')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'hi')} \cdot {_latex_wrap(self.b, 'hi')}"
 
 
 class Dli(Expr):
@@ -395,11 +304,7 @@ class Dli(Expr):
     def eval(self):
         return _alg.doran_lasenby_inner(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'dli')}·{_wrap(self.b, 'dli')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'dli')} \cdot {_latex_wrap(self.b, 'dli')}"
 
 
 class Sp(Expr):
@@ -409,11 +314,7 @@ class Sp(Expr):
     def eval(self):
         return _alg.scalar_product(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'sp')}∗{_wrap(self.b, 'sp')}"
 
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'sp')} * {_latex_wrap(self.b, 'sp')}"
 
 
 class Commutator(Expr):
@@ -423,11 +324,7 @@ class Commutator(Expr):
     def eval(self):
         return _alg.commutator(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"[{self.a}, {self.b}]"
 
-    def _latex(self):
-        return rf"[{self.a._latex()},\, {self.b._latex()}]"
 
 
 class Anticommutator(Expr):
@@ -437,11 +334,7 @@ class Anticommutator(Expr):
     def eval(self):
         return _alg.anticommutator(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"{{{self.a}, {self.b}}}"
 
-    def _latex(self):
-        return rf"\{{{self.a._latex()},\, {self.b._latex()}\}}"
 
 
 class LieBracket(Expr):
@@ -451,11 +344,7 @@ class LieBracket(Expr):
     def eval(self):
         return _alg.lie_bracket(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"½[{self.a}, {self.b}]"
 
-    def _latex(self):
-        return rf"\tfrac{{1}}{{2}}[{self.a._latex()},\, {self.b._latex()}]"
 
 
 class JordanProduct(Expr):
@@ -465,11 +354,7 @@ class JordanProduct(Expr):
     def eval(self):
         return _alg.jordan_product(self.a.eval(), self.b.eval())
 
-    def __str__(self):
-        return f"½{{{self.a}, {self.b}}}"
 
-    def _latex(self):
-        return rf"\tfrac{{1}}{{2}}\{{{self.a._latex()},\, {self.b._latex()}\}}"
 
 
 class Add(Expr):
@@ -479,11 +364,7 @@ class Add(Expr):
     def eval(self):
         return self.a.eval() + self.b.eval()
 
-    def __str__(self):
-        return f"{self.a} + {self.b}"
 
-    def _latex(self):
-        return f"{self.a._latex()} + {self.b._latex()}"
 
 
 class Sub(Expr):
@@ -493,11 +374,7 @@ class Sub(Expr):
     def eval(self):
         return self.a.eval() - self.b.eval()
 
-    def __str__(self):
-        return f"{self.a} - {self.b}"
 
-    def _latex(self):
-        return f"{self.a._latex()} - {self.b._latex()}"
 
 
 class ScalarMul(Expr):
@@ -507,15 +384,7 @@ class ScalarMul(Expr):
     def eval(self):
         return self.x.eval() * self.k
 
-    def __str__(self):
-        if self.k == -1:
-            return f"-{self.x}"
-        return f"{self.k:g}{_wrap(self.x, 'gp')}"
 
-    def _latex(self):
-        if self.k == -1:
-            return f"-{self.x._latex()}"
-        return f"{self.k:g} {_latex_wrap(self.x, 'gp')}"
 
 
 class ScalarDiv(Expr):
@@ -526,11 +395,7 @@ class ScalarDiv(Expr):
     def eval(self):
         return self.x.eval() / self.k
 
-    def __str__(self):
-        return f"{_wrap(self.x, 'gp')}/{self.k:g}"
 
-    def _latex(self):
-        return rf"\frac{{{self.x._latex()}}}{{{self.k:g}}}"
 
 
 class Div(Expr):
@@ -541,11 +406,7 @@ class Div(Expr):
     def eval(self):
         return self.a.eval() / self.b.eval()
 
-    def __str__(self):
-        return f"{_wrap(self.a, 'gp')}/{_wrap(self.b, 'gp')}"
 
-    def _latex(self):
-        return rf"\frac{{{self.a._latex()}}}{{{self.b._latex()}}}"
 
 
 class Neg(Expr):
@@ -555,17 +416,7 @@ class Neg(Expr):
     def eval(self):
         return -self.x.eval()
 
-    def __str__(self):
-        s = str(self.x)
-        if isinstance(self.x, (Add, Sub)):
-            s = f"({s})"
-        return f"-{s}"
 
-    def _latex(self):
-        l = self.x._latex()
-        if isinstance(self.x, (Add, Sub)):
-            l = rf"\left({l}\right)"
-        return f"-{l}"
 
 
 # --- Unary ops ---
@@ -577,11 +428,7 @@ class Reverse(Expr):
     def eval(self):
         return _alg.reverse(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}{_REVERSE}"
 
-    def _latex(self):
-        return rf"\tilde{{{_postfix_wrap_latex(self.x)}}}"
 
 
 class Involute(Expr):
@@ -591,11 +438,7 @@ class Involute(Expr):
     def eval(self):
         return _alg.involute(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}{_INVOLUTE}"
 
-    def _latex(self):
-        return rf"{_postfix_wrap_latex(self.x)}^\dagger"
 
 
 class Conjugate(Expr):
@@ -605,11 +448,7 @@ class Conjugate(Expr):
     def eval(self):
         return _alg.conjugate(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}{_CONJUGATE}"
 
-    def _latex(self):
-        return rf"\bar{{{_postfix_wrap_latex(self.x)}}}"
 
 
 class Grade(Expr):
@@ -619,12 +458,7 @@ class Grade(Expr):
     def eval(self):
         return _alg.grade(self.x.eval(), self.k)
 
-    def __str__(self):
-        sub = str(self.k).translate(_SUBSCRIPTS)
-        return f"⟨{self.x}⟩{sub}"
 
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{{self.k}}}"
 
 
 class Dual(Expr):
@@ -634,11 +468,7 @@ class Dual(Expr):
     def eval(self):
         return _alg.dual(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}⋆"
 
-    def _latex(self):
-        return rf"{_postfix_wrap_latex(self.x)}^*"
 
 
 class Undual(Expr):
@@ -648,11 +478,7 @@ class Undual(Expr):
     def eval(self):
         return _alg.undual(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}⋆⁻¹"
 
-    def _latex(self):
-        return rf"{_postfix_wrap_latex(self.x)}^{{*^{{-1}}}}"
 
 
 class Norm(Expr):
@@ -662,11 +488,7 @@ class Norm(Expr):
     def eval(self):
         return _alg.norm(self.x.eval())
 
-    def __str__(self):
-        return f"‖{self.x}‖"
 
-    def _latex(self):
-        return rf"\lVert {self.x._latex()} \rVert"
 
 
 class Unit(Expr):
@@ -676,15 +498,7 @@ class Unit(Expr):
     def eval(self):
         return _alg.unit(self.x.eval())
 
-    def __str__(self):
-        if isinstance(self.x, Sym) and len(str(self.x)) == 1:
-            return f"{self.x}{_HAT}"
-        return f"{_postfix_wrap(self.x)}/‖{self.x}‖"
 
-    def _latex(self):
-        if isinstance(self.x, (Sym, Scalar)):
-            return rf"\hat{{{self.x._latex()}}}"
-        return rf"\frac{{{_postfix_wrap_latex(self.x)}}}{{{Norm(self.x)._latex()}}}"
 
 
 class Inverse(Expr):
@@ -694,11 +508,7 @@ class Inverse(Expr):
     def eval(self):
         return _alg.inverse(self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}⁻¹"
 
-    def _latex(self):
-        return rf"{_postfix_wrap_latex(self.x)}^{{-1}}"
 
 
 class Squared(Expr):
@@ -708,11 +518,7 @@ class Squared(Expr):
     def eval(self):
         return _alg.gp(self.x.eval(), self.x.eval())
 
-    def __str__(self):
-        return f"{_postfix_wrap(self.x)}²"
 
-    def _latex(self):
-        return rf"{_postfix_wrap_latex(self.x)}^2"
 
 
 class Exp(Expr):
@@ -722,11 +528,7 @@ class Exp(Expr):
     def eval(self):
         return _alg.exp(self.x.eval())
 
-    def __str__(self):
-        return f"exp({self.x})"
 
-    def _latex(self):
-        return rf"e^{{{self.x._latex()}}}"
 
 
 class Even(Expr):
@@ -736,11 +538,7 @@ class Even(Expr):
     def eval(self):
         return _alg.even_grades(self.x.eval())
 
-    def __str__(self):
-        return f"⟨{self.x}⟩₊"
 
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{\text{{even}}}}"
 
 
 class Odd(Expr):
@@ -750,11 +548,7 @@ class Odd(Expr):
     def eval(self):
         return _alg.odd_grades(self.x.eval())
 
-    def __str__(self):
-        return f"⟨{self.x}⟩₋"
 
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{\text{{odd}}}}"
 
 
 # --- Helper ---
