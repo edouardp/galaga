@@ -1408,3 +1408,31 @@ class TestNameAutoDerive:
         assert v._name_unicode == "myvar"
         assert v._name == "myvar"
         assert v._name_latex == "myvar"
+
+
+class TestNameLatexOnly:
+    """Test .name(latex=...) without label."""
+
+    def test_latex_only_greek(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name(latex=r"\theta")
+        assert str(v) == "θ"
+        assert v._name == "theta"
+        assert v._name_latex == r"\theta"
+
+    def test_latex_only_mathbf(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name(latex=r"\mathbf{F}")
+        assert str(v) == "𝐅"
+        assert v._name == "F"
+
+    def test_latex_only_unknown_uses_latex_as_fallback(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name(latex=r"\weirdthing")
+        assert v._name == r"\weirdthing"
+        assert v._name_latex == r"\weirdthing"
+
+    def test_no_args_raises(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        with pytest.raises(ValueError):
+            e1.name()

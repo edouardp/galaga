@@ -493,20 +493,23 @@ class Multivector:
         mv._grade = overrides.get("_grade", self._grade)
         return mv
 
-    def name(self, label: str, *, latex: str | None = None,
+    def name(self, label: str | None = None, *, latex: str | None = None,
              unicode: str | None = None, ascii: str | None = None) -> Multivector:
         """Assign a display name. Makes the object lazy by default.
 
-        If ``latex`` is provided and ``unicode``/``ascii`` are not, they are
-        auto-derived from the LaTeX command (e.g. ``latex=r"\\theta"`` fills
-        in ``unicode="θ"`` and ``ascii="theta"``).
+        At least one of ``label`` or ``latex`` must be provided. If ``latex``
+        is given, ``unicode`` and ``ascii`` are auto-derived from it unless
+        explicitly overridden.
 
         Args:
-            label: Default name used for all formats unless overridden.
-            latex: LaTeX-specific name override. Also used to derive unicode/ascii.
+            label: Default name used for all formats unless overridden. Optional
+                   if ``latex`` is provided.
+            latex: LaTeX-specific name. Also used to derive unicode/ascii.
             unicode: Unicode-specific name override.
-            ascii: ASCII-specific name (used for repr); label is used if omitted.
+            ascii: ASCII-specific name override.
         """
+        if label is None and latex is None:
+            raise ValueError("At least one of label or latex must be provided")
         # Auto-derive unicode/ascii from latex if not explicitly given
         if latex is not None and (unicode is None or ascii is None):
             from ga.latex_symbols import LatexSymbols
@@ -517,6 +520,9 @@ class Multivector:
                     unicode = uni_derived
                 if ascii is None:
                     ascii = asc_derived
+        ascii_name = ascii or label or latex
+        latex_name = latex or label
+        unicode_name = unicode or label or ascii_name
         # Auto-detect grade if homogeneous
         g = self._grade
         if g is None:
@@ -524,9 +530,6 @@ class Multivector:
                        if any(abs(c) > 1e-12 for i, c in enumerate(self.data)
                               if bin(i).count('1') == k)]
             g = nonzero[0] if len(nonzero) == 1 else None
-        ascii_name = ascii or label
-        latex_name = latex or label
-        unicode_name = unicode or label
         # Build a Sym expr so .anon() can reveal the name-based tree
         from ga.symbolic import Sym
         expr = self._expr if self._expr is not None else Sym(
