@@ -841,18 +841,23 @@ def _is_symbolic(x) -> bool:
     return False
 
 
-def sym(mv: _alg.Multivector, name: str, grade: int | None = None) -> _alg.Multivector:
-    """Wrap a concrete multivector with a display name.
+def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None) -> _alg.Multivector:
+    """Return a lazy copy of a multivector, optionally named.
 
-    Returns a **copy** with the name set (does not mutate the original).
+    Does not mutate the original. Use ``.name()`` on the result to add
+    or change the name.
 
     Args:
-        name: Display name for all formats.
+        mv: The multivector to copy.
+        name: Optional display name.
         grade: If provided, asserts the homogeneous grade for simplification.
                If omitted, auto-detected from the multivector data.
     """
     result = mv._copy_with()  # copy first
-    result.name(name)
+    if name is not None:
+        result.name(name)
+    else:
+        result.lazy()
     if grade is not None:
         result._grade = grade
     if result._expr is not None and isinstance(result._expr, Sym):

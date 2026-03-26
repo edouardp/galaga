@@ -32,11 +32,11 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from ga import Algebra, gp, scalar, norm, unit, exp, squared
+    from ga import Algebra, gp, scalar, norm, unit, exp, squared, grade
     from ga.symbolic import simplify, sym
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, gp, norm, np, plt, scalar, squared, sym, unit
+    return Algebra, exp, gm, grade, norm, np, plt, squared, sym, unit
 
 
 @app.cell(hide_code=True)
@@ -59,10 +59,10 @@ def _(Algebra):
 
 
 @app.cell
-def _(gp, scalar):
+def _(grade):
     def polarise(E, a):
         """Ideal linear polariser: keep component along unit axis a."""
-        return scalar(gp(E, a)) * a
+        return grade((E * a) * a, 0)
 
     return (polarise,)
 
@@ -78,10 +78,14 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, gm, unit):
-    H = e1.eval().name("H")
-    V = e2.eval().name("V")
-    D = unit(e1.eval() + e2.eval()).name("D")
+def _(R, e1, e2, exp, gm, np, sym):
+    H = sym(e1,'H')
+    V = sym(e2,'V')
+    #D = unit(e1 + e2).name("D")
+
+    R_45 = exp(e1 ^ e2 * np.pi)
+
+    D = R*H*~R
 
     gm.md(t"""
     - Horizontal: {H} = {H.eval()}
@@ -91,15 +95,21 @@ def _(e1, e2, gm, unit):
     return D, H, V
 
 
-@app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"## H Blocks V")
+@app.cell
+def _(D):
+    D
     return
 
 
 @app.cell
-def _(H, norm):
-    type(norm(H))
+def _(e1):
+    e1
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## H Blocks V")
     return
 
 
@@ -126,19 +136,20 @@ def _(gm):
 
 
 @app.cell
-def _(D, H, V, gm, norm, polarise):
-    E0 = H.eval().name(latex=r"E_0")
-    E1 = polarise(E0, D).name(latex=r"E_1")
-    E2 = polarise(E1, V).name(latex=r"E_2")
+def _(D, H, V, gm, norm, polarise, squared, sym):
+    _E0 = sym(H, 'E0').name(latex=r"E_0")
+    _E1 = polarise(_E0, D).name(latex=r"E_1")
+    _E2 = polarise(_E1, V).name(latex=r"E_2")
+    _I1 = squared(norm(_E2))
 
     gm.md(t"""
-    {E0} = {E0.eval()}
+    {_E0} = {_E0.eval()}
 
-    After 45° polariser: {E1} = {E1.eval()}
+    After 45° polariser: {_E1} = {_E1.eval()}
 
-    After vertical polariser: {E2} = {E2.eval()}
+    After vertical polariser: {_E2} = {_E2.eval()}
 
-    Intensity: $|{E2.latex()}|^2$ = {norm(E2.eval())**2:.4f} — **quarter gets through!**
+    Intensity: {_I1} = {_I1.eval()} — **quarter gets through!**
     """)
     return
 
@@ -160,22 +171,38 @@ def _(mo):
 
 
 @app.cell
-def _(H, V, angle_slider, e1, e2, gm, norm, np, polarise, unit):
+def _(
+    E0,
+    E1,
+    E2,
+    H,
+    V,
+    angle_slider,
+    e1,
+    e2,
+    gm,
+    norm,
+    np,
+    polarise,
+    squared,
+    sym,
+    unit,
+):
     _deg = angle_slider.value
     _rad = np.radians(_deg)
-    M = unit(np.cos(_rad) * e1.eval() + np.sin(_rad) * e2.eval()).name("M")
+    _M = unit(np.cos(_rad) * e1 + np.sin(_rad) * e2).name("M")
 
-    E0 = H.eval().name(latex=r"E_0")
-    E1 = polarise(E0, M).name(latex=r"E_1")
-    E2 = polarise(E1, V).name(latex=r"E_2")
-    I_out = norm(E2.eval()) ** 2
+    _E0 = sym(H, 'E0').name(latex=r"E_0")
+    _E1 = polarise(_E0, _M).name(latex=r"E_1")
+    _E2 = polarise(_E1, V).name(latex=r"E_2")
+    _I_out = squared(norm(_E2))
 
     gm.md(t"""
-    Middle polariser {M} at **{_deg}°**
+    Middle polariser {_M} at **{_deg}°** $\\quad$ ({_M} = {_M.eval()})
 
     {E0} → {E1} = {E1.eval()} → {E2} = {E2.eval()}
 
-    **Output intensity: {I_out:.4f}**
+    **Output intensity:** {_I_out} = {_I_out.eval()}
 
     Theory: $\\frac{{1}}{{4}}\\sin^2(2 \\times {_deg}°)$ = {0.25 * np.sin(2 * _rad)**2:.4f}
     """)
@@ -243,7 +270,7 @@ def _(D, H, V, gm, norm):
 
     $|{E2.latex()}|^2$ = {norm(E2.eval())**2:.4f} — same result.
     """)
-    return
+    return E1, E2
 
 
 @app.cell(hide_code=True)
@@ -257,12 +284,12 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, exp, gm, norm, np):
-    B = (e1 ^ e2).eval()
+def _(e1, e2, exp, gm, norm, np, sym):
+    B = (e1 ^ e2)
     R = exp(-B * np.pi / 4).name("R")
 
-    E0 = e1.eval().name(latex=r"E_0")
-    E_rot = (R.eval() * E0.eval() * ~R.eval()).name(latex=r"E_{rot}")
+    E0 = sym(e1).name(latex=r"E_0")
+    E_rot = (R * E0 * ~R).name(latex=r"E_{rot}")
 
     gm.md(t"""
     Half-wave plate at 45°: {R} = {R.eval()}
@@ -273,7 +300,7 @@ def _(e1, e2, exp, gm, norm, np):
 
     Intensity preserved: $|{E_rot.latex()}|^2$ = {norm(E_rot.eval())**2:.4f}
     """)
-    return
+    return E0, R
 
 
 @app.cell(hide_code=True)
@@ -346,7 +373,7 @@ def _(e1, e2, n_slider, norm, np, plt, polarise, unit):
     states = [(E, 0.0)]
     for i in range(1, N + 1):
         deg = step_deg * i
-        axis = unit(np.cos(np.radians(deg)) * e1.eval() + np.sin(np.radians(deg)) * e2.eval())
+        axis = unit(np.cos(np.radians(deg)) * e1 + np.sin(np.radians(deg)) * e2)
         E = polarise(E, axis).eval()
         states.append((E, deg))
 
