@@ -90,6 +90,17 @@ _MATHFRAK_SPECIAL = {
 }
 
 _MATH_FONT_RE = re.compile(r"\\(mathbf|mathit|mathcal|mathfrak|mathbb)\{(\w)\}")
+_ACCENT_RE = re.compile(r"\\(hat|tilde|bar|vec|dot|ddot)\{(\w)\}")
+
+# Combining characters for single-letter accents
+_ACCENT_COMBINING = {
+    "hat":   "\u0302",  # combining circumflex
+    "tilde": "\u0303",  # combining tilde
+    "bar":   "\u0304",  # combining macron
+    "vec":   "\u20D7",  # combining right arrow above
+    "dot":   "\u0307",  # combining dot above
+    "ddot":  "\u0308",  # combining diaeresis
+}
 
 
 class LatexSymbols:
@@ -178,18 +189,27 @@ class LatexSymbols:
 
         return uni, asc
 
+    def _accent(self, latex: str) -> tuple[str, str] | None:
+        """Handle \\hat{x}, \\tilde{x}, \\bar{x}, etc."""
+        m = _ACCENT_RE.fullmatch(latex)
+        if not m:
+            return None
+        accent, char = m.group(1), m.group(2)
+        combining = _ACCENT_COMBINING[accent]
+        return char + combining, f"{accent}_{char}"
+
     def unicode(self, latex: str) -> str | None:
         """Return the Unicode equivalent of a LaTeX command, or None."""
         if latex in self._unicode:
             return self._unicode[latex]
-        result = self._math_font(latex)
+        result = self._math_font(latex) or self._accent(latex)
         return result[0] if result else None
 
     def ascii(self, latex: str) -> str | None:
         """Return the ASCII equivalent of a LaTeX command, or None."""
         if latex in self._ascii:
             return self._ascii[latex]
-        result = self._math_font(latex)
+        result = self._math_font(latex) or self._accent(latex)
         return result[1] if result else None
 
     def lookup(self, latex: str) -> tuple[str, str] | None:

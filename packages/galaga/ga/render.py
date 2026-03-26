@@ -40,6 +40,29 @@ _INVOLUTE = "\u0302"
 _CONJUGATE = "\u0304"
 _HAT = "\u0302"
 
+# Subscript/superscript codepoint ranges
+_SUB_SUPER = set("₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₔₕₖₗₘₙₚₛₜ"
+                 "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻⁼⁽⁾ⁿⁱ")
+
+
+def _base_len(s: str) -> int:
+    """Count 'base' characters, ignoring combining marks and sub/superscripts."""
+    import unicodedata
+    n = 0
+    for c in s:
+        cat = unicodedata.category(c)
+        if cat.startswith("M"):  # combining marks (Mn, Mc, Me)
+            continue
+        if c in _SUB_SUPER:
+            continue
+        n += 1
+    return n
+
+
+def _is_single_char_name(s: str) -> bool:
+    """True if s is visually a single character (ignoring diacriticals/subscripts)."""
+    return _base_len(s) == 1
+
 
 # ============================================================
 # Operation metadata
@@ -201,6 +224,20 @@ def _latex_postfix(t: type, inner: str, node: Expr) -> str:
     return fmt.format(inner=inner)
 
 
+def _has_multichar_name(node: Expr) -> bool:
+    """True if node is (or contains at the edge) a multi-char Sym name."""
+    if isinstance(node, Sym):
+        return not _is_single_char_name(node._name)
+    if isinstance(node, ScalarMul):
+        return _has_multichar_name(node.x)
+    if isinstance(node, Neg):
+        return _has_multichar_name(node.x)
+    # Postfix unary — the decorated name might be multi-char visually
+    if isinstance(node, (Reverse, Involute, Conjugate, Dual, Undual, Inverse, Squared)):
+        return _has_multichar_name(node.x)
+    return False
+
+
 # ============================================================
 # Unicode renderer
 # ============================================================
@@ -238,6 +275,9 @@ def render(node: Expr) -> str:
     if t is Gp:
         left = _wrap(render(node.a), node.a, 80, parent_type=Gp)
         right = _wrap(render(node.b), node.b, 80, parent_type=Gp)
+        # Space if either immediate child has a multi-char name
+        if _has_multichar_name(node.a) or _has_multichar_name(node.b):
+            return f"{left} {right}"
         return f"{left}{right}"
 
     # Div (unicode uses /)

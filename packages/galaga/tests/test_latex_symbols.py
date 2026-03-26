@@ -428,3 +428,37 @@ class TestUnknown:
         u, a = sym.lookup(r"\mathbf{v}")
         assert u == "𝐯"
         assert a == "v"
+
+
+class TestAccents:
+    def test_hat(self, sym):
+        assert sym.unicode(r"\hat{a}") == "a\u0302"
+        assert sym.ascii(r"\hat{a}") == "hat_a"
+
+    def test_tilde(self, sym):
+        assert sym.unicode(r"\tilde{R}") == "R\u0303"
+        assert sym.ascii(r"\tilde{R}") == "tilde_R"
+
+    def test_bar(self, sym):
+        assert sym.unicode(r"\bar{x}") == "x\u0304"
+        assert sym.ascii(r"\bar{x}") == "bar_x"
+
+    def test_vec(self, sym):
+        assert sym.unicode(r"\vec{v}") == "v\u20D7"
+        assert sym.ascii(r"\vec{v}") == "vec_v"
+
+    def test_dot(self, sym):
+        assert sym.unicode(r"\dot{q}") == "q\u0307"
+        assert sym.ascii(r"\dot{q}") == "dot_q"
+
+    def test_ddot(self, sym):
+        assert sym.unicode(r"\ddot{x}") == "x\u0308"
+        assert sym.ascii(r"\ddot{x}") == "ddot_x"
+
+    def test_hat_in_name(self):
+        from ga import Algebra
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        n = e1.name(latex=r"\hat{n}")
+        assert "n" in str(n)
+        assert n._name == "hat_n"

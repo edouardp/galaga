@@ -1456,3 +1456,34 @@ class TestSimplifyEdgeCases:
         v = e1.name("v")
         result = simplify(norm(unit(v)))
         assert str(result) == "1"
+
+
+class TestGpSpacing:
+    """Geometric product uses spaces for multi-char names."""
+
+    def test_single_char_no_space(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(a * b) == "ab"
+
+    def test_multi_char_has_space(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        pi, ve = e1.name("pi"), e2.name("ve")
+        assert str(pi * ve) == "pi ve"
+
+    def test_mixed_has_space(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, pi = e1.name("a"), e2.name("pi")
+        assert str(a * pi) == "a pi"
+
+    def test_subscript_counts_as_single(self, cl3):
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        # e₁ has base len 1 (subscript doesn't count)
+        assert str(e1 * e2) == "e₁e₂"
+
+    def test_combining_char_counts_as_single(self, cl3):
+        from ga import reverse
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a = e1.name("a")
+        # ã has base len 1
+        assert str(reverse(a) * e2.name("b")) == "a\u0303b"
