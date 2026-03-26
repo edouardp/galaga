@@ -1281,3 +1281,76 @@ class TestBladeHighDimension:
         alg = Algebra(tuple([1] * 10), names=names)
         b = alg.blade("v0v1")
         assert b is not None
+
+
+class TestAllBinaryOpsLazy:
+    """All binary operations produce symbolic output with lazy inputs."""
+
+    def test_gp_lazy(self, cl3):
+        from ga import gp
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(gp(a, b)) == "ab"
+
+    def test_op_lazy(self, cl3):
+        from ga import op
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "∧" in str(op(a, b))
+
+    def test_left_contraction_lazy(self, cl3):
+        from ga import left_contraction
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "⌋" in str(left_contraction(a, b))
+
+    def test_right_contraction_lazy(self, cl3):
+        from ga import right_contraction
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "⌊" in str(right_contraction(a, b))
+
+    def test_hestenes_inner_lazy(self, cl3):
+        from ga import hestenes_inner
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "·" in str(hestenes_inner(a, b))
+
+    def test_doran_lasenby_inner_lazy(self, cl3):
+        from ga import doran_lasenby_inner
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "·" in str(doran_lasenby_inner(a, b))
+
+    def test_scalar_product_lazy(self, cl3):
+        from ga import scalar_product
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "∗" in str(scalar_product(a, b))
+
+    def test_commutator_lazy(self, cl3):
+        from ga import commutator
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        A = (e1 ^ e2).name("A")
+        B = (e2 ^ e1).name("B")
+        assert str(commutator(A, B)) == "[A, B]"
+
+    def test_anticommutator_lazy(self, cl3):
+        from ga import anticommutator
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        A = (e1 ^ e2).name("A")
+        B = (e2 ^ e1).name("B")
+        assert str(anticommutator(A, B)) == "{A, B}"
+
+    def test_lie_bracket_lazy(self, cl3):
+        from ga import lie_bracket
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        A = (e1 ^ e2).name("A")
+        B = (e2 ^ e1).name("B")
+        assert "½" in str(lie_bracket(A, B))
+
+    def test_jordan_product_lazy(self, cl3):
+        from ga import jordan_product
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert "½" in str(jordan_product(a, b))

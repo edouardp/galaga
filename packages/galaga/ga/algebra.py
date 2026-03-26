@@ -1040,6 +1040,10 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     coefficients at once (using NumPy fancy indexing), which is significantly
     faster than a double Python loop for dense multivectors.
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Gp as SymGp
+        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymGp(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1062,6 +1066,10 @@ def op(a: Multivector, b: Multivector) -> Multivector:
 
     Key property: a ∧ a = 0 for any vector a (antisymmetry).
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Op as SymOp
+        result = op(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymOp(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1091,6 +1099,10 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     Key difference from Hestenes inner: left contraction allows scalars
     to pass through (scalar ⌋ x = scalar * x), while Hestenes kills them.
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Lc as SymLc
+        result = left_contraction(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymLc(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1116,6 +1128,10 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
 
     Satisfies: right_contraction(a, b) = reverse(left_contraction(reverse(b), reverse(a)))
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Rc as SymRc
+        result = right_contraction(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymRc(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1144,6 +1160,10 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     For vector-on-vector, all inner products agree. The differences only show
     up with mixed grades — see the README comparison table for examples.
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Hi as SymHi
+        result = hestenes_inner(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymHi(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1174,6 +1194,10 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     Doran & Lasenby ("Geometric Algebra for Physicists") and Dorst et al.
     ("Geometric Algebra for Computer Science").
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Dli as SymDli
+        result = doran_lasenby_inner(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymDli(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1194,16 +1218,28 @@ dorst_inner = doran_lasenby_inner
 
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Sp as SymSp
+        result = scalar_product(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
+        return a._lazy_result(result.data, SymSp(a._to_expr(), b._to_expr()))
     return grade(gp(a, b), 0)
 
 
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Commutator as SymCommutator
+        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) - gp(Multivector(b.algebra, b.data), Multivector(a.algebra, a.data))
+        return a._lazy_result(result.data, SymCommutator(a._to_expr(), b._to_expr()))
     return gp(a, b) - gp(b, a)
 
 
 def anticommutator(a: Multivector, b: Multivector) -> Multivector:
     """Anticommutator: ab + ba."""
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import Anticommutator as SymAnticommutator
+        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) + gp(Multivector(b.algebra, b.data), Multivector(a.algebra, a.data))
+        return a._lazy_result(result.data, SymAnticommutator(a._to_expr(), b._to_expr()))
     return gp(a, b) + gp(b, a)
 
 
@@ -1213,6 +1249,10 @@ def lie_bracket(a: Multivector, b: Multivector) -> Multivector:
     The half-scaled commutator under which bivectors form a Lie algebra
     with clean structure constants: [Bᵢ, Bⱼ] = εᵢⱼₖ Bₖ.
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import LieBracket as SymLieBracket
+        result = commutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
+        return a._lazy_result(result.data, SymLieBracket(a._to_expr(), b._to_expr()))
     return commutator(a, b) * 0.5
 
 
@@ -1222,6 +1262,10 @@ def jordan_product(a: Multivector, b: Multivector) -> Multivector:
     The symmetric part of the geometric product. For vectors,
     this equals the inner product: a ∘ b = a · b.
     """
+    if a._is_lazy or b._is_lazy:
+        from ga.symbolic import JordanProduct as SymJordanProduct
+        result = anticommutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
+        return a._lazy_result(result.data, SymJordanProduct(a._to_expr(), b._to_expr()))
     return anticommutator(a, b) * 0.5
 
 
