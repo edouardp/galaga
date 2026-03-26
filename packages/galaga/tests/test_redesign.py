@@ -1144,7 +1144,7 @@ class TestSquaredParens:
         a = e1.name("a")
         b = e2.name("b")
         result = squared(a * b)
-        assert "(" not in str(result)
+        assert str(result) == "(ab)²"
 
     def test_squared_latex_add_gets_parens(self, cl3):
         from ga import squared

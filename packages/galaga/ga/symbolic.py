@@ -88,13 +88,41 @@ def _needs_parens(node: Expr, parent_op: str) -> bool:
         return False
     if isinstance(node, (Add, Sub)):
         return parent_op in ("gp", "op", "lc", "rc", "hi", "dli", "sp", "jordan")
+    if isinstance(node, ScalarMul):
+        return parent_op == "op"
     return False
+
+
+def _needs_postfix_parens(node: Expr) -> bool:
+    """Determine if a node needs parentheses when a postfix decoration is applied.
+
+    Postfix unary ops (reverse, involute, conjugate, dual, inverse, squared)
+    append a combining character or suffix. This only reads correctly on a
+    single atomic symbol. Anything else needs wrapping.
+    """
+    return not isinstance(node, (Sym, Scalar))
 
 
 def _wrap(node: Expr, parent_op: str) -> str:
     s = str(node)
     if _needs_parens(node, parent_op):
         return f"({s})"
+    return s
+
+
+def _postfix_wrap(node: Expr) -> str:
+    """Wrap for postfix decoration if needed."""
+    s = str(node)
+    if _needs_postfix_parens(node):
+        return f"({s})"
+    return s
+
+
+def _postfix_wrap_latex(node: Expr) -> str:
+    """Wrap for postfix LaTeX decoration if needed."""
+    s = node._latex()
+    if _needs_postfix_parens(node):
+        return rf"\left({s}\right)"
     return s
 
 
@@ -528,10 +556,16 @@ class Neg(Expr):
         return -self.x.eval()
 
     def __str__(self):
-        return f"-{self.x}"
+        s = str(self.x)
+        if isinstance(self.x, (Add, Sub)):
+            s = f"({s})"
+        return f"-{s}"
 
     def _latex(self):
-        return f"-{self.x._latex()}"
+        l = self.x._latex()
+        if isinstance(self.x, (Add, Sub)):
+            l = rf"\left({l}\right)"
+        return f"-{l}"
 
 
 # --- Unary ops ---
@@ -544,10 +578,10 @@ class Reverse(Expr):
         return _alg.reverse(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}{_REVERSE}"
+        return f"{_postfix_wrap(self.x)}{_REVERSE}"
 
     def _latex(self):
-        return rf"\tilde{{{self.x._latex()}}}"
+        return rf"\tilde{{{_postfix_wrap_latex(self.x)}}}"
 
 
 class Involute(Expr):
@@ -558,10 +592,10 @@ class Involute(Expr):
         return _alg.involute(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}{_INVOLUTE}"
+        return f"{_postfix_wrap(self.x)}{_INVOLUTE}"
 
     def _latex(self):
-        return rf"{self.x._latex()}^\dagger"
+        return rf"{_postfix_wrap_latex(self.x)}^\dagger"
 
 
 class Conjugate(Expr):
@@ -572,10 +606,10 @@ class Conjugate(Expr):
         return _alg.conjugate(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}{_CONJUGATE}"
+        return f"{_postfix_wrap(self.x)}{_CONJUGATE}"
 
     def _latex(self):
-        return rf"\bar{{{self.x._latex()}}}"
+        return rf"\bar{{{_postfix_wrap_latex(self.x)}}}"
 
 
 class Grade(Expr):
@@ -601,10 +635,10 @@ class Dual(Expr):
         return _alg.dual(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}⋆"
+        return f"{_postfix_wrap(self.x)}⋆"
 
     def _latex(self):
-        return rf"{self.x._latex()}^*"
+        return rf"{_postfix_wrap_latex(self.x)}^*"
 
 
 class Undual(Expr):
@@ -615,10 +649,10 @@ class Undual(Expr):
         return _alg.undual(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}⋆⁻¹"
+        return f"{_postfix_wrap(self.x)}⋆⁻¹"
 
     def _latex(self):
-        return rf"{self.x._latex()}^{{*^{{-1}}}}"
+        return rf"{_postfix_wrap_latex(self.x)}^{{*^{{-1}}}}"
 
 
 class Norm(Expr):
@@ -643,13 +677,14 @@ class Unit(Expr):
         return _alg.unit(self.x.eval())
 
     def __str__(self):
-        s = str(self.x)
-        if len(s) == 1:
-            return f"{s}{_HAT}"
-        return f"{self.x}/‖{self.x}‖"
+        if isinstance(self.x, Sym) and len(str(self.x)) == 1:
+            return f"{self.x}{_HAT}"
+        return f"{_postfix_wrap(self.x)}/‖{self.x}‖"
 
     def _latex(self):
-        return rf"\hat{{{self.x._latex()}}}"
+        if isinstance(self.x, (Sym, Scalar)):
+            return rf"\hat{{{self.x._latex()}}}"
+        return rf"\frac{{{_postfix_wrap_latex(self.x)}}}{{{Norm(self.x)._latex()}}}"
 
 
 class Inverse(Expr):
@@ -660,10 +695,10 @@ class Inverse(Expr):
         return _alg.inverse(self.x.eval())
 
     def __str__(self):
-        return f"{self.x}⁻¹"
+        return f"{_postfix_wrap(self.x)}⁻¹"
 
     def _latex(self):
-        return rf"{self.x._latex()}^{{-1}}"
+        return rf"{_postfix_wrap_latex(self.x)}^{{-1}}"
 
 
 class Squared(Expr):
@@ -674,16 +709,10 @@ class Squared(Expr):
         return _alg.gp(self.x.eval(), self.x.eval())
 
     def __str__(self):
-        s = str(self.x)
-        if isinstance(self.x, (Add, Sub)):
-            s = f"({s})"
-        return f"{s}²"
+        return f"{_postfix_wrap(self.x)}²"
 
     def _latex(self):
-        l = self.x._latex()
-        if isinstance(self.x, (Add, Sub)):
-            l = rf"\left({l}\right)"
-        return rf"{l}^2"
+        return rf"{_postfix_wrap_latex(self.x)}^2"
 
 
 class Exp(Expr):
