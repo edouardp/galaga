@@ -502,3 +502,172 @@ class TestLatex:
         v = Sym(e1, "v")
         expr = Gp(Gp(R, v), Reverse(R))
         assert render_latex(expr) == r"R v \tilde{R}"
+
+
+# ============================================================
+# Mixed infix/postfix precedence cases
+# ============================================================
+
+class TestMixedInfixPostfix:
+    """Test precedence interactions between infix binary ops and postfix unary ops."""
+
+    def test_reverse_in_gp_left(self, syms):
+        """~a * b — reverse binds tighter than gp"""
+        a, b, _ = syms
+        expr = Gp(Reverse(a), b)
+        assert render(expr) == "a\u0303b"
+
+    def test_reverse_in_gp_right(self, syms):
+        """a * ~b"""
+        a, b, _ = syms
+        expr = Gp(a, Reverse(b))
+        assert render(expr) == "ab\u0303"
+
+    def test_reverse_of_gp(self, syms):
+        """~(a * b) — needs parens"""
+        a, b, _ = syms
+        expr = Reverse(Gp(a, b))
+        assert render(expr) == "~(ab)"
+
+    def test_inverse_in_gp(self, syms):
+        """a⁻¹ * b"""
+        a, b, _ = syms
+        expr = Gp(Inverse(a), b)
+        assert render(expr) == "a⁻¹b"
+
+    def test_inverse_of_gp(self, syms):
+        """(ab)⁻¹"""
+        a, b, _ = syms
+        expr = Inverse(Gp(a, b))
+        assert render(expr) == "(ab)⁻¹"
+
+    def test_squared_in_gp(self, syms):
+        """a² * b"""
+        a, b, _ = syms
+        expr = Gp(Squared(a), b)
+        assert render(expr) == "a²b"
+
+    def test_squared_of_gp(self, syms):
+        """(ab)²"""
+        a, b, _ = syms
+        expr = Squared(Gp(a, b))
+        assert render(expr) == "(ab)²"
+
+    def test_dual_in_wedge(self, syms):
+        """a⋆ ∧ b"""
+        a, b, _ = syms
+        expr = Op(Dual(a), b)
+        assert render(expr) == "a⋆∧b"
+
+    def test_dual_of_wedge(self, syms):
+        """(a∧b)⋆"""
+        a, b, _ = syms
+        expr = Dual(Op(a, b))
+        assert render(expr) == "(a∧b)⋆"
+
+    def test_reverse_in_add(self, syms):
+        """~a + b — no parens needed"""
+        a, b, _ = syms
+        expr = Add(Reverse(a), b)
+        assert render(expr) == "a\u0303 + b"
+
+    def test_reverse_of_add(self, syms):
+        """~(a + b) — needs prefix fallback"""
+        a, b, _ = syms
+        expr = Reverse(Add(a, b))
+        assert render(expr) == "~(a + b)"
+
+    def test_neg_of_reverse(self, syms):
+        """-~a"""
+        a, _, _ = syms
+        expr = Neg(Reverse(a))
+        assert render(expr) == "-a\u0303"
+
+    def test_reverse_of_neg(self, syms):
+        """~(-a)"""
+        a, _, _ = syms
+        expr = Reverse(Neg(a))
+        assert render(expr) == "~(-a)"
+
+    def test_scalar_mul_of_reverse(self, syms):
+        """3~a"""
+        a, _, _ = syms
+        expr = ScalarMul(3, Reverse(a))
+        assert render(expr) == "3a\u0303"
+
+    def test_reverse_of_scalar_mul(self, syms):
+        """~(3a)"""
+        a, _, _ = syms
+        expr = Reverse(ScalarMul(3, a))
+        assert render(expr) == "~(3a)"
+
+    def test_inverse_of_sum_in_gp(self, syms):
+        """(a + b)⁻¹ * c"""
+        a, b, c = syms
+        expr = Gp(Inverse(Add(a, b)), c)
+        assert render(expr) == "(a + b)⁻¹c"
+
+    def test_gp_of_inverse_sum(self, syms):
+        """c * (a + b)⁻¹"""
+        a, b, c = syms
+        expr = Gp(c, Inverse(Add(a, b)))
+        assert render(expr) == "c(a + b)⁻¹"
+
+    def test_sandwich_with_reverse(self, alg):
+        """R v ~R — the classic sandwich"""
+        e1, e2, _ = alg.basis_vectors()
+        R = Sym(e1 * e2, "R")
+        v = Sym(e1, "v")
+        expr = Gp(Gp(R, v), Reverse(R))
+        assert render(expr) == "RvR\u0303"
+
+    def test_grade_of_sandwich(self, alg):
+        """⟨RvR̃⟩₁"""
+        e1, e2, _ = alg.basis_vectors()
+        R = Sym(e1 * e2, "R")
+        v = Sym(e1, "v")
+        expr = Grade(Gp(Gp(R, v), Reverse(R)), 1)
+        assert render(expr) == "⟨RvR\u0303⟩₁"
+
+    def test_exp_of_neg_product_div(self, syms):
+        """exp(-ab/2)"""
+        a, b, _ = syms
+        expr = Exp(ScalarDiv(Neg(Gp(a, b)), 2))
+        assert render(expr) == "exp(-ab/2)"
+
+    def test_squared_of_sum_in_gp(self, syms):
+        """(a + b)² * c"""
+        a, b, c = syms
+        expr = Gp(Squared(Add(a, b)), c)
+        assert render(expr) == "(a + b)²c"
+
+
+class TestMixedInfixPostfixLatex:
+    """LaTeX versions of mixed precedence cases."""
+
+    def test_reverse_of_gp_latex(self, syms):
+        a, b, _ = syms
+        expr = Reverse(Gp(a, b))
+        assert render_latex(expr) == r"\widetilde{a b}"
+
+    def test_inverse_of_gp_latex(self, syms):
+        a, b, _ = syms
+        expr = Inverse(Gp(a, b))
+        assert render_latex(expr) == r"\left(a b\right)^{-1}"
+
+    def test_sandwich_latex(self, alg):
+        e1, e2, _ = alg.basis_vectors()
+        R = Sym(e1 * e2, "R")
+        v = Sym(e1, "v")
+        expr = Gp(Gp(R, v), Reverse(R))
+        assert render_latex(expr) == r"R v \tilde{R}"
+
+    def test_dual_of_sum_latex(self, syms):
+        a, b, _ = syms
+        expr = Dual(Add(a, b))
+        assert render_latex(expr) == r"\left(a + b\right)^*"
+
+    def test_conjugate_of_sum_latex(self, syms):
+        a, b, _ = syms
+        expr = Conjugate(Add(a, b))
+        assert render_latex(expr) == r"\overline{a + b}"
