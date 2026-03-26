@@ -104,8 +104,12 @@ def render(node: Expr) -> str:
 
     # Wedge and other multiplicative binary ops
     if t is Op:
-        left = _wrap(render(node.a), node.a, 81)
-        right = _wrap(render(node.b), node.b, 81)
+        left = render(node.a)
+        if not isinstance(node.a, Op):
+            left = _wrap(left, node.a, 81)
+        right = render(node.b)
+        if not isinstance(node.b, Op):
+            right = _wrap(right, node.b, 81)
         return f"{left}∧{right}"
     if t is Lc:
         left = _wrap(render(node.a), node.a, 71)
@@ -225,8 +229,12 @@ def render_latex(node: Expr) -> str:
         return f"{left} {right}"
 
     if t is Op:
-        left = _wrap_latex(render_latex(node.a), node.a, 81)
-        right = _wrap_latex(render_latex(node.b), node.b, 81)
+        left = render_latex(node.a)
+        if not isinstance(node.a, Op):
+            left = _wrap_latex(left, node.a, 81)
+        right = render_latex(node.b)
+        if not isinstance(node.b, Op):
+            right = _wrap_latex(right, node.b, 81)
         return rf"{left} \wedge {right}"
     if t is Lc:
         left = _wrap_latex(render_latex(node.a), node.a, 71)

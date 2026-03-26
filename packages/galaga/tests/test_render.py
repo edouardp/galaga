@@ -158,6 +158,19 @@ class TestOp:
         a, b, _ = syms
         assert render(ScalarMul(2, Op(a, b))) == "2a∧b"
 
+    def test_associative_left(self, syms):
+        a, b, c = syms
+        assert render(Op(Op(a, b), c)) == "a∧b∧c"
+
+    def test_associative_right(self, syms):
+        a, b, c = syms
+        assert render(Op(a, Op(b, c))) == "a∧b∧c"
+
+    def test_associative_both(self, syms):
+        a, b, c = syms
+        d = Sym(syms[0]._mv, "d")
+        assert render(Op(Op(a, b), Op(c, d))) == "a∧b∧c∧d"
+
 
 # ============================================================
 # Addition and subtraction
