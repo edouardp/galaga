@@ -123,11 +123,11 @@ def _(e1, e2, gm, norm, polarise):
     _intensity = norm(_E1) ** 2
 
     gm.md(t"""
-    Start: $E_0 =${_H}
+    Start: $E_0 =$ {_H}
 
-    After vertical polariser: $E_1 = P_V(E_0) =${_E1}
+    After vertical polariser: $E_1 = P_V(E_0) =$ {_E1}
 
-    Intensity: $|E_1|^2 =${_intensity}
+    Intensity: $|E_1|^2 =$ {_intensity}
 
     **Completely blocked** — as expected.
     """)
@@ -158,12 +158,12 @@ def _(e1, e2, gm, norm, polarise, unit):
     _I2 = norm(_E2) ** 2
 
     gm.md(t"""
-    Start: $E_0 =${_H}
+    Start: $E_0 =$ {_H}
 
-    After 45° polariser: $E_1 = P_D(E_0) =${_E1}
+    After 45° polariser: $E_1 = P_D(E_0) =$ {_E1}
     — intensity: {_I1:.4f}
 
-    After vertical polariser: $E_2 = P_V(E_1) =${_E2}
+    After vertical polariser: $E_2 = P_V(E_1) =$ {_E2}
     — intensity: {_I2:.4f}
 
     **Quarter of the light gets through!** This is Malus' law in action.
@@ -289,13 +289,13 @@ def _(e1, e2, gm, gp, norm, scalar, unit):
     gm.md(t"""
     Polariser axes: {_H}, {_V}, {_D}
 
-    $E_0 = ${_H} (horizontal)
+    $E_0 =$ {_H} (horizontal)
 
-    $E_1 = (E_0 \\cdot D)\\,D = ${_E1}
+    $E_1 = (E_0 \\cdot D)\\,D =$ {_E1}
 
-    $E_2 = (E_1 \\cdot V)\\,V = ${_E2}
+    $E_2 = (E_1 \\cdot V)\\,V =$ {_E2}
 
-    $|E_2|^2 = ${norm(_E2)**2:.4f}
+    $|E_2|^2 =$ {norm(_E2)**2:.4f}
     """)
     return
 
@@ -324,11 +324,11 @@ def _(e1, e2, gm, norm, polarise_ga, unit):
     gm.md(t"""
     Using $P_a(E) = \\frac{{1}}{{2}}(E + aEa)$:
 
-    $E_1 = ${_E1}
+    $E_1 =$ {_E1}
 
-    $E_2 = ${_E2}
+    $E_2 =$ {_E2}
 
-    $|E_2|^2 = ${norm(_E2)**2:.4f}
+    $|E_2|^2 =$ {norm(_E2)**2:.4f}
 
     Same result — the two forms are equivalent.
     """)
@@ -363,14 +363,14 @@ def _(e1, e2, exp, gm, norm, np):
     gm.md(t"""
     Half-wave plate with fast axis at 45°:
 
-    Rotor: $R = ${_R}
+    Rotor: $R =$ {_R}
 
     Input: {e1} (horizontal)
 
-    Output: $R E_0 \\tilde{{R}} = ${_E_rotated}
+    Output: $R E_0 \\tilde{{R}} =$ {_E_rotated}
 
     The horizontal polarisation has been rotated to vertical!
-    Intensity preserved: $|E|^2 = ${norm(_E_rotated)**2:.4f}
+    Intensity preserved: $|E|^2 =$ {norm(_E_rotated)**2:.4f}
     """)
     return
 
