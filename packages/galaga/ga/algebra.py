@@ -526,10 +526,7 @@ class Multivector:
         self._is_lazy = True
         # Auto-detect grade if homogeneous
         if self._grade is None:
-            nonzero = [k for k in range(self.algebra._n + 1)
-                       if any(abs(c) > 1e-12 for i, c in enumerate(self.data)
-                              if bin(i).count('1') == k)]
-            self._grade = nonzero[0] if len(nonzero) == 1 else None
+            self._grade = self.homogeneous_grade()
         # Build a Sym expr so .anon() can reveal the name-based tree
         if self._expr is None:
             from ga.symbolic import Sym
@@ -878,6 +875,22 @@ class Multivector:
         """Extract grade-1 coefficients as a numpy array."""
         n = self.algebra._n
         return np.array([self.data[1 << i] for i in range(n)])
+
+    def homogeneous_grade(self) -> int | None:
+        """Return the grade if this MV is homogeneous, or None if mixed.
+
+        A multivector is homogeneous if all its nonzero coefficients belong
+        to the same grade. Returns that grade, or None if multiple grades
+        are present or the MV is zero.
+        """
+        alg = self.algebra
+        found = None
+        for k in range(alg.n + 1):
+            if np.any(np.abs(self.data[alg._grade_masks[k]]) > 1e-12):
+                if found is not None:
+                    return None  # multiple grades
+                found = k
+        return found
 
     def _format(self, unicode: bool = False) -> str:
         alg = self.algebra

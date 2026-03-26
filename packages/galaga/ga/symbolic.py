@@ -210,10 +210,7 @@ class Sym(Expr):
         if grade is not None:
             self._grade = grade
         else:
-            nonzero = [k for k in range(mv.algebra._n + 1)
-                       if any(abs(c) > 1e-12 for i, c in enumerate(mv.data)
-                              if bin(i).count('1') == k)]
-            self._grade = nonzero[0] if len(nonzero) == 1 else None
+            self._grade = mv.homogeneous_grade()
 
     def eval(self) -> _alg.Multivector:
         return self._mv
