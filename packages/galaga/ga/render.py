@@ -1,16 +1,16 @@
 """Precedence-aware tree-walking renderer for symbolic expressions.
 
 A standalone visitor that walks an Expr tree and produces correctly
-parenthesized unicode or LaTeX output. Each node type has a precedence
-level; a child is wrapped in parens when its precedence is lower than
-the parent's context requires.
+parenthesized unicode or LaTeX output. Operation metadata (precedence,
+associativity, flattenability) is stored in a registry, not hardcoded
+per-node.
 
 Precedence levels (higher = binds tighter):
     100  Atoms: Sym, Scalar
      95  Postfix unary: Reverse, Involute, Conjugate, Dual, Undual,
-         Inverse, Squared (these decorate a single operand)
-     90  Prefix unary: Neg, ScalarMul, ScalarDiv
-     80  Geometric product (juxtaposition)
+         Inverse, Squared
+     90  Prefix unary: Neg
+     80  Geometric product, ScalarMul, ScalarDiv
      70  Wedge, contractions, inner products, Div
      60  Add, Sub
 
@@ -19,6 +19,10 @@ explicit delimiters so they never need precedence-based parens.
 """
 
 from __future__ import annotations
+
+from dataclasses import dataclass
+from enum import Enum
+from typing import Callable
 
 from ga.symbolic import (
     Expr, Sym, Scalar,
@@ -36,44 +40,155 @@ _INVOLUTE = "\u0302"
 _CONJUGATE = "\u0304"
 _HAT = "\u0302"
 
-# --- Precedence table ---
 
-_PREC = {
-    Sym: 100, Scalar: 100,
-    Reverse: 95, Involute: 95, Conjugate: 95,
-    Dual: 95, Undual: 95, Inverse: 95, Squared: 95,
-    Neg: 90, ScalarMul: 80, ScalarDiv: 80,
-    Gp: 80,
-    Op: 70, Lc: 70, Rc: 70, Hi: 70, Dli: 70, Sp: 70, Div: 70,
-    Add: 60, Sub: 60,
-    # Bracket-style — never need outer parens
-    Grade: 100, Norm: 100, Unit: 100, Exp: 100, Even: 100, Odd: 100,
-    Commutator: 100, Anticommutator: 100,
-    LieBracket: 100, JordanProduct: 100,
+# ============================================================
+# Operation metadata
+# ============================================================
+
+class Assoc(Enum):
+    LEFT = "left"
+    RIGHT = "right"
+    NONE = "none"
+
+
+@dataclass(frozen=True, slots=True)
+class OpInfo:
+    """Metadata for an expression node type."""
+    prec: int
+    assoc: Assoc = Assoc.NONE
+    flat: bool = False  # True if associative and can be flattened (a∧b∧c)
+
+
+# Registry: node type → metadata
+INFO: dict[type, OpInfo] = {
+    # Atoms
+    Sym:     OpInfo(100),
+    Scalar:  OpInfo(100),
+
+    # Postfix unary
+    Reverse:   OpInfo(95),
+    Involute:  OpInfo(95),
+    Conjugate: OpInfo(95),
+    Dual:      OpInfo(95),
+    Undual:    OpInfo(95),
+    Inverse:   OpInfo(95),
+    Squared:   OpInfo(95),
+
+    # Prefix unary
+    Neg:       OpInfo(90),
+    ScalarMul: OpInfo(80),
+    ScalarDiv: OpInfo(80),
+
+    # Binary multiplicative
+    Gp:  OpInfo(80, Assoc.LEFT, flat=True),
+    Op:  OpInfo(70, Assoc.LEFT, flat=True),
+    Lc:  OpInfo(70, Assoc.LEFT),
+    Rc:  OpInfo(70, Assoc.LEFT),
+    Hi:  OpInfo(70, Assoc.LEFT),
+    Dli: OpInfo(70, Assoc.LEFT),
+    Sp:  OpInfo(70, Assoc.LEFT),
+    Div: OpInfo(70, Assoc.LEFT),
+
+    # Additive
+    Add: OpInfo(60, Assoc.LEFT, flat=True),
+    Sub: OpInfo(60, Assoc.LEFT),
+
+    # Bracket-style (explicit delimiters — never need outer parens)
+    Grade:           OpInfo(100),
+    Norm:            OpInfo(100),
+    Unit:            OpInfo(100),
+    Exp:             OpInfo(100),
+    Even:            OpInfo(100),
+    Odd:             OpInfo(100),
+    Commutator:      OpInfo(100),
+    Anticommutator:  OpInfo(100),
+    LieBracket:      OpInfo(100),
+    JordanProduct:   OpInfo(100),
 }
 
 
-def _prec(node: Expr) -> int:
-    return _PREC.get(type(node), 0)
+def _info(node: Expr) -> OpInfo:
+    return INFO.get(type(node), OpInfo(0))
 
 
-def _wrap(s: str, child: Expr, min_prec: int) -> str:
-    """Wrap s in parens if child's precedence is below min_prec."""
-    if _prec(child) < min_prec:
+# ============================================================
+# Wrapping logic
+# ============================================================
+
+def _needs_wrap(child: Expr, min_prec: int, parent_type: type = None) -> bool:
+    """Does child need parens in a context requiring min_prec?
+
+    If parent is flattenable and child is the same type, no wrap needed.
+    """
+    ci = _info(child)
+    if parent_type is not None:
+        pi = INFO.get(parent_type)
+        if pi and pi.flat and type(child) is parent_type:
+            return False
+    return ci.prec < min_prec
+
+
+def _wrap(s: str, child: Expr, min_prec: int, parent_type: type = None) -> str:
+    if _needs_wrap(child, min_prec, parent_type):
         return f"({s})"
     return s
 
 
-def _wrap_latex(s: str, child: Expr, min_prec: int) -> str:
-    if _prec(child) < min_prec:
+def _wrap_latex(s: str, child: Expr, min_prec: int, parent_type: type = None) -> str:
+    if _needs_wrap(child, min_prec, parent_type):
         return rf"\left({s}\right)"
     return s
 
 
-# --- Unicode renderer ---
+# ============================================================
+# Binary op symbols
+# ============================================================
+
+_BINARY_UNICODE = {
+    Op: "∧", Lc: "⌋", Rc: "⌊", Hi: "·", Dli: "·", Sp: "∗",
+}
+
+_BINARY_LATEX = {
+    Op: r" \wedge ", Lc: r" \;\lrcorner\; ", Rc: r" \;\llcorner\; ",
+    Hi: r" \cdot ", Dli: r" \cdot ", Sp: r" * ",
+}
+
+# Threshold for wrapping children of binary ops.
+# Children must have prec >= this to avoid wrapping.
+# For Gp (prec 80): children at 80+ are fine (Gp, ScalarMul).
+# For Op (prec 70): children must be > 80 to avoid ambiguity with ScalarMul.
+_BINARY_CHILD_MIN = {
+    Gp: 80,
+    Op: 81,  # ScalarMul (80) inside Op needs wrapping
+    Lc: 71, Rc: 71, Hi: 71, Dli: 71, Sp: 71,
+}
+
+
+# ============================================================
+# Postfix unary decorations
+# ============================================================
+
+_POSTFIX_UNICODE = {
+    Reverse: _REVERSE, Involute: _INVOLUTE, Conjugate: _CONJUGATE,
+    Dual: "⋆", Undual: "⋆⁻¹", Inverse: "⁻¹", Squared: "²",
+}
+
+_POSTFIX_LATEX_FMT = {
+    Reverse:   r"\tilde{{{inner}}}",
+    Involute:  r"{inner}^\dagger",
+    Conjugate: r"\bar{{{inner}}}",
+    Dual:      r"{inner}^*",
+    Undual:    r"{inner}^{{*^{{-1}}}}",
+    Inverse:   r"{inner}^{{-1}}",
+    Squared:   r"{inner}^2",
+}
+
+
+# ============================================================
+# Unicode renderer
+# ============================================================
 
 def render(node: Expr) -> str:
-    """Render an Expr tree as a unicode string with correct parenthesization."""
     t = type(node)
 
     # Atoms
@@ -88,57 +203,35 @@ def render(node: Expr) -> str:
         return f"-{_wrap(inner, node.x, 61)}"
     if t is ScalarMul:
         if node.k == -1:
-            inner = render(node.x)
-            return f"-{_wrap(inner, node.x, 61)}"
-        inner = render(node.x)
-        return f"{node.k:g}{_wrap(inner, node.x, 61)}"
+            return f"-{_wrap(render(node.x), node.x, 61)}"
+        return f"{node.k:g}{_wrap(render(node.x), node.x, 61)}"
     if t is ScalarDiv:
         inner = render(node.x)
         return f"{_wrap(inner, node.x, 70)}/{node.k:g}"
 
-    # Geometric product (juxtaposition)
+    # Binary with infix symbol (wedge, contractions, inner products)
+    if t in _BINARY_UNICODE:
+        sym = _BINARY_UNICODE[t]
+        min_p = _BINARY_CHILD_MIN.get(t, 71)
+        left = _wrap(render(node.a), node.a, min_p, parent_type=t)
+        right = _wrap(render(node.b), node.b, min_p, parent_type=t)
+        return f"{left}{sym}{right}"
+
+    # Geometric product (juxtaposition — no symbol)
     if t is Gp:
-        left = _wrap(render(node.a), node.a, 80)
-        right = _wrap(render(node.b), node.b, 80)
+        left = _wrap(render(node.a), node.a, 80, parent_type=Gp)
+        right = _wrap(render(node.b), node.b, 80, parent_type=Gp)
         return f"{left}{right}"
 
-    # Wedge and other multiplicative binary ops
-    if t is Op:
-        left = render(node.a)
-        if not isinstance(node.a, Op):
-            left = _wrap(left, node.a, 81)
-        right = render(node.b)
-        if not isinstance(node.b, Op):
-            right = _wrap(right, node.b, 81)
-        return f"{left}∧{right}"
-    if t is Lc:
-        left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 71)
-        return f"{left}⌋{right}"
-    if t is Rc:
-        left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 71)
-        return f"{left}⌊{right}"
-    if t is Hi:
-        left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 71)
-        return f"{left}·{right}"
-    if t is Dli:
-        left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 71)
-        return f"{left}·{right}"
-    if t is Sp:
-        left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 71)
-        return f"{left}∗{right}"
+    # Div (unicode uses /)
     if t is Div:
         left = _wrap(render(node.a), node.a, 71)
-        right = _wrap(render(node.b), node.b, 95)
+        right = _wrap(render(node.b), node.b, 95)  # denom needs tight wrapping
         return f"{left}/{right}"
 
     # Addition / subtraction
     if t is Add:
-        left = render(node.a)
+        left = _wrap(render(node.a), node.a, 60, parent_type=Add)
         right = render(node.b)
         return f"{left} + {right}"
     if t is Sub:
@@ -146,40 +239,22 @@ def render(node: Expr) -> str:
         right = _wrap(render(node.b), node.b, 61)
         return f"{left} - {right}"
 
-    # Postfix unary — need parens on anything non-atomic
-    if t is Reverse:
+    # Postfix unary
+    if t in _POSTFIX_UNICODE:
+        suffix = _POSTFIX_UNICODE[t]
         inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}{_REVERSE}"
-    if t is Involute:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}{_INVOLUTE}"
-    if t is Conjugate:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}{_CONJUGATE}"
-    if t is Dual:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}⋆"
-    if t is Undual:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}⋆⁻¹"
-    if t is Inverse:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}⁻¹"
-    if t is Squared:
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 95)}²"
+        return f"{_wrap(inner, node.x, 95)}{suffix}"
 
-    # Bracket-style (explicit delimiters — no precedence issue)
+    # Bracket-style (explicit delimiters)
     if t is Grade:
         sub = str(node.k).translate(_SUBSCRIPTS)
         return f"⟨{render(node.x)}⟩{sub}"
     if t is Norm:
         return f"‖{render(node.x)}‖"
     if t is Unit:
-        if isinstance(node.x, (Sym, Scalar)):
+        if isinstance(node.x, Sym) and len(str(node.x)) == 1:
             return f"{render(node.x)}{_HAT}"
-        inner = render(node.x)
-        return f"{_wrap(inner, node.x, 70)}/‖{render(node.x)}‖"
+        return f"{_wrap(render(node.x), node.x, 70)}/‖{render(node.x)}‖"
     if t is Exp:
         return f"exp({render(node.x)})"
     if t is Even:
@@ -187,7 +262,7 @@ def render(node: Expr) -> str:
     if t is Odd:
         return f"⟨{render(node.x)}⟩₋"
 
-    # Commutator family (bracket-delimited)
+    # Commutator family
     if t is Commutator:
         return f"[{render(node.a)}, {render(node.b)}]"
     if t is Anticommutator:
@@ -200,10 +275,11 @@ def render(node: Expr) -> str:
     return str(node)
 
 
-# --- LaTeX renderer ---
+# ============================================================
+# LaTeX renderer
+# ============================================================
 
 def render_latex(node: Expr) -> str:
-    """Render an Expr tree as LaTeX with correct parenthesization."""
     t = type(node)
 
     if t is Sym:
@@ -216,77 +292,38 @@ def render_latex(node: Expr) -> str:
         return f"-{_wrap_latex(inner, node.x, 61)}"
     if t is ScalarMul:
         if node.k == -1:
-            inner = render_latex(node.x)
-            return f"-{_wrap_latex(inner, node.x, 61)}"
-        inner = render_latex(node.x)
-        return f"{node.k:g} {_wrap_latex(inner, node.x, 61)}"
+            return f"-{_wrap_latex(render_latex(node.x), node.x, 61)}"
+        return f"{node.k:g} {_wrap_latex(render_latex(node.x), node.x, 61)}"
     if t is ScalarDiv:
         return rf"\frac{{{render_latex(node.x)}}}{{{node.k:g}}}"
 
+    if t in _BINARY_LATEX:
+        sep = _BINARY_LATEX[t]
+        min_p = _BINARY_CHILD_MIN.get(t, 71)
+        left = _wrap_latex(render_latex(node.a), node.a, min_p, parent_type=t)
+        right = _wrap_latex(render_latex(node.b), node.b, min_p, parent_type=t)
+        return f"{left}{sep}{right}"
+
     if t is Gp:
-        left = _wrap_latex(render_latex(node.a), node.a, 80)
-        right = _wrap_latex(render_latex(node.b), node.b, 80)
+        left = _wrap_latex(render_latex(node.a), node.a, 80, parent_type=Gp)
+        right = _wrap_latex(render_latex(node.b), node.b, 80, parent_type=Gp)
         return f"{left} {right}"
 
-    if t is Op:
-        left = render_latex(node.a)
-        if not isinstance(node.a, Op):
-            left = _wrap_latex(left, node.a, 81)
-        right = render_latex(node.b)
-        if not isinstance(node.b, Op):
-            right = _wrap_latex(right, node.b, 81)
-        return rf"{left} \wedge {right}"
-    if t is Lc:
-        left = _wrap_latex(render_latex(node.a), node.a, 71)
-        right = _wrap_latex(render_latex(node.b), node.b, 71)
-        return rf"{left} \;\lrcorner\; {right}"
-    if t is Rc:
-        left = _wrap_latex(render_latex(node.a), node.a, 71)
-        right = _wrap_latex(render_latex(node.b), node.b, 71)
-        return rf"{left} \;\llcorner\; {right}"
-    if t is Hi:
-        left = _wrap_latex(render_latex(node.a), node.a, 71)
-        right = _wrap_latex(render_latex(node.b), node.b, 71)
-        return rf"{left} \cdot {right}"
-    if t is Dli:
-        left = _wrap_latex(render_latex(node.a), node.a, 71)
-        right = _wrap_latex(render_latex(node.b), node.b, 71)
-        return rf"{left} \cdot {right}"
-    if t is Sp:
-        left = _wrap_latex(render_latex(node.a), node.a, 71)
-        right = _wrap_latex(render_latex(node.b), node.b, 71)
-        return rf"{left} * {right}"
     if t is Div:
         return rf"\frac{{{render_latex(node.a)}}}{{{render_latex(node.b)}}}"
 
     if t is Add:
-        return f"{render_latex(node.a)} + {render_latex(node.b)}"
+        left = _wrap_latex(render_latex(node.a), node.a, 60, parent_type=Add)
+        return f"{left} + {render_latex(node.b)}"
     if t is Sub:
-        right = render_latex(node.b)
-        right = _wrap_latex(right, node.b, 61)
-        return f"{render_latex(node.a)} - {right}"
+        left = render_latex(node.a)
+        right = _wrap_latex(render_latex(node.b), node.b, 61)
+        return f"{left} - {right}"
 
-    if t is Reverse:
-        inner = render_latex(node.x)
-        return rf"\tilde{{{_wrap_latex(inner, node.x, 95)}}}"
-    if t is Involute:
+    if t in _POSTFIX_LATEX_FMT:
+        fmt = _POSTFIX_LATEX_FMT[t]
         inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return rf"{inner}^\dagger"
-    if t is Conjugate:
-        inner = render_latex(node.x)
-        return rf"\bar{{{_wrap_latex(inner, node.x, 95)}}}"
-    if t is Dual:
-        inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return rf"{inner}^*"
-    if t is Undual:
-        inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return rf"{inner}^{{*^{{-1}}}}"
-    if t is Inverse:
-        inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return rf"{inner}^{{-1}}"
-    if t is Squared:
-        inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return f"{inner}^2"
+        return fmt.format(inner=inner)
 
     if t is Grade:
         return rf"\langle {render_latex(node.x)} \rangle_{{{node.k}}}"
