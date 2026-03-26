@@ -174,14 +174,23 @@ _POSTFIX_UNICODE = {
 }
 
 _POSTFIX_LATEX_FMT = {
-    Reverse:   r"\tilde{{{inner}}}",
     Involute:  r"{inner}^\dagger",
-    Conjugate: r"\bar{{{inner}}}",
     Dual:      r"{inner}^*",
     Undual:    r"{inner}^{{*^{{-1}}}}",
     Inverse:   r"{inner}^{{-1}}",
     Squared:   r"{inner}^2",
 }
+
+
+def _latex_postfix(t: type, inner: str, node: Expr) -> str:
+    """Render postfix unary in LaTeX, using wide accents for compound expressions."""
+    is_atom = isinstance(node.x, (Sym, Scalar))
+    if t is Reverse:
+        return rf"\widetilde{{{inner}}}" if not is_atom else rf"\tilde{{{inner}}}"
+    if t is Conjugate:
+        return rf"\overline{{{inner}}}" if not is_atom else rf"\bar{{{inner}}}"
+    fmt = _POSTFIX_LATEX_FMT[t]
+    return fmt.format(inner=inner)
 
 
 # ============================================================
@@ -320,10 +329,9 @@ def render_latex(node: Expr) -> str:
         right = _wrap_latex(render_latex(node.b), node.b, 61)
         return f"{left} - {right}"
 
-    if t in _POSTFIX_LATEX_FMT:
-        fmt = _POSTFIX_LATEX_FMT[t]
+    if t in _POSTFIX_LATEX_FMT or t is Reverse or t is Conjugate:
         inner = _wrap_latex(render_latex(node.x), node.x, 95)
-        return fmt.format(inner=inner)
+        return _latex_postfix(t, inner, node)
 
     if t is Grade:
         return rf"\langle {render_latex(node.x)} \rangle_{{{node.k}}}"
