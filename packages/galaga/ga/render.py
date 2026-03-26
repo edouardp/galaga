@@ -329,7 +329,11 @@ def render_latex(node: Expr) -> str:
         right = _wrap_latex(render_latex(node.b), node.b, 61)
         return f"{left} - {right}"
 
-    if t in _POSTFIX_LATEX_FMT or t is Reverse or t is Conjugate:
+    if t is Reverse or t is Conjugate:
+        # Wide accents act as visual grouping — no parens needed
+        raw = render_latex(node.x)
+        return _latex_postfix(t, raw, node)
+    if t in _POSTFIX_LATEX_FMT:
         inner = _wrap_latex(render_latex(node.x), node.x, 95)
         return _latex_postfix(t, inner, node)
 

@@ -466,7 +466,7 @@ class TestLatex:
 
     def test_reverse_sum(self, syms):
         a, b, _ = syms
-        assert render_latex(Reverse(Add(a, b))) == r"\widetilde{\left(a + b\right)}"
+        assert render_latex(Reverse(Add(a, b))) == r"\widetilde{a + b}"
 
     def test_grade(self, syms):
         a, _, _ = syms
