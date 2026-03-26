@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
 
-    return (mo,)
+    return
 
 
 @app.cell
@@ -40,11 +40,29 @@ def _():
     import galaga_marimo as gm
 
     return (
-        Algebra, anticommutator, commutator, conjugate, doran_lasenby_inner,
-        dual, even_grades, exp, gm, gp, grade, hestenes_inner, inverse,
-        involute, jordan_product, left_contraction, lie_bracket, log, norm,
-        np, odd_grades, op, reverse, right_contraction, sandwich, scalar,
-        scalar_product, simplify, squared, undual, unit,
+        Algebra,
+        anticommutator,
+        commutator,
+        conjugate,
+        dual,
+        even_grades,
+        exp,
+        gm,
+        grade,
+        hestenes_inner,
+        inverse,
+        involute,
+        jordan_product,
+        left_contraction,
+        lie_bracket,
+        norm,
+        np,
+        reverse,
+        right_contraction,
+        scalar_product,
+        simplify,
+        squared,
+        unit,
     )
 
 
@@ -55,20 +73,10 @@ def _(Algebra):
     return alg, e1, e2, e3
 
 
-# ============================================================
-# Title
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"# Symbolic Rendering Gallery")
     return
-
-
-# ============================================================
-# Named objects
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -81,29 +89,28 @@ def _(gm):
 def _(e1):
     _v = e1.name("v")
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _B = (e1 ^ e2).name("B")
     _B
+    return
 
 
 @app.cell
 def _(alg, np):
     _theta = alg.scalar(np.pi / 4).name("θ", latex=r"\theta")
     _theta
+    return
 
 
 @app.cell
 def _(alg):
     _m = alg.scalar(9.109e-31).name("mₑ", latex=r"m_e")
     _m
-
-
-# ============================================================
-# Products
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -116,24 +123,28 @@ def _(gm):
 def _(e1, e2):
     _v = e1 * e2
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _v = e1 ^ e2
     _v
+    return
 
 
 @app.cell
 def _(e1, e2, e3):
     _v = e1 ^ e2 ^ e3
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _v = e1 * e2 * e1
     _v
+    return
 
 
 @app.cell
@@ -142,6 +153,7 @@ def _(e1, e2):
     _b = e2.name("b")
     _v = _a * _b
     _v
+    return
 
 
 @app.cell
@@ -150,11 +162,7 @@ def _(e1, e2):
     _b = e2.name("b")
     _v = _a ^ _b
     _v
-
-
-# ============================================================
-# Scalar multiplication and division
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -167,12 +175,14 @@ def _(gm):
 def _(e1):
     _v = 3 * e1
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _v = 2 * (e1 + e2)
     _v
+    return
 
 
 @app.cell
@@ -180,6 +190,7 @@ def _(e1):
     _v = e1.name("v")
     _r = _v / 2
     _r
+    return
 
 
 @app.cell
@@ -187,6 +198,7 @@ def _(e1, e2):
     _v = (e1 + e2).name("v")
     _r = _v / 3
     _r
+    return
 
 
 @app.cell
@@ -195,11 +207,7 @@ def _(alg, e1, e2, np):
     _theta = alg.scalar(np.pi / 3).name("θ", latex=r"\theta")
     _v = -_B * _theta / 2
     _v
-
-
-# ============================================================
-# Addition and subtraction
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -212,29 +220,28 @@ def _(gm):
 def _(e1, e2):
     _v = e1 + e2
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _v = e1 - e2
     _v
+    return
 
 
 @app.cell
 def _(e1, e2, e3):
     _v = e1 + 2 * e2 + 3 * e3
     _v
+    return
 
 
 @app.cell
 def _(e1, e2, e3):
     _v = (e1 ^ e2) + 2 * (e2 ^ e3)
     _v
-
-
-# ============================================================
-# Unary operations
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -248,6 +255,7 @@ def _(e1, e2, reverse):
     _R = (e1 * e2).name("R")
     _v = reverse(_R)
     _v
+    return
 
 
 @app.cell
@@ -255,20 +263,23 @@ def _(e1, involute):
     _v = e1.name("v")
     _r = involute(_v)
     _r
+    return
 
 
 @app.cell
-def _(e1, e2, conjugate):
+def _(conjugate, e1, e2):
     _R = (e1 * e2).name("R")
     _v = conjugate(_R)
     _v
+    return
 
 
 @app.cell
-def _(e1, dual):
+def _(dual, e1):
     _v = e1.name("v")
     _r = dual(_v)
     _r
+    return
 
 
 @app.cell
@@ -276,6 +287,7 @@ def _(e1, inverse):
     _v = e1.name("v")
     _r = inverse(_v)
     _r
+    return
 
 
 @app.cell
@@ -283,6 +295,7 @@ def _(e1, e2, squared):
     _R = (e1 * e2).name("R")
     _v = squared(_R)
     _v
+    return
 
 
 @app.cell
@@ -290,6 +303,7 @@ def _(e1, unit):
     _v = e1.name("v")
     _r = unit(_v)
     _r
+    return
 
 
 @app.cell
@@ -297,11 +311,7 @@ def _(e1, norm):
     _v = e1.name("v")
     _r = norm(_v)
     _r
-
-
-# ============================================================
-# Unary on compound expressions
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -314,35 +324,35 @@ def _(gm):
 def _(e1, e2, reverse):
     _v = reverse(e1 + e2)
     _v
+    return
 
 
 @app.cell
 def _(e1, e2, inverse):
     _v = inverse(e1 * e2)
     _v
+    return
 
 
 @app.cell
-def _(e1, e2, dual):
+def _(dual, e1, e2):
     _v = dual(e1 + e2)
     _v
+    return
 
 
 @app.cell
 def _(e1, e2, squared):
     _v = squared(e1 + e2)
     _v
+    return
 
 
 @app.cell
 def _(e1, e2):
     _v = -(e1 + e2)
     _v
-
-
-# ============================================================
-# Grade projection
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -357,6 +367,7 @@ def _(e1, e2, grade):
     _v = e1.name("v")
     _r = grade(_R * _v * ~_R, 1)
     _r
+    return
 
 
 @app.cell
@@ -364,11 +375,7 @@ def _(e1, e2, e3, even_grades):
     _mv = e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
     _v = even_grades(_mv)
     _v
-
-
-# ============================================================
-# Inner products and contractions
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -383,6 +390,7 @@ def _(e1, e2, left_contraction):
     _B = (e1 ^ e2).name("B")
     _v = left_contraction(_a, _B)
     _v
+    return
 
 
 @app.cell
@@ -391,6 +399,7 @@ def _(e1, e2, right_contraction):
     _a = e1.name("a")
     _v = right_contraction(_B, _a)
     _v
+    return
 
 
 @app.cell
@@ -399,6 +408,7 @@ def _(e1, e2, hestenes_inner):
     _b = e2.name("b")
     _v = hestenes_inner(_a, _b)
     _v
+    return
 
 
 @app.cell
@@ -407,11 +417,7 @@ def _(e1, e2, scalar_product):
     _b = e2.name("b")
     _v = scalar_product(_a, _b)
     _v
-
-
-# ============================================================
-# Commutator family
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -426,6 +432,7 @@ def _(commutator, e1, e2):
     _B = (e2 ^ e1).name("B")
     _v = commutator(_A, _B)
     _v
+    return
 
 
 @app.cell
@@ -434,6 +441,7 @@ def _(anticommutator, e1, e2):
     _B = (e2 ^ e1).name("B")
     _v = anticommutator(_A, _B)
     _v
+    return
 
 
 @app.cell
@@ -442,6 +450,7 @@ def _(e1, e2, lie_bracket):
     _B = (e2 ^ e1).name("B")
     _v = lie_bracket(_A, _B)
     _v
+    return
 
 
 @app.cell
@@ -450,11 +459,7 @@ def _(e1, e2, jordan_product):
     _b = e2.name("b")
     _v = jordan_product(_a, _b)
     _v
-
-
-# ============================================================
-# Exponential and logarithm
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -468,6 +473,7 @@ def _(e1, e2, exp):
     _B = (e1 ^ e2).name("B")
     _v = exp(_B)
     _v
+    return
 
 
 @app.cell
@@ -476,11 +482,7 @@ def _(alg, e1, e2, exp, np):
     _theta = alg.scalar(np.pi / 4).name("θ", latex=r"\theta")
     _v = exp(-_B * _theta / 2)
     _v
-
-
-# ============================================================
-# Division
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -495,6 +497,7 @@ def _(alg):
     _b = alg.scalar(2).name("b")
     _v = _a / _b
     _v
+    return
 
 
 @app.cell
@@ -504,11 +507,7 @@ def _(alg):
     _c = alg.scalar(3e8).name("c")
     _v = _hbar / (_m * _c)
     _v
-
-
-# ============================================================
-# Rotor sandwich
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -518,28 +517,25 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, exp, alg, np):
+def _(alg, e1, e2, exp, np):
     _B = (e1 ^ e2).name("B")
     _theta = alg.scalar(np.pi / 4).name("θ", latex=r"\theta")
     _R = exp(-_B * _theta / 2).name("R")
     _v = e1.name("v")
     _result = _R * _v * ~_R
     _result
+    return
 
 
 @app.cell
-def _(e1, e2, exp, alg, grade, np):
+def _(alg, e1, e2, exp, grade, np):
     _B = (e1 ^ e2).name("B")
     _theta = alg.scalar(np.pi / 4).name("θ", latex=r"\theta")
     _R = exp(-_B * _theta / 2).name("R")
     _v = e1.name("v")
     _result = grade(_R * _v * ~_R, 1)
     _result
-
-
-# ============================================================
-# Simplification
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -553,6 +549,7 @@ def _(e1, simplify):
     _v = e1.name("v")
     _r = simplify(~~_v)
     _r
+    return
 
 
 @app.cell
@@ -560,6 +557,7 @@ def _(e1, simplify):
     _v = e1.name("v")
     _r = simplify(_v - _v)
     _r
+    return
 
 
 @app.cell
@@ -567,6 +565,7 @@ def _(e1, simplify):
     _v = e1.name("v")
     _r = simplify(_v + _v)
     _r
+    return
 
 
 @app.cell
@@ -574,11 +573,7 @@ def _(e1, simplify):
     _v = e1.name("v")
     _r = simplify(_v ^ _v)
     _r
-
-
-# ============================================================
-# Spacetime Algebra
-# ============================================================
+    return
 
 
 @app.cell(hide_code=True)
@@ -601,6 +596,7 @@ def _(g0, g1, g2, g3):
     _I = (g0 * g1 * g2 * g3).name("I")
     _F = (_E.eval() + _I.eval() * _B.eval()).name("F", latex=r"\mathcal{F}")
     _F
+    return
 
 
 @app.cell
@@ -611,6 +607,181 @@ def _(exp, g0, g1, sta):
     _p = g0.name("p")
     _result = _L * _p * ~_L
     _result
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## Wide Tilde & Overline (compound expressions)")
+    return
+
+
+@app.cell
+def _(e1, e2, reverse):
+    _v = reverse(e1 + e2)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, reverse):
+    _R = (e1 * e2).name("R")
+    _v = e1.name("v")
+    _result = _R * _v * reverse(_R)
+    _result
+    return
+
+
+@app.cell
+def _(conjugate, e1, e2):
+    _v = conjugate(e1 + e2)
+    _v
+    return
+
+
+@app.cell
+def _(conjugate, e1, e2):
+    _v = conjugate(e1 * e2)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, reverse):
+    _v = reverse(e1 * e2 * e1)
+    _v
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## Associative Wedge Flattening")
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _v = (e1 ^ e2) ^ e3
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _v = e1 ^ (e2 ^ e3)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _c = e3.name("c")
+    _v = (_a ^ _b) ^ _c
+    _v
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## Precedence: Products with Sums")
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _c = e3.name("c")
+    _v = (_a + _b) * _c
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _c = e3.name("c")
+    _v = _a * (_b + _c)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, e3):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _c = e3.name("c")
+    _v = (_a + _b) ^ _c
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _v = (2 * _a) ^ _b
+    _v
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## Negation Precedence")
+    return
+
+
+@app.cell
+def _(e1, e2):
+    _v = -(e1 + e2)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2):
+    _v = -(e1 * e2)
+    _v
+    return
+
+
+@app.cell(hide_code=True)
+def _(gm):
+    gm.md(t"## Postfix Unary on Products")
+    return
+
+
+@app.cell
+def _(e1, e2, inverse):
+    _v = inverse(e1 * e2)
+    _v
+    return
+
+
+@app.cell
+def _(dual, e1, e2):
+    _v = dual(e1 * e2)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, squared):
+    _v = squared(e1 * e2)
+    _v
+    return
+
+
+@app.cell
+def _(e1, e2, squared):
+    _a = e1.name("a")
+    _b = e2.name("b")
+    _v = squared(_a + _b)
+    _v
+    return
 
 
 if __name__ == "__main__":

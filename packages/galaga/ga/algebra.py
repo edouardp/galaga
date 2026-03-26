@@ -905,7 +905,8 @@ class Multivector:
         if self._name is not None:
             return self._name
         if self._is_lazy and self._expr is not None:
-            return str(self._expr)
+            from ga.render import render
+            return render(self._expr)
         return self._format(unicode=True)
 
     def __format__(self, spec: str) -> str:
@@ -919,13 +920,15 @@ class Multivector:
             if self._name_unicode is not None:
                 return self._name_unicode
             if self._is_lazy and self._expr is not None:
-                return str(self._expr)
+                from ga.render import render
+                return render(self._expr)
             return self._format(unicode=True)
         if spec in ("ascii", "a"):
             if self._name is not None:
                 return self._name
             if self._is_lazy and self._expr is not None:
-                return repr(self._expr)
+                from ga.render import render
+                return render(self._expr)
             return self._format(unicode=False)
         # Numeric format spec — apply to each coefficient, no threshold
         alg = self.algebra
@@ -964,9 +967,10 @@ class Multivector:
             raw = self._name_latex
         elif self._name is not None and coeff_format is None:
             raw = self._name
-        # Anonymous lazy → delegate to expr tree
+        # Anonymous lazy → delegate to renderer
         elif self._is_lazy and self._expr is not None and coeff_format is None:
-            raw = self._expr._latex()
+            from ga.render import render_latex
+            raw = render_latex(self._expr)
         else:
             # Eager anonymous → existing coefficient rendering
             alg = self.algebra
