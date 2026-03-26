@@ -36,7 +36,7 @@ def _():
     from ga.symbolic import simplify
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, gp, matplotlib, norm, np, plt, scalar, simplify, unit
+    return Algebra, exp, gm, gp, norm, np, plt, scalar, unit
 
 
 @app.cell(hide_code=True)
@@ -51,16 +51,11 @@ def _(gm):
     return
 
 
-# ============================================================
-# Setup
-# ============================================================
-
-
 @app.cell
 def _(Algebra):
     alg = Algebra((1, 1))
     e1, e2 = alg.basis_vectors(lazy=True)
-    return alg, e1, e2
+    return e1, e2
 
 
 @app.cell(hide_code=True)
@@ -73,11 +68,6 @@ def _(e1, e2, gm):
     A polarisation state is a unit vector in this plane.
     """)
     return
-
-
-# ============================================================
-# Polariser as projector
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -100,7 +90,7 @@ def _(gm):
 
 
 @app.cell
-def _(alg, gp, scalar):
+def _(gp, scalar):
     def polarise(E, a):
         """Apply ideal linear polariser along unit axis a to field E."""
         return scalar(gp(E, a)) * a
@@ -110,11 +100,6 @@ def _(alg, gp, scalar):
         return 0.5 * (E + a * E * a)
 
     return polarise, polarise_ga
-
-
-# ============================================================
-# Classic demo: H blocks V
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -138,20 +123,15 @@ def _(e1, e2, gm, norm, polarise):
     _intensity = norm(_E1) ** 2
 
     gm.md(t"""
-    Start: $E_0 = $ {_H}
+    Start: $E_0 =$ {_H}
 
-    After vertical polariser: $E_1 = P_V(E_0) = $ {_E1}
+    After vertical polariser: $E_1 = P_V(E_0) =$ {_E1}
 
-    Intensity: $|E_1|^2 = $ {_intensity}
+    Intensity: $|E_1|^2 =$ {_intensity}
 
     **Completely blocked** — as expected.
     """)
     return
-
-
-# ============================================================
-# Three-polariser trick
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -165,7 +145,7 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, gm, norm, np, polarise, unit):
+def _(e1, e2, gm, norm, polarise, unit):
     _H = e1.eval()
     _V = e2.eval()
     _D = unit(e1.eval() + e2.eval())  # 45° diagonal
@@ -178,22 +158,17 @@ def _(e1, e2, gm, norm, np, polarise, unit):
     _I2 = norm(_E2) ** 2
 
     gm.md(t"""
-    Start: $E_0 = $ {_H}
+    Start: $E_0 =$ {_H}
 
-    After 45° polariser: $E_1 = P_D(E_0) = $ {_E1}
+    After 45° polariser: $E_1 = P_D(E_0) =$ {_E1}
     — intensity: {_I1:.4f}
 
-    After vertical polariser: $E_2 = P_V(E_1) = $ {_E2}
+    After vertical polariser: $E_2 = P_V(E_1) =$ {_E2}
     — intensity: {_I2:.4f}
 
     **Quarter of the light gets through!** This is Malus' law in action.
     """)
     return
-
-
-# ============================================================
-# Interactive: angle of middle polariser
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -218,7 +193,7 @@ def _(mo):
 
 
 @app.cell
-def _(alg, angle_slider, e1, e2, gm, norm, np, polarise, unit):
+def _(angle_slider, e1, e2, gm, norm, np, polarise, unit):
     _deg = angle_slider.value
     _rad = np.radians(_deg)
 
@@ -243,11 +218,6 @@ def _(alg, angle_slider, e1, e2, gm, norm, np, polarise, unit):
     = {0.25 * np.sin(2 * _rad)**2:.4f}
     """)
     return
-
-
-# ============================================================
-# Malus' law plot
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -291,11 +261,6 @@ def _(e1, e2, norm, np, plt, polarise, unit):
     return
 
 
-# ============================================================
-# Symbolic chain
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -307,7 +272,7 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, gm, gp, norm, np, scalar, unit):
+def _(e1, e2, gm, gp, norm, scalar, unit):
     _H = e1.name("H")
     _V = e2.name("V")
     _D = unit(e1.eval() + e2.eval()).name("D")
@@ -335,11 +300,6 @@ def _(e1, e2, gm, gp, norm, np, scalar, unit):
     return
 
 
-# ============================================================
-# GA form: P(E) = ½(E + aEa)
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -352,7 +312,7 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, gm, norm, np, polarise_ga, unit):
+def _(e1, e2, gm, norm, polarise_ga, unit):
     _H = e1.eval()
     _V = e2.eval()
     _D = unit(e1.eval() + e2.eval())
@@ -375,11 +335,6 @@ def _(e1, e2, gm, norm, np, polarise_ga, unit):
     return
 
 
-# ============================================================
-# Waveplate as rotor
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -396,7 +351,7 @@ def _(gm):
 
 
 @app.cell
-def _(alg, e1, e2, exp, gm, norm, np):
+def _(e1, e2, exp, gm, norm, np):
     _B = (e1.eval() ^ e2.eval())
     _theta = np.pi / 4  # 45° fast axis → 90° rotation
 
@@ -420,11 +375,6 @@ def _(alg, e1, e2, exp, gm, norm, np):
     return
 
 
-# ============================================================
-# Polarisation state visualisation
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -437,7 +387,7 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, norm, np, plt, polarise, unit):
+def _(e1, e2, np, plt, polarise, unit):
     _H = e1.eval()
     _V = e2.eval()
     _D = unit(e1.eval() + e2.eval())
@@ -484,19 +434,17 @@ def _(e1, e2, norm, np, plt, polarise, unit):
     return
 
 
-# ============================================================
-# N polarisers
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
-    ## N Equally-Spaced Polarisers
+    ## N Equally-Spaced Polarisers — Rotating H to V
 
-    What happens if we insert $N$ polarisers equally spaced between H and V?
-    As $N \\to \\infty$, the transmission approaches 100% — this is related
-    to the quantum Zeno effect.
+    Insert $N$ polarisers between H and V, each rotated by $90°/(N+1)$
+    from the previous. Each step barely attenuates the light, so as
+    $N \\to \\infty$ the transmission approaches 100%.
+
+    This is the optical analogue of the **quantum Zeno effect**: frequent
+    small measurements (projections) barely disturb the state.
     """)
     return
 
@@ -504,62 +452,127 @@ def _(gm):
 @app.cell
 def _(mo):
     n_slider = mo.ui.slider(
-        start=1, stop=50, step=1, value=5,
-        label="Number of intermediate polarisers"
+        start=1, stop=90, step=1, value=10,
+        label="Number of polarisers (including H and V)"
     )
     n_slider
     return (n_slider,)
 
 
 @app.cell
+def _(e1, e2, n_slider, norm, np, plt, polarise, unit):
+    _N = n_slider.value
+    _step_deg = 90.0 / _N
+    _E = e1.eval()
+
+    # Track state at each polariser
+    _states = [(_E, 0.0)]
+    for _i in range(1, _N + 1):
+        _deg = _step_deg * _i
+        _rad = np.radians(_deg)
+        _axis = unit(np.cos(_rad) * e1.eval() + np.sin(_rad) * e2.eval())
+        _E = polarise(_E, _axis)
+        _states.append((_E, _deg))
+
+    _I_out = norm(_E) ** 2
+    _theory = np.cos(np.radians(_step_deg)) ** (2 * _N)
+
+    # --- Vector diagram ---
+    _fig, (_ax1, _ax2) = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Left: polarisation vectors
+    _cmap = plt.cm.viridis
+    for _idx, (_Ev, _deg) in enumerate(_states):
+        _frac = _idx / max(len(_states) - 1, 1)
+        _x, _y = _Ev.data[1], _Ev.data[2]
+        _ax1.annotate("", xy=(_x, _y), xytext=(0, 0),
+                      arrowprops=dict(arrowstyle="->", color=_cmap(_frac), lw=1.5))
+        if _N <= 20 or _idx % max(1, _N // 10) == 0 or _idx == len(_states) - 1:
+            _ax1.annotate(f"{_deg:.0f}°", xy=(_x, _y), fontsize=7,
+                          color=_cmap(_frac), xytext=(3, 3), textcoords="offset points")
+
+    _t = np.linspace(0, 2 * np.pi, 100)
+    _ax1.plot(np.cos(_t), np.sin(_t), "k-", alpha=0.1)
+    _ax1.set_xlim(-1.3, 1.3)
+    _ax1.set_ylim(-0.2, 1.3)
+    _ax1.set_aspect("equal")
+    _ax1.set_xlabel("Horizontal (e₁)")
+    _ax1.set_ylabel("Vertical (e₂)")
+    _ax1.set_title(f"{_N} polarisers, {_step_deg:.1f}° each")
+    _ax1.grid(True, alpha=0.3)
+
+    # Right: intensity at each stage
+    _intensities = [norm(_Ev) ** 2 for _Ev, _ in _states]
+    _degs = [_d for _, _d in _states]
+    _ax2.plot(_degs, _intensities, "o-", markersize=3, color="steelblue")
+    _ax2.set_xlabel("Polariser angle (degrees)")
+    _ax2.set_ylabel("Intensity")
+    _ax2.set_title(f"Intensity at each stage — output: {_I_out:.4f}")
+    _ax2.set_xlim(0, 90)
+    _ax2.set_ylim(0, 1.05)
+    _ax2.grid(True, alpha=0.3)
+
+    plt.tight_layout()
+    _fig
+    return
+
+
+@app.cell
 def _(e1, e2, gm, n_slider, norm, np, polarise, unit):
     _N = n_slider.value
-    _E = e1.eval()  # start horizontal
+    _step_deg = 90.0 / _N
+    _E = e1.eval()
 
-    for _i in range(1, _N + 2):  # N intermediate + final V
-        _angle = np.radians(90 * _i / (_N + 1))
-        _axis = unit(np.cos(_angle) * e1.eval() + np.sin(_angle) * e2.eval())
+    for _i in range(1, _N + 1):
+        _rad = np.radians(_step_deg * _i)
+        _axis = unit(np.cos(_rad) * e1.eval() + np.sin(_rad) * e2.eval())
         _E = polarise(_E, _axis)
 
     _I_out = norm(_E) ** 2
-    _theory = np.cos(np.pi / (2 * (_N + 1))) ** (2 * (_N + 1))
+    _theory = np.cos(np.radians(_step_deg)) ** (2 * _N)
 
     gm.md(t"""
-    **{_N} intermediate polarisers** (plus H and V):
+    **{_N} polarisers**, step angle = **{_step_deg:.2f}°**
 
-    Output intensity: **{_I_out:.6f}**
+    | | Value |
+    |---|---|
+    | Output field | {_E} |
+    | Output intensity | **{_I_out:.6f}** |
+    | Theory: cos²({_step_deg:.2f}°)^{_N} | {_theory:.6f} |
+    | Loss per step | {(1 - np.cos(np.radians(_step_deg))**2)*100:.4f}% |
 
-    Theory: $\\cos^{{2(N+1)}}(\\pi / 2(N+1))$ = {_theory:.6f}
-
-    As N → ∞, intensity → 1 (quantum Zeno effect analogue).
+    At 90 polarisers (1° each): 97.3% transmission.
+    At 1 polariser (90°): 0% transmission.
     """)
     return
 
 
 @app.cell
 def _(e1, e2, norm, np, plt, polarise, unit):
-    _Ns = range(1, 51)
+    _Ns = list(range(2, 91))
     _intensities = []
 
     for _N in _Ns:
+        _step = 90.0 / _N
         _E = e1.eval()
-        for _i in range(1, _N + 2):
-            _angle = np.radians(90 * _i / (_N + 1))
-            _axis = unit(np.cos(_angle) * e1.eval() + np.sin(_angle) * e2.eval())
+        for _i in range(1, _N + 1):
+            _rad = np.radians(_step * _i)
+            _axis = unit(np.cos(_rad) * e1.eval() + np.sin(_rad) * e2.eval())
             _E = polarise(_E, _axis)
         _intensities.append(norm(_E) ** 2)
 
-    _theory = [np.cos(np.pi / (2 * (N + 1))) ** (2 * (N + 1)) for N in _Ns]
+    _theory = [np.cos(np.radians(90.0 / N)) ** (2 * N) for N in _Ns]
 
     _fig, _ax = plt.subplots(figsize=(8, 4))
-    _ax.plot(list(_Ns), _intensities, 'bo-', markersize=3, label='GA computation')
-    _ax.plot(list(_Ns), _theory, 'r--', linewidth=1.5,
-             label=r'$\cos^{2(N+1)}(\pi/2(N+1))$')
-    _ax.set_xlabel('Number of intermediate polarisers')
+    _ax.plot(_Ns, _intensities, 'b-', linewidth=2, label='GA computation')
+    _ax.plot(_Ns, _theory, 'r--', linewidth=1.5,
+             label=r'$\cos^{2N}(90°/N)$')
+    _ax.axhline(y=1.0, color='gray', linestyle=':', alpha=0.5)
+    _ax.set_xlabel('Number of polarisers')
     _ax.set_ylabel('Transmitted intensity')
-    _ax.set_title('N Polarisers Between H and V (Quantum Zeno Analogue)')
+    _ax.set_title('H → V via N Equally-Spaced Polarisers')
     _ax.legend()
-    _ax.set_xlim(1, 50)
+    _ax.set_xlim(2, 90)
     _ax.set_ylim(0, 1.05)
     _ax.grid(True, alpha=0.3)
     _fig
