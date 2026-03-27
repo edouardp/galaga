@@ -63,7 +63,15 @@ def _(alg, angle, e1, e2, exp, gm, log, np):
     {R} = {R.eval()}
 
     {log(R)} = {log(R).eval()}
+
+    {(-_theta / 2) * B} = {((-_theta / 2) * B).eval()}
     """)
+    return (R,)
+
+
+@app.cell
+def _(R):
+    R.latex()
     return
 
 

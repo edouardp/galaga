@@ -294,7 +294,31 @@ def render_latex(node: Expr, notation: Notation | None = None) -> str:
             num = _wl(render_latex(node.x, n), node.x, 70)
             return rf"\frac{{{num}}}{{{render_latex(Norm(node.x), n)}}}"
         if t is Exp:
-            return rf"e^{{{render_latex(node.x, n)}}}"
+            # HACK: Replace \frac with \tfrac inside the exponent.
+            #
+            # Why: \frac inside a superscript (e^{\frac{...}{...}}) renders
+            # as a full-size fraction, which is far too tall and destroys
+            # readability. \tfrac ("text-style fraction") renders inline-sized,
+            # giving e^{-\theta/2} instead of a towering fraction.
+            #
+            # Why this is a hack: We're doing a string replacement on the
+            # rendered LaTeX of the child, which is fragile if \frac appears
+            # in a context where we DON'T want it replaced (e.g. nested
+            # fractions that should stay full-size). Currently Exp is the
+            # only node that puts a full expression tree inside a superscript,
+            # so this is safe in practice.
+            #
+            # The correct long-term solution: a two-pass renderer.
+            #   Pass 1: build an intermediate render tree of typed nodes
+            #           (Text, Superscript, Fraction, Group, etc.)
+            #   Pass 2: walk the tree and apply context-dependent rewrites
+            #           (e.g. Fraction inside Superscript → TFraction)
+            # This would also enable other transforms like collapsing
+            # redundant \left(\right) nesting, auto-sizing delimiters, etc.
+            # But it's significant new infrastructure (~150 lines) that isn't
+            # justified until we have more than one rewrite rule.
+            child_latex = render_latex(node.x, n).replace(r'\frac', r'\tfrac')
+            return rf"e^{{{child_latex}}}"
         return f"{rule.open}{render_latex(node.x, n)}{rule.close}"
 
     return str(node)
