@@ -52,9 +52,9 @@ Design Principles
   result is lazy. When all operands are eager, the fast numeric path is taken.
 """
 
+from ga.basis_blade import BasisBlade
 from ga.algebra import (
     Algebra,
-    BasisBlade,
     Multivector,
     # Core operations
     gp,
