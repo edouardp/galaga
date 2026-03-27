@@ -1,5 +1,7 @@
 Add unit tests whenever you add code
 
+If you fix a bug, then add units tests to ensure that issue can never regress again
+
 Update ADRs whenever you make a design decision. Update ADRs whenever  you change an existing design decision.
 
 Rules for writing Marimo Notebooks:

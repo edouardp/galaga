@@ -71,8 +71,10 @@ Every product has a definitive named function. Operators are optional shorthand.
 | Doran–Lasenby inner | `doran_lasenby_inner(a, b)` | `a \| b` | `·` |
 | Hestenes inner | `hestenes_inner(a, b)` | | `·` |
 | Scalar product | `scalar_product(a, b)` | | `∗` |
-| Commutator | `commutator(a, b)` | | |
-| Anticommutator | `anticommutator(a, b)` | | |
+| Commutator | `commutator(a, b)` | | `[a, b]` |
+| Anticommutator | `anticommutator(a, b)` | | `{a, b}` |
+| Lie bracket | `lie_bracket(a, b)` | | `[a, b]` |
+| Jordan product | `jordan_product(a, b)` | | `{a, b}` |
 
 ```python
 e1, e2, e3 = alg.basis_vectors()
@@ -763,10 +765,20 @@ The wedge gives a bivector (oriented plane); the dual converts it to the normal 
 Bivectors form a Lie algebra under the commutator product:
 
 ```python
-commutator(e1^e2, e2^e3)         # e₁₃ — the "cross product" of bivectors
+commutator(e1^e2, e2^e3)         # 2e₁₃ — unnormalised (ab - ba)
+lie_bracket(e1^e2, e2^e3)        # e₁₃  — normalised ½(ab - ba)
 ```
 
-In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3), it gives the Lorentz algebra.
+The library provides both conventions:
+
+| Function | Definition | Use case |
+|---|---|---|
+| `commutator(a, b)` | `ab - ba` | Raw commutator |
+| `anticommutator(a, b)` | `ab + ba` | Raw anticommutator |
+| `lie_bracket(a, b)` | `½(ab - ba)` | Lie algebra with clean structure constants |
+| `jordan_product(a, b)` | `½(ab + ba)` | Symmetric product (equals inner product for vectors) |
+
+In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector cross product. In Cl(1,3), it gives the Lorentz algebra.
 
 ## API Reference
 
