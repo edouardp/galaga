@@ -35,12 +35,18 @@ def _walk(node: LNode, *, in_sup: bool) -> LNode:
         return Seq([_walk(c, in_sup=in_sup) for c in node.children], sep=node.sep)
 
     if t is Frac:
-        # Core rewrite: frac inside superscript → small (tfrac)
-        small = True if in_sup else node.small
+        # Core rewrite: frac inside superscript → inline slash (a/b)
+        # \frac in a superscript renders too tall; inline slash is compact.
+        if in_sup:
+            return Seq([
+                _walk(node.num, in_sup=True),
+                Text("/"),
+                _walk(node.den, in_sup=True),
+            ])
         return Frac(
             _walk(node.num, in_sup=in_sup),
             _walk(node.den, in_sup=in_sup),
-            small=small,
+            small=node.small,
         )
 
     if t is Sup:

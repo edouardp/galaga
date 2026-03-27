@@ -169,14 +169,14 @@ class TestExp:
         assert _latex(Exp(a)) == "e^{a}"
 
     def test_exp_with_frac_uses_tfrac(self):
-        """The key test: frac inside exp superscript becomes tfrac."""
+        """The key test: frac inside exp superscript becomes inline slash."""
         expr = Exp(ScalarDiv(theta, 2))
-        assert _latex(expr) == r"e^{\tfrac{\theta}{2}}"
+        assert _latex(expr) == r"e^{\theta/2}"
 
     def test_exp_with_product_and_frac(self):
         expr = Exp(Gp(ScalarDiv(Neg(theta), 2), b))
         result = _latex(expr)
-        assert r"\tfrac" in result
+        assert "/" in result
         assert r"\frac" not in result
 
 

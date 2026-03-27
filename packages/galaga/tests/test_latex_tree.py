@@ -115,11 +115,11 @@ class TestEmitDeepNesting:
 # ── rewrite: frac→tfrac in superscripts ──
 
 class TestRewriteFracInSup:
-    def test_frac_becomes_tfrac_in_sup(self):
+    def test_frac_becomes_slash_in_sup(self):
         f = Frac(Text(r"\theta"), Text("2"))
         s = Sup(Text("e"), f)
         result = rewrite(s)
-        assert emit(result) == r"e^{\tfrac{\theta}{2}}"
+        assert emit(result) == r"e^{\theta/2}"
 
     def test_frac_outside_sup_unchanged(self):
         f = Frac(Text("a"), Text("b"))
@@ -132,22 +132,21 @@ class TestRewriteFracInSup:
         body = Seq([f, Text(" B")])
         s = Sup(Text("e"), body)
         result = rewrite(s)
-        assert emit(result) == r"e^{\tfrac{-\theta}{2} B}"
+        assert emit(result) == r"e^{-\theta/2 B}"
 
     def test_frac_in_sup_in_frac_outer_unchanged(self):
-        """Outer frac stays full-size, inner frac in sup becomes tfrac."""
+        """Outer frac stays full-size, inner frac in sup becomes slash."""
         inner_frac = Frac(Text("a"), Text("2"))
         sup = Sup(Text("e"), inner_frac)
         outer_frac = Frac(sup, Text("b"))
         result = rewrite(outer_frac)
-        # Outer frac: full-size. Inner frac in sup: tfrac.
-        assert emit(result) == r"\frac{e^{\tfrac{a}{2}}}{b}"
+        assert emit(result) == r"\frac{e^{a/2}}{b}"
 
-    def test_already_small_unchanged(self):
+    def test_already_small_in_sup_becomes_slash(self):
         f = Frac(Text("a"), Text("b"), small=True)
         s = Sup(Text("e"), f)
         result = rewrite(s)
-        assert emit(result) == r"e^{\tfrac{a}{b}}"
+        assert emit(result) == r"e^{a/b}"
 
     def test_deeply_nested_sup(self):
         """Frac inside Parens inside Sup."""
@@ -155,7 +154,7 @@ class TestRewriteFracInSup:
         p = Parens(f)
         s = Sup(Text("e"), p)
         result = rewrite(s)
-        assert emit(result) == r"e^{\left(\tfrac{x}{y}\right)}"
+        assert emit(result) == r"e^{\left(x/y\right)}"
 
     def test_no_sup_no_change(self):
         """Complex tree with no Sup — nothing changes."""
