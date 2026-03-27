@@ -55,7 +55,7 @@ def _(mo):
 def _(Algebra):
     alg = Algebra((1, 1))
     e1, e2 = alg.basis_vectors(lazy=True)
-    return e1, e2
+    return alg, e1, e2
 
 
 @app.cell
@@ -484,6 +484,12 @@ def _(gm, grade, k):
 
     {_g2} = {_g2.eval()}
     """)
+    return
+
+
+@app.cell
+def _(alg, e1, e2):
+    alg.get_basis_blade(e1^e2).rename(latex='I')
     return
 
 

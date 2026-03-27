@@ -91,8 +91,8 @@ class TestNamingPresets:
         # Non-pseudoscalar bivector uses custom names
         assert str(a * b) == "𝐚𝐛"
         assert repr(a * b) == "𝐚𝐛"
-        # Pseudoscalar still shows as 𝑰
-        assert str(a * b * c) == "𝑰"
+        # Pseudoscalar uses standard blade name
+        assert str(a * b * c) == "𝐚𝐛𝐜"
 
 
 class TestAlgebraProperties:
@@ -1195,7 +1195,7 @@ class TestMultivectorLatex:
         assert (e1 ^ e2).latex() == "e_{12}"
 
     def test_pseudoscalar(self, cl3):
-        assert cl3.I.latex() == "I"
+        assert cl3.I.latex() == "e_{123}"
 
     def test_mixed(self, cl3):
         e1, e2, _ = cl3.basis_vectors()

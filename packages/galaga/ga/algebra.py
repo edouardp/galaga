@@ -249,8 +249,6 @@ class Algebra:
         for idx in range(self._dim):
             if idx == 0:
                 a, u, l = "1", "1", "1"
-            elif idx == self._dim - 1:
-                a, u, l = "I", "\U0001D470", "I"  # 𝑰
             else:
                 if self._names is None:
                     digits = "".join(str(k + 1) for k in range(self._n) if idx & (1 << k))

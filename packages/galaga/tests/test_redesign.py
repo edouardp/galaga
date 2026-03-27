@@ -220,8 +220,7 @@ class TestBasisBlades:
 
     def test_pseudoscalar_named(self, cl3):
         I = cl3.pseudoscalar()
-        assert "I" in str(I) or str(I) == "𝑰"
-        assert str(I) == "𝑰"
+        assert str(I) == "e₁₂₃"
 
     def test_blade_lookup_named(self, cl3):
         b = cl3.blade("e12")
