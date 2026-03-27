@@ -331,7 +331,7 @@ class TestSpecUseCases:
         assert concrete._is_lazy is False
         assert np.any(concrete.data != 0)
 
-    def test_use_case_8_basis_blade_rename(self, cl3):
+    def test_use_case_8_basis_basis_blade_rename(self, cl3):
         """Basis blades stay eager but can become lazy/named differently."""
         e1, _, _ = cl3.basis_vectors()
         E = e1.name("E")
@@ -1545,43 +1545,43 @@ class TestSymNoName:
 
 class TestIsBlade:
     def test_basis_vector(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, _, _ = cl3.basis_vectors()
-        assert is_blade(e1)
+        assert is_basis_blade(e1)
 
     def test_scaled_blade(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, _, _ = cl3.basis_vectors()
-        assert is_blade(3 * e1)
+        assert is_basis_blade(3 * e1)
 
     def test_bivector_blade(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, e2, _ = cl3.basis_vectors()
-        assert is_blade(e1 ^ e2)
+        assert is_basis_blade(e1 ^ e2)
 
     def test_scaled_bivector(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, e2, _ = cl3.basis_vectors()
-        assert is_blade(5 * (e1 ^ e2))
+        assert is_basis_blade(5 * (e1 ^ e2))
 
     def test_pseudoscalar(self, cl3):
-        from ga import is_blade
-        assert is_blade(cl3.pseudoscalar())
+        from ga import is_basis_blade
+        assert is_basis_blade(cl3.pseudoscalar())
 
     def test_scalar(self, cl3):
-        from ga import is_blade
-        assert is_blade(cl3.scalar(7.0))
+        from ga import is_basis_blade
+        assert is_basis_blade(cl3.scalar(7.0))
 
     def test_sum_not_blade(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, e2, _ = cl3.basis_vectors()
-        assert not is_blade(e1 + e2)
+        assert not is_basis_blade(e1 + e2)
 
     def test_mixed_grade_not_blade(self, cl3):
-        from ga import is_blade
+        from ga import is_basis_blade
         e1, e2, _ = cl3.basis_vectors()
-        assert not is_blade(e1 + (e1 ^ e2))
+        assert not is_basis_blade(e1 + (e1 ^ e2))
 
     def test_zero(self, cl3):
-        from ga import is_blade
-        assert not is_blade(cl3.scalar(0.0))
+        from ga import is_basis_blade
+        assert not is_basis_blade(cl3.scalar(0.0))

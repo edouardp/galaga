@@ -1546,7 +1546,7 @@ def is_rotor(x: Multivector) -> bool:
     return is_even(x) and np.isclose(scalar(gp(x, reverse(x))), 1.0)
 
 
-def is_blade(x: Multivector) -> bool:
+def is_basis_blade(x: Multivector) -> bool:
     """True if x is a basis blade (possibly scaled).
 
     A basis blade has exactly one nonzero component in the coefficient
