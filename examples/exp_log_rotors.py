@@ -56,7 +56,8 @@ def _(mo):
 def _(alg, angle, e1, e2, exp, gm, log, np):
     _theta = alg.scalar(np.radians(angle.value)).name(latex=r"\theta")
     B = (e1 * e2).name("B")
-    R = exp((-_theta / 2) * B)
+    half_angle = (-_theta * B) / 2
+    R = exp(half_angle)
     gm.md(t"""
     {B} = {B.eval()}
 
@@ -64,7 +65,7 @@ def _(alg, angle, e1, e2, exp, gm, log, np):
 
     {log(R)} = {log(R).eval()}
 
-    {(-_theta / 2) * B} = {((-_theta / 2) * B).eval()}
+    {half_angle} = {half_angle.eval()}
     """)
     return (R,)
 

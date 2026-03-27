@@ -116,9 +116,6 @@ def _needs_wrap(child: Expr, min_prec: int, parent_type: type = None) -> bool:
 def _w(s, child, min_prec, pt=None):
     return f"({s})" if _needs_wrap(child, min_prec, pt) else s
 
-def _wl(s, child, min_prec, pt=None):
-    return rf"\left({s}\right)" if _needs_wrap(child, min_prec, pt) else s
-
 def _multichar(node):
     if isinstance(node, Sym): return not _is_single(node._name)
     if isinstance(node, (ScalarMul, Neg)): return _multichar(node.x)
@@ -225,100 +222,15 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 
 
 # --- LaTeX ---
+#
+# LaTeX rendering uses a three-phase pipeline:
+#   1. latex_build: Expr → LNode tree (structural mapping)
+#   2. latex_rewrite: LNode → LNode (context-dependent transforms, e.g. frac→tfrac in superscripts)
+#   3. latex_emit: LNode → str (serialization)
+# See latex_nodes.py module docstring for the full rationale.
 
 def render_latex(node: Expr, notation: Notation | None = None) -> str:
-    n = notation or _DEFAULT
-    t = type(node)
-    name = _NAME.get(t, "")
-
-    if t is Sym: return node._name_latex
-    if t is Scalar: return f"{node._value:g}"
-
-    if t is Neg:
-        return f"-{_wl(render_latex(node.x, n), node.x, 61)}"
-    if t is ScalarMul:
-        i = render_latex(node.x, n)
-        return f"-{_wl(i, node.x, 61)}" if node.k == -1 else f"{node.k:g} {_wl(i, node.x, 61)}"
-    if t is ScalarDiv:
-        return rf"\frac{{{render_latex(node.x, n)}}}{{{node.k:g}}}"
-
-    if t is Gp:
-        return f"{_wl(render_latex(node.a, n), node.a, 80, Gp)} {_wl(render_latex(node.b, n), node.b, 80, Gp)}"
-
-    if t is Add:
-        return f"{_wl(render_latex(node.a, n), node.a, 60, Add)} + {render_latex(node.b, n)}"
-    if t is Sub:
-        return f"{render_latex(node.a, n)} - {_wl(render_latex(node.b, n), node.b, 61)}"
-
-    if t is Div:
-        return rf"\frac{{{render_latex(node.a, n)}}}{{{render_latex(node.b, n)}}}"
-
-    rule = n.get(name, "latex")
-    if not rule:
-        return str(node)
-
-    if rule.kind == "infix" and hasattr(node, 'a'):
-        mp = _CHILD_MIN.get(t, 71)
-        return f"{_wl(render_latex(node.a, n), node.a, mp, t)}{rule.separator}{_wl(render_latex(node.b, n), node.b, mp, t)}"
-
-    if rule.kind == "function":
-        if hasattr(node, 'a'):
-            return rf"\operatorname{{{rule.symbol}}}({render_latex(node.a, n)}, {render_latex(node.b, n)})"
-        return rf"\operatorname{{{rule.symbol}}}({render_latex(node.x, n)})"
-
-    # Prefix unary
-    if rule.kind == "prefix" and hasattr(node, 'x'):
-        return f"{rule.symbol}{_wl(render_latex(node.x, n), node.x, 95)}"
-
-    if rule.kind == "accent" and hasattr(node, 'x'):
-        is_atom = isinstance(node.x, (Sym, Scalar))
-        # Wide accents for reverse/conjugate don't need parens
-        if t in (Reverse, Conjugate):
-            inner = render_latex(node.x, n)
-        else:
-            inner = _wl(render_latex(node.x, n), node.x, 95)
-        cmd = rule.latex_cmd if is_atom else rule.latex_wide_cmd
-        return f"{cmd}{{{inner}}}"
-
-    if rule.kind == "postfix" and hasattr(node, 'x'):
-        return f"{_wl(render_latex(node.x, n), node.x, 96)}{rule.symbol}"
-
-    if rule.kind == "wrap":
-        if t in _COMMA_BINARY:
-            return rf"{rule.open}{render_latex(node.a, n)},\, {render_latex(node.b, n)}{rule.close}"
-        if t is Grade:
-            return rf"{rule.open}{render_latex(node.x, n)}{rule.close}_{{{node.k}}}"
-        if t is Unit:
-            if isinstance(node.x, (Sym, Scalar)):
-                return rf"{rule.latex_cmd}{{{render_latex(node.x, n)}}}" if rule.latex_cmd else rf"\hat{{{render_latex(node.x, n)}}}"
-            num = _wl(render_latex(node.x, n), node.x, 70)
-            return rf"\frac{{{num}}}{{{render_latex(Norm(node.x), n)}}}"
-        if t is Exp:
-            # HACK: Replace \frac with \tfrac inside the exponent.
-            #
-            # Why: \frac inside a superscript (e^{\frac{...}{...}}) renders
-            # as a full-size fraction, which is far too tall and destroys
-            # readability. \tfrac ("text-style fraction") renders inline-sized,
-            # giving e^{-\theta/2} instead of a towering fraction.
-            #
-            # Why this is a hack: We're doing a string replacement on the
-            # rendered LaTeX of the child, which is fragile if \frac appears
-            # in a context where we DON'T want it replaced (e.g. nested
-            # fractions that should stay full-size). Currently Exp is the
-            # only node that puts a full expression tree inside a superscript,
-            # so this is safe in practice.
-            #
-            # The correct long-term solution: a two-pass renderer.
-            #   Pass 1: build an intermediate render tree of typed nodes
-            #           (Text, Superscript, Fraction, Group, etc.)
-            #   Pass 2: walk the tree and apply context-dependent rewrites
-            #           (e.g. Fraction inside Superscript → TFraction)
-            # This would also enable other transforms like collapsing
-            # redundant \left(\right) nesting, auto-sizing delimiters, etc.
-            # But it's significant new infrastructure (~150 lines) that isn't
-            # justified until we have more than one rewrite rule.
-            child_latex = render_latex(node.x, n).replace(r'\frac', r'\tfrac')
-            return rf"e^{{{child_latex}}}"
-        return f"{rule.open}{render_latex(node.x, n)}{rule.close}"
-
-    return str(node)
+    from ga.latex_build import build
+    from ga.latex_rewrite import rewrite
+    from ga.latex_emit import emit
+    return emit(rewrite(build(node, notation)))
