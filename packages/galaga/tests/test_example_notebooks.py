@@ -18,6 +18,8 @@ NOTEBOOKS = [
     "exterior_algebra_intuition.py",
     "duality_and_complements.py",
     "aharonov_bohm.py",
+    "one_g_travel_calculator.py",
+    "twin_paradox.py",
 ]
 
 

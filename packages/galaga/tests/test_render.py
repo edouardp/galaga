@@ -671,3 +671,105 @@ class TestMixedInfixPostfixLatex:
         a, b, _ = syms
         expr = Conjugate(Add(a, b))
         assert render_latex(expr) == r"\overline{a + b}"
+
+
+# ============================================================
+# Notation-driven rendering (override tests)
+# ============================================================
+
+class TestNotationOverrideRendering:
+    """Test that notation overrides actually change rendered output."""
+
+    def test_prefix_unary_dual(self, alg):
+        """Prefix dual: *v instead of v⋆."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
+        e1, _, _ = alg.basis_vectors()
+        v = Sym(e1, "v")
+        assert render(Dual(v), alg.notation) == "*v"
+
+    def test_prefix_unary_dual_latex(self, alg):
+        from ga.notation import NotationRule
+        from ga.render import render_latex
+        alg.notation.set("Dual", "latex", NotationRule(kind="prefix", symbol="*"))
+        e1, _, _ = alg.basis_vectors()
+        v = Sym(e1, "v")
+        assert render_latex(Dual(v), alg.notation) == "*v"
+
+    def test_postfix_reverse_dagger(self, alg):
+        """Postfix reverse: v† instead of ṽ."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
+        e1, _, _ = alg.basis_vectors()
+        v = Sym(e1, "v")
+        assert render(Reverse(v), alg.notation) == "v†"
+
+    def test_postfix_reverse_compound(self, alg):
+        """Postfix reverse on compound: (ab)†."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
+        e1, e2, _ = alg.basis_vectors()
+        a, b = Sym(e1, "a"), Sym(e2, "b")
+        assert render(Reverse(Gp(a, b)), alg.notation) == "(ab)†"
+
+    def test_function_unary_reverse(self, alg):
+        """Function-style reverse: rev(v)."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
+        e1, _, _ = alg.basis_vectors()
+        v = Sym(e1, "v")
+        assert render(Reverse(v), alg.notation) == "rev(v)"
+
+    def test_function_binary_wedge(self, alg):
+        """Function-style wedge: wedge(a, b)."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
+        e1, e2, _ = alg.basis_vectors()
+        a, b = Sym(e1, "a"), Sym(e2, "b")
+        assert render(Op(a, b), alg.notation) == "wedge(a, b)"
+
+    def test_function_binary_latex(self, alg):
+        from ga.notation import NotationRule
+        from ga.render import render_latex
+        alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
+        e1, e2, _ = alg.basis_vectors()
+        a, b = Sym(e1, "a"), Sym(e2, "b")
+        result = render_latex(Op(a, b), alg.notation)
+        assert r"\operatorname{wedge}" in result
+
+    def test_infix_override(self, alg):
+        """Override wedge symbol."""
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg.notation.set("Op", "unicode", NotationRule(kind="infix", separator=" AND "))
+        e1, e2, _ = alg.basis_vectors()
+        a, b = Sym(e1, "a"), Sym(e2, "b")
+        assert render(Op(a, b), alg.notation) == "a AND b"
+
+    def test_hestenes_preset_sandwich(self, alg):
+        """Hestenes preset: RvR† in sandwich."""
+        from ga.notation import Notation
+        from ga.render import render
+        n = Notation.hestenes()
+        e1, e2, _ = alg.basis_vectors()
+        R, v = Sym(e1 * e2, "R"), Sym(e1, "v")
+        expr = Gp(Gp(R, v), Reverse(R))
+        assert render(expr, n) == "RvR†"
+
+    def test_notation_does_not_leak(self):
+        """Overriding one algebra's notation doesn't affect another."""
+        from ga import Algebra
+        from ga.notation import NotationRule
+        from ga.render import render
+        alg1 = Algebra((1, 1, 1))
+        alg2 = Algebra((1, 1, 1))
+        alg1.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
+        e1, _, _ = alg1.basis_vectors()
+        v = Sym(e1, "v")
+        assert render(Reverse(v), alg1.notation) == "v†"
+        assert render(Reverse(v), alg2.notation) != "v†"

@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
 
-    return (mo,)
+    return
 
 
 @app.cell
@@ -32,7 +32,20 @@ def _():
     import galaga_marimo as gm
     import numpy as np
 
-    return Algebra, NotationRule, Notation, conjugate, dual, exp, gm, grade, inverse, involute, np, reverse, simplify, squared
+    return (
+        Algebra,
+        Notation,
+        NotationRule,
+        conjugate,
+        dual,
+        exp,
+        gm,
+        grade,
+        inverse,
+        involute,
+        reverse,
+        squared,
+    )
 
 
 @app.cell(hide_code=True)
@@ -47,11 +60,6 @@ def _(gm):
     return
 
 
-# ============================================================
-# Default notation
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"## Default Notation")
@@ -59,16 +67,27 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, conjugate, dual, exp, gm, grade, inverse, involute, np, reverse, squared):
+def _(
+    Algebra,
+    conjugate,
+    dual,
+    exp,
+    gm,
+    grade,
+    inverse,
+    involute,
+    reverse,
+    squared,
+):
     alg = Algebra((1, 1, 1))
     e1, e2, e3 = alg.basis_vectors(lazy=True)
     _v = e1.name("v")
     _R = (e1 * e2).name("R")
     _B = (e1 ^ e2).name("B")
 
-    with gm.doc() as d:
-        d.text("| Operation | Unicode | LaTeX |")
-        d.line("|-----------|---------|-------|")
+    with gm.doc() as _d:
+        _d.text("| Operation | Unicode | LaTeX |")
+        _d.line("|-----------|---------|-------|")
         _ops = [
             ("reverse(v)", reverse(_v)),
             ("involute(v)", involute(_v)),
@@ -81,14 +100,11 @@ def _(Algebra, conjugate, dual, exp, gm, grade, inverse, involute, np, reverse, 
             ("grade(R*v*~R, 1)", grade(_R * _v * ~_R, 1)),
             ("exp(B)", exp(_B)),
         ]
-        for label, expr in _ops:
-            d.line(f"| `{label}` | {expr} | ${expr.latex()}$ |")
-    return alg, e1, e2, e3
+        for _label, expr in _ops:
+            _d.line(f"| `{_label}` | {expr} | ${expr.latex()}$ |")
 
-
-# ============================================================
-# Hestenes preset
-# ============================================================
+    _d.render()
+    return alg, e1, e2
 
 
 @app.cell(hide_code=True)
@@ -117,11 +133,6 @@ def _(Algebra, Notation, gm, reverse):
     Compare default: ṽ vs Hestenes: v†
     """)
     return
-
-
-# ============================================================
-# Custom: dagger reverse
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -153,11 +164,6 @@ def _(NotationRule, alg, e1, e2, gm, reverse):
     - LaTeX: ${(_R * _v * ~_R).latex()}$
     """)
     return
-
-
-# ============================================================
-# Reset and try function-style
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -198,11 +204,6 @@ def _(Algebra, NotationRule, gm, reverse):
     return
 
 
-# ============================================================
-# Prefix dual
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
@@ -233,11 +234,6 @@ def _(Algebra, NotationRule, dual, gm):
     return
 
 
-# ============================================================
-# Side-by-side comparison
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"## Side-by-Side: Default vs Hestenes")
@@ -245,7 +241,7 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, Notation, gm, reverse, dual, inverse):
+def _(Algebra, Notation, dual, gm, inverse, reverse):
     _default = Algebra((1, 1, 1))
     _hestenes = Algebra((1, 1, 1), notation=Notation.hestenes())
 
@@ -263,11 +259,6 @@ def _(Algebra, Notation, gm, reverse, dual, inverse):
             h_expr = fn(_hestenes)
             d.line(f"| {label} | {d_expr} | {h_expr} |")
     return
-
-
-# ============================================================
-# All notation rule kinds
-# ============================================================
 
 
 @app.cell(hide_code=True)

@@ -865,6 +865,8 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`exterior_algebra_intuition.py`** — Wedge-product intuition for oriented length, area, and volume
 - **`duality_and_complements.py`** — Side-by-side notebook for metric duality vs combinatorial complements
 - **`aharonov_bohm.py`** — Holonomy-first Aharonov-Bohm notebook using internal phase rotors
+- **`one_g_travel_calculator.py`** — Relativistic 1g travel calculator with accelerate, coast, decelerate, and Earth-vs-ship time
+- **`twin_paradox.py`** — Worldline and proper-time notebook for the twin paradox
 
 ```bash
 uv run marimo edit examples/quantum_physics.py
