@@ -854,6 +854,17 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`spacetime_algebra.py`** — Spacetime Algebra Cl(1,3): boosts, rotations, EM field, Thomas–Wigner rotation
 - **`quantum_physics.py`** — Quantum spin-½: Bloch sphere, measurement, Stern–Gerlach, Larmor precession
 - **`pga_demo.py`** — Projective GA Cl(3,0,1): translations, reflections, motors, screw interpolation
+- **`special_relativity_lazy.py`** — Lazy STA walkthrough of boosts, Minkowski diagrams, and rapidity addition
+- **`electromagnetism_lazy.py`** — Faraday bivector construction, invariants, and boosted field components
+- **`quantum_spin_lazy.py`** — Lazy Pauli-blade construction of spin states and Stern-Gerlach probabilities
+- **`pauli_equation_toy.py`** — Toy Pauli-equation notebook for spin precession as rotor evolution
+- **`optics_polarisation_lazy.py`** — Polariser projectors and wave-plate rotors in 2D GA
+- **`pga_geometry_constructions.py`** — PGA point-line-triangle constructions with lazy joins
+- **`planar_kinematics_lazy.py`** — Rotor-based planar rigid-body kinematics and trajectory plotting
+- **`coupled_oscillators_modes.py`** — Normal modes as a basis change in configuration-space GA
+- **`exterior_algebra_intuition.py`** — Wedge-product intuition for oriented length, area, and volume
+- **`duality_and_complements.py`** — Side-by-side notebook for metric duality vs combinatorial complements
+- **`aharonov_bohm.py`** — Holonomy-first Aharonov-Bohm notebook using internal phase rotors
 
 ```bash
 uv run marimo edit examples/quantum_physics.py
@@ -891,4 +902,3 @@ uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 - Small value display with explicit format specs
 - All 10 spec use cases from the symbolic redesign
 - Edge cases and error handling
-

@@ -42,6 +42,7 @@ helps future contributors understand why certain choices were made.
 | [027](027-gp-spacing.md) | Geometric Product Spacing for Multi-Character Names | Accepted |
 | [028](028-mutating-configuration-methods.md) | Mutating Symbolic Configuration Methods | Accepted |
 | [029](029-configurable-notation.md) | Configurable Notation System | Accepted |
+| [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks for GA Teaching | Accepted |
 
 ## Creating New ADRs
 
