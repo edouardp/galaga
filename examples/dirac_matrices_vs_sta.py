@@ -34,21 +34,19 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Dirac Matrices vs Spacetime Algebra
+    mo.md(r"""
+    # Dirac Matrices vs Spacetime Algebra
 
-        This notebook compares two ways of expressing the same relativistic spin-1/2
-        structure:
+    This notebook compares two ways of expressing the same relativistic spin-1/2
+    structure:
 
-        - **matrix language:** $4 \times 4$ Dirac gamma matrices acting on bispinors
-        - **STA language:** basis vectors and even multivectors in $\mathrm{Cl}(1,3)$
+    - **matrix language:** $4 \times 4$ Dirac gamma matrices acting on bispinors
+    - **STA language:** basis vectors and even multivectors in $\mathrm{Cl}(1,3)$
 
-        The purpose is not to "replace" one formalism with the other in every context.
-        The point is to show how much of the matrix machinery is really the spacetime
-        geometric algebra written in a particular representation.
-        """
-    )
+    The purpose is not to "replace" one formalism with the other in every context.
+    The point is to show how much of the matrix machinery is really the spacetime
+    geometric algebra written in a particular representation.
+    """)
     return
 
 
@@ -72,30 +70,28 @@ def _(np):
     gamma2 = np.block([[zero, sigma_y], [-sigma_y, zero]])
     gamma3 = np.block([[zero, sigma_z], [-sigma_z, zero]])
     eye4 = np.eye(4, dtype=complex)
-    return gamma0, gamma1, gamma2, gamma3, eye4
+    return gamma0, gamma1, gamma2, gamma3
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Gamma Algebra
+    mo.md(r"""
+    ## Gamma Algebra
 
-        The Dirac matrices satisfy
+    The Dirac matrices satisfy
 
-        $$
-        \{\Gamma_\mu,\Gamma_\nu\} = 2 \eta_{\mu\nu} I_4.
-        $$
+    $$
+    \{\Gamma_\mu,\Gamma_\nu\} = 2 \eta_{\mu\nu} I_4.
+    $$
 
-        In STA the basis vectors satisfy the same Clifford relation directly:
+    In STA the basis vectors satisfy the same Clifford relation directly:
 
-        $$
-        \gamma_\mu \gamma_\nu + \gamma_\nu \gamma_\mu = 2 \eta_{\mu\nu}.
-        $$
+    $$
+    \gamma_\mu \gamma_\nu + \gamma_\nu \gamma_\mu = 2 \eta_{\mu\nu}.
+    $$
 
-        The matrix algebra is a representation. The STA basis vectors are the algebra.
-        """
-    )
+    The matrix algebra is a representation. The STA basis vectors are the algebra.
+    """)
     return
 
 
@@ -116,27 +112,25 @@ def _(g0, g1, g2, g3, gamma0, gamma1, gamma2, gamma3, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## A Boost in Both Languages
+    mo.md(r"""
+    ## A Boost in Both Languages
 
-        A boost in the $x$ direction with rapidity $\varphi$ is
+    A boost in the $x$ direction with rapidity $\varphi$ is
 
-        $$
-        R = e^{(\varphi/2)\gamma_0\gamma_1}
-        $$
+    $$
+    R = e^{(\varphi/2)\gamma_0\gamma_1}
+    $$
 
-        in STA.
+    in STA.
 
-        In the standard Dirac representation, the corresponding bispinor boost matrix is
+    In the standard Dirac representation, the corresponding bispinor boost matrix is
 
-        $$
-        S = \cosh(\varphi/2) I_4 + \sinh(\varphi/2)\,\alpha_1,
-        \qquad
-        \alpha_1 = \Gamma_0 \Gamma_1.
-        $$
-        """
-    )
+    $$
+    S = \cosh(\varphi/2) I_4 + \sinh(\varphi/2)\,\alpha_1,
+    \qquad
+    \alpha_1 = \Gamma_0 \Gamma_1.
+    $$
+    """)
     return
 
 
@@ -190,34 +184,32 @@ def _(exp, g0, g1, gamma0, gamma1, gm, np, rapidity, sandwich):
     \\end{{pmatrix}}
     $$
     """)
-    return _boosted_time_axis, _boosted_x_axis
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Dirac Operator vs STA Vector
+    mo.md(r"""
+    ## Dirac Operator vs STA Vector
 
-        Matrix language often starts from the slashed operator
+    Matrix language often starts from the slashed operator
 
-        $$
-        \Gamma^\mu p_\mu - m.
-        $$
+    $$
+    \Gamma^\mu p_\mu - m.
+    $$
 
-        In STA the same momentum is just a spacetime vector
+    In STA the same momentum is just a spacetime vector
 
-        $$
-        p = E \gamma_0 + p_x \gamma_1 + p_y \gamma_2 + p_z \gamma_3.
-        $$
+    $$
+    p = E \gamma_0 + p_x \gamma_1 + p_y \gamma_2 + p_z \gamma_3.
+    $$
 
-        The on-shell condition is then the geometric statement
+    The on-shell condition is then the geometric statement
 
-        $$
-        p^2 = m^2.
-        $$
-        """
-    )
+    $$
+    p^2 = m^2.
+    $$
+    """)
     return
 
 
@@ -232,7 +224,22 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(g0, g1, g2, g3, gamma0, gamma1, gamma2, gamma3, gm, mass, np, px, py, pz):
+def _(
+    g0,
+    g1,
+    g2,
+    g3,
+    gamma0,
+    gamma1,
+    gamma2,
+    gamma3,
+    gm,
+    mass,
+    np,
+    px,
+    py,
+    pz,
+):
     _m = mass.value
     _px = px.value
     _py = py.value
@@ -256,11 +263,11 @@ def _(g0, g1, g2, g3, gamma0, gamma1, gamma2, gamma3, gm, mass, np, px, py, pz):
 
     The matrix side packages the same on-shell momentum information in operator form.
     """)
-    return _E
+    return
 
 
 @app.cell
-def _(_E, _boosted_time_axis, _boosted_x_axis, np, plt, px, rapidity):
+def _(np, plt, rapidity):
     _time = _boosted_time_axis.eval().vector_part[:2]
     _space = _boosted_x_axis.eval().vector_part[:2]
 
@@ -281,6 +288,7 @@ def _(_E, _boosted_time_axis, _boosted_x_axis, np, plt, px, rapidity):
     _ax.grid(True, alpha=0.2)
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

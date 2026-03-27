@@ -34,14 +34,12 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Quantum Gates in Geometric Algebra
+    mo.md("""
+    # Quantum Gates in Geometric Algebra
 
-        Single-qubit gates are rotations of the Bloch sphere. In matrix language they
-        are 2x2 unitaries. In geometric algebra they are rotors in Cl(3,0).
-        """
-    )
+    Single-qubit gates are rotations of the Bloch sphere. In matrix language they
+    are 2x2 unitaries. In geometric algebra they are rotors in Cl(3,0).
+    """)
     return
 
 
@@ -123,6 +121,7 @@ def _(np, plt, spin, spin_out):
     _ax.set_title("Single-qubit gate as Bloch-sphere rotation")
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

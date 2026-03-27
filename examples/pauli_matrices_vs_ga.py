@@ -34,23 +34,21 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Pauli Matrices vs Geometric Algebra
+    mo.md("""
+    # Pauli Matrices vs Geometric Algebra
 
-        This notebook compares two descriptions of the same Spin(3) / SU(2) physics:
+    This notebook compares two descriptions of the same Spin(3) / SU(2) physics:
 
-        - **matrix language:** Pauli matrices acting on 2-component spinors
-        - **geometric algebra language:** Cl(3,0) acting on multivectors and rotors
+    - **matrix language:** Pauli matrices acting on 2-component spinors
+    - **geometric algebra language:** Cl(3,0) acting on multivectors and rotors
 
-        The point is not that one side is "wrong". The point is to show that the GA
-        side packages the same structure with fewer representational layers:
+    The point is not that one side is "wrong". The point is to show that the GA
+    side packages the same structure with fewer representational layers:
 
-        - vectors stay vectors instead of becoming matrices
-        - rotations are rotor sandwiches instead of matrix conjugations
-        - observables come from geometric products instead of separate bra/ket machinery
-        """
-    )
+    - vectors stay vectors instead of becoming matrices
+    - rotations are rotor sandwiches instead of matrix conjugations
+    - observables come from geometric products instead of separate bra/ket machinery
+    """)
     return
 
 
@@ -68,35 +66,33 @@ def _(np):
     sigma_y = np.array([[0, -1j], [1j, 0]], dtype=complex)
     sigma_z = np.array([[1, 0], [0, -1]], dtype=complex)
     eye2 = np.eye(2, dtype=complex)
-    return eye2, sigma_x, sigma_y, sigma_z
+    return sigma_x, sigma_y, sigma_z
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Algebra Side by Side
+    mo.md(r"""
+    ## Algebra Side by Side
 
-        The Pauli matrices satisfy
+    The Pauli matrices satisfy
 
-        $$
-        \sigma_i \sigma_j = \delta_{ij} I_2 + i \varepsilon_{ijk}\sigma_k,
-        \qquad
-        [\sigma_i,\sigma_j] = 2 i \varepsilon_{ijk}\sigma_k.
-        $$
+    $$
+    \sigma_i \sigma_j = \delta_{ij} I_2 + i \varepsilon_{ijk}\sigma_k,
+    \qquad
+    [\sigma_i,\sigma_j] = 2 i \varepsilon_{ijk}\sigma_k.
+    $$
 
-        In Cl(3,0), the basis vectors satisfy
+    In Cl(3,0), the basis vectors satisfy
 
-        $$
-        e_i e_j = \delta_{ij} + e_i \wedge e_j,
-        \qquad
-        e_i e_j = - e_j e_i \text{ for } i \neq j.
-        $$
+    $$
+    e_i e_j = \delta_{ij} + e_i \wedge e_j,
+    \qquad
+    e_i e_j = - e_j e_i \text{ for } i \neq j.
+    $$
 
-        The bivectors play the role of the Lie algebra generators, and the
-        pseudoscalar $I = e_1 e_2 e_3$ plays the role of the matrix imaginary unit.
-        """
-    )
+    The bivectors play the role of the Lie algebra generators, and the
+    pseudoscalar $I = e_1 e_2 e_3$ plays the role of the matrix imaginary unit.
+    """)
     return
 
 
@@ -116,30 +112,28 @@ def _(I, e1, e2, e3, gm, sigma_x, sigma_y, sigma_z):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## States
+    mo.md(r"""
+    ## States
 
-        For a pure spin-1/2 state with Bloch angles $(\theta,\phi)$, the matrix spinor
-        can be written as
+    For a pure spin-1/2 state with Bloch angles $(\theta,\phi)$, the matrix spinor
+    can be written as
 
-        $$
-        |\psi\rangle =
-        \begin{pmatrix}
-        \cos(\theta/2) \\
-        e^{i\phi}\sin(\theta/2)
-        \end{pmatrix}.
-        $$
+    $$
+    |\psi\rangle =
+    \begin{pmatrix}
+    \cos(\theta/2) \\
+    e^{i\phi}\sin(\theta/2)
+    \end{pmatrix}.
+    $$
 
-        On the GA side, the same state is a rotor
+    On the GA side, the same state is a rotor
 
-        $$
-        \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}},
-        $$
+    $$
+    \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}},
+    $$
 
-        and the observable spin direction is the rotated vector $\psi e_3 \tilde\psi$.
-        """
-    )
+    and the observable spin direction is the rotated vector $\psi e_3 \tilde\psi$.
+    """)
     return
 
 
@@ -194,30 +188,28 @@ def _(e1, e2, e3, exp, gm, np, phi, sigma_x, sigma_y, sigma_z, theta):
     GA Bloch vector:
     $({ _spin_ga[0]:.6f}, { _spin_ga[1]:.6f}, { _spin_ga[2]:.6f})$
     """)
-    return _expect_x, _expect_y, _expect_z, _psi_matrix, _spin_ga
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Rotations
+    mo.md(r"""
+    ## Rotations
 
-        A spatial rotation by angle $\alpha$ about the $z$ axis is
+    A spatial rotation by angle $\alpha$ about the $z$ axis is
 
-        $$
-        U_z(\alpha) = e^{- i \alpha \sigma_z / 2}
-        $$
+    $$
+    U_z(\alpha) = e^{- i \alpha \sigma_z / 2}
+    $$
 
-        on the matrix side, and
+    on the matrix side, and
 
-        $$
-        R_z(\alpha) = e^{- \alpha e_{12} / 2}
-        $$
+    $$
+    R_z(\alpha) = e^{- \alpha e_{12} / 2}
+    $$
 
-        on the GA side.
-        """
-    )
+    on the GA side.
+    """)
     return
 
 
@@ -229,7 +221,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alpha, e1, e2, e3, exp, gm, np, sigma_z, _expect_x, _expect_y, _expect_z, _psi_matrix):
+def _(alpha, e1, e2, e3, exp, gm, np, sigma_z):
     _alpha = np.radians(alpha.value)
     _U = np.cos(_alpha / 2) * np.eye(2, dtype=complex) - 1j * np.sin(_alpha / 2) * sigma_z
     _psi_rot = _U @ _psi_matrix
@@ -257,11 +249,11 @@ def _(alpha, e1, e2, e3, exp, gm, np, sigma_z, _expect_x, _expect_y, _expect_z, 
 
     $({ _v_rot[0]:.6f}, { _v_rot[1]:.6f}, { _v_rot[2]:.6f})$
     """)
-    return _v_rot
+    return
 
 
 @app.cell
-def _(_expect_x, _expect_y, _expect_z, _spin_ga, _v_rot, np, plt):
+def _(np, plt):
     _fig = plt.figure(figsize=(6, 6))
     _ax = _fig.add_subplot(111, projection="3d")
     _u = np.linspace(0, 2 * np.pi, 32)
@@ -280,6 +272,7 @@ def _(_expect_x, _expect_y, _expect_z, _spin_ga, _v_rot, np, plt):
     _ax.set_title("Matrix and GA descriptions on the same Bloch sphere")
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

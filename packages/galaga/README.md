@@ -881,6 +881,25 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`qubits_and_superposition_ga.py`** — Intro to qubits and superposition via rotors and Bloch vectors
 - **`measurement_and_interference_ga.py`** — Phase, recombination, and interference explained with GA rotors
 - **`single_qubit_circuits_ga.py`** — Small single-qubit circuit builder using rotor composition
+- **`grover_search_ga.py`** — Grover search visualized as repeated rotations in a two-state search plane
+- **`deutsch_jozsa_ga.py`** — Deutsch-Jozsa interference notebook with oracle phases and recombination
+- **`bell_states_and_correlations.py`** — Bell singlet correlation notebook with geometric measurement-axis comparison
+- **`lorentz_force_sta.py`** — Qualitative Lorentz-force motion notebook in the STA field picture
+- **`camera_geometry_pga.py`** — Simple pinhole camera geometry and image-plane intersections
+- **`null_geometry_sta.py`** — Null vectors, light cones, and observer geometry in STA
+- **`quantum_teleportation_ga.py`** — Geometric teaching notebook for teleportation as Bloch-vector correction
+- **`phase_estimation_geometry.py`** — Phase estimation taught as repeated rotor-angle accumulation
+- **`screw_motion_pga.py`** — Screw-motion notebook combining rotation and axial drift in PGA style
+- **`fresnel_polarisation_ga.py`** — Fresnel reflection notebook using GA polarisation decomposition
+- **`projectors_ga.py`** — Projection and rejection onto lines and planes using GA blades
+- **`inner_product_family.py`** — Comparison notebook for the library’s inner-product family
+- **`involutions_and_grade_ops.py`** — Reverse, involute, conjugate, grade projection, and even/odd decomposition
+- **`norms_units_inverses.py`** — Squared values, norms, unitization, and inverses on vectors and bivectors
+- **`commutator_lie_jordan.py`** — Symmetric and antisymmetric product splits through named operations
+- **`duality_and_subspaces.py`** — Duality operations combined with project/reject/reflect examples
+- **`exp_log_rotors.py`** — Rotor exponentials and logarithms from bivector generators
+- **`sandwich_products.py`** — Reflections and rotor sandwiches in one focused notebook
+- **`meets_joins_pga.py`** — Small projective joins notebook using PGA complement patterns
 
 ```bash
 uv run marimo edit examples/quantum_physics.py

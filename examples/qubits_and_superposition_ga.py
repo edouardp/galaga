@@ -34,30 +34,28 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Qubits and Superposition in Geometric Algebra
+    mo.md(r"""
+    # Qubits and Superposition in Geometric Algebra
 
-        A qubit is often introduced as
+    A qubit is often introduced as
 
-        $$
-        |\psi\rangle = \alpha |0\rangle + \beta |1\rangle,
-        \qquad
-        |\alpha|^2 + |\beta|^2 = 1.
-        $$
+    $$
+    |\psi\rangle = \alpha |0\rangle + \beta |1\rangle,
+    \qquad
+    |\alpha|^2 + |\beta|^2 = 1.
+    $$
 
-        In geometric algebra, the same pure state can be represented by a rotor
-        $\psi$ in Cl(3,0). The observable state is the Bloch vector
+    In geometric algebra, the same pure state can be represented by a rotor
+    $\psi$ in Cl(3,0). The observable state is the Bloch vector
 
-        $$
-        s = \psi e_3 \tilde\psi.
-        $$
+    $$
+    s = \psi e_3 \tilde\psi.
+    $$
 
-        Superposition is not an extra mysterious ingredient on the GA side. It is the
-        same physical state, seen as a rotor whose Bloch vector is not aligned with
-        the measurement axis.
-        """
-    )
+    Superposition is not an extra mysterious ingredient on the GA side. It is the
+    same physical state, seen as a rotor whose Bloch vector is not aligned with
+    the measurement axis.
+    """)
     return
 
 
@@ -86,25 +84,23 @@ def _(e1, e2, e3, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Basis States and the $x$-Basis Superposition
+    mo.md(r"""
+    ## Basis States and the $x$-Basis Superposition
 
-        With the computational basis defined relative to the $e_3$ axis:
+    With the computational basis defined relative to the $e_3$ axis:
 
-        - $|0\rangle$ corresponds to Bloch vector $+e_3$
-        - $|1\rangle$ corresponds to Bloch vector $-e_3$
-        - $|+\rangle = (|0\rangle + |1\rangle)/\sqrt{2}$ corresponds to $+e_1$
+    - $|0\rangle$ corresponds to Bloch vector $+e_3$
+    - $|1\rangle$ corresponds to Bloch vector $-e_3$
+    - $|+\rangle = (|0\rangle + |1\rangle)/\sqrt{2}$ corresponds to $+e_1$
 
-        The last line is the key superposition example: equal amplitudes in the
-        computational basis become a rotated vector on the Bloch sphere.
-        """
-    )
+    The last line is the key superposition example: equal amplitudes in the
+    computational basis become a rotated vector on the Bloch sphere.
+    """)
     return
 
 
 @app.cell
-def _(e1, e2, e3, exp, gm, np):
+def _(e1, e3, exp, gm, np):
     ket_0 = 1 + 0 * e1
     ket_1 = exp((-(np.pi) / 2) * (e3 * e1))
     ket_plus = exp((-(np.pi / 2) / 2) * (e3 * e1))
@@ -123,27 +119,25 @@ def _(e1, e2, e3, exp, gm, np):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## A General Pure Qubit
+    mo.md(r"""
+    ## A General Pure Qubit
 
-        For Bloch angles $(\theta,\phi)$ we use
+    For Bloch angles $(\theta,\phi)$ we use
 
-        $$
-        \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}}.
-        $$
+    $$
+    \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}}.
+    $$
 
-        The corresponding amplitudes in the usual column-vector picture are
+    The corresponding amplitudes in the usual column-vector picture are
 
-        $$
-        \alpha = \cos(\theta/2), \qquad
-        \beta = e^{i\phi}\sin(\theta/2).
-        $$
+    $$
+    \alpha = \cos(\theta/2), \qquad
+    \beta = e^{i\phi}\sin(\theta/2).
+    $$
 
-        On the GA side, the same information is stored geometrically in the rotor and
-        in the measurement probabilities derived from $s = \psi e_3 \tilde\psi$.
-        """
-    )
+    On the GA side, the same information is stored geometrically in the rotor and
+    in the measurement probabilities derived from $s = \psi e_3 \tilde\psi$.
+    """)
     return
 
 
@@ -191,7 +185,7 @@ def _(e1, e2, e3, exp, gm, np, phi, theta):
     In GA, "superposition of $|0\\rangle$ and $|1\\rangle$" means exactly that the
     Bloch vector is not sitting at either pole.
     """)
-    return s
+    return (s,)
 
 
 @app.cell
@@ -213,6 +207,7 @@ def _(np, plt, s):
     _ax.set_title("Pure qubit state on the Bloch sphere")
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

@@ -26,6 +26,8 @@ def md(template: Template) -> Any:
     returns the rendered markdown string.
     """
     markdown = render_template(template)
+    import textwrap
+    markdown = textwrap.dedent(markdown).strip()
     try:
         import marimo as mo
         return mo.md(markdown)
@@ -174,7 +176,9 @@ class Doc:
 
     def md(self, template: Template) -> None:
         """Append a rendered t-string as a markdown paragraph."""
-        self._parts.append(render_template(template))
+        import textwrap
+        rendered = render_template(template)
+        self._parts.append(textwrap.dedent(rendered).strip())
 
     def inline(self, template: Template) -> None:
         """Append a t-string rendered as inline LaTeX ($...$)."""
