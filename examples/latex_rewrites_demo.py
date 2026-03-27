@@ -36,7 +36,6 @@ def _():
 
     return (
         Algebra,
-        NotationRule,
         complement,
         dual,
         exp,
@@ -63,12 +62,12 @@ def _():
 
 
 @app.cell
-def _(Algebra, NotationRule):
+def _(Algebra):
     alg = Algebra((1, 1, 1))
     e1, e2, e3 = alg.basis_vectors(lazy=True)
 
     # Set the reverse rendering to use postfix dagger
-    alg.notation.set("Reverse", "latex", NotationRule(kind="postfix", symbol=r"\dagger"))
+    #alg.notation.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
     return alg, e1, e2, e3
 
 
@@ -244,7 +243,7 @@ def _(alg, e1, e2, e3, exp, gm, log, np):
 
     _B = (e1 * e2).name("B")
     _v = (3 * e1 + 4 * e2 + e3).name("v")
-    _R = exp((-_theta / 2) * _B)
+    _R = exp(-_theta * _B / 2)
 
     _rotated = _R * _v * ~_R
 

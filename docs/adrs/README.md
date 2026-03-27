@@ -46,6 +46,7 @@ helps future contributors understand why certain choices were made.
 | [031](031-complement-based-regressive-product.md) | Complement-Based Regressive Product | Accepted |
 | [032](032-dynamic-basis-blade-renaming.md) | Dynamic BasisBlade Renaming | Accepted |
 | [033](033-unicode-repr-default.md) | Unicode repr() by Default | Accepted |
+| [034](034-three-phase-latex-pipeline.md) | Three-Phase LaTeX Render Pipeline | Accepted |
 | [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks for GA Teaching | Accepted |
 
 ## Creating New ADRs

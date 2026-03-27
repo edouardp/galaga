@@ -69,6 +69,16 @@ class TestEmitSup:
         exp = Seq([Text("-"), Text(r"\theta")])
         assert emit(Sup(Text("e"), exp)) == r"e^{-\theta}"
 
+    def test_sup_on_sup_braces(self):
+        """Sup(Sup(e, x), dagger) → {e^{x}}^{dagger}"""
+        inner = Sup(Text("e"), Text("x"))
+        outer = Sup(inner, Text(r"\dagger"))
+        assert emit(outer) == r"{e^{x}}^{\dagger}"
+
+    def test_sup_on_non_sup_no_braces(self):
+        """Sup(Text, symbol) — no extra braces."""
+        assert emit(Sup(Text("a"), Text("2"))) == "a^{2}"
+
 
 # ── emit: Parens ──
 
