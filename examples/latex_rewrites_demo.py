@@ -20,7 +20,6 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-
     return (mo,)
 
 
@@ -32,26 +31,12 @@ def _():
         Algebra, exp, log, dual, undual, inverse, reverse,
         complement, uncomplement,
     )
-
-    return (
-        Algebra,
-        complement,
-        dual,
-        exp,
-        gm,
-        inverse,
-        log,
-        np,
-        reverse,
-        undual,
-    )
+    return np, gm, Algebra, exp, log, dual, undual, inverse, reverse, complement, uncomplement
 
 
 @app.cell
 def _(mo):
-    mo.md("""
-    # LaTeX Render Tree Rewrites
-    """)
+    mo.md(r"""# LaTeX Render Tree Rewrites""")
     return
 
 
@@ -59,22 +44,22 @@ def _(mo):
 def _(Algebra):
     _alg = Algebra((1, 1, 1))
     e1, e2, e3 = _alg.basis_vectors(lazy=True)
-    return e1, e2, e3
+    return e1, e2, e3, _alg
 
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Rewrite 1: Fractions become inline slash in superscripts
 
-    `    rac` inside a superscript is too tall. The render tree detects
+    `\frac` inside a superscript is too tall. The render tree detects
     `Frac` nodes inside `Sup` nodes and rewrites them as inline `/`.
     """)
     return
 
 
 @app.cell
-def _(e1, e2, exp, gm, np):
+def _(e1, e2, _alg, np, gm, exp):
     _theta = _alg.scalar(np.radians(45)).name(latex=r"\theta")
     _B = (e1 * e2).name("B")
     _R = exp((-_theta / 2) * _B)
@@ -92,14 +77,14 @@ def _(e1, e2, exp, gm, np):
 
 
 @app.cell
-def _(e1, exp, gm, np):
+def _(e1, _alg, np, gm, exp):
     _phi = _alg.scalar(np.pi / 6).name(latex=r"\phi")
     _n = e1.name(latex=r"\hat{n}")
     _R2 = exp((-_phi / 4) * _n)
 
     with gm.doc() as _d:
         _d.md(t"""
-        Another example — quarter-angle rotor:
+        Another example -- quarter-angle rotor:
 
         {_R2} = {_R2.eval()}
         """)
@@ -109,9 +94,9 @@ def _(e1, exp, gm, np):
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     Meanwhile, fractions **outside** superscripts still render as proper
-    `    rac` for readability.
+    `\frac` for readability.
     """)
     return
 
@@ -131,18 +116,18 @@ def _(e1, gm):
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Rewrite 2: Collapse nested parentheses
 
     Postfix-on-postfix operations (e.g. taking the inverse of a dual)
-    produce nested parentheses. The rewrite
+    produce nested `\left(\left(\ldots\right)\right)`. The rewrite
     collapses these to a single pair.
     """)
     return
 
 
 @app.cell
-def _(complement, dual, e1, gm, inverse, undual):
+def _(e1, gm, dual, undual, inverse, complement):
     _v = e1.name("v")
 
     with gm.doc() as _d:
@@ -163,10 +148,10 @@ def _(complement, dual, e1, gm, inverse, undual):
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Rewrite 3: Hoist negation out of fractions
 
-    `    rac{-a}{b}` is rewritten to `-    rac{a}{b}`, which is the
+    `\frac{-a}{b}` is rewritten to `-\frac{a}{b}`, which is the
     conventional mathematical style. Inside superscripts, the negation
     hoists before the slash: `-a/b` not `(-a)/b`.
     """)
@@ -174,15 +159,15 @@ def _(mo):
 
 
 @app.cell
-def _(e1, e2, exp, gm, np):
-    _theta = _alg.scalar(np.radians(30)).name(latex=r"\alpha")
+def _(e1, e2, _alg, np, gm, exp):
+    _alpha = _alg.scalar(np.radians(30)).name(latex=r"\alpha")
     _B = (e1 * e2).name("B")
 
     with gm.doc() as _d:
         _d.md(t"""
         Negative angle in exponent:
 
-        {exp((-_theta / 2) * _B)} = {exp((-_theta / 2) * _B).eval()}
+        {exp((-_alpha / 2) * _B)} = {exp((-_alpha / 2) * _B).eval()}
 
         The sign hoists cleanly before the slash.
         """)
@@ -192,10 +177,10 @@ def _(e1, e2, exp, gm, np):
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Rewrite 4: Simplify trivial denominators
 
-    `    rac{a}{1}` simplifies to just `a`. This can arise from
+    `\frac{a}{1}` simplifies to just `a`. This can arise from
     algebraic simplification producing a ScalarDiv with divisor 1.
     """)
     return
@@ -212,7 +197,7 @@ def _(e1, gm):
 
         {_trivial} = {_trivial.eval()}
 
-        Renders as just $v$, not $\\frac{{v}}{{1}}$.
+        Renders as just v, not a fraction with denominator 1.
         """)
     _d.render()
     return
@@ -220,7 +205,7 @@ def _(e1, gm):
 
 @app.cell
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Combined: all rewrites in a physics expression
 
     A rotation in 3D Euclidean space, showing all rewrites working together.
@@ -229,7 +214,7 @@ def _(mo):
 
 
 @app.cell
-def _(e1, e2, e3, exp, gm, log, np, reverse):
+def _(e1, e2, e3, _alg, np, gm, exp, log, reverse):
     _theta = _alg.scalar(np.radians(60)).name(latex=r"\theta")
     _B = (e1 * e2).name("B")
     _v = (3 * e1 + 4 * e2 + e3).name("v")
