@@ -872,6 +872,15 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`em_waves_sta.py`** — Plane-wave electromagnetic fields and null invariants in STA
 - **`robot_kinematics_pga.py`** — Two-link planar robot kinematics with PGA-style motors
 - **`rotors_from_reflections.py`** — Reflection composition notebook showing how rotors arise geometrically
+- **`pauli_matrices_vs_ga.py`** — Side-by-side comparison of Pauli matrices/spinors and Cl(3,0) rotors/vectors
+- **`dirac_matrices_vs_sta.py`** — Side-by-side comparison of Dirac gamma matrices and STA boosts/vectors
+- **`maxwell_equations_sta.py`** — Maxwell’s equations in compact STA form with field splits and wave invariants
+- **`thin_lens_and_rays_pga.py`** — Thin-lens image construction notebook with projective optics geometry
+- **`quantum_gates_ga.py`** — Single-qubit gates as Bloch-sphere rotations in Cl(3,0)
+- **`kepler_orbits_ga.py`** — Kepler orbit and hodograph notebook with explicit orbital bivectors
+- **`qubits_and_superposition_ga.py`** — Intro to qubits and superposition via rotors and Bloch vectors
+- **`measurement_and_interference_ga.py`** — Phase, recombination, and interference explained with GA rotors
+- **`single_qubit_circuits_ga.py`** — Small single-qubit circuit builder using rotor composition
 
 ```bash
 uv run marimo edit examples/quantum_physics.py

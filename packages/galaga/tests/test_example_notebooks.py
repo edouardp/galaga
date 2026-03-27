@@ -25,6 +25,15 @@ NOTEBOOKS = [
     "em_waves_sta.py",
     "robot_kinematics_pga.py",
     "rotors_from_reflections.py",
+    "pauli_matrices_vs_ga.py",
+    "dirac_matrices_vs_sta.py",
+    "maxwell_equations_sta.py",
+    "thin_lens_and_rays_pga.py",
+    "quantum_gates_ga.py",
+    "kepler_orbits_ga.py",
+    "qubits_and_superposition_ga.py",
+    "measurement_and_interference_ga.py",
+    "single_qubit_circuits_ga.py",
 ]
 
 
