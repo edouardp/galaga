@@ -69,6 +69,7 @@ _LETTER_SUBSCRIPTS = {"x": "ₓ", "y": "ᵧ"}
 
 
 from ga.basis_blade import BasisBlade
+from ga.lazy import lazy_unary, lazy_binary
 
 
 class Algebra:
@@ -1063,6 +1064,7 @@ class Multivector:
 # ============================================================
 
 
+@lazy_binary('Gp')
 def gp(a: Multivector, b: Multivector) -> Multivector:
     """Geometric product — the fundamental product of Clifford algebra.
 
@@ -1071,10 +1073,6 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     coefficients at once (using NumPy fancy indexing), which is significantly
     faster than a double Python loop for dense multivectors.
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Gp as SymGp
-        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymGp(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1087,6 +1085,7 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Op')
 def op(a: Multivector, b: Multivector) -> Multivector:
     """Outer (wedge) product — keeps only the grade-raising part of gp.
 
@@ -1097,10 +1096,6 @@ def op(a: Multivector, b: Multivector) -> Multivector:
 
     Key property: a ∧ a = 0 for any vector a (antisymmetry).
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Op as SymOp
-        result = op(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymOp(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1116,6 +1111,7 @@ def op(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Lc')
 def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Left contraction: a ⌋ b.
 
@@ -1130,10 +1126,6 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     Key difference from Hestenes inner: left contraction allows scalars
     to pass through (scalar ⌋ x = scalar * x), while Hestenes kills them.
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Lc as SymLc
-        result = left_contraction(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymLc(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1151,6 +1143,7 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Rc')
 def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Right contraction: a ⌊ b.
 
@@ -1159,10 +1152,6 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
 
     Satisfies: right_contraction(a, b) = reverse(left_contraction(reverse(b), reverse(a)))
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Rc as SymRc
-        result = right_contraction(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymRc(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1180,6 +1169,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Hi')
 def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     """Hestenes inner product.
 
@@ -1191,10 +1181,6 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     For vector-on-vector, all inner products agree. The differences only show
     up with mixed grades — see the README comparison table for examples.
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Hi as SymHi
-        result = hestenes_inner(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymHi(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1214,6 +1200,7 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Dli')
 def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     """Doran–Lasenby inner product: grade-|r-s| part of gp(a,b), including scalars.
 
@@ -1225,10 +1212,6 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     Doran & Lasenby ("Geometric Algebra for Physicists") and Dorst et al.
     ("Geometric Algebra for Computer Science").
     """
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Dli as SymDli
-        result = doran_lasenby_inner(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymDli(a._to_expr(), b._to_expr()))
     a._check_same(b)
     alg = a.algebra
     out = np.zeros(alg.dim)
@@ -1247,12 +1230,9 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
 dorst_inner = doran_lasenby_inner
 
 
+@lazy_binary('Sp')
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
-    if a._is_lazy or b._is_lazy:
-        from ga.symbolic import Sp as SymSp
-        result = scalar_product(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data))
-        return a._lazy_result(result.data, SymSp(a._to_expr(), b._to_expr()))
     return grade(gp(a, b), 0)
 
 
@@ -1328,20 +1308,13 @@ def reverse(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_unary('Involute')
 def involute(x: Multivector) -> Multivector:
     """Grade involution (hat): grade-k component is multiplied by (-1)^k.
 
     Even grades are unchanged, odd grades are negated. This is the
     automorphism that distinguishes the even and odd sub-algebras.
     """
-    if x._is_lazy:
-        from ga.symbolic import Involute as SymInvolute
-        alg = x.algebra
-        out = x.data.copy()
-        for k in range(alg.n + 1):
-            if k % 2 == 1:
-                out[alg._grade_masks[k]] *= -1
-        return x._lazy_result(out, SymInvolute(x._to_expr()))
     alg = x.algebra
     out = x.data.copy()
     for k in range(alg.n + 1):
@@ -1350,16 +1323,13 @@ def involute(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_unary('Conjugate')
 def conjugate(x: Multivector) -> Multivector:
     """Clifford conjugate: reverse composed with grade involution.
 
     Combines both sign-flip patterns. The grade-k component is multiplied
     by (-1)^(k(k+1)/2). This is the composition ``involute(reverse(x))``.
     """
-    if x._is_lazy:
-        from ga.symbolic import Conjugate as SymConjugate
-        result = involute(reverse(Multivector(x.algebra, x.data)))
-        return x._lazy_result(result.data, SymConjugate(x._to_expr()))
     return involute(reverse(x))
 
 
@@ -1404,6 +1374,7 @@ def scalar(x: Multivector) -> float:
     return float(x.data[0])
 
 
+@lazy_unary('Dual')
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.
 
@@ -1414,23 +1385,16 @@ def dual(x: Multivector) -> Multivector:
     pseudoscalar. We use left contraction (not geometric product with I⁻¹)
     because it gives the correct grade mapping for all signatures.
     """
-    if x._is_lazy:
-        from ga.symbolic import Dual as SymDual
-        result = dual(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, SymDual(x._to_expr()))
     I_inv = inverse(x.algebra.pseudoscalar())
     return left_contraction(x, I_inv)
 
 
+@lazy_unary('Undual')
 def undual(x: Multivector) -> Multivector:
     """Undual: left-contract x into the pseudoscalar (inverse of dual).
 
     ``undual(dual(x)) = x`` for all x.
     """
-    if x._is_lazy:
-        from ga.symbolic import Undual as SymUndual
-        result = undual(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, SymUndual(x._to_expr()))
     I = x.algebra.pseudoscalar()
     return left_contraction(x, I)
 
@@ -1482,18 +1446,16 @@ def norm(x: Multivector):
     return float(np.sqrt(abs(norm2(x))))
 
 
+@lazy_unary('Unit')
 def unit(x: Multivector) -> Multivector:
     """Normalize to unit multivector."""
-    if x._is_lazy:
-        from ga.symbolic import Unit as SymUnit
-        result = unit(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, SymUnit(x._to_expr()))
     n = norm(x)
     if n < 1e-15:
         raise ValueError("Cannot normalize near-zero multivector")
     return x / n
 
 
+@lazy_unary('Inverse')
 def inverse(x: Multivector) -> Multivector:
     """Versor inverse: x⁻¹ = ~x / scalar(x * ~x).
 
@@ -1506,10 +1468,6 @@ def inverse(x: Multivector) -> Multivector:
 
     Raises ValueError if the multivector is not invertible (x * ~x ≈ 0).
     """
-    if x._is_lazy:
-        from ga.symbolic import Inverse as SymInverse
-        result = inverse(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, SymInverse(x._to_expr()))
     x_rev = reverse(x)
     denom = scalar(gp(x, x_rev))
     if abs(denom) < 1e-15:
@@ -1558,22 +1516,16 @@ def is_basis_blade(x: Multivector) -> bool:
     return np.count_nonzero(np.abs(x.data) > 1e-12) == 1
 
 
+@lazy_unary('Even')
 def even_grades(x: Multivector) -> Multivector:
     """Extract even-grade components."""
-    if x._is_lazy:
-        from ga.symbolic import Even
-        result = even_grades(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, Even(x._to_expr()))
     alg = x.algebra
     return grades(x, [k for k in range(0, alg.n + 1, 2)])
 
 
+@lazy_unary('Odd')
 def odd_grades(x: Multivector) -> Multivector:
     """Extract odd-grade components."""
-    if x._is_lazy:
-        from ga.symbolic import Odd
-        result = odd_grades(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, Odd(x._to_expr()))
     alg = x.algebra
     return grades(x, [k for k in range(1, alg.n + 1, 2)])
 
@@ -1601,6 +1553,7 @@ def sandwich(r: Multivector, x: Multivector) -> Multivector:
 sw = sandwich
 
 
+@lazy_unary('Exp')
 def exp(B: Multivector) -> Multivector:
     """Bivector exponential: exp(B) = cos(|B|) + sin(|B|) * B/|B|.
 
@@ -1613,10 +1566,6 @@ def exp(B: Multivector) -> Multivector:
     manually computing cos(θ/2) and sin(θ/2). Note: ``alg.rotor(B, radians=θ)``
     computes ``exp(-θ/2 * B)`` for a unit bivector B.
     """
-    if B._is_lazy:
-        from ga.symbolic import Exp as SymExp
-        result = exp(Multivector(B.algebra, B.data))
-        return B._lazy_result(result.data, SymExp(B._to_expr()))
     B2 = scalar(gp(B, B))
     if abs(B2) < 1e-15:
         # Null bivector: exp(B) = 1 + B
