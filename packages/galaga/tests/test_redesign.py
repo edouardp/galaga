@@ -1722,3 +1722,125 @@ class TestRegressiveProduct:
         a = meet(e1 ^ e2, e2 ^ e3)
         b = metric_regressive_product(e1 ^ e2, e2 ^ e3)
         assert np.allclose(a.data, b.data) or np.allclose(a.data, -b.data)
+
+
+class TestCoverageGaps:
+    """Fill remaining coverage gaps."""
+
+    def test_get_basis_blade_bad_type(self, cl3):
+        with pytest.raises(TypeError):
+            cl3.get_basis_blade("not a mv")
+
+    def test_pow_non_int(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__pow__(1.5) is NotImplemented
+
+    def test_basis_blade_setters(self):
+        from ga.basis_blade import BasisBlade
+        bb = BasisBlade(1, "e1", "e₁", "e_1")
+        bb.ascii_name = "x"
+        bb.unicode_name = "χ"
+        bb.latex_name = "\\chi"
+        assert bb.ascii_name == "x"
+        assert bb.unicode_name == "χ"
+        assert bb.latex_name == "\\chi"
+        assert "BasisBlade" in repr(bb)
+
+    def test_grade_lazy_even_odd(self, cl3):
+        from ga import grade
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        v = e1.name("v")
+        assert "even" not in str(grade(v, "even"))
+        assert "odd" not in str(grade(v, "odd"))
+
+    def test_hyperbolic_log(self):
+        """Cover the hyperbolic branch of log()."""
+        from ga import Algebra, exp, log
+        import numpy as np
+        sta = Algebra((1, -1))
+        e0, e1 = sta.basis_vectors()
+        B = e0 * e1  # timelike bivector, B² > 0
+        R = exp(B * 0.3)
+        B_back = log(R)
+        R_back = exp(B_back)
+        assert R == R_back
+
+    def test_scalar_div_eval(self, cl3):
+        from ga.symbolic import ScalarDiv, Sym
+        e1, _, _ = cl3.basis_vectors()
+        expr = ScalarDiv(Sym(e1, "v"), 2)
+        result = expr.eval()
+        assert result == e1 / 2
+
+    def test_div_eval(self, cl3):
+        from ga.symbolic import Div, Sym
+        e1, e2, _ = cl3.basis_vectors()
+        a = Sym(cl3.scalar(6.0), "a")
+        b = Sym(cl3.scalar(3.0), "b")
+        result = Div(a, b).eval()
+        assert result.scalar_part == 2.0
+
+    def test_neg_eval(self, cl3):
+        from ga.symbolic import Neg, Sym
+        e1, _, _ = cl3.basis_vectors()
+        expr = Neg(Sym(e1, "v"))
+        result = expr.eval()
+        assert result == -e1
+
+    def test_add_eval(self, cl3):
+        from ga.symbolic import Add, Sym
+        e1, e2, _ = cl3.basis_vectors()
+        result = Add(Sym(e1, "a"), Sym(e2, "b")).eval()
+        assert result == e1 + e2
+
+    def test_sub_eval(self, cl3):
+        from ga.symbolic import Sub, Sym
+        e1, e2, _ = cl3.basis_vectors()
+        result = Sub(Sym(e1, "a"), Sym(e2, "b")).eval()
+        assert result == e1 - e2
+
+    def test_scalar_mul_eval(self, cl3):
+        from ga.symbolic import ScalarMul, Sym
+        e1, _, _ = cl3.basis_vectors()
+        result = ScalarMul(3, Sym(e1, "v")).eval()
+        assert result == 3 * e1
+
+    def test_eq_scalar_div(self, cl3):
+        from ga.symbolic import _eq, ScalarDiv, Sym
+        e1, _, _ = cl3.basis_vectors()
+        a = ScalarDiv(Sym(e1, "v"), 2)
+        b = ScalarDiv(Sym(e1, "v"), 2)
+        assert _eq(a, b)
+
+    def test_eq_fallback_false(self, cl3):
+        from ga.symbolic import _eq, Sym
+        e1, _, _ = cl3.basis_vectors()
+        # Two different types
+        assert not _eq(Sym(e1, "a"), 42)
+
+    def test_known_grade_scalar_div(self, cl3):
+        from ga.symbolic import _known_grade, ScalarDiv, Sym
+        e1, _, _ = cl3.basis_vectors()
+        expr = ScalarDiv(Sym(e1, "v", grade=1), 2)
+        assert _known_grade(expr) == 1
+
+    def test_simplify_scalar_div(self, cl3):
+        from ga.symbolic import simplify, ScalarDiv, ScalarMul, Sym
+        e1, _, _ = cl3.basis_vectors()
+        # ScalarDiv should survive simplify
+        expr = ScalarDiv(Sym(e1, "v"), 2)
+        result = simplify(expr)
+        assert "v" in str(result)
+
+    def test_sym_explicit_grade(self, cl3):
+        from ga.symbolic import Sym
+        e1, _, _ = cl3.basis_vectors()
+        s = Sym(e1, "v", grade=1)
+        assert s._grade == 1
+
+    def test_coerce_named_mv(self, cl3):
+        from ga.symbolic import _coerce, Sym
+        e1, _, _ = cl3.basis_vectors()
+        e1.name("x")
+        result = _coerce(e1)
+        assert isinstance(result, Sym)
