@@ -35,7 +35,7 @@ from ga.notation import Notation, NotationRule
 from ga.symbolic import (
     Expr, Sym, Scalar,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual,
+    Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
     Inverse, Squared, Exp,
     Grade, Norm, Unit, Even, Odd,
     Lc, Rc, Hi, Dli, Sp, Regressive,
@@ -70,7 +70,7 @@ class OpInfo:
 INFO: dict[type, OpInfo] = {
     Sym: OpInfo(100), Scalar: OpInfo(100),
     Reverse: OpInfo(95), Involute: OpInfo(95), Conjugate: OpInfo(95),
-    Dual: OpInfo(95), Undual: OpInfo(95), Inverse: OpInfo(95), Squared: OpInfo(95),
+    Dual: OpInfo(95), Undual: OpInfo(95), Complement: OpInfo(95), Uncomplement: OpInfo(95), Inverse: OpInfo(95), Squared: OpInfo(95),
     Neg: OpInfo(90), ScalarMul: OpInfo(80), ScalarDiv: OpInfo(80),
     Gp: OpInfo(80, Assoc.LEFT, flat=True),
     Op: OpInfo(70, Assoc.LEFT, flat=True),
@@ -202,7 +202,8 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 
     # Postfix
     if rule.kind == "postfix" and hasattr(node, 'x'):
-        return f"{_w(render(node.x, n), node.x, 95)}{rule.symbol}"
+        # Use 96 (not 95) so postfix-on-postfix gets parens: (B⋆)⋆⁻¹
+        return f"{_w(render(node.x, n), node.x, 96)}{rule.symbol}"
 
     # Wrap
     if rule.kind == "wrap":
@@ -280,7 +281,7 @@ def render_latex(node: Expr, notation: Notation | None = None) -> str:
         return f"{cmd}{{{inner}}}"
 
     if rule.kind == "postfix" and hasattr(node, 'x'):
-        return f"{_wl(render_latex(node.x, n), node.x, 95)}{rule.symbol}"
+        return f"{_wl(render_latex(node.x, n), node.x, 96)}{rule.symbol}"
 
     if rule.kind == "wrap":
         if t in _COMMA_BINARY:

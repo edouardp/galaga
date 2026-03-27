@@ -23,19 +23,27 @@ def _():
     from ga import Algebra, conjugate, even_grades, grade, involute, odd_grades, reverse
     import galaga_marimo as gm
 
-    return Algebra, conjugate, even_grades, gm, grade, involute, mo, odd_grades, reverse
+    return (
+        Algebra,
+        conjugate,
+        even_grades,
+        gm,
+        grade,
+        involute,
+        mo,
+        odd_grades,
+        reverse,
+    )
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Involutions and Grade Operations
+    mo.md("""
+    # Involutions and Grade Operations
 
-        Reverse, involute, and conjugate are distinct algebraic symmetries. Grade
-        projection and even/odd decomposition let you peel a multivector apart.
-        """
-    )
+    Reverse, involute, and conjugate are distinct algebraic symmetries. Grade
+    projection and even/odd decomposition let you peel a multivector apart.
+    """)
     return
 
 
@@ -47,7 +55,18 @@ def _(Algebra):
 
 
 @app.cell
-def _(conjugate, e1, e2, e3, even_grades, gm, grade, involute, odd_grades, reverse):
+def _(
+    conjugate,
+    e1,
+    e2,
+    e3,
+    even_grades,
+    gm,
+    grade,
+    involute,
+    odd_grades,
+    reverse,
+):
     x = 3 + e1 + 2 * (e1 ^ e2) + (e1 ^ e2 ^ e3)
     gm.md(t"""
     {x} = {x.eval()}

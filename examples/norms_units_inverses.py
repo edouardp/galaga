@@ -28,18 +28,16 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Norms, Units, and Inverses
+    mo.md("""
+    # Norms, Units, and Inverses
 
-        These operations answer related but different questions:
+    These operations answer related but different questions:
 
-        - `squared(x)` keeps the algebraic product
-        - `norm(x)` returns a magnitude
-        - `unit(x)` normalizes
-        - `inverse(x)` solves for the multiplicative inverse when it exists
-        """
-    )
+    - `squared(x)` keeps the algebraic product
+    - `norm(x)` returns a magnitude
+    - `unit(x)` normalizes
+    - `inverse(x)` solves for the multiplicative inverse when it exists
+    """)
     return
 
 
@@ -47,11 +45,11 @@ def _(mo):
 def _(Algebra):
     alg = Algebra((1, 1, 1), repr_unicode=True)
     e1, e2, e3 = alg.basis_vectors(lazy=True)
-    return e1, e2, e3
+    return e1, e2
 
 
 @app.cell
-def _(e1, e2, e3, gm, inverse, norm, squared, unit):
+def _(e1, e2, gm, inverse, norm, squared, unit):
     v = 3 * e1 + 4 * e2
     B = e1 ^ e2
     gm.md(t"""
@@ -59,7 +57,7 @@ def _(e1, e2, e3, gm, inverse, norm, squared, unit):
 
     {squared(v)} = {squared(v).eval()}
 
-    $\\|v\\| = {norm(v):.6f}$
+    {norm(v)} = {norm(v).eval():.1f}
 
     {unit(v)} = {unit(v).eval()}
 
@@ -69,7 +67,7 @@ def _(e1, e2, e3, gm, inverse, norm, squared, unit):
 
     {squared(B)} = {squared(B).eval()}
 
-    $\\|B\\| = {norm(B):.6f}$
+    {norm(B)} = {norm(B).eval():.1f}
 
     {unit(B)} = {unit(B).eval()}
 

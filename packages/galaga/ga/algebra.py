@@ -1399,6 +1399,7 @@ def undual(x: Multivector) -> Multivector:
     return left_contraction(x, I)
 
 
+@lazy_unary('Complement')
 def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
@@ -1418,6 +1419,7 @@ def complement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_unary('Uncomplement')
 def uncomplement(x: Multivector) -> Multivector:
     """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
     alg = x.algebra

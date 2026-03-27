@@ -74,19 +74,19 @@ def _(
     gm.md(t"""
     {B} = {B.eval()}
 
-    Dual of {B}: {dual(B)} = {dual(B).eval()}
+    Dual of {B}: $\\quad$  {dual(B)} = {dual(B).eval()}
 
     {undual(dual(B))} = {undual(dual(B)).eval()}
 
-    Complement of {B}: {complement(B)} = {complement(B).eval()}
+    Complement of {B}: $\\quad$  {complement(B)} = {complement(B).eval()}
 
-    Uncomplement of Complement of {B}: {uncomplement(complement(B))} = {uncomplement(complement(B)).eval()}
+    Uncomplement of Complement of {B}: $\\quad$ {uncomplement(complement(B))} = {uncomplement(complement(B)).eval()}
 
-    Project {v} onto {B}:\\quad {project(v, B)} = {project(v, B).eval()}
+    Project {v} onto {B}: $\\quad$ {project(v, B)} = {project(v, B).eval()}
 
-    {reject(v, B)} = {reject(v, B).eval()}
+    Reject {v} onto {B}: $\\quad$ {reject(v, B)} = {reject(v, B).eval()}
 
-    {reflect(v, e3)} = {reflect(v, e3).eval()}
+    Reflect {v} in {e3}: $\\quad$ {reflect(v, e3)} = {reflect(v, e3).eval()}
     """)
     return
 

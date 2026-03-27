@@ -23,19 +23,25 @@ def _():
     from ga import Algebra, anticommutator, commutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
-    return Algebra, anticommutator, commutator, gm, jordan_product, lie_bracket, mo
+    return (
+        Algebra,
+        anticommutator,
+        commutator,
+        gm,
+        jordan_product,
+        lie_bracket,
+        mo,
+    )
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Commutator, Lie Bracket, and Jordan Product
+    mo.md("""
+    # Commutator, Lie Bracket, and Jordan Product
 
-        The geometric product splits naturally into symmetric and antisymmetric parts.
-        These named operations expose that structure directly.
-        """
-    )
+    The geometric product splits naturally into symmetric and antisymmetric parts.
+    These named operations expose that structure directly.
+    """)
     return
 
 

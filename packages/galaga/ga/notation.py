@@ -97,6 +97,8 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     # Postfix
     "Dual": _postfix("⋆", "^*", "*"),
     "Undual": _postfix("⋆⁻¹", "^{*^{-1}}", "*^-1"),
+    "Complement": _postfix("ᶜ", "^{\\complement}", "^c"),
+    "Uncomplement": _postfix("ᶜ⁻¹", "^{\\complement^{-1}}", "^c^-1"),
     "Inverse": _postfix("⁻¹", "^{-1}", "^-1"),
     "Squared": _postfix("²", "^2", "^2"),
 
