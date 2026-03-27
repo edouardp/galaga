@@ -1,7 +1,8 @@
 ---
-status: accepted
+status: superseded
 date: 2026-03-25
 deciders: edouard
+superseded-by: ADR-033
 ---
 
 # ADR-012: Unicode Repr with Opt-In Flag

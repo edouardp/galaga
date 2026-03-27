@@ -12,10 +12,26 @@ The library is split into two modules:
   via precomputed multiplication tables and dense NumPy coefficient arrays.
 
 - ``ga.symbolic``  — An expression-tree layer for pretty-printing and symbolic
-  manipulation. Wraps numeric multivectors with names (``sym(e1, "v")``) and
-  builds lazy trees that render as Unicode/LaTeX. Every symbolic function is a
-  drop-in replacement: it detects ``Expr`` arguments and builds trees, but
-  passes plain ``Multivector`` arguments straight through to the numeric core.
+  manipulation. Provides ``simplify()`` and drop-in replacements for all
+  numeric functions that detect lazy ``Multivector`` arguments and build
+  expression trees. The ``Expr`` class hierarchy is an internal implementation
+  detail.
+
+Naming and Evaluation
+---------------------
+Every ``Multivector`` independently controls two orthogonal axes:
+
+- **Identity / display** — ``.name("B")`` assigns a display name;
+  ``.anon()`` removes it.
+- **Evaluation strategy** — ``.lazy()`` preserves expression trees;
+  ``.eager()`` forces concrete evaluation in-place (strips name by default,
+  or ``.eager("B")`` to keep it); ``.eval()`` returns a new anonymous eager
+  copy without mutating the original.
+
+Basis blades from ``Algebra.basis_vectors()`` are **named + eager** by default:
+they have display names (``e₁``) but behave as concrete numeric objects.
+
+``sym(mv, "R")`` is a convenience alias for ``mv.name("R")``.
 
 This ``__init__`` re-exports the numeric API so users can write
 ``from ga import *`` and get everything they need for computation.
@@ -32,8 +48,11 @@ Design Principles
   always available.
 - **Aliases exist for convenience**, not as separate implementations.
   ``wedge`` is literally ``op``, ``rev`` is literally ``reverse``, etc.
+- **Lazy is contagious.** When a lazy MV operates with an eager one, the
+  result is lazy. When all operands are eager, the fast numeric path is taken.
 """
 
+from ga.basis_blade import BasisBlade
 from ga.algebra import (
     Algebra,
     Multivector,
@@ -53,6 +72,7 @@ from ga.algebra import (
     # Unary
     reverse,
     involute,
+    grade_involution,
     conjugate,
     grade,
     grades,
@@ -61,6 +81,10 @@ from ga.algebra import (
     undual,
     complement,
     uncomplement,
+    regressive_product,
+    metric_regressive_product,
+    meet,
+    join,
     norm2,
     norm,
     unit,
@@ -71,12 +95,15 @@ from ga.algebra import (
     is_bivector,
     is_even,
     is_rotor,
+    is_basis_blade,
     even_grades,
     odd_grades,
     squared,
     sandwich,
     sw,
     norm_squared,
+    magnitude_squared,
+    mag2,
     exp,
     log,
     project,
@@ -110,6 +137,7 @@ __all__ = [
     "jordan_product",
     "reverse",
     "involute",
+    "grade_involution",
     "conjugate",
     "grade",
     "grades",
@@ -118,6 +146,10 @@ __all__ = [
     "undual",
     "complement",
     "uncomplement",
+    "regressive_product",
+    "metric_regressive_product",
+    "meet",
+    "join",
     "norm2",
     "norm",
     "unit",
@@ -127,6 +159,7 @@ __all__ = [
     "is_bivector",
     "is_even",
     "is_rotor",
+    "is_basis_blade",
     "even_grades",
     "odd_grades",
     "squared",
@@ -144,6 +177,8 @@ __all__ = [
     "normalize",
     "normalise",
     "norm_squared",
+    "magnitude_squared",
+    "mag2",
     "ip",
     "inner_product",
 ]

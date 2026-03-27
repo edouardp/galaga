@@ -58,7 +58,7 @@ def _(mo):
     mo.md("""
     # Spacetime Algebra (STA)
 
-    The **Spacetime Algebra** is the Clifford algebra $\\mathrm{{Cl}}(1,3)$: one timelike basis vector ($\\gamma_0^2 = +1$) and three spacelike ($\\gamma_i^2 = -1$).
+    The **Spacetime Algebra** is the Clifford algebra $\mathrm{{Cl}}(1,3)$: one timelike basis vector ($\gamma_0^2 = +1$) and three spacelike ($\gamma_i^2 = -1$).
 
     STA unifies rotations, Lorentz boosts, and electromagnetism in a single algebraic framework — no matrices, no index gymnastics.
     """)
@@ -408,10 +408,10 @@ def _(I, g0, g1, g3, gm, grade, mo, scalar):
     _IB = I * _B
     mo.vstack([
         gm.md(t"$E_x = {_Ex}, \\qquad B_z = {_Bz}$"),
-        mo.hstack([mo.md("$\\mathbf{{E}} =$"), _E], justify="start"),
-        mo.hstack([mo.md("$I\\mathbf{{B}} =$"), _IB], justify="start"),
-        mo.hstack([mo.md("$F = \\mathbf{{E}} + I\\mathbf{{B}} =$"), _F], justify="start"),
-        mo.hstack([mo.md("$F^2 =$"), _F2], justify="start"),
+        gm.md(t"$\\mathbf{{E}} =$ {_E}"),
+        gm.md(t"$I\\mathbf{{B}} =$ {_IB}"),
+        gm.md(t"$F = \\mathbf{{E}} + I\\mathbf{{B}} =$ {_F}"),
+        gm.md(t"$F^2 =$ {_F2}"),
         gm.md(t"- Scalar invariant ($E^2 - B^2$): **{_scalar_inv:.1f}**"),
         gm.md(t"- Pseudoscalar invariant ($2\\mathbf{{E}}\\cdot\\mathbf{{B}}$): **{_pseudo_inv:.1f}**"),
     ])
@@ -456,8 +456,8 @@ def _(I, em_boost_slider, g0, g1, g3, gm, mo, np, sandwich, scalar, sta):
     _inv = np.allclose(_F2_orig, _F2_boosted)
     mo.vstack([
         gm.md(t"$\\varphi = {_phi:.2f}$"),
-        mo.hstack([mo.md("$F =$"), _F], justify="start"),
-        mo.hstack([mo.md("$F' = R F \\tilde{{R}} =$"), _F_boosted], justify="start"),
+        gm.md(t"$F =$ {_F}"),
+        gm.md(t"$F' = R F \\tilde{{R}} =$ {_F_boosted}"),
         gm.md(t"- $F^2$ (original): **{_F2_orig:.4f}**"),
         gm.md(t"- $F'^2$ (boosted): **{_F2_boosted:.4f}**"),
         gm.md(t"- Invariant? **{_inv!s}**"),

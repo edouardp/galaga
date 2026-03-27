@@ -64,48 +64,25 @@ from __future__ import annotations
 from typing import Union
 import ga.algebra as _alg
 
-_SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 
 # Unicode combining characters for postfix decorations.
 # These are appended directly after a character to modify its appearance.
 # E.g., "R" + _REVERSE → "R̃" (R with combining tilde above).
-_REVERSE = "\u0303"      # combining tilde: R̃
-_HAT = "\u0302"          # combining circumflex: x̂
-_INVOLUTE = "\u0302"     # same hat for involute (standard notation)
-_CONJUGATE = "\u0304"    # combining macron: x̄
-_DAGGER = "\u0020\u0334" # †
 
 
-def _needs_parens(node: Expr, parent_op: str) -> bool:
-    """Determine if a child node needs parentheses in the context of a parent operation.
-
-    Addition and subtraction nodes need wrapping when they appear inside
-    multiplicative operations (gp, op, contractions, etc.) to preserve
-    mathematical precedence in the rendered output.
-    Sym and Neg nodes never need parens — they're atomic or already wrapped.
-    """
-    if isinstance(node, (Sym, Neg)):
-        return False
-    if isinstance(node, (Add, Sub)):
-        return parent_op in ("gp", "op", "lc", "rc", "hi", "dli", "sp", "jordan")
-    return False
-
-
-def _wrap(node: Expr, parent_op: str) -> str:
-    s = str(node)
-    if _needs_parens(node, parent_op):
-        return f"({s})"
-    return s
-
-
-def _latex_wrap(node: Expr, parent_op: str) -> str:
-    s = node._latex()
-    if _needs_parens(node, parent_op):
-        return rf"\left({s}\right)"
-    return s
-
-
-Numeric = Union[int, float]
+def _coerce(x):
+    """Coerce a value to Expr if needed. Used by node constructors."""
+    if isinstance(x, Expr):
+        return x
+    if isinstance(x, _alg.Multivector):
+        # Deferred to avoid forward reference — _ensure_expr is defined later
+        if x._expr is not None:
+            return x._expr
+        if x._name is not None:
+            return Sym(x, x._name_unicode or x._name,
+                       name_latex=x._name_latex, name_ascii=x._name)
+        return Sym(x, str(x))
+    return x
 
 
 class Expr:
@@ -114,11 +91,11 @@ class Expr:
     Every node in the expression tree inherits from this. The class provides:
     - Operator overloads that build tree nodes (``__mul__`` → ``Gp``, etc.)
     - ``eval()`` to recursively compute the concrete ``Multivector`` result
-    - ``latex()`` / ``_latex()`` for LaTeX rendering
+    - Rendering via ``ga.render`` (unicode and LaTeX)
     - ``_repr_latex_()`` for automatic Jupyter/marimo rendering
     - Convenience properties (``.inv``, ``.dag``, ``.sq``) matching ``Multivector``
 
-    Subclasses must implement ``eval()``, ``__str__()``, and ``_latex()``.
+    Subclasses must implement ``eval()``.
     """
 
     def eval(self) -> _alg.Multivector:
@@ -127,22 +104,19 @@ class Expr:
     def __repr__(self) -> str:
         return str(self)
 
-    def latex(self, wrap: str | None = None) -> str:
-        """Return LaTeX representation.
+    def __str__(self) -> str:
+        from ga.render import render
+        return render(self)
 
-        Args:
-            wrap: Optional delimiter — '$' for inline, '$$' for display block.
-        """
-        raw = self._latex()
+    def latex(self, wrap: str | None = None) -> str:
+        """Return LaTeX representation."""
+        from ga.render import render_latex
+        raw = render_latex(self)
         if wrap == "$":
             return f"${raw}$"
         if wrap == "$$":
             return f"$$\n{raw}\n$$"
         return raw
-
-    def _latex(self) -> str:
-        """Override in subclasses to provide LaTeX output."""
-        raise NotImplementedError
 
     def _repr_latex_(self) -> str:
         """Jupyter notebook integration."""
@@ -189,7 +163,7 @@ class Expr:
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
-            return ScalarMul(1.0 / other, self)
+            return ScalarDiv(self, other)
         return NotImplemented
 
     # Convenience properties matching Multivector
@@ -220,29 +194,25 @@ class Sym(Expr):
     known to be grade-1, and ``grade(v, 2) → 0``.
     """
 
-    def __init__(self, mv: _alg.Multivector, name: str, grade: int | None = None):
+    def __init__(self, mv: _alg.Multivector, name: str, grade: int | None = None,
+                 name_latex: str | None = None, name_ascii: str | None = None):
         self._mv = mv
         self._name = name
+        self._name_latex = name_latex or name
+        self._name_ascii = name_ascii or name
         # Auto-detect grade if not provided
         if grade is not None:
             self._grade = grade
         else:
-            nonzero = [k for k in range(mv.algebra._n + 1)
-                       if any(abs(c) > 1e-12 for i, c in enumerate(mv.data)
-                              if bin(i).count('1') == k)]
-            self._grade = nonzero[0] if len(nonzero) == 1 else None
+            self._grade = mv.homogeneous_grade()
 
     def eval(self) -> _alg.Multivector:
         return self._mv
 
-    def __str__(self) -> str:
-        return self._name
 
-    def _latex(self) -> str:
-        return self._name
 
     def __repr__(self) -> str:
-        return self._name
+        return self._name_ascii
 
 
 class Scalar(Expr):
@@ -263,401 +233,215 @@ class Scalar(Expr):
     def eval(self) -> _alg.Multivector:
         raise TypeError("Scalar has no algebra context; use in combination with Sym nodes")
 
-    def __str__(self) -> str:
-        return f"{self._value:g}"
 
-    def _latex(self) -> str:
-        return f"{self._value:g}"
 
 
 # --- Binary ops ---
 
-class Gp(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# ============================================================
+# Generated Expr subclasses
+# ============================================================
+
+# --- Generated Expr subclasses ---
+# Most binary/unary Expr nodes are identical: __init__ coerces args,
+# eval() delegates to the corresponding ga.algebra function.
+# Instead of 22 hand-written classes, we generate them from a table.
+# This eliminates ~150 lines of boilerplate and ensures consistency.
+
+def _make_binary_expr(name, alg_func_name):
+    """Generate a binary Expr subclass."""
+    def __init__(self, a, b):
+        self.a, self.b = _coerce(a), _coerce(b)
     def eval(self):
-        return _alg.gp(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return _wrap(self.a, "gp") + _wrap(self.b, "gp")
-
-    def _latex(self):
-        return _latex_wrap(self.a, "gp") + " " + _latex_wrap(self.b, "gp")
+        return getattr(_alg, alg_func_name)(self.a.eval(), self.b.eval())
+    return type(name, (Expr,), {'__init__': __init__, 'eval': eval})
 
 
-class Op(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
+def _make_unary_expr(name, alg_func_name):
+    """Generate a unary Expr subclass."""
+    def __init__(self, x):
+        self.x = _coerce(x)
     def eval(self):
-        return _alg.op(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'op')}∧{_wrap(self.b, 'op')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'op')} \wedge {_latex_wrap(self.b, 'op')}"
+        return getattr(_alg, alg_func_name)(self.x.eval())
+    return type(name, (Expr,), {'__init__': __init__, 'eval': eval})
 
 
-class Lc(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
+# Binary expression nodes
+Gp = _make_binary_expr('Gp', 'gp')
+Op = _make_binary_expr('Op', 'op')
+Lc = _make_binary_expr('Lc', 'left_contraction')
+Rc = _make_binary_expr('Rc', 'right_contraction')
+Hi = _make_binary_expr('Hi', 'hestenes_inner')
+Dli = _make_binary_expr('Dli', 'doran_lasenby_inner')
+Sp = _make_binary_expr('Sp', 'scalar_product')
+Commutator = _make_binary_expr('Commutator', 'commutator')
+Anticommutator = _make_binary_expr('Anticommutator', 'anticommutator')
+LieBracket = _make_binary_expr('LieBracket', 'lie_bracket')
+JordanProduct = _make_binary_expr('JordanProduct', 'jordan_product')
+Regressive = _make_binary_expr('Regressive', 'regressive_product')
 
-    def eval(self):
-        return _alg.left_contraction(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'lc')}⌋{_wrap(self.b, 'lc')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'lc')} \;\lrcorner\; {_latex_wrap(self.b, 'lc')}"
-
-
-class Rc(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.right_contraction(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'rc')}⌊{_wrap(self.b, 'rc')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'rc')} \;\llcorner\; {_latex_wrap(self.b, 'rc')}"
-
-
-class Hi(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.hestenes_inner(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'hi')}·{_wrap(self.b, 'hi')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'hi')} \cdot {_latex_wrap(self.b, 'hi')}"
-
-
-class Dli(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.doran_lasenby_inner(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'dli')}·{_wrap(self.b, 'dli')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'dli')} \cdot {_latex_wrap(self.b, 'dli')}"
-
-
-class Sp(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.scalar_product(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{_wrap(self.a, 'sp')}∗{_wrap(self.b, 'sp')}"
-
-    def _latex(self):
-        return rf"{_latex_wrap(self.a, 'sp')} * {_latex_wrap(self.b, 'sp')}"
-
-
-class Commutator(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.commutator(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"[{self.a}, {self.b}]"
-
-    def _latex(self):
-        return rf"[{self.a._latex()},\, {self.b._latex()}]"
-
-
-class Anticommutator(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.anticommutator(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"{{{self.a}, {self.b}}}"
-
-    def _latex(self):
-        return rf"\{{{self.a._latex()},\, {self.b._latex()}\}}"
-
-
-class LieBracket(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.lie_bracket(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"½[{self.a}, {self.b}]"
-
-    def _latex(self):
-        return rf"\tfrac{{1}}{{2}}[{self.a._latex()},\, {self.b._latex()}]"
-
-
-class JordanProduct(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
-
-    def eval(self):
-        return _alg.jordan_product(self.a.eval(), self.b.eval())
-
-    def __str__(self):
-        return f"½{{{self.a}, {self.b}}}"
-
-    def _latex(self):
-        return rf"\tfrac{{1}}{{2}}\{{{self.a._latex()},\, {self.b._latex()}\}}"
+# Unary expression nodes
+Reverse = _make_unary_expr('Reverse', 'reverse')
+Involute = _make_unary_expr('Involute', 'involute')
+Conjugate = _make_unary_expr('Conjugate', 'conjugate')
+Dual = _make_unary_expr('Dual', 'dual')
+Undual = _make_unary_expr('Undual', 'undual')
+Norm = _make_unary_expr('Norm', 'norm')
+Unit = _make_unary_expr('Unit', 'unit')
+Inverse = _make_unary_expr('Inverse', 'inverse')
+Exp = _make_unary_expr('Exp', 'exp')
+Even = _make_unary_expr('Even', 'even_grades')
+Odd = _make_unary_expr('Odd', 'odd_grades')
 
 
 class Add(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
+    def __init__(self, a, b):
+        self.a, self.b = _coerce(a), _coerce(b)
 
     def eval(self):
         return self.a.eval() + self.b.eval()
 
-    def __str__(self):
-        return f"{self.a} + {self.b}"
 
-    def _latex(self):
-        return f"{self.a._latex()} + {self.b._latex()}"
 
 
 class Sub(Expr):
-    def __init__(self, a: Expr, b: Expr):
-        self.a, self.b = a, b
+    def __init__(self, a, b):
+        self.a, self.b = _coerce(a), _coerce(b)
 
     def eval(self):
         return self.a.eval() - self.b.eval()
 
-    def __str__(self):
-        return f"{self.a} - {self.b}"
 
-    def _latex(self):
-        return f"{self.a._latex()} - {self.b._latex()}"
 
 
 class ScalarMul(Expr):
-    def __init__(self, k: Numeric, x: Expr):
-        self.k, self.x = k, x
+    def __init__(self, k: Numeric, x):
+        self.k, self.x = k, _coerce(x)
 
     def eval(self):
         return self.x.eval() * self.k
 
-    def __str__(self):
-        if self.k == -1:
-            return f"-{self.x}"
-        return f"{self.k:g}{_wrap(self.x, 'gp')}"
 
-    def _latex(self):
-        if self.k == -1:
-            return f"-{self.x._latex()}"
-        return f"{self.k:g} {_latex_wrap(self.x, 'gp')}"
+
+
+class ScalarDiv(Expr):
+    """Division by a scalar: x / k."""
+    def __init__(self, x, k: Numeric):
+        self.x, self.k = _coerce(x), k
+
+    def eval(self):
+        return self.x.eval() / self.k
+
+
+
+
+class Div(Expr):
+    """Division of two expressions: a / b."""
+    def __init__(self, a, b):
+        self.a, self.b = _coerce(a), _coerce(b)
+
+    def eval(self):
+        return self.a.eval() / self.b.eval()
+
+
 
 
 class Neg(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
+    def __init__(self, x):
+        self.x = _coerce(x)
 
     def eval(self):
         return -self.x.eval()
 
-    def __str__(self):
-        return f"-{self.x}"
 
-    def _latex(self):
-        return f"-{self.x._latex()}"
 
 
 # --- Unary ops ---
 
-class Reverse(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.reverse(self.x.eval())
-
-    def __str__(self):
-        return f"{self.x}{_REVERSE}"
-
-    def _latex(self):
-        return rf"\tilde{{{self.x._latex()}}}"
 
 
-class Involute(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.involute(self.x.eval())
-
-    def __str__(self):
-        return f"{self.x}{_INVOLUTE}"
-
-    def _latex(self):
-        return rf"{self.x._latex()}^\dagger"
 
 
-class Conjugate(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
 
-    def eval(self):
-        return _alg.conjugate(self.x.eval())
 
-    def __str__(self):
-        return f"{self.x}{_CONJUGATE}"
 
-    def _latex(self):
-        return rf"\bar{{{self.x._latex()}}}"
 
 
 class Grade(Expr):
-    def __init__(self, x: Expr, k: int):
-        self.x, self.k = x, k
+    def __init__(self, x, k: int):
+        self.x, self.k = _coerce(x), k
 
     def eval(self):
         return _alg.grade(self.x.eval(), self.k)
 
-    def __str__(self):
-        sub = str(self.k).translate(_SUBSCRIPTS)
-        return f"⟨{self.x}⟩{sub}"
-
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{{self.k}}}"
 
 
-class Dual(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.dual(self.x.eval())
-
-    def __str__(self):
-        return f"{self.x}⋆"
-
-    def _latex(self):
-        return rf"{self.x._latex()}^*"
 
 
-class Undual(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.undual(self.x.eval())
-
-    def __str__(self):
-        return f"{self.x}⋆⁻¹"
-
-    def _latex(self):
-        return rf"{self.x._latex()}^{{*^{{-1}}}}"
 
 
-class Norm(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.norm(self.x.eval())
-
-    def __str__(self):
-        return f"‖{self.x}‖"
-
-    def _latex(self):
-        return rf"\lVert {self.x._latex()} \rVert"
 
 
-class Unit(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.unit(self.x.eval())
-
-    def __str__(self):
-        s = str(self.x)
-        if len(s) == 1:
-            return f"{s}{_HAT}"
-        return f"{self.x}/‖{self.x}‖"
-
-    def _latex(self):
-        return rf"\hat{{{self.x._latex()}}}"
 
 
-class Inverse(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
 
-    def eval(self):
-        return _alg.inverse(self.x.eval())
 
-    def __str__(self):
-        return f"{self.x}⁻¹"
 
-    def _latex(self):
-        return rf"{self.x._latex()}^{{-1}}"
+
+
+
 
 
 class Squared(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
+    def __init__(self, x):
+        self.x = _coerce(x)
 
     def eval(self):
         return _alg.gp(self.x.eval(), self.x.eval())
 
-    def __str__(self):
-        return f"{self.x}²"
-
-    def _latex(self):
-        return rf"{self.x._latex()}^2"
 
 
-class Even(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
-
-    def eval(self):
-        return _alg.even_grades(self.x.eval())
-
-    def __str__(self):
-        return f"⟨{self.x}⟩₊"
-
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{\text{{even}}}}"
 
 
-class Odd(Expr):
-    def __init__(self, x: Expr):
-        self.x = x
 
-    def eval(self):
-        return _alg.odd_grades(self.x.eval())
 
-    def __str__(self):
-        return f"⟨{self.x}⟩₋"
 
-    def _latex(self):
-        return rf"\langle {self.x._latex()} \rangle_{{\text{{odd}}}}"
+
+
+
 
 
 # --- Helper ---
@@ -667,7 +451,9 @@ def _ensure_expr(x) -> Expr:
 
     - ``Expr`` → returned as-is
     - ``int``/``float`` → wrapped in ``Scalar``
-    - ``Multivector`` → wrapped in ``Sym`` with its string representation as name
+    - ``Multivector`` with ``_expr`` → returns the expression tree
+    - ``Multivector`` with ``_name`` → wrapped in ``Sym`` with its name
+    - ``Multivector`` (anonymous eager) → wrapped in ``Sym`` with its string representation
 
     This is called by every operator overload to handle mixed-type expressions
     like ``sym_v + 3`` or ``sym_R * e1`` transparently.
@@ -677,6 +463,11 @@ def _ensure_expr(x) -> Expr:
     if isinstance(x, (int, float)):
         return Scalar(x)
     if isinstance(x, _alg.Multivector):
+        if x._expr is not None:
+            return x._expr
+        if x._name is not None:
+            return Sym(x, x._name_unicode or x._name,
+                       name_latex=x._name_latex, name_ascii=x._name)
         return Sym(x, str(x))
     raise TypeError(f"Cannot convert {type(x)} to symbolic expression")
 
@@ -701,19 +492,23 @@ def _eq(a: Expr, b: Expr) -> bool:
         return a._value == b._value
     if isinstance(a, ScalarMul):
         return a.k == b.k and _eq(a.x, b.x)
+    if isinstance(a, ScalarDiv):
+        return a.k == b.k and _eq(a.x, b.x)
     if isinstance(a, Neg):
         return _eq(a.x, b.x)
-    if isinstance(a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd)):
+    if isinstance(a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp)):
         return _eq(a.x, b.x)
-    if isinstance(a, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub)):
+    if isinstance(a, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)):
         return _eq(a.a, b.a) and _eq(a.b, b.b)
     if isinstance(a, Grade):
         return _eq(a.x, b.x) and a.k == b.k
     return False
 
 
-def simplify(expr: Expr) -> Expr:
+def simplify(expr) -> Expr:
     """Apply algebraic rewrite rules to simplify an expression tree.
+
+    Accepts an ``Expr`` or a lazy ``Multivector`` (extracts its expression tree).
 
     Runs ``_simplify()`` repeatedly until the tree stops changing (fixed-point
     iteration). This handles cascading rules like ``a - (-a) → a + a → 2a``.
@@ -730,9 +525,15 @@ def simplify(expr: Expr) -> Expr:
       ``grade(v, 2) → 0`` if v has no grade-2 component
     - Even/odd projection with known grades
     """
+    if isinstance(expr, _alg.Multivector):
+        expr = _ensure_expr(expr)
+    elif not isinstance(expr, Expr):
+        expr = _ensure_expr(expr)
     prev = None
     e = expr
-    while not (prev is not None and _eq(prev, e)):
+    for _ in range(100):
+        if prev is not None and _eq(prev, e):
+            break
         prev = e
         e = _simplify(e)
     return e
@@ -768,6 +569,8 @@ def _known_grade(e: Expr) -> int | None:
         return _known_grade(e.x)
     if isinstance(e, ScalarMul):
         return _known_grade(e.x)
+    if isinstance(e, ScalarDiv):
+        return _known_grade(e.x)
     if isinstance(e, Unit):
         return _known_grade(e.x)
     return None
@@ -776,11 +579,13 @@ def _known_grade(e: Expr) -> int | None:
 def _simplify(e: Expr) -> Expr:
     """Single-pass rewrite of an expression tree (called repeatedly by simplify)."""
     # --- Phase 1: recurse into children first (bottom-up rewriting) ---
-    if isinstance(e, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub)):
+    if isinstance(e, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)):
         e = type(e)(_simplify(e.a), _simplify(e.b))
     elif isinstance(e, ScalarMul):
         e = ScalarMul(e.k, _simplify(e.x))
-    elif isinstance(e, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd)):
+    elif isinstance(e, ScalarDiv):
+        e = ScalarDiv(_simplify(e.x), e.k)
+    elif isinstance(e, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp)):
         e = type(e)(_simplify(e.x))
     elif isinstance(e, Neg):
         e = Neg(_simplify(e.x))
@@ -923,149 +728,117 @@ def _simplify(e: Expr) -> Expr:
 # while keeping full numeric performance for unwrapped multivectors.
 # ============================================================
 
-def sym(mv: _alg.Multivector, name: str, grade: int | None = None) -> Sym:
-    """Wrap a concrete multivector with a display name.
+def _is_symbolic(x) -> bool:
+    """Check if x is an Expr or a lazy Multivector."""
+    if isinstance(x, Expr):
+        return True
+    if isinstance(x, _alg.Multivector) and x._is_lazy:
+        return True
+    return False
+
+
+def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None) -> _alg.Multivector:
+    """Return a lazy copy of a multivector, optionally named.
+
+    Does not mutate the original. Use ``.name()`` on the result to add
+    or change the name.
 
     Args:
+        mv: The multivector to copy.
+        name: Optional display name.
         grade: If provided, asserts the homogeneous grade for simplification.
                If omitted, auto-detected from the multivector data.
     """
-    return Sym(mv, name, grade=grade)
+    result = mv._copy_with()  # copy first
+    if name is not None:
+        result.name(name)
+    else:
+        result.lazy()
+    if grade is not None:
+        result._grade = grade
+    if result._expr is not None and isinstance(result._expr, Sym):
+        result._expr._grade = result._grade
+    return result
 
 
-def gp(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Gp(_ensure_expr(a), _ensure_expr(b))
-    return _alg.gp(a, b)
+# ============================================================
+# Drop-in replacements for ga.algebra functions
+# ============================================================
+# These detect lazy Multivector arguments and build Expr trees.
+# With plain eager Multivectors, they delegate to ga.algebra.
+
+def _make_binary_dropin(node_cls, alg_func):
+# --- Generated drop-in replacements ---
+# Each drop-in checks if any argument is a lazy MV (via _is_symbolic).
+# If so, it builds the corresponding Expr tree node.
+# If not, it delegates directly to ga.algebra with zero overhead.
+# This is the bridge between the numeric and symbolic layers.    """Generate a binary drop-in that builds node_cls for symbolic args."""
+    def dropin(a, b):
+        if _is_symbolic(a) or _is_symbolic(b):
+            return node_cls(_ensure_expr(a), _ensure_expr(b))
+        return alg_func(a, b)
+    dropin.__name__ = alg_func.__name__
+    dropin.__doc__ = alg_func.__doc__
+    return dropin
 
 
-def op(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Op(_ensure_expr(a), _ensure_expr(b))
-    return _alg.op(a, b)
+def _make_unary_dropin(node_cls, alg_func):
+    """Generate a unary drop-in that builds node_cls for symbolic args."""
+    def dropin(x):
+        if _is_symbolic(x):
+            return node_cls(_ensure_expr(x))
+        return alg_func(x)
+    dropin.__name__ = alg_func.__name__
+    dropin.__doc__ = alg_func.__doc__
+    return dropin
 
 
-def left_contraction(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Lc(_ensure_expr(a), _ensure_expr(b))
-    return _alg.left_contraction(a, b)
-
-
-def right_contraction(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Rc(_ensure_expr(a), _ensure_expr(b))
-    return _alg.right_contraction(a, b)
-
-
-def hestenes_inner(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Hi(_ensure_expr(a), _ensure_expr(b))
-    return _alg.hestenes_inner(a, b)
-
-
-def doran_lasenby_inner(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Dli(_ensure_expr(a), _ensure_expr(b))
-    return _alg.doran_lasenby_inner(a, b)
-
-
+# Binary drop-ins
+gp = _make_binary_dropin(Gp, _alg.gp)
+op = _make_binary_dropin(Op, _alg.op)
+left_contraction = _make_binary_dropin(Lc, _alg.left_contraction)
+right_contraction = _make_binary_dropin(Rc, _alg.right_contraction)
+hestenes_inner = _make_binary_dropin(Hi, _alg.hestenes_inner)
+doran_lasenby_inner = _make_binary_dropin(Dli, _alg.doran_lasenby_inner)
 dorst_inner = doran_lasenby_inner
+scalar_product = _make_binary_dropin(Sp, _alg.scalar_product)
+commutator = _make_binary_dropin(Commutator, _alg.commutator)
+anticommutator = _make_binary_dropin(Anticommutator, _alg.anticommutator)
+lie_bracket = _make_binary_dropin(LieBracket, _alg.lie_bracket)
+jordan_product = _make_binary_dropin(JordanProduct, _alg.jordan_product)
+regressive_product = _make_binary_dropin(Regressive, _alg.regressive_product)
+meet = regressive_product
 
-
-def scalar_product(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Sp(_ensure_expr(a), _ensure_expr(b))
-    return _alg.scalar_product(a, b)
-
-
-def commutator(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Commutator(_ensure_expr(a), _ensure_expr(b))
-    return _alg.commutator(a, b)
-
-
-def anticommutator(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return Anticommutator(_ensure_expr(a), _ensure_expr(b))
-    return _alg.anticommutator(a, b)
-
-
-def lie_bracket(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return LieBracket(_ensure_expr(a), _ensure_expr(b))
-    return _alg.lie_bracket(a, b)
-
-
-def jordan_product(a, b):
-    if isinstance(a, Expr) or isinstance(b, Expr):
-        return JordanProduct(_ensure_expr(a), _ensure_expr(b))
-    return _alg.jordan_product(a, b)
-
-
-def reverse(x):
-    if isinstance(x, Expr):
-        return Reverse(x)
-    return _alg.reverse(x)
-
-
-def involute(x):
-    if isinstance(x, Expr):
-        return Involute(x)
-    return _alg.involute(x)
-
-
-def conjugate(x):
-    if isinstance(x, Expr):
-        return Conjugate(x)
-    return _alg.conjugate(x)
-
-
-def grade(x, k):
-    if isinstance(x, Expr):
-        if k == "even":
-            return Even(x)
-        if k == "odd":
-            return Odd(x)
-        return Grade(x, k)
-    return _alg.grade(x, k)
-
-
-def dual(x):
-    if isinstance(x, Expr):
-        return Dual(x)
-    return _alg.dual(x)
-
-
-def undual(x):
-    if isinstance(x, Expr):
-        return Undual(x)
-    return _alg.undual(x)
-
-
-def norm(x):
-    if isinstance(x, Expr):
-        return Norm(x)
-    return _alg.norm(x)
-
-
-def unit(x):
-    if isinstance(x, Expr):
-        return Unit(x)
-    return _alg.unit(x)
-
-
-def inverse(x):
-    if isinstance(x, Expr):
-        return Inverse(x)
-    return _alg.inverse(x)
-
+# Unary drop-ins
+reverse = _make_unary_dropin(Reverse, _alg.reverse)
+involute = _make_unary_dropin(Involute, _alg.involute)
+conjugate = _make_unary_dropin(Conjugate, _alg.conjugate)
+dual = _make_unary_dropin(Dual, _alg.dual)
+undual = _make_unary_dropin(Undual, _alg.undual)
+norm = _make_unary_dropin(Norm, _alg.norm)
+unit = _make_unary_dropin(Unit, _alg.unit)
+inverse = _make_unary_dropin(Inverse, _alg.inverse)
+squared = _make_unary_dropin(Squared, _alg.squared)
+even_grades = _make_unary_dropin(Even, _alg.even_grades)
+odd_grades = _make_unary_dropin(Odd, _alg.odd_grades)
 
 normalize = unit
 normalise = unit
 
 
+def grade(x, k):
+    if _is_symbolic(x):
+        e = _ensure_expr(x)
+        if k == "even":
+            return Even(e)
+        if k == "odd":
+            return Odd(e)
+        return Grade(e, k)
+    return _alg.grade(x, k)
+
+
 def ip(a, b, mode: str = "doran_lasenby"):
-    if isinstance(a, Expr) or isinstance(b, Expr):
+    if _is_symbolic(a) or _is_symbolic(b):
         a, b = _ensure_expr(a), _ensure_expr(b)
         match mode:
             case "doran_lasenby" | "dorst":
@@ -1083,32 +856,15 @@ def ip(a, b, mode: str = "doran_lasenby"):
     return _alg.ip(a, b, mode=mode)
 
 
-def squared(x):
-    if isinstance(x, Expr):
-        return Squared(x)
-    return _alg.squared(x)
-
-
 def sandwich(r, x):
-    if isinstance(r, Expr) or isinstance(x, Expr):
-        r = r if isinstance(r, Expr) else sym(r, str(r))
-        x = x if isinstance(x, Expr) else sym(x, str(x))
-        return Gp(Gp(r, x), Reverse(r))
+    if _is_symbolic(r) or _is_symbolic(x):
+        re = _ensure_expr(r)
+        xe = _ensure_expr(x)
+        return Gp(Gp(re, xe), Reverse(re))
     return _alg.sandwich(r, x)
 
 
 sw = sandwich
 
-
-def even_grades(x):
-    if isinstance(x, Expr):
-        return Even(x)
-    return _alg.even_grades(x)
-
-
-def odd_grades(x):
-    if isinstance(x, Expr):
-        return Odd(x)
-    return _alg.odd_grades(x)
 
 

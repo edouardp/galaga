@@ -248,7 +248,7 @@ class TestSymEval:
         alg, e1, e2, _ = cl3
         v = sym(alg.vector([3, 4, 0]), "v")
         result = norm(v).eval()
-        assert np.isclose(result, 5.0)
+        assert np.isclose(result.scalar_part, 5.0)
 
     def test_dual_eval(self, cl3):
         _, e1, _, _ = cl3

@@ -29,26 +29,45 @@ The ½ in `lie_bracket` vs `commutator` is not a formatting choice — it change
 ## 5. Two-layer architecture
 
 - **`ga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays.
-- **`ga.symbolic`** — An opt-in expression-tree layer for pretty-printing and symbolic manipulation. Every symbolic function is a drop-in replacement: it detects `Expr` arguments and builds trees, but passes plain `Multivector` arguments straight through to the numeric core.
+- **`ga.symbolic`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree.
 
-The symbolic layer is imported separately (`from ga import symbolic as sym`) because most users only need it for notebooks and display.
+`Multivector` is the single public type. It can be named or anonymous, lazy or eager — these are orthogonal axes controlled by `.name()`, `.anon()`, `.lazy()`, `.eager()`.
 
-## 6. Operators build expression trees transparently
+## 6. Naming and evaluation are orthogonal
 
-In the symbolic layer, `R * v * ~R` builds a `Gp(Gp(R, v), Reverse(R))` tree — no special syntax needed. The same code that does numeric computation also builds symbolic expressions when the inputs are wrapped.
+Every multivector independently controls two things:
 
-## 7. Rendering protocol
+- **Identity / display** — named (prints as `B`) or anonymous (prints as `e₁₂`)
+- **Evaluation strategy** — lazy (preserves expression tree) or eager (concrete coefficients)
 
-Objects that can render as LaTeX expose `.latex()` (raw LaTeX content) and `_repr_latex_()` (Jupyter/IPython protocol with `$...$` wrapping). The `galaga_marimo` helper detects both, preferring `.latex()` for embedding in larger expressions.
+`.name("B")` makes an object named + lazy by default. `.eager()` forces concrete evaluation in-place and strips the name (or `.eager("B")` to keep it). `.eval()` returns a new anonymous eager copy without mutating the original. `.anon()` removes the name while preserving the lazy/eager state.
 
-## 8. Stable public surface
+Basis blades are **named + eager** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead. Use `basis_vectors(lazy=True)` for fully symbolic workflows where every operation builds an expression tree.
+
+## 7. Lazy is contagious
+
+When a lazy multivector participates in an operation with an eager one, the result is lazy. The result carries both concrete data (for `.eval()`) and an expression tree (for display). Names don't propagate — the result is anonymous, but named operands appear by name in the tree.
+
+When all operands are eager, the fast numeric path is taken with zero symbolic overhead.
+
+## 8. Operators build expression trees transparently
+
+In the symbolic layer, `R * v * ~R` builds a `Gp(Gp(R, v), Reverse(R))` tree — no special syntax needed. The same code that does numeric computation also builds symbolic expressions when any input is lazy.
+
+## 9. Rendering protocol
+
+Objects that can render as LaTeX expose `.latex()` (raw LaTeX content) and `_repr_latex_()` (Jupyter/IPython protocol with `$...$` wrapping). Named objects return their name in all formats; anonymous lazy objects delegate to the expression tree; anonymous eager objects render coefficients.
+
+The `.name()` method accepts `latex=`, `unicode=`, `ascii=` keyword arguments for per-format name overrides.
+
+## 10. Stable public surface
 
 The `__init__.py` re-exports the numeric API so `from ga import *` gives you everything for computation. The `__all__` list is the contract. New operations are added; existing ones don't change meaning.
 
-## 9. Separate notebook helper
+## 11. Separate notebook helper
 
 The marimo integration (`galaga_marimo` / `gamo`) is a separate package, not part of the core. It depends on marimo and uses Python 3.14 t-strings for automatic LaTeX rendering. This keeps the core library dependency-free (only NumPy) and framework-agnostic.
 
-## 10. ADRs for specific decisions
+## 12. ADRs for specific decisions
 
 Individual architectural decisions are recorded in [`docs/adrs/`](adrs/). Each ADR captures the context, decision, and consequences for a specific choice.

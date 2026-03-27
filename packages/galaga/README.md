@@ -7,6 +7,8 @@ A numeric geometric algebra library with a stable, programmer-first API.
 - **No ambiguity** — every inner product variant has its own name
 - **Unicode pretty-printing** — `3 + 2e₁ - e₃`, `γ₀γ₁`, `σₓσᵧ`
 - **Symbolic expression trees** — write `grade(R * v * ~R, 1)` and see `⟨RvR̃⟩₁`
+- **Naming and evaluation** — `.name("B")`, `.anon()`, `.lazy()`, `.eager()` mutate in-place; `.eval()` returns a copy
+- **LaTeX-driven naming** — `.name(latex=r"\theta")` auto-derives unicode (θ) and ASCII (theta)
 
 ## Install
 
@@ -46,8 +48,9 @@ pga = Algebra((1, 1, 1, 0))        # Cl(3,0,1) — Projective GA
 ### Constructors
 
 ```python
-alg.basis_vectors()     # (e₁, e₂, e₃)
-alg.pseudoscalar()      # e₁₂₃ (also alg.I)
+alg.basis_vectors()              # (e₁, e₂, e₃) — named + eager
+alg.basis_vectors(lazy=True)     # (e₁, e₂, e₃) — named + lazy (symbolic)
+alg.pseudoscalar()               # e₁₂₃ (also alg.I)
 alg.identity            # scalar 1 (𝟙)
 alg.scalar(5.0)         # 5
 alg.vector([1, 2, 3])   # e₁ + 2e₂ + 3e₃
@@ -188,7 +191,7 @@ Convenience properties on multivectors:
 ```python
 v.inv           # inverse(v)
 v.dag           # reverse(v)  — the "dagger"
-v.sq            # gp(v, v)    — squared
+v.sq            # gp(v, v)    — squared (also v**2)
 v.scalar_part   # grade-0 coefficient as float
 v.vector_part   # grade-1 coefficients as np.ndarray
 ```
@@ -376,29 +379,108 @@ Coefficients of ±1 are suppressed: `e₁₂` not `1e₁₂`, `-e₃` not `-1e�
 
 ## Symbolic Expressions
 
-Build expression trees that render as mathematical notation, then evaluate to get numeric results.
+Name multivectors and build expression trees that render as mathematical notation.
+
+### Naming and Evaluation
+
+Any multivector can be named and made symbolic with `.name()`.
+All configuration methods (`.name()`, `.anon()`, `.lazy()`, `.eager()`)
+**mutate in-place** and return `self`. Only `.eval()` returns a new copy.
 
 ```python
-from ga.symbolic import sym, grade, reverse, dual, norm, unit, inverse, gp, op
-
 alg = Algebra((1, 1, 1))
 e1, e2, e3 = alg.basis_vectors()
 
-R = sym(e1 * e2, "R")
+B = (e1 ^ e2).name("B")   # mutates, sets lazy
+print(B)              # B
+print(B.anon())       # e₁₂  (name removed in-place)
+
+B.name("B")           # re-name it
+print(B.eval())       # e₁₂  (new copy, B unchanged)
+```
+
+#### LaTeX-driven naming
+
+Pass `latex=` and unicode/ASCII are derived automatically:
+
+```python
+theta = alg.scalar(0.5).name(latex=r"\theta")
+# unicode: θ, ascii: theta, latex: \theta — all auto-derived
+
+F = (e1 ^ e2).name(latex=r"\mathbf{F}")
+# unicode: 𝐅, ascii: F — derived from \mathbf{F}
+
+n = e1.name(latex=r"\hat{n}")
+# unicode: n̂, ascii: hat_n — combining accent
+```
+
+The `label` parameter is optional when `latex` is provided. User-supplied
+`unicode=` and `ascii=` always take precedence over auto-derivation.
+
+Naming and evaluation are orthogonal axes:
+
+| | **Anonymous** | **Named** |
+|---|---|---|
+| **Eager** | `e1 + e2` → `e₁ + e₂` | `e1` → `e₁` (basis blades) |
+| **Lazy** | `B.anon()` → expr tree | `B = (e1^e2).name("B")` → `B` |
+
+### Lazy Propagation
+
+When a lazy value participates in an operation, the result is lazy:
+
+```python
+B = (e1 ^ e2).name("B")
+x = B + e3
+print(x)              # B + e₃  (symbolic)
+print(x.eval())       # e₁₂ + e₃  (concrete)
+```
+
+Names don't propagate — the result is anonymous but named operands appear by name in the expression tree.
+
+### Lazy Basis Blades
+
+For fully symbolic workflows, use `lazy=True` — every operation builds an
+expression tree automatically:
+
+```python
+e1, e2, e3 = alg.basis_vectors(lazy=True)
+
+e1 ^ e2              # e₁∧e₂  (not e₁₂)
+e1 * e2              # e₁e₂
+3 * e1 + e2          # 3e₁ + e₂
+(e1 ^ e2).eval()     # e₁₂  (concrete when you need it)
+```
+
+Division renders as fractions, `exp()` renders symbolically:
+
+```python
+theta = alg.scalar(0.5).name("θ")
+B = (e1 ^ e2).name("B")
+print(-B * theta / 2)     # -Bθ/2
+print(exp(-B * theta / 2))  # exp(-Bθ/2)
+```
+
+### sym() Compatibility
+
+`sym()` still works as a convenience alias. Unlike `.name()`, it **copies**
+the original (does not mutate):
+
+```python
+from ga.symbolic import sym, grade, reverse, simplify
+
+R = sym(e1 * e2, "R")   # copy of e1*e2, named "R"
+v = sym(e1, "v")         # copy of e1, named "v" — e1 unchanged
 v = sym(e1 + 2*e2, "v")
 ```
 
 ### Rendering
 
 ```python
+R = (e1 * e2).name("R")
+v = e1.name("v")
+
 print(R * v * ~R)                     # RvR̃
 print(grade(R * v * ~R, 1))           # ⟨RvR̃⟩₁
-print(op(sym(e1, "a"), sym(e2, "b"))) # a∧b
-print(dual(sym(e1, "v")))             # v⋆
-print(norm(sym(e1, "v")))             # ‖v‖
-print(unit(sym(e1, "v")))             # v̂
-print(inverse(sym(e1, "v")))          # v⁻¹
-print(reverse(sym(e1*e2, "R")))       # R̃
 ```
 
 Full rendering table:
@@ -429,13 +511,16 @@ Full rendering table:
 
 ### Evaluation
 
-Every symbolic expression can be evaluated to a concrete `Multivector`:
+Every lazy multivector can be evaluated to its concrete form:
 
 ```python
 expr = grade(R * v * ~R, 1)
 print(expr)          # ⟨RvR̃⟩₁
-print(expr.eval())   # -e₁ - 2e₂
+print(expr.eval())   # concrete Multivector result
 ```
+
+`.eval()` returns a new anonymous eager copy (non-mutating).
+`.eager()` mutates in-place.
 
 ### LaTeX Output
 
@@ -491,17 +576,39 @@ Full LaTeX rendering table:
 
 ### Drop-in Functions
 
-The symbolic module provides drop-in replacements for all `ga` functions. They detect `Expr` arguments and build trees; with plain `Multivector` arguments they delegate to the numeric core:
+The symbolic module provides drop-in replacements for all `ga` functions. They detect lazy `Multivector` or `Expr` arguments and build trees; with plain eager `Multivector` arguments they delegate to the numeric core:
 
 ```python
 from ga.symbolic import gp, grade, reverse
 
-# With Sym → builds expression tree
-grade(R * v * ~R, 1)   # returns Expr
+# With lazy/named MV → builds expression tree
+R = (e1 * e2).name("R")
+v = e1.name("v")
+grade(R * v * ~R, 1)   # returns lazy Multivector with expr tree
 
-# With Multivector → returns Multivector directly
-grade(e1 + e2, 1)      # returns Multivector
+# With eager MV → returns Multivector directly (zero overhead)
+grade(e1 + e2, 1)      # returns eager Multivector
 ```
+
+### Notation
+
+Override how operations render — per-algebra:
+
+```python
+from ga.notation import Notation, NotationRule
+
+# Use Hestenes convention (reverse as dagger)
+alg = Algebra((1, 1, 1), notation=Notation.hestenes())
+e1, e2, _ = alg.basis_vectors(lazy=True)
+v = e1.name("v")
+print(reverse(v))   # v†
+
+# Or override individual rules
+alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
+alg.notation.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
+```
+
+Built-in presets: `Notation.default()`, `Notation.hestenes()`, `Notation.doran_lasenby()`.
 
 ### Simplification
 
@@ -529,6 +636,8 @@ simplify(grade(v, 1))      # v         (v is known grade-1)
 simplify(grade(v, 2))      # 0         (v has no grade-2)
 ```
 
+`simplify()` accepts both `Expr` objects and lazy `Multivector` objects.
+
 Grade is auto-detected from the multivector data, so `sym(e1, "v")` knows it's grade-1 and `sym(e1^e2, "B")` knows it's grade-2. Simplification runs to a fixed point, so cascading rules like `a - (-a) → a + a → 2a` resolve fully.
 
 ## Sandwich Product
@@ -543,10 +652,10 @@ sw(R, e1)           # same thing, short alias
 Works in the symbolic layer too:
 
 ```python
-from ga.symbolic import sym, sandwich
+from ga.symbolic import sandwich
 
-R = sym(alg.rotor(e1^e2, radians=np.pi/2), "R")
-v = sym(e1, "v")
+R = (alg.rotor(e1^e2, radians=np.pi/2)).name("R")
+v = e1.name("v")
 print(sandwich(R, v))        # RvR̃
 print(sandwich(R, v).eval()) # e₂
 ```
@@ -665,7 +774,7 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 
 | Method / Property | Description |
 |---|---|
-| `basis_vectors()` | Tuple of basis 1-vectors |
+| `basis_vectors(lazy=False)` | Tuple of basis 1-vectors (lazy=True for symbolic) |
 | `pseudoscalar()` | Unit pseudoscalar |
 | `I` | Unit pseudoscalar (property) |
 | `identity` | Scalar 1 |
@@ -676,9 +785,15 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 
 ### `Multivector`
 
-| Property | Description |
+| Property / Method | Description |
 |---|---|
 | `[k]` | Grade-k projection (`x[2]` = `grade(x, 2)`) |
+| `.name(label, *, latex=, unicode=, ascii=)` | Set display name, set lazy (mutates). `label` optional if `latex` given. |
+| `.anon()` | Remove display name (mutates) |
+| `.lazy()` | Set lazy mode (mutates) |
+| `.eager()` | Force eager, strip name (mutates) |
+| `.eager("B")` | Force eager, keep/set name (mutates) |
+| `.eval()` | Return a new anonymous eager copy (non-mutating) |
 | `.inv` | Inverse |
 | `.dag` | Reverse (dagger) |
 | `.sq` | Squared (geometric product with self) |
@@ -731,10 +846,41 @@ In 3D Euclidean space, this is isomorphic to the vector cross product. In Cl(1,3
 
 Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 
+- **`naming_demo.py`** — Naming and evaluation API: `.name()`, `.anon()`, `.lazy()`, `.eager()`, real-world examples
+- **`lazy_blades_demo.py`** — Lazy basis blades: `basis_vectors(lazy=True)` for fully symbolic workflows
+- **`latex_naming_demo.py`** — LaTeX-driven naming across physics domains (QM, STA, PGA)
+- **`rendering_gallery.py`** — Visual gallery of all expression types with LaTeX rendering
 - **`symbolic_demo.py`** — Symbolic expression trees, rendering, simplification, LaTeX output
 - **`spacetime_algebra.py`** — Spacetime Algebra Cl(1,3): boosts, rotations, EM field, Thomas–Wigner rotation
 - **`quantum_physics.py`** — Quantum spin-½: Bloch sphere, measurement, Stern–Gerlach, Larmor precession
 - **`pga_demo.py`** — Projective GA Cl(3,0,1): translations, reflections, motors, screw interpolation
+- **`special_relativity_lazy.py`** — Lazy STA walkthrough of boosts, Minkowski diagrams, and rapidity addition
+- **`electromagnetism_lazy.py`** — Faraday bivector construction, invariants, and boosted field components
+- **`quantum_spin_lazy.py`** — Lazy Pauli-blade construction of spin states and Stern-Gerlach probabilities
+- **`pauli_equation_toy.py`** — Toy Pauli-equation notebook for spin precession as rotor evolution
+- **`optics_polarisation_lazy.py`** — Polariser projectors and wave-plate rotors in 2D GA
+- **`pga_geometry_constructions.py`** — PGA point-line-triangle constructions with lazy joins
+- **`planar_kinematics_lazy.py`** — Rotor-based planar rigid-body kinematics and trajectory plotting
+- **`coupled_oscillators_modes.py`** — Normal modes as a basis change in configuration-space GA
+- **`exterior_algebra_intuition.py`** — Wedge-product intuition for oriented length, area, and volume
+- **`duality_and_complements.py`** — Side-by-side notebook for metric duality vs combinatorial complements
+- **`aharonov_bohm.py`** — Holonomy-first Aharonov-Bohm notebook using internal phase rotors
+- **`one_g_travel_calculator.py`** — Relativistic 1g travel calculator with accelerate, coast, decelerate, and Earth-vs-ship time
+- **`twin_paradox.py`** — Worldline and proper-time notebook for the twin paradox
+- **`relativistic_rocket_equation.py`** — Rapidity-first rocket equation notebook with burn and coast analysis
+- **`thomas_precession.py`** — Non-collinear boost composition and residual Thomas-Wigner rotation
+- **`em_waves_sta.py`** — Plane-wave electromagnetic fields and null invariants in STA
+- **`robot_kinematics_pga.py`** — Two-link planar robot kinematics with PGA-style motors
+- **`rotors_from_reflections.py`** — Reflection composition notebook showing how rotors arise geometrically
+- **`pauli_matrices_vs_ga.py`** — Side-by-side comparison of Pauli matrices/spinors and Cl(3,0) rotors/vectors
+- **`dirac_matrices_vs_sta.py`** — Side-by-side comparison of Dirac gamma matrices and STA boosts/vectors
+- **`maxwell_equations_sta.py`** — Maxwell’s equations in compact STA form with field splits and wave invariants
+- **`thin_lens_and_rays_pga.py`** — Thin-lens image construction notebook with projective optics geometry
+- **`quantum_gates_ga.py`** — Single-qubit gates as Bloch-sphere rotations in Cl(3,0)
+- **`kepler_orbits_ga.py`** — Kepler orbit and hodograph notebook with explicit orbital bivectors
+- **`qubits_and_superposition_ga.py`** — Intro to qubits and superposition via rotors and Bloch vectors
+- **`measurement_and_interference_ga.py`** — Phase, recombination, and interference explained with GA rotors
+- **`single_qubit_circuits_ga.py`** — Small single-qubit circuit builder using rotor composition
 
 ```bash
 uv run marimo edit examples/quantum_physics.py
@@ -755,7 +901,7 @@ uv run pytest tests/ -v                          # run all tests
 uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 ```
 
-349 tests, 99% coverage. Tests include:
+845 tests, 98% coverage. Tests include:
 - Algebraic identities (associativity, distributivity, reverse-of-product)
 - Golden tests for Cl(2,0), Cl(3,0), Cl(1,3)
 - All five inner products with mixed-grade cases where they diverge
@@ -763,5 +909,12 @@ uv run pytest tests/ --cov=ga --cov-report=term  # with coverage
 - Projection/rejection complement property, reflection involution
 - Symbolic rendering, evaluation, simplification rules
 - LaTeX output for both `Multivector` and `Expr`
+- Naming/evaluation semantics: `.name()`, `.anon()`, `.lazy()`, `.eager()`
+- Lazy propagation through all operators
+- Lazy basis blades: `basis_vectors(lazy=True)`
+- MV / MV division, ScalarDiv/Div/Exp expression nodes
+- Precedence-aware rendering (93 dedicated tests)
+- LaTeX symbol mapping (101 tests) and auto-derivation
+- Small value display with explicit format specs
+- All 10 spec use cases from the symbolic redesign
 - Edge cases and error handling
-
