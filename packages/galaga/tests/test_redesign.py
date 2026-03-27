@@ -200,7 +200,7 @@ class TestLazyPropagation:
 class TestBasisBlades:
     def test_basis_named_eager(self, cl3):
         e1, e2, e3 = cl3.basis_vectors()
-        assert e1._name is not None
+        assert str(e1) != "0"  # basis blade renders by name
         assert e1._is_lazy is False
 
     def test_basis_str(self, cl3):
@@ -220,17 +220,17 @@ class TestBasisBlades:
 
     def test_pseudoscalar_named(self, cl3):
         I = cl3.pseudoscalar()
-        assert I._name == "I"
+        assert "I" in str(I) or str(I) == "𝑰"
         assert str(I) == "𝑰"
 
     def test_blade_lookup_named(self, cl3):
         b = cl3.blade("e12")
-        assert b._name == "e12"
+        assert str(b) == "e₁₂"
 
     def test_custom_names(self):
         sta = Algebra((1, -1, -1, -1), names="gamma")
         g0, g1, g2, g3 = sta.basis_vectors()
-        assert g0._name is not None
+        assert str(g0) != "0"
         assert "γ" in str(g0)
 
 
@@ -1172,7 +1172,7 @@ class TestBasisVectorsLazy:
     def test_lazy_flag(self, cl3):
         e1, _, _ = cl3.basis_vectors(lazy=True)
         assert e1._is_lazy is True
-        assert e1._name is not None
+        assert str(e1) != "0"  # basis blade renders by name
 
     def test_lazy_ops_build_trees(self, cl3):
         e1, e2, _ = cl3.basis_vectors(lazy=True)
@@ -1532,7 +1532,7 @@ class TestSymNoName:
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1).name(latex=r"\hat{n}")
         assert "n" in str(a)
-        assert e1._name == "e1"  # original untouched
+        assert str(e1) == "e₁"  # original untouched
 
     def test_norm_lazy(self, cl3):
         from ga import norm
@@ -1639,3 +1639,14 @@ class TestBasisBladeRename:
         bb = alg.get_basis_blade(0b011)
         assert bb.ascii_name == "B12"
         assert bb.latex_name == r"\beta_{12}"
+
+
+    def test_rename_updates_existing_mv(self):
+        """Renaming a BasisBlade updates already-created MVs."""
+        from ga import Algebra
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        alg.get_basis_blade(e1).rename(unicode="x")
+        assert str(e1) == "x"
+        alg.get_basis_blade(e1).rename(unicode="e₁")
+        assert str(e1) == "e₁"

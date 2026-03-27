@@ -319,10 +319,6 @@ class Algebra:
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
-            bb = self._blades[bitmask]
-            mv._name = bb.ascii_name
-            mv._name_unicode = bb.unicode_name
-            mv._name_latex = bb.latex_name
             mv._is_lazy = lazy
             vecs.append(mv)
         return tuple(vecs)
@@ -331,12 +327,7 @@ class Algebra:
         """Return the unit pseudoscalar I (𝑰) (named + eager)."""
         data = np.zeros(self._dim)
         data[self._dim - 1] = 1.0
-        mv = Multivector(self, data)
-        bb = self._blades[self._dim - 1]
-        mv._name = bb.ascii_name
-        mv._name_unicode = bb.unicode_name
-        mv._name_latex = bb.latex_name
-        return mv
+        return Multivector(self, data)
 
     @property
     def I(self) -> Multivector:
@@ -378,12 +369,7 @@ class Algebra:
             if bitmask is not None:
                 data = np.zeros(self._dim)
                 data[bitmask] = 1.0
-                mv = Multivector(self, data)
-                bb = self._blades[bitmask]
-                mv._name = bb.ascii_name
-                mv._name_unicode = bb.unicode_name
-                mv._name_latex = bb.latex_name
-                return mv
+                return Multivector(self, data)
         # Default e-index parsing (digit-by-digit, only valid for n <= 9)
         if not name.startswith("e"):
             raise ValueError(f"Invalid blade name: {name!r}")
@@ -400,12 +386,7 @@ class Algebra:
             bitmask |= 1 << (idx - 1)
         data = np.zeros(self._dim)
         data[bitmask] = 1.0
-        mv = Multivector(self, data)
-        bb = self._blades[bitmask]
-        mv._name = bb.ascii_name
-        mv._name_unicode = bb.unicode_name
-        mv._name_latex = bb.latex_name
-        return mv
+        return Multivector(self, data)
 
     def _parse_blade_name(self, name: str, code_names: list[str]) -> int | None:
         """Try to parse a blade name as concatenation of code names. Returns bitmask or None."""
