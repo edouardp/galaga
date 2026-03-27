@@ -149,13 +149,25 @@ class TestPostfixOnSup:
         """reverse(exp(a)) with dagger notation: {e^{a}}^{\\dagger}"""
         from ga.notation import Notation, NotationRule
         n = Notation()
-        n.set("Reverse", "latex", NotationRule(kind="postfix", symbol=r"^{\dagger}"))
+        n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
         from ga.latex_build import build
         from ga.latex_emit import emit
         from ga.latex_rewrite import rewrite
         tree = build(Reverse(Exp(a)), n)
         result = emit(rewrite(tree))
         assert result == r"{e^{a}}^{\dagger}"
+
+    def test_superscript_on_simple(self):
+        """reverse(a) with superscript dagger: a^{\\dagger}"""
+        from ga.notation import Notation, NotationRule
+        n = Notation()
+        n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
+        from ga.latex_build import build
+        from ga.latex_emit import emit
+        from ga.latex_rewrite import rewrite
+        tree = build(Reverse(a), n)
+        result = emit(rewrite(tree))
+        assert result == r"a^{\dagger}"
 
     def test_postfix_star_on_exp(self):
         """dual(exp(a)): {e^{a}}^*"""

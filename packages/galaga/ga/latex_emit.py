@@ -25,7 +25,11 @@ def emit(node: LNode) -> str:
         return f"{cmd}{{{emit(node.num)}}}{{{emit(node.den)}}}"
 
     if t is Sup:
-        return f"{emit(node.base)}^{{{emit(node.exp)}}}"
+        base = emit(node.base)
+        # Brace-wrap if base is also a Sup to avoid double-superscript
+        if isinstance(node.base, Sup):
+            base = "{" + base + "}"
+        return f"{base}^{{{emit(node.exp)}}}"
 
     if t is Parens:
         return rf"\left({emit(node.child)}\right)"

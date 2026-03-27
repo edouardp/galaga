@@ -140,6 +140,12 @@ def _build(node: Expr, n: Notation) -> LNode:
             inner = Seq([Text("{"), inner, Text("}")])
         return Seq([inner, Text(rule.symbol)])
 
+    # Superscript: symbol goes in ^{...}, auto-braced. The user writes
+    # just the symbol (e.g. r"\dagger"), not the ^{} wrapper.
+    if rule.kind == "superscript" and hasattr(node, 'x'):
+        inner = _wp(_build(node.x, n), node.x, 96)
+        return Sup(inner, Text(rule.symbol))
+
     # Wrap (delimiters around content)
     if rule.kind == "wrap":
         if t in _COMMA_BINARY:

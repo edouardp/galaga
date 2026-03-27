@@ -36,7 +36,6 @@ def _():
 
     return (
         Algebra,
-        Notation,
         NotationRule,
         complement,
         dual,
@@ -59,18 +58,17 @@ def _(mo):
 
 
 @app.cell
-def _(Notation, NotationRule):
-    n = Notation()  # start from default
-    n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
-    n.set("Reverse", "latex", NotationRule(kind="postfix", symbol=r"^\dagger"))
-    n.set("Reverse", "ascii", NotationRule(kind="postfix", symbol="dag"))
-    return (n,)
+def _():
+    return
 
 
 @app.cell
-def _(Algebra, n):
-    alg = Algebra((1, 1, 1), notation=n)
+def _(Algebra, NotationRule):
+    alg = Algebra((1, 1, 1))
     e1, e2, e3 = alg.basis_vectors(lazy=True)
+
+    # Set the reverse rendering to use postfix dagger
+    alg.notation.set("Reverse", "latex", NotationRule(kind="postfix", symbol=r"\dagger"))
     return alg, e1, e2, e3
 
 

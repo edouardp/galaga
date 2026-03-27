@@ -11,6 +11,7 @@ The renderer (ga.render) queries the Notation object instead of hardcoded tables
 Rule kinds:
     prefix:        "-x", "*v"           — symbol prepended to operand
     postfix:       "x†", "x⁻¹", "x²"   — symbol appended to operand
+    superscript:   "x^{dagger}"         — symbol placed in LaTeX superscript (auto-braced)
     accent:        "x̃" / "~(a+b)"      — combining char for atoms, prefix fallback for compounds
     infix:         "a∧b", "a·b"         — symbol between two operands
     function:      "rev(x)", "wedge(a,b)" — function call style
@@ -36,7 +37,7 @@ from dataclasses import dataclass, field
 @dataclass
 class NotationRule:
     """How to render one operation in one format."""
-    kind: str  # "prefix", "postfix", "accent", "infix", "wrap", "juxtaposition"
+    kind: str  # "prefix", "postfix", "superscript", "accent", "infix", "wrap", "juxtaposition"
     symbol: str = ""
     # accent-specific
     combining: str = ""
@@ -221,5 +222,5 @@ class Notation:
         n = Notation()
         n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         n.set("Reverse", "ascii", NotationRule(kind="postfix", symbol="dag"))
-        n.set("Reverse", "latex", NotationRule(kind="postfix", symbol="^{\\dagger}"))
+        n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
         return n
