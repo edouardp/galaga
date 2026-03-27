@@ -773,3 +773,25 @@ class TestNotationOverrideRendering:
         v = Sym(e1, "v")
         assert render(Reverse(v), alg1.notation) == "v†"
         assert render(Reverse(v), alg2.notation) != "v†"
+
+
+class TestRegressive:
+    def test_regressive_unicode(self, syms):
+        from ga.symbolic import Regressive
+        a, b, _ = syms
+        assert render(Regressive(a, b)) == "a∨b"
+
+    def test_regressive_latex(self, syms):
+        from ga.symbolic import Regressive
+        a, b, _ = syms
+        assert render_latex(Regressive(a, b)) == r"a \vee b"
+
+    def test_regressive_associative(self, syms):
+        from ga.symbolic import Regressive
+        a, b, c = syms
+        assert render(Regressive(Regressive(a, b), c)) == "a∨b∨c"
+
+    def test_regressive_sum_needs_parens(self, syms):
+        from ga.symbolic import Regressive
+        a, b, c = syms
+        assert render(Regressive(Add(a, b), c)) == "(a + b)∨c"

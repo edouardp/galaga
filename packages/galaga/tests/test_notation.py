@@ -20,6 +20,7 @@ class TestDefaultsExist:
         "Reverse", "Involute", "Conjugate", "Dual", "Undual",
         "Inverse", "Squared", "Neg", "ScalarMul", "ScalarDiv",
         "Gp", "Op", "Lc", "Rc", "Hi", "Dli", "Sp", "Div",
+        "Regressive",
         "Add", "Sub",
         "Grade", "Norm", "Unit", "Exp", "Even", "Odd",
         "Commutator", "Anticommutator", "LieBracket", "JordanProduct",
