@@ -298,3 +298,31 @@ class TestPresets:
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
         assert str(reverse(v)) == "v†"
+
+
+class TestFunctionStyle:
+    def test_wedge_as_function(self):
+        from ga import Algebra, op
+        from ga.notation import NotationRule
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        assert str(e1 ^ e2) == "wedge(e₁, e₂)"
+
+    def test_reverse_as_function(self):
+        from ga import Algebra, reverse
+        from ga.notation import NotationRule
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        assert str(reverse(v)) == "rev(v)"
+
+    def test_function_style_latex(self):
+        from ga import Algebra
+        from ga.notation import NotationRule
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        result = (e1 ^ e2)
+        assert r"\operatorname{wedge}" in result.latex()

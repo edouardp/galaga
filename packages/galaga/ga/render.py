@@ -207,6 +207,10 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         right = _wrap(render(node.b, n), node.b, min_p, parent_type=t)
         return f"{left}{rule.separator}{right}"
 
+    # Function-style binary: "wedge(a, b)"
+    if rule and rule.kind == "function" and hasattr(node, 'a'):
+        return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
+
     # Unit — special: hat for single-char atoms, fraction for compounds
     if t is Unit:
         if isinstance(node.x, Sym) and _is_single_char_name(str(node.x)):
@@ -221,6 +225,10 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         inner = render(node.x, n)
         is_atom = isinstance(node.x, (Sym, Scalar))
         return _render_accent_unicode(rule, inner, is_atom)
+
+    # Function-style unary: "rev(x)"
+    if rule and rule.kind == "function":
+        return f"{rule.symbol}({render(node.x, n)})"
 
     # Postfix unary (dual, inverse, squared, undual)
     if rule and rule.kind == "postfix":
@@ -289,6 +297,10 @@ def render_latex(node: Expr, notation: Notation | None = None) -> str:
         right = _wrap_latex(render_latex(node.b, n), node.b, min_p, parent_type=t)
         return f"{left}{rule.separator}{right}"
 
+    # Function-style binary: "\operatorname{wedge}(a, b)"
+    if rule and rule.kind == "function" and hasattr(node, 'a'):
+        return rf"\operatorname{{{rule.symbol}}}({render_latex(node.a, n)}, {render_latex(node.b, n)})"
+
 
     # Accent (reverse, involute, conjugate)
     if rule and rule.kind == "accent":
@@ -299,6 +311,10 @@ def render_latex(node: Expr, notation: Notation | None = None) -> str:
         else:
             inner = _wrap_latex(render_latex(node.x, n), node.x, 95)
         return _render_accent_latex(rule, inner, is_atom)
+
+    # Function-style unary: "\operatorname{rev}(x)"
+    if rule and rule.kind == "function":
+        return rf"\operatorname{{{rule.symbol}}}({render_latex(node.x, n)})"
 
     # Postfix
     if rule and rule.kind == "postfix":

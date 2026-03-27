@@ -1048,7 +1048,7 @@ class Multivector:
         # Anonymous lazy → delegate to renderer
         elif self._is_lazy and self._expr is not None and coeff_format is None:
             from ga.render import render_latex
-            raw = render_latex(self._expr)
+            raw = render_latex(self._expr, self.algebra._notation)
         else:
             # Eager anonymous → existing coefficient rendering
             alg = self.algebra
