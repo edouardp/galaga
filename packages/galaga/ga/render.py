@@ -156,6 +156,10 @@ def render(node: Expr, notation: Notation | None = None) -> str:
             return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
         return f"{rule.symbol}({render(node.x, n)})"
 
+    # Prefix unary (e.g. *v for dual)
+    if rule.kind == "prefix" and hasattr(node, 'x'):
+        return f"{rule.symbol}{_w(render(node.x, n), node.x, 95)}"
+
     # Accent (combining char for atoms, prefix fallback for compounds)
     if rule.kind == "accent" and hasattr(node, 'x'):
         inner = render(node.x, n)
@@ -229,6 +233,10 @@ def render_latex(node: Expr, notation: Notation | None = None) -> str:
         if hasattr(node, 'a'):
             return rf"\operatorname{{{rule.symbol}}}({render_latex(node.a, n)}, {render_latex(node.b, n)})"
         return rf"\operatorname{{{rule.symbol}}}({render_latex(node.x, n)})"
+
+    # Prefix unary
+    if rule.kind == "prefix" and hasattr(node, 'x'):
+        return f"{rule.symbol}{_wl(render_latex(node.x, n), node.x, 95)}"
 
     if rule.kind == "accent" and hasattr(node, 'x'):
         is_atom = isinstance(node.x, (Sym, Scalar))

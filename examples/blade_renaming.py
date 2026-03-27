@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
 
-    return (mo,)
+    return
 
 
 @app.cell
@@ -30,7 +30,7 @@ def _():
     import galaga_marimo as gm
     import numpy as np
 
-    return Algebra, dual, exp, gm, grade, norm, np, reverse, squared
+    return Algebra, gm, squared
 
 
 @app.cell(hide_code=True)
@@ -45,11 +45,6 @@ def _(gm):
     return
 
 
-# ============================================================
-# Default names
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"## Default Names")
@@ -59,27 +54,22 @@ def _(gm):
 @app.cell
 def _(Algebra, gm):
     alg = Algebra((1, 1, 1))
-    e1, e2, e3 = alg.basis_vectors()
+    _e1, _e2, _e3 = alg.basis_vectors()
 
     gm.md(t"""
     Default Cl(3,0) basis blades:
 
     | Blade | Unicode | LaTeX |
     |-------|---------|-------|
-    | e₁ | {e1} | ${e1.latex()}$ |
-    | e₂ | {e2} | ${e2.latex()}$ |
-    | e₃ | {e3} | ${e3.latex()}$ |
-    | e₁₂ | {e1 ^ e2} | ${(e1 ^ e2).latex()}$ |
-    | e₁₃ | {e1 ^ e3} | ${(e1 ^ e3).latex()}$ |
-    | e₂₃ | {e2 ^ e3} | ${(e2 ^ e3).latex()}$ |
-    | e₁₂₃ | {e1 ^ e2 ^ e3} | ${(e1 ^ e2 ^ e3).latex()}$ |
+    | e₁ | {_e1} | ${_e1.latex()}$ |
+    | e₂ | {_e2} | ${_e2.latex()}$ |
+    | e₃ | {_e3} | ${_e3.latex()}$ |
+    | e₁₂ | {_e1 ^ _e2} | ${(_e1 ^ _e2).latex()}$ |
+    | e₁₃ | {_e1 ^ _e3} | ${(_e1 ^ _e3).latex()}$ |
+    | e₂₃ | {_e2 ^ _e3} | ${(_e2 ^ _e3).latex()}$ |
+    | e₁₂₃ | {_e1 ^ _e2 ^ _e3} | ${(_e1 ^ _e2 ^ _e3).latex()}$ |
     """)
-    return alg, e1, e2, e3
-
-
-# ============================================================
-# Rename the pseudoscalar
-# ============================================================
+    return (alg,)
 
 
 @app.cell(hide_code=True)
@@ -102,11 +92,6 @@ def _(alg, e1, e2, e3, gm):
     - Existing `e1 ^ e2 ^ e3` also updates: {e1 ^ e2 ^ e3}
     """)
     return
-
-
-# ============================================================
-# Rename bivectors for angular momentum
-# ============================================================
 
 
 @app.cell(hide_code=True)
@@ -140,12 +125,7 @@ def _(Algebra, gm, squared):
 
     Casimir: {squared(_L1)} + {squared(_L2)} + {squared(_L3)} = {(squared(_L1).eval() + squared(_L2).eval() + squared(_L3).eval())}
     """)
-    return
-
-
-# ============================================================
-# Spacetime Algebra with custom blade names
-# ============================================================
+    return e1, e2, e3
 
 
 @app.cell(hide_code=True)
@@ -186,11 +166,6 @@ def _(Algebra, gm):
     return
 
 
-# ============================================================
-# PGA with geometric names
-# ============================================================
-
-
 @app.cell(hide_code=True)
 def _(gm):
     gm.md(t"## Projective GA — Geometric Names")
@@ -221,11 +196,6 @@ def _(Algebra, gm):
     | pseudoscalar | {pga.pseudoscalar()} |
     """)
     return
-
-
-# ============================================================
-# Dynamic renaming
-# ============================================================
 
 
 @app.cell(hide_code=True)
