@@ -305,6 +305,7 @@ Commutator = _make_binary_expr('Commutator', 'commutator')
 Anticommutator = _make_binary_expr('Anticommutator', 'anticommutator')
 LieBracket = _make_binary_expr('LieBracket', 'lie_bracket')
 JordanProduct = _make_binary_expr('JordanProduct', 'jordan_product')
+Regressive = _make_binary_expr('Regressive', 'regressive_product')
 
 # Unary expression nodes
 Reverse = _make_unary_expr('Reverse', 'reverse')
@@ -795,6 +796,8 @@ commutator = _make_binary_dropin(Commutator, _alg.commutator)
 anticommutator = _make_binary_dropin(Anticommutator, _alg.anticommutator)
 lie_bracket = _make_binary_dropin(LieBracket, _alg.lie_bracket)
 jordan_product = _make_binary_dropin(JordanProduct, _alg.jordan_product)
+regressive_product = _make_binary_dropin(Regressive, _alg.regressive_product)
+meet = regressive_product
 
 # Unary drop-ins
 reverse = _make_unary_dropin(Reverse, _alg.reverse)

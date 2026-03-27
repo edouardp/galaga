@@ -1431,6 +1431,33 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+@lazy_binary('Regressive')
+def regressive_product(a: Multivector, b: Multivector) -> Multivector:
+    """Regressive product (meet): complement-based, works in all signatures.
+
+    Computes the intersection of the subspaces represented by blades a and b.
+    Uses the complement operator (metric-independent), so it works in
+    degenerate algebras like PGA where the pseudoscalar is not invertible.
+
+    Definition: a ∨ b = uncomplement(complement(a) ∧ complement(b))
+    """
+    return uncomplement(op(complement(a), complement(b)))
+
+
+def metric_regressive_product(a: Multivector, b: Multivector) -> Multivector:
+    """Regressive product via metric dual: (a* ∧ b*)*.
+
+    Only works in nondegenerate algebras (VGA, STA, CGA).
+    Raises ValueError in degenerate algebras (PGA).
+    """
+    return undual(op(dual(a), dual(b)))
+
+
+# Aliases
+meet = regressive_product
+join = op
+
+
 def norm2(x: Multivector) -> float:
     """Squared norm: scalar part of x * ~x."""
     return scalar(gp(x, reverse(x)))

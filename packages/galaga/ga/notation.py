@@ -112,6 +112,7 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Dli": _infix("·", r" \cdot ", "."),
     "Sp": _infix("∗", r" * ", "*"),
     "Div": _infix("/", "/", "/"),
+    "Regressive": _infix("∨", r" \vee ", "v"),
     "Add": _infix(" + ", " + ", " + "),
     "Sub": _infix(" - ", " - ", " - "),
 

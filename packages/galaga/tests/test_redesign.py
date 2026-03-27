@@ -1649,3 +1649,76 @@ class TestBasisBladeRename:
         assert str(e1) == "x"
         alg.get_basis_blade(e1).rename(unicode="e₁")
         assert str(e1) == "e₁"
+
+
+class TestRegressiveProduct:
+    """Tests for the regressive product (meet)."""
+
+    def test_bivector_meet_3d(self, cl3):
+        """Two bivectors in 3D meet at a vector."""
+        from ga import meet
+        e1, e2, e3 = cl3.basis_vectors()
+        result = meet(e1 ^ e2, e2 ^ e3)
+        # Should be proportional to e2
+        assert abs(result.data[2]) > 1e-12  # e2 component
+        assert sum(abs(c) > 1e-12 for c in result.data) == 1
+
+    def test_meet_is_alias(self, cl3):
+        from ga import meet, regressive_product
+        assert meet is regressive_product
+
+    def test_join_is_alias(self, cl3):
+        from ga import join, op
+        assert join is op
+
+    def test_meet_grade_rule(self, cl3):
+        """grade(A ∨ B) = grade(A) + grade(B) - n."""
+        from ga import meet, grade
+        e1, e2, e3 = cl3.basis_vectors()
+        # bivector ∨ bivector in 3D: 2+2-3 = 1 (vector)
+        result = meet(e1 ^ e2, e2 ^ e3)
+        assert result == grade(result, 1)
+
+    def test_meet_zero_when_grades_too_low(self, cl3):
+        """vector ∨ vector in 3D: 1+1-3 = -1 → zero."""
+        from ga import meet
+        e1, e2, _ = cl3.basis_vectors()
+        result = meet(e1, e2)
+        assert result == 0
+
+    def test_pga_line_meet(self):
+        """Two lines in PGA meet at a point."""
+        from ga import Algebra, meet
+        pga = Algebra((1, 1, 1, 0))
+        e1, e2, e3, e0 = pga.basis_vectors()
+        L1 = e1 ^ e2 ^ e0
+        L2 = e1 ^ e3 ^ e0
+        pt = meet(L1, L2)
+        assert any(abs(c) > 1e-12 for c in pt.data)
+
+    def test_symbolic_rendering(self, cl3):
+        from ga import regressive_product
+        e1, e2, e3 = cl3.basis_vectors(lazy=True)
+        A = (e1 ^ e2).name("A")
+        B = (e2 ^ e3).name("B")
+        result = regressive_product(A, B)
+        assert "∨" in str(result)
+        assert r"\vee" in result.latex()
+
+    def test_symbolic_eval(self, cl3):
+        from ga import regressive_product
+        e1, e2, e3 = cl3.basis_vectors(lazy=True)
+        A = (e1 ^ e2).name("A")
+        B = (e2 ^ e3).name("B")
+        result = regressive_product(A, B)
+        concrete = result.eval()
+        assert abs(concrete.data[2]) > 1e-12  # e2
+
+    def test_metric_regressive_euclidean(self, cl3):
+        """Metric regressive agrees with complement-based in Euclidean."""
+        from ga import meet, metric_regressive_product
+        import numpy as np
+        e1, e2, e3 = cl3.basis_vectors()
+        a = meet(e1 ^ e2, e2 ^ e3)
+        b = metric_regressive_product(e1 ^ e2, e2 ^ e3)
+        assert np.allclose(a.data, b.data) or np.allclose(a.data, -b.data)
