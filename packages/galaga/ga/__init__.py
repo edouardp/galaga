@@ -72,6 +72,7 @@ from ga.algebra import (
     # Unary
     reverse,
     involute,
+    grade_involution,
     conjugate,
     grade,
     grades,
@@ -130,6 +131,7 @@ __all__ = [
     "jordan_product",
     "reverse",
     "involute",
+    "grade_involution",
     "conjugate",
     "grade",
     "grades",

@@ -1749,6 +1749,7 @@ geometric_product = gp
 wedge = op
 outer_product = op
 rev = reverse
+grade_involution = involute
 normalize = unit
 normalise = unit
 norm_squared = norm2
