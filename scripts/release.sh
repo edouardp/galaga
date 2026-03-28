@@ -48,6 +48,13 @@ rm "$TMPFILE"
 # --- Open editor for changelog ---
 ${EDITOR:-vim} "$CHANGELOG"
 
+# --- Abort if changelog still has placeholder ---
+if grep -q '<!-- Fill in release notes' "$CHANGELOG"; then
+    echo "ERROR: Changelog not edited. Aborting release." >&2
+    git checkout "$CHANGELOG"
+    exit 1
+fi
+
 # --- Commit ---
 cd "$ROOT"
 git add -A
