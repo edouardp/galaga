@@ -36,6 +36,7 @@ def _():
 
     return (
         Algebra,
+        NotationRule,
         complement,
         dual,
         exp,
@@ -43,7 +44,6 @@ def _():
         inverse,
         log,
         np,
-        reverse,
         undual,
     )
 
@@ -62,12 +62,12 @@ def _():
 
 
 @app.cell
-def _(Algebra):
+def _(Algebra, NotationRule):
     alg = Algebra((1, 1, 1))
     e1, e2, e3 = alg.basis_vectors(lazy=True)
 
     # Set the reverse rendering to use postfix dagger
-    #alg.notation.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
+    alg.notation.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
     return alg, e1, e2, e3
 
 
@@ -186,16 +186,15 @@ def _(mo):
 def _(alg, e1, e2, exp, gm, np):
     _alpha = alg.scalar(np.radians(30)).name(latex=r"\alpha")
     _B = (e1 * e2).name("B")
+    _R = exp((-_alpha / 2) * _B)
 
-    with gm.doc() as _d:
-        _d.md(t"""
-        Negative angle in exponent:
+    gm.md(t"""
+    Negative angle in exponent:
 
-        {exp((-_alpha / 2) * _B)} = {exp((-_alpha / 2) * _B).eval()}
+    {_R} = {_R.eval()}
 
-        The sign hoists cleanly before the slash.
-        """)
-    _d.render()
+    The sign hoists cleanly before the slash.
+    """)
     return
 
 
@@ -215,15 +214,13 @@ def _(e1, gm):
     _v = e1.name("v")
     _trivial = _v / 1
 
-    with gm.doc() as _d:
-        _d.md(t"""
-        Division by 1:
+    gm.md(t"""
+    Division by 1:
 
-        {_trivial} = {_trivial.eval()}
+    {_trivial} = {_trivial.eval()}
 
-        Renders as just v, not a fraction with denominator 1.
-        """)
-    _d.render()
+    Renders as just v, not a fraction with denominator 1.
+    """)
     return
 
 
@@ -247,33 +244,15 @@ def _(alg, e1, e2, e3, exp, gm, log, np):
 
     _rotated = _R * _v * ~_R
 
-    with gm.doc() as _d:
-        _d.md(t"""
-        Rotor: {_R} = {_R.eval()}
+    gm.md(t"""
+    Rotor: {_R} = {_R.eval()}
 
-        Vector: {_v} = {_v.eval()}
+    Vector: {_v} = {_v.eval()}
 
-        Rotation: {_rotated}
+    Rotation: {_rotated} = {_rotated.eval()}
 
-        Result: {_rotated.eval()}
-
-        Log of rotor: {log(_R)} = {log(_R).eval()}
-        """)
-    _d.render()
-    return
-
-
-@app.cell
-def _(alg, e1, e2, e3, exp, np, reverse):
-    _theta = alg.scalar(np.radians(60)).name(latex=r"\theta")
-
-    _B = (e1 * e2).name("B")
-    _v = (3 * e1 + 4 * e2 + e3).name("v")
-    _R = exp((-_theta / 2) * _B)
-
-    _rotated = _R * _v * reverse(_R)
-
-    _rotated.latex()
+    Log of rotor: {log(_R)} = {log(_R).eval()}
+    """)
     return
 
 

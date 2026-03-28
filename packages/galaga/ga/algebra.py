@@ -579,6 +579,16 @@ class Multivector:
             _name=None, _name_latex=None, _name_unicode=None,
         )
 
+    def reveal(self) -> Multivector:
+        """Return a new anonymous copy with the same lazy/eager state.
+
+        Like eval() but preserves laziness. Useful for displaying the
+        underlying value of a named MV without mutating it.
+        """
+        return self._copy_with(
+            _name=None, _name_latex=None, _name_unicode=None,
+        )
+
     def _to_expr(self):
         """Convert this MV to an Expr node for use in expression trees.
 

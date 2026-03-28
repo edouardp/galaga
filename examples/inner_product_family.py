@@ -62,6 +62,20 @@ def _(Algebra):
 
 
 @app.cell
+def _(e1, e2, e3, gm):
+    gm.md(t"""
+    Basis vectors:
+
+    {e1} = {e1.eval()}
+
+    {e2} = {e2.eval()}
+
+    {e3} = {e3.eval()}
+    """)
+    return
+
+
+@app.cell
 def _(
     doran_lasenby_inner,
     e1,

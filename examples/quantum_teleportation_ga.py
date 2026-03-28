@@ -34,23 +34,21 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Quantum Teleportation with GA Geometry
+    mo.md(r"""
+    # Quantum Teleportation with GA Geometry
 
-        Full teleportation is a three-qubit protocol, so the exact tensor-product
-        bookkeeping lives outside the current single-spin rotor API. This notebook
-        therefore teaches the protocol geometrically:
+    Full teleportation is a three-qubit protocol, so the exact tensor-product
+    bookkeeping lives outside the current single-spin rotor API. This notebook
+    therefore teaches the protocol geometrically:
 
-        - the unknown input qubit is a Bloch vector
-        - the Bell pair supplies shared correlation
-        - Alice's two classical bits tell Bob which correction rotor to apply
+    - the unknown input qubit is a Bloch vector
+    - the Bell pair supplies shared correlation
+    - Alice's two classical bits tell Bob which correction rotor to apply
 
-        The central idea survives cleanly in GA: the "state to be teleported" is a
-        direction encoded by a rotor, and the correction is another rotor chosen from
-        a small discrete set.
-        """
-    )
+    The central idea survives cleanly in GA: the "state to be teleported" is a
+    direction encoded by a rotor, and the correction is another rotor chosen from
+    a small discrete set.
+    """)
     return
 
 
@@ -79,19 +77,17 @@ def _(e1, e2, e3, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Unknown Qubit
+    mo.md(r"""
+    ## Unknown Qubit
 
-        The state to be teleported is represented by a rotor
+    The state to be teleported is represented by a rotor
 
-        $$
-        \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}},
-        $$
+    $$
+    \psi = e^{-(\phi/2)e_{12}} e^{-(\theta/2)e_{31}},
+    $$
 
-        with Bloch vector $s = \psi e_3 \tilde\psi$.
-        """
-    )
+    with Bloch vector $s = \psi e_3 \tilde\psi$.
+    """)
     return
 
 
@@ -176,6 +172,7 @@ def _(np, plt, recovered, source):
     _ax.set_title("Teleportation as rotor correction on the Bloch sphere")
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell
