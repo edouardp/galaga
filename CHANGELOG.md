@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.1 (2026-03-28)
+
+### Fixed
+
+- `Multivector.display()` now returns a LaTeX-renderable object instead of a
+  plain string, so it works correctly with `gm.md(t"{mv.display()}")` in
+  galaga-marimo notebooks. The result has `.latex()` and `._repr_latex_()`
+  methods for automatic detection.
+
+
 ## 0.2.1 (2026-03-28)
 
 ### Added
