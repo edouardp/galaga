@@ -1,8 +1,16 @@
 # Changelog
 
-## 0.1.2 (2026-03-28)
+## 0.2.0 (2026-03-28)
 
-<!-- Fill in release notes, then save and close -->
+### Breaking Changes
+
+- **Module renamed from `ga` to `galaga`** — all imports must be updated:
+  - `from ga import Algebra` → `from galaga import Algebra`
+  - `from ga.symbolic import sym` → `from galaga.symbolic import sym`
+  - `from ga.notation import Notation` → `from galaga.notation import Notation`
+  - `import ga` → `import galaga`
+
+The package name on PyPI (`galaga`) now matches the Python import name.
 
 
 ## 0.1.1 (2026-03-28)
