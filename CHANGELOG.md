@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.2 (2026-03-28)
+
+### Fixed
+
+- Expression trees now use proper LaTeX names for all basis vectors and blades
+  (e.g. `e_{1}`, `e_{12}`, `\sigma_1`, `\gamma_0`) instead of unicode names.
+  This fixes `display()` showing duplicate entries like `e₁ + e₂ = e_{1} + e_{2}`
+  and ensures consistent LaTeX rendering throughout symbolic expressions.
+
+
 ## 0.3.1 (2026-03-28)
 
 ### Fixed
