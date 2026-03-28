@@ -1953,7 +1953,7 @@ class TestDisplay:
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         B = (e1 ^ e2).name(latex=r"\mathbf{B}")
-        result = B.display()
+        result = B.display().latex()
         # Expect: \mathbf{B} \quad = \quad e₁ ∧ e₂ \quad = \quad e_{12}
         assert r"\quad = \quad" in result
         assert r"\mathbf{B}" in result
@@ -1964,7 +1964,7 @@ class TestDisplay:
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
         v = e1.name("v")
-        result = v.display()
+        result = v.display().latex()
         # Expect: v \quad = \quad e_{1}
         assert result == r"v \quad = \quad e_{1}"
 
@@ -1972,7 +1972,7 @@ class TestDisplay:
         """Anonymous eager MV has no name or expression — just the value."""
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
-        result = e1.eval().display()
+        result = e1.eval().display().latex()
         # Expect: e_{1}  (no equals signs)
         assert r"\quad" not in result
         assert "e_{1}" in result
@@ -1982,7 +1982,7 @@ class TestDisplay:
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         expr = e1 ^ e2
-        result = expr.display()
+        result = expr.display().latex()
         # Expect: e₁ ∧ e₂ \quad = \quad e_{12}
         assert r"\quad = \quad" in result
         assert "e_{12}" in result
@@ -1992,6 +1992,14 @@ class TestDisplay:
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
         v = e1.name(latex="e_{1}")
-        result = v.display()
+        result = v.display().latex()
         # Name is e_{1}, value is e_{1} — should appear only once
         assert result.count("e_{1}") == 1
+
+    def test_has_latex_method(self):
+        """display() returns an object with .latex() for galaga_marimo compatibility."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        d = e1.display()
+        assert callable(getattr(d, "latex", None))
+        assert callable(getattr(d, "_repr_latex_", None))

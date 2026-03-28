@@ -439,6 +439,26 @@ class Algebra:
         return f"Cl({','.join(parts)})"
 
 
+class _DisplayResult:
+    """Wrapper so display() output is auto-detected as LaTeX by galaga_marimo."""
+    __slots__ = ("_raw",)
+
+    def __init__(self, raw: str):
+        self._raw = raw
+
+    def latex(self) -> str:
+        return self._raw
+
+    def _repr_latex_(self) -> str:
+        return f"${self._raw}$"
+
+    def __str__(self) -> str:
+        return self._raw
+
+    def __repr__(self) -> str:
+        return self._raw
+
+
 class Multivector:
     """A multivector in a Clifford algebra.
 
@@ -589,8 +609,8 @@ class Multivector:
             _name=None, _name_latex=None, _name_unicode=None,
         )
 
-    def display(self) -> str:
-        """Return a LaTeX string showing name = expression = value, omitting duplicates."""
+    def display(self) -> _DisplayResult:
+        """Return a LaTeX-renderable object showing name = expression = value, omitting duplicates."""
         parts = []
         name_latex = self.latex() if self._name is not None else None
         reveal_latex = self.reveal().latex() if self._is_lazy and self._expr is not None else None
@@ -603,7 +623,7 @@ class Multivector:
         if eval_latex not in parts:
             parts.append(eval_latex)
 
-        return " \\quad = \\quad ".join(parts)
+        return _DisplayResult(" \\quad = \\quad ".join(parts))
 
     def _to_expr(self):
         """Convert this MV to an Expr node for use in expression trees.
