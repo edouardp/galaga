@@ -386,6 +386,9 @@ class Algebra:
         if not is_even(B):
             odd = [k for k in range(self._n + 1) if k % 2 == 1 and not np.allclose(grade(B, k).data, 0)]
             raise ValueError(f"B must be an even multivector, but has odd-grade components: {odd}")
+        # Reject pure scalars — need at least a grade-2 component to define a rotation plane
+        if is_scalar(B):
+            raise ValueError("B must contain a bivector (grade-2) component to define a rotation plane")
         theta = radians if radians is not None else np.radians(degrees)
         B_hat = unit(B)
         return self.scalar(np.cos(theta / 2)) - np.sin(theta / 2) * B_hat

@@ -1,0 +1,241 @@
+"""Tests for low-dimensional algebras: Cl(0), Cl(1), Cl(2), and degenerate cases."""
+
+import numpy as np
+import pytest
+from galaga import (
+    Algebra, gp, op, grade, reverse, involute, conjugate, dual, undual,
+    norm, norm2, unit, inverse, exp, log, sandwich, scalar, even_grades,
+    odd_grades, left_contraction, project, reject, reflect, is_scalar,
+    is_vector, is_bivector, is_even, is_rotor, squared,
+)
+
+
+class TestCl0:
+    """Cl(0) — the scalar algebra. dim=1, only grade-0."""
+
+    @pytest.fixture
+    def cl0(self):
+        return Algebra(())
+
+    def test_dimension(self, cl0):
+        assert cl0.dim == 1
+
+    def test_basis_vectors_empty(self, cl0):
+        assert cl0.basis_vectors() == ()
+
+    def test_pseudoscalar_is_scalar_one(self, cl0):
+        assert np.isclose(cl0.I.data[0], 1.0)
+
+    def test_scalar_gp(self, cl0):
+        assert np.isclose(scalar(gp(cl0.scalar(3), cl0.scalar(5))), 15.0)
+
+    def test_scalar_reverse(self, cl0):
+        s = cl0.scalar(7)
+        assert np.allclose(reverse(s).data, s.data)
+
+    def test_scalar_involute(self, cl0):
+        s = cl0.scalar(7)
+        assert np.allclose(involute(s).data, s.data)
+
+    def test_scalar_conjugate(self, cl0):
+        s = cl0.scalar(7)
+        assert np.allclose(conjugate(s).data, s.data)
+
+    def test_scalar_norm(self, cl0):
+        assert np.isclose(norm(cl0.scalar(5)), 5.0)
+
+    def test_scalar_inverse(self, cl0):
+        s = cl0.scalar(4)
+        assert np.isclose(scalar(gp(s, inverse(s))), 1.0)
+
+    def test_scalar_dual(self, cl0):
+        # In Cl(0), I=1, so dual(s) = s * I^-1 = s
+        s = cl0.scalar(5)
+        assert np.allclose(dual(s).data, s.data)
+
+    def test_scalar_exp(self, cl0):
+        assert np.isclose(scalar(exp(cl0.scalar(1))), np.e)
+
+    def test_even_odd_grades(self, cl0):
+        s = cl0.scalar(5)
+        assert np.isclose(scalar(even_grades(s)), 5.0)
+        assert np.isclose(scalar(odd_grades(s)), 0.0)
+
+    def test_is_scalar(self, cl0):
+        assert is_scalar(cl0.scalar(5))
+
+    def test_is_rotor(self, cl0):
+        assert is_rotor(cl0.scalar(1))
+
+    def test_rotor_rejects_scalar(self, cl0):
+        with pytest.raises(ValueError, match="bivector"):
+            cl0.rotor(cl0.scalar(1), radians=0.5)
+
+
+class TestCl1:
+    """Cl(1) — scalar + one vector. dim=2."""
+
+    @pytest.fixture
+    def cl1(self):
+        return Algebra((1,))
+
+    def test_dimension(self, cl1):
+        assert cl1.dim == 2
+
+    def test_basis_vector_squares_to_one(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.isclose(scalar(gp(e1, e1)), 1.0)
+
+    def test_vector_norm(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.isclose(norm(e1), 1.0)
+        assert np.isclose(norm(3 * e1), 3.0)
+
+    def test_vector_inverse(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.allclose(gp(e1, inverse(e1)).data, cl1.scalar(1).data)
+
+    def test_vector_unit(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.isclose(norm(unit(3 * e1)), 1.0)
+
+    def test_dual_vector_to_scalar(self, cl1):
+        e1, = cl1.basis_vectors()
+        d = dual(e1)
+        assert is_scalar(d)
+
+    def test_dual_undual_roundtrip(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.allclose(undual(dual(e1)).data, e1.data)
+
+    def test_project_onto_self(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.allclose(project(e1, e1).data, e1.data)
+
+    def test_reject_from_self(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.allclose(reject(e1, e1).data, cl1.scalar(0).data, atol=1e-12)
+
+    def test_reflect_in_self(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert np.allclose(reflect(e1, e1).data, (-e1).data)
+
+    def test_rotor_rejects_vector(self, cl1):
+        e1, = cl1.basis_vectors()
+        with pytest.raises(ValueError):
+            cl1.rotor(e1, radians=0.5)
+
+    def test_rotor_rejects_scalar(self, cl1):
+        with pytest.raises(ValueError, match="bivector"):
+            cl1.rotor(cl1.scalar(1), radians=0.5)
+
+    def test_log_identity(self, cl1):
+        assert np.allclose(log(cl1.scalar(1)).data, cl1.scalar(0).data, atol=1e-12)
+
+    def test_exp_zero(self, cl1):
+        assert np.allclose(exp(cl1.scalar(0)).data, cl1.scalar(1).data)
+
+    def test_predicates(self, cl1):
+        e1, = cl1.basis_vectors()
+        assert is_vector(e1)
+        assert not is_scalar(e1)
+        assert is_scalar(cl1.scalar(5))
+
+
+class TestCl2:
+    """Cl(2) — full 2D Euclidean algebra. dim=4."""
+
+    @pytest.fixture
+    def cl2(self):
+        return Algebra((1, 1))
+
+    def test_dimension(self, cl2):
+        assert cl2.dim == 4
+
+    def test_wedge_product(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        B = op(e1, e2)
+        assert is_bivector(B)
+
+    def test_bivector_squares_to_minus_one(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        B = op(e1, e2)
+        assert np.isclose(scalar(squared(B)), -1.0)
+
+    def test_dual(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        d = dual(e1)
+        # dual(e1) in 2D should be ±e2
+        assert is_vector(d)
+
+    def test_exp_bivector(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        B = op(e1, e2)
+        R = exp(np.pi / 4 * B)
+        assert is_rotor(R)
+
+    def test_rotor_rotation(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        R = cl2.rotor(op(e1, e2), radians=np.pi / 2)
+        rotated = sandwich(R, e1)
+        assert np.allclose(rotated.data, e2.data, atol=1e-12)
+
+    def test_log_exp_roundtrip(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        B = 0.3 * op(e1, e2)
+        assert np.allclose(log(exp(B)).data, B.data, atol=1e-12)
+
+    def test_pseudoscalar(self, cl2):
+        e1, e2 = cl2.basis_vectors()
+        assert np.allclose(cl2.I.data, op(e1, e2).data)
+
+
+class TestCl01:
+    """Cl(0,1) — anti-Euclidean. e1² = -1."""
+
+    @pytest.fixture
+    def cl01(self):
+        return Algebra((-1,))
+
+    def test_vector_squares_to_minus_one(self, cl01):
+        e1, = cl01.basis_vectors()
+        assert np.isclose(scalar(gp(e1, e1)), -1.0)
+
+    def test_norm(self, cl01):
+        e1, = cl01.basis_vectors()
+        assert np.isclose(norm(e1), 1.0)
+
+    def test_exp_vector(self, cl01):
+        # e1² = -1, so exp(θ e1) = cos(θ) + sin(θ) e1
+        e1, = cl01.basis_vectors()
+        result = exp(0.5 * e1)
+        assert np.isclose(result.data[0], np.cos(0.5))
+        assert np.isclose(result.data[1], np.sin(0.5))
+
+
+class TestCl001:
+    """Cl(0,0,1) — degenerate. e1² = 0."""
+
+    @pytest.fixture
+    def cl001(self):
+        return Algebra((0,))
+
+    def test_vector_squares_to_zero(self, cl001):
+        e1, = cl001.basis_vectors()
+        assert np.isclose(scalar(gp(e1, e1)), 0.0)
+
+    def test_exp_null(self, cl001):
+        # e1² = 0, so exp(e1) = 1 + e1
+        e1, = cl001.basis_vectors()
+        result = exp(e1)
+        assert np.isclose(result.data[0], 1.0)
+        assert np.isclose(result.data[1], 1.0)
+
+    def test_inverse_fails(self, cl001):
+        e1, = cl001.basis_vectors()
+        with pytest.raises(ValueError, match="not invertible"):
+            inverse(e1)
+
+    def test_norm_is_zero(self, cl001):
+        e1, = cl001.basis_vectors()
+        assert np.isclose(norm(e1), 0.0)

@@ -736,9 +736,10 @@ class TestRotorValidation:
         R = cl3.rotor(e1 ^ e2, radians=0.5)
         assert is_rotor(R)
 
-    def test_accepts_scalar(self, cl3):
-        R = cl3.rotor(cl3.scalar(1.0), radians=0.5)
-        assert is_even(R)
+    def test_rejects_scalar(self, cl3):
+        """Scalars have no rotation plane — rotor() should reject them."""
+        with pytest.raises(ValueError, match="bivector"):
+            cl3.rotor(cl3.scalar(1.0), radians=0.5)
 
     def test_normalizes_non_unit_bivector(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
