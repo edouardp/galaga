@@ -34,7 +34,7 @@ own `Notation` instance.
 ### Override API
 
 ```python
-from ga.notation import NotationRule
+from galaga.notation import NotationRule
 
 # Per-algebra override
 alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))

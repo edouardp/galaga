@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from ga import (
+from galaga import (
     Algebra, gp, op, left_contraction, right_contraction, hestenes_inner,
     scalar_product, reverse, involute, conjugate, grade, grades, scalar,
     dual, undual, norm2, norm, unit, inverse, commutator, anticommutator,

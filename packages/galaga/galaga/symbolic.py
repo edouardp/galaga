@@ -1,21 +1,21 @@
 """Symbolic drop-in replacements for ga.algebra functions.
 
-This module re-exports every function from ga.algebra as a wrapper that
+This module re-exports every function from galaga.algebra as a wrapper that
 detects lazy Multivector arguments and builds Expr tree nodes. With plain
 eager Multivectors, it delegates directly to ga.algebra with zero overhead.
 
 Usage:
-    from ga.symbolic import gp, grade, reverse, sym, simplify
+    from galaga.symbolic import gp, grade, reverse, sym, simplify
 
-All Expr node classes are re-exported from ga.expr for backward compatibility.
+All Expr node classes are re-exported from galaga.expr for backward compatibility.
 """
 
 from __future__ import annotations
 
-import ga.algebra as _alg
+import galaga.algebra as _alg
 
-# Re-export all Expr nodes so existing "from ga.symbolic import Gp" still works
-from ga.expr import (
+# Re-export all Expr nodes so existing "from galaga.symbolic import Gp" still works
+from galaga.expr import (
     Expr, Sym, Scalar, _coerce, _ensure_expr,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
@@ -25,7 +25,7 @@ from ga.expr import (
 )
 
 # Re-export simplify
-from ga.simplify import simplify, _eq, _known_grade
+from galaga.simplify import simplify, _eq, _known_grade
 
 
 # ── Helpers ──

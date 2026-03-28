@@ -26,9 +26,9 @@ def _():
 
 @app.cell
 def _():
-    from ga import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade
-    from ga.notation import Notation, NotationRule
-    from ga.symbolic import simplify
+    from galaga import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade
+    from galaga.notation import Notation, NotationRule
+    from galaga.symbolic import simplify
     import galaga_marimo as gm
     import numpy as np
 

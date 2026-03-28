@@ -27,13 +27,13 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    from ga import (
+    from galaga import (
         Algebra, gp, op, grade, reverse, involute, conjugate,
         dual, norm, unit, inverse, exp, log, sandwich, scalar,
         left_contraction, hestenes_inner, even_grades, odd_grades,
         squared
     )
-    from ga.symbolic import (
+    from galaga.symbolic import (
         sym, simplify, grade as sgrade, reverse as srev,
         norm as snorm, unit as sunit, inverse as sinverse,
     )

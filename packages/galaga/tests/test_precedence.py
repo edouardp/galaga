@@ -5,7 +5,7 @@ representation has correct parentheses for mathematical precedence.
 """
 
 import pytest
-from ga import (
+from galaga import (
     Algebra, reverse, involute, conjugate, grade, dual,
     unit, inverse, squared, exp,
 )

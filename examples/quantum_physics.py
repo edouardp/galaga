@@ -32,11 +32,11 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from ga import (
+    from galaga import (
         Algebra, scalar, norm, grade, lie_bracket, squared,
         even_grades, exp, log, jordan_product, commutator, anticommutator
     )
-    from ga import symbolic as sym
+    from galaga import symbolic as sym
     Sym = sym.sym
     import galaga_marimo as gm
 

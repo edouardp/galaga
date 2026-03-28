@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from ga import (
+    from galaga import (
         Algebra,
         doran_lasenby_inner,
         hestenes_inner,

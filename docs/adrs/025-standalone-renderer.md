@@ -16,7 +16,7 @@ operators (reverse, dual, inverse) on compound expressions.
 
 ## Decision Outcome
 
-A standalone tree-walking renderer (`ga.render`) with a data-driven
+A standalone tree-walking renderer (`galaga.render`) with a data-driven
 `OpInfo` registry. Each node type declares its precedence, associativity,
 and whether it's flattenable (associative):
 

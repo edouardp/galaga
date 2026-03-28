@@ -26,7 +26,7 @@ def _():
 
 @app.cell
 def _():
-    from ga import Algebra, reverse, dual, grade, exp, norm, squared
+    from galaga import Algebra, reverse, dual, grade, exp, norm, squared
     import galaga_marimo as gm
     import numpy as np
 

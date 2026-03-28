@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
-    from ga import Algebra, exp, log
+    from galaga import Algebra, exp, log
     import galaga_marimo as gm
 
     return Algebra, exp, gm, log, mo, np

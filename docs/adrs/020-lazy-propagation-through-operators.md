@@ -60,7 +60,7 @@ expression, using their blade display name.
 ### Eager Fast Path
 
 When all operands are eager, the operator overloads take the existing fast
-path — no imports from `ga.symbolic`, no tree construction, no overhead.
+path — no imports from `galaga.symbolic`, no tree construction, no overhead.
 
 ### Consequences
 

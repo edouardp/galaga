@@ -97,7 +97,7 @@ I have not verified the exact final public API on that branch for every helper n
 
 ```
 from math import sqrt
-from ga import Algebra
+from galaga import Algebra
 
 alg = Algebra((1, 1))   # transverse plane
 e1, e2 = alg.blades     # or basis_vectors(), depending on final API

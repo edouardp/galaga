@@ -1,8 +1,8 @@
 """Tests for the LaTeX intermediate render tree."""
 
-from ga.latex_nodes import Text, Seq, Frac, Sup, Parens, Command
-from ga.latex_emit import emit
-from ga.latex_rewrite import rewrite
+from galaga.latex_nodes import Text, Seq, Frac, Sup, Parens, Command
+from galaga.latex_emit import emit
+from galaga.latex_rewrite import rewrite
 
 
 # ── emit: Text ──

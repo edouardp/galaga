@@ -106,7 +106,7 @@ cd packages/galaga_marimo && uv build
 uv venv /tmp/galaga-test --python 3.13
 source /tmp/galaga-test/bin/activate
 pip install packages/galaga/dist/galaga-0.1.0-py3-none-any.whl
-python -c "from ga import Algebra; alg = Algebra((1,1,1)); print(alg)"
+python -c "from galaga import Algebra; alg = Algebra((1,1,1)); print(alg)"
 python -m pytest packages/galaga/tests/
 deactivate
 

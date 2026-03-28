@@ -13,7 +13,7 @@ Current rewrites:
 
 from __future__ import annotations
 
-from ga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
+from galaga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
 
 
 def rewrite(node: LNode) -> LNode:

@@ -1,7 +1,7 @@
 """Tests for LaTeX → Unicode/ASCII symbol mapping."""
 
 import pytest
-from ga.latex_symbols import LatexSymbols
+from galaga.latex_symbols import LatexSymbols
 
 
 @pytest.fixture
@@ -456,7 +456,7 @@ class TestAccents:
         assert sym.ascii(r"\ddot{x}") == "ddot_x"
 
     def test_hat_in_name(self):
-        from ga import Algebra
+        from galaga import Algebra
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
         n = e1.name(latex=r"\hat{n}")

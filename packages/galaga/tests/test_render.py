@@ -4,8 +4,8 @@ Tests are written FIRST — the renderer must pass all of these.
 """
 
 import pytest
-from ga import Algebra
-from ga.symbolic import (
+from galaga import Algebra
+from galaga.symbolic import (
     Sym, Scalar, Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Inverse, Squared, Exp,
     Grade, Norm, Unit, Even, Odd,
@@ -32,7 +32,7 @@ def syms(alg):
 # Import the renderer under test
 # ============================================================
 
-from ga.render import render, render_latex
+from galaga.render import render, render_latex
 
 
 # ============================================================
@@ -682,16 +682,16 @@ class TestNotationOverrideRendering:
 
     def test_prefix_unary_dual(self, alg):
         """Prefix dual: *v instead of v⋆."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
         assert render(Dual(v), alg.notation) == "*v"
 
     def test_prefix_unary_dual_latex(self, alg):
-        from ga.notation import NotationRule
-        from ga.render import render_latex
+        from galaga.notation import NotationRule
+        from galaga.render import render_latex
         alg.notation.set("Dual", "latex", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -699,8 +699,8 @@ class TestNotationOverrideRendering:
 
     def test_postfix_reverse_dagger(self, alg):
         """Postfix reverse: v† instead of ṽ."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -708,8 +708,8 @@ class TestNotationOverrideRendering:
 
     def test_postfix_reverse_compound(self, alg):
         """Postfix reverse on compound: (ab)†."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -717,8 +717,8 @@ class TestNotationOverrideRendering:
 
     def test_function_unary_reverse(self, alg):
         """Function-style reverse: rev(v)."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -726,16 +726,16 @@ class TestNotationOverrideRendering:
 
     def test_function_binary_wedge(self, alg):
         """Function-style wedge: wedge(a, b)."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
         assert render(Op(a, b), alg.notation) == "wedge(a, b)"
 
     def test_function_binary_latex(self, alg):
-        from ga.notation import NotationRule
-        from ga.render import render_latex
+        from galaga.notation import NotationRule
+        from galaga.render import render_latex
         alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -744,8 +744,8 @@ class TestNotationOverrideRendering:
 
     def test_infix_override(self, alg):
         """Override wedge symbol."""
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg.notation.set("Op", "unicode", NotationRule(kind="infix", separator=" AND "))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -753,8 +753,8 @@ class TestNotationOverrideRendering:
 
     def test_hestenes_preset_sandwich(self, alg):
         """Hestenes preset: RvR† in sandwich."""
-        from ga.notation import Notation
-        from ga.render import render
+        from galaga.notation import Notation
+        from galaga.render import render
         n = Notation.hestenes()
         e1, e2, _ = alg.basis_vectors()
         R, v = Sym(e1 * e2, "R"), Sym(e1, "v")
@@ -763,9 +763,9 @@ class TestNotationOverrideRendering:
 
     def test_notation_does_not_leak(self):
         """Overriding one algebra's notation doesn't affect another."""
-        from ga import Algebra
-        from ga.notation import NotationRule
-        from ga.render import render
+        from galaga import Algebra
+        from galaga.notation import NotationRule
+        from galaga.render import render
         alg1 = Algebra((1, 1, 1))
         alg2 = Algebra((1, 1, 1))
         alg1.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
@@ -777,21 +777,21 @@ class TestNotationOverrideRendering:
 
 class TestRegressive:
     def test_regressive_unicode(self, syms):
-        from ga.symbolic import Regressive
+        from galaga.symbolic import Regressive
         a, b, _ = syms
         assert render(Regressive(a, b)) == "a∨b"
 
     def test_regressive_latex(self, syms):
-        from ga.symbolic import Regressive
+        from galaga.symbolic import Regressive
         a, b, _ = syms
         assert render_latex(Regressive(a, b)) == r"a \vee b"
 
     def test_regressive_associative(self, syms):
-        from ga.symbolic import Regressive
+        from galaga.symbolic import Regressive
         a, b, c = syms
         assert render(Regressive(Regressive(a, b), c)) == "a∨b∨c"
 
     def test_regressive_sum_needs_parens(self, syms):
-        from ga.symbolic import Regressive
+        from galaga.symbolic import Regressive
         a, b, c = syms
         assert render(Regressive(Add(a, b), c)) == "(a + b)∨c"

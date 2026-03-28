@@ -16,7 +16,7 @@ Node categories:
 from __future__ import annotations
 
 from typing import Union
-import ga.algebra as _alg
+import galaga.algebra as _alg
 
 Numeric = Union[int, float]
 
@@ -53,11 +53,11 @@ class Expr:
         return str(self)
 
     def __str__(self) -> str:
-        from ga.render import render
+        from galaga.render import render
         return render(self)
 
     def latex(self, wrap: str | None = None) -> str:
-        from ga.render import render_latex
+        from galaga.render import render_latex
         raw = render_latex(self)
         if wrap == "$":
             return f"${raw}$"

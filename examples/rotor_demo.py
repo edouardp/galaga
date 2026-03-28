@@ -32,11 +32,11 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from ga import (
+    from galaga import (
         Algebra, grade, reverse, sandwich, scalar, norm, unit,
         gp, op, exp, log, norm2,
     )
-    from ga.symbolic import (
+    from galaga.symbolic import (
         sym, gp as sgp, grade as sgrade, reverse as srev,
         simplify, norm as snorm, unit as sunit, inverse as sinverse,
     )

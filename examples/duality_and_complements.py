@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from ga import Algebra, complement, dual, undual, uncomplement
+    from galaga import Algebra, complement, dual, undual, uncomplement
     import galaga_marimo as gm
 
     return Algebra, complement, dual, gm, mo, np, plt, uncomplement, undual

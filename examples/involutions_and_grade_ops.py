@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from ga import Algebra, conjugate, even_grades, grade, involute, odd_grades, reverse
+    from galaga import Algebra, conjugate, even_grades, grade, involute, odd_grades, reverse
     import galaga_marimo as gm
 
     return (

@@ -27,12 +27,12 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    from ga import (
+    from galaga import (
         Algebra, gp, op, grade, reverse, involute, conjugate,
         dual, norm, unit, inverse, exp, log, sandwich, scalar, squared,
         left_contraction, commutator, even_grades, odd_grades,
     )
-    from ga.symbolic import simplify
+    from galaga.symbolic import simplify
     import galaga_marimo as gm
 
     return (

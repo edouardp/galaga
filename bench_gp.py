@@ -1,7 +1,7 @@
 """Benchmark: 100k geometric products in Cl(1,3)."""
 import time
 import numpy as np
-from ga import Algebra, Multivector, gp
+from galaga import Algebra, Multivector, gp
 
 alg = Algebra((1, -1, -1, -1))
 rng = np.random.default_rng(42)

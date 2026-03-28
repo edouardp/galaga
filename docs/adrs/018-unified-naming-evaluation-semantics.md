@@ -10,7 +10,7 @@ supersedes: partially supersedes ADR-004, ADR-013
 ## Context and Problem Statement
 
 The library had two separate worlds: `Multivector` (numeric/eager) in
-`ga.algebra` and `Expr`/`Sym` (symbolic/lazy) in `ga.symbolic`. Users had to
+`galaga.algebra` and `Expr`/`Sym` (symbolic/lazy) in `galaga.symbolic`. Users had to
 choose upfront which world to work in, and `sym()` returned an `Expr` — a
 completely different type from `Multivector`. This created friction:
 

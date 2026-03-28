@@ -26,11 +26,11 @@ need to learn a different API for symbolic vs numeric computation.
 
 ## Decision Outcome
 
-Every function in `ga.symbolic` is a drop-in replacement for its `ga.algebra`
+Every function in `galaga.symbolic` is a drop-in replacement for its `galaga.algebra`
 counterpart. Each function checks if any argument is an `Expr`:
 
 - If yes → build the corresponding expression tree node
-- If no → delegate directly to `ga.algebra` with zero overhead
+- If no → delegate directly to `galaga.algebra` with zero overhead
 
 ```python
 # ga.symbolic.gp
@@ -45,7 +45,7 @@ Operators (`*`, `^`, `~`) on `Expr` objects build trees automatically, so
 
 ### Consequences
 
-* Good, because `from ga import symbolic as sym` is a drop-in replacement
+* Good, because `from galaga import symbolic as sym` is a drop-in replacement
 * Good, because numeric code has zero symbolic overhead
 * Good, because expression trees build naturally from operators
 * Bad, because every new operation needs both a numeric and symbolic implementation

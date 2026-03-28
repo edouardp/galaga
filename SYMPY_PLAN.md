@@ -13,7 +13,7 @@ Multivector.data = np.ndarray[float64]   # dense, length 2^n
 ```
 
 All operations (gp, op, grade, etc.) use NumPy arithmetic on these arrays.
-The symbolic layer (`ga.symbolic`) is a separate expression tree that wraps
+The symbolic layer (`galaga.symbolic`) is a separate expression tree that wraps
 concrete `Multivector` objects and renders them with display names. It cannot
 simplify or manipulate the underlying algebra.
 
@@ -101,7 +101,7 @@ result = R * e1 * ~R
 - Multiplication tables (bitmask-based, precomputed)
 - Grade masks
 - Algebra construction
-- The existing expression tree layer (`ga.symbolic`)
+- The existing expression tree layer (`galaga.symbolic`)
 - All existing numeric tests
 
 ### Option B: SymPy as External Layer
@@ -110,7 +110,7 @@ Keep `Multivector` numeric-only. Instead, build a separate `SymbolicMultivector`
 class that uses SymPy internally and converts to/from `Multivector` for evaluation.
 
 ```python
-from ga.sympy_ext import SymbolicMultivector
+from galaga.sympy_ext import SymbolicMultivector
 
 theta = Symbol('θ')
 R = SymbolicMultivector.rotor(alg, e1^e2, theta)
@@ -127,7 +127,7 @@ This avoids touching the core but duplicates all the product logic.
 library. Instead of reimplementing symbolic GA, provide a bridge:
 
 ```python
-from ga.bridges.galgebra import to_galgebra, from_galgebra
+from galaga.bridges.galgebra import to_galgebra, from_galgebra
 
 ga_mv = to_galgebra(mv, ga3d)   # convert to galgebra object
 # ... use galgebra's full symbolic engine ...

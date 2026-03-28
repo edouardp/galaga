@@ -2,7 +2,7 @@
 
 import pytest
 import numpy as np
-from ga import (
+from galaga import (
     Algebra, Multivector, gp, op, grade, reverse, involute, conjugate,
     left_contraction, right_contraction, hestenes_inner, scalar_product,
     doran_lasenby_inner, dorst_inner,
@@ -14,7 +14,7 @@ from ga import (
     is_rotor, is_even,
     sandwich, sw,
 )
-from ga.symbolic import (
+from galaga.symbolic import (
     sym, Expr, Scalar, Gp, Op, Lc, Rc, Hi, Sp, Grade, Reverse,
     Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Neg, ScalarMul,
     Add, Sub,
@@ -782,13 +782,13 @@ class TestEvenOddGradesRenamed:
 
 class TestSymbolicGradeEvenOdd:
     def test_sym_grade_even(self, cl3):
-        from ga.symbolic import grade as sgrade
+        from galaga.symbolic import grade as sgrade
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sgrade(v, "even")) == "⟨v⟩₊"
 
     def test_sym_grade_odd(self, cl3):
-        from ga.symbolic import grade as sgrade
+        from galaga.symbolic import grade as sgrade
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sgrade(v, "odd")) == "⟨v⟩₋"
@@ -819,7 +819,7 @@ class TestLatex:
 
     def test_sandwich_grade(self, cl3):
         e1, e2, _ = cl3.basis_vectors()
-        from ga.symbolic import grade as sgrade
+        from galaga.symbolic import grade as sgrade
         R = sym(e1*e2, "R")
         v = sym(e1, "v")
         assert sgrade(R * v * ~R, 1).latex() == r"\langle R v \tilde{R} \rangle_{1}"
@@ -1279,35 +1279,35 @@ class TestCoverageGaps:
 
     # symbolic.py: Scalar.__str__ (line 270)
     def test_scalar_str(self):
-        from ga.symbolic import Scalar
+        from galaga.symbolic import Scalar
         s = Scalar(42)
         assert str(s) == "42"
         assert s.latex() == "42"
 
     # symbolic.py: _ensure_expr TypeError (line 611)
     def test_ensure_expr_bad_type(self):
-        from ga.symbolic import _ensure_expr
+        from galaga.symbolic import _ensure_expr
         import pytest
         with pytest.raises(TypeError, match="Cannot convert"):
             _ensure_expr([1, 2, 3])
 
     # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)
     def test_eq_conjugate(self, cl3):
-        from ga.symbolic import _eq, Conjugate
+        from galaga.symbolic import _eq, Conjugate
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Conjugate(a), Conjugate(a))
         assert not _eq(Conjugate(a), Conjugate(sym(e1, "b")))
 
     def test_eq_grade(self, cl3):
-        from ga.symbolic import _eq, Grade
+        from galaga.symbolic import _eq, Grade
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Grade(a, 1), Grade(a, 1))
         assert not _eq(Grade(a, 1), Grade(a, 2))
 
     def test_eq_fallback(self, cl3):
-        from ga.symbolic import _eq, Dual
+        from galaga.symbolic import _eq, Dual
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Dual(a), Dual(a))
@@ -1315,37 +1315,37 @@ class TestCoverageGaps:
 
     # symbolic.py: _known_grade branches (lines 691-703)
     def test_known_grade_scalar(self):
-        from ga.symbolic import _known_grade, Scalar
+        from galaga.symbolic import _known_grade, Scalar
         assert _known_grade(Scalar(5)) == 0
 
     def test_known_grade_grade_node(self, cl3):
-        from ga.symbolic import _known_grade, Grade
+        from galaga.symbolic import _known_grade, Grade
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Grade(sym(e1, "v"), 2)) == 2
 
     def test_known_grade_reverse(self, cl3):
-        from ga.symbolic import _known_grade, Reverse
+        from galaga.symbolic import _known_grade, Reverse
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert _known_grade(Reverse(v)) == 1
 
     def test_known_grade_neg(self, cl3):
-        from ga.symbolic import _known_grade, Neg
+        from galaga.symbolic import _known_grade, Neg
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Neg(sym(e1, "v"))) == 1
 
     def test_known_grade_scalarmul(self, cl3):
-        from ga.symbolic import _known_grade, ScalarMul
+        from galaga.symbolic import _known_grade, ScalarMul
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(ScalarMul(3, sym(e1, "v"))) == 1
 
     def test_known_grade_unit(self, cl3):
-        from ga.symbolic import _known_grade, Unit
+        from galaga.symbolic import _known_grade, Unit
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Unit(sym(e1, "v"))) == 1
 
     def test_known_grade_unknown(self, cl3):
-        from ga.symbolic import _known_grade
+        from galaga.symbolic import _known_grade
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         b = sym(e2, "b")
@@ -1353,7 +1353,7 @@ class TestCoverageGaps:
 
     # symbolic.py: simplify even/odd with known grade (line 819)
     def test_simplify_odd_known_grade(self, cl3):
-        from ga.symbolic import odd_grades as sodd, even_grades as seven
+        from galaga.symbolic import odd_grades as sodd, even_grades as seven
         e1, e2, _ = cl3.basis_vectors()
         v = sym(e1, "v")          # grade 1 (odd)
         B = sym(e1 ^ e2, "B")    # grade 2 (even)
@@ -1364,7 +1364,7 @@ class TestCoverageGaps:
 
     # symbolic.py: _eq for Involute (line 635)
     def test_eq_involute(self, cl3):
-        from ga.symbolic import _eq, Involute
+        from galaga.symbolic import _eq, Involute
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Involute(a), Involute(a))
@@ -1372,14 +1372,14 @@ class TestCoverageGaps:
 
     # symbolic.py: norm() passthrough for Multivector (line 938)
     def test_norm_passthrough(self, cl3):
-        from ga.symbolic import norm as snorm
+        from galaga.symbolic import norm as snorm
         e1, e2, _ = cl3.basis_vectors()
         v = 3 * e1 + 4 * e2
         assert snorm(v) == 5.0
 
     # symbolic.py: sandwich() passthrough for Multivector (line 985)
     def test_sandwich_passthrough(self, cl3):
-        from ga.symbolic import sandwich as ssandwich
+        from galaga.symbolic import sandwich as ssandwich
         e1, e2, _ = cl3.basis_vectors()
         R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)
         result = ssandwich(R, e1)

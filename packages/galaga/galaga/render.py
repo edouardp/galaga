@@ -31,8 +31,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from ga.notation import Notation, NotationRule
-from ga.expr import (
+from galaga.notation import Notation, NotationRule
+from galaga.expr import (
     Expr, Sym, Scalar,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
@@ -230,7 +230,7 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 # See latex_nodes.py module docstring for the full rationale.
 
 def render_latex(node: Expr, notation: Notation | None = None) -> str:
-    from ga.latex_build import build
-    from ga.latex_rewrite import rewrite
-    from ga.latex_emit import emit
+    from galaga.latex_build import build
+    from galaga.latex_rewrite import rewrite
+    from galaga.latex_emit import emit
     return emit(rewrite(build(node, notation)))

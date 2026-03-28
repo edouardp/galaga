@@ -2,9 +2,9 @@
 
 import pytest
 import numpy as np
-from ga import Algebra
-from ga import gp as _gp, op as _op, grade as _grade, reverse as _reverse
-from ga.symbolic import (
+from galaga import Algebra
+from galaga import gp as _gp, op as _op, grade as _grade, reverse as _reverse
+from galaga.symbolic import (
     sym, gp, op, grade, reverse, involute, conjugate,
     left_contraction, right_contraction, hestenes_inner, scalar_product,
     commutator, anticommutator, lie_bracket, jordan_product,
@@ -252,7 +252,7 @@ class TestSymEval:
 
     def test_dual_eval(self, cl3):
         _, e1, _, _ = cl3
-        from ga import dual as _dual
+        from galaga import dual as _dual
         v = sym(e1, "v")
         result = dual(v).eval()
         expected = _dual(e1)

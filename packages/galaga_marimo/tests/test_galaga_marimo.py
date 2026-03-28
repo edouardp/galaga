@@ -614,7 +614,7 @@ class TestGAIntegration:
     @pytest.fixture
     def vga(self):
         try:
-            from ga import Algebra
+            from galaga import Algebra
             return Algebra((1, 1, 1))
         except ImportError:
             pytest.skip("galaga not installed")

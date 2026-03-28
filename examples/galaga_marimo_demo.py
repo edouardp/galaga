@@ -21,11 +21,11 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
-    from ga import (
+    from galaga import (
         Algebra, gp, op, grade, reverse, norm, unit, inverse,
         scalar, exp, log, sandwich,
     )
-    from ga import symbolic as sym
+    from galaga import symbolic as sym
     Sym = sym.sym
     import galaga_marimo as gm
 

@@ -34,8 +34,8 @@ they have display names (``e₁``) but behave as concrete numeric objects.
 ``sym(mv, "R")`` is a convenience alias for ``mv.name("R")``.
 
 This ``__init__`` re-exports the numeric API so users can write
-``from ga import *`` and get everything they need for computation.
-The symbolic layer is imported separately (``from ga.symbolic import sym, ...``)
+``from galaga import *`` and get everything they need for computation.
+The symbolic layer is imported separately (``from galaga.symbolic import sym, ...``)
 because it's opt-in — most users only need it for notebooks and display.
 
 Design Principles
@@ -52,8 +52,8 @@ Design Principles
   result is lazy. When all operands are eager, the fast numeric path is taken.
 """
 
-from ga.basis_blade import BasisBlade
-from ga.algebra import (
+from galaga.basis_blade import BasisBlade
+from galaga.algebra import (
     Algebra,
     Multivector,
     # Core operations

@@ -23,11 +23,11 @@ def _():
     import marimo as mo
     import numpy as np
     import galaga_marimo as gm
-    from ga import (
+    from galaga import (
         Algebra, exp, log, dual, undual, inverse, reverse,
         complement, uncomplement,
     )
-    from ga.notation import Notation, NotationRule
+    from galaga.notation import Notation, NotationRule
 
 
     return Algebra, NotationRule, exp, gm, np, reverse

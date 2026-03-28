@@ -6,11 +6,11 @@ produces identical results to the old single-pass render_latex().
 """
 
 import numpy as np
-from ga import Algebra
-from ga.latex_build import build
-from ga.latex_emit import emit
-from ga.latex_rewrite import rewrite
-from ga.symbolic import (
+from galaga import Algebra
+from galaga.latex_build import build
+from galaga.latex_emit import emit
+from galaga.latex_rewrite import rewrite
+from galaga.symbolic import (
     Sym, Scalar, Add, Sub, Neg, Gp, Op, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
     Inverse, Squared, Exp, Log, Grade, Norm, Unit, Even, Odd,
@@ -147,24 +147,24 @@ class TestPostfixOnSup:
 
     def test_postfix_dagger_on_exp(self):
         """reverse(exp(a)) with dagger notation: {e^{a}}^{\\dagger}"""
-        from ga.notation import Notation, NotationRule
+        from galaga.notation import Notation, NotationRule
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         tree = build(Reverse(Exp(a)), n)
         result = emit(rewrite(tree))
         assert result == r"{e^{a}}^{\dagger}"
 
     def test_superscript_on_simple(self):
         """reverse(a) with superscript dagger: a^{\\dagger}"""
-        from ga.notation import Notation, NotationRule
+        from galaga.notation import Notation, NotationRule
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         tree = build(Reverse(a), n)
         result = emit(rewrite(tree))
         assert result == r"a^{\dagger}"
@@ -270,21 +270,21 @@ class TestPrefixSpacing:
     """Regression: prefix LaTeX commands must not run into the operand."""
 
     def test_latex_command_gets_space(self):
-        from ga.notation import Notation, NotationRule
+        from galaga.notation import Notation, NotationRule
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"\tilde"))
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         assert emit(rewrite(build(Reverse(a), n))) == r"\tilde a"
 
     def test_latex_command_compound_gets_space(self):
-        from ga.notation import Notation, NotationRule
+        from galaga.notation import Notation, NotationRule
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"\tilde"))
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         assert emit(rewrite(build(Reverse(Add(a, b)), n))) == r"\tilde \left(a + b\right)"
 
     def test_non_command_prefix_no_space(self):
@@ -292,12 +292,12 @@ class TestPrefixSpacing:
         assert _latex(Neg(a)) == "-a"
 
     def test_prefix_ending_in_brace_no_space(self):
-        from ga.notation import Notation, NotationRule
+        from galaga.notation import Notation, NotationRule
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"{\sim}"))
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         assert emit(rewrite(build(Reverse(a), n))) == r"{\sim}a"
 
 
@@ -305,10 +305,10 @@ class TestSuperscriptKind:
     """Regression: superscript notation kind."""
 
     def _render(self, expr, symbol):
-        from ga.notation import Notation, NotationRule
-        from ga.latex_build import build
-        from ga.latex_emit import emit
-        from ga.latex_rewrite import rewrite
+        from galaga.notation import Notation, NotationRule
+        from galaga.latex_build import build
+        from galaga.latex_emit import emit
+        from galaga.latex_rewrite import rewrite
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=symbol))
         return emit(rewrite(build(expr, n)))
@@ -335,7 +335,7 @@ class TestEndToEndLatex:
     def test_exp_frac_slash(self):
         """exp(-θ/2 B) uses slash not frac in superscript."""
         import numpy as np
-        from ga import Algebra, exp
+        from galaga import Algebra, exp
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         th = alg.scalar(np.radians(45)).name(latex=r"\theta")
@@ -348,7 +348,7 @@ class TestEndToEndLatex:
     def test_neg_hoisted_in_exp(self):
         """Negation hoists before slash in superscript."""
         import numpy as np
-        from ga import Algebra, exp
+        from galaga import Algebra, exp
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         th = alg.scalar(1.0).name(latex=r"\theta")
@@ -358,7 +358,7 @@ class TestEndToEndLatex:
 
     def test_complement_lazy(self):
         """complement() stays symbolic on lazy MVs."""
-        from ga import Algebra, complement
+        from galaga import Algebra, complement
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
@@ -368,7 +368,7 @@ class TestEndToEndLatex:
 
     def test_log_lazy(self):
         """log() stays symbolic on lazy MVs."""
-        from ga import Algebra, exp, log
+        from galaga import Algebra, exp, log
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         B = (e1 * e2).name("B")

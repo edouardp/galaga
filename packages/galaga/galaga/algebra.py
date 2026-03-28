@@ -68,12 +68,12 @@ def _sign_of_reorder(a: int, b: int) -> int:
 _LETTER_SUBSCRIPTS = {"x": "ₓ", "y": "ᵧ"}
 
 
-from ga.basis_blade import BasisBlade
-from ga.latex_symbols import LatexSymbols
-from ga.lazy import lazy_unary, lazy_binary
-from ga.notation import Notation
-import ga.render as _render
-import ga.symbolic as _sym
+from galaga.basis_blade import BasisBlade
+from galaga.latex_symbols import LatexSymbols
+from galaga.lazy import lazy_unary, lazy_binary
+from galaga.notation import Notation
+import galaga.render as _render
+import galaga.symbolic as _sym
 
 
 class Algebra:

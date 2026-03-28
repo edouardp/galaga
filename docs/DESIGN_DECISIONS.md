@@ -28,8 +28,8 @@ The ½ in `lie_bracket` vs `commutator` is not a formatting choice — it change
 
 ## 5. Two-layer architecture
 
-- **`ga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays.
-- **`ga.symbolic`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree.
+- **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays.
+- **`galaga.symbolic`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree.
 
 `Multivector` is the single public type. It can be named or anonymous, lazy or eager — these are orthogonal axes controlled by `.name()`, `.anon()`, `.lazy()`, `.eager()`.
 
@@ -62,7 +62,7 @@ The `.name()` method accepts `latex=`, `unicode=`, `ascii=` keyword arguments fo
 
 ## 10. Stable public surface
 
-The `__init__.py` re-exports the numeric API so `from ga import *` gives you everything for computation. The `__all__` list is the contract. New operations are added; existing ones don't change meaning.
+The `__init__.py` re-exports the numeric API so `from galaga import *` gives you everything for computation. The `__all__` list is the contract. New operations are added; existing ones don't change meaning.
 
 ## 11. Separate notebook helper
 

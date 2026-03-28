@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from ga import Algebra, anticommutator, commutator, jordan_product, lie_bracket
+    from galaga import Algebra, anticommutator, commutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
     return (

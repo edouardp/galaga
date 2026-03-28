@@ -11,9 +11,9 @@ renderer in render.py, ensuring consistent precedence decisions.
 
 from __future__ import annotations
 
-from ga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
-from ga.notation import Notation
-from ga.expr import (
+from galaga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
+from galaga.notation import Notation
+from galaga.expr import (
     Expr, Sym, Scalar,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
@@ -22,7 +22,7 @@ from ga.expr import (
     Lc, Rc, Hi, Dli, Sp, Regressive,
     Commutator, Anticommutator, LieBracket, JordanProduct,
 )
-from ga.render import INFO, _NAME, _CHILD_MIN, _COMMA_BINARY, _needs_wrap, Notation as _Notation
+from galaga.render import INFO, _NAME, _CHILD_MIN, _COMMA_BINARY, _needs_wrap, Notation as _Notation
 
 
 _DEFAULT = Notation()

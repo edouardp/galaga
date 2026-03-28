@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from ga import Algebra, exp, scalar
+    from galaga import Algebra, exp, scalar
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt

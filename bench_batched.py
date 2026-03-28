@@ -6,7 +6,7 @@ multiplication tables.
 """
 import time
 import numpy as np
-from ga import Algebra
+from galaga import Algebra
 
 alg = Algebra((1, -1, -1, -1))
 D = alg.dim  # 16
