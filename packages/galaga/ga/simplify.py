@@ -12,7 +12,7 @@ the tree stops changing, capped at 100 iterations.
 from __future__ import annotations
 
 import ga.algebra as _alg
-from ga.symbolic import (
+from ga.expr import (
     Expr, Sym, Scalar, Add, Sub, Neg, Gp, Op, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual,
     Inverse, Squared, Exp, Grade, Norm, Unit, Even, Odd,

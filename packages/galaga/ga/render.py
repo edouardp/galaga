@@ -32,7 +32,7 @@ from dataclasses import dataclass
 from enum import Enum
 
 from ga.notation import Notation, NotationRule
-from ga.symbolic import (
+from ga.expr import (
     Expr, Sym, Scalar,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,

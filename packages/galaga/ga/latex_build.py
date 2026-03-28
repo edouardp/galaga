@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from ga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
 from ga.notation import Notation
-from ga.symbolic import (
+from ga.expr import (
     Expr, Sym, Scalar,
     Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
     Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
