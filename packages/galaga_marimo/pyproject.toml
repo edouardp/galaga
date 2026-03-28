@@ -19,17 +19,14 @@ classifiers = [
     "Framework :: Jupyter",
 ]
 dependencies = [
-    "galaga",
-    "marimo",
+    "galaga>=0.1.0",
+    "marimo>=0.21.1",
 ]
 
 [project.urls]
 Homepage = "https://github.com/edouardp/galaga"
 Repository = "https://github.com/edouardp/galaga"
 Issues = "https://github.com/edouardp/galaga/issues"
-
-[tool.uv.sources]
-galaga = { workspace = true }
 
 [build-system]
 requires = ["hatchling"]
