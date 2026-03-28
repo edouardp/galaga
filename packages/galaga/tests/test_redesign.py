@@ -1844,3 +1844,104 @@ class TestCoverageGaps:
         e1.name("x")
         result = _coerce(e1)
         assert isinstance(result, Sym)
+
+
+class TestReveal:
+    """Tests for .reveal() — non-mutating anonymous copy."""
+
+    def test_named_vector_shows_components(self):
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = (3 * e1 + 4 * e2).name("v")
+        r = v.reveal()
+        assert "e" in str(r)  # shows basis blades, not "v"
+        assert "v" not in str(r)
+
+    def test_does_not_mutate_original(self):
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        _ = v.reveal()
+        assert str(v) == "v"
+
+    def test_preserves_laziness(self):
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        assert v.reveal()._is_lazy is True
+
+    def test_eval_forces_eager(self):
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        assert v.eval()._is_lazy is False
+
+    def test_eager_named_reveals_components(self):
+        alg = Algebra((1, 1, 1))
+        w = alg.vector([1, 2, 3]).name("w").eager()
+        r = w.reveal()
+        assert r._is_lazy is False
+        assert "w" not in str(r)
+        assert "e" in str(r)
+
+    def test_named_expression_reveals_inner_expr(self):
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        w = e2.name("w")
+        expr = (v + w).name("s")
+        assert str(expr) == "s"
+        revealed = expr.reveal()
+        assert "v" in str(revealed)
+        assert "w" in str(revealed)
+        assert "s" not in str(revealed)
+
+    def test_unnamed_lazy_unchanged(self):
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        w = e2.name("w")
+        expr = v + w  # unnamed lazy
+        assert str(expr) == str(expr.reveal())
+
+    def test_reveal_on_rotor_shows_exp(self):
+        import numpy as np
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        from ga import exp
+        B = (e1 * e2).name("B")
+        R = exp(B).name("R")
+        assert str(R) == "R"
+        assert "exp" in str(R.reveal())
+
+    def test_reveal_same_data(self):
+        import numpy as np
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = (3 * e1 + e2).name("v")
+        assert np.allclose(v.data, v.reveal().data)
+        assert np.allclose(v.data, v.eval().data)
+
+    def test_reveal_scalar_stays_lazy(self):
+        import numpy as np
+        alg = Algebra((1, 1, 1))
+        s = alg.scalar(np.pi).name(latex=r"\pi")
+        r = s.reveal()
+        assert r._is_lazy is True
+        # eval gives numeric
+        assert "3.14" in str(s.eval())
+
+    def test_reveal_returns_new_object(self):
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        r = v.reveal()
+        assert r is not v
+
+    def test_reveal_of_reveal(self):
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        v = e1.name("v")
+        r1 = v.reveal()
+        r2 = r1.reveal()
+        assert str(r1) == str(r2)
