@@ -21,13 +21,13 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "numpy>=2.4.3",
+    "numpy>=1.24",
 ]
 
 [project.urls]
-Homepage = "https://github.com/edouard/galaga"
-Repository = "https://github.com/edouard/galaga"
-Issues = "https://github.com/edouard/galaga/issues"
+Homepage = "https://github.com/edouardp/galaga"
+Repository = "https://github.com/edouardp/galaga"
+Issues = "https://github.com/edouardp/galaga/issues"
 
 [build-system]
 requires = ["hatchling"]

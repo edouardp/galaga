@@ -23,6 +23,11 @@ dependencies = [
     "marimo",
 ]
 
+[project.urls]
+Homepage = "https://github.com/edouardp/galaga"
+Repository = "https://github.com/edouardp/galaga"
+Issues = "https://github.com/edouardp/galaga/issues"
+
 [tool.uv.sources]
 galaga = { workspace = true }
 

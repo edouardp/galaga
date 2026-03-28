@@ -10,7 +10,7 @@ def _():
     from pathlib import Path
 
     _root = str(Path(__file__).resolve().parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "gamo")
+    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "galaga_marimo")
     for p in [_root, _gamo]:
         if p not in sys.path:
             sys.path.insert(0, p)
@@ -102,17 +102,22 @@ def _(mo):
 
 
 @app.cell
-def _(angle_2d, cl2, f1, f2, gm, mo, np, sandwich):
-    _theta = np.radians(angle_2d.value)
-    _R = cl2.rotor(f1 ^ f2, radians=_theta)
-    _v = f1
-    _result = sandwich(_R, _v)
+def _(angle_2d, cl2, exp, f1, f2, gm, np, sandwich, sym):
+    _theta = cl2.scalar(np.radians(angle_2d.value)).name(latex=r"\theta")
+    _I = (f1 ^ f2).name("I")
+    _R = exp(_I * _theta/2).name("R")
+    _v = sym(f1).name("v")
+    _result = sandwich(_R, _v).name("v'")
 
-    mo.vstack([
-        gm.md(t"$\\theta = {angle_2d.value}°$"),
-        gm.md(t"Rotor: {_R}"),
-        gm.md(t"$R\\,e_1\\,\\tilde{{R}} =$ {_result}"),
-    ])
+
+    gm.md(t"""
+    {_theta}  $\\quad$ = $\\quad$ {angle_2d.value}° <br/>
+    {_I}  $\\quad$ =  $\\quad$ {_I.eval()} <br/>
+    {_R} $\\quad$ = $\\quad$ {_R.reveal()} $\\quad$ = $\\quad$  {_R.eval()} <br/>
+    {_v} $\\quad$ = $\\quad$ {_v.eval()} <br/>
+    {_result} $\\quad$ = $\\quad$ {_result.reveal()} $\\quad$ = $\\quad$ {_result.eval()}
+    """)
+
     return
 
 

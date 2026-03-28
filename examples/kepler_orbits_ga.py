@@ -10,7 +10,7 @@ def _():
     from pathlib import Path
 
     _root = str(Path(__file__).resolve().parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "gamo")
+    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "galaga_marimo")
     for p in [_root, _gamo]:
         if p not in sys.path:
             sys.path.insert(0, p)
@@ -87,7 +87,7 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, np, sandwich, semilatus):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     _e = eccentricity.value
     _p = semilatus.value
@@ -105,9 +105,9 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     gm.md(t"""
     Orbital Plane: {_plane} = {_plane.eval()}
 
-    Position vector: {_position} = {_position.eval()}
-
-    Velocity vector: {_velocity} = {_velocity.eval()}
+    {_radial} = {_radial.reveal()} = {_radial.eval()} <br/>
+    **Position vector**: {_position} = {_position.eval()} <br/>
+    **Velocity vector**: {_velocity} = {_velocity.eval()}
 
     The hodograph is a circle because
 
@@ -116,13 +116,11 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     $$
 
     so the velocity tip is a unit rotor orbit translated by the fixed vector
-    {_hodograph_center} = {_hodograph_center.eval()}.
+    {_hodograph_center} = {_hodograph_center.reveal()} = {_hodograph_center.eval()}.
 
     Angular momentum bivector: {_L} = {_L.eval()}
 
     Its magnitude is {norm(_L.eval()):.6f}.
-
-    {_hodograph_center.anon()}
     """)
     return
 

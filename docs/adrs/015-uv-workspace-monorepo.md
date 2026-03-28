@@ -26,11 +26,11 @@ notebook helper excluded (installed separately):
 ```toml
 [tool.uv.workspace]
 members = ["packages/galaga"]
-exclude = ["packages/gamo"]
+exclude = ["packages/galaga_marimo"]
 ```
 
 The core library lives at `packages/galaga/`, the notebook helper at
-`packages/gamo/`. Development dependencies (marimo, pytest, matplotlib)
+`packages/galaga_marimo/`. Development dependencies (marimo, pytest, matplotlib)
 are in the root `pyproject.toml`.
 
 ### Consequences

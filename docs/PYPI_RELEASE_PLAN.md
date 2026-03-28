@@ -38,7 +38,7 @@ Documentation = "https://github.com/edouardp/ga/tree/main/docs"
 
 ### 3. Fix gamo workspace dependency
 
-`packages/gamo/pyproject.toml` has `[tool.uv.sources] galaga = { workspace = true }`
+`packages/galaga_marimo/pyproject.toml` has `[tool.uv.sources] galaga = { workspace = true }`
 which only works locally. For PyPI, the `dependencies` list is sufficient — remove
 the `[tool.uv.sources]` section from gamo's pyproject.toml before publishing.
 
@@ -97,7 +97,7 @@ Initial release.
 
 ```bash
 cd packages/galaga && uv build
-cd packages/gamo && uv build
+cd packages/galaga_marimo && uv build
 ```
 
 ### Install into clean venv and test
@@ -113,7 +113,7 @@ deactivate
 uv venv /tmp/gamo-test --python 3.14
 source /tmp/gamo-test/bin/activate
 pip install packages/galaga/dist/galaga-0.1.0-py3-none-any.whl
-pip install packages/gamo/dist/galaga_marimo-0.1.0-py3-none-any.whl
+pip install packages/galaga_marimo/dist/galaga_marimo-0.1.0-py3-none-any.whl
 python -c "import galaga_marimo; print('OK')"
 deactivate
 ```
@@ -131,7 +131,7 @@ uv build
 uv publish --publish-url https://test.pypi.org/legacy/
 
 # Then gamo
-cd packages/gamo
+cd packages/galaga_marimo
 uv build
 uv publish --publish-url https://test.pypi.org/legacy/
 ```
@@ -146,7 +146,7 @@ pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/
 
 ```bash
 cd packages/galaga && uv build && uv publish
-cd packages/gamo && uv build && uv publish
+cd packages/galaga_marimo && uv build && uv publish
 ```
 
 Order matters: `galaga` must be published before `galaga-marimo`.
@@ -208,7 +208,7 @@ jobs:
       - run: uv sync
       - run: uv run pytest packages/galaga/tests/ -v
       - run: cd packages/galaga && uv build && uv publish
-      - run: cd packages/gamo && uv build && uv publish
+      - run: cd packages/galaga_marimo && uv build && uv publish
 ```
 
 Configure trusted publishing on PyPI (Settings → Publishing → Add publisher)

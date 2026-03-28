@@ -1,6 +1,6 @@
 [tool.uv.workspace]
 members = ["packages/galaga"]
-exclude = ["packages/gamo"]
+exclude = ["packages/galaga_marimo"]
 
 [dependency-groups]
 dev = [

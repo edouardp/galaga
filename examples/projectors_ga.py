@@ -10,7 +10,7 @@ def _():
     from pathlib import Path
 
     _root = str(Path(__file__).resolve().parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "gamo")
+    _gamo = str(Path(__file__).resolve().parent.parent / "packages" / "galaga_marimo")
     for _p in [_root, _gamo]:
         if _p not in sys.path:
             sys.path.insert(0, _p)
