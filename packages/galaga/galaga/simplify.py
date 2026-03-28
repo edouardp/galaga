@@ -201,7 +201,7 @@ def _simplify(e: Expr) -> Expr:
             try:
                 val = e.eval()
                 return Sym(val, str(val))
-            except Exception:
+            except Exception:  # nosec B110 — intentional fallback when eval fails
                 pass
 
     # Scalar multiplication identities

@@ -10,6 +10,10 @@ dev = [
     "pytest>=9.0.2",
     "pytest-cov>=7.1.0",
     "ruff>=0.8.0",
+    "pre-commit>=4.0.0",
+    "bandit>=1.7.0",
+    "pip-audit>=2.0.0",
+    "pyrefly>=0.57.1",
 ]
 
 [tool.uv.sources]
@@ -40,3 +44,8 @@ ignore = [
 
 [tool.ruff.lint.isort]
 known-first-party = ["galaga", "galaga_marimo"]
+
+[tool.pyrefly]
+search-path = ["packages/galaga"]
+project-includes = ["packages/galaga/galaga/**/*.py"]
+project-excludes = ["**/__pycache__", ".venv"]

@@ -16,6 +16,15 @@ fi
 echo "=== shellcheck ==="
 find scripts -name '*.sh' -exec shellcheck -x -e SC2016 -e SC1091 {} +
 
+echo "=== bandit ==="
+uv run bandit -r -c .bandit packages/
+
+echo "=== pip-audit ==="
+uv run pip-audit || echo "⚠️  pip-audit found issues (see above)"
+
+echo "=== pyrefly ==="
+uv run pyrefly check 2>&1 | tail -5 || echo "⚠️  pyrefly found type issues (see above)"
+
 echo "=== rumdl ==="
 if [[ -n "$FIX" ]]; then
     uvx rumdl fmt packages/ CHANGELOG.md

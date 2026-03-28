@@ -1,4 +1,6 @@
-.PHONY: test test-galaga test-galaga-marimo build check clean release-patch release-minor release-major lint lint-fix
+.PHONY: all test test-galaga test-galaga-marimo build check clean release-patch release-minor release-major lint lint-fix
+
+all: lint test
 
 test: test-galaga test-galaga-marimo
 
