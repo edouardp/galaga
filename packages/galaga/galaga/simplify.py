@@ -13,11 +13,39 @@ from __future__ import annotations
 
 import galaga.algebra as _alg
 from galaga.expr import (
-    Expr, Sym, Scalar, Add, Sub, Neg, Gp, Op, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual,
-    Inverse, Squared, Exp, Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp,
-    Commutator, Anticommutator, LieBracket, JordanProduct,
+    Add,
+    Anticommutator,
+    Commutator,
+    Conjugate,
+    Div,
+    Dli,
+    Dual,
+    Even,
+    Exp,
+    Expr,
+    Gp,
+    Grade,
+    Hi,
+    Inverse,
+    Involute,
+    JordanProduct,
+    Lc,
+    LieBracket,
+    Neg,
+    Norm,
+    Odd,
+    Op,
+    Rc,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sp,
+    Squared,
+    Sub,
+    Sym,
+    Undual,
+    Unit,
     _ensure_expr,
 )
 
@@ -48,7 +76,9 @@ def _eq(a: Expr, b: Expr) -> bool:
         return _eq(a.x, b.x)
     if isinstance(a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp)):
         return _eq(a.x, b.x)
-    if isinstance(a, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)):
+    if isinstance(
+        a, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+    ):
         return _eq(a.a, b.a) and _eq(a.b, b.b)
     if isinstance(a, Grade):
         return _eq(a.x, b.x) and a.k == b.k
@@ -129,7 +159,9 @@ def _known_grade(e: Expr) -> int | None:
 def _simplify(e: Expr) -> Expr:
     """Single-pass rewrite of an expression tree (called repeatedly by simplify)."""
     # --- Phase 1: recurse into children first (bottom-up rewriting) ---
-    if isinstance(e, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)):
+    if isinstance(
+        e, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+    ):
         e = type(e)(_simplify(e.a), _simplify(e.b))
     elif isinstance(e, ScalarMul):
         e = ScalarMul(e.k, _simplify(e.x))

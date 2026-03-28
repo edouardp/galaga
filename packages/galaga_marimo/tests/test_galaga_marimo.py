@@ -7,14 +7,15 @@ with synthetic Template/Interpolation objects.
 
 import sys
 import types
-import pytest
-from unittest.mock import MagicMock
 from dataclasses import dataclass
 from typing import Any
+
+import pytest
 
 # ---------------------------------------------------------------------------
 # Mock string.templatelib for Python < 3.14
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class FakeInterpolation:
@@ -23,13 +24,16 @@ class FakeInterpolation:
     conversion: str | None = None
     format_spec: str = ""
 
+
 class FakeTemplate:
     """Mimics string.templatelib.Template iteration."""
+
     def __init__(self, *items):
         self._items = items
 
     def __iter__(self):
         return iter(self._items)
+
 
 # Patch string.templatelib before importing galaga_marimo
 _mock_templatelib = types.ModuleType("string.templatelib")
@@ -37,26 +41,27 @@ _mock_templatelib.Template = FakeTemplate
 _mock_templatelib.Interpolation = FakeInterpolation
 sys.modules["string.templatelib"] = _mock_templatelib
 
+from galaga_marimo.api import Doc, block, block_latex, doc, inline, latex, md, text
 from galaga_marimo.renderer import (
-    render_value,
-    render_template,
-    RenderKind,
     Rendered,
-    _escape_md,
+    RenderKind,
     _assemble,
-    _has_latex,
+    _escape_md,
     _get_latex,
+    _has_latex,
     _strip_latex_delimiters,
+    render_template,
+    render_value,
 )
-from galaga_marimo.api import md, inline, block, latex, block_latex, text, doc, Doc
-
 
 # ---------------------------------------------------------------------------
 # Helpers — fake GA objects
 # ---------------------------------------------------------------------------
 
+
 class FakeMultivector:
     """Mimics ga.Multivector with .latex() and str()."""
+
     def __init__(self, latex_str: str, unicode_str: str):
         self._latex = latex_str
         self._unicode = unicode_str
@@ -70,6 +75,7 @@ class FakeMultivector:
 
 class FakeExpr:
     """Mimics ga.symbolic.Expr with .latex() and str()."""
+
     def __init__(self, latex_str: str, unicode_str: str):
         self._latex_str = latex_str
         self._unicode = unicode_str
@@ -83,6 +89,7 @@ class FakeExpr:
 
 class PlainObject:
     """Object with no .latex() method."""
+
     def __init__(self, s: str):
         self._s = s
 
@@ -95,6 +102,7 @@ class PlainObject:
 
 class ReprLatexOnly:
     """Object with _repr_latex_() but no .latex() — e.g. SymPy, Pandas."""
+
     def __init__(self, latex_str: str, text_str: str):
         self._latex = latex_str
         self._text = text_str
@@ -109,6 +117,7 @@ class ReprLatexOnly:
 # ---------------------------------------------------------------------------
 # _repr_latex_ / Jupyter protocol support tests
 # ---------------------------------------------------------------------------
+
 
 class TestReprLatexProtocol:
     """Test _repr_latex_() fallback for third-party objects."""
@@ -139,9 +148,14 @@ class TestReprLatexProtocol:
 
     def test_get_latex_prefers_latex_method(self):
         """When both .latex() and _repr_latex_() exist, .latex() wins."""
+
         class Both:
-            def latex(self): return "from_latex"
-            def _repr_latex_(self): return "$from_repr$"
+            def latex(self):
+                return "from_latex"
+
+            def _repr_latex_(self):
+                return "$from_repr$"
+
         assert _get_latex(Both()) == "from_latex"
 
     def test_get_latex_falls_back_to_repr_latex(self):
@@ -186,6 +200,7 @@ class TestReprLatexProtocol:
 # ---------------------------------------------------------------------------
 # render_value tests
 # ---------------------------------------------------------------------------
+
 
 class TestRenderValue:
     """Test the core value classification logic."""
@@ -293,6 +308,7 @@ class TestRenderValue:
 # _assemble tests
 # ---------------------------------------------------------------------------
 
+
 class TestAssemble:
     def test_inline_latex(self):
         r = Rendered(RenderKind.INLINE_LATEX, "e_{1}")
@@ -317,6 +333,7 @@ class TestAssemble:
 # _escape_md tests
 # ---------------------------------------------------------------------------
 
+
 class TestEscapeMd:
     def test_angle_brackets(self):
         assert _escape_md("<div>") == "&lt;div&gt;"
@@ -331,6 +348,7 @@ class TestEscapeMd:
 # ---------------------------------------------------------------------------
 # render_template tests
 # ---------------------------------------------------------------------------
+
 
 class TestRenderTemplate:
     def test_literal_only(self):
@@ -400,6 +418,7 @@ class TestRenderTemplate:
 # Wrapper tests
 # ---------------------------------------------------------------------------
 
+
 class TestWrappers:
     def test_latex_wrapper_has_latex(self):
         mv = FakeMultivector("e_{1}", "e₁")
@@ -444,6 +463,7 @@ class TestWrappers:
 # ---------------------------------------------------------------------------
 # md/inline/block API tests (without marimo)
 # ---------------------------------------------------------------------------
+
 
 class TestApiWithoutMarimo:
     """Test that API functions produce correct markdown before passing to marimo."""
@@ -507,6 +527,7 @@ class TestApiWithoutMarimo:
 # ---------------------------------------------------------------------------
 # Doc builder tests
 # ---------------------------------------------------------------------------
+
 
 class TestDoc:
     def test_single_md(self):
@@ -608,6 +629,7 @@ class TestDoc:
 # Integration with real GA objects (if available)
 # ---------------------------------------------------------------------------
 
+
 class TestGAIntegration:
     """Test with actual galaga Multivector objects."""
 
@@ -615,6 +637,7 @@ class TestGAIntegration:
     def vga(self):
         try:
             from galaga import Algebra
+
             return Algebra((1, 1, 1))
         except ImportError:
             pytest.skip("galaga not installed")

@@ -58,8 +58,7 @@ class BasisBlade:
     def latex_name(self, value: str):
         self._latex = value
 
-    def rename(self, ascii: str | None = None, unicode: str | None = None,
-               latex: str | None = None) -> BasisBlade:
+    def rename(self, ascii: str | None = None, unicode: str | None = None, latex: str | None = None) -> BasisBlade:
         """Override one or more name variants. Returns self for chaining."""
         if ascii is not None:
             self._ascii = ascii

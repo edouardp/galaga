@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 
-
 ROOT = Path(__file__).resolve().parents[3]
 EXAMPLES = ROOT / "examples"
 
@@ -63,7 +62,7 @@ def test_new_example_notebooks_compile():
         if sys.version_info >= (3, 14):
             compile(source, str(EXAMPLES / notebook), "exec")
         else:
-            assert 'app = marimo.App()' in source
+            assert "app = marimo.App()" in source
             assert '__generated_with = "0.21.1"' in source
 
 
@@ -74,4 +73,4 @@ def test_new_example_notebooks_use_lazy_teaching_pattern():
         assert "basis_vectors(lazy=True)" in source
         assert "import galaga_marimo as gm" in source
         assert ".eval()" in source
-        assert "gm.md(t\"\"\"" in source or "gm.md(t'''" in source
+        assert 'gm.md(t"""' in source or "gm.md(t'''" in source

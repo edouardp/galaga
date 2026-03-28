@@ -17,49 +17,102 @@ from __future__ import annotations
 
 import re
 
-
 # Greek lowercase: (latex_cmd, unicode_char, ascii_name)
 _GREEK_LOWER = [
-    ("alpha", "α"), ("beta", "β"), ("gamma", "γ"), ("delta", "δ"),
-    ("epsilon", "ϵ"), ("varepsilon", "ε"), ("zeta", "ζ"), ("eta", "η"),
-    ("theta", "θ"), ("vartheta", "ϑ"), ("iota", "ι"), ("kappa", "κ"),
-    ("lambda", "λ"), ("mu", "μ"), ("nu", "ν"), ("xi", "ξ"),
-    ("pi", "π"), ("varpi", "ϖ"), ("rho", "ρ"), ("varrho", "ϱ"),
-    ("sigma", "σ"), ("varsigma", "ς"), ("tau", "τ"), ("upsilon", "υ"),
-    ("phi", "ϕ"), ("varphi", "φ"), ("chi", "χ"), ("psi", "ψ"),
+    ("alpha", "α"),
+    ("beta", "β"),
+    ("gamma", "γ"),
+    ("delta", "δ"),
+    ("epsilon", "ϵ"),
+    ("varepsilon", "ε"),
+    ("zeta", "ζ"),
+    ("eta", "η"),
+    ("theta", "θ"),
+    ("vartheta", "ϑ"),
+    ("iota", "ι"),
+    ("kappa", "κ"),
+    ("lambda", "λ"),
+    ("mu", "μ"),
+    ("nu", "ν"),
+    ("xi", "ξ"),
+    ("pi", "π"),
+    ("varpi", "ϖ"),
+    ("rho", "ρ"),
+    ("varrho", "ϱ"),
+    ("sigma", "σ"),
+    ("varsigma", "ς"),
+    ("tau", "τ"),
+    ("upsilon", "υ"),
+    ("phi", "ϕ"),
+    ("varphi", "φ"),
+    ("chi", "χ"),
+    ("psi", "ψ"),
     ("omega", "ω"),
 ]
 
 _GREEK_UPPER = [
-    ("Gamma", "Γ"), ("Delta", "Δ"), ("Theta", "Θ"), ("Lambda", "Λ"),
-    ("Xi", "Ξ"), ("Pi", "Π"), ("Sigma", "Σ"), ("Upsilon", "Υ"),
-    ("Phi", "Φ"), ("Psi", "Ψ"), ("Omega", "Ω"),
+    ("Gamma", "Γ"),
+    ("Delta", "Δ"),
+    ("Theta", "Θ"),
+    ("Lambda", "Λ"),
+    ("Xi", "Ξ"),
+    ("Pi", "Π"),
+    ("Sigma", "Σ"),
+    ("Upsilon", "Υ"),
+    ("Phi", "Φ"),
+    ("Psi", "Ψ"),
+    ("Omega", "Ω"),
 ]
 
 _COMMON = [
-    ("hbar", "ℏ"), ("ell", "ℓ"), ("nabla", "∇"), ("partial", "∂"),
-    ("infty", "∞"), ("forall", "∀"), ("exists", "∃"), ("emptyset", "∅"),
-    ("aleph", "ℵ"), ("wp", "℘"), ("Re", "ℜ"), ("Im", "ℑ"),
+    ("hbar", "ℏ"),
+    ("ell", "ℓ"),
+    ("nabla", "∇"),
+    ("partial", "∂"),
+    ("infty", "∞"),
+    ("forall", "∀"),
+    ("exists", "∃"),
+    ("emptyset", "∅"),
+    ("aleph", "ℵ"),
+    ("wp", "℘"),
+    ("Re", "ℜ"),
+    ("Im", "ℑ"),
 ]
 
 _OPERATORS = [
-    ("cdot", "·", "."), ("times", "×", "x"), ("wedge", "∧", "^"),
-    ("vee", "∨", "v"), ("star", "⋆", "*"), ("dagger", "†", "dag"),
-    ("pm", "±", "+/-"), ("mp", "∓", "-/+"), ("circ", "∘", "o"),
-    ("otimes", "⊗", "(x)"), ("oplus", "⊕", "(+)"),
+    ("cdot", "·", "."),
+    ("times", "×", "x"),
+    ("wedge", "∧", "^"),
+    ("vee", "∨", "v"),
+    ("star", "⋆", "*"),
+    ("dagger", "†", "dag"),
+    ("pm", "±", "+/-"),
+    ("mp", "∓", "-/+"),
+    ("circ", "∘", "o"),
+    ("otimes", "⊗", "(x)"),
+    ("oplus", "⊕", "(+)"),
 ]
 
 _RELATIONS = [
-    ("leq", "≤", "<="), ("geq", "≥", ">="), ("neq", "≠", "!="),
-    ("approx", "≈", "~="), ("equiv", "≡", "==="), ("sim", "∼", "~"),
-    ("propto", "∝", "propto"), ("in", "∈", "in"),
-    ("subset", "⊂", "subset"), ("supset", "⊃", "supset"),
+    ("leq", "≤", "<="),
+    ("geq", "≥", ">="),
+    ("neq", "≠", "!="),
+    ("approx", "≈", "~="),
+    ("equiv", "≡", "==="),
+    ("sim", "∼", "~"),
+    ("propto", "∝", "propto"),
+    ("in", "∈", "in"),
+    ("subset", "⊂", "subset"),
+    ("supset", "⊃", "supset"),
 ]
 
 _ARROWS = [
-    ("to", "→", "->"), ("leftarrow", "←", "<-"),
-    ("Rightarrow", "⇒", "=>"), ("Leftarrow", "⇐", "<="),
-    ("leftrightarrow", "↔", "<->"), ("mapsto", "↦", "|->"),
+    ("to", "→", "->"),
+    ("leftarrow", "←", "<-"),
+    ("Rightarrow", "⇒", "=>"),
+    ("Leftarrow", "⇐", "<="),
+    ("leftrightarrow", "↔", "<->"),
+    ("mapsto", "↦", "|->"),
 ]
 
 # Math font Unicode offsets: (uppercase_start, lowercase_start)
@@ -75,18 +128,34 @@ _MATHBB_UPPER = 0x1D538  # 𝔸
 
 # Special mathbb characters that have dedicated Unicode codepoints
 _MATHBB_SPECIAL = {
-    'C': 'ℂ', 'H': 'ℍ', 'N': 'ℕ', 'P': 'ℙ', 'Q': 'ℚ', 'R': 'ℝ', 'Z': 'ℤ',
+    "C": "ℂ",
+    "H": "ℍ",
+    "N": "ℕ",
+    "P": "ℙ",
+    "Q": "ℚ",
+    "R": "ℝ",
+    "Z": "ℤ",
 }
 
 # mathcal has gaps — some letters have dedicated codepoints
 _MATHCAL_SPECIAL = {
-    'B': 'ℬ', 'E': 'ℰ', 'F': 'ℱ', 'H': 'ℋ', 'I': 'ℐ', 'L': 'ℒ',
-    'M': 'ℳ', 'R': 'ℛ',
+    "B": "ℬ",
+    "E": "ℰ",
+    "F": "ℱ",
+    "H": "ℋ",
+    "I": "ℐ",
+    "L": "ℒ",
+    "M": "ℳ",
+    "R": "ℛ",
 }
 
 # mathfrak has gaps
 _MATHFRAK_SPECIAL = {
-    'C': 'ℭ', 'H': 'ℌ', 'I': 'ℑ', 'R': 'ℜ', 'Z': 'ℨ',
+    "C": "ℭ",
+    "H": "ℌ",
+    "I": "ℑ",
+    "R": "ℜ",
+    "Z": "ℨ",
 }
 
 _MATH_FONT_RE = re.compile(r"\\(mathbf|mathit|mathcal|mathfrak|mathbb)\{(\w)\}")
@@ -94,12 +163,12 @@ _ACCENT_RE = re.compile(r"\\(hat|tilde|bar|vec|dot|ddot)\{(\w)\}")
 
 # Combining characters for single-letter accents
 _ACCENT_COMBINING = {
-    "hat":   "\u0302",  # combining circumflex
+    "hat": "\u0302",  # combining circumflex
     "tilde": "\u0303",  # combining tilde
-    "bar":   "\u0304",  # combining macron
-    "vec":   "\u20D7",  # combining right arrow above
-    "dot":   "\u0307",  # combining dot above
-    "ddot":  "\u0308",  # combining diaeresis
+    "bar": "\u0304",  # combining macron
+    "vec": "\u20d7",  # combining right arrow above
+    "dot": "\u0307",  # combining dot above
+    "ddot": "\u0308",  # combining diaeresis
 }
 
 
@@ -154,36 +223,36 @@ class LatexSymbols:
 
         if font == "mathbf":
             if char.isupper():
-                uni = chr(_MATHBF_UPPER + ord(char) - ord('A'))
+                uni = chr(_MATHBF_UPPER + ord(char) - ord("A"))
             else:
-                uni = chr(_MATHBF_LOWER + ord(char) - ord('a'))
+                uni = chr(_MATHBF_LOWER + ord(char) - ord("a"))
         elif font == "mathit":
             if char.isupper():
-                uni = chr(_MATHIT_UPPER + ord(char) - ord('A'))
+                uni = chr(_MATHIT_UPPER + ord(char) - ord("A"))
             else:
-                offset = ord(char) - ord('a')
+                offset = ord(char) - ord("a")
                 # Unicode has a gap at U+1D455 (italic h), use ℎ
-                if char == 'h':
-                    uni = 'ℎ'
+                if char == "h":
+                    uni = "ℎ"
                 else:
                     uni = chr(_MATHIT_LOWER + offset)
         elif font == "mathcal":
             if char in _MATHCAL_SPECIAL:
                 uni = _MATHCAL_SPECIAL[char]
             else:
-                uni = chr(_MATHCAL_UPPER + ord(char) - ord('A'))
+                uni = chr(_MATHCAL_UPPER + ord(char) - ord("A"))
         elif font == "mathfrak":
             if char in _MATHFRAK_SPECIAL:
                 uni = _MATHFRAK_SPECIAL[char]
             elif char.isupper():
-                uni = chr(_MATHFRAK_UPPER + ord(char) - ord('A'))
+                uni = chr(_MATHFRAK_UPPER + ord(char) - ord("A"))
             else:
-                uni = chr(_MATHFRAK_LOWER + ord(char) - ord('a'))
+                uni = chr(_MATHFRAK_LOWER + ord(char) - ord("a"))
         elif font == "mathbb":
             if char in _MATHBB_SPECIAL:
                 uni = _MATHBB_SPECIAL[char]
             else:
-                uni = chr(_MATHBB_UPPER + ord(char) - ord('A'))
+                uni = chr(_MATHBB_UPPER + ord(char) - ord("A"))
         else:
             return None
 

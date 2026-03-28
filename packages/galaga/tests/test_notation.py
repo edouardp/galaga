@@ -1,6 +1,7 @@
 """Tests for the Notation class — write first, implement to pass."""
 
 import pytest
+
 from galaga.notation import Notation, NotationRule
 
 
@@ -13,17 +14,42 @@ def n():
 # Default rules exist for all node types
 # ============================================================
 
+
 class TestDefaultsExist:
     """Every node type has rules for all three formats."""
 
     NODE_TYPES = [
-        "Reverse", "Involute", "Conjugate", "Dual", "Undual",
-        "Inverse", "Squared", "Neg", "ScalarMul", "ScalarDiv",
-        "Gp", "Op", "Lc", "Rc", "Hi", "Dli", "Sp", "Div",
+        "Reverse",
+        "Involute",
+        "Conjugate",
+        "Dual",
+        "Undual",
+        "Inverse",
+        "Squared",
+        "Neg",
+        "ScalarMul",
+        "ScalarDiv",
+        "Gp",
+        "Op",
+        "Lc",
+        "Rc",
+        "Hi",
+        "Dli",
+        "Sp",
+        "Div",
         "Regressive",
-        "Add", "Sub",
-        "Grade", "Norm", "Unit", "Exp", "Even", "Odd",
-        "Commutator", "Anticommutator", "LieBracket", "JordanProduct",
+        "Add",
+        "Sub",
+        "Grade",
+        "Norm",
+        "Unit",
+        "Exp",
+        "Even",
+        "Odd",
+        "Commutator",
+        "Anticommutator",
+        "LieBracket",
+        "JordanProduct",
     ]
 
     @pytest.mark.parametrize("name", NODE_TYPES)
@@ -46,6 +72,7 @@ class TestDefaultsExist:
 # Accent rules (reverse, involute, conjugate)
 # ============================================================
 
+
 class TestAccentDefaults:
     def test_reverse_unicode_atom(self, n):
         """Reverse uses combining tilde accent."""
@@ -59,7 +86,7 @@ class TestAccentDefaults:
         assert r.fallback_prefix == "~"
 
     def test_reverse_latex_atom(self, n):
-        """Reverse uses \tilde / \widetilde in LaTeX."""
+        """Reverse uses \tilde / \\widetilde in LaTeX."""
         r = n.get("Reverse", "latex")
         assert r.kind == "accent"
         assert r.latex_cmd == r"\tilde"
@@ -78,7 +105,7 @@ class TestAccentDefaults:
         assert r.combining == "\u0304"
 
     def test_conjugate_latex(self, n):
-        """Conjugate uses \bar / \overline in LaTeX."""
+        """Conjugate uses \bar / \\overline in LaTeX."""
         r = n.get("Conjugate", "latex")
         assert r.latex_cmd == r"\bar"
         assert r.latex_wide_cmd == r"\overline"
@@ -87,6 +114,7 @@ class TestAccentDefaults:
 # ============================================================
 # Postfix rules (dual, inverse, squared, undual)
 # ============================================================
+
 
 class TestPostfixDefaults:
     def test_dual_unicode(self, n):
@@ -128,6 +156,7 @@ class TestPostfixDefaults:
 # Prefix rules (neg)
 # ============================================================
 
+
 class TestPrefixDefaults:
     def test_neg_unicode(self, n):
         """Negation is prefix -."""
@@ -146,6 +175,7 @@ class TestPrefixDefaults:
 # Infix rules (binary ops)
 # ============================================================
 
+
 class TestInfixDefaults:
     def test_op_unicode(self, n):
         """Wedge uses ∧ separator."""
@@ -154,7 +184,7 @@ class TestInfixDefaults:
         assert r.separator == "∧"
 
     def test_op_latex(self, n):
-        """Wedge uses \wedge in LaTeX."""
+        r"""Wedge uses \wedge in LaTeX."""
         r = n.get("Op", "latex")
         assert r.separator == r" \wedge "
 
@@ -193,6 +223,7 @@ class TestInfixDefaults:
 # Juxtaposition (Gp)
 # ============================================================
 
+
 class TestJuxtaposition:
     def test_gp_unicode(self, n):
         """Geometric product uses juxtaposition."""
@@ -209,6 +240,7 @@ class TestJuxtaposition:
 # ============================================================
 # Wrap rules (grade, norm, exp, etc.)
 # ============================================================
+
 
 class TestWrapDefaults:
     def test_grade_unicode(self, n):
@@ -250,6 +282,7 @@ class TestWrapDefaults:
 # ScalarMul / ScalarDiv
 # ============================================================
 
+
 class TestScalarOps:
     def test_scalar_mul_unicode(self, n):
         """ScalarMul is a prefix rule."""
@@ -267,12 +300,11 @@ class TestScalarOps:
 # Override rules
 # ============================================================
 
+
 class TestOverride:
     def test_override_reverse_unicode(self, n):
         """set() overrides a single format."""
-        n.set("Reverse", "unicode", NotationRule(
-            kind="postfix", symbol="†"
-        ))
+        n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         r = n.get("Reverse", "unicode")
         assert r.kind == "postfix"
         assert r.symbol == "†"
@@ -301,6 +333,7 @@ class TestOverride:
 # Copy / isolation
 # ============================================================
 
+
 class TestCopy:
     def test_copy_is_independent(self, n):
         """copy() produces an independent notation."""
@@ -323,7 +356,7 @@ class TestPresets:
         assert r.symbol == "†"
 
     def test_hestenes_latex_dagger(self):
-        """Hestenes preset uses \dagger in LaTeX."""
+        r"""Hestenes preset uses \dagger in LaTeX."""
         n = Notation.hestenes()
         r = n.get("Reverse", "latex")
         assert "dagger" in r.symbol
@@ -338,6 +371,7 @@ class TestPresets:
     def test_preset_with_algebra(self):
         """Notation preset integrates with Algebra rendering."""
         from galaga import Algebra, reverse
+
         alg = Algebra((1, 1, 1), notation=Notation.hestenes())
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
@@ -347,8 +381,9 @@ class TestPresets:
 class TestFunctionStyle:
     def test_wedge_as_function(self):
         """Op can render as function style: wedge(a, b)."""
-        from galaga import Algebra, op
+        from galaga import Algebra
         from galaga.notation import NotationRule
+
         alg = Algebra((1, 1, 1))
         alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors(lazy=True)
@@ -358,6 +393,7 @@ class TestFunctionStyle:
         """Reverse can render as function style: rev(v)."""
         from galaga import Algebra, reverse
         from galaga.notation import NotationRule
+
         alg = Algebra((1, 1, 1))
         alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
         e1, _, _ = alg.basis_vectors(lazy=True)
@@ -365,11 +401,12 @@ class TestFunctionStyle:
         assert str(reverse(v)) == "rev(v)"
 
     def test_function_style_latex(self):
-        """Function style uses \operatorname in LaTeX."""
+        r"""Function style uses \operatorname in LaTeX."""
         from galaga import Algebra
         from galaga.notation import NotationRule
+
         alg = Algebra((1, 1, 1))
         alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors(lazy=True)
-        result = (e1 ^ e2)
+        result = e1 ^ e2
         assert r"\operatorname{wedge}" in result.latex()

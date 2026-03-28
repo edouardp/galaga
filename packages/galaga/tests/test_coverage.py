@@ -1,34 +1,125 @@
 """Coverage gap tests for algebra.py and symbolic.py."""
 
-import pytest
 import numpy as np
+import pytest
+
 from galaga import (
-    Algebra, Multivector, gp, op, grade, reverse, involute, conjugate,
-    left_contraction, right_contraction, hestenes_inner, scalar_product,
-    doran_lasenby_inner, dorst_inner,
-    scalar, dual, undual, complement, uncomplement, norm, norm2, unit, inverse, ip,
-    normalize, normalise, grades,
-    commutator, anticommutator, lie_bracket, jordan_product,
-    even_grades, odd_grades, squared,
-    even_grades, odd_grades,
-    is_rotor, is_even,
-    sandwich, sw,
+    Algebra,
+    anticommutator,
+    commutator,
+    complement,
+    conjugate,
+    doran_lasenby_inner,
+    even_grades,
+    gp,
+    grade,
+    hestenes_inner,
+    inverse,
+    involute,
+    ip,
+    is_even,
+    is_rotor,
+    jordan_product,
+    left_contraction,
+    lie_bracket,
+    odd_grades,
+    op,
+    reverse,
+    right_contraction,
+    sandwich,
+    scalar,
+    scalar_product,
+    squared,
+    sw,
+    uncomplement,
+    undual,
+    unit,
 )
 from galaga.symbolic import (
-    sym, Expr, Scalar, Gp, Op, Lc, Rc, Hi, Sp, Grade, Reverse,
-    Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Neg, ScalarMul,
-    Add, Sub,
-    gp as sgp, op as sop, grade as sgrade, reverse as sreverse,
-    involute as sinvolute, conjugate as sconjugate,
-    left_contraction as slc, right_contraction as src,
-    hestenes_inner as shi, scalar_product as ssp,
-    dual as sdual, undual as sundual,
-    norm as snorm, unit as sunit, inverse as sinverse,
-    ip as sip, normalize as snormalize, normalise as snormalise,
-    squared as ssq, even_grades as seven, odd_grades as sodd,
-    even_grades as seven_grades, odd_grades as sodd_grades,
-    sandwich as ssandwich, sw as ssw_alias,
+    Conjugate,
+    Dual,
+    Expr,
+    Grade,
+    Involute,
+    Neg,
+    Reverse,
+    Scalar,
+    ScalarMul,
+    Unit,
     simplify,
+    sym,
+)
+from galaga.symbolic import (
+    conjugate as sconjugate,
+)
+from galaga.symbolic import (
+    dual as sdual,
+)
+from galaga.symbolic import (
+    even_grades as seven,
+)
+from galaga.symbolic import (
+    even_grades as seven_grades,
+)
+from galaga.symbolic import (
+    gp as sgp,
+)
+from galaga.symbolic import (
+    grade as sgrade,
+)
+from galaga.symbolic import (
+    hestenes_inner as shi,
+)
+from galaga.symbolic import (
+    inverse as sinverse,
+)
+from galaga.symbolic import (
+    involute as sinvolute,
+)
+from galaga.symbolic import (
+    ip as sip,
+)
+from galaga.symbolic import (
+    left_contraction as slc,
+)
+from galaga.symbolic import (
+    norm as snorm,
+)
+from galaga.symbolic import (
+    normalise as snormalise,
+)
+from galaga.symbolic import (
+    normalize as snormalize,
+)
+from galaga.symbolic import (
+    odd_grades as sodd,
+)
+from galaga.symbolic import (
+    odd_grades as sodd_grades,
+)
+from galaga.symbolic import (
+    op as sop,
+)
+from galaga.symbolic import (
+    right_contraction as src,
+)
+from galaga.symbolic import (
+    sandwich as ssandwich,
+)
+from galaga.symbolic import (
+    scalar_product as ssp,
+)
+from galaga.symbolic import (
+    squared as ssq,
+)
+from galaga.symbolic import (
+    sw as ssw_alias,
+)
+from galaga.symbolic import (
+    undual as sundual,
+)
+from galaga.symbolic import (
+    unit as sunit,
 )
 
 
@@ -40,6 +131,7 @@ def cl3():
 # ============================================================
 # algebra.py coverage gaps
 # ============================================================
+
 
 class TestNamingPresets:
     def test_gamma_preset(self):
@@ -289,6 +381,7 @@ class TestCommutatorAnticommutator:
 # ============================================================
 # symbolic.py coverage gaps
 # ============================================================
+
 
 class TestSymbolicOperators:
     def test_radd_scalar(self, cl3):
@@ -606,14 +699,14 @@ class TestRemainingSymbolicGaps:
         b = sym(e2, "b")
 
         cases = [
-            sgrade(R * v * ~R, 1),      # Grade
-            R * v,                       # Gp
-            a ^ b,                       # Op
-            ~R,                          # Reverse
-            a + b,                       # Add
-            a - b,                       # Sub
-            3 * a,                       # ScalarMul
-            -a,                          # Neg
+            sgrade(R * v * ~R, 1),  # Grade
+            R * v,  # Gp
+            a ^ b,  # Op
+            ~R,  # Reverse
+            a + b,  # Add
+            a - b,  # Sub
+            3 * a,  # ScalarMul
+            -a,  # Neg
         ]
         for expr in cases:
             assert repr(expr) == str(expr), f"{type(expr).__name__}: repr != str"
@@ -656,16 +749,16 @@ class TestEvenOddSquared:
     def test_even(self, cl3):
         """Even LaTeX renders with \text{even}."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         r = even_grades(mv)
-        assert np.isclose(r.data[0], 1.0)   # scalar
-        assert np.isclose(r.data[1], 0.0)   # e1 (odd)
-        assert np.isclose(r.data[3], 3.0)   # e12
+        assert np.isclose(r.data[0], 1.0)  # scalar
+        assert np.isclose(r.data[1], 0.0)  # e1 (odd)
+        assert np.isclose(r.data[3], 3.0)  # e12
 
     def test_odd(self, cl3):
         """Odd LaTeX renders with \text{odd}."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         r = odd_grades(mv)
         assert np.isclose(r.data[0], 0.0)
         assert np.isclose(r.data[1], 2.0)
@@ -674,7 +767,7 @@ class TestEvenOddSquared:
     def test_even_odd_sum(self, cl3):
         """even + odd = original."""
         e1, e2, e3 = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2) + 4*(e1^e2^e3)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2) + 4 * (e1 ^ e2 ^ e3)
         assert even_grades(mv) + odd_grades(mv) == mv
 
     def test_squared(self, cl3):
@@ -696,15 +789,15 @@ class TestSymbolicEvenOddSquared:
     def test_squared_str(self, cl3):
         """Squared Expr renders as x²."""
         e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         assert str(ssq(R)) == "R²"
 
     def test_squared_eval(self, cl3):
         """Squared Expr evaluates correctly."""
         e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         result = ssq(R).eval()
-        expected = gp(e1*e2, e1*e2)
+        expected = gp(e1 * e2, e1 * e2)
         assert np.allclose(result.data, expected.data)
 
     def test_squared_numeric_fallback(self, cl3):
@@ -722,9 +815,9 @@ class TestSymbolicEvenOddSquared:
     def test_even_eval(self, cl3):
         """Even Expr evaluates correctly."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = sym(1 + 2*e1 + 3*(e1^e2), "A")
+        mv = sym(1 + 2 * e1 + 3 * (e1 ^ e2), "A")
         result = seven(mv).eval()
-        expected = even_grades(1 + 2*e1 + 3*(e1^e2))
+        expected = even_grades(1 + 2 * e1 + 3 * (e1 ^ e2))
         assert np.allclose(result.data, expected.data)
 
     def test_even_numeric_fallback(self, cl3):
@@ -742,9 +835,9 @@ class TestSymbolicEvenOddSquared:
     def test_odd_eval(self, cl3):
         """Odd Expr evaluates correctly."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = sym(1 + 2*e1 + 3*(e1^e2), "A")
+        mv = sym(1 + 2 * e1 + 3 * (e1 ^ e2), "A")
         result = sodd(mv).eval()
-        expected = odd_grades(1 + 2*e1 + 3*(e1^e2))
+        expected = odd_grades(1 + 2 * e1 + 3 * (e1 ^ e2))
         assert np.allclose(result.data, expected.data)
 
     def test_odd_numeric_fallback(self, cl3):
@@ -758,7 +851,7 @@ class TestGetitem:
     def test_grade_projection_getitem(self, cl3):
         """mv[k] is shorthand for grade(mv, k)."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 3 + 2*e1 + (e1^e2)
+        mv = 3 + 2 * e1 + (e1 ^ e2)
         assert mv[0] == grade(mv, 0)
         assert mv[1] == grade(mv, 1)
         assert mv[2] == grade(mv, 2)
@@ -807,7 +900,7 @@ class TestIsRotor:
     def test_unit_rotor(self, cl3):
         """Unit rotor passes is_rotor()."""
         e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1^e2, radians=0.5)
+        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)
         assert is_rotor(R)
 
     def test_identity_is_rotor(self, cl3):
@@ -861,7 +954,7 @@ class TestRotorValidation:
     def test_scaled_rotor_not_rotor(self, cl3):
         """Scaled rotor fails is_rotor()."""
         e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1^e2, radians=0.5)
+        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)
         assert not is_rotor(2 * R)
 
 
@@ -869,25 +962,25 @@ class TestEvenOddGradesRenamed:
     def test_even_grades(self, cl3):
         """even_grades keeps grades 0, 2, ..."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         assert even_grades(mv) == even_grades(mv)
 
     def test_odd_grades(self, cl3):
         """odd_grades keeps grades 1, 3, ..."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         assert odd_grades(mv) == odd_grades(mv)
 
     def test_grade_even_string(self, cl3):
         """grade(mv, 'even') works."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         assert grade(mv, "even") == even_grades(mv)
 
     def test_grade_odd_string(self, cl3):
         """grade(mv, 'odd') works."""
         e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2*e1 + 3*(e1^e2)
+        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
         assert grade(mv, "odd") == odd_grades(mv)
 
 
@@ -895,6 +988,7 @@ class TestSymbolicGradeEvenOdd:
     def test_sym_grade_even(self, cl3):
         """Symbolic grade('even') builds Even node."""
         from galaga.symbolic import grade as sgrade
+
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sgrade(v, "even")) == "⟨v⟩₊"
@@ -902,6 +996,7 @@ class TestSymbolicGradeEvenOdd:
     def test_sym_grade_odd(self, cl3):
         """Symbolic grade('odd') builds Odd node."""
         from galaga.symbolic import grade as sgrade
+
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sgrade(v, "odd")) == "⟨v⟩₋"
@@ -930,7 +1025,7 @@ class TestLatex:
     def test_gp(self, cl3):
         """Gp LaTeX renders with space."""
         e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         v = sym(e1, "v")
         assert (R * v).latex() == "R v"
 
@@ -938,30 +1033,31 @@ class TestLatex:
         """Grade of sandwich renders correctly."""
         e1, e2, _ = cl3.basis_vectors()
         from galaga.symbolic import grade as sgrade
-        R = sym(e1*e2, "R")
+
+        R = sym(e1 * e2, "R")
         v = sym(e1, "v")
         assert sgrade(R * v * ~R, 1).latex() == r"\langle R v \tilde{R} \rangle_{1}"
 
     def test_wedge(self, cl3):
-        """Op LaTeX renders with \wedge."""
+        r"""Op LaTeX renders with \wedge."""
         e1, e2, _ = cl3.basis_vectors()
         a, b = sym(e1, "a"), sym(e2, "b")
         assert (a ^ b).latex() == r"a \wedge b"
 
     def test_left_contraction(self, cl3):
-        """Lc LaTeX renders with \lrcorner."""
+        r"""Lc LaTeX renders with \lrcorner."""
         e1, e2, _ = cl3.basis_vectors()
         a, b = sym(e1, "a"), sym(e2, "b")
         assert slc(a, b).latex() == r"a \;\lrcorner\; b"
 
     def test_right_contraction(self, cl3):
-        """Rc LaTeX renders with \llcorner."""
+        r"""Rc LaTeX renders with \llcorner."""
         e1, e2, _ = cl3.basis_vectors()
         a, b = sym(e1, "a"), sym(e2, "b")
         assert src(a, b).latex() == r"a \;\llcorner\; b"
 
     def test_hestenes_inner(self, cl3):
-        """Hi LaTeX renders with \cdot."""
+        r"""Hi LaTeX renders with \cdot."""
         e1, e2, _ = cl3.basis_vectors()
         a, b = sym(e1, "A"), sym(e2, "B")
         assert shi(a, b).latex() == r"A \cdot B"
@@ -975,11 +1071,11 @@ class TestLatex:
     def test_reverse(self, cl3):
         """Reverse LaTeX renders with \tilde."""
         e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         assert (~R).latex() == r"\tilde{R}"
 
     def test_involute(self, cl3):
-        """Involute LaTeX renders with \hat."""
+        r"""Involute LaTeX renders with \hat."""
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert sinvolute(v).latex() == r"\hat{v}"
@@ -1003,13 +1099,13 @@ class TestLatex:
         assert sundual(v).latex() == "v^{*^{-1}}"
 
     def test_norm(self, cl3):
-        """Norm LaTeX renders with \lVert."""
+        r"""Norm LaTeX renders with \lVert."""
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert snorm(v).latex() == r"\lVert v \rVert"
 
     def test_unit(self, cl3):
-        """Unit LaTeX renders with \hat."""
+        r"""Unit LaTeX renders with \hat."""
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert sunit(v).latex() == r"\hat{v}"
@@ -1023,7 +1119,7 @@ class TestLatex:
     def test_squared(self, cl3):
         """Squared LaTeX renders with ^2."""
         e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         assert ssq(R).latex() == "R^2"
 
     def test_even(self, cl3):
@@ -1064,10 +1160,10 @@ class TestLatex:
         assert (-1 * a).latex() == "-a"
 
     def test_parens(self, cl3):
-        """Parens in LaTeX use \left(\right)."""
+        """Parens in LaTeX use \\left(\right)."""
         e1, e2, _ = cl3.basis_vectors()
         a, b = sym(e1, "a"), sym(e2, "b")
-        R = sym(e1*e2, "R")
+        R = sym(e1 * e2, "R")
         assert ((a + b) * R).latex() == r"\left(a + b\right) R"
 
     def test_repr_latex(self, cl3):
@@ -1081,7 +1177,7 @@ class TestLatex:
         """MV.latex() returns raw LaTeX."""
         e1, e2, _ = cl3.basis_vectors()
         v = 3 * e1 + 4 * e2
-        assert v.latex() == "3 e_{12}"  or "e_{1}" in v.latex()  # just check it returns a string
+        assert v.latex() == "3 e_{12}" or "e_{1}" in v.latex()  # just check it returns a string
         assert "$" not in v.latex()
 
     def test_multivector_latex_wrap_inline(self, cl3):
@@ -1200,7 +1296,9 @@ class TestSimplify:
     def test_double_neg(self, cl3):
         """simplify(--x) = x."""
         v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(-(-v))) == "v"
+        from galaga.symbolic import Neg
+
+        assert str(simplify(Neg(Neg(v)))) == "v"
 
     def test_mul_identity_right(self, cl3):
         """simplify(x*1) = x."""
@@ -1483,6 +1581,7 @@ class TestCoverageGaps:
     def test_scalar_str(self):
         """Scalar node str() renders the value."""
         from galaga.symbolic import Scalar
+
         s = Scalar(42)
         assert str(s) == "42"
         assert s.latex() == "42"
@@ -1490,15 +1589,18 @@ class TestCoverageGaps:
     # symbolic.py: _ensure_expr TypeError (line 611)
     def test_ensure_expr_bad_type(self):
         """Non-MV/Expr/scalar raises TypeError."""
-        from galaga.symbolic import _ensure_expr
         import pytest
+
+        from galaga.symbolic import _ensure_expr
+
         with pytest.raises(TypeError, match="Cannot convert"):
             _ensure_expr([1, 2, 3])
 
     # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)
     def test_eq_conjugate(self, cl3):
         """Conjugate Expr equality."""
-        from galaga.symbolic import _eq, Conjugate
+        from galaga.symbolic import _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Conjugate(a), Conjugate(a))
@@ -1506,7 +1608,8 @@ class TestCoverageGaps:
 
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
-        from galaga.symbolic import _eq, Grade
+        from galaga.symbolic import _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Grade(a, 1), Grade(a, 1))
@@ -1514,7 +1617,8 @@ class TestCoverageGaps:
 
     def test_eq_fallback(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.symbolic import _eq, Dual
+        from galaga.symbolic import _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Dual(a), Dual(a))
@@ -1523,43 +1627,50 @@ class TestCoverageGaps:
     # symbolic.py: _known_grade branches (lines 691-703)
     def test_known_grade_scalar(self):
         """Scalar has known grade 0."""
-        from galaga.symbolic import _known_grade, Scalar
+        from galaga.symbolic import Scalar, _known_grade
+
         assert _known_grade(Scalar(5)) == 0
 
     def test_known_grade_grade_node(self, cl3):
         """Grade node has known grade."""
-        from galaga.symbolic import _known_grade, Grade
+        from galaga.symbolic import _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Grade(sym(e1, "v"), 2)) == 2
 
     def test_known_grade_reverse(self, cl3):
         """Reverse preserves known grade."""
-        from galaga.symbolic import _known_grade, Reverse
+        from galaga.symbolic import _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert _known_grade(Reverse(v)) == 1
 
     def test_known_grade_neg(self, cl3):
         """Neg preserves known grade."""
-        from galaga.symbolic import _known_grade, Neg
+        from galaga.symbolic import _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Neg(sym(e1, "v"))) == 1
 
     def test_known_grade_scalarmul(self, cl3):
         """ScalarMul preserves known grade."""
-        from galaga.symbolic import _known_grade, ScalarMul
+        from galaga.symbolic import _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(ScalarMul(3, sym(e1, "v"))) == 1
 
     def test_known_grade_unit(self, cl3):
         """Unit preserves known grade."""
-        from galaga.symbolic import _known_grade, Unit
+        from galaga.symbolic import _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Unit(sym(e1, "v"))) == 1
 
     def test_known_grade_unknown(self, cl3):
         """Unknown grade returns None."""
         from galaga.symbolic import _known_grade
+
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         b = sym(e2, "b")
@@ -1568,10 +1679,12 @@ class TestCoverageGaps:
     # symbolic.py: simplify even/odd with known grade (line 819)
     def test_simplify_odd_known_grade(self, cl3):
         """Odd of known even-grade simplifies to 0."""
-        from galaga.symbolic import odd_grades as sodd, even_grades as seven
+        from galaga.symbolic import even_grades as seven
+        from galaga.symbolic import odd_grades as sodd
+
         e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")          # grade 1 (odd)
-        B = sym(e1 ^ e2, "B")    # grade 2 (even)
+        v = sym(e1, "v")  # grade 1 (odd)
+        B = sym(e1 ^ e2, "B")  # grade 2 (even)
         assert str(simplify(sodd(v))) == "v"
         assert str(simplify(sodd(B))) == "0"
         assert str(simplify(seven(B))) == "B"
@@ -1580,7 +1693,8 @@ class TestCoverageGaps:
     # symbolic.py: _eq for Involute (line 635)
     def test_eq_involute(self, cl3):
         """Involute Expr equality."""
-        from galaga.symbolic import _eq, Involute
+        from galaga.symbolic import _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         assert _eq(Involute(a), Involute(a))
@@ -1590,6 +1704,7 @@ class TestCoverageGaps:
     def test_norm_passthrough(self, cl3):
         """norm() on eager MV returns float."""
         from galaga.symbolic import norm as snorm
+
         e1, e2, _ = cl3.basis_vectors()
         v = 3 * e1 + 4 * e2
         assert snorm(v) == 5.0
@@ -1598,6 +1713,7 @@ class TestCoverageGaps:
     def test_sandwich_passthrough(self, cl3):
         """sandwich() on eager MVs returns MV."""
         from galaga.symbolic import sandwich as ssandwich
+
         e1, e2, _ = cl3.basis_vectors()
         R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)
         result = ssandwich(R, e1)
@@ -1614,6 +1730,7 @@ class TestCoverageGaps:
     def test_rotor_from_plane_angle_error(self, cl3):
         """rotor() with both radians and degrees raises."""
         import pytest
+
         e1, e2, _ = cl3.basis_vectors()
         with pytest.raises(ValueError):
             cl3.rotor_from_plane_angle(e1 ^ e2)
@@ -1670,14 +1787,14 @@ class TestComplement:
         alg = Algebra((1, 1, 1))
         e1, e2, e3 = alg.basis_vectors()
         I = alg.I
-        for x in [alg.identity, e1, e2, e3, e1^e2, e1^e3, e2^e3, I]:
+        for x in [alg.identity, e1, e2, e3, e1 ^ e2, e1 ^ e3, e2 ^ e3, I]:
             assert x * complement(x) == I
 
     def test_complement_roundtrip(self):
         """uncomplement(complement(x)) = x."""
         alg = Algebra((1, 1, 1))
         e1, e2, e3 = alg.basis_vectors()
-        for x in [e1, e1^e2, alg.I, 3*e1 + 2*e2, alg.identity]:
+        for x in [e1, e1 ^ e2, alg.I, 3 * e1 + 2 * e2, alg.identity]:
             assert np.allclose(uncomplement(complement(x)).data, x.data)
 
     def test_complement_pga(self):
@@ -1686,28 +1803,28 @@ class TestComplement:
         e1, e2, e3, e0 = alg.basis_vectors()
         I = alg.I
         # x * complement(x) = I for basis blades
-        for x in [e1, e0, e1^e2, e1^e2^e3, e0^e1, I]:
+        for x in [e1, e0, e1 ^ e2, e1 ^ e2 ^ e3, e0 ^ e1, I]:
             assert x * complement(x) == I
 
     def test_complement_pga_roundtrip(self):
         """Roundtrip in PGA."""
         alg = Algebra((1, 1, 1, 0))
         e1, e2, e3, e0 = alg.basis_vectors()
-        for x in [e1, e0, e1^e2^e3, 2*e1 + 3*e0]:
+        for x in [e1, e0, e1 ^ e2 ^ e3, 2 * e1 + 3 * e0]:
             assert np.allclose(uncomplement(complement(x)).data, x.data)
 
     def test_complement_linearity(self):
         """complement is linear."""
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors()
-        x = 3*e1 + 2*e2
-        assert np.allclose(complement(x).data, (3*complement(e1) + 2*complement(e2)).data)
+        x = 3 * e1 + 2 * e2
+        assert np.allclose(complement(x).data, (3 * complement(e1) + 2 * complement(e2)).data)
 
     def test_complement_sta(self):
         """complement works in Cl(1,3) spacetime algebra."""
         alg = Algebra((1, -1, -1, -1))
         g0, g1, g2, g3 = alg.basis_vectors()
         I = alg.I
-        for x in [g0, g1, g0^g1, g0^g1^g2]:
+        for x in [g0, g1, g0 ^ g1, g0 ^ g1 ^ g2]:
             assert x * complement(x) == I
             assert np.allclose(uncomplement(complement(x)).data, x.data)

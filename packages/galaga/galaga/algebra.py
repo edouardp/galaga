@@ -39,7 +39,6 @@ Representation choices
 from __future__ import annotations
 
 import numpy as np
-from functools import cached_property
 
 
 def _sign_of_reorder(a: int, b: int) -> int:
@@ -68,12 +67,12 @@ def _sign_of_reorder(a: int, b: int) -> int:
 _LETTER_SUBSCRIPTS = {"x": "ₓ", "y": "ᵧ"}
 
 
-from galaga.basis_blade import BasisBlade
-from galaga.latex_symbols import LatexSymbols
-from galaga.lazy import lazy_unary, lazy_binary
-from galaga.notation import Notation
 import galaga.render as _render
 import galaga.symbolic as _sym
+from galaga.basis_blade import BasisBlade
+from galaga.latex_symbols import LatexSymbols
+from galaga.lazy import lazy_binary, lazy_unary
+from galaga.notation import Notation
 
 
 class Algebra:
@@ -105,7 +104,20 @@ class Algebra:
                       If False (default), ``repr()`` uses ASCII for copy-paste.
     """
 
-    __slots__ = ("_sig", "_dim", "_n", "_mul_index", "_mul_sign", "_grade_masks", "_names", "_latex_names", "_repr_unicode", "_complement_sign", "_blades", "_notation")
+    __slots__ = (
+        "_sig",
+        "_dim",
+        "_n",
+        "_mul_index",
+        "_mul_sign",
+        "_grade_masks",
+        "_names",
+        "_latex_names",
+        "_repr_unicode",
+        "_complement_sign",
+        "_blades",
+        "_notation",
+    )
 
     # Built-in naming presets: (code_names, unicode_names, latex_names)
     # code_names  → used in repr() (ASCII-safe)
@@ -113,12 +125,16 @@ class Algebra:
     # latex_names → used in .latex() (notebook rendering)
     PRESETS = {
         "e": None,  # default: e1, e2, ... / e₁, e₂, ...
-        "gamma": lambda n: ([f"g{i}" for i in range(n)],
-                            [f"γ{str(i).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
-                            [f"\\gamma_{i}" for i in range(n)]),
-        "sigma": lambda n: ([f"s{i+1}" for i in range(n)],
-                            [f"σ{str(i+1).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
-                            [f"\\sigma_{i+1}" for i in range(n)]),
+        "gamma": lambda n: (
+            [f"g{i}" for i in range(n)],
+            [f"γ{str(i).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
+            [f"\\gamma_{i}" for i in range(n)],
+        ),
+        "sigma": lambda n: (
+            [f"s{i + 1}" for i in range(n)],
+            [f"σ{str(i + 1).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
+            [f"\\sigma_{i + 1}" for i in range(n)],
+        ),
         "sigma_xyz": lambda n: (
             [c for c in "xyzwvu"[:n]],
             [f"σ{_LETTER_SUBSCRIPTS.get(c, c)}" for c in "xyzwvu"[:n]],
@@ -126,7 +142,13 @@ class Algebra:
         ),
     }
 
-    def __init__(self, signature: tuple[int, ...], names: str | tuple[list[str], list[str]] | None = None, repr_unicode: bool = False, notation: 'Notation | None' = None):
+    def __init__(
+        self,
+        signature: tuple[int, ...],
+        names: str | tuple[list[str], list[str]] | None = None,
+        repr_unicode: bool = False,
+        notation: Notation | None = None,
+    ):
         self._notation = notation or Notation()
         """Create a Clifford algebra from a metric signature.
 
@@ -178,9 +200,7 @@ class Algebra:
         # Precompute grade masks
         self._grade_masks = {}
         for k in range(self._n + 1):
-            self._grade_masks[k] = np.array(
-                [bin(i).count("1") == k for i in range(self._dim)], dtype=bool
-            )
+            self._grade_masks[k] = np.array([bin(i).count("1") == k for i in range(self._dim)], dtype=bool)
 
         # Precompute complement signs: complement(e_S) = sign[S] * e_{S^c}
         # The complement is metric-independent — it maps grade-k to grade-(n-k)
@@ -356,7 +376,7 @@ class Algebra:
             for k in sorted(range(self._n), key=lambda k: -len(code_names[k])):
                 if remaining.startswith(code_names[k]):
                     bitmask |= 1 << k
-                    remaining = remaining[len(code_names[k]):]
+                    remaining = remaining[len(code_names[k]) :]
                     matched = True
                     break
             if not matched:
@@ -424,7 +444,7 @@ class Algebra:
         if isinstance(mv_or_index, int):
             return self._blades[mv_or_index]
         mv = mv_or_index
-        if hasattr(mv, 'data'):
+        if hasattr(mv, "data"):
             nonzero = np.nonzero(np.abs(mv.data) > 1e-12)[0]
             if len(nonzero) != 1:
                 raise ValueError("Not a basis blade — has multiple nonzero components")
@@ -444,6 +464,7 @@ class Algebra:
 
 class _DisplayResult:
     """Wrapper so display() output is auto-detected as LaTeX by galaga_marimo."""
+
     __slots__ = ("_raw",)
 
     def __init__(self, raw: str):
@@ -506,8 +527,7 @@ class Multivector:
     def _check_same(self, other: Multivector):
         if self.algebra is not other.algebra:
             raise ValueError(
-                f"Cannot operate on multivectors from different algebras: "
-                f"{self.algebra} vs {other.algebra}"
+                f"Cannot operate on multivectors from different algebras: {self.algebra} vs {other.algebra}"
             )
 
     def _copy_with(self, **overrides) -> Multivector:
@@ -523,8 +543,14 @@ class Multivector:
         mv._grade = overrides.get("_grade", self._grade)
         return mv
 
-    def name(self, label: str | None = None, *, latex: str | None = None,
-             unicode: str | None = None, ascii: str | None = None) -> Multivector:
+    def name(
+        self,
+        label: str | None = None,
+        *,
+        latex: str | None = None,
+        unicode: str | None = None,
+        ascii: str | None = None,
+    ) -> Multivector:
         """Assign a display name in-place. Sets lazy. Returns self.
 
         At least one of ``label`` or ``latex`` must be provided. If ``latex``
@@ -558,8 +584,7 @@ class Multivector:
             self._grade = self.homogeneous_grade()
         # Build a Sym expr so .anon() can reveal the name-based tree
         if self._expr is None:
-            self._expr = _sym.Sym(self, self._name_unicode,
-                             name_latex=self._name_latex, name_ascii=self._name)
+            self._expr = _sym.Sym(self, self._name_unicode, name_latex=self._name_latex, name_ascii=self._name)
         return self
 
     def anon(self) -> Multivector:
@@ -598,8 +623,11 @@ class Multivector:
     def eval(self) -> Multivector:
         """Return a new anonymous eager copy — the concrete numeric result."""
         return self._copy_with(
-            _is_lazy=False, _expr=None,
-            _name=None, _name_latex=None, _name_unicode=None,
+            _is_lazy=False,
+            _expr=None,
+            _name=None,
+            _name_latex=None,
+            _name_unicode=None,
         )
 
     def reveal(self) -> Multivector:
@@ -609,7 +637,9 @@ class Multivector:
         underlying value of a named MV without mutating it.
         """
         return self._copy_with(
-            _name=None, _name_latex=None, _name_unicode=None,
+            _name=None,
+            _name_latex=None,
+            _name_unicode=None,
         )
 
     def display(self) -> _DisplayResult:
@@ -642,8 +672,7 @@ class Multivector:
         using the algebra's LaTeX name for single basis blades.
         """
         if self._name is not None:
-            return _sym.Sym(self, self._name_unicode or self._name,
-                       name_latex=self._name_latex, name_ascii=self._name)
+            return _sym.Sym(self, self._name_unicode or self._name, name_latex=self._name_latex, name_ascii=self._name)
         if self._expr is not None:
             return self._expr
         display = str(self)
@@ -741,8 +770,7 @@ class Multivector:
         self._check_same(other)
         if self._is_any_lazy(other):
             return self._lazy_result(
-                gp(Multivector(self.algebra, self.data),
-                   Multivector(other.algebra, other.data)).data,
+                gp(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data)).data,
                 _sym.Gp(self._to_expr(), other._to_expr()),
             )
         return gp(self, other)
@@ -764,8 +792,7 @@ class Multivector:
         if isinstance(other, _sym.Expr):
             return _sym.Op(self._to_expr(), other)
         if isinstance(other, Multivector) and self._is_any_lazy(other):
-            result = op(Multivector(self.algebra, self.data),
-                        Multivector(other.algebra, other.data))
+            result = op(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
             return self._lazy_result(
                 result.data,
                 _sym.Op(self._to_expr(), other._to_expr()),
@@ -777,9 +804,7 @@ class Multivector:
         if isinstance(other, _sym.Expr):
             return _sym.Dli(self._to_expr(), other)
         if isinstance(other, Multivector) and self._is_any_lazy(other):
-            result = doran_lasenby_inner(
-                Multivector(self.algebra, self.data),
-                Multivector(other.algebra, other.data))
+            result = doran_lasenby_inner(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
             return self._lazy_result(
                 result.data,
                 _sym.Dli(self._to_expr(), other._to_expr()),
@@ -894,8 +919,7 @@ class Multivector:
     def sq(self) -> Multivector:
         """Squared: x²"""
         if self._is_lazy:
-            result = gp(Multivector(self.algebra, self.data),
-                        Multivector(self.algebra, self.data))
+            result = gp(Multivector(self.algebra, self.data), Multivector(self.algebra, self.data))
             return self._lazy_result(result.data, _sym.Squared(self._to_expr()))
         return gp(self, self)
 
@@ -1067,6 +1091,8 @@ class Multivector:
     def _repr_latex_(self) -> str:
         """Jupyter/Marimo notebook integration."""
         return f"${self.latex()}$"
+
+
 # ============================================================
 # Core named operations
 # ============================================================
@@ -1088,7 +1114,7 @@ class Multivector:
 # ============================================================
 
 
-@lazy_binary('Gp')
+@lazy_binary("Gp")
 def gp(a: Multivector, b: Multivector) -> Multivector:
     """Geometric product — the fundamental product of Clifford algebra.
 
@@ -1109,7 +1135,7 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Op')
+@lazy_binary("Op")
 def op(a: Multivector, b: Multivector) -> Multivector:
     """Outer (wedge) product — keeps only the grade-raising part of gp.
 
@@ -1135,7 +1161,7 @@ def op(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Lc')
+@lazy_binary("Lc")
 def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Left contraction: a ⌋ b.
 
@@ -1167,7 +1193,7 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Rc')
+@lazy_binary("Rc")
 def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Right contraction: a ⌊ b.
 
@@ -1193,7 +1219,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Hi')
+@lazy_binary("Hi")
 def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     """Hestenes inner product.
 
@@ -1224,7 +1250,7 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Dli')
+@lazy_binary("Dli")
 def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     """Doran–Lasenby inner product: grade-|r-s| part of gp(a,b), including scalars.
 
@@ -1254,7 +1280,7 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
 dorst_inner = doran_lasenby_inner
 
 
-@lazy_binary('Sp')
+@lazy_binary("Sp")
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
     return grade(gp(a, b), 0)
@@ -1263,7 +1289,9 @@ def scalar_product(a: Multivector, b: Multivector) -> Multivector:
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""
     if a._is_lazy or b._is_lazy:
-        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) - gp(Multivector(b.algebra, b.data), Multivector(a.algebra, a.data))
+        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) - gp(
+            Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
+        )
         return a._lazy_result(result.data, _sym.Commutator(a._to_expr(), b._to_expr()))
     return gp(a, b) - gp(b, a)
 
@@ -1271,7 +1299,9 @@ def commutator(a: Multivector, b: Multivector) -> Multivector:
 def anticommutator(a: Multivector, b: Multivector) -> Multivector:
     """Anticommutator: ab + ba."""
     if a._is_lazy or b._is_lazy:
-        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) + gp(Multivector(b.algebra, b.data), Multivector(a.algebra, a.data))
+        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) + gp(
+            Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
+        )
         return a._lazy_result(result.data, _sym.Anticommutator(a._to_expr(), b._to_expr()))
     return gp(a, b) + gp(b, a)
 
@@ -1328,7 +1358,7 @@ def reverse(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary('Involute')
+@lazy_unary("Involute")
 def involute(x: Multivector) -> Multivector:
     """Grade involution (hat): grade-k component is multiplied by (-1)^k.
 
@@ -1343,7 +1373,7 @@ def involute(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary('Conjugate')
+@lazy_unary("Conjugate")
 def conjugate(x: Multivector) -> Multivector:
     """Clifford conjugate: reverse composed with grade involution.
 
@@ -1393,7 +1423,7 @@ def scalar(x: Multivector) -> float:
     return float(x.data[0])
 
 
-@lazy_unary('Dual')
+@lazy_unary("Dual")
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.
 
@@ -1408,7 +1438,7 @@ def dual(x: Multivector) -> Multivector:
     return left_contraction(x, I_inv)
 
 
-@lazy_unary('Undual')
+@lazy_unary("Undual")
 def undual(x: Multivector) -> Multivector:
     """Undual: left-contract x into the pseudoscalar (inverse of dual).
 
@@ -1418,7 +1448,7 @@ def undual(x: Multivector) -> Multivector:
     return left_contraction(x, I)
 
 
-@lazy_unary('Complement')
+@lazy_unary("Complement")
 def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
@@ -1438,7 +1468,7 @@ def complement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary('Uncomplement')
+@lazy_unary("Uncomplement")
 def uncomplement(x: Multivector) -> Multivector:
     """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
     alg = x.algebra
@@ -1452,7 +1482,7 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary('Regressive')
+@lazy_binary("Regressive")
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
 
@@ -1493,7 +1523,7 @@ def norm(x: Multivector):
     return float(np.sqrt(abs(norm2(x))))
 
 
-@lazy_unary('Unit')
+@lazy_unary("Unit")
 def unit(x: Multivector) -> Multivector:
     """Normalize to unit multivector."""
     n = norm(x)
@@ -1502,7 +1532,7 @@ def unit(x: Multivector) -> Multivector:
     return x / n
 
 
-@lazy_unary('Inverse')
+@lazy_unary("Inverse")
 def inverse(x: Multivector) -> Multivector:
     """Versor inverse: x⁻¹ = ~x / scalar(x * ~x).
 
@@ -1563,14 +1593,14 @@ def is_basis_blade(x: Multivector) -> bool:
     return np.count_nonzero(np.abs(x.data) > 1e-12) == 1
 
 
-@lazy_unary('Even')
+@lazy_unary("Even")
 def even_grades(x: Multivector) -> Multivector:
     """Extract even-grade components."""
     alg = x.algebra
     return grades(x, [k for k in range(0, alg.n + 1, 2)])
 
 
-@lazy_unary('Odd')
+@lazy_unary("Odd")
 def odd_grades(x: Multivector) -> Multivector:
     """Extract odd-grade components."""
     alg = x.algebra
@@ -1600,7 +1630,7 @@ def sandwich(r: Multivector, x: Multivector) -> Multivector:
 sw = sandwich
 
 
-@lazy_unary('Exp')
+@lazy_unary("Exp")
 def exp(B: Multivector) -> Multivector:
     """Bivector exponential: exp(B) = cos(|B|) + sin(|B|) * B/|B|.
 
@@ -1627,7 +1657,7 @@ def exp(B: Multivector) -> Multivector:
         return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
 
 
-@lazy_unary('Log')
+@lazy_unary("Log")
 def log(R: Multivector) -> Multivector:
     """Rotor logarithm: extract the bivector B such that exp(B) = R.
 

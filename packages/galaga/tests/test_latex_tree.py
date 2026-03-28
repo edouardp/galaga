@@ -1,11 +1,11 @@
 """Tests for the LaTeX intermediate render tree."""
 
-from galaga.latex_nodes import Text, Seq, Frac, Sup, Parens, Command
 from galaga.latex_emit import emit
+from galaga.latex_nodes import Command, Frac, Parens, Seq, Sup, Text
 from galaga.latex_rewrite import rewrite
 
-
 # ── emit: Text ──
+
 
 class TestEmitText:
     def test_plain(self):
@@ -22,6 +22,7 @@ class TestEmitText:
 
 
 # ── emit: Seq ──
+
 
 class TestEmitSeq:
     def test_two_children(self):
@@ -52,6 +53,7 @@ class TestEmitSeq:
 
 # ── emit: Frac ──
 
+
 class TestEmitFrac:
     def test_simple(self):
         """Frac emits \frac{num}{den}."""
@@ -68,6 +70,7 @@ class TestEmitFrac:
 
 
 # ── emit: Sup ──
+
 
 class TestEmitSup:
     def test_simple(self):
@@ -97,6 +100,7 @@ class TestEmitSup:
 
 # ── emit: Parens ──
 
+
 class TestEmitParens:
     def test_simple(self):
         """Frac emits \frac{num}{den}."""
@@ -110,25 +114,27 @@ class TestEmitParens:
 
 # ── emit: Command ──
 
+
 class TestEmitCommand:
     def test_tilde(self):
         """Command emits \tilde{x}."""
         assert emit(Command(r"\tilde", Text("x"))) == r"\tilde{x}"
 
     def test_widetilde(self):
-        """Command emits \widetilde{...}."""
+        r"""Command emits \widetilde{...}."""
         assert emit(Command(r"\widetilde", Text("a+b"))) == r"\widetilde{a+b}"
 
     def test_hat(self):
-        """Command emits \hat{v}."""
+        r"""Command emits \hat{v}."""
         assert emit(Command(r"\hat", Text("v"))) == r"\hat{v}"
 
     def test_operatorname(self):
-        """Command emits \operatorname{...}."""
+        r"""Command emits \operatorname{...}."""
         assert emit(Command(r"\operatorname", Text("rev"))) == r"\operatorname{rev}"
 
 
 # ── emit: deep nesting ──
+
 
 class TestEmitDeepNesting:
     def test_frac_in_sup(self):
@@ -145,6 +151,7 @@ class TestEmitDeepNesting:
 
 
 # ── rewrite: frac→tfrac in superscripts ──
+
 
 class TestRewriteFracInSup:
     def test_frac_becomes_slash_in_sup(self):
@@ -193,16 +200,19 @@ class TestRewriteFracInSup:
 
     def test_no_sup_no_change(self):
         """Complex tree with no Sup — nothing changes."""
-        tree = Seq([
-            Frac(Text("a"), Text("b")),
-            Text(" + "),
-            Command(r"\tilde", Text("x")),
-        ])
+        tree = Seq(
+            [
+                Frac(Text("a"), Text("b")),
+                Text(" + "),
+                Command(r"\tilde", Text("x")),
+            ]
+        )
         result = rewrite(tree)
         assert emit(result) == r"\frac{a}{b} + \tilde{x}"
 
 
 # ── rewrite: collapse nested Parens ──
+
 
 class TestRewriteNestedParens:
     def test_double_parens(self):
@@ -227,6 +237,7 @@ class TestRewriteNestedParens:
 
 
 # ── rewrite: hoist negation out of fractions ──
+
 
 class TestRewriteHoistNeg:
     def test_neg_num_hoisted(self):
@@ -254,6 +265,7 @@ class TestRewriteHoistNeg:
 
 # ── rewrite: simplify frac with 1 ──
 
+
 class TestRewriteFracOne:
     def test_frac_over_1(self):
         """\\frac{a}{1} → a"""
@@ -277,6 +289,7 @@ class TestRewriteFracOne:
 
 
 # ── rewrite: idempotent ──
+
 
 class TestRewriteIdempotent:
     def test_double_rewrite(self):

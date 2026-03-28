@@ -1,4 +1,4 @@
-.PHONY: test test-galaga test-galaga-marimo build check clean release-patch release-minor release-major
+.PHONY: test test-galaga test-galaga-marimo build check clean release-patch release-minor release-major lint lint-fix
 
 test: test-galaga test-galaga-marimo
 
@@ -31,3 +31,9 @@ release-minor:
 
 release-major:
 	./scripts/release.sh major
+
+lint:
+	./scripts/lint.sh
+
+lint-fix:
+	./scripts/lint.sh --fix

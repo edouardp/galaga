@@ -4,13 +4,39 @@ Tests are written FIRST — the renderer must pass all of these.
 """
 
 import pytest
+
 from galaga import Algebra
 from galaga.symbolic import (
-    Sym, Scalar, Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual, Inverse, Squared, Exp,
-    Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp,
-    Commutator, Anticommutator, LieBracket, JordanProduct,
+    Add,
+    Anticommutator,
+    Commutator,
+    Conjugate,
+    Div,
+    Dli,
+    Dual,
+    Exp,
+    Gp,
+    Grade,
+    Hi,
+    Inverse,
+    Involute,
+    JordanProduct,
+    Lc,
+    LieBracket,
+    Neg,
+    Norm,
+    Op,
+    Rc,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sp,
+    Squared,
+    Sub,
+    Sym,
+    Undual,
+    Unit,
 )
 
 
@@ -34,10 +60,10 @@ def syms(alg):
 
 from galaga.render import render, render_latex
 
-
 # ============================================================
 # Atoms
 # ============================================================
+
 
 class TestAtoms:
     def test_sym(self, syms):
@@ -61,6 +87,7 @@ class TestAtoms:
 # ============================================================
 # Negation
 # ============================================================
+
 
 class TestNeg:
     def test_neg_atom(self, syms):
@@ -87,6 +114,7 @@ class TestNeg:
 # ============================================================
 # Scalar multiplication and division
 # ============================================================
+
 
 class TestScalarMulDiv:
     def test_scalar_mul(self, syms):
@@ -118,6 +146,7 @@ class TestScalarMulDiv:
 # ============================================================
 # Geometric product (juxtaposition)
 # ============================================================
+
 
 class TestGp:
     def test_two_atoms(self, syms):
@@ -159,6 +188,7 @@ class TestGp:
 # ============================================================
 # Outer (wedge) product
 # ============================================================
+
 
 class TestOp:
     def test_two_atoms(self, syms):
@@ -202,6 +232,7 @@ class TestOp:
 # Addition and subtraction
 # ============================================================
 
+
 class TestAddSub:
     def test_add(self, syms):
         """Add renders with +."""
@@ -229,6 +260,7 @@ class TestAddSub:
 # Postfix unary: reverse, involute, conjugate, dual, inverse, squared
 # ============================================================
 
+
 class TestPostfixUnary:
     def test_reverse_atom(self, syms):
         """Reverse of atom uses combining tilde."""
@@ -236,7 +268,7 @@ class TestPostfixUnary:
         assert render(Reverse(a)) == "a\u0303"
 
     def test_reverse_sum(self, syms):
-        """Reverse of sum uses \widetilde."""
+        r"""Reverse of sum uses \widetilde."""
         a, b, _ = syms
         assert render(Reverse(Add(a, b))) == "~(a + b)"
 
@@ -296,7 +328,7 @@ class TestPostfixUnary:
         assert render(Inverse(Add(a, b))) == "(a + b)⁻¹"
 
     def test_inverse_product(self, syms):
-        """Inverse of product wraps in \left(\right)."""
+        """Inverse of product wraps in \\left(\right)."""
         a, b, _ = syms
         assert render(Inverse(Gp(a, b))) == "(ab)⁻¹"
 
@@ -306,7 +338,7 @@ class TestPostfixUnary:
         assert render(Squared(a)) == "a²"
 
     def test_squared_sum(self, syms):
-        """Squared of sum wraps in \left(\right)."""
+        """Squared of sum wraps in \\left(\right)."""
         a, b, _ = syms
         assert render(Squared(Add(a, b))) == "(a + b)²"
 
@@ -319,6 +351,7 @@ class TestPostfixUnary:
 # ============================================================
 # Grade, Norm, Unit, Exp — bracket-style (no precedence issue)
 # ============================================================
+
 
 class TestBracketOps:
     def test_grade(self, syms):
@@ -361,6 +394,7 @@ class TestBracketOps:
 # Inner products and contractions
 # ============================================================
 
+
 class TestInnerProducts:
     def test_left_contraction(self, syms):
         """Left contraction: a⌋b."""
@@ -397,6 +431,7 @@ class TestInnerProducts:
 # Commutator family
 # ============================================================
 
+
 class TestCommutators:
     def test_commutator(self, syms):
         """Commutator: [a, b]."""
@@ -423,6 +458,7 @@ class TestCommutators:
 # Division
 # ============================================================
 
+
 class TestDiv:
     def test_div_atoms(self, syms):
         """Div of atoms: a/b."""
@@ -448,6 +484,7 @@ class TestDiv:
 # ============================================================
 # Complex compositions
 # ============================================================
+
 
 class TestCompositions:
     def test_sandwich(self, syms):
@@ -520,6 +557,7 @@ class TestCompositions:
 # LaTeX rendering
 # ============================================================
 
+
 class TestLatex:
     def test_sym(self, syms):
         """Sym renders its name."""
@@ -532,7 +570,7 @@ class TestLatex:
         assert render_latex(Gp(a, b)) == "a b"
 
     def test_wedge(self, syms):
-        """Op renders with \wedge."""
+        r"""Op renders with \wedge."""
         a, b, _ = syms
         assert render_latex(Op(a, b)) == r"a \wedge b"
 
@@ -547,7 +585,7 @@ class TestLatex:
         assert render_latex(Reverse(a)) == r"\tilde{a}"
 
     def test_reverse_sum(self, syms):
-        """Reverse of sum uses \widetilde."""
+        r"""Reverse of sum uses \widetilde."""
         a, b, _ = syms
         assert render_latex(Reverse(Add(a, b))) == r"\widetilde{a + b}"
 
@@ -577,12 +615,12 @@ class TestLatex:
         assert render_latex(Squared(a)) == "a^2"
 
     def test_squared_sum(self, syms):
-        """Squared of sum wraps in \left(\right)."""
+        """Squared of sum wraps in \\left(\right)."""
         a, b, _ = syms
         assert render_latex(Squared(Add(a, b))) == r"\left(a + b\right)^2"
 
     def test_inverse_product(self, syms):
-        """Inverse of product wraps in \left(\right)."""
+        """Inverse of product wraps in \\left(\right)."""
         a, b, _ = syms
         assert render_latex(Inverse(Gp(a, b))) == r"\left(a b\right)^{-1}"
 
@@ -598,6 +636,7 @@ class TestLatex:
 # ============================================================
 # Mixed infix/postfix precedence cases
 # ============================================================
+
 
 class TestMixedInfixPostfix:
     """Test precedence interactions between infix binary ops and postfix unary ops."""
@@ -737,7 +776,7 @@ class TestMixedInfixPostfixLatex:
     """LaTeX versions of mixed precedence cases."""
 
     def test_reverse_of_gp_latex(self, syms):
-        """~(ab) in LaTeX uses \widetilde."""
+        r"""~(ab) in LaTeX uses \widetilde."""
         a, b, _ = syms
         expr = Reverse(Gp(a, b))
         assert render_latex(expr) == r"\widetilde{a b}"
@@ -763,7 +802,7 @@ class TestMixedInfixPostfixLatex:
         assert render_latex(expr) == r"\left(a + b\right)^*"
 
     def test_conjugate_of_sum_latex(self, syms):
-        """Conjugate of sum in LaTeX uses \overline."""
+        r"""Conjugate of sum in LaTeX uses \overline."""
         a, b, _ = syms
         expr = Conjugate(Add(a, b))
         assert render_latex(expr) == r"\overline{a + b}"
@@ -773,6 +812,7 @@ class TestMixedInfixPostfixLatex:
 # Notation-driven rendering (override tests)
 # ============================================================
 
+
 class TestNotationOverrideRendering:
     """Test that notation overrides actually change rendered output."""
 
@@ -780,6 +820,7 @@ class TestNotationOverrideRendering:
         """Prefix dual: *v instead of v⋆."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -789,6 +830,7 @@ class TestNotationOverrideRendering:
         """Prefix dual override in LaTeX."""
         from galaga.notation import NotationRule
         from galaga.render import render_latex
+
         alg.notation.set("Dual", "latex", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -798,6 +840,7 @@ class TestNotationOverrideRendering:
         """Postfix reverse: v† instead of ṽ."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -807,6 +850,7 @@ class TestNotationOverrideRendering:
         """Postfix reverse on compound: (ab)†."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -816,6 +860,7 @@ class TestNotationOverrideRendering:
         """Function-style reverse: rev(v)."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
         e1, _, _ = alg.basis_vectors()
         v = Sym(e1, "v")
@@ -825,6 +870,7 @@ class TestNotationOverrideRendering:
         """Function-style wedge: wedge(a, b)."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -834,6 +880,7 @@ class TestNotationOverrideRendering:
         """Function-style wedge in LaTeX."""
         from galaga.notation import NotationRule
         from galaga.render import render_latex
+
         alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -844,6 +891,7 @@ class TestNotationOverrideRendering:
         """Override wedge symbol."""
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg.notation.set("Op", "unicode", NotationRule(kind="infix", separator=" AND "))
         e1, e2, _ = alg.basis_vectors()
         a, b = Sym(e1, "a"), Sym(e2, "b")
@@ -853,6 +901,7 @@ class TestNotationOverrideRendering:
         """Hestenes preset: RvR† in sandwich."""
         from galaga.notation import Notation
         from galaga.render import render
+
         n = Notation.hestenes()
         e1, e2, _ = alg.basis_vectors()
         R, v = Sym(e1 * e2, "R"), Sym(e1, "v")
@@ -864,6 +913,7 @@ class TestNotationOverrideRendering:
         from galaga import Algebra
         from galaga.notation import NotationRule
         from galaga.render import render
+
         alg1 = Algebra((1, 1, 1))
         alg2 = Algebra((1, 1, 1))
         alg1.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
@@ -877,23 +927,27 @@ class TestRegressive:
     def test_regressive_unicode(self, syms):
         """Regressive product: a∨b."""
         from galaga.symbolic import Regressive
+
         a, b, _ = syms
         assert render(Regressive(a, b)) == "a∨b"
 
     def test_regressive_latex(self, syms):
         """Regressive in LaTeX: \vee."""
         from galaga.symbolic import Regressive
+
         a, b, _ = syms
         assert render_latex(Regressive(a, b)) == r"a \vee b"
 
     def test_regressive_associative(self, syms):
         """Regressive is associative: a∨b∨c."""
         from galaga.symbolic import Regressive
+
         a, b, c = syms
         assert render(Regressive(Regressive(a, b), c)) == "a∨b∨c"
 
     def test_regressive_sum_needs_parens(self, syms):
         """Sum in regressive gets parens."""
         from galaga.symbolic import Regressive
+
         a, b, c = syms
         assert render(Regressive(Add(a, b), c)) == "(a + b)∨c"

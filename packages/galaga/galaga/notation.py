@@ -31,12 +31,13 @@ Why three formats?
 from __future__ import annotations
 
 import copy
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass
 class NotationRule:
     """How to render one operation in one format."""
+
     kind: str  # "prefix", "postfix", "superscript", "accent", "infix", "wrap", "juxtaposition"
     symbol: str = ""
     # accent-specific
@@ -75,8 +76,9 @@ def _infix(uni: str, latex: str, ascii: str = "") -> dict[str, NotationRule]:
     }
 
 
-def _wrap(uni_open: str, uni_close: str, latex_open: str, latex_close: str,
-          ascii_open: str = "", ascii_close: str = "") -> dict[str, NotationRule]:
+def _wrap(
+    uni_open: str, uni_close: str, latex_open: str, latex_close: str, ascii_open: str = "", ascii_close: str = ""
+) -> dict[str, NotationRule]:
     return {
         "ascii": NotationRule(kind="wrap", open=ascii_open or uni_open, close=ascii_close or uni_close),
         "unicode": NotationRule(kind="wrap", open=uni_open, close=uni_close),
@@ -94,7 +96,6 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Reverse": _accent("\u0303", "~", r"\tilde", r"\widetilde"),
     "Involute": _accent("\u0302", "inv", r"\hat", r"\widehat"),
     "Conjugate": _accent("\u0304", "conj", r"\bar", r"\overline"),
-
     # Postfix
     "Dual": _postfix("⋆", "^*", "*"),
     "Undual": _postfix("⋆⁻¹", "^{*^{-1}}", "*^-1"),
@@ -102,7 +103,6 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Uncomplement": _postfix("ᶜ⁻¹", "^{\\complement^{-1}}", "^c^-1"),
     "Inverse": _postfix("⁻¹", "^{-1}", "^-1"),
     "Squared": _postfix("²", "^2", "^2"),
-
     # Prefix
     "Neg": {
         "ascii": NotationRule(kind="prefix", symbol="-"),
@@ -119,14 +119,12 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
         "unicode": NotationRule(kind="postfix", symbol="/"),
         "latex": NotationRule(kind="postfix", symbol="/"),
     },
-
     # Juxtaposition (geometric product)
     "Gp": {
         "ascii": NotationRule(kind="juxtaposition", separator=""),
         "unicode": NotationRule(kind="juxtaposition", separator=""),
         "latex": NotationRule(kind="juxtaposition", separator=" "),
     },
-
     # Infix binary
     "Op": _infix("∧", r" \wedge ", "^"),
     "Lc": _infix("⌋", r" \;\lrcorner\; ", "_|"),
@@ -138,7 +136,6 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Regressive": _infix("∨", r" \vee ", "v"),
     "Add": _infix(" + ", " + ", " + "),
     "Sub": _infix(" - ", " - ", " - "),
-
     # Wrap
     "Grade": _wrap("⟨", "⟩", r"\langle ", r" \rangle", "<", ">"),
     "Norm": _wrap("‖", "‖", r"\lVert ", r" \rVert", "||", "||"),
@@ -205,10 +202,8 @@ class Notation:
         n = Notation()
         # D&L use tilde for reverse — same as default
         # D&L use dagger for Clifford conjugate in some contexts
-        n.set("Conjugate", "unicode", NotationRule(
-            kind="accent", combining="\u0304", fallback_prefix="conj"))
-        n.set("Conjugate", "latex", NotationRule(
-            kind="accent", latex_cmd=r"\bar", latex_wide_cmd=r"\overline"))
+        n.set("Conjugate", "unicode", NotationRule(kind="accent", combining="\u0304", fallback_prefix="conj"))
+        n.set("Conjugate", "latex", NotationRule(kind="accent", latex_cmd=r"\bar", latex_wide_cmd=r"\overline"))
         return n
 
     @staticmethod

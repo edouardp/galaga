@@ -1,6 +1,9 @@
 """Benchmark: 100k geometric products in Cl(1,3)."""
+
 import time
+
 import numpy as np
+
 from galaga import Algebra, Multivector, gp
 
 alg = Algebra((1, -1, -1, -1))

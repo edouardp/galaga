@@ -19,10 +19,17 @@ Usage::
             d.md(t"**{name}:** {e} = {e.eval()}")
 """
 
-from galaga_marimo.api import md, inline, block, latex, block_latex, text, doc, Doc
+from galaga_marimo.api import Doc, block, block_latex, doc, inline, latex, md, text
 from galaga_marimo.renderer import render_template
 
 __all__ = [
-    "md", "inline", "block", "latex", "block_latex", "text",
-    "doc", "Doc", "render_template",
+    "md",
+    "inline",
+    "block",
+    "latex",
+    "block_latex",
+    "text",
+    "doc",
+    "Doc",
+    "render_template",
 ]

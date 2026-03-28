@@ -4,8 +4,11 @@ Instead of looping over N multivectors one at a time, represent them as
 (N, 16) arrays and do all products in one shot using the precomputed
 multiplication tables.
 """
+
 import time
+
 import numpy as np
+
 from galaga import Algebra
 
 alg = Algebra((1, -1, -1, -1))
@@ -14,8 +17,8 @@ D = alg.dim  # 16
 # The algebra's precomputed tables — these are the key:
 #   mul_index[i, j] -> result blade index for basis_i * basis_j
 #   mul_sign[i, j]  -> scalar factor (reorder sign × metric)
-IDX = alg._mul_index   # (16, 16) int
-SGN = alg._mul_sign     # (16, 16) float
+IDX = alg._mul_index  # (16, 16) int
+SGN = alg._mul_sign  # (16, 16) float
 
 
 def batched_gp(A: np.ndarray, B: np.ndarray) -> np.ndarray:
@@ -88,10 +91,10 @@ if __name__ == "__main__":
     t0 = time.perf_counter()
     C = batched_gp(A, B)
     t_gp = time.perf_counter() - t0
-    print(f"Batched gp:       {t_gp:.3f} s  ({N/t_gp:,.0f} gp/s, {t_gp/N*1e6:.2f} µs each)")
+    print(f"Batched gp:       {t_gp:.3f} s  ({N / t_gp:,.0f} gp/s, {t_gp / N * 1e6:.2f} µs each)")
 
     # Benchmark batched sandwich
     t0 = time.perf_counter()
     S = batched_sandwich(A, B)
     t_sw = time.perf_counter() - t0
-    print(f"Batched sandwich: {t_sw:.3f} s  ({N/t_sw:,.0f} sw/s, {t_sw/N*1e6:.2f} µs each)")
+    print(f"Batched sandwich: {t_sw:.3f} s  ({N / t_sw:,.0f} sw/s, {t_sw / N * 1e6:.2f} µs each)")

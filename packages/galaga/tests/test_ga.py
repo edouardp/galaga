@@ -1,26 +1,56 @@
 """Tests for the ga library — golden tests and property tests."""
 
-import pytest
 import numpy as np
+import pytest
+
 from galaga import (
-    Algebra, gp, op, left_contraction, right_contraction, hestenes_inner,
-    scalar_product, reverse, involute, conjugate, grade, grades, scalar,
-    dual, undual, norm2, norm, unit, inverse, commutator, anticommutator,
-    lie_bracket, jordan_product, doran_lasenby_inner, dorst_inner,
-    is_scalar, is_vector, is_bivector, is_even, wedge, geometric_product, rev,
-    exp, log, project, reject, reflect, sandwich,
+    Algebra,
+    conjugate,
+    doran_lasenby_inner,
+    dorst_inner,
+    dual,
+    exp,
+    geometric_product,
+    gp,
+    grade,
+    grades,
+    hestenes_inner,
+    inverse,
+    involute,
+    is_bivector,
+    is_even,
+    is_scalar,
+    is_vector,
+    left_contraction,
+    log,
+    norm,
+    norm2,
+    op,
+    project,
+    reflect,
+    reject,
+    rev,
+    reverse,
+    right_contraction,
+    scalar,
+    scalar_product,
+    undual,
+    unit,
+    wedge,
 )
 
-
 # ---- Fixtures ----
+
 
 @pytest.fixture
 def cl2():
     return Algebra((1, 1))
 
+
 @pytest.fixture
 def cl3():
     return Algebra((1, 1, 1))
+
 
 @pytest.fixture
 def sta():
@@ -28,6 +58,7 @@ def sta():
 
 
 # ---- Phase 1: Algebra construction ----
+
 
 class TestAlgebra:
     def test_cl3_dimensions(self, cl3):
@@ -85,6 +116,7 @@ class TestAlgebra:
 
 # ---- Phase 2: Multivector basics ----
 
+
 class TestMultivector:
     def test_add(self, cl3):
         """MV addition combines coefficients."""
@@ -134,36 +166,36 @@ class TestMultivector:
         """x**1 = x."""
         e1, _, _ = cl3.basis_vectors()
         v = 2 * e1
-        assert v ** 1 == v
+        assert v**1 == v
 
     def test_pow_two(self, cl3):
         """x**2 = x*x."""
         e1, e2, _ = cl3.basis_vectors()
         v = 2 * e1 + 3 * e2
-        assert v ** 2 == v * v
+        assert v**2 == v * v
 
     def test_pow_three(self, cl3):
         """x**3 = x*x*x."""
         e1, _, _ = cl3.basis_vectors()
-        assert e1 ** 3 == e1 * e1 * e1
+        assert e1**3 == e1 * e1 * e1
 
     def test_pow_negative(self, cl3):
         """x**-1 = inverse(x)."""
         e1, e2, _ = cl3.basis_vectors()
         R = cl3.rotor(e1 ^ e2, radians=0.5)
-        assert R ** -1 == R.inv
+        assert R**-1 == R.inv
 
     def test_pow_negative_two(self, cl3):
         """x**-2 = inv(x)*inv(x)."""
         e1, e2, _ = cl3.basis_vectors()
         R = cl3.rotor(e1 ^ e2, radians=0.5)
-        assert R ** -2 == R.inv * R.inv
+        assert R**-2 == R.inv * R.inv
 
     def test_pow_float_returns_not_implemented(self, cl3):
         """Non-integer powers raise TypeError."""
         e1, _, _ = cl3.basis_vectors()
         with pytest.raises(TypeError):
-            e1 ** 0.5
+            e1**0.5
 
     def test_repr_nonzero(self, cl3):
         """repr includes all nonzero components."""
@@ -278,6 +310,7 @@ class TestMultivector:
 
 
 # ---- Phase 3: Core operations ----
+
 
 class TestGeometricProduct:
     def test_basis_vector_squares_cl3(self, cl3):
@@ -502,8 +535,8 @@ class TestContractions:
         """Left and right contraction are NOT symmetric — key difference."""
         e1, e2, _ = cl3.basis_vectors()
         e12 = e1 ^ e2
-        lc = left_contraction(e1, e12)   # grade 2-1=1 → e2
-        rc = right_contraction(e1, e12)   # grade 1-2<0 → 0
+        lc = left_contraction(e1, e12)  # grade 2-1=1 → e2
+        rc = right_contraction(e1, e12)  # grade 1-2<0 → 0
         assert lc == e2
         assert np.allclose(rc.data, 0)
 
@@ -513,10 +546,11 @@ class TestContractions:
         # a = scalar + bivector, b = vector
         a = cl3.scalar(2.0) + (e1 ^ e2)
         b = e1
-        lc = left_contraction(a, b)   # scalar⌋vector = 2*e1, bivector⌋vector = 0
-        hi = hestenes_inner(a, b)      # scalar·anything = 0 in Hestenes, bivector·vector = -e2
+        lc = left_contraction(a, b)  # scalar⌋vector = 2*e1, bivector⌋vector = 0
+        hi = hestenes_inner(a, b)  # scalar·anything = 0 in Hestenes, bivector·vector = -e2
         assert lc == 2 * e1
         assert hi == -e2
+
 
 class TestUnaryOps:
     def test_reverse_vector(self, cl3):
@@ -658,6 +692,7 @@ class TestAliases:
 
 
 # ---- Golden tests: known identities ----
+
 
 class TestGoldenCl2:
     """Known results in Cl(2,0)."""

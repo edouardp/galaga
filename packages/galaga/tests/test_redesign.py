@@ -1,9 +1,10 @@
 """Tests for the symbolic redesign: naming and evaluation semantics."""
 
-import pytest
 import numpy as np
+import pytest
+
 from galaga import Algebra
-from galaga.symbolic import sym, simplify, Expr, Sym
+from galaga.symbolic import Sym, simplify, sym
 
 
 @pytest.fixture
@@ -65,7 +66,7 @@ class TestAnonMethod:
     def test_anon_on_anonymous_is_noop(self, cl3):
         """.anon() on unnamed MV is a no-op."""
         e1, _, _ = cl3.basis_vectors()
-        v = (e1 + cl3.basis_vectors()[1])
+        v = e1 + cl3.basis_vectors()[1]
         v2 = v.anon()
         assert v2._name is None
 
@@ -101,8 +102,8 @@ class TestLazyEagerMethods:
         Be = B.eval()
         assert Be._is_lazy is False
         assert Be._name is None  # eval() returns anonymous
-        assert Be is not B       # eval() returns a new copy
-        assert Be == B           # same value
+        assert Be is not B  # eval() returns a new copy
+        assert Be == B  # same value
 
     def test_chaining_name_eager(self, cl3):
         """.name().eager() chain works."""
@@ -272,6 +273,7 @@ class TestSymAlias:
     def test_sym_returns_multivector(self, cl3):
         """sym() returns a Multivector."""
         from galaga.algebra import Multivector
+
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert isinstance(v, Multivector)
@@ -298,12 +300,13 @@ class TestSymAlias:
         Re = R.eval()
         assert Re._is_lazy is False
         assert Re._name is None  # eval() returns anonymous
-        assert Re == e1 * e2     # same value
+        assert Re == e1 * e2  # same value
 
 
 # ============================================================
 # Spec use cases (verbatim from symbolic-redesign.md)
 # ============================================================
+
 
 class TestSpecUseCases:
     """Test all 10 use cases from the spec."""
@@ -349,13 +352,12 @@ class TestSpecUseCases:
         """Lazy unnamed expressions."""
         e1, e2, e3 = cl3.basis_vectors()
         expr = ((e1 + e2) ^ e3).lazy()
-        s = str(expr)
+        str(expr)  # ensure it renders without error
         # Should show symbolic structure, not just a name
         assert expr._is_lazy is True
 
     def test_use_case_7_rotor_workflow(self, cl3):
         """Rotor workflow."""
-        from galaga import exp
         e1, e2, _ = cl3.basis_vectors()
         theta = 0.5
         B = (e1 ^ e2).name("B")
@@ -472,7 +474,6 @@ class TestAdditionalCoverage:
 
     def test_xor_with_expr(self, cl3):
         """MV ^ Expr works."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         expr = Sym(e2, "b")
         result = e1 ^ expr
@@ -480,7 +481,6 @@ class TestAdditionalCoverage:
 
     def test_or_with_expr(self, cl3):
         """MV | Expr works."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         expr = Sym(e2, "b")
         result = e1 | expr
@@ -488,7 +488,6 @@ class TestAdditionalCoverage:
 
     def test_sub_with_expr(self, cl3):
         """MV - Expr works."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         expr = Sym(e2, "b")
         result = e1 - expr
@@ -539,7 +538,6 @@ class TestAdditionalCoverage:
 
     def test_to_expr_anonymous_eager(self, cl3):
         """_to_expr on anonymous eager MV uses str representation."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         mv = (e1 + e2).anon()
         mv = mv._copy_with(_name=None, _name_unicode=None, _name_latex=None)
@@ -574,7 +572,6 @@ class TestAdditionalCoverage:
 
     def test_sym_latex_rendering(self, cl3):
         """Sym.latex() returns name_latex."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         s = Sym(e1, "v", name_latex=r"\mathbf{v}")
         assert s.latex() == r"\mathbf{v}"
@@ -582,6 +579,7 @@ class TestAdditionalCoverage:
     def test_symbolic_reverse_lazy_mv(self, cl3):
         """reverse(lazy_mv) stays lazy."""
         from galaga.symbolic import reverse
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = reverse(v)
@@ -590,6 +588,7 @@ class TestAdditionalCoverage:
     def test_symbolic_grade_lazy_mv(self, cl3):
         """grade(lazy_mv, k) stays lazy."""
         from galaga.symbolic import grade
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = grade(v, 1)
@@ -598,6 +597,7 @@ class TestAdditionalCoverage:
     def test_symbolic_sandwich_lazy_mv(self, cl3):
         """sandwich(lazy, lazy) stays lazy."""
         from galaga.symbolic import sandwich
+
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         v = e1.name("v")
@@ -607,6 +607,7 @@ class TestAdditionalCoverage:
     def test_symbolic_ip_lazy_mv(self, cl3):
         """ip(lazy, lazy) stays lazy."""
         from galaga.symbolic import ip
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = ip(a, e2)
@@ -615,6 +616,7 @@ class TestAdditionalCoverage:
     def test_symbolic_squared_lazy_mv(self, cl3):
         """squared(lazy) stays lazy."""
         from galaga.symbolic import squared
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = squared(v)
@@ -622,15 +624,17 @@ class TestAdditionalCoverage:
 
     def test_ensure_expr_lazy_mv_with_expr(self, cl3):
         """_ensure_expr extracts _expr from lazy MV."""
-        from galaga.symbolic import _ensure_expr, Sym
+        from galaga.symbolic import _ensure_expr
+
         e1, e2, _ = cl3.basis_vectors()
-        B = (e1.name("a") + e2.name("b"))
+        B = e1.name("a") + e2.name("b")
         expr = _ensure_expr(B)
         assert not isinstance(expr, type(B))  # Should be Expr, not MV
 
     def test_ensure_expr_named_eager_mv(self, cl3):
         """_ensure_expr on named eager MV creates Sym."""
-        from galaga.symbolic import _ensure_expr, Sym
+        from galaga.symbolic import _ensure_expr
+
         e1, _, _ = cl3.basis_vectors()
         # basis blades are named + eager
         expr = _ensure_expr(e1)
@@ -642,7 +646,6 @@ class TestExprOperatorCoverage:
 
     def test_expr_add(self, cl3):
         """Expr + Expr builds Add."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         b = Sym(e2, "b")
@@ -650,14 +653,12 @@ class TestExprOperatorCoverage:
 
     def test_expr_radd(self, cl3):
         """scalar + Expr builds Add."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(3 + a) == "3 + a"
 
     def test_expr_sub(self, cl3):
         """Expr - Expr builds Sub."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         b = Sym(e2, "b")
@@ -665,35 +666,30 @@ class TestExprOperatorCoverage:
 
     def test_expr_rsub(self, cl3):
         """scalar - Expr builds Sub."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(3 - a) == "3 - a"
 
     def test_expr_neg(self, cl3):
         """-Expr builds Neg."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(-a) == "-a"
 
     def test_expr_mul_scalar(self, cl3):
         """Expr * scalar builds ScalarMul."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(a * 2) == "2a"
 
     def test_expr_rmul_scalar(self, cl3):
         """scalar * Expr builds ScalarMul."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(5 * a) == "5a"
 
     def test_expr_mul_expr(self, cl3):
         """Expr * Expr builds Gp."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         b = Sym(e2, "b")
@@ -701,7 +697,6 @@ class TestExprOperatorCoverage:
 
     def test_expr_xor(self, cl3):
         """Expr ^ Expr builds Op."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         b = Sym(e2, "b")
@@ -709,7 +704,6 @@ class TestExprOperatorCoverage:
 
     def test_expr_or(self, cl3):
         """Expr | Expr builds Dli."""
-        from galaga.symbolic import Sym
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         b = Sym(e2, "b")
@@ -717,14 +711,12 @@ class TestExprOperatorCoverage:
 
     def test_expr_invert(self, cl3):
         """~Expr builds Reverse."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert "a" in str(~a)
 
     def test_expr_truediv(self, cl3):
         """Expr / scalar builds ScalarDiv."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         result = a / 3
@@ -732,49 +724,42 @@ class TestExprOperatorCoverage:
 
     def test_expr_truediv_non_scalar(self, cl3):
         """Expr / non-scalar raises TypeError."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert a.__truediv__("bad") is NotImplemented
 
     def test_expr_inv_property(self, cl3):
         """Expr.inv builds Inverse."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert "a" in str(a.inv)
 
     def test_expr_dag_property(self, cl3):
         """Expr.dag builds Reverse."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert "a" in str(a.dag)
 
     def test_expr_sq_property(self, cl3):
         """Expr.sq builds Squared."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert str(a.sq) == "a²"
 
     def test_expr_latex_wrap_dollar(self, cl3):
         """Expr.latex(wrap='$') wraps inline."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert a.latex(wrap="$") == "$a$"
 
     def test_expr_latex_wrap_display(self, cl3):
         """Expr.latex(wrap='$$') wraps display."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert "$$" in a.latex(wrap="$$")
 
     def test_expr_repr_latex(self, cl3):
         """Expr._repr_latex_() wraps in $."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert a._repr_latex_() == "$a$"
@@ -782,19 +767,20 @@ class TestExprOperatorCoverage:
     def test_scalar_eval_raises(self):
         """Scalar.eval() raises — no algebra context."""
         from galaga.symbolic import Scalar
+
         with pytest.raises(TypeError):
             Scalar(42).eval()
 
     def test_sym_repr_ascii(self, cl3):
         """Sym repr uses ascii name."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         s = Sym(e1, "v", name_ascii="v_ascii")
         assert repr(s) == "v_ascii"
 
     def test_coerce_mv_with_name(self, cl3):
         """_coerce on a named MV without _expr."""
-        from galaga.symbolic import _coerce, Sym
+        from galaga.symbolic import _coerce
+
         e1, _, _ = cl3.basis_vectors()
         # basis blades are named + eager, no _expr
         result = _coerce(e1)
@@ -803,6 +789,7 @@ class TestExprOperatorCoverage:
     def test_is_symbolic_lazy_mv(self, cl3):
         """Lazy MV is symbolic."""
         from galaga.symbolic import _is_symbolic
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         assert _is_symbolic(v) is True
@@ -810,12 +797,14 @@ class TestExprOperatorCoverage:
     def test_is_symbolic_eager_mv(self, cl3):
         """Eager MV is not symbolic."""
         from galaga.symbolic import _is_symbolic
+
         e1, _, _ = cl3.basis_vectors()
         assert _is_symbolic(e1) is False
 
     def test_simplify_rotor_norm(self, cl3):
         """simplify(R * ~R) for a rotor."""
-        from galaga.symbolic import Sym, Gp, Reverse, simplify
+        from galaga.symbolic import Gp, Reverse
+
         e1, e2, _ = cl3.basis_vectors()
         R_val = e1 * e2
         R = Sym(R_val, "R")
@@ -825,7 +814,8 @@ class TestExprOperatorCoverage:
 
     def test_eq_neg(self, cl3):
         """Neg Expr equality."""
-        from galaga.symbolic import _eq, Neg, Sym
+        from galaga.symbolic import Neg, _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert _eq(Neg(a), Neg(a))
@@ -833,7 +823,8 @@ class TestExprOperatorCoverage:
 
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
-        from galaga.symbolic import _eq, Grade, Sym
+        from galaga.symbolic import Grade, _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
         assert _eq(Grade(a, 1), Grade(a, 1))
@@ -846,6 +837,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_involute_lazy(self, cl3):
         """involute(lazy) returns lazy."""
         from galaga.symbolic import involute
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = involute(v)
@@ -854,6 +846,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_conjugate_lazy(self, cl3):
         """conjugate(lazy) returns lazy."""
         from galaga.symbolic import conjugate
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = conjugate(v)
@@ -862,6 +855,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_dual_lazy(self, cl3):
         """dual(lazy) returns lazy."""
         from galaga.symbolic import dual
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = dual(v)
@@ -870,6 +864,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_undual_lazy(self, cl3):
         """undual(lazy) returns lazy."""
         from galaga.symbolic import undual
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = undual(v)
@@ -878,6 +873,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_norm_lazy(self, cl3):
         """norm(lazy) returns lazy."""
         from galaga.symbolic import norm
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = norm(v)
@@ -886,6 +882,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_unit_lazy(self, cl3):
         """unit(lazy) returns lazy."""
         from galaga.symbolic import unit
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = unit(v)
@@ -894,6 +891,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_inverse_lazy(self, cl3):
         """inverse(lazy) returns lazy."""
         from galaga.symbolic import inverse
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = inverse(v)
@@ -902,6 +900,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_left_contraction_lazy(self, cl3):
         """left_contraction(lazy, lazy) returns lazy."""
         from galaga.symbolic import left_contraction
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = left_contraction(a, e2)
@@ -910,6 +909,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_right_contraction_lazy(self, cl3):
         """right_contraction(lazy, lazy) returns lazy."""
         from galaga.symbolic import right_contraction
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = right_contraction(a, e2)
@@ -918,6 +918,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_hestenes_inner_lazy(self, cl3):
         """hestenes_inner(lazy, lazy) returns lazy."""
         from galaga.symbolic import hestenes_inner
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = hestenes_inner(a, e2)
@@ -926,6 +927,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_doran_lasenby_inner_lazy(self, cl3):
         """doran_lasenby_inner(lazy, lazy) returns lazy."""
         from galaga.symbolic import doran_lasenby_inner
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = doran_lasenby_inner(a, e2)
@@ -934,6 +936,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_scalar_product_lazy(self, cl3):
         """scalar_product(lazy, lazy) returns lazy."""
         from galaga.symbolic import scalar_product
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = scalar_product(a, e2)
@@ -942,6 +945,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_commutator_lazy(self, cl3):
         """commutator(lazy, lazy) returns lazy."""
         from galaga.symbolic import commutator
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = commutator(a, e2)
@@ -950,6 +954,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_anticommutator_lazy(self, cl3):
         """anticommutator(lazy, lazy) returns lazy."""
         from galaga.symbolic import anticommutator
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = anticommutator(a, e2)
@@ -958,6 +963,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_lie_bracket_lazy(self, cl3):
         """lie_bracket(lazy, lazy) returns lazy."""
         from galaga.symbolic import lie_bracket
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = lie_bracket(a, e2)
@@ -966,6 +972,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_jordan_product_lazy(self, cl3):
         """jordan_product(lazy, lazy) returns lazy."""
         from galaga.symbolic import jordan_product
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         result = jordan_product(a, e2)
@@ -974,6 +981,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_even_grades_lazy(self, cl3):
         """even_grades(lazy) returns lazy."""
         from galaga.symbolic import even_grades
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = even_grades(v)
@@ -982,6 +990,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_odd_grades_lazy(self, cl3):
         """odd_grades(lazy) returns lazy."""
         from galaga.symbolic import odd_grades
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         result = odd_grades(v)
@@ -990,6 +999,7 @@ class TestSymbolicDropInWithLazyMV:
     def test_ip_modes_lazy(self, cl3):
         """ip() with all modes returns lazy."""
         from galaga.symbolic import ip
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         for mode in ("doran_lasenby", "hestenes", "left", "right", "scalar"):
@@ -1003,6 +1013,7 @@ class TestSandwichLazy:
     def test_sandwich_lazy_rotor(self, cl3):
         """sandwich(lazy_R, lazy_v) returns lazy."""
         from galaga import sandwich
+
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         v = e1.name("v")
@@ -1013,7 +1024,8 @@ class TestSandwichLazy:
 
     def test_sandwich_lazy_concrete_correct(self, cl3):
         """Lazy sandwich evaluates correctly."""
-        from galaga import sandwich, gp, reverse
+        from galaga import gp, reverse, sandwich
+
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         result = sandwich(R, e1)
@@ -1023,6 +1035,7 @@ class TestSandwichLazy:
     def test_sandwich_eager_stays_eager(self, cl3):
         """sandwich(eager, eager) stays eager."""
         from galaga import sandwich
+
         e1, e2, _ = cl3.basis_vectors()
         result = sandwich(e1 * e2, e1)
         assert result._is_lazy is False
@@ -1030,6 +1043,7 @@ class TestSandwichLazy:
     def test_sandwich_one_lazy_operand(self, cl3):
         """One lazy operand makes result lazy."""
         from galaga import sandwich
+
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         # lazy rotor, eager vector
@@ -1040,6 +1054,7 @@ class TestSandwichLazy:
     def test_sw_alias_lazy(self, cl3):
         """sw() alias works with lazy MVs."""
         from galaga import sw
+
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         result = sw(R, e1)
@@ -1052,47 +1067,47 @@ class TestSmallValueDisplay:
     def test_format_spec_shows_small_values(self, cl3):
         """Format spec shows small coefficients."""
         mv = cl3.scalar(9.109e-31)
-        assert format(mv, '.3e') == '9.109e-31'
+        assert format(mv, ".3e") == "9.109e-31"
 
     def test_format_spec_shows_small_negative(self, cl3):
         """Format spec shows small negative coefficients."""
         mv = cl3.scalar(-1.055e-34)
-        assert format(mv, '.3e') == '-1.055e-34'
+        assert format(mv, ".3e") == "-1.055e-34"
 
     def test_str_suppresses_small_values(self, cl3):
         """str() suppresses near-zero coefficients."""
         mv = cl3.scalar(9.109e-31)
-        assert str(mv) == '0'
+        assert str(mv) == "0"
 
     def test_latex_default_suppresses_small(self, cl3):
         """latex() suppresses near-zero by default."""
         mv = cl3.scalar(9.109e-31)
-        assert mv.latex() == '0'
+        assert mv.latex() == "0"
 
     def test_latex_coeff_format_shows_small(self, cl3):
         """latex(coeff_format=) shows small values."""
         mv = cl3.scalar(9.109e-31)
-        assert mv.latex(coeff_format='.3e') == '9.109e-31'
+        assert mv.latex(coeff_format=".3e") == "9.109e-31"
 
     def test_latex_coeff_format_electron_mass(self, cl3):
         """coeff_format handles electron mass scale."""
         mv = cl3.scalar(9.109e-31)
-        assert '9.109' in mv.latex(coeff_format='.4e')
+        assert "9.109" in mv.latex(coeff_format=".4e")
 
     def test_latex_coeff_format_planck(self, cl3):
         """coeff_format handles Planck constant scale."""
         mv = cl3.scalar(1.055e-34)
-        assert '1.055' in mv.latex(coeff_format='.4e')
+        assert "1.055" in mv.latex(coeff_format=".4e")
 
     def test_latex_coeff_format_compton(self, cl3):
         """coeff_format handles Compton wavelength scale."""
         mv = cl3.scalar(3.861e-13)
-        assert '3.861' in mv.latex(coeff_format='.4e')
+        assert "3.861" in mv.latex(coeff_format=".4e")
 
     def test_format_spec_zero_is_exact_zero(self, cl3):
         """Exact 0.0 should still show as zero even with format spec."""
         mv = cl3.scalar(0.0)
-        assert format(mv, '.3e') == '0.000e+00'
+        assert format(mv, ".3e") == "0.000e+00"
 
     def test_physical_constants_division(self, cl3):
         """ℏ / (m * c) should give correct Compton wavelength."""
@@ -1109,8 +1124,8 @@ class TestSmallValueDisplay:
         m = cl3.scalar(9.109e-31).name("m")
         c = cl3.scalar(3e8).name("c")
         lam = hbar / (m * c)
-        result = lam.eval().latex(coeff_format='.4e')
-        assert '3.8607e-13' in result or '3.861' in result
+        result = lam.eval().latex(coeff_format=".4e")
+        assert "3.8607e-13" in result or "3.861" in result
 
 
 class TestMVDivision:
@@ -1150,7 +1165,7 @@ class TestMVDivision:
     def test_div_non_invertible_raises(self, cl3):
         """Division by non-invertible raises."""
         e1, e2, _ = cl3.basis_vectors()
-        null = e1 + e2  # not a blade, but invertible
+        # e1 + e2 is invertible, so this should work
         # This should work (e1+e2 is invertible)
         result = e1 / (e1 + e2)
         assert result is not None
@@ -1227,6 +1242,7 @@ class TestDivExprNode:
     def test_exp_node(self, cl3):
         """Exp expr renders as exp(...)."""
         from galaga import exp
+
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         theta = cl3.scalar(0.5).name("θ", latex=r"\theta")
@@ -1238,8 +1254,10 @@ class TestDivExprNode:
 
     def test_exp_eval(self, cl3):
         """Exp expr evaluates correctly."""
-        from galaga import exp
         import numpy as np
+
+        from galaga import exp
+
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         R = exp(B * cl3.scalar(np.pi / 4).name("θ"))
@@ -1254,6 +1272,7 @@ class TestSquaredParens:
     def test_squared_single_term_no_parens(self, cl3):
         """Squared atom: no parens."""
         from galaga import squared
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         assert str(squared(v)) == "v²"
@@ -1261,6 +1280,7 @@ class TestSquaredParens:
     def test_squared_add_gets_parens(self, cl3):
         """Squared sum: gets parens."""
         from galaga import squared
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         b = e2.name("b")
@@ -1270,6 +1290,7 @@ class TestSquaredParens:
     def test_squared_sub_gets_parens(self, cl3):
         """Squared difference: gets parens."""
         from galaga import squared
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         b = e2.name("b")
@@ -1279,6 +1300,7 @@ class TestSquaredParens:
     def test_squared_product_no_parens(self, cl3):
         """Squared product: no parens."""
         from galaga import squared
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         b = e2.name("b")
@@ -1288,6 +1310,7 @@ class TestSquaredParens:
     def test_squared_latex_add_gets_parens(self, cl3):
         """Squared sum in LaTeX: gets parens."""
         from galaga import squared
+
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
         b = e2.name("b")
@@ -1298,6 +1321,7 @@ class TestSquaredParens:
     def test_squared_latex_single_no_parens(self, cl3):
         """Squared atom in LaTeX: no parens."""
         from galaga import squared
+
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         assert result.latex() == "v^2" if (result := squared(v)) else False
@@ -1368,6 +1392,7 @@ class TestLazyBladesFullWorkflow:
     def test_exp_symbolic(self, cl3):
         """Lazy exp renders symbolically."""
         from galaga import exp
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         B = (e1 ^ e2).name("B")
         result = exp(B)
@@ -1375,8 +1400,10 @@ class TestLazyBladesFullWorkflow:
 
     def test_rotor_workflow(self, cl3):
         """Full lazy rotor workflow."""
-        from galaga import exp, reverse
         import numpy as np
+
+        from galaga import exp
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         theta = cl3.scalar(np.pi / 4).name("θ")
         B = (e1 ^ e2).name("B")
@@ -1404,7 +1431,8 @@ class TestLazyBladesFullWorkflow:
 
     def test_all_module_functions_lazy(self, cl3):
         """All module-level functions produce symbolic output with lazy blades."""
-        from galaga import reverse, involute, conjugate, grade, dual, unit, inverse, squared
+        from galaga import conjugate, dual, grade, inverse, involute, reverse, squared, unit
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = (e1 + e2).name("v")
         assert "ṽ" in str(reverse(v)) or "v" in str(reverse(v))
@@ -1446,6 +1474,7 @@ class TestAllBinaryOpsLazy:
     def test_gp_lazy(self, cl3):
         """gp(lazy, lazy) returns lazy."""
         from galaga import gp
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert str(gp(a, b)) == "ab"
@@ -1453,6 +1482,7 @@ class TestAllBinaryOpsLazy:
     def test_op_lazy(self, cl3):
         """op(lazy, lazy) returns lazy."""
         from galaga import op
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "∧" in str(op(a, b))
@@ -1460,6 +1490,7 @@ class TestAllBinaryOpsLazy:
     def test_left_contraction_lazy(self, cl3):
         """left_contraction(lazy, lazy) returns lazy."""
         from galaga import left_contraction
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "⌋" in str(left_contraction(a, b))
@@ -1467,6 +1498,7 @@ class TestAllBinaryOpsLazy:
     def test_right_contraction_lazy(self, cl3):
         """right_contraction(lazy, lazy) returns lazy."""
         from galaga import right_contraction
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "⌊" in str(right_contraction(a, b))
@@ -1474,6 +1506,7 @@ class TestAllBinaryOpsLazy:
     def test_hestenes_inner_lazy(self, cl3):
         """hestenes_inner(lazy, lazy) returns lazy."""
         from galaga import hestenes_inner
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "·" in str(hestenes_inner(a, b))
@@ -1481,6 +1514,7 @@ class TestAllBinaryOpsLazy:
     def test_doran_lasenby_inner_lazy(self, cl3):
         """doran_lasenby_inner(lazy, lazy) returns lazy."""
         from galaga import doran_lasenby_inner
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "·" in str(doran_lasenby_inner(a, b))
@@ -1488,6 +1522,7 @@ class TestAllBinaryOpsLazy:
     def test_scalar_product_lazy(self, cl3):
         """scalar_product(lazy, lazy) returns lazy."""
         from galaga import scalar_product
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "∗" in str(scalar_product(a, b))
@@ -1495,6 +1530,7 @@ class TestAllBinaryOpsLazy:
     def test_commutator_lazy(self, cl3):
         """commutator(lazy, lazy) returns lazy."""
         from galaga import commutator
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
         B = (e2 ^ e1).name("B")
@@ -1503,6 +1539,7 @@ class TestAllBinaryOpsLazy:
     def test_anticommutator_lazy(self, cl3):
         """anticommutator(lazy, lazy) returns lazy."""
         from galaga import anticommutator
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
         B = (e2 ^ e1).name("B")
@@ -1511,6 +1548,7 @@ class TestAllBinaryOpsLazy:
     def test_lie_bracket_lazy(self, cl3):
         """lie_bracket(lazy, lazy) returns lazy."""
         from galaga import lie_bracket
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
         B = (e2 ^ e1).name("B")
@@ -1519,6 +1557,7 @@ class TestAllBinaryOpsLazy:
     def test_jordan_product_lazy(self, cl3):
         """jordan_product(lazy, lazy) returns lazy."""
         from galaga import jordan_product
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert "½" in str(jordan_product(a, b))
@@ -1536,14 +1575,14 @@ class TestNameAutoDerive:
         assert v._name_latex == r"\theta"
 
     def test_mathbf_auto_derive(self, cl3):
-        """\mathbf auto-derives bold unicode."""
+        r"""\mathbf auto-derives bold unicode."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("F", latex=r"\mathbf{F}")
         assert v._name_unicode == "𝐅"
         assert v._name == "F"
 
     def test_hbar_auto_derive(self, cl3):
-        """\hbar auto-derives ℏ."""
+        r"""\hbar auto-derives ℏ."""
         v = cl3.scalar(1.0).name("h", latex=r"\hbar")
         assert v._name_unicode == "ℏ"
         assert v._name == "hbar"
@@ -1598,7 +1637,7 @@ class TestNameLatexOnly:
         assert v._name_latex == r"\theta"
 
     def test_latex_only_mathbf(self, cl3):
-        """name(latex=) with \mathbf auto-derives."""
+        r"""name(latex=) with \mathbf auto-derives."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.name(latex=r"\mathbf{F}")
         assert str(v) == "𝐅"
@@ -1623,18 +1662,16 @@ class TestSimplifyEdgeCases:
 
     def test_simplify_float(self, cl3):
         """simplify(float) returns float."""
-        from galaga.symbolic import simplify
         assert str(simplify(1.0)) == "1"
 
     def test_simplify_int(self, cl3):
         """simplify(int) returns int."""
-        from galaga.symbolic import simplify
         assert str(simplify(0)) == "0"
 
     def test_simplify_norm_unit(self, cl3):
         """simplify(norm(unit(x))) = 1."""
         from galaga import norm, unit
-        from galaga.symbolic import simplify
+
         e1, _, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
         result = simplify(norm(unit(v)))
@@ -1671,6 +1708,7 @@ class TestGpSpacing:
     def test_combining_char_counts_as_single(self, cl3):
         """Combining accent counts as single char."""
         from galaga import reverse
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a = e1.name("a")
         # ã has base len 1
@@ -1684,12 +1722,12 @@ class TestPowSquared:
         """lazy**2 renders as x²."""
         e1, _, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
-        assert str(v ** 2) == "v²"
+        assert str(v**2) == "v²"
 
     def test_pow2_eager(self, cl3):
         """eager**2 computes gp(x,x)."""
         e1, _, _ = cl3.basis_vectors()
-        assert (e1 ** 2) == 1  # e1² = 1 in Euclidean
+        assert (e1**2) == 1  # e1² = 1 in Euclidean
 
     def test_pow2_sum(self, cl3):
         """(a+b)**2 renders with parens."""
@@ -1701,13 +1739,13 @@ class TestPowSquared:
         """x**3 does not use squared node."""
         e1, _, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
-        assert "²" not in str(v ** 3)
+        assert "²" not in str(v**3)
 
     def test_pow0(self, cl3):
         """x**0 = 1."""
         e1, _, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
-        assert (v ** 0) == 1
+        assert (v**0) == 1
 
 
 class TestSymNoName:
@@ -1716,6 +1754,7 @@ class TestSymNoName:
     def test_sym_no_name(self, cl3):
         """sym(mv) without name makes lazy."""
         from galaga.symbolic import sym
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1)
         assert a._is_lazy is True
@@ -1724,6 +1763,7 @@ class TestSymNoName:
     def test_sym_no_name_chain(self, cl3):
         """Unnamed sym in expression works."""
         from galaga.symbolic import sym
+
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1).name(latex=r"\hat{n}")
         assert "n" in str(a)
@@ -1732,6 +1772,7 @@ class TestSymNoName:
     def test_norm_lazy(self, cl3):
         """norm(lazy) returns lazy."""
         from galaga import norm
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = (3 * e1 + 4 * e2).name("v")
         n = norm(v)
@@ -1743,52 +1784,61 @@ class TestIsBlade:
     def test_basis_vector(self, cl3):
         """Basis vector is a blade."""
         from galaga import is_basis_blade
+
         e1, _, _ = cl3.basis_vectors()
         assert is_basis_blade(e1)
 
     def test_scaled_blade(self, cl3):
         """Scaled basis vector is a blade."""
         from galaga import is_basis_blade
+
         e1, _, _ = cl3.basis_vectors()
         assert is_basis_blade(3 * e1)
 
     def test_bivector_blade(self, cl3):
         """Basis bivector is a blade."""
         from galaga import is_basis_blade
+
         e1, e2, _ = cl3.basis_vectors()
         assert is_basis_blade(e1 ^ e2)
 
     def test_scaled_bivector(self, cl3):
         """Scaled bivector is a blade."""
         from galaga import is_basis_blade
+
         e1, e2, _ = cl3.basis_vectors()
         assert is_basis_blade(5 * (e1 ^ e2))
 
     def test_pseudoscalar(self, cl3):
         """Pseudoscalar is a blade."""
         from galaga import is_basis_blade
+
         assert is_basis_blade(cl3.pseudoscalar())
 
     def test_scalar(self, cl3):
         """Scalar is a blade."""
         from galaga import is_basis_blade
+
         assert is_basis_blade(cl3.scalar(7.0))
 
     def test_sum_not_blade(self, cl3):
         """Sum of independent vectors is not a blade."""
         from galaga import is_basis_blade
+
         e1, e2, _ = cl3.basis_vectors()
         assert not is_basis_blade(e1 + e2)
 
     def test_mixed_grade_not_blade(self, cl3):
         """Mixed-grade MV is not a blade."""
         from galaga import is_basis_blade
+
         e1, e2, _ = cl3.basis_vectors()
         assert not is_basis_blade(e1 + (e1 ^ e2))
 
     def test_zero(self, cl3):
         """Zero is a blade."""
         from galaga import is_basis_blade
+
         assert not is_basis_blade(cl3.scalar(0.0))
 
 
@@ -1798,6 +1848,7 @@ class TestBasisBladeRename:
     def test_get_basis_blade_by_mv(self):
         """get_basis_blade(mv) returns BasisBlade."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors()
         bb = alg.get_basis_blade(e1 ^ e2)
@@ -1806,6 +1857,7 @@ class TestBasisBladeRename:
     def test_get_basis_blade_by_index(self):
         """get_basis_blade(int) returns BasisBlade."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         bb = alg.get_basis_blade(0b011)
         assert bb.ascii_name == "e12"
@@ -1813,6 +1865,7 @@ class TestBasisBladeRename:
     def test_rename_affects_rendering(self):
         """Renaming a blade changes str() output."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b011).rename(unicode="B₁₂", latex=r"\mathbf{B}_{12}")
         e1, e2, _ = alg.basis_vectors()
@@ -1823,6 +1876,7 @@ class TestBasisBladeRename:
     def test_rename_pseudoscalar(self):
         """Pseudoscalar can be renamed."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(alg.pseudoscalar()).rename(unicode="I₃")
         assert str(alg.pseudoscalar()) == "I₃"
@@ -1830,6 +1884,7 @@ class TestBasisBladeRename:
     def test_rename_basis_vector(self):
         """Basis vector can be renamed."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b001).rename(unicode="x", ascii="x", latex="x")
         e1, _, _ = alg.basis_vectors()
@@ -1838,6 +1893,7 @@ class TestBasisBladeRename:
     def test_get_non_blade_raises(self):
         """get_basis_blade on non-blade raises."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors()
         with pytest.raises(ValueError, match="Not a basis blade"):
@@ -1846,16 +1902,17 @@ class TestBasisBladeRename:
     def test_rename_chaining(self):
         """Rename methods chain."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b011).rename(ascii="B12").rename(latex=r"\beta_{12}")
         bb = alg.get_basis_blade(0b011)
         assert bb.ascii_name == "B12"
         assert bb.latex_name == r"\beta_{12}"
 
-
     def test_rename_updates_existing_mv(self):
         """Renaming a BasisBlade updates already-created MVs."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
         alg.get_basis_blade(e1).rename(unicode="x")
@@ -1870,6 +1927,7 @@ class TestRegressiveProduct:
     def test_bivector_meet_3d(self, cl3):
         """Two bivectors in 3D meet at a vector."""
         from galaga import meet
+
         e1, e2, e3 = cl3.basis_vectors()
         result = meet(e1 ^ e2, e2 ^ e3)
         # Should be proportional to e2
@@ -1879,16 +1937,19 @@ class TestRegressiveProduct:
     def test_meet_is_alias(self, cl3):
         """meet() is an alias for regressive_product()."""
         from galaga import meet, regressive_product
+
         assert meet is regressive_product
 
     def test_join_is_alias(self, cl3):
         """join() is an alias for op()."""
         from galaga import join, op
+
         assert join is op
 
     def test_meet_grade_rule(self, cl3):
         """grade(A ∨ B) = grade(A) + grade(B) - n."""
-        from galaga import meet, grade
+        from galaga import grade, meet
+
         e1, e2, e3 = cl3.basis_vectors()
         # bivector ∨ bivector in 3D: 2+2-3 = 1 (vector)
         result = meet(e1 ^ e2, e2 ^ e3)
@@ -1897,6 +1958,7 @@ class TestRegressiveProduct:
     def test_meet_zero_when_grades_too_low(self, cl3):
         """vector ∨ vector in 3D: 1+1-3 = -1 → zero."""
         from galaga import meet
+
         e1, e2, _ = cl3.basis_vectors()
         result = meet(e1, e2)
         assert result == 0
@@ -1904,6 +1966,7 @@ class TestRegressiveProduct:
     def test_pga_line_meet(self):
         """Two lines in PGA meet at a point."""
         from galaga import Algebra, meet
+
         pga = Algebra((1, 1, 1, 0))
         e1, e2, e3, e0 = pga.basis_vectors()
         L1 = e1 ^ e2 ^ e0
@@ -1914,6 +1977,7 @@ class TestRegressiveProduct:
     def test_symbolic_rendering(self, cl3):
         """Regressive product renders with ∨."""
         from galaga import regressive_product
+
         e1, e2, e3 = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
         B = (e2 ^ e3).name("B")
@@ -1924,6 +1988,7 @@ class TestRegressiveProduct:
     def test_symbolic_eval(self, cl3):
         """Symbolic regressive evaluates correctly."""
         from galaga import regressive_product
+
         e1, e2, e3 = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
         B = (e2 ^ e3).name("B")
@@ -1933,8 +1998,10 @@ class TestRegressiveProduct:
 
     def test_metric_regressive_euclidean(self, cl3):
         """Metric regressive agrees with complement-based in Euclidean."""
-        from galaga import meet, metric_regressive_product
         import numpy as np
+
+        from galaga import meet, metric_regressive_product
+
         e1, e2, e3 = cl3.basis_vectors()
         a = meet(e1 ^ e2, e2 ^ e3)
         b = metric_regressive_product(e1 ^ e2, e2 ^ e3)
@@ -1957,6 +2024,7 @@ class TestCoverageGaps:
     def test_basis_blade_setters(self):
         """BasisBlade name setters work."""
         from galaga.basis_blade import BasisBlade
+
         bb = BasisBlade(1, "e1", "e₁", "e_1")
         bb.ascii_name = "x"
         bb.unicode_name = "χ"
@@ -1969,6 +2037,7 @@ class TestCoverageGaps:
     def test_grade_lazy_even_odd(self, cl3):
         """grade('even'/'odd') on lazy MV works."""
         from galaga import grade
+
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
         assert "even" not in str(grade(v, "even"))
@@ -1976,8 +2045,9 @@ class TestCoverageGaps:
 
     def test_hyperbolic_log(self):
         """Cover the hyperbolic branch of log()."""
+
         from galaga import Algebra, exp, log
-        import numpy as np
+
         sta = Algebra((1, -1))
         e0, e1 = sta.basis_vectors()
         B = e0 * e1  # timelike bivector, B² > 0
@@ -1988,7 +2058,8 @@ class TestCoverageGaps:
 
     def test_scalar_div_eval(self, cl3):
         """ScalarDiv eval divides correctly."""
-        from galaga.symbolic import ScalarDiv, Sym
+        from galaga.symbolic import ScalarDiv
+
         e1, _, _ = cl3.basis_vectors()
         expr = ScalarDiv(Sym(e1, "v"), 2)
         result = expr.eval()
@@ -1996,7 +2067,8 @@ class TestCoverageGaps:
 
     def test_div_eval(self, cl3):
         """Div eval divides correctly."""
-        from galaga.symbolic import Div, Sym
+        from galaga.symbolic import Div
+
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(cl3.scalar(6.0), "a")
         b = Sym(cl3.scalar(3.0), "b")
@@ -2005,7 +2077,8 @@ class TestCoverageGaps:
 
     def test_neg_eval(self, cl3):
         """Neg eval negates correctly."""
-        from galaga.symbolic import Neg, Sym
+        from galaga.symbolic import Neg
+
         e1, _, _ = cl3.basis_vectors()
         expr = Neg(Sym(e1, "v"))
         result = expr.eval()
@@ -2013,28 +2086,32 @@ class TestCoverageGaps:
 
     def test_add_eval(self, cl3):
         """Add eval adds correctly."""
-        from galaga.symbolic import Add, Sym
+        from galaga.symbolic import Add
+
         e1, e2, _ = cl3.basis_vectors()
         result = Add(Sym(e1, "a"), Sym(e2, "b")).eval()
         assert result == e1 + e2
 
     def test_sub_eval(self, cl3):
         """Sub eval subtracts correctly."""
-        from galaga.symbolic import Sub, Sym
+        from galaga.symbolic import Sub
+
         e1, e2, _ = cl3.basis_vectors()
         result = Sub(Sym(e1, "a"), Sym(e2, "b")).eval()
         assert result == e1 - e2
 
     def test_scalar_mul_eval(self, cl3):
         """ScalarMul eval multiplies correctly."""
-        from galaga.symbolic import ScalarMul, Sym
+        from galaga.symbolic import ScalarMul
+
         e1, _, _ = cl3.basis_vectors()
         result = ScalarMul(3, Sym(e1, "v")).eval()
         assert result == 3 * e1
 
     def test_eq_scalar_div(self, cl3):
         """ScalarDiv equality."""
-        from galaga.symbolic import _eq, ScalarDiv, Sym
+        from galaga.symbolic import ScalarDiv, _eq
+
         e1, _, _ = cl3.basis_vectors()
         a = ScalarDiv(Sym(e1, "v"), 2)
         b = ScalarDiv(Sym(e1, "v"), 2)
@@ -2042,21 +2119,24 @@ class TestCoverageGaps:
 
     def test_eq_fallback_false(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.symbolic import _eq, Sym
+        from galaga.symbolic import _eq
+
         e1, _, _ = cl3.basis_vectors()
         # Two different types
         assert not _eq(Sym(e1, "a"), 42)
 
     def test_known_grade_scalar_div(self, cl3):
         """ScalarDiv preserves known grade."""
-        from galaga.symbolic import _known_grade, ScalarDiv, Sym
+        from galaga.symbolic import ScalarDiv, _known_grade
+
         e1, _, _ = cl3.basis_vectors()
         expr = ScalarDiv(Sym(e1, "v", grade=1), 2)
         assert _known_grade(expr) == 1
 
     def test_simplify_scalar_div(self, cl3):
         """simplify(x/1) = x."""
-        from galaga.symbolic import simplify, ScalarDiv, ScalarMul, Sym
+        from galaga.symbolic import ScalarDiv
+
         e1, _, _ = cl3.basis_vectors()
         # ScalarDiv should survive simplify
         expr = ScalarDiv(Sym(e1, "v"), 2)
@@ -2065,14 +2145,14 @@ class TestCoverageGaps:
 
     def test_sym_explicit_grade(self, cl3):
         """Sym with explicit grade."""
-        from galaga.symbolic import Sym
         e1, _, _ = cl3.basis_vectors()
         s = Sym(e1, "v", grade=1)
         assert s._grade == 1
 
     def test_coerce_named_mv(self, cl3):
         """Named MV coerces to Sym."""
-        from galaga.symbolic import _coerce, Sym
+        from galaga.symbolic import _coerce
+
         e1, _, _ = cl3.basis_vectors()
         e1.name("x")
         result = _coerce(e1)
@@ -2146,10 +2226,10 @@ class TestReveal:
 
     def test_reveal_on_rotor_shows_exp(self):
         """reveal() on named rotor shows exp form."""
-        import numpy as np
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         from galaga import exp
+
         B = (e1 * e2).name("B")
         R = exp(B).name("R")
         assert str(R) == "R"
@@ -2158,6 +2238,7 @@ class TestReveal:
     def test_reveal_same_data(self):
         """reveal() has same numeric data."""
         import numpy as np
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         v = (3 * e1 + e2).name("v")
@@ -2167,6 +2248,7 @@ class TestReveal:
     def test_reveal_scalar_stays_lazy(self):
         """reveal() of scalar stays lazy."""
         import numpy as np
+
         alg = Algebra((1, 1, 1))
         s = alg.scalar(np.pi).name(latex=r"\pi")
         r = s.reveal()

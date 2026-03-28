@@ -25,23 +25,26 @@ Node types:
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 class LNode:
     """Base class for all LaTeX render tree nodes."""
+
     pass
 
 
 @dataclass
 class Text(LNode):
     """Literal LaTeX text. Leaf node."""
+
     text: str
 
 
 @dataclass
 class Seq(LNode):
     """Concatenation of child nodes, joined by a separator string."""
+
     children: list[LNode]
     sep: str = ""
 
@@ -49,6 +52,7 @@ class Seq(LNode):
 @dataclass
 class Frac(LNode):
     """Fraction: \\frac{num}{den}. The `small` flag selects \\tfrac."""
+
     num: LNode
     den: LNode
     small: bool = False
@@ -57,6 +61,7 @@ class Frac(LNode):
 @dataclass
 class Sup(LNode):
     """Superscript: base^{exponent}."""
+
     base: LNode
     exp: LNode
 
@@ -64,11 +69,13 @@ class Sup(LNode):
 @dataclass
 class Parens(LNode):
     """Parenthesized group: \\left( child \\right)."""
+
     child: LNode
 
 
 @dataclass
 class Command(LNode):
     """LaTeX command wrapping a child: \\cmd{child}."""
+
     cmd: str
     child: LNode

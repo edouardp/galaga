@@ -1,16 +1,40 @@
 """Tests for the symbolic expression tree."""
 
-import pytest
 import numpy as np
+import pytest
+
 from galaga import Algebra
-from galaga import gp as _gp, op as _op, grade as _grade, reverse as _reverse
+from galaga import gp as _gp
+from galaga import grade as _grade
+from galaga import op as _op
+from galaga import reverse as _reverse
 from galaga.symbolic import (
-    sym, gp, op, grade, reverse, involute, conjugate,
-    left_contraction, right_contraction, hestenes_inner, scalar_product,
-    commutator, anticommutator, lie_bracket, jordan_product,
-    dual, undual, norm, unit, inverse, simplify,
-    Expr, Sym, Gp, Op, Grade, Reverse, Inverse,
-    Commutator, Anticommutator, LieBracket, JordanProduct, Hi,
+    Anticommutator,
+    Commutator,
+    Expr,
+    Hi,
+    JordanProduct,
+    LieBracket,
+    anticommutator,
+    commutator,
+    conjugate,
+    dual,
+    gp,
+    grade,
+    hestenes_inner,
+    inverse,
+    involute,
+    jordan_product,
+    left_contraction,
+    lie_bracket,
+    norm,
+    reverse,
+    right_contraction,
+    scalar_product,
+    simplify,
+    sym,
+    undual,
+    unit,
 )
 
 
@@ -290,6 +314,7 @@ class TestSymEval:
         """Dual eval matches numeric dual."""
         _, e1, _, _ = cl3
         from galaga import dual as _dual
+
         v = sym(e1, "v")
         result = dual(v).eval()
         expected = _dual(e1)

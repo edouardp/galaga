@@ -13,7 +13,7 @@ Current rewrites:
 
 from __future__ import annotations
 
-from galaga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
+from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
 
 
 def rewrite(node: LNode) -> LNode:
@@ -23,9 +23,13 @@ def rewrite(node: LNode) -> LNode:
 
 def _is_neg_seq(node: LNode) -> bool:
     """True if node is Seq([Text("-"), ...]) — a structured negation."""
-    return (isinstance(node, Seq) and len(node.children) >= 2
-            and isinstance(node.children[0], Text) and node.children[0].text == "-"
-            and node.sep == "")
+    return (
+        isinstance(node, Seq)
+        and len(node.children) >= 2
+        and isinstance(node.children[0], Text)
+        and node.children[0].text == "-"
+        and node.sep == ""
+    )
 
 
 def _walk(node: LNode, *, in_sup: bool) -> LNode:

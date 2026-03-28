@@ -6,16 +6,43 @@ produces identical results to the old single-pass render_latex().
 """
 
 import numpy as np
+
 from galaga import Algebra
 from galaga.latex_build import build
 from galaga.latex_emit import emit
 from galaga.latex_rewrite import rewrite
 from galaga.symbolic import (
-    Sym, Scalar, Add, Sub, Neg, Gp, Op, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
-    Inverse, Squared, Exp, Log, Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp, Regressive,
-    Commutator, Anticommutator,
+    Add,
+    Anticommutator,
+    Commutator,
+    Complement,
+    Conjugate,
+    Div,
+    Dual,
+    Even,
+    Exp,
+    Gp,
+    Grade,
+    Inverse,
+    Involute,
+    Lc,
+    Log,
+    Neg,
+    Norm,
+    Odd,
+    Op,
+    Rc,
+    Regressive,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Squared,
+    Sub,
+    Sym,
+    Uncomplement,
+    Undual,
+    Unit,
 )
 
 # Minimal algebra for constructing Sym nodes
@@ -97,15 +124,15 @@ class TestProducts:
         assert _latex(Gp(a, b)) == "a b"
 
     def test_op(self):
-        """Op renders with \wedge."""
+        r"""Op renders with \wedge."""
         assert _latex(Op(a, b)) == r"a \wedge b"
 
     def test_lc(self):
-        """Lc renders with \lrcorner."""
+        r"""Lc renders with \lrcorner."""
         assert _latex(Lc(a, b)) == r"a \;\lrcorner\; b"
 
     def test_rc(self):
-        """Rc renders with \llcorner."""
+        r"""Rc renders with \llcorner."""
         assert _latex(Rc(a, b)) == r"a \;\llcorner\; b"
 
     def test_regressive(self):
@@ -119,11 +146,11 @@ class TestUnary:
         assert _latex(Reverse(a)) == r"\tilde{a}"
 
     def test_reverse_compound(self):
-        """Reverse of compound uses \widetilde."""
+        r"""Reverse of compound uses \widetilde."""
         assert _latex(Reverse(Add(a, b))) == r"\widetilde{a + b}"
 
     def test_involute(self):
-        """Involute renders as \hat."""
+        r"""Involute renders as \hat."""
         assert _latex(Involute(a)) == r"\hat{a}"
 
     def test_conjugate(self):
@@ -131,7 +158,7 @@ class TestUnary:
         assert _latex(Conjugate(a)) == r"\bar{a}"
 
     def test_conjugate_compound(self):
-        """Conjugate of compound uses \overline."""
+        r"""Conjugate of compound uses \overline."""
         assert _latex(Conjugate(Add(a, b))) == r"\overline{a + b}"
 
     def test_dual(self):
@@ -143,11 +170,11 @@ class TestUnary:
         assert _latex(Undual(a)) == "a^{*^{-1}}"
 
     def test_complement(self):
-        """Complement renders as ^{\complement}."""
+        r"""Complement renders as ^{\complement}."""
         assert _latex(Complement(a)) == r"a^{\complement}"
 
     def test_uncomplement(self):
-        """Uncomplement renders as ^{\complement^{-1}}."""
+        r"""Uncomplement renders as ^{\complement^{-1}}."""
         assert _latex(Uncomplement(a)) == r"a^{\complement^{-1}}"
 
     def test_inverse(self):
@@ -179,11 +206,13 @@ class TestPostfixOnSup:
     def test_postfix_dagger_on_exp(self):
         """reverse(exp(a)) with dagger notation: {e^{a}}^{\\dagger}"""
         from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+
         tree = build(Reverse(Exp(a)), n)
         result = emit(rewrite(tree))
         assert result == r"{e^{a}}^{\dagger}"
@@ -191,11 +220,13 @@ class TestPostfixOnSup:
     def test_superscript_on_simple(self):
         """reverse(a) with superscript dagger: a^{\\dagger}"""
         from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+
         tree = build(Reverse(a), n)
         result = emit(rewrite(tree))
         assert result == r"a^{\dagger}"
@@ -229,11 +260,11 @@ class TestPostfixOnSup:
 
 class TestWrap:
     def test_grade(self):
-        """Grade renders with \langle \rangle."""
+        """Grade renders with \\langle \rangle."""
         assert _latex(Grade(a, 1)) == r"\langle a \rangle_{1}"
 
     def test_norm(self):
-        """Norm renders with \lVert."""
+        r"""Norm renders with \lVert."""
         assert _latex(Norm(a)) == r"\lVert a \rVert"
 
     def test_even(self):
@@ -245,11 +276,11 @@ class TestWrap:
         assert _latex(Odd(a)) == r"\langle a \rangle_{\text{odd}}"
 
     def test_unit_atom(self):
-        """Unit of atom renders as \hat."""
+        r"""Unit of atom renders as \hat."""
         assert _latex(Unit(a)) == r"\hat{a}"
 
     def test_unit_compound(self):
-        """Unit of compound uses \widehat."""
+        r"""Unit of compound uses \widehat."""
         result = _latex(Unit(Add(a, b)))
         # Unit of compound uses wide hat accent
         assert r"\widehat" in result
@@ -318,21 +349,25 @@ class TestPrefixSpacing:
     def test_latex_command_gets_space(self):
         """LaTeX command prefix gets trailing space."""
         from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"\tilde"))
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+
         assert emit(rewrite(build(Reverse(a), n))) == r"\tilde a"
 
     def test_latex_command_compound_gets_space(self):
         """LaTeX command prefix before parens gets space."""
         from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"\tilde"))
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+
         assert emit(rewrite(build(Reverse(Add(a, b)), n))) == r"\tilde \left(a + b\right)"
 
     def test_non_command_prefix_no_space(self):
@@ -342,11 +377,13 @@ class TestPrefixSpacing:
     def test_prefix_ending_in_brace_no_space(self):
         """Prefix ending in } has no space."""
         from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="prefix", symbol=r"{\sim}"))
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+
         assert emit(rewrite(build(Reverse(a), n))) == r"{\sim}a"
 
 
@@ -354,10 +391,11 @@ class TestSuperscriptKind:
     """Regression: superscript notation kind."""
 
     def _render(self, expr, symbol):
-        from galaga.notation import Notation, NotationRule
         from galaga.latex_build import build
         from galaga.latex_emit import emit
         from galaga.latex_rewrite import rewrite
+        from galaga.notation import Notation, NotationRule
+
         n = Notation()
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=symbol))
         return emit(rewrite(build(expr, n)))
@@ -386,8 +424,8 @@ class TestEndToEndLatex:
 
     def test_exp_frac_slash(self):
         """exp(-θ/2 B) uses slash not frac in superscript."""
-        import numpy as np
         from galaga import Algebra, exp
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         th = alg.scalar(np.radians(45)).name(latex=r"\theta")
@@ -399,8 +437,8 @@ class TestEndToEndLatex:
 
     def test_neg_hoisted_in_exp(self):
         """Negation hoists before slash in superscript."""
-        import numpy as np
         from galaga import Algebra, exp
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         th = alg.scalar(1.0).name(latex=r"\theta")
@@ -411,6 +449,7 @@ class TestEndToEndLatex:
     def test_complement_lazy(self):
         """complement() stays symbolic on lazy MVs."""
         from galaga import Algebra, complement
+
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
@@ -421,6 +460,7 @@ class TestEndToEndLatex:
     def test_log_lazy(self):
         """log() stays symbolic on lazy MVs."""
         from galaga import Algebra, exp, log
+
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         B = (e1 * e2).name("B")

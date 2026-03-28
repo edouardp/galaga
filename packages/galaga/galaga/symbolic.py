@@ -15,20 +15,53 @@ from __future__ import annotations
 import galaga.algebra as _alg
 
 # Re-export all Expr nodes so existing "from galaga.symbolic import Gp" still works
-from galaga.expr import (
-    Expr, Sym, Scalar, _coerce, _ensure_expr,
-    Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
-    Inverse, Squared, Exp, Log, Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp, Regressive,
-    Commutator, Anticommutator, LieBracket, JordanProduct,
+from galaga.expr import (  # noqa: F401
+    Add,
+    Anticommutator,
+    Commutator,
+    Complement,
+    Conjugate,
+    Div,
+    Dli,
+    Dual,
+    Even,
+    Exp,
+    Expr,
+    Gp,
+    Grade,
+    Hi,
+    Inverse,
+    Involute,
+    JordanProduct,
+    Lc,
+    LieBracket,
+    Log,
+    Neg,
+    Norm,
+    Odd,
+    Op,
+    Rc,
+    Regressive,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sp,
+    Squared,
+    Sub,
+    Sym,
+    Uncomplement,
+    Undual,
+    Unit,
+    _coerce,
+    _ensure_expr,
 )
 
 # Re-export simplify
-from galaga.simplify import simplify, _eq, _known_grade
-
+from galaga.simplify import _eq, _known_grade, simplify  # noqa: F401
 
 # ── Helpers ──
+
 
 def _is_symbolic(x) -> bool:
     """True if x is a lazy Multivector (has an expression tree)."""
@@ -59,11 +92,13 @@ def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None)
 # The factories take a string name and resolve the function from _alg at
 # call time, avoiding circular import issues.
 
+
 def _make_binary_dropin(node_cls, func_name):
     def dropin(a, b):
         if _is_symbolic(a) or _is_symbolic(b) or isinstance(a, Expr) or isinstance(b, Expr):
             return node_cls(_ensure_expr(a), _ensure_expr(b))
         return getattr(_alg, func_name)(a, b)
+
     dropin.__name__ = func_name
     return dropin
 
@@ -73,40 +108,41 @@ def _make_unary_dropin(node_cls, func_name):
         if _is_symbolic(x) or isinstance(x, Expr):
             return node_cls(_ensure_expr(x))
         return getattr(_alg, func_name)(x)
+
     dropin.__name__ = func_name
     return dropin
 
 
 # Binary drop-ins
-gp = _make_binary_dropin(Gp, 'gp')
-op = _make_binary_dropin(Op, 'op')
-left_contraction = _make_binary_dropin(Lc, 'left_contraction')
-right_contraction = _make_binary_dropin(Rc, 'right_contraction')
-hestenes_inner = _make_binary_dropin(Hi, 'hestenes_inner')
-doran_lasenby_inner = _make_binary_dropin(Dli, 'doran_lasenby_inner')
+gp = _make_binary_dropin(Gp, "gp")
+op = _make_binary_dropin(Op, "op")
+left_contraction = _make_binary_dropin(Lc, "left_contraction")
+right_contraction = _make_binary_dropin(Rc, "right_contraction")
+hestenes_inner = _make_binary_dropin(Hi, "hestenes_inner")
+doran_lasenby_inner = _make_binary_dropin(Dli, "doran_lasenby_inner")
 dorst_inner = doran_lasenby_inner
-scalar_product = _make_binary_dropin(Sp, 'scalar_product')
-commutator = _make_binary_dropin(Commutator, 'commutator')
-anticommutator = _make_binary_dropin(Anticommutator, 'anticommutator')
-lie_bracket = _make_binary_dropin(LieBracket, 'lie_bracket')
-jordan_product = _make_binary_dropin(JordanProduct, 'jordan_product')
-regressive_product = _make_binary_dropin(Regressive, 'regressive_product')
+scalar_product = _make_binary_dropin(Sp, "scalar_product")
+commutator = _make_binary_dropin(Commutator, "commutator")
+anticommutator = _make_binary_dropin(Anticommutator, "anticommutator")
+lie_bracket = _make_binary_dropin(LieBracket, "lie_bracket")
+jordan_product = _make_binary_dropin(JordanProduct, "jordan_product")
+regressive_product = _make_binary_dropin(Regressive, "regressive_product")
 meet = regressive_product
 
 # Unary drop-ins
-reverse = _make_unary_dropin(Reverse, 'reverse')
-involute = _make_unary_dropin(Involute, 'involute')
-conjugate = _make_unary_dropin(Conjugate, 'conjugate')
-dual = _make_unary_dropin(Dual, 'dual')
-undual = _make_unary_dropin(Undual, 'undual')
-complement = _make_unary_dropin(Complement, 'complement')
-uncomplement = _make_unary_dropin(Uncomplement, 'uncomplement')
-norm = _make_unary_dropin(Norm, 'norm')
-unit = _make_unary_dropin(Unit, 'unit')
-inverse = _make_unary_dropin(Inverse, 'inverse')
-squared = _make_unary_dropin(Squared, 'squared')
-even_grades = _make_unary_dropin(Even, 'even_grades')
-odd_grades = _make_unary_dropin(Odd, 'odd_grades')
+reverse = _make_unary_dropin(Reverse, "reverse")
+involute = _make_unary_dropin(Involute, "involute")
+conjugate = _make_unary_dropin(Conjugate, "conjugate")
+dual = _make_unary_dropin(Dual, "dual")
+undual = _make_unary_dropin(Undual, "undual")
+complement = _make_unary_dropin(Complement, "complement")
+uncomplement = _make_unary_dropin(Uncomplement, "uncomplement")
+norm = _make_unary_dropin(Norm, "norm")
+unit = _make_unary_dropin(Unit, "unit")
+inverse = _make_unary_dropin(Inverse, "inverse")
+squared = _make_unary_dropin(Squared, "squared")
+even_grades = _make_unary_dropin(Even, "even_grades")
+odd_grades = _make_unary_dropin(Odd, "odd_grades")
 
 normalize = unit
 normalise = unit
@@ -145,5 +181,6 @@ def sandwich(r, x):
         er, ex = _ensure_expr(r), _ensure_expr(x)
         return Gp(Gp(er, ex), Reverse(er))
     return _alg.sandwich(r, x)
+
 
 sw = sandwich

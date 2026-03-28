@@ -11,19 +11,28 @@ renderer in render.py, ensuring consistent precedence decisions.
 
 from __future__ import annotations
 
-from galaga.latex_nodes import LNode, Text, Seq, Frac, Sup, Parens, Command
-from galaga.notation import Notation
 from galaga.expr import (
-    Expr, Sym, Scalar,
-    Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
-    Inverse, Squared, Exp, Log,
-    Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp, Regressive,
-    Commutator, Anticommutator, LieBracket, JordanProduct,
+    Add,
+    Conjugate,
+    Div,
+    Exp,
+    Expr,
+    Gp,
+    Grade,
+    Log,
+    Neg,
+    Norm,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sub,
+    Sym,
+    Unit,
 )
-from galaga.render import INFO, _NAME, _CHILD_MIN, _COMMA_BINARY, _needs_wrap, Notation as _Notation
-
+from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
+from galaga.notation import Notation
+from galaga.render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
 
 _DEFAULT = Notation()
 
@@ -95,7 +104,7 @@ def _build(node: Expr, n: Notation) -> LNode:
         return Text(str(node))
 
     # Infix binary
-    if rule.kind == "infix" and hasattr(node, 'a'):
+    if rule.kind == "infix" and hasattr(node, "a"):
         mp = _CHILD_MIN.get(t, 71)
         la = _wp(_build(node.a, n), node.a, mp, t)
         lb = _wp(_build(node.b, n), node.b, mp, t)
@@ -103,20 +112,26 @@ def _build(node: Expr, n: Notation) -> LNode:
 
     # Function call
     if rule.kind == "function":
-        if hasattr(node, 'a'):
-            return Seq([
+        if hasattr(node, "a"):
+            return Seq(
+                [
+                    Text(rf"\operatorname{{{rule.symbol}}}("),
+                    _build(node.a, n),
+                    Text(r",\, "),
+                    _build(node.b, n),
+                    Text(")"),
+                ]
+            )
+        return Seq(
+            [
                 Text(rf"\operatorname{{{rule.symbol}}}("),
-                _build(node.a, n), Text(r",\, "), _build(node.b, n),
+                _build(node.x, n),
                 Text(")"),
-            ])
-        return Seq([
-            Text(rf"\operatorname{{{rule.symbol}}}("),
-            _build(node.x, n),
-            Text(")"),
-        ])
+            ]
+        )
 
     # Prefix unary
-    if rule.kind == "prefix" and hasattr(node, 'x'):
+    if rule.kind == "prefix" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 95)
         # LaTeX commands (e.g. \tilde) need a space before the operand
         # to avoid running together: \tilde v not \tildev
@@ -124,7 +139,7 @@ def _build(node: Expr, n: Notation) -> LNode:
         return Seq([Text(rule.symbol), inner], sep=sep)
 
     # Accent (combining diacritical or wide accent)
-    if rule.kind == "accent" and hasattr(node, 'x'):
+    if rule.kind == "accent" and hasattr(node, "x"):
         is_atom = isinstance(node.x, (Sym, Scalar))
         if t in (Reverse, Conjugate):
             inner = _build(node.x, n)
@@ -134,7 +149,7 @@ def _build(node: Expr, n: Notation) -> LNode:
         return Command(cmd, inner)
 
     # Postfix
-    if rule.kind == "postfix" and hasattr(node, 'x'):
+    if rule.kind == "postfix" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 96)
         # If the postfix symbol starts with ^ (superscript) and the child
         # already rendered as a Sup, wrap in braces to avoid double-superscript:
@@ -145,23 +160,30 @@ def _build(node: Expr, n: Notation) -> LNode:
 
     # Superscript: symbol goes in ^{...}, auto-braced. The user writes
     # just the symbol (e.g. r"\dagger"), not the ^{} wrapper.
-    if rule.kind == "superscript" and hasattr(node, 'x'):
+    if rule.kind == "superscript" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 96)
         return Sup(inner, Text(rule.symbol))
 
     # Wrap (delimiters around content)
     if rule.kind == "wrap":
         if t in _COMMA_BINARY:
-            return Seq([
-                Text(rule.open), _build(node.a, n),
-                Text(r",\, "), _build(node.b, n),
-                Text(rule.close),
-            ])
+            return Seq(
+                [
+                    Text(rule.open),
+                    _build(node.a, n),
+                    Text(r",\, "),
+                    _build(node.b, n),
+                    Text(rule.close),
+                ]
+            )
         if t is Grade:
-            return Seq([
-                Text(rule.open), _build(node.x, n),
-                Text(f"{rule.close}_{{{node.k}}}"),
-            ])
+            return Seq(
+                [
+                    Text(rule.open),
+                    _build(node.x, n),
+                    Text(f"{rule.close}_{{{node.k}}}"),
+                ]
+            )
         if t is Unit:
             if isinstance(node.x, (Sym, Scalar)):
                 cmd = rule.latex_cmd or r"\hat"

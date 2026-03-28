@@ -10,7 +10,6 @@
 - README: updated title and references from `ga` to `galaga`
 - README: repr now documented as unicode-by-default
 
-
 ## 0.3.2 (2026-03-28)
 
 ### Fixed
@@ -19,7 +18,6 @@
   (e.g. `e_{1}`, `e_{12}`, `\sigma_1`, `\gamma_0`) instead of unicode names.
   This fixes `display()` showing duplicate entries like `e₁ + e₂ = e_{1} + e_{2}`
   and ensures consistent LaTeX rendering throughout symbolic expressions.
-
 
 ## 0.3.1 (2026-03-28)
 
@@ -30,7 +28,6 @@
   galaga-marimo notebooks. The result has `.latex()` and `._repr_latex_()`
   methods for automatic detection.
 
-
 ## 0.2.1 (2026-03-28)
 
 ### Added
@@ -38,7 +35,6 @@
 - `Multivector.display()` — returns a LaTeX string showing the progression
   from name to expression to numeric value (e.g. `R = e^{-B/2} = 0.878 - 0.479 e_{12}`),
   automatically omitting duplicate parts.
-
 
 ## 0.2.0 (2026-03-28)
 
@@ -52,7 +48,6 @@
 
 The package name on PyPI (`galaga`) now matches the Python import name.
 
-
 ## 0.1.1 (2026-03-28)
 
 ### Packaging & Infrastructure
@@ -64,7 +59,6 @@ The package name on PyPI (`galaga`) now matches the Python import name.
 - Removed workspace-only `[tool.uv.sources]` from galaga-marimo
 - Added `py.typed` marker for type checker support
 - Added publish scripts, Makefile, and automated release workflow
-
 
 ## 0.1.0 (2026-03-28)
 

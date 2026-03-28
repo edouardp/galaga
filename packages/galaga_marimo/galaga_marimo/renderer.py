@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
-from string.templatelib import Template, Interpolation
+from string.templatelib import Interpolation, Template
 from typing import Any
 
 
@@ -36,9 +36,7 @@ _SPEC_MAP = {
 
 def _has_latex(obj: Any) -> bool:
     """Check if an object can produce LaTeX output."""
-    return callable(getattr(obj, "latex", None)) or callable(
-        getattr(obj, "_repr_latex_", None)
-    )
+    return callable(getattr(obj, "latex", None)) or callable(getattr(obj, "_repr_latex_", None))
 
 
 def _strip_latex_delimiters(s: str) -> str:

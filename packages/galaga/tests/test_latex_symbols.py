@@ -1,6 +1,7 @@
 """Tests for LaTeX → Unicode/ASCII symbol mapping."""
 
 import pytest
+
 from galaga.latex_symbols import LatexSymbols
 
 
@@ -549,7 +550,7 @@ class TestAccents:
 
     def test_vec(self, sym):
         """Maps \\vec accent."""
-        assert sym.unicode(r"\vec{v}") == "v\u20D7"
+        assert sym.unicode(r"\vec{v}") == "v\u20d7"
         assert sym.ascii(r"\vec{v}") == "vec_v"
 
     def test_dot(self, sym):
@@ -565,6 +566,7 @@ class TestAccents:
     def test_hat_in_name(self):
         """Maps \\hat_in_name accent."""
         from galaga import Algebra
+
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
         n = e1.name(latex=r"\hat{n}")

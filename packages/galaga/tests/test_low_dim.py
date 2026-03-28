@@ -2,11 +2,33 @@
 
 import numpy as np
 import pytest
+
 from galaga import (
-    Algebra, gp, op, grade, reverse, involute, conjugate, dual, undual,
-    norm, norm2, unit, inverse, exp, log, sandwich, scalar, even_grades,
-    odd_grades, left_contraction, project, reject, reflect, is_scalar,
-    is_vector, is_bivector, is_even, is_rotor, squared,
+    Algebra,
+    conjugate,
+    dual,
+    even_grades,
+    exp,
+    gp,
+    inverse,
+    involute,
+    is_bivector,
+    is_rotor,
+    is_scalar,
+    is_vector,
+    log,
+    norm,
+    odd_grades,
+    op,
+    project,
+    reflect,
+    reject,
+    reverse,
+    sandwich,
+    scalar,
+    squared,
+    undual,
+    unit,
 )
 
 
@@ -100,54 +122,54 @@ class TestCl1:
 
     def test_basis_vector_squares_to_one(self, cl1):
         """e1² = +1 in Cl(1)."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.isclose(scalar(gp(e1, e1)), 1.0)
 
     def test_vector_norm(self, cl1):
         """Norm of αe1 is |α|."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.isclose(norm(e1), 1.0)
         assert np.isclose(norm(3 * e1), 3.0)
 
     def test_vector_inverse(self, cl1):
         """e1 * e1⁻¹ = 1."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.allclose(gp(e1, inverse(e1)).data, cl1.scalar(1).data)
 
     def test_vector_unit(self, cl1):
         """unit() normalizes a vector to norm 1."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.isclose(norm(unit(3 * e1)), 1.0)
 
     def test_dual_vector_to_scalar(self, cl1):
         """Dual of a vector in Cl(1) is a scalar."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         d = dual(e1)
         assert is_scalar(d)
 
     def test_dual_undual_roundtrip(self, cl1):
         """undual(dual(x)) = x."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.allclose(undual(dual(e1)).data, e1.data)
 
     def test_project_onto_self(self, cl1):
         """Projection of a vector onto itself is itself."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.allclose(project(e1, e1).data, e1.data)
 
     def test_reject_from_self(self, cl1):
         """Rejection of a vector from itself is zero."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.allclose(reject(e1, e1).data, cl1.scalar(0).data, atol=1e-12)
 
     def test_reflect_in_self(self, cl1):
         """Reflecting e1 in e1 negates it."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert np.allclose(reflect(e1, e1).data, (-e1).data)
 
     def test_rotor_rejects_vector(self, cl1):
         """rotor() rejects a vector as the bivector argument."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         with pytest.raises(ValueError):
             cl1.rotor(e1, radians=0.5)
 
@@ -166,7 +188,7 @@ class TestCl1:
 
     def test_predicates(self, cl1):
         """is_vector and is_scalar correctly classify elements."""
-        e1, = cl1.basis_vectors()
+        (e1,) = cl1.basis_vectors()
         assert is_vector(e1)
         assert not is_scalar(e1)
         assert is_scalar(cl1.scalar(5))
@@ -237,18 +259,18 @@ class TestCl01:
 
     def test_vector_squares_to_minus_one(self, cl01):
         """e1² = -1 in anti-Euclidean signature."""
-        e1, = cl01.basis_vectors()
+        (e1,) = cl01.basis_vectors()
         assert np.isclose(scalar(gp(e1, e1)), -1.0)
 
     def test_norm(self, cl01):
         """Norm uses |e1²| so norm(e1) = 1 despite negative signature."""
-        e1, = cl01.basis_vectors()
+        (e1,) = cl01.basis_vectors()
         assert np.isclose(norm(e1), 1.0)
 
     def test_exp_vector(self, cl01):
         """exp(θe1) = cos(θ) + sin(θ)e1 when e1² = -1."""
         # e1² = -1, so exp(θ e1) = cos(θ) + sin(θ) e1
-        e1, = cl01.basis_vectors()
+        (e1,) = cl01.basis_vectors()
         result = exp(0.5 * e1)
         assert np.isclose(result.data[0], np.cos(0.5))
         assert np.isclose(result.data[1], np.sin(0.5))
@@ -263,24 +285,24 @@ class TestCl001:
 
     def test_vector_squares_to_zero(self, cl001):
         """e1² = 0 in degenerate signature."""
-        e1, = cl001.basis_vectors()
+        (e1,) = cl001.basis_vectors()
         assert np.isclose(scalar(gp(e1, e1)), 0.0)
 
     def test_exp_null(self, cl001):
         """exp(e1) = 1 + e1 when e1² = 0 (series truncates)."""
         # e1² = 0, so exp(e1) = 1 + e1
-        e1, = cl001.basis_vectors()
+        (e1,) = cl001.basis_vectors()
         result = exp(e1)
         assert np.isclose(result.data[0], 1.0)
         assert np.isclose(result.data[1], 1.0)
 
     def test_inverse_fails(self, cl001):
         """Null vector has no inverse."""
-        e1, = cl001.basis_vectors()
+        (e1,) = cl001.basis_vectors()
         with pytest.raises(ValueError, match="not invertible"):
             inverse(e1)
 
     def test_norm_is_zero(self, cl001):
         """Null vector has norm zero."""
-        e1, = cl001.basis_vectors()
+        (e1,) = cl001.basis_vectors()
         assert np.isclose(norm(e1), 0.0)

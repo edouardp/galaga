@@ -31,16 +31,46 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from galaga.notation import Notation, NotationRule
 from galaga.expr import (
-    Expr, Sym, Scalar,
-    Gp, Op, Add, Sub, Neg, ScalarMul, ScalarDiv, Div,
-    Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement,
-    Inverse, Squared, Exp, Log,
-    Grade, Norm, Unit, Even, Odd,
-    Lc, Rc, Hi, Dli, Sp, Regressive,
-    Commutator, Anticommutator, LieBracket, JordanProduct,
+    Add,
+    Anticommutator,
+    Commutator,
+    Complement,
+    Conjugate,
+    Div,
+    Dli,
+    Dual,
+    Even,
+    Exp,
+    Expr,
+    Gp,
+    Grade,
+    Hi,
+    Inverse,
+    Involute,
+    JordanProduct,
+    Lc,
+    LieBracket,
+    Log,
+    Neg,
+    Norm,
+    Odd,
+    Op,
+    Rc,
+    Regressive,
+    Reverse,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sp,
+    Squared,
+    Sub,
+    Sym,
+    Uncomplement,
+    Undual,
+    Unit,
 )
+from galaga.notation import Notation
 
 _SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 # Characters that don't count toward "visual width" — used to decide
@@ -51,10 +81,12 @@ _SUB_SUPER = set("₀₁₂₃₄₅₆₇₈₉₊₋₌₍₎ₐₑₒₓₔ�
 
 # --- Precedence ---
 
+
 class Assoc(Enum):
     LEFT = "left"
     RIGHT = "right"
     NONE = "none"
+
 
 @dataclass(frozen=True, slots=True)
 class OpInfo:
@@ -62,27 +94,49 @@ class OpInfo:
     assoc: Assoc = Assoc.NONE
     flat: bool = False
 
+
 # --- Precedence registry ---
 # Higher prec = binds tighter. A child is wrapped if its prec < parent's threshold.
 # flat=True means the op is associative: same-type children skip wrapping
 # (e.g. Gp(Gp(a,b),c) → "abc", Op(Op(a,b),c) → "a∧b∧c")
 
 INFO: dict[type, OpInfo] = {
-    Sym: OpInfo(100), Scalar: OpInfo(100),
-    Reverse: OpInfo(95), Involute: OpInfo(95), Conjugate: OpInfo(95),
-    Dual: OpInfo(95), Undual: OpInfo(95), Complement: OpInfo(95), Uncomplement: OpInfo(95), Inverse: OpInfo(95), Squared: OpInfo(95),
-    Neg: OpInfo(90), ScalarMul: OpInfo(80), ScalarDiv: OpInfo(80),
+    Sym: OpInfo(100),
+    Scalar: OpInfo(100),
+    Reverse: OpInfo(95),
+    Involute: OpInfo(95),
+    Conjugate: OpInfo(95),
+    Dual: OpInfo(95),
+    Undual: OpInfo(95),
+    Complement: OpInfo(95),
+    Uncomplement: OpInfo(95),
+    Inverse: OpInfo(95),
+    Squared: OpInfo(95),
+    Neg: OpInfo(90),
+    ScalarMul: OpInfo(80),
+    ScalarDiv: OpInfo(80),
     Gp: OpInfo(80, Assoc.LEFT, flat=True),
     Op: OpInfo(70, Assoc.LEFT, flat=True),
-    Lc: OpInfo(70, Assoc.LEFT), Rc: OpInfo(70, Assoc.LEFT),
-    Hi: OpInfo(70, Assoc.LEFT), Dli: OpInfo(70, Assoc.LEFT),
-    Sp: OpInfo(70, Assoc.LEFT), Div: OpInfo(70, Assoc.LEFT),
+    Lc: OpInfo(70, Assoc.LEFT),
+    Rc: OpInfo(70, Assoc.LEFT),
+    Hi: OpInfo(70, Assoc.LEFT),
+    Dli: OpInfo(70, Assoc.LEFT),
+    Sp: OpInfo(70, Assoc.LEFT),
+    Div: OpInfo(70, Assoc.LEFT),
     Regressive: OpInfo(70, Assoc.LEFT, flat=True),
-    Add: OpInfo(60, Assoc.LEFT, flat=True), Sub: OpInfo(60, Assoc.LEFT),
-    Grade: OpInfo(100), Norm: OpInfo(100), Unit: OpInfo(100),
-    Exp: OpInfo(100), Log: OpInfo(100), Even: OpInfo(100), Odd: OpInfo(100),
-    Commutator: OpInfo(100), Anticommutator: OpInfo(100),
-    LieBracket: OpInfo(100), JordanProduct: OpInfo(100),
+    Add: OpInfo(60, Assoc.LEFT, flat=True),
+    Sub: OpInfo(60, Assoc.LEFT),
+    Grade: OpInfo(100),
+    Norm: OpInfo(100),
+    Unit: OpInfo(100),
+    Exp: OpInfo(100),
+    Log: OpInfo(100),
+    Even: OpInfo(100),
+    Odd: OpInfo(100),
+    Commutator: OpInfo(100),
+    Anticommutator: OpInfo(100),
+    LieBracket: OpInfo(100),
+    JordanProduct: OpInfo(100),
 }
 
 # Child wrapping thresholds for binary ops
@@ -100,12 +154,16 @@ _DEFAULT = Notation()
 
 # --- Helpers ---
 
+
 def _base_len(s: str) -> int:
     import unicodedata
+
     return sum(1 for c in s if not unicodedata.category(c).startswith("M") and c not in _SUB_SUPER)
+
 
 def _is_single(s: str) -> bool:
     return _base_len(s) == 1
+
 
 def _needs_wrap(child: Expr, min_prec: int, parent_type: type = None) -> bool:
     pi = INFO.get(parent_type)
@@ -113,12 +171,16 @@ def _needs_wrap(child: Expr, min_prec: int, parent_type: type = None) -> bool:
         return False
     return INFO.get(type(child), OpInfo(0)).prec < min_prec
 
+
 def _w(s, child, min_prec, pt=None):
     return f"({s})" if _needs_wrap(child, min_prec, pt) else s
 
+
 def _multichar(node):
-    if isinstance(node, Sym): return not _is_single(node._name)
-    if isinstance(node, (ScalarMul, Neg)): return _multichar(node.x)
+    if isinstance(node, Sym):
+        return not _is_single(node._name)
+    if isinstance(node, (ScalarMul, Neg)):
+        return _multichar(node.x)
     if isinstance(node, (Reverse, Involute, Conjugate, Dual, Undual, Inverse, Squared)):
         return _multichar(node.x)
     return False
@@ -126,14 +188,17 @@ def _multichar(node):
 
 # --- Unicode ---
 
+
 def render(node: Expr, notation: Notation | None = None) -> str:
     n = notation or _DEFAULT
     t = type(node)
     name = _NAME.get(t, "")
 
     # Atoms
-    if t is Sym: return node._name
-    if t is Scalar: return f"{node._value:g}"
+    if t is Sym:
+        return node._name
+    if t is Scalar:
+        return f"{node._value:g}"
 
     # Prefix with coefficient
     if t is Neg:
@@ -174,22 +239,22 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         return str(node)
 
     # Infix binary
-    if rule.kind == "infix" and hasattr(node, 'a'):
+    if rule.kind == "infix" and hasattr(node, "a"):
         mp = _CHILD_MIN.get(t, 71)
         return f"{_w(render(node.a, n), node.a, mp, t)}{rule.separator}{_w(render(node.b, n), node.b, mp, t)}"
 
     # Function-style
     if rule.kind == "function":
-        if hasattr(node, 'a'):
+        if hasattr(node, "a"):
             return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
         return f"{rule.symbol}({render(node.x, n)})"
 
     # Prefix unary (e.g. *v for dual)
-    if rule.kind == "prefix" and hasattr(node, 'x'):
+    if rule.kind == "prefix" and hasattr(node, "x"):
         return f"{rule.symbol}{_w(render(node.x, n), node.x, 95)}"
 
     # Accent (combining char for atoms, prefix fallback for compounds)
-    if rule.kind == "accent" and hasattr(node, 'x'):
+    if rule.kind == "accent" and hasattr(node, "x"):
         inner = render(node.x, n)
         if isinstance(node.x, (Sym, Scalar)) and rule.combining:
             return f"{inner}{rule.combining}"
@@ -198,7 +263,7 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         return f"{inner}{rule.combining}"
 
     # Postfix
-    if rule.kind == "postfix" and hasattr(node, 'x'):
+    if rule.kind == "postfix" and hasattr(node, "x"):
         # Use 96 (not 95) so postfix-on-postfix gets parens: (B⋆)⋆⁻¹
         return f"{_w(render(node.x, n), node.x, 96)}{rule.symbol}"
 
@@ -229,8 +294,10 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 #   3. latex_emit: LNode → str (serialization)
 # See latex_nodes.py module docstring for the full rationale.
 
+
 def render_latex(node: Expr, notation: Notation | None = None) -> str:
     from galaga.latex_build import build
-    from galaga.latex_rewrite import rewrite
     from galaga.latex_emit import emit
+    from galaga.latex_rewrite import rewrite
+
     return emit(rewrite(build(node, notation)))

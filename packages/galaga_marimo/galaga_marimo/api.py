@@ -8,7 +8,7 @@ from __future__ import annotations
 from string.templatelib import Template
 from typing import Any
 
-from galaga_marimo.renderer import render_template, render_value, RenderKind, _get_latex, _has_latex
+from galaga_marimo.renderer import _get_latex, _has_latex, render_template
 
 
 def md(template: Template) -> Any:
@@ -27,9 +27,11 @@ def md(template: Template) -> Any:
     """
     markdown = render_template(template)
     import textwrap
+
     markdown = textwrap.dedent(markdown).strip()
     try:
         import marimo as mo
+
         return mo.md(markdown)
     except ImportError:
         return markdown
@@ -49,6 +51,7 @@ def inline(template: Template) -> Any:
             parts.append(item)
         else:
             from string.templatelib import Interpolation
+
             if isinstance(item, Interpolation) and _has_latex(item.value):
                 parts.append(_get_latex(item.value))
             elif isinstance(item, Interpolation):
@@ -57,6 +60,7 @@ def inline(template: Template) -> Any:
     markdown = f"${raw}$"
     try:
         import marimo as mo
+
         return mo.md(markdown)
     except ImportError:
         return markdown
@@ -76,6 +80,7 @@ def block(template: Template) -> Any:
             parts.append(item)
         else:
             from string.templatelib import Interpolation
+
             if isinstance(item, Interpolation) and _has_latex(item.value):
                 parts.append(_get_latex(item.value))
             elif isinstance(item, Interpolation):
@@ -84,6 +89,7 @@ def block(template: Template) -> Any:
     markdown = f"$${raw}$$"
     try:
         import marimo as mo
+
         return mo.md(markdown)
     except ImportError:
         return markdown
@@ -91,6 +97,7 @@ def block(template: Template) -> Any:
 
 class _LatexWrapper:
     """Wraps a value to force inline LaTeX rendering."""
+
     def __init__(self, obj: Any):
         self._obj = obj
 
@@ -102,6 +109,7 @@ class _LatexWrapper:
 
 class _BlockLatexWrapper:
     """Wraps a value to force block LaTeX rendering."""
+
     def __init__(self, obj: Any):
         self._obj = obj
 
@@ -116,6 +124,7 @@ class _BlockLatexWrapper:
 
 class _TextWrapper:
     """Wraps a value to force plain text rendering (no LaTeX)."""
+
     def __init__(self, obj: Any):
         self._obj = obj
 
@@ -126,7 +135,7 @@ class _TextWrapper:
 def latex(obj: Any) -> _LatexWrapper:
     """Force an object to render as inline LaTeX in md().
 
-        gm.md(t"Result: {gm.latex(value)}")
+    gm.md(t"Result: {gm.latex(value)}")
     """
     return _LatexWrapper(obj)
 
@@ -134,7 +143,7 @@ def latex(obj: Any) -> _LatexWrapper:
 def block_latex(obj: Any) -> _BlockLatexWrapper:
     """Force an object to render as block LaTeX in md().
 
-        gm.md(t"Equation: {gm.block_latex(expr)}")
+    gm.md(t"Equation: {gm.block_latex(expr)}")
     """
     return _BlockLatexWrapper(obj)
 
@@ -142,7 +151,7 @@ def block_latex(obj: Any) -> _BlockLatexWrapper:
 def text(obj: Any) -> _TextWrapper:
     """Force an object to render as plain text in md().
 
-        gm.md(t"Debug: {gm.text(mv)}")
+    gm.md(t"Debug: {gm.text(mv)}")
     """
     return _TextWrapper(obj)
 
@@ -151,6 +160,7 @@ def _to_marimo(markdown: str) -> Any:
     """Pass markdown to mo.md() if marimo is available, else return string."""
     try:
         import marimo as mo
+
         return mo.md(markdown)
     except ImportError:
         return markdown
@@ -177,6 +187,7 @@ class Doc:
     def md(self, template: Template) -> None:
         """Append a rendered t-string as a markdown paragraph."""
         import textwrap
+
         rendered = render_template(template)
         self._parts.append(textwrap.dedent(rendered).strip())
 
@@ -188,6 +199,7 @@ class Doc:
                 parts.append(item)
             else:
                 from string.templatelib import Interpolation
+
                 if isinstance(item, Interpolation) and _has_latex(item.value):
                     parts.append(_get_latex(item.value))
                 elif isinstance(item, Interpolation):
@@ -202,6 +214,7 @@ class Doc:
                 parts.append(item)
             else:
                 from string.templatelib import Interpolation
+
                 if isinstance(item, Interpolation) and _has_latex(item.value):
                     parts.append(_get_latex(item.value))
                 elif isinstance(item, Interpolation):
