@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.2 (2026-03-28)
+
+<!-- Fill in release notes, then save and close -->
+
+
 ## 0.1.1 (2026-03-28)
 
 ### Packaging & Infrastructure
