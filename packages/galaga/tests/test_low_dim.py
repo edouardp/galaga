@@ -306,3 +306,35 @@ class TestCl001:
         """Null vector has norm zero."""
         (e1,) = cl001.basis_vectors()
         assert np.isclose(norm(e1), 0.0)
+
+
+class TestPseudoscalarLazy:
+    """pseudoscalar(lazy=) flag."""
+
+    def test_default_eager(self):
+        """pseudoscalar() defaults to eager."""
+        alg = Algebra((1, 1, 1))
+        assert not alg.pseudoscalar()._is_lazy
+
+    def test_lazy_flag(self):
+        """pseudoscalar(lazy=True) returns lazy MV."""
+        alg = Algebra((1, 1, 1))
+        I = alg.pseudoscalar(lazy=True)
+        assert I._is_lazy
+
+    def test_lazy_in_expression(self):
+        """Lazy pseudoscalar participates in expression trees."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        I = alg.pseudoscalar(lazy=True).name(latex="I")
+        expr = e1 * I
+        assert expr._is_lazy
+        assert "I" in str(expr)
+
+    def test_lazy_data_matches_eager(self):
+        """Lazy and eager pseudoscalar have same numeric data."""
+        alg = Algebra((1, 1, 1))
+        assert np.allclose(
+            alg.pseudoscalar(lazy=True).data,
+            alg.pseudoscalar().data,
+        )
