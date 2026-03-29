@@ -1426,6 +1426,16 @@ def scalar(x: Multivector) -> float:
     return float(x.data[0])
 
 
+def scalar_sqrt(x: Multivector) -> Multivector:
+    """Square root of a scalar multivector. Raises if x has non-scalar components."""
+    if not is_scalar(x):
+        raise ValueError("scalar_sqrt requires a pure scalar multivector")
+    s = float(x.data[0])
+    if s < 0:
+        raise ValueError(f"scalar_sqrt of negative value {s}")
+    return x.algebra.scalar(np.sqrt(s))
+
+
 @lazy_unary("Dual")
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.

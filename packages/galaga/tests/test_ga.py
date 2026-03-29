@@ -5,6 +5,7 @@ import pytest
 
 from galaga import (
     Algebra,
+    Multivector,
     conjugate,
     doran_lasenby_inner,
     dorst_inner,
@@ -34,6 +35,7 @@ from galaga import (
     right_contraction,
     scalar,
     scalar_product,
+    scalar_sqrt,
     undual,
     unit,
     wedge,
@@ -862,3 +864,52 @@ class TestReflect:
         # Double reflection is identity
         r = reflect(reflect(v, n), n)
         assert np.allclose(r.data, v.data, atol=1e-12)
+
+
+class TestScalarSqrt:
+    """scalar_sqrt() on scalar multivectors."""
+
+    def test_perfect_square(self):
+        """sqrt(9) = 3."""
+        alg = Algebra((1, 1, 1))
+        assert np.isclose(scalar(scalar_sqrt(alg.scalar(9.0))), 3.0)
+
+    def test_non_perfect(self):
+        """sqrt(2) ≈ 1.414."""
+        alg = Algebra((1, 1, 1))
+        assert np.isclose(scalar(scalar_sqrt(alg.scalar(2.0))), np.sqrt(2.0))
+
+    def test_zero(self):
+        """sqrt(0) = 0."""
+        alg = Algebra((1, 1, 1))
+        assert np.isclose(scalar(scalar_sqrt(alg.scalar(0.0))), 0.0)
+
+    def test_one(self):
+        """sqrt(1) = 1."""
+        alg = Algebra((1, 1, 1))
+        assert np.isclose(scalar(scalar_sqrt(alg.scalar(1.0))), 1.0)
+
+    def test_rejects_vector(self):
+        """Non-scalar input raises ValueError."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        with pytest.raises(ValueError, match="pure scalar"):
+            scalar_sqrt(e1)
+
+    def test_rejects_negative(self):
+        """Negative scalar raises ValueError."""
+        alg = Algebra((1, 1, 1))
+        with pytest.raises(ValueError, match="negative"):
+            scalar_sqrt(alg.scalar(-4.0))
+
+    def test_returns_multivector(self):
+        """Result is a Multivector, not a float."""
+        alg = Algebra((1, 1, 1))
+        result = scalar_sqrt(alg.scalar(4.0))
+        assert isinstance(result, Multivector)
+
+    def test_roundtrip_with_squared(self):
+        """scalar_sqrt(v*v) recovers norm for a vector."""
+        alg = Algebra((1, 1, 1))
+        v = alg.vector([3, 4, 0])
+        assert np.isclose(scalar(scalar_sqrt(alg.scalar(norm2(v)))), norm(v))
