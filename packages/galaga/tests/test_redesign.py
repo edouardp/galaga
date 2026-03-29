@@ -2331,6 +2331,23 @@ class TestDisplay:
         assert callable(getattr(d, "latex", None))
         assert callable(getattr(d, "_repr_latex_", None))
 
+    def test_compact_uses_plain_equals(self):
+        """display(compact=True) uses = instead of \\quad = \\quad."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        v = e1.name("v")
+        result = v.display(compact=True).latex()
+        assert r"\quad" not in result
+        assert "v = e_{1}" == result
+
+    def test_default_uses_quad(self):
+        """display() default uses \\quad = \\quad."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        v = e1.name("v")
+        result = v.display().latex()
+        assert r"\quad = \quad" in result
+
 
 class TestCopyAs:
     """copy_as() — non-mutating named copy."""

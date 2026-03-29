@@ -656,7 +656,7 @@ class Multivector:
         """Return a named copy. Like .name() but non-mutating."""
         return self._copy_with().name(label, latex=latex, unicode=unicode, ascii=ascii)
 
-    def display(self) -> _DisplayResult:
+    def display(self, compact: bool = False) -> _DisplayResult:
         """Return a LaTeX-renderable object showing name = expression = value, omitting duplicates."""
         parts = []
         name_latex = self.latex() if self._name is not None else None
@@ -675,7 +675,8 @@ class Multivector:
         if eval_latex not in parts:
             parts.append(eval_latex)
 
-        return _DisplayResult(" \\quad = \\quad ".join(parts))
+        sep = " = " if compact else " \\quad = \\quad "
+        return _DisplayResult(sep.join(parts))
 
     def _to_expr(self):
         """Convert this MV to an Expr node for use in expression trees.
