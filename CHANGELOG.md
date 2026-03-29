@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.9 (2026-03-29)
+
+### Added
+
+- `Multivector.copy_as()` — non-mutating named copy. Same signature as
+  `.name()` but returns a new object instead of mutating in place.
+
 ## 0.3.8 (2026-03-29)
 
 ### Added

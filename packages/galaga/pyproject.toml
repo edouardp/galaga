@@ -1,6 +1,6 @@
 [project]
 name = "galaga"
-version = "0.3.8"
+version = "0.3.9"
 description = "Numeric geometric algebra for Python — named functions, no ambiguity, unicode pretty-printing"
 readme = "README.md"
 requires-python = ">=3.11"
