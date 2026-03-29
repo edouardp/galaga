@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.7 (2026-03-29)
+
+### Added
+
+- `scalar_sqrt()` — square root of scalar multivectors, returns a Multivector.
+  Raises ValueError for non-scalar or negative inputs.
+
 ## 0.3.6 (2026-03-29)
 
 ### Fixed
