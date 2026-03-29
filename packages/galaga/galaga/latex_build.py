@@ -82,9 +82,16 @@ def _build(node: Expr, n: Notation) -> LNode:
         lb = _wp(_build(node.b, n), node.b, 80, Gp)
         return Seq([la, lb], sep=" ")
 
-    # Add: a + b
+    # Add: a + b (renders as a - b when b is negative)
     if t is Add:
         la = _wp(_build(node.a, n), node.a, 60, Add)
+        if isinstance(node.b, ScalarMul) and node.b.k < 0:
+            pos = ScalarMul(-node.b.k, node.b.x)
+            lb = _build(pos, n) if pos.k != 1 else _build(pos.x, n)
+            return Seq([la, Text(" - "), lb])
+        if isinstance(node.b, Neg):
+            lb = _wp(_build(node.b.x, n), node.b.x, 61)
+            return Seq([la, Text(" - "), lb])
         lb = _build(node.b, n)
         return Seq([la, Text(" + "), lb])
 

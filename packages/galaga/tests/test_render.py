@@ -951,3 +951,42 @@ class TestRegressive:
 
         a, b, c = syms
         assert render(Regressive(Add(a, b), c)) == "(a + b)∨c"
+
+
+class TestAddNegativeCoeff:
+    """Add with negative RHS renders as subtraction."""
+
+    def test_add_neg_scalar_mul_unicode(self, syms):
+        """a + (-3)b renders as a - 3b."""
+        a, b, _ = syms
+        assert render(Add(a, ScalarMul(-3, b))) == "a - 3b"
+
+    def test_add_neg_one_scalar_mul_unicode(self, syms):
+        """a + (-1)b renders as a - b."""
+        a, b, _ = syms
+        assert render(Add(a, ScalarMul(-1, b))) == "a - b"
+
+    def test_add_neg_node_unicode(self, syms):
+        """a + Neg(b) renders as a - b."""
+        a, b, _ = syms
+        assert render(Add(a, Neg(b))) == "a - b"
+
+    def test_add_positive_unchanged(self, syms):
+        """a + 3b still renders with +."""
+        a, b, _ = syms
+        assert render(Add(a, ScalarMul(3, b))) == "a + 3b"
+
+    def test_add_neg_scalar_mul_latex(self, syms):
+        """a + (-3)b renders as a - 3 b in LaTeX."""
+        a, b, _ = syms
+        assert render_latex(Add(a, ScalarMul(-3, b))) == "a - 3 b"
+
+    def test_add_neg_one_scalar_mul_latex(self, syms):
+        """a + (-1)b renders as a - b in LaTeX."""
+        a, b, _ = syms
+        assert render_latex(Add(a, ScalarMul(-1, b))) == "a - b"
+
+    def test_add_neg_node_latex(self, syms):
+        """a + Neg(b) renders as a - b in LaTeX."""
+        a, b, _ = syms
+        assert render_latex(Add(a, Neg(b))) == "a - b"

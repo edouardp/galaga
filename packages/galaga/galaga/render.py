@@ -217,7 +217,10 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 
     # Add/Sub — asymmetric wrapping
     if t is Add:
-        return f"{_w(render(node.a, n), node.a, 60, Add)} + {render(node.b, n)}"
+        rhs = render(node.b, n)
+        if rhs.startswith("-"):
+            return f"{_w(render(node.a, n), node.a, 60, Add)} - {rhs[1:]}"
+        return f"{_w(render(node.a, n), node.a, 60, Add)} + {rhs}"
     if t is Sub:
         return f"{render(node.a, n)} - {_w(render(node.b, n), node.b, 61)}"
 
