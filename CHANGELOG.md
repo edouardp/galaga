@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.6 (2026-03-29)
+
+### Fixed
+
+- Expression tree rendering: `a + (-3)b` now renders as `a - 3b` in both
+  unicode and LaTeX, instead of `a + -3b`. Fixes spurious duplicates in
+  `display()` where reveal and eval differed only by sign formatting.
+
 ## 0.3.5 (2026-03-29)
 
 ### Added
