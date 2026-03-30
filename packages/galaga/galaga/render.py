@@ -196,13 +196,13 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     t = type(node)
     name = _NAME.get(t, "")
 
-    # Atoms
+    # Atoms — no notation rule needed
     if t is Sym:
         return node._name
     if t is Scalar:
         return f"{node._value:g}"
 
-    # Prefix with coefficient
+    # Prefix with coefficient — structural, not notation-driven
     if t is Neg:
         return f"-{_w(render(node.x, n), node.x, 61)}"
     if t is ScalarMul:
@@ -211,18 +211,7 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if t is ScalarDiv:
         return f"{_w(render(node.x, n), node.x, 70)}/{node.k:g}"
 
-    # Geometric product — juxtaposition with smart spacing (unless overridden)
-    if t is Gp:
-        gp_rule = n.get("Gp", "unicode")
-        if gp_rule and gp_rule.kind == "function":
-            l = render(node.a, n)
-            r = render(node.b, n)
-            return f"{gp_rule.symbol}({l}, {r})"
-        l = _w(render(node.a, n), node.a, 80, Gp)
-        r = _w(render(node.b, n), node.b, 80, Gp)
-        return f"{l} {r}" if _multichar(node.a) or _multichar(node.b) else f"{l}{r}"
-
-    # Add/Sub — asymmetric wrapping
+    # Add/Sub — structural (sign absorption)
     if t is Add:
         rhs = render(node.b, n)
         if rhs.startswith("-"):
@@ -231,30 +220,16 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if t is Sub:
         return f"{render(node.a, n)} - {_w(render(node.b, n), node.b, 61)}"
 
-    # Div — tight denom wrapping in unicode
+    # Div — structural (unicode uses /, latex uses \frac)
     if t is Div:
         return f"{_w(render(node.a, n), node.a, 71)}/{_w(render(node.b, n), node.b, 95)}"
 
-    # Unit — hat for single-char atoms, fraction for compounds (unless overridden)
-    if t is Unit:
-        ur = n.get("Unit", "unicode")
-        if not ur or ur.kind != "function":
-            if isinstance(node.x, Sym) and _is_single(str(node.x)):
-                if ur and ur.combining:
-                    return f"{render(node.x, n)}{ur.combining}"
-            return f"{_w(render(node.x, n), node.x, 70)}/‖{render(node.x, n)}‖"
-
-    # Look up notation rule
+    # --- Notation-driven dispatch ---
     rule = n.get(name, "unicode")
     if not rule:
         return str(node)
 
-    # Infix binary
-    if rule.kind == "infix" and hasattr(node, "a"):
-        mp = _CHILD_MIN.get(t, 71)
-        return f"{_w(render(node.a, n), node.a, mp, t)}{rule.separator}{_w(render(node.b, n), node.b, mp, t)}"
-
-    # Function-style
+    # Function call — generic for all node types
     if rule.kind == "function":
         if hasattr(node, "a"):
             return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
@@ -262,7 +237,18 @@ def render(node: Expr, notation: Notation | None = None) -> str:
             return f"{rule.symbol}({render(node.x, n)}, {node.k})"
         return f"{rule.symbol}({render(node.x, n)})"
 
-    # Prefix unary (e.g. *v for dual)
+    # Juxtaposition (Gp) — smart spacing for multi-char names
+    if rule.kind == "juxtaposition":
+        l = _w(render(node.a, n), node.a, 80, Gp)
+        r = _w(render(node.b, n), node.b, 80, Gp)
+        return f"{l} {r}" if _multichar(node.a) or _multichar(node.b) else f"{l}{r}"
+
+    # Infix binary
+    if rule.kind == "infix" and hasattr(node, "a"):
+        mp = _CHILD_MIN.get(t, 71)
+        return f"{_w(render(node.a, n), node.a, mp, t)}{rule.separator}{_w(render(node.b, n), node.b, mp, t)}"
+
+    # Prefix unary
     if rule.kind == "prefix" and hasattr(node, "x"):
         return f"{rule.symbol}{_w(render(node.x, n), node.x, 95)}"
 
@@ -270,30 +256,27 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if rule.kind == "accent" and hasattr(node, "x"):
         inner = render(node.x, n)
         if isinstance(node.x, (Sym, Scalar)) and rule.combining:
+            # Unit accent only applies to single-char names; compounds get fraction form
+            if t is Unit and not _is_single(inner):
+                return f"{_w(inner, node.x, 70)}/‖{render(node.x, n)}‖"
             return f"{inner}{rule.combining}"
+        # Compound expression
+        if t is Unit:
+            return f"{_w(inner, node.x, 70)}/‖{render(node.x, n)}‖"
         if rule.fallback_prefix:
             return f"{rule.fallback_prefix}({inner})"
         return f"{inner}{rule.combining}"
 
     # Postfix
     if rule.kind == "postfix" and hasattr(node, "x"):
-        # Use 96 (not 95) so postfix-on-postfix gets parens: (B⋆)⋆⁻¹
         return f"{_w(render(node.x, n), node.x, 96)}{rule.symbol}"
 
-    # Wrap
+    # Wrap — delimiters around content
     if rule.kind == "wrap":
-        # Binary with comma (commutator family)
         if t in _COMMA_BINARY:
             return f"{rule.open}{render(node.a, n)}, {render(node.b, n)}{rule.close}"
-        # Grade — append subscript
         if t is Grade:
             return f"{rule.open}{render(node.x, n)}{rule.close}{str(node.k).translate(_SUBSCRIPTS)}"
-        # Unit — hat for single-char atoms, fraction for compounds
-        if t is Unit:
-            if isinstance(node.x, Sym) and _is_single(str(node.x)) and rule.combining:
-                return f"{render(node.x, n)}{rule.combining}"
-            return f"{_w(render(node.x, n), node.x, 70)}/‖{render(node.x, n)}‖"
-        # Generic unary wrap
         return f"{rule.open}{render(node.x, n)}{rule.close}"
 
     return str(node)
