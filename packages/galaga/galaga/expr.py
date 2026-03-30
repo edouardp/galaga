@@ -131,6 +131,11 @@ class Sym(Expr):
 
     Grade auto-detection: if the wrapped MV is homogeneous, that grade is
     recorded for use by simplify() (e.g. grade(v,1) → v when v is grade-1).
+
+    _inner_expr: if this Sym was created from a named lazy MV that had an
+    expression tree, the original tree is preserved here. This lets the
+    renderer detect compound expressions (e.g. a ∧ b) and wrap them in
+    parens when applying postfix operations.
     """
 
     def __init__(
@@ -140,12 +145,36 @@ class Sym(Expr):
         grade: int | None = None,
         name_latex: str | None = None,
         name_ascii: str | None = None,
+        inner_expr: Expr | None = None,
     ):
         self._mv = mv
         self._name = name
         self._name_latex = name_latex or name
         self._name_ascii = name_ascii or name
         self._grade = grade if grade is not None else mv.homogeneous_grade()
+        self._inner_expr = inner_expr
+
+    @property
+    def is_compound(self) -> bool:
+        """True if this Sym's name represents a compound expression that needs
+        wrapping when a postfix is applied.
+
+        Uses inner_expr when available: compound if the inner expression is
+        binary AND the name contains spaces (wasn't abbreviated to a simple name).
+        Falls back to checking the name string for infix operators.
+        """
+        latex = self._name_latex or self._name
+        if self._inner_expr is not None:
+            if not (hasattr(self._inner_expr, "a") and hasattr(self._inner_expr, "b")):
+                return False
+            return " " in latex
+        # Fallback: check name string for operator patterns
+        return any(op in latex for op in (r"\wedge", r"\vee", r"\cdot", " + ", " - "))
+
+    @property
+    def has_superscript(self) -> bool:
+        """True if this Sym's latex name contains a superscript ^."""
+        return "^" in (self._name_latex or self._name)
 
     def eval(self) -> _alg.Multivector:
         return self._mv
