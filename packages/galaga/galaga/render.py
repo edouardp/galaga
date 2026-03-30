@@ -252,6 +252,11 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if rule.kind == "prefix" and hasattr(node, "x"):
         return f"{rule.symbol}{_w(render(node.x, n), node.x, 95)}"
 
+    # Unit fraction: x/‖x‖
+    if rule.kind == "unit_fraction" and hasattr(node, "x"):
+        inner = render(node.x, n)
+        return f"{_w(inner, node.x, 70)}/‖{render(node.x, n)}‖"
+
     # Accent (combining char for atoms, prefix fallback for compounds)
     if rule.kind == "accent" and hasattr(node, "x"):
         inner = render(node.x, n)
