@@ -701,7 +701,14 @@ class Multivector:
         using the algebra's LaTeX name for single basis blades.
         """
         if self._name is not None:
-            return _sym.Sym(self, self._name_unicode or self._name, name_latex=self._name_latex, name_ascii=self._name)
+            inner = self._expr if self._expr is not None and not isinstance(self._expr, _sym.Sym) else None
+            return _sym.Sym(
+                self,
+                self._name_unicode or self._name,
+                name_latex=self._name_latex,
+                name_ascii=self._name,
+                inner_expr=inner,
+            )
         if self._expr is not None:
             return self._expr
         display = str(self)

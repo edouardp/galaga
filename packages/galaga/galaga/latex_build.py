@@ -179,21 +179,12 @@ def _build(node: Expr, n: Notation) -> LNode:
     # Postfix
     if rule.kind == "postfix" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 96)
-        # Sym nodes with compound latex names (containing operators) need
-        # wrapping when a postfix is applied: (a \wedge b)^* not a \wedge b^*
-        if isinstance(node.x, Sym):
-            latex_name = node.x._name_latex or node.x._name
-            if any(op in latex_name for op in (r"\wedge", r"\vee", r"\cdot", " + ", " - ")):
-                inner = Parens(_build(node.x, n))
-        # If the postfix symbol starts with ^ (superscript) and the child
-        # already has a top-level superscript, wrap in braces to avoid
-        # double-superscript: {B^\star}^{*^{-1}} not B^\star^{*^{-1}}
-        # But don't wrap if the ^ is inside \left(...\right) parens.
+        # Compound Sym names need wrapping: (a ∧ b)^* not a ∧ b^*
+        if isinstance(node.x, Sym) and node.x.is_compound:
+            inner = Parens(_build(node.x, n))
+        # Superscript-on-superscript needs brace-wrapping: {B^\star}^{-1}
         if rule.symbol.startswith("^") and not isinstance(inner, Parens):
-            from galaga.latex_emit import emit
-
-            rendered = emit(inner)
-            if isinstance(inner, Sup) or ("^" in rendered and not rendered.endswith(r"\right)")):
+            if isinstance(inner, Sup) or (isinstance(node.x, Sym) and node.x.has_superscript):
                 inner = Seq([Text("{"), inner, Text("}")])
         return Seq([inner, Text(rule.symbol)])
 

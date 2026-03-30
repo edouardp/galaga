@@ -270,11 +270,9 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     # Postfix
     if rule.kind == "postfix" and hasattr(node, "x"):
         inner = _w(render(node.x, n), node.x, 96)
-        # Sym with compound name needs wrapping: (a∧b)⋆ not a∧b⋆
-        if isinstance(node.x, Sym):
-            name_str = node.x._name
-            if any(op in name_str for op in ("∧", "∨", "·", " + ", " - ")):
-                inner = f"({render(node.x, n)})"
+        # Compound Sym names need wrapping: (a∧b)⋆ not a∧b⋆
+        if isinstance(node.x, Sym) and node.x.is_compound:
+            inner = f"({render(node.x, n)})"
         return f"{inner}{rule.symbol}"
 
     # Wrap — delimiters around content

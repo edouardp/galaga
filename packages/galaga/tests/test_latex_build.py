@@ -543,3 +543,67 @@ class TestPostfixOnCompoundName:
         wedge_sym = _sym("a∧b", latex=r"a \wedge b")
         result = _latex(Complement(wedge_sym))
         assert r"\left(a \wedge b\right)" in result
+
+
+class TestSymProperties:
+    """Sym.is_compound and Sym.has_superscript properties."""
+
+    def test_simple_name_not_compound(self):
+        """Single-letter name is not compound."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        s = B._to_expr()
+        assert not s.is_compound
+
+    def test_wedge_name_is_compound(self):
+        """Name with wedge operator is compound."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        area = (e1.name("a") ^ e2.name("b")).name(latex=r"a \wedge b")
+        s = area._to_expr()
+        assert s.is_compound
+
+    def test_sum_name_is_compound(self):
+        """Name with + is compound."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = (e1.name("a") + e2.name("b")).name(latex="a + b")
+        s = v._to_expr()
+        assert s.is_compound
+
+    def test_no_inner_expr_not_compound(self):
+        """Sym without inner_expr and simple name is not compound."""
+        s = _sym("B")
+        assert not s.is_compound
+
+    def test_no_inner_expr_wedge_name_compound(self):
+        """Sym without inner_expr but compound name falls back to string check."""
+        s = _sym("a∧b", latex=r"a \wedge b")
+        assert s.is_compound
+
+    def test_has_superscript(self):
+        """Name with ^ has superscript."""
+        s = _sym("B*", latex=r"B^\star")
+        assert s.has_superscript
+
+    def test_no_superscript(self):
+        """Simple name has no superscript."""
+        s = _sym("B")
+        assert not s.has_superscript
+
+    def test_inner_expr_preserved(self):
+        """_to_expr() preserves inner expression tree."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        area = (e1.name("a") ^ e2.name("b")).name("B")
+        s = area._to_expr()
+        assert s._inner_expr is not None
+        assert hasattr(s._inner_expr, "a")  # Op node
+
+    def test_eager_no_inner_expr(self):
+        """Eager MV has no inner expr."""
+        alg = Algebra((1, 1, 1))
+        e1, _, _ = alg.basis_vectors()
+        s = e1._to_expr()
+        assert s._inner_expr is None
