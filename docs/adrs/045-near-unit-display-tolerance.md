@@ -31,6 +31,8 @@ suppression check in both unicode and LaTeX rendering.
 - `str()`, `repr()`, `latex()` default rendering — ±1 suppression
 - Does NOT affect explicit format specs (`:g`, `:.3f`, `coeff_format=`) —
   those always show the actual coefficient value.
+- Users can always request explicit coefficients: `f"{mv:.8f}"` or
+  `mv.latex(coeff_format=".8f")` to see the full precision.
 
 ### Consequences
 
