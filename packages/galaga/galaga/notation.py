@@ -229,7 +229,6 @@ class Notation:
         Useful for pedagogical contexts or when symbols are ambiguous.
         """
         n = Notation()
-        _fn = NotationRule(kind="function")
         for name, symbol in [
             ("Reverse", "reverse"),
             ("Involute", "involute"),
@@ -240,6 +239,13 @@ class Notation:
             ("Uncomplement", "uncomplement"),
             ("Inverse", "inverse"),
             ("Squared", "squared"),
+            ("Norm", "norm"),
+            ("Unit", "unit"),
+            ("Exp", "exp"),
+            ("Log", "log"),
+            ("Sqrt", "scalar_sqrt"),
+            ("Even", "even_grades"),
+            ("Odd", "odd_grades"),
             ("Gp", "gp"),
             ("Op", "op"),
             ("Lc", "lc"),
@@ -256,4 +262,7 @@ class Notation:
         ]:
             for fmt in ("unicode", "ascii", "latex"):
                 n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
+        # Grade needs special handling — it has a subscript parameter
+        for fmt in ("unicode", "ascii", "latex"):
+            n.set("Grade", fmt, NotationRule(kind="function", symbol="grade"))
         return n

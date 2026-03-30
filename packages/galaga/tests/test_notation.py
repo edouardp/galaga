@@ -2,6 +2,33 @@
 
 import pytest
 
+from galaga import (
+    Algebra,
+    anticommutator,
+    commutator,
+    complement,
+    conjugate,
+    dual,
+    even_grades,
+    exp,
+    grade,
+    hestenes_inner,
+    inverse,
+    involute,
+    jordan_product,
+    left_contraction,
+    lie_bracket,
+    log,
+    norm,
+    odd_grades,
+    reverse,
+    right_contraction,
+    scalar_product,
+    scalar_sqrt,
+    squared,
+    undual,
+    unit,
+)
 from galaga.notation import Notation, NotationRule
 
 
@@ -415,50 +442,224 @@ class TestFunctionStyle:
 class TestFunctionalPreset:
     """Notation.functional() renders everything as function calls."""
 
-    def test_gp_unicode(self):
-        """gp(a, b) in unicode."""
-        from galaga import Algebra
+    @pytest.fixture
+    def fn_alg(self):
         from galaga.notation import Notation
 
-        alg = Algebra((1, 1, 1), notation=Notation.functional())
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        a, b = e1.name("a"), e2.name("b")
+        return Algebra((1, 1, 1), notation=Notation.functional())
+
+    @pytest.fixture
+    def ab(self, fn_alg):
+        e1, e2, _ = fn_alg.basis_vectors(lazy=True)
+        return e1.name("a"), e2.name("b")
+
+    @pytest.fixture
+    def s(self, fn_alg):
+        return fn_alg.scalar(2.0).name("s")
+
+    # --- Binary operations ---
+
+    def test_gp_unicode(self, ab):
+        """gp(a, b) in unicode."""
+        a, b = ab
         assert str(a * b) == "gp(a, b)"
 
-    def test_op_unicode(self):
-        """op(a, b) in unicode."""
-        from galaga import Algebra
-        from galaga.notation import Notation
+    def test_gp_latex(self, ab):
+        """\\operatorname{gp}(a, b) in LaTeX."""
+        a, b = ab
+        assert r"\operatorname{gp}" in (a * b).latex()
 
-        alg = Algebra((1, 1, 1), notation=Notation.functional())
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        a, b = e1.name("a"), e2.name("b")
+    def test_op_unicode(self, ab):
+        """op(a, b) in unicode."""
+        a, b = ab
         assert str(a ^ b) == "op(a, b)"
 
-    def test_reverse_unicode(self):
-        """reverse(a) in unicode."""
-        from galaga import Algebra, reverse
-        from galaga.notation import Notation
+    def test_op_latex(self, ab):
+        """\\operatorname{op}(a, b) in LaTeX."""
+        a, b = ab
+        assert r"\operatorname{op}" in (a ^ b).latex()
 
-        alg = Algebra((1, 1, 1), notation=Notation.functional())
-        e1, _, _ = alg.basis_vectors(lazy=True)
-        a = e1.name("a")
+    def test_dli_unicode(self, ab):
+        """dli(a, b) in unicode."""
+        a, b = ab
+        assert str(a | b) == "dli(a, b)"
+
+    def test_lc_unicode(self, ab):
+        """lc(a, b) in unicode."""
+        a, b = ab
+        assert str(left_contraction(a, b)) == "lc(a, b)"
+
+    def test_rc_unicode(self, ab):
+        """rc(a, b) in unicode."""
+        a, b = ab
+        assert str(right_contraction(a, b)) == "rc(a, b)"
+
+    def test_hi_unicode(self, ab):
+        """hi(a, b) in unicode."""
+        a, b = ab
+        assert str(hestenes_inner(a, b)) == "hi(a, b)"
+
+    def test_sp_unicode(self, ab):
+        """sp(a, b) in unicode."""
+        a, b = ab
+        assert str(scalar_product(a, b)) == "sp(a, b)"
+
+    def test_commutator_unicode(self, ab):
+        """commutator(a, b) in unicode."""
+        a, b = ab
+        assert str(commutator(a, b)) == "commutator(a, b)"
+
+    def test_anticommutator_unicode(self, ab):
+        """anticommutator(a, b) in unicode."""
+        a, b = ab
+        assert str(anticommutator(a, b)) == "anticommutator(a, b)"
+
+    def test_lie_bracket_unicode(self, ab):
+        """lie_bracket(a, b) in unicode."""
+        a, b = ab
+        assert str(lie_bracket(a, b)) == "lie_bracket(a, b)"
+
+    def test_jordan_product_unicode(self, ab):
+        """jordan_product(a, b) in unicode."""
+        a, b = ab
+        assert str(jordan_product(a, b)) == "jordan_product(a, b)"
+
+    # --- Unary operations ---
+
+    def test_reverse_unicode(self, ab):
+        """reverse(a) in unicode."""
+        a, _ = ab
         assert str(reverse(a)) == "reverse(a)"
 
-    def test_gp_latex(self):
-        """\\operatorname{gp}(a, b) in LaTeX."""
-        from galaga import Algebra
-        from galaga.notation import Notation
+    def test_reverse_latex(self, ab):
+        """\\operatorname{reverse}(a) in LaTeX."""
+        a, _ = ab
+        assert reverse(a).latex() == r"\operatorname{reverse}(a)"
 
-        alg = Algebra((1, 1, 1), notation=Notation.functional())
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        a, b = e1.name("a"), e2.name("b")
-        assert r"\operatorname{gp}" in (a * b).latex()
+    def test_involute_unicode(self, ab):
+        """involute(a) in unicode."""
+        a, _ = ab
+        assert str(involute(a)) == "involute(a)"
+
+    def test_conjugate_unicode(self, ab):
+        """conjugate(a) in unicode."""
+        a, _ = ab
+        assert str(conjugate(a)) == "conjugate(a)"
+
+    def test_dual_unicode(self, ab):
+        """dual(a) in unicode."""
+        a, _ = ab
+        assert str(dual(a)) == "dual(a)"
+
+    def test_undual_unicode(self, ab):
+        """undual(a) in unicode."""
+        a, _ = ab
+        assert str(undual(a)) == "undual(a)"
+
+    def test_complement_unicode(self, ab):
+        """complement(a) in unicode."""
+        a, _ = ab
+        assert str(complement(a)) == "complement(a)"
+
+    def test_inverse_unicode(self, ab):
+        """inverse(a) in unicode."""
+        a, _ = ab
+        assert str(inverse(a)) == "inverse(a)"
+
+    def test_squared_unicode(self, ab):
+        """squared(a) in unicode."""
+        a, _ = ab
+        assert str(squared(a)) == "squared(a)"
+
+    # --- Wrap operations (were broken before fix) ---
+
+    def test_norm_unicode(self, ab):
+        """norm(a) in unicode."""
+        a, _ = ab
+        assert str(norm(a)) == "norm(a)"
+
+    def test_norm_latex(self, ab):
+        """\\operatorname{norm}(a) in LaTeX."""
+        a, _ = ab
+        assert norm(a).latex() == r"\operatorname{norm}(a)"
+
+    def test_unit_unicode(self, ab):
+        """unit(a) in unicode."""
+        a, _ = ab
+        assert str(unit(a)) == "unit(a)"
+
+    def test_unit_latex(self, ab):
+        """\\operatorname{unit}(a) in LaTeX."""
+        a, _ = ab
+        assert unit(a).latex() == r"\operatorname{unit}(a)"
+
+    def test_exp_unicode(self, ab):
+        """exp(op(a, b)) in unicode."""
+        a, b = ab
+        assert str(exp(a ^ b)) == "exp(op(a, b))"
+
+    def test_exp_latex(self, ab):
+        """\\operatorname{exp}(...) in LaTeX."""
+        a, b = ab
+        assert r"\operatorname{exp}" in exp(a ^ b).latex()
+
+    def test_log_unicode(self, ab):
+        """log(a) in unicode."""
+        a, _ = ab
+        assert str(log(a)) == "log(a)"
+
+    def test_log_latex(self, ab):
+        """\\operatorname{log}(a) in LaTeX."""
+        a, _ = ab
+        assert log(a).latex() == r"\operatorname{log}(a)"
+
+    def test_scalar_sqrt_unicode(self, s):
+        """scalar_sqrt(s) in unicode."""
+        assert str(scalar_sqrt(s)) == "scalar_sqrt(s)"
+
+    def test_scalar_sqrt_latex(self, s):
+        """\\operatorname{scalar_sqrt}(s) in LaTeX."""
+        assert (
+            scalar_sqrt(s).latex() == r"\operatorname{scalar\_sqrt}(s)"
+            or scalar_sqrt(s).latex() == r"\operatorname{scalar_sqrt}(s)"
+        )
+
+    def test_grade_unicode(self, ab):
+        """grade(gp(a, b), 1) in unicode."""
+        a, b = ab
+        assert str(grade(a * b, 1)) == "grade(gp(a, b), 1)"
+
+    def test_grade_latex(self, ab):
+        """\\operatorname{grade}(\\operatorname{gp}(a, b), 1) in LaTeX."""
+        a, b = ab
+        latex = grade(a * b, 1).latex()
+        assert r"\operatorname{grade}" in latex
+        assert "1" in latex
+
+    def test_even_grades_unicode(self, ab):
+        """even_grades(a) in unicode."""
+        a, _ = ab
+        assert str(even_grades(a)) == "even_grades(a)"
+
+    def test_odd_grades_unicode(self, ab):
+        """odd_grades(a) in unicode."""
+        a, _ = ab
+        assert str(odd_grades(a)) == "odd_grades(a)"
+
+    # --- Composition ---
+
+    def test_nested_expression(self, ab):
+        """Nested: grade(gp(a, reverse(b)), 1)."""
+        a, b = ab
+        result = str(grade(a * reverse(b), 1))
+        assert "grade(" in result
+        assert "gp(" in result
+        assert "reverse(" in result
+
+    # --- Default not affected ---
 
     def test_default_not_affected(self):
         """Default notation still uses juxtaposition."""
-        from galaga import Algebra
-
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")

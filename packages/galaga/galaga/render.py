@@ -235,13 +235,14 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if t is Div:
         return f"{_w(render(node.a, n), node.a, 71)}/{_w(render(node.b, n), node.b, 95)}"
 
-    # Unit — hat for single-char atoms, fraction for compounds
+    # Unit — hat for single-char atoms, fraction for compounds (unless overridden)
     if t is Unit:
-        if isinstance(node.x, Sym) and _is_single(str(node.x)):
-            ur = n.get("Unit", "unicode")
-            if ur and ur.combining:
-                return f"{render(node.x, n)}{ur.combining}"
-        return f"{_w(render(node.x, n), node.x, 70)}/‖{render(node.x, n)}‖"
+        ur = n.get("Unit", "unicode")
+        if not ur or ur.kind != "function":
+            if isinstance(node.x, Sym) and _is_single(str(node.x)):
+                if ur and ur.combining:
+                    return f"{render(node.x, n)}{ur.combining}"
+            return f"{_w(render(node.x, n), node.x, 70)}/‖{render(node.x, n)}‖"
 
     # Look up notation rule
     rule = n.get(name, "unicode")
@@ -257,6 +258,8 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if rule.kind == "function":
         if hasattr(node, "a"):
             return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
+        if t is Grade:
+            return f"{rule.symbol}({render(node.x, n)}, {node.k})"
         return f"{rule.symbol}({render(node.x, n)})"
 
     # Prefix unary (e.g. *v for dual)

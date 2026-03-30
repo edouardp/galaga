@@ -143,6 +143,14 @@ def _build(node: Expr, n: Notation) -> LNode:
                     Text(")"),
                 ]
             )
+        if t is Grade:
+            return Seq(
+                [
+                    Text(rf"\operatorname{{{rule.symbol}}}("),
+                    _build(node.x, n),
+                    Text(f",\\, {node.k})"),
+                ]
+            )
         return Seq(
             [
                 Text(rf"\operatorname{{{rule.symbol}}}("),
