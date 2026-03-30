@@ -522,3 +522,24 @@ class TestPostfixOnSuperscriptName:
         """dual(a) has no extra braces: a^*."""
         result = _latex(Dual(a))
         assert result == "a^*"
+
+
+class TestPostfixOnCompoundName:
+    """Postfix on Sym whose name contains operators gets parenthesised."""
+
+    def test_dual_of_wedge_name(self):
+        r"""Dual of 'a \wedge b' wraps: \left(a \wedge b\right)^*."""
+        wedge_sym = _sym("a∧b", latex=r"a \wedge b")
+        result = _latex(Dual(wedge_sym))
+        assert r"\left(a \wedge b\right)^*" == result
+
+    def test_dual_of_simple_name_no_parens(self):
+        """Dual of simple name: B^*."""
+        result = _latex(Dual(a))
+        assert result == "a^*"
+
+    def test_complement_of_wedge_name(self):
+        r"""Complement of 'a \wedge b' wraps."""
+        wedge_sym = _sym("a∧b", latex=r"a \wedge b")
+        result = _latex(Complement(wedge_sym))
+        assert r"\left(a \wedge b\right)" in result
