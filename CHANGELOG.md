@@ -1,5 +1,38 @@
 # Changelog
 
+## 0.4.0 (2026-03-30)
+
+### Breaking Changes
+
+- Removed `galaga.symbolic` module. Import functions from `galaga` directly,
+  Expr nodes from `galaga.expr`, and `simplify` from `galaga` or `galaga.simplify`.
+- Removed standalone `scalar()` function. Use `.scalar_part` property instead.
+- `Notation.functional()` now uses long-form names (`geometric_product`, `outer_product`).
+  Use `Notation.functional_short()` for short names (`gp`, `op`, `rev`, etc.).
+
+### Added
+
+- `Notation.functional_short()` preset with short-form function names.
+- `Notation` exported from main package: `from galaga import Notation`.
+- `sym` and `simplify` exported from main package: `from galaga import sym, simplify`.
+- `pseudoscalar(lazy=True)` flag for lazy pseudoscalar.
+- `scalar_sqrt()` is now symbolic — renders as `√(...)` / `\sqrt{...}`.
+- `scalar_sqrt()` accepts plain `int`/`float` as well as `Multivector`.
+- `Multivector.copy_as()` — non-mutating named copy.
+- `display(compact=True)` for tight `=` separator.
+- `display().latex(coeff_format=)` applies format to eval part only.
+
+### Fixed
+
+- Near-unit coefficients (e.g. `-0.9999999999999998`) display as `-e₂` not `-1e₂`.
+- Expression rendering: `a + (-3)b` renders as `a - 3b` in unicode and LaTeX.
+- LaTeX accents: `\widetilde` for multi-char names, `\tilde` for single glyphs.
+- LaTeX `\operatorname` escapes underscores in function names.
+- `Notation.functional()` now correctly overrides all wrap operations
+  (exp, log, norm, unit, grade, sqrt, even, odd).
+- Notation-first rendering: notation rules drive all rendering decisions,
+  eliminating special cases that bypassed the notation system.
+
 ## 0.3.12 (2026-03-30)
 
 ### Breaking Changes
