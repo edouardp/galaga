@@ -223,12 +223,50 @@ class Notation:
 
     @staticmethod
     def functional() -> Notation:
-        """Functional notation — all operations as named function calls.
+        """Functional notation — all operations as long-form function calls.
 
-        gp(a, b), op(a, b), reverse(a), dual(a), grade(a, k), etc.
+        geometric_product(a, b), outer_product(a, b), reverse(a), etc.
         Useful for pedagogical contexts or when symbols are ambiguous.
         """
+        return Notation._make_functional(
+            {
+                "Gp": "geometric_product",
+                "Op": "outer_product",
+                "Lc": "left_contraction",
+                "Rc": "right_contraction",
+                "Hi": "hestenes_inner",
+                "Dli": "doran_lasenby_inner",
+                "Sp": "scalar_product",
+                "Div": "divide",
+                "Regressive": "regressive_product",
+            }
+        )
+
+    @staticmethod
+    def functional_short() -> Notation:
+        """Functional notation — all operations as short-form function calls.
+
+        gp(a, b), op(a, b), reverse(a), etc.
+        """
+        return Notation._make_functional(
+            {
+                "Gp": "gp",
+                "Op": "op",
+                "Lc": "lc",
+                "Rc": "rc",
+                "Hi": "hi",
+                "Dli": "dli",
+                "Sp": "sp",
+                "Div": "div",
+                "Regressive": "regressive",
+            }
+        )
+
+    @staticmethod
+    def _make_functional(binary_names: dict[str, str]) -> Notation:
+        """Build a functional notation with the given binary op names."""
         n = Notation()
+        # Unary ops — same in both long and short
         for name, symbol in [
             ("Reverse", "reverse"),
             ("Involute", "involute"),
@@ -246,15 +284,6 @@ class Notation:
             ("Sqrt", "scalar_sqrt"),
             ("Even", "even_grades"),
             ("Odd", "odd_grades"),
-            ("Gp", "gp"),
-            ("Op", "op"),
-            ("Lc", "lc"),
-            ("Rc", "rc"),
-            ("Hi", "hi"),
-            ("Dli", "dli"),
-            ("Sp", "sp"),
-            ("Div", "div"),
-            ("Regressive", "regressive"),
             ("Commutator", "commutator"),
             ("Anticommutator", "anticommutator"),
             ("LieBracket", "lie_bracket"),
@@ -262,7 +291,11 @@ class Notation:
         ]:
             for fmt in ("unicode", "ascii", "latex"):
                 n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
-        # Grade needs special handling — it has a subscript parameter
+        # Binary ops — names differ between long and short
+        for name, symbol in binary_names.items():
+            for fmt in ("unicode", "ascii", "latex"):
+                n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
+        # Grade — has subscript parameter
         for fmt in ("unicode", "ascii", "latex"):
             n.set("Grade", fmt, NotationRule(kind="function", symbol="grade"))
         return n

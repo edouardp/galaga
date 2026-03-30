@@ -460,49 +460,49 @@ class TestFunctionalPreset:
     # --- Binary operations ---
 
     def test_gp_unicode(self, ab):
-        """gp(a, b) in unicode."""
+        """geometric_product(a, b) in unicode."""
         a, b = ab
-        assert str(a * b) == "gp(a, b)"
+        assert str(a * b) == "geometric_product(a, b)"
 
     def test_gp_latex(self, ab):
-        """\\operatorname{gp}(a, b) in LaTeX."""
+        """\\operatorname{geometric_product}(a, b) in LaTeX."""
         a, b = ab
-        assert r"\operatorname{gp}" in (a * b).latex()
+        assert r"\operatorname{geometric_product}" in (a * b).latex()
 
     def test_op_unicode(self, ab):
-        """op(a, b) in unicode."""
+        """outer_product(a, b) in unicode."""
         a, b = ab
-        assert str(a ^ b) == "op(a, b)"
+        assert str(a ^ b) == "outer_product(a, b)"
 
     def test_op_latex(self, ab):
-        """\\operatorname{op}(a, b) in LaTeX."""
+        """\\operatorname{outer_product}(a, b) in LaTeX."""
         a, b = ab
-        assert r"\operatorname{op}" in (a ^ b).latex()
+        assert r"\operatorname{outer_product}" in (a ^ b).latex()
 
     def test_dli_unicode(self, ab):
-        """dli(a, b) in unicode."""
+        """doran_lasenby_inner(a, b) in unicode."""
         a, b = ab
-        assert str(a | b) == "dli(a, b)"
+        assert str(a | b) == "doran_lasenby_inner(a, b)"
 
     def test_lc_unicode(self, ab):
-        """lc(a, b) in unicode."""
+        """left_contraction(a, b) in unicode."""
         a, b = ab
-        assert str(left_contraction(a, b)) == "lc(a, b)"
+        assert str(left_contraction(a, b)) == "left_contraction(a, b)"
 
     def test_rc_unicode(self, ab):
-        """rc(a, b) in unicode."""
+        """right_contraction(a, b) in unicode."""
         a, b = ab
-        assert str(right_contraction(a, b)) == "rc(a, b)"
+        assert str(right_contraction(a, b)) == "right_contraction(a, b)"
 
     def test_hi_unicode(self, ab):
-        """hi(a, b) in unicode."""
+        """hestenes_inner(a, b) in unicode."""
         a, b = ab
-        assert str(hestenes_inner(a, b)) == "hi(a, b)"
+        assert str(hestenes_inner(a, b)) == "hestenes_inner(a, b)"
 
     def test_sp_unicode(self, ab):
-        """sp(a, b) in unicode."""
+        """scalar_product(a, b) in unicode."""
         a, b = ab
-        assert str(scalar_product(a, b)) == "sp(a, b)"
+        assert str(scalar_product(a, b)) == "scalar_product(a, b)"
 
     def test_commutator_unicode(self, ab):
         """commutator(a, b) in unicode."""
@@ -594,9 +594,9 @@ class TestFunctionalPreset:
         assert unit(a).latex() == r"\operatorname{unit}(a)"
 
     def test_exp_unicode(self, ab):
-        """exp(op(a, b)) in unicode."""
+        """exp(outer_product(a, b)) in unicode."""
         a, b = ab
-        assert str(exp(a ^ b)) == "exp(op(a, b))"
+        assert str(exp(a ^ b)) == "exp(outer_product(a, b))"
 
     def test_exp_latex(self, ab):
         """\\operatorname{exp}(...) in LaTeX."""
@@ -625,12 +625,12 @@ class TestFunctionalPreset:
         )
 
     def test_grade_unicode(self, ab):
-        """grade(gp(a, b), 1) in unicode."""
+        """grade(geometric_product(a, b), 1) in unicode."""
         a, b = ab
-        assert str(grade(a * b, 1)) == "grade(gp(a, b), 1)"
+        assert str(grade(a * b, 1)) == "grade(geometric_product(a, b), 1)"
 
     def test_grade_latex(self, ab):
-        """\\operatorname{grade}(\\operatorname{gp}(a, b), 1) in LaTeX."""
+        """\\operatorname{grade}(\\operatorname{geometric_product}(a, b), 1) in LaTeX."""
         a, b = ab
         latex = grade(a * b, 1).latex()
         assert r"\operatorname{grade}" in latex
@@ -649,11 +649,11 @@ class TestFunctionalPreset:
     # --- Composition ---
 
     def test_nested_expression(self, ab):
-        """Nested: grade(gp(a, reverse(b)), 1)."""
+        """Nested: grade(geometric_product(a, reverse(b)), 1)."""
         a, b = ab
         result = str(grade(a * reverse(b), 1))
         assert "grade(" in result
-        assert "gp(" in result
+        assert "geometric_product(" in result
         assert "reverse(" in result
 
     # --- Default not affected ---
@@ -664,3 +664,41 @@ class TestFunctionalPreset:
         e1, e2, _ = alg.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
         assert str(a * b) == "ab"
+
+
+class TestFunctionalShortPreset:
+    """Notation.functional_short() uses short-form function names."""
+
+    @pytest.fixture
+    def fn_alg(self):
+        return Algebra((1, 1, 1), notation=Notation.functional_short())
+
+    @pytest.fixture
+    def ab(self, fn_alg):
+        e1, e2, _ = fn_alg.basis_vectors(lazy=True)
+        return e1.name("a"), e2.name("b")
+
+    def test_gp_unicode(self, ab):
+        """gp(a, b) in unicode."""
+        a, b = ab
+        assert str(a * b) == "gp(a, b)"
+
+    def test_op_unicode(self, ab):
+        """op(a, b) in unicode."""
+        a, b = ab
+        assert str(a ^ b) == "op(a, b)"
+
+    def test_lc_unicode(self, ab):
+        """lc(a, b) in unicode."""
+        a, b = ab
+        assert str(left_contraction(a, b)) == "lc(a, b)"
+
+    def test_reverse_same_as_long(self, ab):
+        """Unary ops are the same in short and long form."""
+        a, _ = ab
+        assert str(reverse(a)) == "reverse(a)"
+
+    def test_gp_latex(self, ab):
+        """\\operatorname{gp} in LaTeX."""
+        a, b = ab
+        assert r"\operatorname{gp}" in (a * b).latex()
