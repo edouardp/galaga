@@ -690,10 +690,10 @@ class TestFunctionalShortPreset:
         a, b = ab
         assert str(left_contraction(a, b)) == "lc(a, b)"
 
-    def test_reverse_same_as_long(self, ab):
-        """Unary ops are the same in short and long form."""
+    def test_reverse_short(self, ab):
+        """Short form uses rev() not reverse()."""
         a, _ = ab
-        assert str(reverse(a)) == "reverse(a)"
+        assert str(reverse(a)) == "rev(a)"
 
     def test_gp_latex(self, ab):
         """\\operatorname{gp} in LaTeX."""

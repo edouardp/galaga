@@ -246,7 +246,7 @@ class Notation:
     def functional_short() -> Notation:
         """Functional notation — all operations as short-form function calls.
 
-        gp(a, b), op(a, b), reverse(a), etc.
+        gp(a, b), op(a, b), rev(a), inv(a), etc.
         """
         return Notation._make_functional(
             {
@@ -258,44 +258,56 @@ class Notation:
                 "Dli": "dli",
                 "Sp": "sp",
                 "Div": "div",
-                "Regressive": "regressive",
-            }
+                "Regressive": "reg",
+            },
+            {
+                "Reverse": "rev",
+                "Involute": "inv",
+                "Conjugate": "conj",
+                "Inverse": "inverse",
+                "Sqrt": "sqrt",
+                "Even": "even",
+                "Odd": "odd",
+            },
         )
 
     @staticmethod
-    def _make_functional(binary_names: dict[str, str]) -> Notation:
-        """Build a functional notation with the given binary op names."""
+    def _make_functional(
+        binary_names: dict[str, str],
+        unary_overrides: dict[str, str] | None = None,
+    ) -> Notation:
+        """Build a functional notation with the given op names."""
         n = Notation()
-        # Unary ops — same in both long and short
-        for name, symbol in [
-            ("Reverse", "reverse"),
-            ("Involute", "involute"),
-            ("Conjugate", "conjugate"),
-            ("Dual", "dual"),
-            ("Undual", "undual"),
-            ("Complement", "complement"),
-            ("Uncomplement", "uncomplement"),
-            ("Inverse", "inverse"),
-            ("Squared", "squared"),
-            ("Norm", "norm"),
-            ("Unit", "unit"),
-            ("Exp", "exp"),
-            ("Log", "log"),
-            ("Sqrt", "scalar_sqrt"),
-            ("Even", "even_grades"),
-            ("Odd", "odd_grades"),
-            ("Commutator", "commutator"),
-            ("Anticommutator", "anticommutator"),
-            ("LieBracket", "lie_bracket"),
-            ("JordanProduct", "jordan_product"),
-        ]:
+        unary_defaults = {
+            "Reverse": "reverse",
+            "Involute": "involute",
+            "Conjugate": "conjugate",
+            "Dual": "dual",
+            "Undual": "undual",
+            "Complement": "complement",
+            "Uncomplement": "uncomplement",
+            "Inverse": "inverse",
+            "Squared": "squared",
+            "Norm": "norm",
+            "Unit": "unit",
+            "Exp": "exp",
+            "Log": "log",
+            "Sqrt": "scalar_sqrt",
+            "Even": "even_grades",
+            "Odd": "odd_grades",
+            "Commutator": "commutator",
+            "Anticommutator": "anticommutator",
+            "LieBracket": "lie_bracket",
+            "JordanProduct": "jordan_product",
+        }
+        if unary_overrides:
+            unary_defaults.update(unary_overrides)
+        for name, symbol in unary_defaults.items():
             for fmt in ("unicode", "ascii", "latex"):
                 n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
-        # Binary ops — names differ between long and short
         for name, symbol in binary_names.items():
             for fmt in ("unicode", "ascii", "latex"):
                 n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
-        # Grade — has subscript parameter
         for fmt in ("unicode", "ascii", "latex"):
             n.set("Grade", fmt, NotationRule(kind="function", symbol="grade"))
         return n
