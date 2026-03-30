@@ -699,3 +699,50 @@ class TestFunctionalShortPreset:
         """\\operatorname{gp} in LaTeX."""
         a, b = ab
         assert r"\operatorname{gp}" in (a * b).latex()
+
+
+class TestUnitFractionNotation:
+    """unit_fraction notation kind renders as x/‖x‖."""
+
+    def test_unicode(self):
+        """B/‖B‖ in unicode."""
+        from galaga.notation import NotationRule
+
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Unit", "unicode", NotationRule(kind="unit_fraction"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        assert str(unit(B)) == "B/‖B‖"
+
+    def test_latex(self):
+        r"""\\frac{B}{\\lVert B \\rVert} in LaTeX."""
+        from galaga.notation import NotationRule
+
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Unit", "latex", NotationRule(kind="unit_fraction"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        assert unit(B).latex() == r"\frac{B}{\lVert B \rVert}"
+
+    def test_compound_wraps(self):
+        """Compound expression gets parenthesised in numerator."""
+        from galaga.notation import NotationRule
+
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Unit", "unicode", NotationRule(kind="unit_fraction"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(unit(a + b)) == "(a + b)/‖a + b‖"
+
+    def test_display_shows_fraction(self):
+        """display() shows fraction form distinct from hat name."""
+        from galaga.notation import NotationRule
+
+        alg = Algebra((1, 1, 1))
+        alg.notation.set("Unit", "latex", NotationRule(kind="unit_fraction"))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        Bhat = unit(B).name(latex=r"\hat{B}")
+        d = Bhat.display().latex()
+        assert r"\hat{B}" in d
+        assert r"\frac{B}" in d

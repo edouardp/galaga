@@ -164,6 +164,12 @@ def _build(node: Expr, n: Notation) -> LNode:
         sep = " " if rule.symbol.startswith("\\") and rule.symbol[-1:].isalpha() else ""
         return Seq([Text(rule.symbol), inner], sep=sep)
 
+    # Unit fraction: \frac{x}{\lVert x \rVert}
+    if rule.kind == "unit_fraction" and hasattr(node, "x"):
+        num = _wp(_build(node.x, n), node.x, 70)
+        den = _build(Norm(node.x), n)
+        return Frac(num, den)
+
     # Accent (combining diacritical or wide accent)
     if rule.kind == "accent" and hasattr(node, "x"):
         # Use narrow accent (\tilde) for single-glyph names, wide (\widetilde) otherwise.
