@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.11 (2026-03-30)
+
+### Added
+
+- `Notation.functional()` preset — renders all operations as function calls
+  (e.g. `gp(a, b)`, `op(a, b)`, `reverse(a)`) in unicode and LaTeX.
+
 ## 0.3.10 (2026-03-29)
 
 ### Added
