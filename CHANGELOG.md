@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.12 (2026-03-30)
+
+### Breaking Changes
+
+- Removed standalone `scalar()` function. Use `.scalar_part` property instead:
+  `scalar(mv)` → `mv.scalar_part`. `alg.scalar(value)` (the algebra method) is unchanged.
+
+### Added
+
+- `Notation.functional_short()` preset — short-form function names (`gp`, `op`, etc.).
+  `Notation.functional()` now uses long-form names (`geometric_product`, `outer_product`, etc.).
+- `display().latex(coeff_format=)` — format spec applies to the numeric eval part only,
+  preserving symbolic name and expression parts.
+
+### Fixed
+
+- Near-unit coefficients (e.g. `-0.9999999999999998`) now display as `-e₂` not `-1e₂`.
+  Affects both unicode and LaTeX rendering after floating-point trig operations.
+- Notation-first rendering refactor: notation rules now drive all rendering decisions,
+  eliminating special cases that bypassed the notation system.
+
 ## 0.3.11 (2026-03-30)
 
 ### Added
