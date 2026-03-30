@@ -85,8 +85,13 @@ def _build(node: Expr, n: Notation) -> LNode:
     if t is ScalarDiv:
         return Frac(_build(node.x, n), Text(f"{node.k:g}"))
 
-    # Gp: juxtaposition with space
+    # Gp: juxtaposition with space (unless overridden to function style)
     if t is Gp:
+        gp_rule = n.get("Gp", "latex")
+        if gp_rule and gp_rule.kind == "function":
+            la = _build(node.a, n)
+            lb = _build(node.b, n)
+            return Seq([Text(rf"\operatorname{{{gp_rule.symbol}}}("), la, Text(r",\, "), lb, Text(")")])
         la = _wp(_build(node.a, n), node.a, 80, Gp)
         lb = _wp(_build(node.b, n), node.b, 80, Gp)
         return Seq([la, lb], sep=" ")

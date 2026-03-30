@@ -410,3 +410,56 @@ class TestFunctionStyle:
         e1, e2, _ = alg.basis_vectors(lazy=True)
         result = e1 ^ e2
         assert r"\operatorname{wedge}" in result.latex()
+
+
+class TestFunctionalPreset:
+    """Notation.functional() renders everything as function calls."""
+
+    def test_gp_unicode(self):
+        """gp(a, b) in unicode."""
+        from galaga import Algebra
+        from galaga.notation import Notation
+
+        alg = Algebra((1, 1, 1), notation=Notation.functional())
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(a * b) == "gp(a, b)"
+
+    def test_op_unicode(self):
+        """op(a, b) in unicode."""
+        from galaga import Algebra
+        from galaga.notation import Notation
+
+        alg = Algebra((1, 1, 1), notation=Notation.functional())
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(a ^ b) == "op(a, b)"
+
+    def test_reverse_unicode(self):
+        """reverse(a) in unicode."""
+        from galaga import Algebra, reverse
+        from galaga.notation import Notation
+
+        alg = Algebra((1, 1, 1), notation=Notation.functional())
+        e1, _, _ = alg.basis_vectors(lazy=True)
+        a = e1.name("a")
+        assert str(reverse(a)) == "reverse(a)"
+
+    def test_gp_latex(self):
+        """\\operatorname{gp}(a, b) in LaTeX."""
+        from galaga import Algebra
+        from galaga.notation import Notation
+
+        alg = Algebra((1, 1, 1), notation=Notation.functional())
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert r"\operatorname{gp}" in (a * b).latex()
+
+    def test_default_not_affected(self):
+        """Default notation still uses juxtaposition."""
+        from galaga import Algebra
+
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        a, b = e1.name("a"), e2.name("b")
+        assert str(a * b) == "ab"

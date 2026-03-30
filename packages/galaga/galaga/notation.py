@@ -220,3 +220,40 @@ class Notation:
         n.set("Reverse", "ascii", NotationRule(kind="postfix", symbol="dag"))
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
         return n
+
+    @staticmethod
+    def functional() -> Notation:
+        """Functional notation — all operations as named function calls.
+
+        gp(a, b), op(a, b), reverse(a), dual(a), grade(a, k), etc.
+        Useful for pedagogical contexts or when symbols are ambiguous.
+        """
+        n = Notation()
+        _fn = NotationRule(kind="function")
+        for name, symbol in [
+            ("Reverse", "reverse"),
+            ("Involute", "involute"),
+            ("Conjugate", "conjugate"),
+            ("Dual", "dual"),
+            ("Undual", "undual"),
+            ("Complement", "complement"),
+            ("Uncomplement", "uncomplement"),
+            ("Inverse", "inverse"),
+            ("Squared", "squared"),
+            ("Gp", "gp"),
+            ("Op", "op"),
+            ("Lc", "lc"),
+            ("Rc", "rc"),
+            ("Hi", "hi"),
+            ("Dli", "dli"),
+            ("Sp", "sp"),
+            ("Div", "div"),
+            ("Regressive", "regressive"),
+            ("Commutator", "commutator"),
+            ("Anticommutator", "anticommutator"),
+            ("LieBracket", "lie_bracket"),
+            ("JordanProduct", "jordan_product"),
+        ]:
+            for fmt in ("unicode", "ascii", "latex"):
+                n.set(name, fmt, NotationRule(kind="function", symbol=symbol))
+        return n

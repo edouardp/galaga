@@ -211,8 +211,13 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if t is ScalarDiv:
         return f"{_w(render(node.x, n), node.x, 70)}/{node.k:g}"
 
-    # Geometric product — juxtaposition with smart spacing
+    # Geometric product — juxtaposition with smart spacing (unless overridden)
     if t is Gp:
+        gp_rule = n.get("Gp", "unicode")
+        if gp_rule and gp_rule.kind == "function":
+            l = render(node.a, n)
+            r = render(node.b, n)
+            return f"{gp_rule.symbol}({l}, {r})"
         l = _w(render(node.a, n), node.a, 80, Gp)
         r = _w(render(node.b, n), node.b, 80, Gp)
         return f"{l} {r}" if _multichar(node.a) or _multichar(node.b) else f"{l}{r}"
