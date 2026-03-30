@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 from galaga import Algebra
-from galaga.symbolic import Sym, simplify, sym
+from galaga.expr import Sym, sym
+from galaga.simplify import simplify
 
 
 @pytest.fixture
@@ -624,7 +625,7 @@ class TestAdditionalCoverage:
 
     def test_ensure_expr_lazy_mv_with_expr(self, cl3):
         """_ensure_expr extracts _expr from lazy MV."""
-        from galaga.symbolic import _ensure_expr
+        from galaga.expr import _ensure_expr
 
         e1, e2, _ = cl3.basis_vectors()
         B = e1.name("a") + e2.name("b")
@@ -633,7 +634,7 @@ class TestAdditionalCoverage:
 
     def test_ensure_expr_named_eager_mv(self, cl3):
         """_ensure_expr on named eager MV creates Sym."""
-        from galaga.symbolic import _ensure_expr
+        from galaga.expr import _ensure_expr
 
         e1, _, _ = cl3.basis_vectors()
         # basis blades are named + eager
@@ -766,7 +767,7 @@ class TestExprOperatorCoverage:
 
     def test_scalar_eval_raises(self):
         """Scalar.eval() raises — no algebra context."""
-        from galaga.symbolic import Scalar
+        from galaga.expr import Scalar
 
         with pytest.raises(TypeError):
             Scalar(42).eval()
@@ -779,7 +780,7 @@ class TestExprOperatorCoverage:
 
     def test_coerce_mv_with_name(self, cl3):
         """_coerce on a named MV without _expr."""
-        from galaga.symbolic import _coerce
+        from galaga.expr import _coerce
 
         e1, _, _ = cl3.basis_vectors()
         # basis blades are named + eager, no _expr
@@ -788,7 +789,7 @@ class TestExprOperatorCoverage:
 
     def test_is_symbolic_lazy_mv(self, cl3):
         """Lazy MV is symbolic."""
-        from galaga.symbolic import _is_symbolic
+        from galaga.expr import _is_symbolic
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -796,14 +797,14 @@ class TestExprOperatorCoverage:
 
     def test_is_symbolic_eager_mv(self, cl3):
         """Eager MV is not symbolic."""
-        from galaga.symbolic import _is_symbolic
+        from galaga.expr import _is_symbolic
 
         e1, _, _ = cl3.basis_vectors()
         assert _is_symbolic(e1) is False
 
     def test_simplify_rotor_norm(self, cl3):
         """simplify(R * ~R) for a rotor."""
-        from galaga.symbolic import Gp, Reverse
+        from galaga.expr import Gp, Reverse
 
         e1, e2, _ = cl3.basis_vectors()
         R_val = e1 * e2
@@ -814,7 +815,8 @@ class TestExprOperatorCoverage:
 
     def test_eq_neg(self, cl3):
         """Neg Expr equality."""
-        from galaga.symbolic import Neg, _eq
+        from galaga.expr import Neg
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
@@ -823,7 +825,8 @@ class TestExprOperatorCoverage:
 
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
-        from galaga.symbolic import Grade, _eq
+        from galaga.expr import Grade
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
@@ -1753,7 +1756,7 @@ class TestSymNoName:
 
     def test_sym_no_name(self, cl3):
         """sym(mv) without name makes lazy."""
-        from galaga.symbolic import sym
+        from galaga.expr import sym
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1)
@@ -1762,7 +1765,7 @@ class TestSymNoName:
 
     def test_sym_no_name_chain(self, cl3):
         """Unnamed sym in expression works."""
-        from galaga.symbolic import sym
+        from galaga.expr import sym
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1).name(latex=r"\hat{n}")
@@ -2058,7 +2061,7 @@ class TestCoverageGaps:
 
     def test_scalar_div_eval(self, cl3):
         """ScalarDiv eval divides correctly."""
-        from galaga.symbolic import ScalarDiv
+        from galaga.expr import ScalarDiv
 
         e1, _, _ = cl3.basis_vectors()
         expr = ScalarDiv(Sym(e1, "v"), 2)
@@ -2067,7 +2070,7 @@ class TestCoverageGaps:
 
     def test_div_eval(self, cl3):
         """Div eval divides correctly."""
-        from galaga.symbolic import Div
+        from galaga.expr import Div
 
         e1, e2, _ = cl3.basis_vectors()
         a = Sym(cl3.scalar(6.0), "a")
@@ -2077,7 +2080,7 @@ class TestCoverageGaps:
 
     def test_neg_eval(self, cl3):
         """Neg eval negates correctly."""
-        from galaga.symbolic import Neg
+        from galaga.expr import Neg
 
         e1, _, _ = cl3.basis_vectors()
         expr = Neg(Sym(e1, "v"))
@@ -2086,7 +2089,7 @@ class TestCoverageGaps:
 
     def test_add_eval(self, cl3):
         """Add eval adds correctly."""
-        from galaga.symbolic import Add
+        from galaga.expr import Add
 
         e1, e2, _ = cl3.basis_vectors()
         result = Add(Sym(e1, "a"), Sym(e2, "b")).eval()
@@ -2094,7 +2097,7 @@ class TestCoverageGaps:
 
     def test_sub_eval(self, cl3):
         """Sub eval subtracts correctly."""
-        from galaga.symbolic import Sub
+        from galaga.expr import Sub
 
         e1, e2, _ = cl3.basis_vectors()
         result = Sub(Sym(e1, "a"), Sym(e2, "b")).eval()
@@ -2102,7 +2105,7 @@ class TestCoverageGaps:
 
     def test_scalar_mul_eval(self, cl3):
         """ScalarMul eval multiplies correctly."""
-        from galaga.symbolic import ScalarMul
+        from galaga.expr import ScalarMul
 
         e1, _, _ = cl3.basis_vectors()
         result = ScalarMul(3, Sym(e1, "v")).eval()
@@ -2110,7 +2113,8 @@ class TestCoverageGaps:
 
     def test_eq_scalar_div(self, cl3):
         """ScalarDiv equality."""
-        from galaga.symbolic import ScalarDiv, _eq
+        from galaga.expr import ScalarDiv
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = ScalarDiv(Sym(e1, "v"), 2)
@@ -2119,7 +2123,7 @@ class TestCoverageGaps:
 
     def test_eq_fallback_false(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.symbolic import _eq
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         # Two different types
@@ -2127,7 +2131,8 @@ class TestCoverageGaps:
 
     def test_known_grade_scalar_div(self, cl3):
         """ScalarDiv preserves known grade."""
-        from galaga.symbolic import ScalarDiv, _known_grade
+        from galaga.expr import ScalarDiv
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         expr = ScalarDiv(Sym(e1, "v", grade=1), 2)
@@ -2135,7 +2140,7 @@ class TestCoverageGaps:
 
     def test_simplify_scalar_div(self, cl3):
         """simplify(x/1) = x."""
-        from galaga.symbolic import ScalarDiv
+        from galaga.expr import ScalarDiv
 
         e1, _, _ = cl3.basis_vectors()
         # ScalarDiv should survive simplify
@@ -2151,7 +2156,7 @@ class TestCoverageGaps:
 
     def test_coerce_named_mv(self, cl3):
         """Named MV coerces to Sym."""
-        from galaga.symbolic import _coerce
+        from galaga.expr import _coerce
 
         e1, _, _ = cl3.basis_vectors()
         e1.name("x")

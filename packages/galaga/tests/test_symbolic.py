@@ -28,16 +28,16 @@ from galaga import gp as _gp
 from galaga import grade as _grade
 from galaga import op as _op
 from galaga import reverse as _reverse
-from galaga.symbolic import (
+from galaga.expr import (
     Anticommutator,
     Commutator,
     Expr,
     Hi,
     JordanProduct,
     LieBracket,
-    simplify,
     sym,
 )
+from galaga.simplify import simplify
 
 
 @pytest.fixture

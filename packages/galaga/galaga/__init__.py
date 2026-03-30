@@ -35,7 +35,7 @@ they have display names (``e₁``) but behave as concrete numeric objects.
 
 This ``__init__`` re-exports the numeric API so users can write
 ``from galaga import *`` and get everything they need for computation.
-The symbolic layer is imported separately (``from galaga.symbolic import sym, ...``)
+The symbolic layer is imported separately (``from galaga import sym, ...``)
 because it's opt-in — most users only need it for notebooks and display.
 
 Design Principles

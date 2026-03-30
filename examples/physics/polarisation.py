@@ -33,7 +33,7 @@ def _():
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
     from galaga import Algebra, gp, norm, unit, exp, squared, grade
-    from galaga.symbolic import simplify, sym
+    from galaga import simplify, sym
     import galaga_marimo as gm
 
     return Algebra, exp, gm, grade, norm, np, plt, sym, unit

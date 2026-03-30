@@ -33,7 +33,7 @@ def _():
         left_contraction, hestenes_inner, even_grades, odd_grades,
         squared
     )
-    from galaga.symbolic import (
+    from galaga import (
         sym, simplify, grade as sgrade, reverse as srev,
         norm as snorm, unit as sunit, inverse as sinverse,
     )

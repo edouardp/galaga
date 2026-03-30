@@ -32,7 +32,7 @@ def _():
         dual, norm, unit, inverse, exp, log, sandwich, squared,
         left_contraction, commutator, even_grades, odd_grades,
     )
-    from galaga.symbolic import simplify
+    from galaga import simplify
     import galaga_marimo as gm
 
     return (

@@ -38,3 +38,11 @@ Remove all drop-in function replacements from `galaga.symbolic`. Keep:
 - Good, because `from galaga import grade` is the only import users need
 - Bad, because breaking change for `from galaga.symbolic import grade` users
 - Acceptable, because pre-1.0 and the migration is mechanical
+
+
+### Follow-up: Module Deleted
+
+`galaga.symbolic` was subsequently deleted entirely. `sym()` moved to
+`galaga.expr`, `simplify()` stays in `galaga.simplify`. Both are now
+available via `from galaga import sym, simplify`. Expr node classes
+are imported from `galaga.expr` directly.

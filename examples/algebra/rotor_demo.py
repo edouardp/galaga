@@ -36,7 +36,7 @@ def _():
         Algebra, grade, reverse, sandwich, norm, unit,
         gp, op, exp, log, norm2,
     )
-    from galaga.symbolic import (
+    from galaga import (
         sym, gp as sgp, grade as sgrade, reverse as srev,
         simplify, norm as snorm, unit as sunit, inverse as sinverse,
     )

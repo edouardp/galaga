@@ -8,10 +8,7 @@ produces identical results to the old single-pass render_latex().
 import numpy as np
 
 from galaga import Algebra
-from galaga.latex_build import build
-from galaga.latex_emit import emit
-from galaga.latex_rewrite import rewrite
-from galaga.symbolic import (
+from galaga.expr import (
     Add,
     Anticommutator,
     Commutator,
@@ -44,6 +41,9 @@ from galaga.symbolic import (
     Undual,
     Unit,
 )
+from galaga.latex_build import build
+from galaga.latex_emit import emit
+from galaga.latex_rewrite import rewrite
 
 # Minimal algebra for constructing Sym nodes
 _alg = Algebra((1, 1, 1))

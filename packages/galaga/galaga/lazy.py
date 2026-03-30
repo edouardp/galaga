@@ -6,7 +6,7 @@ dual, etc.) needs to handle both. Without these decorators, each function
 would have 4 lines of boilerplate:
 
     if x._is_lazy:
-        from galaga.symbolic import NodeClass
+        from galaga.expr import NodeClass
         result = func(Multivector(x.algebra, x.data))  # eager computation
         return x._lazy_result(result.data, NodeClass(x._to_expr()))
 
@@ -49,9 +49,9 @@ def lazy_unary(sym_node_name: str):
         @functools.wraps(func)
         def wrapper(x):
             if x._is_lazy:
-                import galaga.symbolic as sym
+                import galaga.expr as _expr_mod
 
-                NodeClass = getattr(sym, sym_node_name)
+                NodeClass = getattr(_expr_mod, sym_node_name)
                 result = func(_make_eager(x))
                 return x._lazy_result(result.data, NodeClass(x._to_expr()))
             return func(x)
@@ -72,9 +72,9 @@ def lazy_binary(sym_node_name: str):
         @functools.wraps(func)
         def wrapper(a, b):
             if a._is_lazy or b._is_lazy:
-                import galaga.symbolic as sym
+                import galaga.expr as _expr_mod
 
-                NodeClass = getattr(sym, sym_node_name)
+                NodeClass = getattr(_expr_mod, sym_node_name)
                 result = func(_make_eager(a), _make_eager(b))
                 return a._lazy_result(result.data, NodeClass(a._to_expr(), b._to_expr()))
             return func(a, b)

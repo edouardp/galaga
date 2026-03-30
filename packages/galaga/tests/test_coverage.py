@@ -58,7 +58,7 @@ from galaga import squared as ssq
 from galaga import sw as ssw_alias
 from galaga import undual as sundual
 from galaga import unit as sunit
-from galaga.symbolic import (
+from galaga.expr import (
     Conjugate,
     Dual,
     Expr,
@@ -69,9 +69,9 @@ from galaga.symbolic import (
     Scalar,
     ScalarMul,
     Unit,
-    simplify,
     sym,
 )
+from galaga.simplify import simplify
 
 
 @pytest.fixture
@@ -1528,7 +1528,7 @@ class TestCoverageGaps:
     # symbolic.py: Scalar.__str__ (line 270)
     def test_scalar_str(self):
         """Scalar node str() renders the value."""
-        from galaga.symbolic import Scalar
+        from galaga.expr import Scalar
 
         s = Scalar(42)
         assert str(s) == "42"
@@ -1539,7 +1539,7 @@ class TestCoverageGaps:
         """Non-MV/Expr/scalar raises TypeError."""
         import pytest
 
-        from galaga.symbolic import _ensure_expr
+        from galaga.expr import _ensure_expr
 
         with pytest.raises(TypeError, match="Cannot convert"):
             _ensure_expr([1, 2, 3])
@@ -1547,7 +1547,7 @@ class TestCoverageGaps:
     # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)
     def test_eq_conjugate(self, cl3):
         """Conjugate Expr equality."""
-        from galaga.symbolic import _eq
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1556,7 +1556,7 @@ class TestCoverageGaps:
 
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
-        from galaga.symbolic import _eq
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1565,7 +1565,7 @@ class TestCoverageGaps:
 
     def test_eq_fallback(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.symbolic import _eq
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1575,20 +1575,21 @@ class TestCoverageGaps:
     # symbolic.py: _known_grade branches (lines 691-703)
     def test_known_grade_scalar(self):
         """Scalar has known grade 0."""
-        from galaga.symbolic import Scalar, _known_grade
+        from galaga.expr import Scalar
+        from galaga.simplify import _known_grade
 
         assert _known_grade(Scalar(5)) == 0
 
     def test_known_grade_grade_node(self, cl3):
         """Grade node has known grade."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Grade(sym(e1, "v"), 2)) == 2
 
     def test_known_grade_reverse(self, cl3):
         """Reverse preserves known grade."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -1596,28 +1597,28 @@ class TestCoverageGaps:
 
     def test_known_grade_neg(self, cl3):
         """Neg preserves known grade."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Neg(sym(e1, "v"))) == 1
 
     def test_known_grade_scalarmul(self, cl3):
         """ScalarMul preserves known grade."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(ScalarMul(3, sym(e1, "v"))) == 1
 
     def test_known_grade_unit(self, cl3):
         """Unit preserves known grade."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Unit(sym(e1, "v"))) == 1
 
     def test_known_grade_unknown(self, cl3):
         """Unknown grade returns None."""
-        from galaga.symbolic import _known_grade
+        from galaga.simplify import _known_grade
 
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1641,7 +1642,7 @@ class TestCoverageGaps:
     # symbolic.py: _eq for Involute (line 635)
     def test_eq_involute(self, cl3):
         """Involute Expr equality."""
-        from galaga.symbolic import _eq
+        from galaga.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
