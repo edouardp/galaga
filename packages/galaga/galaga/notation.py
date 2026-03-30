@@ -258,7 +258,7 @@ class Notation:
                 "Dli": "dli",
                 "Sp": "sp",
                 "Div": "div",
-                "Regressive": "reg",
+                "Regressive": "meet",
             },
             {
                 "Reverse": "rev",
