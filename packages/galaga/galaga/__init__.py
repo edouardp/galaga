@@ -120,12 +120,14 @@ from galaga.algebra import (
 )
 from galaga.basis_blade import BasisBlade
 from galaga.expr import sym
+from galaga.notation import Notation
 from galaga.simplify import simplify
 
 __all__ = [
     "Algebra",
     "BasisBlade",
     "Multivector",
+    "Notation",
     "simplify",
     "sym",
     "gp",
