@@ -975,7 +975,7 @@ class Multivector:
             name = alg._blade_name(i, unicode=unicode)
             if name == "":
                 terms.append(f"{c:g}")
-            elif abs(c) == 1.0:
+            elif np.isclose(abs(c), 1.0):
                 terms.append(f"{name}" if c > 0 else f"-{name}")
             else:
                 terms.append(f"{c:g}{name}")
@@ -1084,7 +1084,7 @@ class Multivector:
                 else:
                     if name == "":
                         terms.append(f"{c:g}")
-                    elif abs(c) == 1.0:
+                    elif np.isclose(abs(c), 1.0):
                         terms.append(name if c > 0 else f"-{name}")
                     else:
                         terms.append(f"{c:g} {name}")

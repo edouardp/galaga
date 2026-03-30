@@ -974,3 +974,37 @@ class TestScalarSqrtSymbolic:
         assert "E" in d
         assert r"\sqrt" in d
         assert "5" in d
+
+
+class TestNearUnitCoefficientSuppression:
+    """Coefficients very close to ±1 should be suppressed in display."""
+
+    def test_near_minus_one_str(self):
+        """Coefficient -0.9999999999999998 displays as -e₂ not -1e₂."""
+        import numpy as np
+
+        from galaga import Algebra, exp
+
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = e1 ^ e2
+        R = exp(-B * alg.scalar(np.radians(180)) / 2)
+        vp = (R * (e1 + e2) * ~R).eval()
+        s = str(vp)
+        assert "-1e" not in s
+        assert s == "-e₁ - e₂"
+
+    def test_near_minus_one_latex(self):
+        """Same check for LaTeX rendering."""
+        import numpy as np
+
+        from galaga import Algebra, exp
+
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = e1 ^ e2
+        R = exp(-B * alg.scalar(np.radians(180)) / 2)
+        vp = (R * (e1 + e2) * ~R).eval()
+        latex = vp.latex()
+        assert "-1 e" not in latex
+        assert latex == "-e_{1} - e_{2}"
