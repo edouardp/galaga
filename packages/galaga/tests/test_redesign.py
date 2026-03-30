@@ -2348,6 +2348,25 @@ class TestDisplay:
         result = v.display().latex()
         assert r"\quad = \quad" in result
 
+    def test_coeff_format_applies_to_eval_only(self):
+        """latex(coeff_format=) formats the numeric part, not name/expression."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        v = (3.14159 * e1 + 2.71828 * e2).name("v")
+        result = v.display().latex(coeff_format=".2f")
+        assert "v" in result
+        assert "3.14" in result
+        assert "2.72" in result
+
+    def test_coeff_format_preserves_expression(self):
+        """Expression part is unchanged by coeff_format."""
+        alg = Algebra((1, 1, 1))
+        e1, e2, _ = alg.basis_vectors(lazy=True)
+        B = (e1 ^ e2).name("B")
+        d = B.display()
+        formatted = d.latex(coeff_format=".3f")
+        assert "B" in formatted
+
 
 class TestCopyAs:
     """copy_as() — non-mutating named copy."""

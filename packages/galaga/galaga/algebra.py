@@ -468,22 +468,35 @@ class Algebra:
 class _DisplayResult:
     """Wrapper so display() output is auto-detected as LaTeX by galaga_marimo."""
 
-    __slots__ = ("_raw",)
+    __slots__ = ("_parts", "_sep", "_eval_mv")
 
-    def __init__(self, raw: str):
-        self._raw = raw
+    def __init__(self, parts: list[str], sep: str, eval_mv):
+        self._parts = parts
+        self._sep = sep
+        self._eval_mv = eval_mv
 
-    def latex(self) -> str:
-        return self._raw
+    def _render(self, coeff_format: str | None = None) -> str:
+        if coeff_format is None or self._eval_mv is None:
+            return self._sep.join(self._parts)
+        # Re-render with coeff_format on the eval (last) part only
+        formatted_eval = self._eval_mv.latex(coeff_format=coeff_format)
+        parts = list(self._parts)
+        # Replace the last part (eval) if it's present
+        if parts and parts[-1] == self._eval_mv.latex():
+            parts[-1] = formatted_eval
+        return self._sep.join(parts)
+
+    def latex(self, coeff_format: str | None = None) -> str:
+        return self._render(coeff_format)
 
     def _repr_latex_(self) -> str:
-        return f"${self._raw}$"
+        return f"${self._render()}$"
 
     def __str__(self) -> str:
-        return self._raw
+        return self._render()
 
     def __repr__(self) -> str:
-        return self._raw
+        return self._render()
 
 
 class Multivector:
@@ -659,8 +672,9 @@ class Multivector:
     def display(self, compact: bool = False) -> _DisplayResult:
         """Return a LaTeX-renderable object showing name = expression = value, omitting duplicates."""
         parts = []
+        eval_mv = self.eval()
         name_latex = self.latex() if self._name is not None else None
-        eval_latex = self.eval().latex()
+        eval_latex = eval_mv.latex()
 
         reveal_latex = None
         if self._is_lazy and self._expr is not None:
@@ -676,7 +690,7 @@ class Multivector:
             parts.append(eval_latex)
 
         sep = " = " if compact else " \\quad = \\quad "
-        return _DisplayResult(sep.join(parts))
+        return _DisplayResult(parts, sep, eval_mv)
 
     def _to_expr(self):
         """Convert this MV to an Expr node for use in expression trees.
