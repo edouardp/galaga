@@ -31,7 +31,7 @@ def _():
         Algebra, gp, op, grade, reverse, dual, norm, unit,
         inverse, exp, log, sandwich, squared,
     )
-    from galaga.symbolic import simplify
+    from galaga import simplify
     import galaga_marimo as gm
 
     return (

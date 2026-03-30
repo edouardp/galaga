@@ -10,12 +10,12 @@ The renderer (ga.render) queries the Notation object instead of hardcoded tables
 
 Rule kinds:
     prefix:        "-x", "*v"           — symbol prepended to operand
-    postfix:       "x†", "x⁻¹", "x²"   — symbol appended to operand
+    postfix:       "x†", "x⁻¹", "x²"    — symbol appended to operand
     superscript:   "x^{dagger}"         — symbol placed in LaTeX superscript (auto-braced)
-    accent:        "x̃" / "~(a+b)"      — combining char for atoms, prefix fallback for compounds
+    accent:        "x̃" / "~(a+b)"       — combining char for atoms, prefix fallback for compounds
     infix:         "a∧b", "a·b"         — symbol between two operands
     function:      "rev(x)", "wedge(a,b)" — function call style
-    wrap:          "⟨x⟩₁", "‖x‖"       — open/close delimiters around content
+    wrap:          "⟨x⟩₁", "‖x‖"        — open/close delimiters around content
     juxtaposition: "ab"                 — no symbol, smart spacing for multi-char names
 
 Why per-algebra?

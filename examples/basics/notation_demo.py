@@ -28,7 +28,7 @@ def _():
 def _():
     from galaga import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade
     from galaga.notation import Notation, NotationRule
-    from galaga.symbolic import simplify
+    from galaga import simplify
     import galaga_marimo as gm
     import numpy as np
 

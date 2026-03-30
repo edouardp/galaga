@@ -6,7 +6,7 @@ Tests are written FIRST — the renderer must pass all of these.
 import pytest
 
 from galaga import Algebra
-from galaga.symbolic import (
+from galaga.expr import (
     Add,
     Anticommutator,
     Commutator,
@@ -926,28 +926,28 @@ class TestNotationOverrideRendering:
 class TestRegressive:
     def test_regressive_unicode(self, syms):
         """Regressive product: a∨b."""
-        from galaga.symbolic import Regressive
+        from galaga.expr import Regressive
 
         a, b, _ = syms
         assert render(Regressive(a, b)) == "a∨b"
 
     def test_regressive_latex(self, syms):
         """Regressive in LaTeX: \vee."""
-        from galaga.symbolic import Regressive
+        from galaga.expr import Regressive
 
         a, b, _ = syms
         assert render_latex(Regressive(a, b)) == r"a \vee b"
 
     def test_regressive_associative(self, syms):
         """Regressive is associative: a∨b∨c."""
-        from galaga.symbolic import Regressive
+        from galaga.expr import Regressive
 
         a, b, c = syms
         assert render(Regressive(Regressive(a, b), c)) == "a∨b∨c"
 
     def test_regressive_sum_needs_parens(self, syms):
         """Sum in regressive gets parens."""
-        from galaga.symbolic import Regressive
+        from galaga.expr import Regressive
 
         a, b, c = syms
         assert render(Regressive(Add(a, b), c)) == "(a + b)∨c"

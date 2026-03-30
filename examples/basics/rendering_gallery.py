@@ -36,7 +36,7 @@ def _():
         commutator, anticommutator, lie_bracket, jordan_product,
         even_grades, odd_grades,
     )
-    from galaga.symbolic import simplify
+    from galaga import simplify
     import galaga_marimo as gm
 
     return (

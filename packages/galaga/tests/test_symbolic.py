@@ -3,18 +3,8 @@
 import numpy as np
 import pytest
 
-from galaga import Algebra
-from galaga import gp as _gp
-from galaga import grade as _grade
-from galaga import op as _op
-from galaga import reverse as _reverse
-from galaga.symbolic import (
-    Anticommutator,
-    Commutator,
-    Expr,
-    Hi,
-    JordanProduct,
-    LieBracket,
+from galaga import (
+    Algebra,
     anticommutator,
     commutator,
     conjugate,
@@ -31,11 +21,23 @@ from galaga.symbolic import (
     reverse,
     right_contraction,
     scalar_product,
-    simplify,
-    sym,
     undual,
     unit,
 )
+from galaga import gp as _gp
+from galaga import grade as _grade
+from galaga import op as _op
+from galaga import reverse as _reverse
+from galaga.expr import (
+    Anticommutator,
+    Commutator,
+    Expr,
+    Hi,
+    JordanProduct,
+    LieBracket,
+    sym,
+)
+from galaga.simplify import simplify
 
 
 @pytest.fixture
@@ -352,7 +354,7 @@ class TestCommutatorSymbolic:
         _, e1, e2, _ = cl3
         a, b = sym(e1, "a"), sym(e2, "b")
         result = commutator(a, b)
-        assert isinstance(result, Commutator)
+        assert isinstance(result._expr, Commutator)
 
     def test_commutator_str(self, cl3):
         """Commutator renders with bracket notation [a, b]."""
@@ -379,7 +381,7 @@ class TestCommutatorSymbolic:
         _, e1, e2, _ = cl3
         a, b = sym(e1, "a"), sym(e2, "b")
         result = anticommutator(a, b)
-        assert isinstance(result, Anticommutator)
+        assert isinstance(result._expr, Anticommutator)
 
     def test_anticommutator_str(self, cl3):
         """Anticommutator renders with brace notation {a, b}."""
@@ -392,7 +394,7 @@ class TestCommutatorSymbolic:
         _, e1, e2, _ = cl3
         a, b = sym(e1, "a"), sym(e2, "b")
         result = lie_bracket(a, b)
-        assert isinstance(result, LieBracket)
+        assert isinstance(result._expr, LieBracket)
 
     def test_lie_bracket_eval(self, cl3):
         """Lie bracket eval computes ½(ab - ba)."""
@@ -407,7 +409,7 @@ class TestCommutatorSymbolic:
         _, e1, e2, _ = cl3
         a, b = sym(e1, "a"), sym(e2, "b")
         result = jordan_product(a, b)
-        assert isinstance(result, JordanProduct)
+        assert isinstance(result._expr, JordanProduct)
 
     def test_jordan_product_str(self, cl3):
         """Jordan product renders as ½{a, b}."""

@@ -459,7 +459,7 @@ print(exp(-B * theta / 2))  # exp(-Bθ/2)
 the original (does not mutate):
 
 ```python
-from galaga.symbolic import sym, grade, reverse, simplify
+from galaga import sym, grade, reverse, simplify
 
 R = sym(e1 * e2, "R")   # copy of e1*e2, named "R"
 v = sym(e1, "v")         # copy of e1, named "v" — e1 unchanged
@@ -572,7 +572,7 @@ Full LaTeX rendering table:
 The symbolic module provides drop-in replacements for all `galaga` functions. They detect lazy `Multivector` or `Expr` arguments and build trees; with plain eager `Multivector` arguments they delegate to the numeric core:
 
 ```python
-from galaga.symbolic import gp, grade, reverse
+from galaga import gp, grade, reverse
 
 # With lazy/named MV → builds expression tree
 R = (e1 * e2).name("R")
@@ -608,7 +608,7 @@ Built-in presets: `Notation.default()`, `Notation.hestenes()`, `Notation.doran_l
 `simplify()` applies algebraic rewrite rules to expression trees:
 
 ```python
-from galaga.symbolic import sym, simplify, grade, norm, unit, inverse, op
+from galaga import sym, simplify, grade, norm, unit, inverse, op
 
 alg = Algebra((1, 1, 1))
 e1, e2, e3 = alg.basis_vectors()
@@ -645,7 +645,7 @@ sw(R, e1)           # same thing, short alias
 Works in the symbolic layer too:
 
 ```python
-from galaga.symbolic import sandwich
+from galaga import sandwich
 
 R = (alg.rotor(e1^e2, radians=np.pi/2)).name("R")
 v = e1.name("v")

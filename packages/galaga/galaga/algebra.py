@@ -67,8 +67,8 @@ def _sign_of_reorder(a: int, b: int) -> int:
 _LETTER_SUBSCRIPTS = {"x": "ₓ", "y": "ᵧ"}
 
 
+import galaga.expr as _sym
 import galaga.render as _render
-import galaga.symbolic as _sym
 from galaga.basis_blade import BasisBlade
 from galaga.latex_symbols import LatexSymbols
 from galaga.lazy import lazy_binary, lazy_unary
@@ -1463,10 +1463,10 @@ def scalar_sqrt(x) -> Multivector:
         raise TypeError(f"scalar_sqrt expects a Multivector or number, got {type(x).__name__}")
     # Lazy path
     if x._is_lazy:
-        import galaga.symbolic as sym
+        import galaga.expr as _expr_mod
 
         result = scalar_sqrt(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, sym.Sqrt(x._to_expr()))
+        return x._lazy_result(result.data, _expr_mod.Sqrt(x._to_expr()))
     # Eager path
     if not is_scalar(x):
         raise ValueError("scalar_sqrt requires a pure scalar multivector")

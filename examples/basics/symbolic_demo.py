@@ -37,7 +37,7 @@ def _(gm):
 def _():
     import numpy as np
     from galaga import Algebra
-    from galaga.symbolic import (
+    from galaga import (
         sym, gp, op, grade, reverse, involute, conjugate,
         dual, undual, norm, unit, inverse, squared,
         left_contraction, right_contraction, hestenes_inner, scalar_product,
@@ -458,7 +458,7 @@ def _(gm):
 
 @app.cell
 def _(R, a, gm, grade, inverse, mo, norm, unit, v):
-    from galaga.symbolic import simplify
+    from galaga import simplify
 
     _rules = [
         ("~~v", simplify(~~v)),
