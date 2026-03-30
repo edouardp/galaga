@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.4.1 (2026-03-30)
+
+### Added
+
+- `Notation` exported from main package: `from galaga import Notation`.
+
+### Fixed
+
+- LaTeX double-superscript error when applying postfix operations (dual, undual,
+  inverse, etc.) to names containing `^` (e.g. `B^\star`). The inner expression
+  is now brace-wrapped: `{B^\star}^{*^{-1}}`.
+
 ## 0.4.0 (2026-03-30)
 
 ### Breaking Changes
