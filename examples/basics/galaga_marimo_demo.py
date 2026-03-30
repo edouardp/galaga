@@ -22,8 +22,7 @@ def _():
     import marimo as mo
     import numpy as np
     from galaga import (
-        Algebra, gp, op, grade, reverse, norm, unit, inverse,
-        scalar, exp, log, sandwich,
+        Algebra, gp, op, grade, reverse, norm, unit, inverse, exp, log, sandwich,
     )
     from galaga import symbolic as sym
     Sym = sym.sym

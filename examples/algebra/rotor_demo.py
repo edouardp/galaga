@@ -33,7 +33,7 @@ def _():
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
     from galaga import (
-        Algebra, grade, reverse, sandwich, scalar, norm, unit,
+        Algebra, grade, reverse, sandwich, norm, unit,
         gp, op, exp, log, norm2,
     )
     from galaga.symbolic import (
@@ -50,7 +50,6 @@ def _():
         np,
         plt,
         sandwich,
-        scalar,
         simplify,
         sinverse,
         snorm,
@@ -300,7 +299,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(cl3, e1, e2, e3, gm, mo, rr_alpha, rr_theta, sandwich, scalar):
+def _(cl3, e1, e2, e3, gm, mo, rr_alpha, rr_theta, sandwich):
     _R = cl3.rotor(e1 ^ e2, degrees=rr_theta.value)
     _S = cl3.rotor(e1 ^ e3, degrees=rr_alpha.value)
     _R_composed = _S * _R
@@ -308,7 +307,7 @@ def _(cl3, e1, e2, e3, gm, mo, rr_alpha, rr_theta, sandwich, scalar):
     _v = e1
     _orig = sandwich(_R, _v)
     _new = sandwich(_R_composed, _v)
-    _RR = scalar(_R_composed * ~_R_composed)
+    _RR = (_R_composed * ~_R_composed).scalar_part
 
     mo.vstack([
         gm.md(t"$R$ ({rr_theta.value}° in $e_1 e_2$): {_R}"),
@@ -467,7 +466,7 @@ def _(Algebra):
 
 
 @app.cell
-def _(g0, g1, g2, g3, gm, scalar):
+def _(g0, g1, g2, g3, gm):
     _bivectors = [
         ("γ₁γ₂ (spacelike)", g1 * g2),
         ("γ₁γ₃ (spacelike)", g1 * g3),
@@ -476,7 +475,7 @@ def _(g0, g1, g2, g3, gm, scalar):
         ("γ₀γ₂ (timelike)", g0 * g2),
         ("γ₀γ₃ (timelike)", g0 * g3),
     ]
-    _lines = "\n".join(f"- {name}: $B^2 = {scalar(b * b):+.0f}$" for name, b in _bivectors)
+    _lines = "\n".join(f"- {name}: $B^2 = {(b * b).scalar_part:+.0f}$" for name, b in _bivectors)
     gm.md(t"{_lines:text}")
     return
 
@@ -499,11 +498,11 @@ def _(mo):
 
 
 @app.cell
-def _(g1, g2, gm, mo, np, sandwich, scalar, sta, sta_rot):
+def _(g1, g2, gm, mo, np, sandwich, sta, sta_rot):
     _theta = np.radians(sta_rot.value)
     _R = sta.rotor(g1 ^ g2, radians=_theta)
     _result = sandwich(_R, g1)
-    _RR = scalar(_R * ~_R)
+    _RR = (_R * ~_R).scalar_part
 
     mo.vstack([
         gm.md(t"$\\theta = {sta_rot.value}°$"),
@@ -533,7 +532,7 @@ def _(mo):
 
 
 @app.cell
-def _(boost_phi, exp, g0, g1, gm, mo, np, sandwich, scalar):
+def _(boost_phi, exp, g0, g1, gm, mo, np, sandwich):
     _phi = boost_phi.value
     _B = g0 * g1
     _R = exp(_phi / 2 * _B)
@@ -543,7 +542,7 @@ def _(boost_phi, exp, g0, g1, gm, mo, np, sandwich, scalar):
 
     _beta = np.tanh(_phi)
     _gamma = np.cosh(_phi)
-    _RR = scalar(_R * ~_R)
+    _RR = (_R * ~_R).scalar_part
 
     mo.vstack([
         gm.md(t"$\\varphi = {_phi:.2f}$"),
@@ -620,7 +619,7 @@ def _(mo):
 
 
 @app.cell
-def _(bg_alpha, bg_phi, exp, g0, g1, g2, gm, mo, sandwich, scalar, sta, unit):
+def _(bg_alpha, bg_phi, exp, g0, g1, g2, gm, mo, sandwich, sta, unit):
     _B = g0 * g1
     _S = sta.rotor(g1 ^ g2, degrees=bg_alpha.value)
     _B_rot = sandwich(_S, _B)
@@ -629,7 +628,7 @@ def _(bg_alpha, bg_phi, exp, g0, g1, g2, gm, mo, sandwich, scalar, sta, unit):
 
     _g0_boosted = sandwich(_R, g0)
 
-    _B_rot_sq = scalar(_B_rot * _B_rot)
+    _B_rot_sq = (_B_rot * _B_rot).scalar_part
     mo.vstack([
         gm.md(t"Original generator: {_B}"),
         gm.md(t"Rotated generator $B'$: {_B_rot}"),

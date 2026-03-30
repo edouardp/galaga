@@ -32,7 +32,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, reverse, dual, sandwich, scalar, norm2
+    from galaga import Algebra, grade, reverse, dual, sandwich, norm2
     from galaga.symbolic import sym, grade as sym_grade, simplify, norm, unit, inverse
     import galaga_marimo as gm
 
@@ -45,7 +45,6 @@ def _():
         np,
         plt,
         sandwich,
-        scalar,
         simplify,
         sym,
         sym_grade,
@@ -97,7 +96,7 @@ def _(gm):
 
 
 @app.cell
-def _(g0, g1, g2, g3, gm, scalar):
+def _(g0, g1, g2, g3, gm):
     _bivectors = [
         ("γ₀γ₁ (timelike)", g0 * g1),
         ("γ₀γ₂ (timelike)", g0 * g2),
@@ -106,7 +105,7 @@ def _(g0, g1, g2, g3, gm, scalar):
         ("γ₁γ₃ (spacelike)", g1 * g3),
         ("γ₂γ₃ (spacelike)", g2 * g3),
     ]
-    _lines = "\n".join(f"- {name}: square = **{scalar(b * b):+.0f}**" for name, b in _bivectors)
+    _lines = "\n".join(f"- {name}: square = **{(b * b).scalar_part:+.0f}**" for name, b in _bivectors)
     gm.md(t"{_lines:text}")
     return
 
@@ -175,7 +174,7 @@ def _(mo):
 
 
 @app.cell
-def _(boost_slider, g0, g1, gm, mo, np, sandwich, scalar, sta):
+def _(boost_slider, g0, g1, gm, mo, np, sandwich, sta):
     _phi = boost_slider.value
     _B = g0 * g1
     _R = sta.scalar(np.cosh(_phi / 2)) + np.sinh(_phi / 2) * _B
@@ -186,7 +185,7 @@ def _(boost_slider, g0, g1, gm, mo, np, sandwich, scalar, sta):
     _beta = np.tanh(_phi)
     _gamma = np.cosh(_phi)
 
-    _RR = scalar(_R * ~_R)
+    _RR = (_R * ~_R).scalar_part
     mo.vstack([
         gm.md(t"$\\varphi = {_phi:.2f}$"),
         gm.md(t"Rotor: {_R}"),
@@ -391,7 +390,7 @@ def _(gm):
 
 
 @app.cell
-def _(I, g0, g1, g3, gm, grade, mo, scalar):
+def _(I, g0, g1, g3, gm, grade, mo):
     # E in x-direction, B in z-direction
     # Relative vectors: σᵢ = γᵢγ₀
     _Ex = 2.0
@@ -402,8 +401,8 @@ def _(I, g0, g1, g3, gm, grade, mo, scalar):
     _F = _E + I * _B               # IB gives spacelike bivector
 
     _F2 = _F * _F
-    _scalar_inv = scalar(_F2)
-    _pseudo_inv = scalar(grade(_F2, 4) * ~I)  # pseudoscalar coefficient
+    _scalar_inv = (_F2).scalar_part
+    _pseudo_inv = (grade(_F2, 4) * ~I).scalar_part  # pseudoscalar coefficient
 
     _IB = I * _B
     mo.vstack([
@@ -439,7 +438,7 @@ def _(mo):
 
 
 @app.cell
-def _(I, em_boost_slider, g0, g1, g3, gm, mo, np, sandwich, scalar, sta):
+def _(I, em_boost_slider, g0, g1, g3, gm, mo, np, sandwich, sta):
     _phi = em_boost_slider.value
     _R = sta.scalar(np.cosh(_phi / 2)) + np.sinh(_phi / 2) * (g0 * g1)
 
@@ -450,8 +449,8 @@ def _(I, em_boost_slider, g0, g1, g3, gm, mo, np, sandwich, scalar, sta):
     # Boost
     _F_boosted = sandwich(_R, _F)
 
-    _F2_orig = scalar(_F * _F)
-    _F2_boosted = scalar(_F_boosted * _F_boosted)
+    _F2_orig = (_F * _F).scalar_part
+    _F2_boosted = (_F_boosted * _F_boosted).scalar_part
 
     _inv = np.allclose(_F2_orig, _F2_boosted)
     mo.vstack([
@@ -477,7 +476,7 @@ def _(gm):
 
 
 @app.cell
-def _(g0, g1, g2, g3, gm, scalar):
+def _(g0, g1, g2, g3, gm):
     _s1 = g1 * g0
     _s2 = g2 * g0
     _s3 = g3 * g0
@@ -485,13 +484,13 @@ def _(g0, g1, g2, g3, gm, scalar):
     _sigmas = [("σ₁", _s1), ("σ₂", _s2), ("σ₃", _s3)]
 
     # Squares
-    _squares = "\n".join(f"- ${n}^2 = $ {scalar(s * s):+.0f}" for n, s in _sigmas)
+    _squares = "\n".join(f"- ${n}^2 = $ {(s * s).scalar_part:+.0f}" for n, s in _sigmas)
 
     # Anticommutation
     _anticomm = "\n".join([
-        f"- σ₁σ₂ + σ₂σ₁ = {scalar(_s1 * _s2 + _s2 * _s1):.0f}",
-        f"- σ₁σ₃ + σ₃σ₁ = {scalar(_s1 * _s3 + _s3 * _s1):.0f}",
-        f"- σ₂σ₃ + σ₃σ₂ = {scalar(_s2 * _s3 + _s3 * _s2):.0f}",
+        f"- σ₁σ₂ + σ₂σ₁ = {(_s1 * _s2 + _s2 * _s1).scalar_part:.0f}",
+        f"- σ₁σ₃ + σ₃σ₁ = {(_s1 * _s3 + _s3 * _s1).scalar_part:.0f}",
+        f"- σ₂σ₃ + σ₃σ₂ = {(_s2 * _s3 + _s3 * _s2).scalar_part:.0f}",
     ])
 
     # σ₁σ₂σ₃ = I

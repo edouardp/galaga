@@ -166,7 +166,7 @@ grades(mv, [0, 2])  # 3 + e₁₂
 even_grades(mv)     # 3 + e₁₂  (grades 0, 2, ...)
 odd_grades(mv)      # 2e₁      (grades 1, 3, ...)
 
-scalar(mv)      # 3.0 (float)
+mv.scalar_part   # 3.0 (float)
 ```
 
 You can also use `grade()` directly:
@@ -674,7 +674,7 @@ Things you can build from the primitives — no extra functions needed.
 ### Angle Between Vectors
 
 ```python
-angle = np.arctan2(norm(a ^ b), scalar(a | b))
+angle = np.arctan2(norm(a ^ b), (a | b).scalar_part)
 ```
 
 Uses `atan2` for numerical stability (works even when vectors are nearly parallel or perpendicular). The wedge magnitude is `|a||b|sin θ`, the inner product is `|a||b|cos θ`.
@@ -683,7 +683,7 @@ Uses `atan2` for numerical stability (works even when vectors are nearly paralle
 
 ```python
 parallel      = np.isclose(norm(a ^ b), 0)    # wedge vanishes
-perpendicular = np.isclose(scalar(a | b), 0)  # inner product vanishes
+perpendicular = np.isclose((a | b).scalar_part, 0)  # inner product vanishes
 ```
 
 ### Compose Rotations
@@ -823,7 +823,6 @@ In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector 
 | `conjugate(x)` | Clifford conjugate `x̄` |
 | `grade(x, k)` | Grade-k projection |
 | `grades(x, ks)` | Multi-grade projection |
-| `scalar(x)` | Extract scalar coefficient |
 | `dual(x)` | Dual |
 | `undual(x)` | Undual |
 | `norm(x)` | `√\|x x̃\|` |

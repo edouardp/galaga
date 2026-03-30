@@ -25,7 +25,6 @@ from galaga import (
     reject,
     reverse,
     sandwich,
-    scalar,
     squared,
     undual,
     unit,
@@ -53,7 +52,7 @@ class TestCl0:
 
     def test_scalar_gp(self, cl0):
         """Geometric product of scalars is ordinary multiplication."""
-        assert np.isclose(scalar(gp(cl0.scalar(3), cl0.scalar(5))), 15.0)
+        assert np.isclose((gp(cl0.scalar(3), cl0.scalar(5))).scalar_part, 15.0)
 
     def test_scalar_reverse(self, cl0):
         """Reverse is identity on scalars."""
@@ -77,7 +76,7 @@ class TestCl0:
     def test_scalar_inverse(self, cl0):
         """s * s⁻¹ = 1 for nonzero scalars."""
         s = cl0.scalar(4)
-        assert np.isclose(scalar(gp(s, inverse(s))), 1.0)
+        assert np.isclose((gp(s, inverse(s))).scalar_part, 1.0)
 
     def test_scalar_dual(self, cl0):
         """Dual is identity in Cl(0) since I = 1."""
@@ -87,13 +86,13 @@ class TestCl0:
 
     def test_scalar_exp(self, cl0):
         """exp(1) = e for a scalar."""
-        assert np.isclose(scalar(exp(cl0.scalar(1))), np.e)
+        assert np.isclose((exp(cl0.scalar(1))).scalar_part, np.e)
 
     def test_even_odd_grades(self, cl0):
         """Scalars are purely even-grade."""
         s = cl0.scalar(5)
-        assert np.isclose(scalar(even_grades(s)), 5.0)
-        assert np.isclose(scalar(odd_grades(s)), 0.0)
+        assert np.isclose((even_grades(s)).scalar_part, 5.0)
+        assert np.isclose((odd_grades(s)).scalar_part, 0.0)
 
     def test_is_scalar(self, cl0):
         """is_scalar recognizes a scalar element."""
@@ -123,7 +122,7 @@ class TestCl1:
     def test_basis_vector_squares_to_one(self, cl1):
         """e1² = +1 in Cl(1)."""
         (e1,) = cl1.basis_vectors()
-        assert np.isclose(scalar(gp(e1, e1)), 1.0)
+        assert np.isclose((gp(e1, e1)).scalar_part, 1.0)
 
     def test_vector_norm(self, cl1):
         """Norm of αe1 is |α|."""
@@ -215,7 +214,7 @@ class TestCl2:
         """Unit bivector e12² = -1 in Euclidean Cl(2)."""
         e1, e2 = cl2.basis_vectors()
         B = op(e1, e2)
-        assert np.isclose(scalar(squared(B)), -1.0)
+        assert np.isclose((squared(B)).scalar_part, -1.0)
 
     def test_dual(self, cl2):
         """Dual of a vector in 2D is a vector."""
@@ -260,7 +259,7 @@ class TestCl01:
     def test_vector_squares_to_minus_one(self, cl01):
         """e1² = -1 in anti-Euclidean signature."""
         (e1,) = cl01.basis_vectors()
-        assert np.isclose(scalar(gp(e1, e1)), -1.0)
+        assert np.isclose((gp(e1, e1)).scalar_part, -1.0)
 
     def test_norm(self, cl01):
         """Norm uses |e1²| so norm(e1) = 1 despite negative signature."""
@@ -286,7 +285,7 @@ class TestCl001:
     def test_vector_squares_to_zero(self, cl001):
         """e1² = 0 in degenerate signature."""
         (e1,) = cl001.basis_vectors()
-        assert np.isclose(scalar(gp(e1, e1)), 0.0)
+        assert np.isclose((gp(e1, e1)).scalar_part, 0.0)
 
     def test_exp_null(self, cl001):
         """exp(e1) = 1 + e1 when e1² = 0 (series truncates)."""

@@ -29,7 +29,7 @@ def _():
     import numpy as np
     from galaga import (
         Algebra, gp, op, grade, reverse, dual, norm, unit,
-        inverse, exp, log, sandwich, scalar, squared,
+        inverse, exp, log, sandwich, squared,
     )
     from galaga.symbolic import simplify
     import galaga_marimo as gm

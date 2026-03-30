@@ -29,7 +29,7 @@ def _():
     import numpy as np
     from galaga import (
         Algebra, gp, op, grade, reverse, involute, conjugate,
-        dual, norm, unit, inverse, exp, log, sandwich, scalar,
+        dual, norm, unit, inverse, exp, log, sandwich,
         left_contraction, hestenes_inner, even_grades, odd_grades,
         squared
     )

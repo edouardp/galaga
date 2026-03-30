@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich, scalar
+    from galaga import Algebra, exp, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, sandwich, scalar
+    return Algebra, exp, gm, mo, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -59,13 +59,13 @@ def _(Algebra):
 
 
 @app.cell
-def _(g0, g1, g2, g3, gm, scalar):
+def _(g0, g1, g2, g3, gm):
     _basis_rows = [
         f"- {g0}: {g0 * g0} = {(g0 * g0).eval()}",
         f"- {g1}: {g1 * g1} = {(g1 * g1).eval()}",
         f"- {g2}: {g2 * g2} = {(g2 * g2).eval()}",
         f"- {g3}: {g3 * g3} = {(g3 * g3).eval()}",
-        f"- Boost generator {g0 * g1}: {(g0 * g1).eval()} with square {scalar((g0 * g1).eval() * (g0 * g1).eval()):+.0f}",
+        f"- Boost generator {g0 * g1}: {(g0 * g1).eval()} with square {((g0 * g1).eval() * (g0 * g1).eval()).scalar_part:+.0f}",
     ]
     gm.md(t"""
     ## Metric and Boost Generator

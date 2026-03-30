@@ -27,7 +27,6 @@ from galaga import (
     reverse,
     right_contraction,
     sandwich,
-    scalar,
     scalar_product,
     squared,
     sw,
@@ -210,7 +209,7 @@ class TestAlgebraProperties:
         pga = Algebra((1, 1, 1, 0))
         e1, e2, e3, e0 = pga.basis_vectors()
         # e0^2 = 0
-        assert np.isclose(scalar(e0 * e0), 0.0)
+        assert np.isclose((e0 * e0).scalar_part, 0.0)
 
     def test_blade_lookup_empty(self, cl3):
         """blade('') returns scalar 1."""

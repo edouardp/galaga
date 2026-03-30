@@ -1433,11 +1433,6 @@ def grades(x: Multivector, ks: list[int]) -> Multivector:
     return Multivector(alg, out)
 
 
-def scalar(x: Multivector) -> float:
-    """Extract the scalar (grade-0) coefficient."""
-    return float(x.data[0])
-
-
 def scalar_sqrt(x) -> Multivector:
     """Square root of a scalar multivector or number.
 
@@ -1555,7 +1550,7 @@ join = op
 
 def norm2(x: Multivector) -> float:
     """Squared norm: scalar part of x * ~x."""
-    return scalar(gp(x, reverse(x)))
+    return gp(x, reverse(x)).scalar_part
 
 
 def norm(x: Multivector):
@@ -1578,7 +1573,7 @@ def unit(x: Multivector) -> Multivector:
 
 @lazy_unary("Inverse")
 def inverse(x: Multivector) -> Multivector:
-    """Versor inverse: x⁻¹ = ~x / scalar(x * ~x).
+    """Versor inverse: x⁻¹ = ~x / (x * ~x).scalar_part.
 
     This works for versors (products of non-null vectors), which includes
     all rotors, vectors, and most objects you'd want to invert in practice.
@@ -1590,7 +1585,7 @@ def inverse(x: Multivector) -> Multivector:
     Raises ValueError if the multivector is not invertible (x * ~x ≈ 0).
     """
     x_rev = reverse(x)
-    denom = scalar(gp(x, x_rev))
+    denom = gp(x, x_rev).scalar_part
     if abs(denom) < 1e-15:
         raise ValueError("Multivector is not invertible")
     return x_rev / denom
@@ -1625,7 +1620,7 @@ def is_even(x: Multivector) -> bool:
 
 def is_rotor(x: Multivector) -> bool:
     """True if x is a rotor: even-graded and x * ~x ≈ 1."""
-    return is_even(x) and np.isclose(scalar(gp(x, reverse(x))), 1.0)
+    return is_even(x) and np.isclose(gp(x, reverse(x)).scalar_part, 1.0)
 
 
 def is_basis_blade(x: Multivector) -> bool:
@@ -1687,7 +1682,7 @@ def exp(B: Multivector) -> Multivector:
     manually computing cos(θ/2) and sin(θ/2). Note: ``alg.rotor(B, radians=θ)``
     computes ``exp(-θ/2 * B)`` for a unit bivector B.
     """
-    B2 = scalar(gp(B, B))
+    B2 = gp(B, B).scalar_part
     if abs(B2) < 1e-15:
         # Null bivector: exp(B) = 1 + B
         return B.algebra.scalar(1.0) + B
@@ -1713,7 +1708,7 @@ def log(R: Multivector) -> Multivector:
     """
     s = R.data[0]  # scalar part
     B = R - R.algebra.scalar(s)  # bivector part
-    B2 = scalar(gp(B, B))
+    B2 = gp(B, B).scalar_part
 
     if abs(B2) < 1e-15:
         # Pure scalar rotor: R ≈ ±1, log = 0

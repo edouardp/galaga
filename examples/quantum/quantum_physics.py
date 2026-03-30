@@ -33,7 +33,7 @@ def _():
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
     from galaga import (
-        Algebra, scalar, norm, grade, lie_bracket, squared,
+        Algebra, norm, grade, lie_bracket, squared,
         even_grades, exp, log, jordan_product, commutator, anticommutator
     )
     from galaga import symbolic as sym
@@ -52,7 +52,6 @@ def _():
         log,
         np,
         plt,
-        scalar,
         squared,
         sym,
     )
@@ -314,7 +313,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alg, e1, e3, meas_theta, np, plt, scalar):
+def _(alg, e1, e3, meas_theta, np, plt):
     _theta = np.radians(meas_theta.value)
     _psi = alg.rotor(e3 ^ e1, radians=_theta)
     _s = _psi * e3 * ~_psi
@@ -325,7 +324,7 @@ def _(alg, e1, e3, meas_theta, np, plt, scalar):
     for a in _angles:
         _R_n = alg.rotor(e3 ^ e1, radians=a)
         _n = _R_n * e3 * ~_R_n
-        _probs.append((1 + scalar(_n | _s)) / 2)
+        _probs.append((1 + (_n | _s).scalar_part) / 2)
 
     # Theoretical curve
     _theory = np.cos((_angles - _theta) / 2) ** 2
@@ -376,7 +375,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alg, e1, e3, gm, mo, np, plt, scalar, sg_slider):
+def _(alg, e1, e3, gm, mo, np, plt, sg_slider):
     _alpha = np.radians(sg_slider.value)
 
     # After first device: spin-up along z
@@ -388,14 +387,14 @@ def _(alg, e1, e3, gm, mo, np, plt, scalar, sg_slider):
     _n_alpha = _R_alpha * e3 * ~_R_alpha
 
     # P(pass second device)
-    _P_2 = (1 + scalar(_n_alpha | _s_1)) / 2
+    _P_2 = (1 + (_n_alpha | _s_1).scalar_part) / 2
 
     # After second device: spin aligned with n_alpha
     _psi_2 = alg.rotor(e3 ^ e1, radians=_alpha)
     _s_2 = _psi_2 * e3 * ~_psi_2
 
     # P(pass third device | passed second)
-    _P_3 = (1 + scalar(e3 | _s_2)) / 2
+    _P_3 = (1 + (e3 | _s_2).scalar_part) / 2
 
     _P_total = _P_2 * _P_3
 
@@ -521,7 +520,7 @@ def _(gm):
 
 
 @app.cell
-def _(alg, e1, e2, e3, gm, np, scalar):
+def _(alg, e1, e2, e3, gm, np):
     _B = e1 ^ e2
     _angles = [0, 90, 180, 270, 360, 450, 540, 630, 720]
 
@@ -530,7 +529,7 @@ def _(alg, e1, e2, e3, gm, np, scalar):
         _R = alg.rotor(_B, radians=np.radians(deg))
         _s = _R * e3 * ~_R
         _sz = _s.vector_part[2]
-        _sc = scalar(_R)
+        _sc = (_R).scalar_part
         _rows.append(
             f"| {deg:3d}° | {_sc:+.4f} | {_R.latex(wrap='$')} | {_sz:+.4f} |"
         )

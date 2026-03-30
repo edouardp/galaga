@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, scalar
+    from galaga import Algebra, exp
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, scalar
+    return Algebra, exp, gm, mo, np, plt
 
 
 @app.cell(hide_code=True)
@@ -76,12 +76,12 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(delta, e1, e2, exp, gm, np, scalar):
+def _(delta, e1, e2, exp, gm, np):
     _d = np.radians(delta.value)
     a = e1
     R = exp((-_d / 2) * (e1 * e2)).name(latex=f"\\R_{{{delta.value}°}}")
     b = R * e1 * ~R
-    singlet_corr = -scalar((a * b).eval())
+    singlet_corr = -((a * b).eval()).scalar_part
     same_prob = 0.5 * (1 - singlet_corr)
     diff_prob = 0.5 * (1 + singlet_corr)
 

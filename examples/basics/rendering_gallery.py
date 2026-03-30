@@ -30,7 +30,7 @@ def _():
     from galaga import (
         Algebra, gp, op, grade, reverse, involute, conjugate,
         dual, undual, norm, unit, inverse, exp, log,
-        sandwich, scalar, squared,
+        sandwich, squared,
         left_contraction, right_contraction,
         hestenes_inner, doran_lasenby_inner, scalar_product,
         commutator, anticommutator, lie_bracket, jordan_product,

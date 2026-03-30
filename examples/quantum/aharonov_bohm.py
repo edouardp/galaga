@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, scalar
+    from galaga import Algebra, exp
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, scalar
+    return Algebra, exp, gm, mo, np, plt
 
 
 @app.cell(hide_code=True)
@@ -57,13 +57,13 @@ def _(Algebra):
 
 
 @app.cell
-def _(I, gm, scalar):
+def _(I, gm):
     gm.md(t"""
     ## Internal Phase Rotor
 
     {I} = {I.eval()}
 
-    $I^2 = {scalar((I * I).eval()):+.0f}$
+    $I^2 = {((I * I).eval()).scalar_part:+.0f}$
 
     In STA the usual complex phase factor $e^{{i\\phi}}$ is replaced by an even
     multivector rotor $e^{{-I\\phi/2}}$.

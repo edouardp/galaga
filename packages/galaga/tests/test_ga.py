@@ -33,7 +33,6 @@ from galaga import (
     rev,
     reverse,
     right_contraction,
-    scalar,
     scalar_product,
     scalar_sqrt,
     undual,
@@ -103,7 +102,7 @@ class TestAlgebra:
         assert e12.data[3] == 1.0  # 0b011 = 3
 
     def test_scalar_constructor(self, cl3):
-        """scalar() creates a pure grade-0 multivector."""
+        """().scalar_part creates a pure grade-0 multivector."""
         s = cl3.scalar(5.0)
         assert s.data[0] == 5.0
         assert np.allclose(s.data[1:], 0)
@@ -319,14 +318,14 @@ class TestGeometricProduct:
         """In Cl(3,0), e_i^2 = +1."""
         for e in cl3.basis_vectors():
             r = gp(e, e)
-            assert np.isclose(scalar(r), 1.0)
+            assert np.isclose((r).scalar_part, 1.0)
 
     def test_basis_vector_squares_sta(self, sta):
         """In Cl(1,3), e0^2=+1, e1^2=e2^2=e3^2=-1."""
         vecs = sta.basis_vectors()
-        assert np.isclose(scalar(gp(vecs[0], vecs[0])), 1.0)
+        assert np.isclose((gp(vecs[0], vecs[0])).scalar_part, 1.0)
         for i in range(1, 4):
-            assert np.isclose(scalar(gp(vecs[i], vecs[i])), -1.0)
+            assert np.isclose((gp(vecs[i], vecs[i])).scalar_part, -1.0)
 
     def test_anticommutativity(self, cl3):
         """e_i * e_j = -e_j * e_i for i != j."""
@@ -354,7 +353,7 @@ class TestGeometricProduct:
     def test_pseudoscalar_square_cl3(self, cl3):
         """I^2 = -1 in Cl(3,0)."""
         I = cl3.pseudoscalar()
-        assert np.isclose(scalar(gp(I, I)), -1.0)
+        assert np.isclose((gp(I, I)).scalar_part, -1.0)
 
     def test_operator_star(self, cl3):
         """* operator maps to gp()."""
@@ -400,10 +399,10 @@ class TestContractions:
         e1, e2, _ = cl3.basis_vectors()
         # e1 ⌋ e1 = 1 (dot product)
         r = left_contraction(e1, e1)
-        assert np.isclose(scalar(r), 1.0)
+        assert np.isclose((r).scalar_part, 1.0)
         # e1 ⌋ e2 = 0
         r = left_contraction(e1, e2)
-        assert np.isclose(scalar(r), 0.0)
+        assert np.isclose((r).scalar_part, 0.0)
 
     def test_right_contraction(self, cl3):
         """e12⌊e2 = e1."""
@@ -416,8 +415,8 @@ class TestContractions:
     def test_hestenes_inner_vectors(self, cl3):
         """Hestenes inner on vectors matches dot product."""
         e1, e2, _ = cl3.basis_vectors()
-        assert np.isclose(scalar(hestenes_inner(e1, e1)), 1.0)
-        assert np.isclose(scalar(hestenes_inner(e1, e2)), 0.0)
+        assert np.isclose((hestenes_inner(e1, e1)).scalar_part, 1.0)
+        assert np.isclose((hestenes_inner(e1, e2)).scalar_part, 0.0)
 
     def test_hestenes_inner_scalar_gives_zero(self, cl3):
         """Hestenes kills scalar operands."""
@@ -429,8 +428,8 @@ class TestContractions:
     def test_doran_lasenby_inner_vectors(self, cl3):
         """DL inner on vectors matches dot product."""
         e1, e2, _ = cl3.basis_vectors()
-        assert np.isclose(scalar(doran_lasenby_inner(e1, e1)), 1.0)
-        assert np.isclose(scalar(doran_lasenby_inner(e1, e2)), 0.0)
+        assert np.isclose((doran_lasenby_inner(e1, e1)).scalar_part, 1.0)
+        assert np.isclose((doran_lasenby_inner(e1, e2)).scalar_part, 0.0)
 
     def test_doran_lasenby_inner_scalar_includes(self, cl3):
         """Unlike Hestenes, Doran–Lasenby does NOT kill scalars."""
@@ -446,8 +445,8 @@ class TestContractions:
     def test_scalar_product(self, cl3):
         """Scalar product of orthonormal vectors."""
         e1, e2, _ = cl3.basis_vectors()
-        assert np.isclose(scalar(scalar_product(e1, e1)), 1.0)
-        assert np.isclose(scalar(scalar_product(e1, e2)), 0.0)
+        assert np.isclose((scalar_product(e1, e1)).scalar_part, 1.0)
+        assert np.isclose((scalar_product(e1, e2)).scalar_part, 0.0)
 
     def test_operator_pipe(self, cl3):
         """| operator maps to doran_lasenby_inner()."""
@@ -507,7 +506,7 @@ class TestContractions:
         e13 = e1 ^ e3
         # e12 ⌋ e12 = -1 (scalar)
         r = left_contraction(e12, e12)
-        assert np.isclose(scalar(r), -1.0)
+        assert np.isclose((r).scalar_part, -1.0)
         # e12 ⌋ e13 = 0 (gp gives grade-2, not grade-0)
         r = left_contraction(e12, e13)
         assert np.allclose(r.data, 0)
@@ -517,7 +516,7 @@ class TestContractions:
         e1, e2, e3 = cl3.basis_vectors()
         e12 = e1 ^ e2
         r = hestenes_inner(e12, e12)
-        assert np.isclose(scalar(r), -1.0)
+        assert np.isclose((r).scalar_part, -1.0)
 
     def test_left_contraction_vector_on_trivector(self, cl3):
         """Vector ⌋ trivector → bivector (grade 3-1=2)."""
@@ -621,9 +620,9 @@ class TestGradeOps:
         assert r == 3 + (e1 ^ e2)
 
     def test_scalar_extraction(self, cl3):
-        """scalar() extracts grade-0 as float."""
+        """.scalar_part extracts grade-0 as float."""
         mv = cl3.scalar(7.0)
-        assert scalar(mv) == 7.0
+        assert mv.scalar_part == 7.0
 
 
 class TestDualNormInverse:
@@ -705,7 +704,7 @@ class TestGoldenCl2:
         e1, e2 = alg.basis_vectors()
         e12 = e1 * e2
         # e12^2 = -1 (acts like imaginary unit)
-        assert np.isclose(scalar(e12 * e12), -1.0)
+        assert np.isclose((e12 * e12).scalar_part, -1.0)
 
 
 class TestGoldenCl3:
@@ -737,14 +736,14 @@ class TestGoldenSTA:
         """γ0²=+1 (timelike), γ1²=-1 (spacelike)."""
         vecs = sta.basis_vectors()
         # gamma_0^2 = +1
-        assert np.isclose(scalar(vecs[0] * vecs[0]), 1.0)
+        assert np.isclose((vecs[0] * vecs[0]).scalar_part, 1.0)
         # gamma_1^2 = -1
-        assert np.isclose(scalar(vecs[1] * vecs[1]), -1.0)
+        assert np.isclose((vecs[1] * vecs[1]).scalar_part, -1.0)
 
     def test_pseudoscalar_square(self, sta):
         """I^2 = -1 in Cl(1,3) with standard blade ordering."""
         I = sta.pseudoscalar()
-        assert np.isclose(scalar(I * I), -1.0)
+        assert np.isclose((I * I).scalar_part, -1.0)
 
 
 class TestExpLog:
@@ -753,7 +752,7 @@ class TestExpLog:
         e1, e2, _ = cl3.basis_vectors()
         B = (np.pi / 4) * (e1 ^ e2)
         R = exp(B)
-        assert np.isclose(scalar(R * ~R), 1.0)
+        assert np.isclose((R * ~R).scalar_part, 1.0)
 
     def test_exp_matches_rotor(self, cl3):
         """exp(-θ/2 B) matches rotor(B, θ)."""
@@ -778,7 +777,7 @@ class TestExpLog:
         g0, g1, _, _ = sta.basis_vectors()
         B = 0.5 * (g0 * g1)  # timelike bivector, B² > 0
         R = exp(B)
-        assert np.isclose(scalar(R * ~R), 1.0)
+        assert np.isclose((R * ~R).scalar_part, 1.0)
 
     def test_log_roundtrip(self, cl3):
         """log(exp(B)) = B."""
@@ -872,22 +871,22 @@ class TestScalarSqrt:
     def test_perfect_square(self):
         """sqrt(9) = 3."""
         alg = Algebra((1, 1, 1))
-        assert np.isclose(scalar(scalar_sqrt(alg.scalar(9.0))), 3.0)
+        assert np.isclose((scalar_sqrt(alg.scalar(9.0))).scalar_part, 3.0)
 
     def test_non_perfect(self):
         """sqrt(2) ≈ 1.414."""
         alg = Algebra((1, 1, 1))
-        assert np.isclose(scalar(scalar_sqrt(alg.scalar(2.0))), np.sqrt(2.0))
+        assert np.isclose((scalar_sqrt(alg.scalar(2.0))).scalar_part, np.sqrt(2.0))
 
     def test_zero(self):
         """sqrt(0) = 0."""
         alg = Algebra((1, 1, 1))
-        assert np.isclose(scalar(scalar_sqrt(alg.scalar(0.0))), 0.0)
+        assert np.isclose((scalar_sqrt(alg.scalar(0.0))).scalar_part, 0.0)
 
     def test_one(self):
         """sqrt(1) = 1."""
         alg = Algebra((1, 1, 1))
-        assert np.isclose(scalar(scalar_sqrt(alg.scalar(1.0))), 1.0)
+        assert np.isclose((scalar_sqrt(alg.scalar(1.0))).scalar_part, 1.0)
 
     def test_rejects_vector(self):
         """Non-scalar input raises ValueError."""
@@ -912,7 +911,7 @@ class TestScalarSqrt:
         """scalar_sqrt(v*v) recovers norm for a vector."""
         alg = Algebra((1, 1, 1))
         v = alg.vector([3, 4, 0])
-        assert np.isclose(scalar(scalar_sqrt(alg.scalar(norm2(v)))), norm(v))
+        assert np.isclose((scalar_sqrt(alg.scalar(norm2(v)))).scalar_part, norm(v))
 
     def test_accepts_float(self):
         """scalar_sqrt(9.0) returns 3.0."""
@@ -963,7 +962,7 @@ class TestScalarSqrtSymbolic:
         p = alg.scalar(4.0).name("p")
         E = scalar_sqrt(m**2 + p**2)
         assert r"\sqrt" in E.latex()
-        assert np.isclose(scalar(E.eval()), 5.0)
+        assert np.isclose((E.eval()).scalar_part, 5.0)
 
     def test_display_dedup(self):
         """display() shows name = expr = value without duplicates."""

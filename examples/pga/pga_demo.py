@@ -32,10 +32,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, scalar, grade, exp, log, reverse, norm
+    from galaga import Algebra, grade, exp, log, reverse, norm
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, grade, log, norm, np, plt, reverse, scalar
+    return Algebra, exp, gm, grade, log, norm, np, plt, reverse
 
 
 @app.cell(hide_code=True)
@@ -58,13 +58,13 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, gm, scalar):
+def _(Algebra, gm):
     alg = Algebra((1, 1, 1, 0), repr_unicode=True)
     e1, e2, e3, e0 = alg.basis_vectors()
 
     gm.md(t"""**Basis vectors:**
-- $e_1^2 = {scalar(e1*e1):text}$, $e_2^2 = {scalar(e2*e2):text}$, $e_3^2 = {scalar(e3*e3):text}$ (Euclidean)
-- $e_0^2 = {scalar(e0*e0):text}$ (degenerate — this is what makes PGA projective)""")
+- $e_1^2 = {(e1*e1).scalar_part:text}$, $e_2^2 = {(e2*e2).scalar_part:text}$, $e_3^2 = {(e3*e3).scalar_part:text}$ (Euclidean)
+- $e_0^2 = {(e0*e0).scalar_part:text}$ (degenerate — this is what makes PGA projective)""")
     return alg, e0, e1, e2, e3
 
 
