@@ -34,6 +34,30 @@ from galaga import (
     undual,
     unit,
 )
+from galaga import conjugate as sconjugate
+from galaga import dual as sdual
+from galaga import even_grades as seven
+from galaga import even_grades as seven_grades
+from galaga import gp as sgp
+from galaga import grade as sgrade
+from galaga import hestenes_inner as shi
+from galaga import inverse as sinverse
+from galaga import involute as sinvolute
+from galaga import ip as sip
+from galaga import left_contraction as slc
+from galaga import norm as snorm
+from galaga import normalise as snormalise
+from galaga import normalize as snormalize
+from galaga import odd_grades as sodd
+from galaga import odd_grades as sodd_grades
+from galaga import op as sop
+from galaga import right_contraction as src
+from galaga import sandwich as ssandwich
+from galaga import scalar_product as ssp
+from galaga import squared as ssq
+from galaga import sw as ssw_alias
+from galaga import undual as sundual
+from galaga import unit as sunit
 from galaga.symbolic import (
     Conjugate,
     Dual,
@@ -47,78 +71,6 @@ from galaga.symbolic import (
     Unit,
     simplify,
     sym,
-)
-from galaga.symbolic import (
-    conjugate as sconjugate,
-)
-from galaga.symbolic import (
-    dual as sdual,
-)
-from galaga.symbolic import (
-    even_grades as seven,
-)
-from galaga.symbolic import (
-    even_grades as seven_grades,
-)
-from galaga.symbolic import (
-    gp as sgp,
-)
-from galaga.symbolic import (
-    grade as sgrade,
-)
-from galaga.symbolic import (
-    hestenes_inner as shi,
-)
-from galaga.symbolic import (
-    inverse as sinverse,
-)
-from galaga.symbolic import (
-    involute as sinvolute,
-)
-from galaga.symbolic import (
-    ip as sip,
-)
-from galaga.symbolic import (
-    left_contraction as slc,
-)
-from galaga.symbolic import (
-    norm as snorm,
-)
-from galaga.symbolic import (
-    normalise as snormalise,
-)
-from galaga.symbolic import (
-    normalize as snormalize,
-)
-from galaga.symbolic import (
-    odd_grades as sodd,
-)
-from galaga.symbolic import (
-    odd_grades as sodd_grades,
-)
-from galaga.symbolic import (
-    op as sop,
-)
-from galaga.symbolic import (
-    right_contraction as src,
-)
-from galaga.symbolic import (
-    sandwich as ssandwich,
-)
-from galaga.symbolic import (
-    scalar_product as ssp,
-)
-from galaga.symbolic import (
-    squared as ssq,
-)
-from galaga.symbolic import (
-    sw as ssw_alias,
-)
-from galaga.symbolic import (
-    undual as sundual,
-)
-from galaga.symbolic import (
-    unit as sunit,
 )
 
 
@@ -621,16 +573,15 @@ class TestSymbolicMixedInputs:
         """gp(MV, Expr) coerces correctly."""
         e1, e2, _ = cl3.basis_vectors()
         R = sym(e1 * e2, "R")
-        # Multivector * Expr should work
         result = sgp(e1, R)
-        assert isinstance(result, Expr)
+        assert result._is_lazy
 
     def test_op_mv_and_expr(self, cl3):
         """op(MV, Expr) coerces correctly."""
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         result = sop(e2, a)
-        assert isinstance(result, Expr)
+        assert result._is_lazy
 
 
 class TestScalarExpr:
@@ -986,7 +937,7 @@ class TestEvenOddGradesRenamed:
 class TestSymbolicGradeEvenOdd:
     def test_sym_grade_even(self, cl3):
         """Symbolic grade('even') builds Even node."""
-        from galaga.symbolic import grade as sgrade
+        from galaga import grade as sgrade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -994,7 +945,7 @@ class TestSymbolicGradeEvenOdd:
 
     def test_sym_grade_odd(self, cl3):
         """Symbolic grade('odd') builds Odd node."""
-        from galaga.symbolic import grade as sgrade
+        from galaga import grade as sgrade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -1031,7 +982,7 @@ class TestLatex:
     def test_sandwich_grade(self, cl3):
         """Grade of sandwich renders correctly."""
         e1, e2, _ = cl3.basis_vectors()
-        from galaga.symbolic import grade as sgrade
+        from galaga import grade as sgrade
 
         R = sym(e1 * e2, "R")
         v = sym(e1, "v")
@@ -1676,8 +1627,8 @@ class TestCoverageGaps:
     # symbolic.py: simplify even/odd with known grade (line 819)
     def test_simplify_odd_known_grade(self, cl3):
         """Odd of known even-grade simplifies to 0."""
-        from galaga.symbolic import even_grades as seven
-        from galaga.symbolic import odd_grades as sodd
+        from galaga import even_grades as seven
+        from galaga import odd_grades as sodd
 
         e1, e2, _ = cl3.basis_vectors()
         v = sym(e1, "v")  # grade 1 (odd)
@@ -1700,7 +1651,7 @@ class TestCoverageGaps:
     # symbolic.py: norm() passthrough for Multivector (line 938)
     def test_norm_passthrough(self, cl3):
         """norm() on eager MV returns float."""
-        from galaga.symbolic import norm as snorm
+        from galaga import norm as snorm
 
         e1, e2, _ = cl3.basis_vectors()
         v = 3 * e1 + 4 * e2
@@ -1709,7 +1660,7 @@ class TestCoverageGaps:
     # symbolic.py: sandwich() passthrough for Multivector (line 985)
     def test_sandwich_passthrough(self, cl3):
         """sandwich() on eager MVs returns MV."""
-        from galaga.symbolic import sandwich as ssandwich
+        from galaga import sandwich as ssandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)

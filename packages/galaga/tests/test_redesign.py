@@ -578,7 +578,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_reverse_lazy_mv(self, cl3):
         """reverse(lazy_mv) stays lazy."""
-        from galaga.symbolic import reverse
+        from galaga import reverse
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -587,7 +587,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_grade_lazy_mv(self, cl3):
         """grade(lazy_mv, k) stays lazy."""
-        from galaga.symbolic import grade
+        from galaga import grade
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -596,7 +596,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_sandwich_lazy_mv(self, cl3):
         """sandwich(lazy, lazy) stays lazy."""
-        from galaga.symbolic import sandwich
+        from galaga import sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -606,7 +606,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_ip_lazy_mv(self, cl3):
         """ip(lazy, lazy) stays lazy."""
-        from galaga.symbolic import ip
+        from galaga import ip
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -615,7 +615,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_squared_lazy_mv(self, cl3):
         """squared(lazy) stays lazy."""
-        from galaga.symbolic import squared
+        from galaga import squared
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -836,7 +836,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_involute_lazy(self, cl3):
         """involute(lazy) returns lazy."""
-        from galaga.symbolic import involute
+        from galaga import involute
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -845,7 +845,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_conjugate_lazy(self, cl3):
         """conjugate(lazy) returns lazy."""
-        from galaga.symbolic import conjugate
+        from galaga import conjugate
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -854,7 +854,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_dual_lazy(self, cl3):
         """dual(lazy) returns lazy."""
-        from galaga.symbolic import dual
+        from galaga import dual
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -863,7 +863,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_undual_lazy(self, cl3):
         """undual(lazy) returns lazy."""
-        from galaga.symbolic import undual
+        from galaga import undual
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -872,7 +872,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_norm_lazy(self, cl3):
         """norm(lazy) returns lazy."""
-        from galaga.symbolic import norm
+        from galaga import norm
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -881,7 +881,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_unit_lazy(self, cl3):
         """unit(lazy) returns lazy."""
-        from galaga.symbolic import unit
+        from galaga import unit
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -890,7 +890,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_inverse_lazy(self, cl3):
         """inverse(lazy) returns lazy."""
-        from galaga.symbolic import inverse
+        from galaga import inverse
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -899,7 +899,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_left_contraction_lazy(self, cl3):
         """left_contraction(lazy, lazy) returns lazy."""
-        from galaga.symbolic import left_contraction
+        from galaga import left_contraction
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -908,7 +908,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_right_contraction_lazy(self, cl3):
         """right_contraction(lazy, lazy) returns lazy."""
-        from galaga.symbolic import right_contraction
+        from galaga import right_contraction
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -917,7 +917,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_hestenes_inner_lazy(self, cl3):
         """hestenes_inner(lazy, lazy) returns lazy."""
-        from galaga.symbolic import hestenes_inner
+        from galaga import hestenes_inner
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -926,7 +926,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_doran_lasenby_inner_lazy(self, cl3):
         """doran_lasenby_inner(lazy, lazy) returns lazy."""
-        from galaga.symbolic import doran_lasenby_inner
+        from galaga import doran_lasenby_inner
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -935,7 +935,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_scalar_product_lazy(self, cl3):
         """scalar_product(lazy, lazy) returns lazy."""
-        from galaga.symbolic import scalar_product
+        from galaga import scalar_product
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -944,7 +944,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_commutator_lazy(self, cl3):
         """commutator(lazy, lazy) returns lazy."""
-        from galaga.symbolic import commutator
+        from galaga import commutator
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -953,7 +953,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_anticommutator_lazy(self, cl3):
         """anticommutator(lazy, lazy) returns lazy."""
-        from galaga.symbolic import anticommutator
+        from galaga import anticommutator
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -962,7 +962,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_lie_bracket_lazy(self, cl3):
         """lie_bracket(lazy, lazy) returns lazy."""
-        from galaga.symbolic import lie_bracket
+        from galaga import lie_bracket
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -971,7 +971,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_jordan_product_lazy(self, cl3):
         """jordan_product(lazy, lazy) returns lazy."""
-        from galaga.symbolic import jordan_product
+        from galaga import jordan_product
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -980,7 +980,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_even_grades_lazy(self, cl3):
         """even_grades(lazy) returns lazy."""
-        from galaga.symbolic import even_grades
+        from galaga import even_grades
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -989,7 +989,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_odd_grades_lazy(self, cl3):
         """odd_grades(lazy) returns lazy."""
-        from galaga.symbolic import odd_grades
+        from galaga import odd_grades
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -998,7 +998,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_ip_modes_lazy(self, cl3):
         """ip() with all modes returns lazy."""
-        from galaga.symbolic import ip
+        from galaga import ip
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
