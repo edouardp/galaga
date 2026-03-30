@@ -467,7 +467,7 @@ class TestFunctionalPreset:
     def test_gp_latex(self, ab):
         """\\operatorname{geometric_product}(a, b) in LaTeX."""
         a, b = ab
-        assert r"\operatorname{geometric_product}" in (a * b).latex()
+        assert r"\operatorname{geometric\_product}" in (a * b).latex()
 
     def test_op_unicode(self, ab):
         """outer_product(a, b) in unicode."""
@@ -477,7 +477,7 @@ class TestFunctionalPreset:
     def test_op_latex(self, ab):
         """\\operatorname{outer_product}(a, b) in LaTeX."""
         a, b = ab
-        assert r"\operatorname{outer_product}" in (a ^ b).latex()
+        assert r"\operatorname{outer\_product}" in (a ^ b).latex()
 
     def test_dli_unicode(self, ab):
         """doran_lasenby_inner(a, b) in unicode."""
@@ -618,11 +618,8 @@ class TestFunctionalPreset:
         assert str(scalar_sqrt(s)) == "scalar_sqrt(s)"
 
     def test_scalar_sqrt_latex(self, s):
-        """\\operatorname{scalar_sqrt}(s) in LaTeX."""
-        assert (
-            scalar_sqrt(s).latex() == r"\operatorname{scalar\_sqrt}(s)"
-            or scalar_sqrt(s).latex() == r"\operatorname{scalar_sqrt}(s)"
-        )
+        """scalar_sqrt in LaTeX operatorname."""
+        assert scalar_sqrt(s).latex() == r"\operatorname{scalar\_sqrt}(s)"
 
     def test_grade_unicode(self, ab):
         """grade(geometric_product(a, b), 1) in unicode."""

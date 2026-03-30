@@ -115,10 +115,12 @@ def _build(node: Expr, n: Notation) -> LNode:
 
     # Function call — generic for all node types
     if rule.kind == "function":
+        escaped = rule.symbol.replace("_", r"\_")
+        op_text = rf"\operatorname{{{escaped}}}"
         if hasattr(node, "a"):
             return Seq(
                 [
-                    Text(rf"\operatorname{{{rule.symbol}}}("),
+                    Text(f"{op_text}("),
                     _build(node.a, n),
                     Text(r",\, "),
                     _build(node.b, n),
@@ -128,14 +130,14 @@ def _build(node: Expr, n: Notation) -> LNode:
         if t is Grade:
             return Seq(
                 [
-                    Text(rf"\operatorname{{{rule.symbol}}}("),
+                    Text(f"{op_text}("),
                     _build(node.x, n),
                     Text(f",\\, {node.k})"),
                 ]
             )
         return Seq(
             [
-                Text(rf"\operatorname{{{rule.symbol}}}("),
+                Text(f"{op_text}("),
                 _build(node.x, n),
                 Text(")"),
             ]
