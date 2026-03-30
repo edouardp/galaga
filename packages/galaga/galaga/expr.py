@@ -305,3 +305,26 @@ def _ensure_expr(x) -> Expr:
     if isinstance(x, (int, float)):
         return Scalar(x)
     raise TypeError(f"Cannot convert {type(x)} to Expr")
+
+
+# ── Helpers ──
+
+
+def _is_symbolic(x) -> bool:
+    """True if x is a lazy Multivector (has an expression tree)."""
+    return isinstance(x, _alg.Multivector) and x._is_lazy
+
+
+def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None) -> _alg.Multivector:
+    """Create a named symbolic copy of a multivector.
+
+    Returns a new Multivector that is a copy of mv, with .name(name) applied.
+    If no name is given, the copy is made lazy (symbolic but anonymous).
+    Non-mutating: the original mv is not modified.
+    """
+    copy = _alg.Multivector(mv.algebra, mv.data)
+    if name is not None:
+        copy.name(name)
+    else:
+        copy.lazy()
+    return copy

@@ -119,11 +119,15 @@ from galaga.algebra import (
     wedge,
 )
 from galaga.basis_blade import BasisBlade
+from galaga.expr import sym
+from galaga.simplify import simplify
 
 __all__ = [
     "Algebra",
     "BasisBlade",
     "Multivector",
+    "simplify",
+    "sym",
     "gp",
     "op",
     "left_contraction",
