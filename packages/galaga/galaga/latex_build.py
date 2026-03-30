@@ -180,10 +180,15 @@ def _build(node: Expr, n: Notation) -> LNode:
     if rule.kind == "postfix" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 96)
         # If the postfix symbol starts with ^ (superscript) and the child
-        # already rendered as a Sup, wrap in braces to avoid double-superscript:
-        # {e^{x}}^{\dagger} not e^{x}^{\dagger}
-        if rule.symbol.startswith("^") and isinstance(inner, Sup):
-            inner = Seq([Text("{"), inner, Text("}")])
+        # already has a top-level superscript, wrap in braces to avoid
+        # double-superscript: {B^\star}^{*^{-1}} not B^\star^{*^{-1}}
+        # But don't wrap if the ^ is inside \left(...\right) parens.
+        if rule.symbol.startswith("^") and not isinstance(inner, Parens):
+            from galaga.latex_emit import emit
+
+            rendered = emit(inner)
+            if isinstance(inner, Sup) or ("^" in rendered and not rendered.endswith(r"\right)")):
+                inner = Seq([Text("{"), inner, Text("}")])
         return Seq([inner, Text(rule.symbol)])
 
     # Superscript: symbol goes in ^{...}, auto-braced. The user writes

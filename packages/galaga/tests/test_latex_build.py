@@ -497,3 +497,28 @@ class TestAccentWidth:
         """Conjugate multi-char uses \\overline."""
         ab = _sym("AB")
         assert _latex(Conjugate(ab)) == r"\overline{AB}"
+
+
+class TestPostfixOnSuperscriptName:
+    """Postfix ^ on a Sym whose latex name contains ^ must brace-wrap."""
+
+    def test_undual_of_named_dual(self):
+        """undual(B^\\star) brace-wraps: {B^\\star}^{*^{-1}}."""
+        from galaga.expr import Sym, Undual
+
+        _alg2 = Algebra((1, 1, 1))
+        _b = _alg2.basis_vectors()[0]
+        b_star = Sym(_b, "B*", name_latex=r"B^\star")
+        result = _latex(Undual(b_star))
+        assert result == r"{B^\star}^{*^{-1}}"
+
+    def test_inverse_of_named_superscript(self):
+        """inverse(x^2) brace-wraps: {x^2}^{-1}."""
+        x_sq = _sym("x²", latex="x^2")
+        result = _latex(Inverse(x_sq))
+        assert result == r"{x^2}^{-1}"
+
+    def test_postfix_on_plain_name_no_braces(self):
+        """dual(a) has no extra braces: a^*."""
+        result = _latex(Dual(a))
+        assert result == "a^*"
