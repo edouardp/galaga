@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.4.2 (2026-03-31)
+
+### Added
+
+- `unit_fraction` notation kind — renders `unit(x)` as `x/‖x‖` (unicode)
+  or `\frac{x}{\lVert x \rVert}` (LaTeX). Opt-in via notation override.
+- `Sym.is_compound` and `Sym.has_superscript` properties for structural
+  rendering decisions, replacing string-scanning heuristics.
+
+### Fixed
+
+- Postfix operations on compound-named Syms now wrap correctly:
+  `dual(a ∧ b)` renders as `(a ∧ b)⋆` not `a ∧ b⋆`.
+- LaTeX double-superscript on named Syms: `undual(B^\star)` renders as
+  `{B^\star}^{*^{-1}}` not `B^\star^{*^{-1}}`.
+
 ## 0.4.1 (2026-03-30)
 
 ### Added
