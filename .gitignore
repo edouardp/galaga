@@ -11,4 +11,7 @@ wheels/
 .coverage
 .DS_Store
 __marimo__/
-packages/galaga/ga/.*.swp
+# Vim
+*.swp
+*.swo
+*~
