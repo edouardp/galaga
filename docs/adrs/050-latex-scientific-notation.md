@@ -4,7 +4,7 @@ date: 2026-04-03
 deciders: edouard
 ---
 
-# ADR-050: LaTeX Scientific Notation via Regex Rewrite
+# ADR-050: LaTeX Scientific Notation via Notation Setting
 
 ## Context and Problem Statement
 
@@ -14,32 +14,36 @@ making it look like subtraction rather than an exponent.
 
 ## Decision Outcome
 
-Apply a regex substitution (`_latex_coeff`) to coefficient strings in the
-LaTeX rendering path, converting `1.2e-06` to `1.2 \times 10^{-6}`.
+Add a `scientific` property to `Notation` that controls how scientific
+notation is rendered in LaTeX. Three styles:
 
-### Why Regex (Tactical)
+| Style | Output | Usage |
+|---|---|---|
+| `"times"` (default) | `1.2 \times 10^{-6}` | Standard LaTeX |
+| `"cdot"` | `1.2 \cdot 10^{-6}` | Alternative convention |
+| `"raw"` | `1.2e-06` | No conversion (for debugging) |
 
-The proper solution would be to produce structured LNodes (`Seq`, `Sup`,
-`Text`) for scientific notation, so the three-phase render pipeline handles
-it like any other expression. However, coefficient rendering currently
-bypasses the LNode pipeline entirely — it's string concatenation in
-`Multivector.latex()`. Moving it into the pipeline is a larger refactor.
+```python
+alg.notation.scientific = "cdot"  # switch style
+```
 
-The regex is a bridge: it runs after `format()` produces the string but
-before it's assembled into the final LaTeX. It handles all standard Python
-scientific notation formats (`e`, `E`, `+`, `-`).
+### Implementation
+
+A regex substitution (`_latex_coeff`) runs on formatted coefficient strings,
+driven by the algebra's notation setting. This is a string-level transform,
+not an LNode pipeline operation.
 
 ### Future Improvement
 
-Move coefficient rendering into the LNode pipeline:
-1. A concrete MV's coefficients would produce `Seq([Text("1.2"), Text(r" \times "), Sup(Text("10"), Text("-6"))])` instead of `Text("1.2e-06")`
-2. The existing emit/rewrite passes handle it from there
-3. The regex becomes unnecessary
+Move coefficient rendering into the LNode pipeline so scientific notation
+produces structured nodes (`Seq`, `Sup`, `Text`) instead of formatted strings.
+This would eliminate the regex and let the rewrite pass handle context-dependent
+transforms (e.g. different rendering in superscripts vs normal context).
 
 ### Consequences
 
-- Good, because `1.2 \times 10^{-6}` renders correctly in all LaTeX contexts
-- Good, because it handles both default `:g` and explicit `coeff_format` paths
+- Good, because scientific notation renders correctly in LaTeX by default
+- Good, because the style is configurable per-algebra via Notation
+- Good, because `"raw"` mode available for debugging
 - Neutral, because the regex is simple and well-tested
-- Bad, because it's a string-level hack outside the render tree architecture
-- Acceptable, because the scope is narrow and the future path is documented
+- Bad, because it's a string-level transform outside the render tree

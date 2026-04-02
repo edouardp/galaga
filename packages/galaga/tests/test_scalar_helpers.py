@@ -143,3 +143,47 @@ class TestScalarConstants:
         """pi/2 renders symbolically."""
         half_pi = alg.pi / alg.scalar(2).name("2")
         assert r"\pi" in half_pi.latex()
+
+
+class TestScientificNotationStyle:
+    """Notation.scientific controls LaTeX scientific notation rendering."""
+
+    def test_default_is_times(self, alg):
+        """Default style is 'times'."""
+        assert alg.notation.scientific == "times"
+
+    def test_times_style(self, alg):
+        """'times' renders as \\times."""
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert r"\times 10^{-6}" in result
+
+    def test_cdot_style(self, alg):
+        """'cdot' renders as \\cdot."""
+        alg.notation.scientific = "cdot"
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert r"\cdot 10^{-6}" in result
+
+    def test_raw_style(self, alg):
+        """'raw' passes through Python notation."""
+        alg.notation.scientific = "raw"
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert "e-06" in result
+
+    def test_invalid_style_raises(self, alg):
+        """Unknown style raises ValueError."""
+        with pytest.raises(ValueError):
+            alg.notation.scientific = "invalid"
+
+    def test_non_scientific_unaffected(self, alg):
+        """Normal coefficients are not affected."""
+        e1, _, _ = alg.basis_vectors()
+        assert (0.5 * e1).latex() == "0.5 e_{1}"
+
+    def test_coeff_format_respects_style(self, alg):
+        """coeff_format also uses the notation style."""
+        mv = alg.scalar(1.2e-6)
+        result = mv.latex(coeff_format=".3e")
+        assert r"\times 10^{-6}" in result

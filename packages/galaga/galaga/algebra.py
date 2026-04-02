@@ -512,19 +512,29 @@ class Algebra:
 import re as _re
 
 
-def _latex_coeff(s: str) -> str:
+def _latex_coeff(s: str, notation=None) -> str:
     """Convert a formatted coefficient string to LaTeX-safe form.
 
-    Replaces scientific notation like '1.2e-06' with '1.2 \\times 10^{-6}'.
+    Uses the notation's scientific style setting:
+    - 'times': 1.2e-06 → 1.2 \\times 10^{-6}
+    - 'cdot':  1.2e-06 → 1.2 \\cdot 10^{-6}
+    - 'raw':   1.2e-06 → 1.2e-06 (no conversion)
     """
+    if notation is not None:
+        style = notation.scientific
+    else:
+        style = "times"
+    if style == "raw":
+        return s
     m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
-    if m:
-        sign, mantissa, exp = m.groups()
-        exp_int = int(exp)
-        if mantissa in ("1", "1."):
-            return rf"{sign}10^{{{exp_int}}}"
-        return rf"{sign}{mantissa} \times 10^{{{exp_int}}}"
-    return s
+    if not m:
+        return s
+    sign, mantissa, exp = m.groups()
+    exp_int = int(exp)
+    sep = r" \times " if style == "times" else r" \cdot "
+    if mantissa in ("1", "1."):
+        return rf"{sign}10^{{{exp_int}}}"
+    return rf"{sign}{mantissa}{sep}10^{{{exp_int}}}"
 
 
 class _DisplayResult:
@@ -1159,18 +1169,18 @@ class Multivector:
                         continue
                 name = alg._blade_latex(i)
                 if coeff_format:
-                    formatted_c = _latex_coeff(format(c, coeff_format))
+                    formatted_c = _latex_coeff(format(c, coeff_format), self.algebra._notation)
                     if name == "":
                         terms.append(formatted_c)
                     else:
                         terms.append(f"{formatted_c} {name}")
                 else:
                     if name == "":
-                        terms.append(_latex_coeff(f"{c:g}"))
+                        terms.append(_latex_coeff(f"{c:g}", self.algebra._notation))
                     elif np.isclose(abs(c), 1.0):
                         terms.append(name if c > 0 else f"-{name}")
                     else:
-                        terms.append(f"{_latex_coeff(f'{c:g}')} {name}")
+                        terms.append(f"{_latex_coeff(f'{c:g}', self.algebra._notation)} {name}")
             if not terms:
                 raw = format(0.0, coeff_format) if coeff_format else "0"
             else:
