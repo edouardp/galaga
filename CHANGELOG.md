@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.1 (2026-04-03)
+
+### Added
+
+- `Notation.set()` now returns `self` for fluent chaining.
+- `Notation.with_scientific()` for chaining scientific notation style.
+- Input validation on `Notation.set()`: rejects unknown formats and kinds.
+
 ## 0.5.0 (2026-04-03)
 
 ### Added
