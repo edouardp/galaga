@@ -4,7 +4,7 @@ date: 2026-04-03
 deciders: edouard
 ---
 
-# ADR-050: LaTeX Scientific Notation via Regex Rewrite
+# ADR-050: LaTeX Scientific Notation via LNodes and Notation Setting
 
 ## Context and Problem Statement
 
@@ -14,32 +14,34 @@ making it look like subtraction rather than an exponent.
 
 ## Decision Outcome
 
-Apply a regex substitution (`_latex_coeff`) to coefficient strings in the
-LaTeX rendering path, converting `1.2e-06` to `1.2 \times 10^{-6}`.
+Coefficient rendering in `Multivector.latex()` now produces LNodes
+(`Text`, `Seq`, `Sup`) instead of raw strings. Scientific notation like
+`1.2e-06` becomes `Seq([Text("1.2 \\times "), Sup(Text("10"), Text("-6"))])`,
+which emits as `1.2 \times 10^{-6}`.
 
-### Why Regex (Tactical)
+The style is controlled by `Notation.scientific`:
 
-The proper solution would be to produce structured LNodes (`Seq`, `Sup`,
-`Text`) for scientific notation, so the three-phase render pipeline handles
-it like any other expression. However, coefficient rendering currently
-bypasses the LNode pipeline entirely — it's string concatenation in
-`Multivector.latex()`. Moving it into the pipeline is a larger refactor.
+| Style | Output | Usage |
+|---|---|---|
+| `"times"` (default) | `1.2 \times 10^{-6}` | Standard LaTeX |
+| `"cdot"` | `1.2 \cdot 10^{-6}` | Alternative convention |
+| `"raw"` | `1.2e-06` | No conversion |
 
-The regex is a bridge: it runs after `format()` produces the string but
-before it's assembled into the final LaTeX. It handles all standard Python
-scientific notation formats (`e`, `E`, `+`, `-`).
+```python
+alg.notation.scientific = "cdot"  # switch style
+```
 
-### Future Improvement
+### Implementation
 
-Move coefficient rendering into the LNode pipeline:
-1. A concrete MV's coefficients would produce `Seq([Text("1.2"), Text(r" \times "), Sup(Text("10"), Text("-6"))])` instead of `Text("1.2e-06")`
-2. The existing emit/rewrite passes handle it from there
-3. The regex becomes unnecessary
+- `_sci_lnode()` parses a formatted number string and returns an LNode tree
+- `_coeff_lnode()` builds a complete coefficient × blade term as an LNode
+- `Multivector.latex()` builds LNodes per term, then emits them
+- The `Sup(Text("10"), Text("-6"))` is a proper render tree node, handled
+  by the existing emit pipeline
 
 ### Consequences
 
-- Good, because `1.2 \times 10^{-6}` renders correctly in all LaTeX contexts
-- Good, because it handles both default `:g` and explicit `coeff_format` paths
-- Neutral, because the regex is simple and well-tested
-- Bad, because it's a string-level hack outside the render tree architecture
-- Acceptable, because the scope is narrow and the future path is documented
+- Good, because scientific notation is rendered via the LNode tree, not regex
+- Good, because the style is configurable per-algebra via Notation
+- Good, because no special-case string transforms to maintain
+- Good, because new coefficient formatting paths automatically get correct rendering

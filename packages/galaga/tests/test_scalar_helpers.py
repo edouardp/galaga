@@ -143,3 +143,171 @@ class TestScalarConstants:
         """pi/2 renders symbolically."""
         half_pi = alg.pi / alg.scalar(2).name("2")
         assert r"\pi" in half_pi.latex()
+
+
+class TestScientificNotationStyle:
+    """Notation.scientific controls LaTeX scientific notation rendering."""
+
+    def test_default_is_times(self, alg):
+        """Default style is 'times'."""
+        assert alg.notation.scientific == "times"
+
+    def test_times_style(self, alg):
+        """'times' renders as \\times."""
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert r"\times 10^{-6}" in result
+
+    def test_cdot_style(self, alg):
+        """'cdot' renders as \\cdot."""
+        alg.notation.scientific = "cdot"
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert r"\cdot 10^{-6}" in result
+
+    def test_raw_style(self, alg):
+        """'raw' passes through Python notation."""
+        alg.notation.scientific = "raw"
+        e1, _, _ = alg.basis_vectors()
+        result = (1.2e-6 * e1).latex()
+        assert "e-06" in result
+
+    def test_invalid_style_raises(self, alg):
+        """Unknown style raises ValueError."""
+        with pytest.raises(ValueError):
+            alg.notation.scientific = "invalid"
+
+    def test_non_scientific_unaffected(self, alg):
+        """Normal coefficients are not affected."""
+        e1, _, _ = alg.basis_vectors()
+        assert (0.5 * e1).latex() == "0.5 e_{1}"
+
+    def test_coeff_format_respects_style(self, alg):
+        """coeff_format also uses the notation style."""
+        mv = alg.scalar(1.2e-6)
+        result = mv.latex(coeff_format=".3e")
+        assert r"\times 10^{-6}" in result
+
+
+class TestSciLnode:
+    """_sci_lnode produces correct LNode trees for scientific notation."""
+
+    def test_times_style(self):
+        """1.2e-06 → Seq with Sup(10, -6)."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("1.200e-06", "times")
+        assert emit(node) == r"1.200 \times 10^{-6}"
+
+    def test_cdot_style(self):
+        """1.2e-06 with cdot → \\cdot."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("1.200e-06", "cdot")
+        assert emit(node) == r"1.200 \cdot 10^{-6}"
+
+    def test_raw_style(self):
+        """raw style passes through unchanged."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("1.200e-06", "raw")
+        assert emit(node) == "1.200e-06"
+
+    def test_mantissa_one(self):
+        """1e-34 → 10^{-34} (no mantissa)."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("1e-34", "times")
+        assert emit(node) == "10^{-34}"
+
+    def test_positive_exponent(self):
+        """3e+08 → 3 \\times 10^{8}."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("3e+08", "times")
+        assert emit(node) == r"3 \times 10^{8}"
+
+    def test_negative_mantissa(self):
+        """-1.2e-06 → -1.2 \\times 10^{-6}."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("-1.200e-06", "times")
+        assert emit(node) == r"-1.200 \times 10^{-6}"
+
+    def test_non_scientific_passthrough(self):
+        """Plain number passes through as Text."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("42", "times")
+        assert emit(node) == "42"
+
+    def test_decimal_passthrough(self):
+        """Decimal number passes through as Text."""
+        from galaga.algebra import _sci_lnode
+        from galaga.latex_emit import emit
+
+        node = _sci_lnode("0.5", "times")
+        assert emit(node) == "0.5"
+
+
+class TestCoeffLnode:
+    """_coeff_lnode produces correct LNode trees for coefficient × blade terms."""
+
+    def test_simple_coeff(self):
+        """0.5 e_{1}."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(0.5, "e_{1}", None, "times")
+        assert emit(node) == "0.5 e_{1}"
+
+    def test_unit_coeff_suppressed(self):
+        """Coefficient 1.0 suppressed: e_{1} not 1 e_{1}."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(1.0, "e_{1}", None, "times")
+        assert emit(node) == "e_{1}"
+
+    def test_neg_unit_coeff(self):
+        """Coefficient -1.0: -e_{1}."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(-1.0, "e_{1}", None, "times")
+        assert emit(node) == "-e_{1}"
+
+    def test_scientific_coeff(self):
+        """1.2e-6 e_{1} with \\times."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(1.2e-6, "e_{1}", None, "times")
+        result = emit(node)
+        assert r"\times 10^{-6}" in result
+        assert "e_{1}" in result
+
+    def test_scalar_no_blade(self):
+        """Pure scalar: just the number."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(3.14, "", None, "times")
+        assert emit(node) == "3.14"
+
+    def test_coeff_format(self):
+        """Explicit coeff_format."""
+        from galaga.algebra import _coeff_lnode
+        from galaga.latex_emit import emit
+
+        node = _coeff_lnode(1.2e-6, "e_{1}", ".3e", "times")
+        result = emit(node)
+        assert "1.200" in result
+        assert r"\times 10^{-6}" in result

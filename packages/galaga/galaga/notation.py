@@ -159,10 +159,27 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
 class Notation:
     """Configurable rendering rules for all GA operations."""
 
+    # Scientific notation styles for LaTeX coefficient rendering
+    SCI_TIMES = "times"  # 1.2 \times 10^{-6}
+    SCI_CDOT = "cdot"  # 1.2 \cdot 10^{-6}
+    SCI_RAW = "raw"  # 1.2e-06 (no conversion)
+
     def __init__(self):
         self._rules: dict[str, dict[str, NotationRule]] = {}
         for name, fmts in _DEFAULTS.items():
             self._rules[name] = {k: copy.copy(v) for k, v in fmts.items()}
+        self._scientific: str = self.SCI_TIMES
+
+    @property
+    def scientific(self) -> str:
+        """Scientific notation style for LaTeX: 'times', 'cdot', or 'raw'."""
+        return self._scientific
+
+    @scientific.setter
+    def scientific(self, value: str):
+        if value not in (self.SCI_TIMES, self.SCI_CDOT, self.SCI_RAW):
+            raise ValueError(f"Unknown scientific notation style: {value!r}")
+        self._scientific = value
 
     def get(self, node_name: str, fmt: str) -> NotationRule | None:
         """Get the rendering rule for a node type name and format."""
@@ -183,6 +200,7 @@ class Notation:
         n._rules = {}
         for name, fmts in self._rules.items():
             n._rules[name] = {k: copy.copy(v) for k, v in fmts.items()}
+        n._scientific = self._scientific
         return n
 
     @staticmethod
