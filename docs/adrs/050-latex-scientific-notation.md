@@ -33,13 +33,6 @@ A regex substitution (`_latex_coeff`) runs on formatted coefficient strings,
 driven by the algebra's notation setting. This is a string-level transform,
 not an LNode pipeline operation.
 
-### Future Improvement
-
-Move coefficient rendering into the LNode pipeline so scientific notation
-produces structured nodes (`Seq`, `Sup`, `Text`) instead of formatted strings.
-This would eliminate the regex and let the rewrite pass handle context-dependent
-transforms (e.g. different rendering in superscripts vs normal context).
-
 ### Consequences
 
 - Good, because scientific notation renders correctly in LaTeX by default
