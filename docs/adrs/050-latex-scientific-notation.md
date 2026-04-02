@@ -45,5 +45,8 @@ transforms (e.g. different rendering in superscripts vs normal context).
 - Good, because scientific notation renders correctly in LaTeX by default
 - Good, because the style is configurable per-algebra via Notation
 - Good, because `"raw"` mode available for debugging
-- Neutral, because the regex is simple and well-tested
-- Bad, because it's a string-level transform outside the render tree
+- Neutral, because the regex is simple, well-tested, and produces correct output
+- Neutral, because coefficient rendering is a separate path from the symbolic
+  render tree — moving it into the LNode pipeline would require rewriting
+  `Multivector.latex()` to produce LNodes instead of strings. Not planned
+  unless the coefficient path needs context-dependent transforms.
