@@ -188,11 +188,17 @@ class Notation:
             return None
         return fmts.get(fmt)
 
-    def set(self, node_name: str, fmt: str, rule: NotationRule):
-        """Override a rendering rule for a node type and format."""
+    def set(self, node_name: str, fmt: str, rule: NotationRule) -> Notation:
+        """Override a rendering rule for a node type and format. Returns self for chaining."""
         if node_name not in self._rules:
             self._rules[node_name] = {}
         self._rules[node_name][fmt] = rule
+        return self
+
+    def with_scientific(self, style: str) -> Notation:
+        """Set scientific notation style. Returns self for chaining."""
+        self.scientific = style
+        return self
 
     def copy(self) -> Notation:
         """Return an independent copy of this notation."""
