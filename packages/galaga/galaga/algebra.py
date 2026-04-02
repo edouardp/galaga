@@ -326,6 +326,50 @@ class Algebra:
         data[0] = value
         return Multivector(self, data)
 
+    def fraction(self, numerator: int, denominator: int) -> Multivector:
+        """Create a named scalar fraction: fraction(1, 2) → lazy MV displaying as 1/2.
+
+        Both numerator and denominator are named so the expression tree
+        renders symbolically (e.g. \\frac{1}{2} in LaTeX).
+        """
+        if denominator == 0:
+            raise ValueError("Denominator cannot be zero")
+        a = self.scalar(numerator).name(str(numerator))
+        b = self.scalar(denominator).name(str(denominator))
+        return a / b
+
+    frac = fraction
+
+    @property
+    def pi(self) -> Multivector:
+        """π as a named lazy scalar."""
+        return self.scalar(np.pi).name(latex=r"\pi")
+
+    @property
+    def e_constant(self) -> Multivector:
+        """Euler's number e as a named lazy scalar."""
+        return self.scalar(np.e).name(latex=r"e")
+
+    @property
+    def tau(self) -> Multivector:
+        """τ = 2π as a named lazy scalar."""
+        return self.scalar(2 * np.pi).name(latex=r"\tau")
+
+    @property
+    def h(self) -> Multivector:
+        """Planck constant h as a named lazy scalar."""
+        return self.scalar(6.62607015e-34).name(latex=r"h")
+
+    @property
+    def hbar(self) -> Multivector:
+        """Reduced Planck constant ℏ = h/2π as a named lazy scalar."""
+        return self.scalar(1.054571817e-34).name(latex=r"\hbar")
+
+    @property
+    def c(self) -> Multivector:
+        """Speed of light c as a named lazy scalar."""
+        return self.scalar(299792458.0).name(latex=r"c")
+
     def vector(self, coeffs) -> Multivector:
         """Create a 1-vector from coefficients."""
         data = np.zeros(self._dim)
