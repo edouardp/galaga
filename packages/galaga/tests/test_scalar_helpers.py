@@ -95,11 +95,11 @@ class TestScalarConstants:
 
     def test_e_value(self, alg):
         """e_constant has value e."""
-        assert np.isclose(alg.e_constant.eval().scalar_part, np.e)
+        assert np.isclose(alg.e.eval().scalar_part, np.e)
 
     def test_e_latex(self, alg):
         """e_constant renders as e."""
-        assert alg.e_constant.latex() == "e"
+        assert alg.e.latex() == "e"
 
     def test_tau_value(self, alg):
         """tau has value 2π."""

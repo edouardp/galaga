@@ -346,7 +346,7 @@ class Algebra:
         return self.scalar(np.pi).name(latex=r"\pi")
 
     @property
-    def e_constant(self) -> Multivector:
+    def e(self) -> Multivector:
         """Euler's number e as a named lazy scalar."""
         return self.scalar(np.e).name(latex=r"e")
 
