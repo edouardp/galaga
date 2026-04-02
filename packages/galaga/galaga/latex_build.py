@@ -53,7 +53,12 @@ def build(node: Expr, notation: Notation | None = None) -> LNode:
 
 
 def _wp(child_lnode: LNode, child_expr: Expr, min_prec: int, parent_type=None) -> LNode:
-    """Wrap child in Parens if its precedence is too low."""
+    """Wrap child in Parens if its precedence is too low.
+
+    Frac nodes are never wrapped — the fraction bar provides visual grouping.
+    """
+    if isinstance(child_lnode, Frac):
+        return child_lnode
     if _needs_wrap(child_expr, min_prec, parent_type):
         return Parens(child_lnode)
     return child_lnode

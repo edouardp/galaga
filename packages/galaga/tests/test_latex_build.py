@@ -607,3 +607,24 @@ class TestSymProperties:
         e1, _, _ = alg.basis_vectors()
         s = e1._to_expr()
         assert s._inner_expr is None
+
+
+class TestFracNoParens:
+    """Frac nodes are never wrapped in parens — the fraction bar groups visually."""
+
+    def test_frac_in_gp(self):
+        r"""\\frac{1}{2} e_{1} — no parens around fraction."""
+        result = _latex(Gp(Div(Scalar(1), Scalar(2)), a))
+        assert r"\left(" not in result
+        assert r"\frac{1}{2}" in result
+
+    def test_frac_in_add(self):
+        r"""\\frac{1}{2} + a — no parens."""
+        result = _latex(Add(Div(Scalar(1), Scalar(2)), a))
+        assert r"\left(" not in result
+
+    def test_scalar_div_in_gp(self):
+        r"""\\frac{a}{2} b — no parens around scalar div."""
+        result = _latex(Gp(ScalarDiv(a, 2), b))
+        assert r"\left(" not in result
+        assert r"\frac{a}{2}" in result
