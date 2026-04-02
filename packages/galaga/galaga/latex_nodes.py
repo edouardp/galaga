@@ -79,3 +79,15 @@ class Command(LNode):
 
     cmd: str
     child: LNode
+
+
+@dataclass
+class SlashFrac(LNode):
+    """Inline fraction: num/den. Created by rewrite when Frac is in a superscript.
+
+    Separate node type so the rewrite pass can detect it in a Seq and wrap
+    it in Parens when adjacent to other terms (avoiding ambiguity).
+    """
+
+    num: LNode
+    den: LNode

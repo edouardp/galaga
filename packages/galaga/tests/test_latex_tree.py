@@ -168,12 +168,12 @@ class TestRewriteFracInSup:
         assert emit(result) == r"\frac{a}{b}"
 
     def test_nested_frac_in_sup(self):
-        """Frac inside a Seq inside a Sup."""
+        """Frac inside a Seq inside a Sup — wraps slash to avoid ambiguity."""
         f = Frac(Text(r"-\theta"), Text("2"))
         body = Seq([f, Text(" B")])
         s = Sup(Text("e"), body)
         result = rewrite(s)
-        assert emit(result) == r"e^{-\theta/2 B}"
+        assert emit(result) == r"e^{\left(-\theta/2\right) B}"
 
     def test_frac_in_sup_in_frac_outer_unchanged(self):
         """Outer frac stays full-size, inner frac in sup becomes slash."""

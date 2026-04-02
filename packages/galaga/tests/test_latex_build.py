@@ -659,3 +659,46 @@ class TestFracNoParens:
         r"""\\frac{1}{2} \\frac{1}{3} — no parens on either."""
         result = _latex(Gp(Div(Scalar(1), Scalar(2)), Div(Scalar(1), Scalar(3))))
         assert r"\left(" not in result
+
+
+class TestSlashFracAmbiguity:
+    """SlashFrac in superscripts: wrap in parens when adjacent to other terms."""
+
+    def test_standalone_no_parens(self):
+        """e^{a/2} — standalone slash, no parens needed."""
+        result = _latex(Exp(ScalarDiv(a, 2)))
+        assert result == r"e^{a/2}"
+
+    def test_with_sibling_gets_parens(self):
+        """e^{(a/2) b} — slash with sibling, wrapped."""
+        result = _latex(Exp(Gp(ScalarDiv(a, 2), b)))
+        assert r"\left(a/2\right)" in result
+
+    def test_sibling_on_left_gets_parens(self):
+        """e^{a (b/2)} — slash on right with sibling."""
+        result = _latex(Exp(Gp(a, ScalarDiv(b, 2))))
+        assert r"\left(b/2\right)" in result
+
+    def test_two_fracs_both_wrapped(self):
+        """e^{(a/2) (b/3)} — both slashes wrapped."""
+        result = _latex(Exp(Gp(ScalarDiv(a, 2), ScalarDiv(b, 3))))
+        assert result.count(r"\left(") == 2
+
+    def test_neg_prefix_no_wrap(self):
+        """e^{-a/2} — neg prefix doesn't trigger wrapping."""
+        result = _latex(Exp(ScalarDiv(Neg(a), 2)))
+        assert r"\left(" not in result
+        assert result == r"e^{-a/2}"
+
+    def test_product_as_numerator_no_wrap(self):
+        """e^{-B θ/2} — product in numerator, single slash, no wrap."""
+        _B = _sym("B")
+        _th = _sym("θ", latex=r"\theta")
+        result = _latex(Exp(ScalarDiv(Neg(Gp(_B, _th)), 2)))
+        assert r"\left(" not in result
+
+    def test_normal_context_no_change(self):
+        r"""\\frac{a}{2} b — normal context, no parens."""
+        result = _latex(Gp(ScalarDiv(a, 2), b))
+        assert r"\left(" not in result
+        assert r"\frac{a}{2}" in result

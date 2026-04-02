@@ -7,7 +7,7 @@ straightforward serialization of the intermediate representation.
 
 from __future__ import annotations
 
-from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
+from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, SlashFrac, Sup, Text
 
 
 def emit(node: LNode) -> str:
@@ -23,6 +23,9 @@ def emit(node: LNode) -> str:
     if t is Frac:
         cmd = r"\tfrac" if node.small else r"\frac"
         return f"{cmd}{{{emit(node.num)}}}{{{emit(node.den)}}}"
+
+    if t is SlashFrac:
+        return f"{emit(node.num)}/{emit(node.den)}"
 
     if t is Sup:
         base = emit(node.base)
