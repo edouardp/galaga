@@ -156,6 +156,20 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
 }
 
 
+_VALID_FORMATS = {"unicode", "latex", "ascii"}
+_VALID_KINDS = {
+    "accent",
+    "postfix",
+    "prefix",
+    "infix",
+    "juxtaposition",
+    "wrap",
+    "function",
+    "superscript",
+    "unit_fraction",
+}
+
+
 class Notation:
     """Configurable rendering rules for all GA operations."""
 
@@ -190,6 +204,10 @@ class Notation:
 
     def set(self, node_name: str, fmt: str, rule: NotationRule) -> Notation:
         """Override a rendering rule for a node type and format. Returns self for chaining."""
+        if fmt not in _VALID_FORMATS:
+            raise ValueError(f"Unknown format {fmt!r}, expected one of {sorted(_VALID_FORMATS)}")
+        if rule.kind not in _VALID_KINDS:
+            raise ValueError(f"Unknown notation kind {rule.kind!r}, expected one of {sorted(_VALID_KINDS)}")
         if node_name not in self._rules:
             self._rules[node_name] = {}
         self._rules[node_name][fmt] = rule

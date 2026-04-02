@@ -355,6 +355,45 @@ class TestOverride:
         r = n.get("Gp", "unicode")
         assert r.kind == "infix"
 
+    def test_set_returns_self(self, n):
+        """set() returns self for chaining."""
+        result = n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
+        assert result is n
+
+    def test_chaining(self, n):
+        """Multiple set() calls can be chained."""
+        n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†")).set(
+            "Dual", "unicode", NotationRule(kind="prefix", symbol="*")
+        )
+        assert n.get("Reverse", "unicode").symbol == "†"
+        assert n.get("Dual", "unicode").symbol == "*"
+
+    def test_with_scientific_returns_self(self, n):
+        """with_scientific() returns self for chaining."""
+        result = n.with_scientific("cdot")
+        assert result is n
+        assert n.scientific == "cdot"
+
+    def test_invalid_format_raises(self, n):
+        """set() with unknown format raises ValueError."""
+        with pytest.raises(ValueError, match="format"):
+            n.set("Reverse", "klingon", NotationRule(kind="postfix", symbol="†"))
+
+    def test_invalid_kind_raises(self, n):
+        """set() with unknown kind raises ValueError."""
+        with pytest.raises(ValueError, match="kind"):
+            n.set("Reverse", "unicode", NotationRule(kind="banana", symbol="†"))
+
+    def test_invalid_scientific_raises(self, n):
+        """Invalid scientific style raises ValueError."""
+        with pytest.raises(ValueError):
+            n.scientific = "banana"
+
+    def test_unknown_node_name_accepted(self, n):
+        """Unknown node names are accepted — extensibility."""
+        n.set("CustomOp", "unicode", NotationRule(kind="postfix", symbol="!"))
+        assert n.get("CustomOp", "unicode").symbol == "!"
+
 
 # ============================================================
 # Copy / isolation
