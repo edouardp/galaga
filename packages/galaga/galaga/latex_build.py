@@ -194,8 +194,9 @@ def _build(node: Expr, n: Notation) -> LNode:
         if isinstance(node.x, Sym) and node.x.is_compound:
             inner = Parens(_build(node.x, n))
         # Superscript-on-superscript needs brace-wrapping: {B^\star}^{-1}
+        # Frac before superscript also needs braces: {\frac{1}{2}}^2
         if rule.symbol.startswith("^") and not isinstance(inner, Parens):
-            if isinstance(inner, Sup) or (isinstance(node.x, Sym) and node.x.has_superscript):
+            if isinstance(inner, (Sup, Frac)) or (isinstance(node.x, Sym) and node.x.has_superscript):
                 inner = Seq([Text("{"), inner, Text("}")])
         return Seq([inner, Text(rule.symbol)])
 

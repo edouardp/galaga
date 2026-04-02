@@ -610,7 +610,7 @@ class TestSymProperties:
 
 
 class TestFracNoParens:
-    """Frac nodes are never wrapped in parens — the fraction bar groups visually."""
+    """Frac nodes skip Parens wrapping but get brace-wrapped for superscripts."""
 
     def test_frac_in_gp(self):
         r"""\\frac{1}{2} e_{1} — no parens around fraction."""
@@ -628,3 +628,34 @@ class TestFracNoParens:
         result = _latex(Gp(ScalarDiv(a, 2), b))
         assert r"\left(" not in result
         assert r"\frac{a}{2}" in result
+
+    def test_frac_squared_brace_wrapped(self):
+        r"""{\\frac{1}{2}}^2 — brace-wrapped for superscript."""
+        result = _latex(Squared(Div(Scalar(1), Scalar(2))))
+        assert result == r"{\frac{1}{2}}^2"
+
+    def test_frac_inverse_brace_wrapped(self):
+        r"""{\\frac{a}{b}}^{-1} — brace-wrapped for superscript."""
+        result = _latex(Inverse(Div(a, b)))
+        assert result == r"{\frac{a}{b}}^{-1}"
+
+    def test_frac_dual_brace_wrapped(self):
+        r"""{\\frac{a}{b}}^* — brace-wrapped for superscript."""
+        result = _latex(Dual(Div(a, b)))
+        assert result == r"{\frac{a}{b}}^*"
+
+    def test_scalar_div_in_exp_becomes_slash(self):
+        r"""e^{a/2} — frac becomes slash inside exp superscript."""
+        result = _latex(Exp(ScalarDiv(a, 2)))
+        assert result == r"e^{a/2}"
+
+    def test_product_div_in_exp(self):
+        r"""e^{a b/2} — product with scalar div in exp."""
+        result = _latex(Exp(ScalarDiv(Gp(a, b), 2)))
+        assert "/" in result
+        assert r"\frac" not in result
+
+    def test_frac_times_frac(self):
+        r"""\\frac{1}{2} \\frac{1}{3} — no parens on either."""
+        result = _latex(Gp(Div(Scalar(1), Scalar(2)), Div(Scalar(1), Scalar(3))))
+        assert r"\left(" not in result
