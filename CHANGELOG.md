@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.5.0 (2026-04-03)
+
+### Added
+
+- `Algebra.fraction(a, b)` / `.frac(a, b)` — named scalar fractions that
+  render symbolically as `\frac{a}{b}`.
+- `Algebra.pi`, `.tau`, `.e`, `.h`, `.hbar`, `.c` — named lazy scalar
+  constants with proper LaTeX rendering.
+- `Notation.scientific` setting — controls LaTeX scientific notation style:
+  `"times"` (default), `"cdot"`, or `"raw"`.
+- `SlashFrac` LNode — disambiguates inline fractions in superscripts:
+  `e^{(a/2) b}` not `e^{a/2 b}`.
+- `unit_fraction` notation kind — renders `unit(x)` as `x/‖x‖`. Opt-in.
+- `Sym.is_compound` and `Sym.has_superscript` properties for structural
+  rendering decisions via inner expression tree.
+
+### Fixed
+
+- LaTeX scientific notation rendered via LNode pipeline: `1.2e-06` becomes
+  `1.2 \times 10^{-6}` using proper `Sup(10, exp)` nodes.
+- `\frac` no longer wrapped in `\left(...\right)` in products.
+- `\frac` before superscript postfix correctly brace-wraps: `{\frac{1}{2}}^2`.
+- Postfix on compound-named Syms wraps correctly: `(a ∧ b)⋆` not `a ∧ b⋆`.
+- LaTeX double-superscript on named Syms with `^` in name.
+- `.gitignore` catches all vim swap files.
+
 ## 0.4.3 (2026-04-03)
 
 ### Added
