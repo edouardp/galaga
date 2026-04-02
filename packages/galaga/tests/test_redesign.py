@@ -1088,9 +1088,10 @@ class TestSmallValueDisplay:
         assert mv.latex() == "0"
 
     def test_latex_coeff_format_shows_small(self, cl3):
-        """latex(coeff_format=) shows small values."""
+        """latex(coeff_format=) shows small values with LaTeX notation."""
         mv = cl3.scalar(9.109e-31)
-        assert mv.latex(coeff_format=".3e") == "9.109e-31"
+        result = mv.latex(coeff_format=".3e")
+        assert r"9.109 \times 10^{-31}" == result
 
     def test_latex_coeff_format_electron_mass(self, cl3):
         """coeff_format handles electron mass scale."""
@@ -1128,7 +1129,7 @@ class TestSmallValueDisplay:
         c = cl3.scalar(3e8).name("c")
         lam = hbar / (m * c)
         result = lam.eval().latex(coeff_format=".4e")
-        assert "3.8607e-13" in result or "3.861" in result
+        assert r"\times 10^{-13}" in result
 
 
 class TestMVDivision:

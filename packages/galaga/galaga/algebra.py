@@ -509,6 +509,24 @@ class Algebra:
         return f"Cl({','.join(parts)})"
 
 
+import re as _re
+
+
+def _latex_coeff(s: str) -> str:
+    """Convert a formatted coefficient string to LaTeX-safe form.
+
+    Replaces scientific notation like '1.2e-06' with '1.2 \\times 10^{-6}'.
+    """
+    m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
+    if m:
+        sign, mantissa, exp = m.groups()
+        exp_int = int(exp)
+        if mantissa in ("1", "1."):
+            return rf"{sign}10^{{{exp_int}}}"
+        return rf"{sign}{mantissa} \times 10^{{{exp_int}}}"
+    return s
+
+
 class _DisplayResult:
     """Wrapper so display() output is auto-detected as LaTeX by galaga_marimo."""
 
@@ -1141,18 +1159,18 @@ class Multivector:
                         continue
                 name = alg._blade_latex(i)
                 if coeff_format:
-                    formatted_c = format(c, coeff_format)
+                    formatted_c = _latex_coeff(format(c, coeff_format))
                     if name == "":
                         terms.append(formatted_c)
                     else:
                         terms.append(f"{formatted_c} {name}")
                 else:
                     if name == "":
-                        terms.append(f"{c:g}")
+                        terms.append(_latex_coeff(f"{c:g}"))
                     elif np.isclose(abs(c), 1.0):
                         terms.append(name if c > 0 else f"-{name}")
                     else:
-                        terms.append(f"{c:g} {name}")
+                        terms.append(f"{_latex_coeff(f'{c:g}')} {name}")
             if not terms:
                 raw = format(0.0, coeff_format) if coeff_format else "0"
             else:
