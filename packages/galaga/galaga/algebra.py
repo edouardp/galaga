@@ -512,29 +512,44 @@ class Algebra:
 import re as _re
 
 
-def _latex_coeff(s: str, notation=None) -> str:
-    """Convert a formatted coefficient string to LaTeX-safe form.
+def _sci_lnode(s: str, style: str):
+    """Convert a formatted number string to an LNode, handling scientific notation.
 
-    Uses the notation's scientific style setting:
-    - 'times': 1.2e-06 → 1.2 \\times 10^{-6}
-    - 'cdot':  1.2e-06 → 1.2 \\cdot 10^{-6}
-    - 'raw':   1.2e-06 → 1.2e-06 (no conversion)
+    Returns an LNode (Text, or Seq with Sup for scientific notation).
     """
-    if notation is not None:
-        style = notation.scientific
-    else:
-        style = "times"
+    from galaga.latex_nodes import Seq, Sup, Text
+
     if style == "raw":
-        return s
+        return Text(s)
     m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
     if not m:
-        return s
+        return Text(s)
     sign, mantissa, exp = m.groups()
     exp_int = int(exp)
     sep = r" \times " if style == "times" else r" \cdot "
     if mantissa in ("1", "1."):
-        return rf"{sign}10^{{{exp_int}}}"
-    return rf"{sign}{mantissa}{sep}10^{{{exp_int}}}"
+        return Seq([Text(sign), Sup(Text("10"), Text(str(exp_int)))])
+    return Seq([Text(f"{sign}{mantissa}{sep}"), Sup(Text("10"), Text(str(exp_int)))])
+
+
+def _coeff_lnode(c: float, blade: str, coeff_format: str | None, style: str):
+    """Build an LNode for a single coefficient × blade term."""
+    from galaga.latex_nodes import Seq, Text
+
+    if coeff_format:
+        formatted = format(c, coeff_format)
+        coeff_node = _sci_lnode(formatted, style)
+        if blade == "":
+            return coeff_node
+        return Seq([coeff_node, Text(f" {blade}")])
+    else:
+        formatted = f"{c:g}"
+        if blade == "":
+            return _sci_lnode(formatted, style)
+        if np.isclose(abs(c), 1.0):
+            return Text(blade if c > 0 else f"-{blade}")
+        coeff_node = _sci_lnode(formatted, style)
+        return Seq([coeff_node, Text(f" {blade}")])
 
 
 class _DisplayResult:
@@ -1156,9 +1171,12 @@ class Multivector:
         elif self._is_lazy and self._expr is not None and coeff_format is None:
             raw = _render.render_latex(self._expr, self.algebra._notation)
         else:
-            # Eager anonymous → existing coefficient rendering
+            # Eager anonymous → coefficient rendering via LNodes
+            from galaga.latex_emit import emit
+
             alg = self.algebra
-            terms = []
+            style = alg._notation.scientific
+            term_nodes = []
             for i in range(alg.dim):
                 c = self.data[i]
                 if coeff_format:
@@ -1167,29 +1185,18 @@ class Multivector:
                 else:
                     if abs(c) < 1e-12:
                         continue
-                name = alg._blade_latex(i)
-                if coeff_format:
-                    formatted_c = _latex_coeff(format(c, coeff_format), self.algebra._notation)
-                    if name == "":
-                        terms.append(formatted_c)
-                    else:
-                        terms.append(f"{formatted_c} {name}")
-                else:
-                    if name == "":
-                        terms.append(_latex_coeff(f"{c:g}", self.algebra._notation))
-                    elif np.isclose(abs(c), 1.0):
-                        terms.append(name if c > 0 else f"-{name}")
-                    else:
-                        terms.append(f"{_latex_coeff(f'{c:g}', self.algebra._notation)} {name}")
-            if not terms:
+                blade = alg._blade_latex(i)
+                term_nodes.append(_coeff_lnode(c, blade, coeff_format, style))
+            if not term_nodes:
                 raw = format(0.0, coeff_format) if coeff_format else "0"
             else:
-                raw = terms[0]
-                for t in terms[1:]:
-                    if t.startswith("-"):
-                        raw += " - " + t[1:]
+                raw = emit(term_nodes[0])
+                for tn in term_nodes[1:]:
+                    s = emit(tn)
+                    if s.startswith("-"):
+                        raw += " - " + s[1:]
                     else:
-                        raw += " + " + t
+                        raw += " + " + s
         if wrap == "$":
             return f"${raw}$"
         if wrap == "$$":
