@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.4.3 (2026-04-03)
+
+### Added
+
+- `Algebra.fraction(a, b)` / `.frac(a, b)` — named scalar fractions that
+  render symbolically as `\frac{a}{b}`.
+- `Algebra.pi`, `.tau`, `.e`, `.h`, `.hbar`, `.c` — named lazy scalar
+  constants with proper LaTeX rendering.
+- `SlashFrac` LNode — disambiguates inline fractions in superscripts:
+  `e^{(a/2) b}` not `e^{a/2 b}`.
+
+### Fixed
+
+- LaTeX scientific notation: `1.2e-06` now renders as `1.2 \times 10^{-6}`.
+- `\frac` no longer wrapped in `\left(...\right)` parens in products —
+  the fraction bar provides visual grouping.
+- `\frac` before superscript postfix correctly brace-wraps: `{\frac{1}{2}}^2`.
+
 ## 0.4.2 (2026-03-31)
 
 ### Added
