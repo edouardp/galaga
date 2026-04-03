@@ -356,6 +356,11 @@ class Algebra:
         return self.scalar(2 * np.pi).name(latex=r"\tau")
 
     @property
+    def sqrt2(self) -> Multivector:
+        """√2 as a named lazy scalar."""
+        return self.scalar(np.sqrt(2)).name(latex=r"\sqrt{2}")
+
+    @property
     def h(self) -> Multivector:
         """Planck constant h as a named lazy scalar."""
         return self.scalar(6.62607015e-34).name(latex=r"h")

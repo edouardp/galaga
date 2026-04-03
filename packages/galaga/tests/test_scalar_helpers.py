@@ -109,6 +109,18 @@ class TestScalarConstants:
         """tau renders as \\tau."""
         assert alg.tau.latex() == r"\tau"
 
+    def test_sqrt2_value(self, alg):
+        """sqrt2 has value √2."""
+        assert np.isclose(alg.sqrt2.eval().scalar_part, np.sqrt(2))
+
+    def test_sqrt2_latex(self, alg):
+        """sqrt2 renders as \\sqrt{2}."""
+        assert alg.sqrt2.latex() == r"\sqrt{2}"
+
+    def test_sqrt2_lazy(self, alg):
+        """sqrt2 is lazy."""
+        assert alg.sqrt2._is_lazy
+
     def test_h_value(self, alg):
         """h has Planck constant value."""
         assert np.isclose(alg.h.eval().scalar_part, 6.62607015e-34)
