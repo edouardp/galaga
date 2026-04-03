@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.2 (2026-04-03)
+
+### Fixed
+
+- LaTeX default rendering no longer uses scientific notation for coefficients
+  with |c| ≥ 1e-6. `alg.c.eval().latex()` now gives `299792458` not
+  `2.99792 \times 10^{8}`. Explicit format specs (`:g`, `.3e`) still
+  produce scientific notation when appropriate.
+
 ## 0.5.1 (2026-04-03)
 
 ### Added
