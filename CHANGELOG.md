@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.5.3 (2026-04-03)
+
+### Added
+
+- `alg.sqrt2` — uses `Sqrt` expression node, displays as `√2 = 1.41421`.
+- `alg.tau` — uses `2 * pi` expression tree, displays as `τ = 2π = 6.28319`.
+- `Notation.set()` returns `self` for fluent chaining.
+- `Notation.with_scientific()` for chaining scientific notation style.
+- Input validation on `Notation.set()`: rejects unknown formats and kinds.
+
+### Fixed
+
+- Default LaTeX coefficients use 6 significant digits (matching Python's `:g`)
+  instead of 15.
+
 ## 0.5.2 (2026-04-03)
 
 ### Fixed
