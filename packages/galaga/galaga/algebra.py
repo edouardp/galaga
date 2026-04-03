@@ -352,13 +352,13 @@ class Algebra:
 
     @property
     def tau(self) -> Multivector:
-        """τ = 2π as a named lazy scalar."""
-        return self.scalar(2 * np.pi).name(latex=r"\tau")
+        """τ = 2π as a named lazy scalar with expression tree."""
+        return (2 * self.pi).name(latex=r"\tau")
 
     @property
     def sqrt2(self) -> Multivector:
-        """√2 as a named lazy scalar."""
-        return self.scalar(np.sqrt(2)).name(latex=r"\sqrt{2}")
+        """√2 as a named lazy scalar with Sqrt expression tree."""
+        return scalar_sqrt(self.scalar(2).name("2"))
 
     @property
     def h(self) -> Multivector:
