@@ -963,3 +963,39 @@ uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # wit
 - Small value display with explicit format specs
 - All 10 spec use cases from the symbolic redesign
 - Edge cases and error handling
+
+## Documentation
+
+### Architecture Decision Records (ADRs)
+
+Design decisions are documented in `docs/adrs/`. Each ADR records the context,
+decision, and consequences for a significant design choice. 50+ ADRs covering
+the symbolic layer, rendering pipeline, notation system, linting, packaging,
+and more.
+
+```bash
+ls docs/adrs/
+```
+
+### Specifications
+
+Formal rendering and formatting specs live in `docs/specs/`. Each spec defines
+authoritative rules with decision tables and examples that map to tests.
+
+| Spec | Description |
+|---|---|
+| SPEC-001 | LaTeX coefficient formatting and scientific notation |
+| SPEC-002 | Precedence and parenthesisation rules |
+| SPEC-003 | Notation system: kinds, dispatch, and override semantics |
+| SPEC-004 | Display method: name/reveal/eval deduplication |
+| SPEC-005 | Accent width selection (narrow vs wide) |
+| SPEC-006 | Postfix wrapping: compound names, superscripts, fractions |
+| SPEC-007 | Unicode coefficient formatting |
+| SPEC-008 | Lazy/eager propagation rules |
+| SPEC-009 | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
+
+### Other Documentation
+
+- `docs/RELEASE_PROCESS.md` — release workflow, PyPI publishing, custodianship
+- `docs/PYREFLY_STATUS.md` — type checking status and remaining work
+- `docs/DESIGN_DECISIONS.md` — high-level design summary
