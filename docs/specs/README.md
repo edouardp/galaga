@@ -9,14 +9,14 @@ tables and examples that map directly to tests.
 | Spec | Status | Description |
 |---|---|---|
 | [SPEC-001](SPEC-001-latex-coefficient-rendering.md) | Draft | LaTeX coefficient formatting and scientific notation |
-| SPEC-002 | Planned | Precedence and parenthesisation rules |
-| SPEC-003 | Planned | Notation system: kinds, dispatch, and override semantics |
-| SPEC-004 | Planned | Display method: name/reveal/eval deduplication |
-| SPEC-005 | Planned | Accent width selection (narrow vs wide) |
-| SPEC-006 | Planned | Postfix wrapping: compound names, superscripts, fractions |
-| SPEC-007 | Planned | Unicode coefficient formatting |
-| SPEC-008 | Planned | Lazy/eager propagation rules |
-| SPEC-009 | Planned | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
+| [SPEC-002](SPEC-002-precedence-parenthesisation.md) | Draft | Precedence and parenthesisation rules |
+| [SPEC-003](SPEC-003-notation-system.md) | Draft | Notation system: kinds, dispatch, and override semantics |
+| [SPEC-004](SPEC-004-display-method.md) | Draft | Display method: name/reveal/eval deduplication |
+| [SPEC-005](SPEC-005-accent-width.md) | Draft | Accent width selection (narrow vs wide) |
+| [SPEC-006](SPEC-006-postfix-wrapping.md) | Draft | Postfix wrapping: compound names, superscripts, fractions |
+| [SPEC-007](SPEC-007-unicode-coefficient-formatting.md) | Draft | Unicode coefficient formatting |
+| [SPEC-008](SPEC-008-lazy-eager-propagation.md) | Draft | Lazy/eager propagation rules |
+| [SPEC-009](SPEC-009-expression-tree-rendering.md) | Draft | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
 
 ## Format
 
