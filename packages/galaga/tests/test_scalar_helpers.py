@@ -155,22 +155,22 @@ class TestScientificNotationStyle:
     def test_times_style(self, alg):
         """'times' renders as \\times."""
         e1, _, _ = alg.basis_vectors()
-        result = (1.2e-6 * e1).latex()
-        assert r"\times 10^{-6}" in result
+        result = (1.2e-7 * e1).latex()
+        assert r"\times 10^{-7}" in result
 
     def test_cdot_style(self, alg):
         """'cdot' renders as \\cdot."""
         alg.notation.scientific = "cdot"
         e1, _, _ = alg.basis_vectors()
-        result = (1.2e-6 * e1).latex()
-        assert r"\cdot 10^{-6}" in result
+        result = (1.2e-7 * e1).latex()
+        assert r"\cdot 10^{-7}" in result
 
     def test_raw_style(self, alg):
         """'raw' passes through Python notation."""
         alg.notation.scientific = "raw"
         e1, _, _ = alg.basis_vectors()
-        result = (1.2e-6 * e1).latex()
-        assert "e-06" in result
+        result = (1.2e-7 * e1).latex()
+        assert "e-07" in result
 
     def test_invalid_style_raises(self, alg):
         """Unknown style raises ValueError."""
@@ -184,9 +184,9 @@ class TestScientificNotationStyle:
 
     def test_coeff_format_respects_style(self, alg):
         """coeff_format also uses the notation style."""
-        mv = alg.scalar(1.2e-6)
+        mv = alg.scalar(1.2e-7)
         result = mv.latex(coeff_format=".3e")
-        assert r"\times 10^{-6}" in result
+        assert r"\times 10^{-7}" in result
 
 
 class TestSciLnode:
@@ -285,13 +285,13 @@ class TestCoeffLnode:
         assert emit(node) == "-e_{1}"
 
     def test_scientific_coeff(self):
-        """1.2e-6 e_{1} with \\times."""
+        """1.2e-7 e_{1} with \\times."""
         from galaga.algebra import _coeff_lnode
         from galaga.latex_emit import emit
 
-        node = _coeff_lnode(1.2e-6, "e_{1}", None, "times")
+        node = _coeff_lnode(1.2e-7, "e_{1}", None, "times")
         result = emit(node)
-        assert r"\times 10^{-6}" in result
+        assert r"\times 10^{-7}" in result
         assert "e_{1}" in result
 
     def test_scalar_no_blade(self):

@@ -512,6 +512,23 @@ class Algebra:
 import re as _re
 
 
+def _fmt_coeff(c: float) -> str:
+    """Format a coefficient for default LaTeX display.
+
+    Numbers with abs >= 1e-6 never use scientific notation.
+    Smaller numbers use Python's :g format (which may be scientific).
+    """
+    if c == 0:
+        return "0"
+    if abs(c) >= 1e-6:
+        s = f"{c:.15g}"
+        if "e" in s or "E" in s:
+            s = f"{c:.15f}".rstrip("0").rstrip(".")
+        return s
+    return f"{c:g}"
+    return f"{c:g}"
+
+
 def _sci_lnode(s: str, style: str):
     """Convert a formatted number string to an LNode, handling scientific notation.
 
@@ -543,7 +560,7 @@ def _coeff_lnode(c: float, blade: str, coeff_format: str | None, style: str):
             return coeff_node
         return Seq([coeff_node, Text(f" {blade}")])
     else:
-        formatted = f"{c:g}"
+        formatted = _fmt_coeff(c)
         if blade == "":
             return _sci_lnode(formatted, style)
         if np.isclose(abs(c), 1.0):
