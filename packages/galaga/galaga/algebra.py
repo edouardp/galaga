@@ -520,17 +520,15 @@ import re as _re
 def _fmt_coeff(c: float) -> str:
     """Format a coefficient for default LaTeX display.
 
-    Numbers with abs >= 1e-6 never use scientific notation.
-    Smaller numbers use Python's :g format (which may be scientific).
+    Uses Python's :g (6 significant digits) but forces non-scientific
+    notation for numbers with abs >= 1e-6.
     """
     if c == 0:
         return "0"
-    if abs(c) >= 1e-6:
-        s = f"{c:.15g}"
-        if "e" in s or "E" in s:
-            s = f"{c:.15f}".rstrip("0").rstrip(".")
-        return s
-    return f"{c:g}"
+    s = f"{c:g}"
+    if abs(c) >= 1e-6 and ("e" in s or "E" in s):
+        s = f"{c:.6f}".rstrip("0").rstrip(".")
+    return s
     return f"{c:g}"
 
 
