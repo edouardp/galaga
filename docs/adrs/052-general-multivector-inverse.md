@@ -32,3 +32,13 @@ Both paths compute `(numerator, denominator)` where `x⁻¹ = numerator / denomi
 
 - E. Hitzer, S. Sangwine, "Multivector and multivector matrix inverses in real Clifford algebras", Applied Mathematics and Computation, 2017.
 - D. Shirokov, "On computing the determinant, other characteristic polynomial coefficients, and inverse in Clifford algebras of arbitrary dimension", arXiv:2005.04015, 2020.
+
+## Future Consideration: Versor Fast Path
+
+In practice, most GA code only inverts versors (rotors, reflectors, motors). For a versor, `x * ~x` is a pure scalar, and the inverse is simply `~x / (x * ~x).scalar_part` — much cheaper than Hitzer/Shirokov.
+
+A future optimisation could check `is_scalar(x * ~x)` first:
+- If yes → use the cheap versor formula
+- If no → fall through to Hitzer/Shirokov
+
+This would make the common case (unit versors where `x * ~x = 1`, so `inv(x) = ~x`) just as fast as the old implementation, while still being correct for general multivectors. The check itself is cheap (one geometric product + an `allclose` on the non-scalar components).
