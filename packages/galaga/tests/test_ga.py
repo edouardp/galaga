@@ -734,6 +734,42 @@ class TestGeneralInverse:
         mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
         assert np.allclose(gp(inverse(mv), mv).data, cl3.scalar(1.0).data)
 
+    def test_inverse_pga_null_vector_raises(self):
+        """Null vector in PGA is not invertible."""
+        pga = Algebra((1, 1, 1, 0))
+        _, _, _, e0 = pga.basis_vectors()
+        with pytest.raises(ValueError, match="not invertible"):
+            inverse(e0)
+
+    def test_inverse_non_invertible_shirokov_raises(self):
+        """Non-invertible MV in d≥6 raises ValueError."""
+        cl6 = Algebra((1, 1, 1, 1, 1, 1))
+        with pytest.raises(ValueError, match="not invertible"):
+            inverse(cl6.scalar(0))
+
+    def test_inverse_pure_scalar(self, cl3):
+        """Inverse of a pure scalar in a higher-dim algebra."""
+        s = cl3.scalar(5.0)
+        assert np.allclose(gp(s, inverse(s)).data, cl3.scalar(1.0).data)
+
+    def test_inverse_roundtrip(self, cl3):
+        """inverse(inverse(x)) == x."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        assert np.allclose(inverse(inverse(mv)).data, mv.data)
+
+    def test_inverse_via_property(self, cl3):
+        """.inv property uses the general inverse."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        assert np.allclose(gp(mv, mv.inv).data, cl3.scalar(1.0).data)
+
+    def test_inverse_via_pow(self, cl3):
+        """x**-1 uses the general inverse."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        assert np.allclose(gp(mv, mv**-1).data, cl3.scalar(1.0).data)
+
 
 class TestPredicates:
     def test_is_scalar(self, cl3):
@@ -889,6 +925,10 @@ class TestSqrt:
         """sqrt of a plain number."""
         assert sqrt(4.0) == 2.0
 
+    def test_sqrt_int(self):
+        """sqrt of a plain int."""
+        assert sqrt(4) == 2
+
     def test_sqrt_rotor(self, cl3):
         """sqrt(R)^2 = R for a rotor."""
         e1, e2, _ = cl3.basis_vectors()
@@ -897,7 +937,7 @@ class TestSqrt:
         assert np.allclose(gp(sqR, sqR).data, R.data)
 
     def test_sqrt_pga_translator(self):
-        """sqrt(T)^2 = T for a PGA translator."""
+        """sqrt(T)^2 = T for a PGA translator (null bI² path)."""
         pga = Algebra((1, 1, 1, 0))
         e1, _, _, e0 = pga.basis_vectors()
         T = pga.scalar(1) + 0.5 * (e0 ^ e1)
@@ -919,6 +959,35 @@ class TestSqrt:
         mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
         with pytest.raises(ValueError, match="Study number"):
             sqrt(mv)
+
+    def test_sqrt_negative_scalar_raises(self, cl3):
+        """sqrt of a negative scalar raises ValueError."""
+        with pytest.raises(ValueError, match="negative"):
+            sqrt(cl3.scalar(-4.0))
+
+    def test_sqrt_negative_number_raises(self):
+        """sqrt of a negative plain number raises ValueError."""
+        with pytest.raises(ValueError, match="negative"):
+            sqrt(-4.0)
+
+    def test_sqrt_bad_type_raises(self):
+        """sqrt of a non-MV/non-number raises TypeError."""
+        with pytest.raises(TypeError, match="sqrt expects"):
+            sqrt("hello")
+
+    def test_sqrt_identity(self, cl3):
+        """sqrt(1) = 1."""
+        one = cl3.scalar(1.0)
+        assert np.allclose(sqrt(one).data, one.data)
+
+    def test_sqrt_hyperbolic_rotor(self):
+        """sqrt of a hyperbolic rotor (STA boost) squares back."""
+        sta = Algebra((1, -1, -1, -1))
+        g0, g1, _, _ = sta.basis_vectors()
+        B = 0.3 * (g0 * g1)  # timelike bivector, B² > 0
+        R = exp(B)
+        sqR = sqrt(R)
+        assert np.allclose(gp(sqR, sqR).data, R.data)
 
 
 class TestProjectReject:
