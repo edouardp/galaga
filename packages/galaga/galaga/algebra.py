@@ -1945,6 +1945,59 @@ def log(R: Multivector) -> Multivector:
         return (phi / mag) * B
 
 
+@lazy_unary("OuterExp")
+def outerexp(x: Multivector) -> Multivector:
+    """Outer exponential: 1 + x + x∧x/2! + x∧x∧x/3! + ...
+
+    Uses the wedge product instead of the geometric product. The series
+    always terminates at grade n (algebra dimension), so this is exact.
+    """
+    alg = x.algebra
+    terms = [alg.scalar(1.0), x]
+    for k in range(2, alg.n + 1):
+        t = op(terms[-1], x) / k
+        if np.allclose(t.data, 0):
+            break
+        terms.append(t)
+    return sum(terms[1:], start=terms[0])
+
+
+@lazy_unary("OuterSin")
+def outersin(x: Multivector) -> Multivector:
+    """Outer sine: odd terms of the outer exponential series."""
+    alg = x.algebra
+    terms = [x]
+    w = x
+    for k in range(2, alg.n + 1):
+        w = op(w, x) / k
+        if np.allclose(w.data, 0):
+            break
+        if k % 2 == 1:
+            terms.append(w)
+    return sum(terms[1:], start=terms[0]) if terms else alg.scalar(0.0)
+
+
+@lazy_unary("OuterCos")
+def outercos(x: Multivector) -> Multivector:
+    """Outer cosine: even terms of the outer exponential series."""
+    alg = x.algebra
+    terms = [alg.scalar(1.0)]
+    w = x
+    for k in range(2, alg.n + 1):
+        w = op(w, x) / k
+        if np.allclose(w.data, 0):
+            break
+        if k % 2 == 0:
+            terms.append(w)
+    return sum(terms[1:], start=terms[0])
+
+
+@lazy_unary("OuterTan")
+def outertan(x: Multivector) -> Multivector:
+    """Outer tangent: outersin(x) / outercos(x)."""
+    return gp(outersin(x), inverse(outercos(x)))
+
+
 def project(v: Multivector, B: Multivector) -> Multivector:
     """Project v onto the subspace defined by blade B.
 

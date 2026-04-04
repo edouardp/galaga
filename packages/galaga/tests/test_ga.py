@@ -27,6 +27,10 @@ from galaga import (
     norm,
     norm2,
     op,
+    outercos,
+    outerexp,
+    outersin,
+    outertan,
     project,
     reflect,
     reject,
@@ -856,6 +860,74 @@ class TestGoldenSTA:
         """I^2 = -1 in Cl(1,3) with standard blade ordering."""
         I = sta.pseudoscalar()
         assert np.isclose((I * I).scalar_part, -1.0)
+
+
+class TestOuterTranscendentals:
+    """Outer (wedge) exponential, sine, cosine, tangent."""
+
+    def test_outerexp_simple_bivector(self, cl3):
+        """outerexp(B) = 1 + B for a simple bivector (B∧B = 0)."""
+        e1, e2, _ = cl3.basis_vectors()
+        B = e1 ^ e2
+        assert np.allclose(outerexp(B).data, (cl3.scalar(1) + B).data)
+
+    def test_outerexp_vector(self, cl3):
+        """outerexp(v) = 1 + v for any vector (v∧v = 0)."""
+        e1, _, _ = cl3.basis_vectors()
+        assert np.allclose(outerexp(e1).data, (cl3.scalar(1) + e1).data)
+
+    def test_outerexp_non_simple_bivector(self):
+        """outerexp of non-simple bivector in 4D includes B∧B/2 term."""
+        cl4 = Algebra((1, 1, 1, 1))
+        es = cl4.basis_vectors()
+        B = (es[0] ^ es[1]) + (es[2] ^ es[3])
+        oe = outerexp(B)
+        expected = cl4.scalar(1) + B + op(B, B) / 2
+        assert np.allclose(oe.data, expected.data)
+
+    def test_outerexp_equals_cos_plus_sin(self):
+        """outerexp(x) = outercos(x) + outersin(x)."""
+        cl4 = Algebra((1, 1, 1, 1))
+        es = cl4.basis_vectors()
+        B = (es[0] ^ es[1]) + (es[2] ^ es[3])
+        assert np.allclose(outerexp(B).data, (outercos(B) + outersin(B)).data)
+
+    def test_outercos_even_grades(self):
+        """outercos contains only even-grade terms."""
+        cl4 = Algebra((1, 1, 1, 1))
+        es = cl4.basis_vectors()
+        B = (es[0] ^ es[1]) + (es[2] ^ es[3])
+        oc = outercos(B)
+        for k in range(cl4.n + 1):
+            if k % 2 == 1:
+                assert np.allclose(grade(oc, k).data, 0)
+
+    def test_outersin_odd_grades(self):
+        """outersin contains only odd-grade terms (relative to input grade)."""
+        cl4 = Algebra((1, 1, 1, 1))
+        es = cl4.basis_vectors()
+        B = (es[0] ^ es[1]) + (es[2] ^ es[3])
+        os_ = outersin(B)
+        # B is grade 2, so outersin has grade 2 only (B^B^B would be grade 6, beyond dim)
+        assert np.allclose(os_.data, B.data)
+
+    def test_outertan_simple(self, cl3):
+        """outertan(B) = B for a simple bivector (outercos = 1)."""
+        e1, e2, _ = cl3.basis_vectors()
+        B = e1 ^ e2
+        assert np.allclose(outertan(B).data, B.data)
+
+    def test_outertan_non_invertible_cos_raises(self):
+        """outertan raises when outercos is not invertible."""
+        cl4 = Algebra((1, 1, 1, 1))
+        es = cl4.basis_vectors()
+        B = (es[0] ^ es[1]) + (es[2] ^ es[3])
+        with pytest.raises(ValueError, match="not invertible"):
+            outertan(B)
+
+    def test_outerexp_scalar(self, cl3):
+        """outerexp(0) = 1."""
+        assert np.allclose(outerexp(cl3.scalar(0)).data, cl3.scalar(1).data)
 
 
 class TestExpLog:
