@@ -659,6 +659,81 @@ class TestDualNormInverse:
             inverse(cl3.scalar(0))
 
 
+class TestGeneralInverse:
+    """General multivector inverse via Hitzer (d≤5) / Shirokov (d≥6)."""
+
+    def test_inverse_general_mv_cl3(self, cl3):
+        """General MV inverse in Cl(3,0): (1 + e1 + e12 + e123) has a true inverse."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        assert np.allclose(gp(mv, inverse(mv)).data, cl3.scalar(1.0).data)
+
+    def test_inverse_d0(self):
+        """Scalar inverse in Cl(0,0)."""
+        cl0 = Algebra(())
+        s = cl0.scalar(3.0)
+        assert np.allclose(gp(s, inverse(s)).data, cl0.scalar(1.0).data)
+
+    def test_inverse_d1(self):
+        """General MV inverse in Cl(1,0)."""
+        cl1 = Algebra((1,))
+        (e1,) = cl1.basis_vectors()
+        mv = cl1.scalar(2) + 3 * e1
+        assert np.allclose(gp(mv, inverse(mv)).data, cl1.scalar(1.0).data)
+
+    def test_inverse_d2(self):
+        """General MV inverse in Cl(2,0)."""
+        cl2 = Algebra((1, 1))
+        e1, e2 = cl2.basis_vectors()
+        mv = cl2.scalar(1) + 2 * e1 + 3 * e2 + 4 * (e1 ^ e2)
+        assert np.allclose(gp(mv, inverse(mv)).data, cl2.scalar(1.0).data)
+
+    def test_inverse_d4_sta(self):
+        """General MV inverse in Cl(1,3) (STA)."""
+        sta = Algebra((1, -1, -1, -1))
+        e0, e1, e2, e3 = sta.basis_vectors()
+        mv = sta.scalar(2) + e0 + e1 + (e0 ^ e1) + (e1 ^ e2 ^ e3)
+        assert np.allclose(gp(mv, inverse(mv)).data, sta.scalar(1.0).data)
+
+    def test_inverse_d5(self):
+        """General MV inverse in Cl(5,0)."""
+        cl5 = Algebra((1, 1, 1, 1, 1))
+        es = cl5.basis_vectors()
+        mv = cl5.scalar(2) + es[0] + 0.5 * (es[0] ^ es[1])
+        assert np.allclose(gp(mv, inverse(mv)).data, cl5.scalar(1.0).data)
+
+    def test_inverse_d6_shirokov(self):
+        """General MV inverse in Cl(6,0) uses Shirokov algorithm."""
+        cl6 = Algebra((1, 1, 1, 1, 1, 1))
+        es = cl6.basis_vectors()
+        mv = cl6.scalar(3) + 2 * es[0] + es[1] + 0.5 * (es[0] ^ es[2])
+        assert np.allclose(gp(mv, inverse(mv)).data, cl6.scalar(1.0).data)
+
+    def test_inverse_versor_still_works(self, cl3):
+        """Versor inverse still works (rotor)."""
+        e1, e2, _ = cl3.basis_vectors()
+        R = exp(0.5 * (e1 ^ e2))
+        assert np.allclose(gp(R, inverse(R)).data, cl3.scalar(1.0).data)
+
+    def test_inverse_non_invertible_raises(self, cl3):
+        """Non-invertible MV raises ValueError."""
+        with pytest.raises(ValueError, match="not invertible"):
+            inverse(cl3.scalar(0))
+
+    def test_inverse_pga_versor(self):
+        """Versor inverse in PGA Cl(3,0,1)."""
+        pga = Algebra((1, 1, 1, 0))
+        e1, e2, _, _ = pga.basis_vectors()
+        v = 2 * e1 + 3 * e2
+        assert np.allclose(gp(v, inverse(v)).data, pga.scalar(1.0).data)
+
+    def test_inverse_right_inverse(self, cl3):
+        """inv(x) * x = 1 (right inverse = left inverse)."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        assert np.allclose(gp(inverse(mv), mv).data, cl3.scalar(1.0).data)
+
+
 class TestPredicates:
     def test_is_scalar(self, cl3):
         """is_scalar detects pure grade-0."""

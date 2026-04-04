@@ -1693,22 +1693,82 @@ def unit(x: Multivector) -> Multivector:
 
 @lazy_unary("Inverse")
 def inverse(x: Multivector) -> Multivector:
-    """Versor inverse: x⁻¹ = ~x / (x * ~x).scalar_part.
+    """General multivector inverse: x⁻¹ such that x * x⁻¹ = 1.
 
-    This works for versors (products of non-null vectors), which includes
-    all rotors, vectors, and most objects you'd want to invert in practice.
-    It does NOT work for arbitrary multivectors — a general multivector
-    inverse requires solving a linear system, which this library doesn't
-    implement (by design: if you need it, you probably want a different
-    approach).
+    Dispatches by algebra dimension:
+    - d ≤ 5: Hitzer closed-form inverse (Hitzer & Sangwine 2017)
+    - d ≥ 6: Shirokov iterative algorithm (arXiv:2005.04015)
 
-    Raises ValueError if the multivector is not invertible (x * ~x ≈ 0).
+    Both produce a true inverse for any invertible multivector, not just
+    versors. Raises ValueError if the multivector is not invertible.
     """
-    x_rev = reverse(x)
-    denom = gp(x, x_rev).scalar_part
+    alg = x.algebra
+    if alg.n <= 5:
+        num, denom = _hitzer_inv(x)
+    else:
+        num, denom = _shirokov_inv(x)
     if abs(denom) < 1e-15:
         raise ValueError("Multivector is not invertible")
-    return x_rev / denom
+    return num / denom
+
+
+def _hitzer_inv(x: Multivector) -> tuple[Multivector, float]:
+    """Hitzer closed-form inverse for d ≤ 5 (Hitzer & Sangwine 2017)."""
+    d = x.algebra.n
+    if d == 0:
+        return x.algebra.scalar(1.0), x.scalar_part
+    elif d == 1:
+        num = involute(x)
+    elif d == 2:
+        num = conjugate(x)
+    elif d == 3:
+        xconj = conjugate(x)
+        num = gp(xconj, reverse(gp(x, xconj)))
+    elif d == 4:
+        xconj = conjugate(x)
+        x_xconj = gp(x, xconj)
+        num = gp(xconj, x_xconj - 2 * grades(x_xconj, [3, 4]))
+    elif d == 5:
+        xconj = conjugate(x)
+        x_xconj = gp(x, xconj)
+        combo = gp(xconj, reverse(x_xconj))
+        x_combo = gp(x, combo)
+        num = gp(combo, x_combo - 2 * grades(x_combo, [1, 4]))
+    else:
+        raise NotImplementedError(f"Hitzer inverse not available for d={d}")
+    denom = scalar_product(x, num).scalar_part
+    return num, denom
+
+
+def _shirokov_inv(x: Multivector) -> tuple[Multivector, float]:
+    """Shirokov iterative inverse for any algebra (arXiv:2005.04015)."""
+    alg = x.algebra
+    n = 2 ** ((alg.n + 1) // 2)
+    # Build powers of x using addition chains
+    powers = [x]  # powers[0] = x^1
+    for _i in range(1, n):
+        powers.append(gp(powers[-1], x))
+    # Iterative adjugate construction
+    cs = []
+    xs = []
+    for i in range(1, n + 1):
+        xi = powers[i - 1]
+        for j in range(len(cs)):
+            xi = xi - gp(powers[i - j - 2], x.algebra.scalar(cs[j]))
+        sp = scalar_product(xi, x.algebra.scalar(1.0)).scalar_part
+        if i < n:
+            # Check if xi is scalar (converged early)
+            if np.allclose(xi.data[1:], 0):
+                adj = xs[-1] - x.algebra.scalar(cs[-1]) if xs else x.algebra.scalar(1.0)
+                return adj, xi.scalar_part
+            xs.append(xi)
+            cs.append(n * sp / i if sp != 0 else 0)
+        else:
+            # Final iteration: xi should be scalar
+            adj = xs[-1] - x.algebra.scalar(cs[-1]) if xs else x.algebra.scalar(1.0)
+            return adj, xi.scalar_part
+    # Should not reach here
+    raise RuntimeError("Shirokov inverse failed to converge")
 
 
 # --- Predicates ---
