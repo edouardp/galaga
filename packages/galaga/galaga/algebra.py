@@ -1582,6 +1582,45 @@ def scalar_sqrt(x) -> Multivector:
     return x.algebra.scalar(np.sqrt(s))
 
 
+def sqrt(x) -> Multivector:
+    """Square root via Study number decomposition (Roelfs & De Keninck 2022).
+
+    Works for any multivector that decomposes as a + bI where a is the
+    scalar part and bI = x - a squares to a scalar. This includes:
+    - Pure scalars
+    - Rotors (e.g. cos(θ) + sin(θ) e₁₂)
+    - PGA translators (e.g. 1 + ½d e₀₁)
+    - Any Study number
+
+    For pure scalars or plain numbers, delegates to scalar_sqrt.
+
+    Raises ValueError if bI does not square to a scalar.
+    """
+    if isinstance(x, (int, float)):
+        return scalar_sqrt(x)
+    if not isinstance(x, Multivector):
+        raise TypeError(f"sqrt expects a Multivector or number, got {type(x).__name__}")
+    if x._is_lazy:
+        import galaga.expr as _expr_mod
+
+        result = sqrt(Multivector(x.algebra, x.data))
+        return x._lazy_result(result.data, _expr_mod.Sqrt(x._to_expr()))
+    if is_scalar(x):
+        return scalar_sqrt(x)
+    a = x.scalar_part
+    bI = x - x.algebra.scalar(a)
+    bI_sq = gp(bI, bI)
+    if not is_scalar(bI_sq):
+        raise ValueError("sqrt requires a Study number (non-scalar part must square to a scalar)")
+    bI_sq_val = bI_sq.scalar_part
+    if np.isclose(bI_sq_val, 0.0):
+        cp = np.sqrt(a)
+    else:
+        norm_s = a * a - bI_sq_val
+        cp = np.sqrt(0.5 * (a + np.sqrt(norm_s)))
+    return bI / (2 * cp) + x.algebra.scalar(cp)
+
+
 @lazy_unary("Dual")
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.

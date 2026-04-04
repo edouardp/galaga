@@ -35,6 +35,7 @@ from galaga import (
     right_contraction,
     scalar_product,
     scalar_sqrt,
+    sqrt,
     undual,
     unit,
     wedge,
@@ -874,6 +875,50 @@ class TestExpLog:
         R = cl3.scalar(1.0)
         B = log(R)
         assert np.allclose(B.data, 0, atol=1e-12)
+
+
+class TestSqrt:
+    """Square root via Study number decomposition."""
+
+    def test_sqrt_scalar(self, cl3):
+        """sqrt of a scalar MV returns scalar."""
+        s = cl3.scalar(9.0)
+        assert np.isclose(sqrt(s).scalar_part, 3.0)
+
+    def test_sqrt_number(self):
+        """sqrt of a plain number."""
+        assert sqrt(4.0) == 2.0
+
+    def test_sqrt_rotor(self, cl3):
+        """sqrt(R)^2 = R for a rotor."""
+        e1, e2, _ = cl3.basis_vectors()
+        R = exp(0.7 * (e1 ^ e2))
+        sqR = sqrt(R)
+        assert np.allclose(gp(sqR, sqR).data, R.data)
+
+    def test_sqrt_pga_translator(self):
+        """sqrt(T)^2 = T for a PGA translator."""
+        pga = Algebra((1, 1, 1, 0))
+        e1, _, _, e0 = pga.basis_vectors()
+        T = pga.scalar(1) + 0.5 * (e0 ^ e1)
+        sqT = sqrt(T)
+        assert np.allclose(gp(sqT, sqT).data, T.data)
+
+    def test_sqrt_half_angle(self, cl3):
+        """sqrt of a rotor halves the rotation angle."""
+        e1, e2, _ = cl3.basis_vectors()
+        theta = 1.2
+        R = exp(-theta / 2 * (e1 ^ e2))
+        sqR = sqrt(R)
+        R_half = exp(-theta / 4 * (e1 ^ e2))
+        assert np.allclose(sqR.data, R_half.data)
+
+    def test_sqrt_non_study_raises(self, cl3):
+        """sqrt of a non-Study-number raises ValueError."""
+        e1, e2, e3 = cl3.basis_vectors()
+        mv = cl3.scalar(1) + e1 + (e1 ^ e2) + (e1 ^ e2 ^ e3)
+        with pytest.raises(ValueError, match="Study number"):
+            sqrt(mv)
 
 
 class TestProjectReject:
