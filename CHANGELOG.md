@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.6.0 (2026-04-05)
+
+### Added
+
+- **General multivector inverse** — `inverse()` now works for any invertible
+  multivector, not just versors. Uses Hitzer closed-form (d ≤ 5) and Shirokov
+  iterative algorithm (d ≥ 6). Non-invertible elements raise `ValueError`
+  instead of silently returning wrong answers.
+- **General square root** — `sqrt()` via Study number decomposition (Roelfs &
+  De Keninck 2022). Works for rotors, PGA translators, and any element whose
+  non-scalar part squares to a scalar. `scalar_sqrt()` is preserved for
+  backward compatibility.
+- **Outer transcendental functions** — `outerexp()`, `outersin()`, `outercos()`,
+  `outertan()`: wedge-product analogues of the standard transcendentals. The
+  series always terminates at grade n.
+
+### Changed
+
+- `inverse()` no longer uses the versor formula `~x / (x * ~x)`. The new
+  general inverse produces identical results for versors but now also handles
+  arbitrary mixed-grade multivectors correctly.
+
 ## 0.5.3 (2026-04-03)
 
 ### Added
