@@ -107,11 +107,12 @@ This fixes issue #8: when `index_base=0`, `blade("e01")` correctly parses as e�
 
 ### 4. Built-in Convention Factories
 
-| Factory | Vectors | Style | Overrides | Index | Use case |
+Factories configure *what* blades are called (vector names, overrides, index base). The `blade_style` parameter controls *how* multi-vector blades are displayed and is orthogonal — every factory accepts it as an override.
+
+| Factory | Vectors | Default style | Overrides | Index | Use case |
 |---|---|---|---|---|---|
 | `b_default()` | e₁, e₂, … | juxtapose | — | 1 | Current behavior |
-| `b_compact()` | e₁, e₂, … | compact | — | 1 | clifford-style |
-| `b_e0()` | e₀, e₁, … | compact | — | 0 | 0-based compact |
+| `b_e0()` | e₀, e₁, … | juxtapose | — | 0 | 0-based naming |
 | `b_gamma()` | γ₀, γ₁, … | juxtapose | — | 0 | STA vectors |
 | `b_sigma()` | σ₁, σ₂, … | juxtapose | — | 1 | Pauli algebra |
 | `b_sigma_xyz()` | σₓ, σᵧ, σ_z | juxtapose | — | 1 | Pauli (xyz) |
@@ -119,12 +120,21 @@ This fixes issue #8: when `index_base=0`, `blade("e01")` correctly parses as e�
 | `b_sta()` | γ₀, γ₁, … | juxtapose | σ₁/σ₂/σ₃, PSS → `i` | 0 | Spacetime algebra |
 | `b_cga()` | e₁…e₃, eₒ, e∞ | compact | null pair → `E₀`, PSS → `I` | 1 | Conformal GA |
 
-Factories accept optional keyword overrides:
+Each factory picks a sensible default `blade_style` for its domain, but it's always overridable:
 
 ```python
-b_compact(prefix="v")           # v₁₂ instead of e₁₂
-b_gamma(start=1)                # γ₁, γ₂, γ₃, γ₄ (1-based)
-b_pga(pseudoscalar="𝐈")         # custom pseudoscalar name
+b_pga()                          # compact (default for PGA)
+b_pga(blade_style="wedge")       # e₀∧e₁ instead of e₀₁
+b_gamma(blade_style="compact")   # γ₀₁ instead of γ₀γ₁
+b_default(blade_style="compact") # e₁₂ instead of e₁e₂
+```
+
+Other keyword overrides:
+
+```python
+b_default(prefix="v")            # v₁, v₂, … instead of e₁, e₂, …
+b_gamma(start=1)                 # γ₁, γ₂, γ₃, γ₄ (1-based)
+b_pga(pseudoscalar="𝐈")          # custom pseudoscalar name
 ```
 
 ### 5. Interaction with `names=`
@@ -178,19 +188,19 @@ Based on the survey in `docs/ga-library-conventions.md`, every major library's c
 
 | Convention | Configuration |
 |---|---|
-| ganja.js (`e01, e12`) | `blades=b_e0()` |
-| clifford (`e12, e13`) | `blades=b_compact()` |
-| kingdon (`e01, e12`) | `blades=b_e0()` |
+| ganja.js (`e01, e12`) | `blades=b_e0(blade_style="compact")` |
+| clifford (`e12, e13`) | `blades=b_default(blade_style="compact")` |
+| kingdon (`e01, e12`) | `blades=b_e0(blade_style="compact")` |
 | galaga current (`e₁e₂`) | `blades=b_default()` or omit |
-| galgebra (`e1^e2`) | `blades=BladeConvention(blade_style="wedge")` |
-| GeometricAlgebra.jl (`v12`) | `blades=b_compact(prefix="v")` |
-| Grassmann.jl (`v₁₂`) | `blades=b_compact(prefix="v")` |
+| galgebra (`e1^e2`) | `blades=b_default(blade_style="wedge")` |
+| GeometricAlgebra.jl (`v12`) | `blades=b_default(prefix="v", blade_style="compact")` |
+| Grassmann.jl (`v₁₂`) | `blades=b_default(prefix="v", blade_style="compact")` |
 | STA (γ₀γ₁, σ₁) | `blades=b_sta()` |
 | PGA (e₀₁, I) | `blades=b_pga()` |
 | CGA (e₁₂, eₒ∞, I) | `blades=b_cga()` |
 
 ## Open Questions
 
-1. Should `b_compact()` be the default instead of `b_default()`? Compact subscripts are more conventional in GA literature, but it's a breaking change to display output.
+1. Should `blade_style="compact"` be the default instead of `"juxtapose"`? Compact subscripts are more conventional in GA literature, but it's a breaking change to display output.
 2. Should `blade_overrides` accept bitmask ints as keys (e.g. `{0b011: "B"}`) in addition to strings?
 3. Should there be a `b_custom()` factory that takes a full dict of all 2^n blade names?
