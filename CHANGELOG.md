@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.1 (2026-04-05)
+
+### Added
+
+- **Cl(p,q,r) constructor** — `Algebra(3)`, `Algebra(1, 3)`, `Algebra(3, 0, 1)`
+  now work alongside the existing `Algebra((1, 1, 1))` signature form.
+- Input validation on `Algebra` constructor: rejects strings, floats, bools,
+  negative counts, and invalid signature values (not +1/-1/0) with clear error
+  messages.
+
 ## 0.6.0 (2026-04-05)
 
 ### Added
