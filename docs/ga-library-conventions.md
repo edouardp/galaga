@@ -12,7 +12,7 @@ A comparison of algebra construction, basis naming, and basis ordering across GA
 | **galaga** | Python | `Algebra(p, q, r)` or `Algebra([m₁, m₂, …])` | `Algebra(2, 0, 1)` or `Algebra([0, 1, 1])` |
 | **galgebra** | Python | `Ga('names', g=[m₁, m₂, …])` | `Ga('e1 e2 e0', g=[1, 1, 0])` |
 | **GeometricAlgebra.jl** | Julia | `Cl(p, q, r)` or `Cl("+-0")` | `Cl(2, 0, 1)` or `Cl("++0")` |
-| **Grassmann.jl** | Julia | `S"+-0"` or `D"1,-1,0"` | `D"0,1,1"` or `D"1,1,0"` |
+| **Grassmann.jl** | Julia | `S"+-"` or `D"1,-1,0"` | `D"0,1,1"` or `D"1,1,0"` |
 
 Notes:
 - galaga's metric tuple form `Algebra((0, 1, 1))` gives direct control over which basis vector is null and where it sits in the ordering. The `(p, q, r)` form applies a fixed ordering convention (see below).
