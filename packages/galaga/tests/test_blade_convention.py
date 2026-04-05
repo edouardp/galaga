@@ -84,6 +84,98 @@ class TestFactoryDefaults:
         trivec = g1 * g2 * g3
         assert "iγ" in str(trivec)
 
+    def test_b_sta_all_blades_plain(self):
+        """b_sta() complete blade table."""
+        alg = Algebra(1, 3, blades=b_sta())
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "γ₀γ₁",
+            0b0100: "γ₂",
+            0b0101: "γ₀γ₂",
+            0b0110: "γ₁γ₂",
+            0b0111: "γ₀γ₁γ₂",
+            0b1000: "γ₃",
+            0b1001: "γ₀γ₃",
+            0b1010: "γ₁γ₃",
+            0b1011: "γ₀γ₁γ₃",
+            0b1100: "γ₂γ₃",
+            0b1101: "γ₀γ₂γ₃",
+            0b1110: "γ₁γ₂γ₃",
+            0b1111: "i",
+        }
+
+    def test_b_sta_all_blades_sigmas(self):
+        """b_sta(sigmas=True) complete blade table."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "σ₁",
+            0b0100: "γ₂",
+            0b0101: "σ₂",
+            0b0110: "iσ₃",
+            0b0111: "γ₀γ₁γ₂",
+            0b1000: "γ₃",
+            0b1001: "σ₃",
+            0b1010: "iσ₂",
+            0b1011: "γ₀γ₁γ₃",
+            0b1100: "iσ₁",
+            0b1101: "γ₀γ₂γ₃",
+            0b1110: "γ₁γ₂γ₃",
+            0b1111: "i",
+        }
+
+    def test_b_sta_all_blades_pseudovectors(self):
+        """b_sta(pseudovectors=True) complete blade table."""
+        alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "γ₀γ₁",
+            0b0100: "γ₂",
+            0b0101: "γ₀γ₂",
+            0b0110: "γ₁γ₂",
+            0b0111: "iγ₃",
+            0b1000: "γ₃",
+            0b1001: "γ₀γ₃",
+            0b1010: "γ₁γ₃",
+            0b1011: "iγ₂",
+            0b1100: "γ₂γ₃",
+            0b1101: "iγ₁",
+            0b1110: "iγ₀",
+            0b1111: "i",
+        }
+
+    def test_b_sta_all_blades_both(self):
+        """b_sta(sigmas=True, pseudovectors=True) complete blade table."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True, pseudovectors=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "σ₁",
+            0b0100: "γ₂",
+            0b0101: "σ₂",
+            0b0110: "iσ₃",
+            0b0111: "iγ₃",
+            0b1000: "γ₃",
+            0b1001: "σ₃",
+            0b1010: "iσ₂",
+            0b1011: "iγ₂",
+            0b1100: "iσ₁",
+            0b1101: "iγ₁",
+            0b1110: "iγ₀",
+            0b1111: "i",
+        }
+
     def test_b_cga(self):
         """b_cga: eₒ, e∞ names, E₀ for null pair, PSS → I."""
         alg = Algebra(4, 1, blades=b_cga())
