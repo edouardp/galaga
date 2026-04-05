@@ -305,18 +305,33 @@ def b_sta(
     pseudovectors: bool = False,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """STA: γ₀…γ₃, PSS → i."""
+    """STA: γ₀…γ₃, PSS → i.
+
+    sigmas=True names the six grade-2 bivectors:
+      σₖ = γₖγ₀ (boost bivectors): +1-1 → σ₁, +1-2 → σ₂, +1-3 → σ₃
+      iσₖ (spatial rotation bivectors): -2-3 → iσ₁, -1-3 → iσ₂, -1-2 → iσ₃
+
+    pseudovectors=True names the four grade-3 trivectors as iγₖ.
+
+    Note: σₖ = γₖγ₀ = -γ₀γₖ. The blade name labels the canonical
+    (sorted) basis blade γ₀γₖ, so computing γₖ*γ₀ displays as -σₖ.
+    """
     merged = {"pss": ("i", "i", "i")}
-    if pseudovectors:
-        sigmas = True
     if sigmas:
+        # Boost bivectors: σₖ = γₖγ₀ (labels canonical γ₀γₖ)
         merged["+1-1"] = ("s1", "σ₁", r"\sigma_{1}")
         merged["+1-2"] = ("s2", "σ₂", r"\sigma_{2}")
         merged["+1-3"] = ("s3", "σ₃", r"\sigma_{3}")
+        # Spatial rotation bivectors: iσₖ
+        merged["-2-3"] = ("is1", "iσ₁", r"i\sigma_{1}")
+        merged["-1-3"] = ("is2", "iσ₂", r"i\sigma_{2}")
+        merged["-1-2"] = ("is3", "iσ₃", r"i\sigma_{3}")
     if pseudovectors:
-        merged["-1-2-3"] = ("is1", "iσ₁", r"i\sigma_{1}")
-        merged["+1-2-3"] = ("is2", "iσ₂", r"i\sigma_{2}")
-        merged["+1-1-3"] = ("is3", "iσ₃", r"i\sigma_{3}")
+        # Grade-3 trivectors: iγₖ
+        merged["-1-2-3"] = ("iy0", "iγ₀", r"i\gamma_{0}")
+        merged["+1-2-3"] = ("iy1", "iγ₁", r"i\gamma_{1}")
+        merged["+1-1-3"] = ("iy2", "iγ₂", r"i\gamma_{2}")
+        merged["+1-1-2"] = ("iy3", "iγ₃", r"i\gamma_{3}")
     if overrides:
         merged.update(overrides)
     return BladeConvention(

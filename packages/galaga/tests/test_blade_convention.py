@@ -69,18 +69,20 @@ class TestFactoryDefaults:
         assert str(alg.pseudoscalar()) == "i"
 
     def test_b_sta_sigmas(self):
-        """b_sta(sigmas=True): adds σ bivector aliases."""
+        """b_sta(sigmas=True): adds σ and iσ bivector aliases."""
         alg = Algebra(1, 3, blades=b_sta(sigmas=True))
-        g0, g1, _, _ = alg.basis_vectors()
+        g0, g1, g2, g3 = alg.basis_vectors()
+        # σ₁ labels the canonical γ₀γ₁ blade
         assert str(g0 * g1) == "σ₁"
+        # iσ₃ labels the canonical γ₁γ₂ blade
+        assert str(g1 * g2) == "iσ₃"
 
     def test_b_sta_pseudovectors(self):
-        """b_sta(pseudovectors=True): implies sigmas, adds iσ trivectors."""
+        """b_sta(pseudovectors=True): names grade-3 trivectors as iγₖ."""
         alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
         g0, g1, g2, g3 = alg.basis_vectors()
-        assert str(g0 * g1) == "σ₁"
         trivec = g1 * g2 * g3
-        assert "iσ" in str(trivec)
+        assert "iγ" in str(trivec)
 
     def test_b_cga(self):
         """b_cga: eₒ, e∞ names, E₀ for null pair, PSS → I."""
