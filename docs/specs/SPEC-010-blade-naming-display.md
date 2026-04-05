@@ -217,6 +217,64 @@ b_sta(overrides={
 })
 ```
 
+## Signed Blade Names
+
+### The Problem
+
+In STA, σₖ = γₖγ₀. But the canonical (sorted) basis blade is γ₀γₖ, which has the opposite sign: γₖγ₀ = -γ₀γₖ. If we simply label bitmask 0011 as "σ₁", then `γ₁*γ₀` (which produces coefficient -1 at bitmask 0011) would display as "-σ₁" — wrong.
+
+The same issue affects iσₖ and iγₖ, where the defining product (e.g. I·γₖ·γ₀) may have a sign that differs from the canonical blade at the target bitmask.
+
+### Solution: BasisBlade.sign
+
+`BasisBlade` has a `sign` field (default +1). When rendering, the displayed coefficient is `data[bitmask] * sign`. This flips the display so that the named quantity appears with the correct sign:
+
+```python
+# bitmask 0011 stores the canonical γ₀γ₁ blade
+# σ₁ = γ₁γ₀ = -γ₀γ₁, so sign = -1
+# When γ₁*γ₀ is computed: data[0011] = -1
+# Display: -1 * -1 = +1 → "σ₁" ✓
+# When γ₀*γ₁ is computed: data[0011] = +1
+# Display: +1 * -1 = -1 → "-σ₁" ✓
+```
+
+### NamedBlade and Automatic Sign Computation
+
+Override values can be `NamedBlade` objects that carry a list of vector indices defining the product. `build_blades` computes the sign automatically from the metric using `_product_sign(vectors, signature)`:
+
+```python
+@dataclass
+class NamedBlade:
+    ascii: str
+    unicode: str
+    latex: str
+    sign: int | None = None     # explicit sign, or None for auto
+    vectors: list | None = None  # vector indices for auto sign computation
+```
+
+`_product_sign(indices, signature)` computes the bitmask and sign of an arbitrary product of basis vectors, handling reordering and metric contractions. This is the same computation the algebra's geometric product uses.
+
+### Override keys as tuple indices
+
+For `b_sta`, overrides use tuple keys (raw vector indices) instead of metric-role strings, since the same vector indices work for both Cl(1,3) and Cl(3,1):
+
+```python
+# In b_sta(sigmas=True):
+merged[(0, 1)] = _named_blade(("s1", "σ₁", ...), vectors=[1, 0])  # σ₁ = γ₁γ₀
+merged[(2, 3)] = _named_blade(("is1", "iσ₁", ...), vectors=[0,1,2,3, 1, 0])  # iσ₁ = I·σ₁
+```
+
+The sign is computed at `build_blades` time from the actual metric, so the same factory works for any STA signature.
+
+### Sign application in rendering
+
+The sign is applied in three rendering paths:
+- `Multivector._format()` (unicode/ascii str output)
+- `Multivector.__format__()` (numeric format specs)
+- `Multivector.latex()` (LaTeX output)
+
+All multiply the coefficient by `alg._blades[i].sign` before display.
+
 ## Blade Lookup
 
 `blade("name")` returns a Multivector. It searches in this order:
@@ -248,7 +306,7 @@ Factories configure *what* blades are called. The `style=` parameter controls *h
 | `b_sigma()` | σ₁, σ₂, … | juxtapose | — | 1 | Pauli algebra |
 | `b_sigma_xyz()` | σₓ, σᵧ, σ_z | juxtapose | — | 1 | Pauli (xyz) |
 | `b_pga()` | e₀, e₁, … | compact | PSS → `I` | 0 | Standard PGA |
-| `b_sta()` | γ₀, γ₁, … | juxtapose | PSS → `i` | 0 | Spacetime algebra |
+| `b_sta()` | γ₀, γ₁, … | juxtapose | PSS → `i` | 0 | Spacetime algebra (Cl(1,3) or Cl(3,1)) |
 | `b_cga()` | e₁…e₃, eₒ, e∞ | compact | null pair → `E₀`, PSS → `I` | 1 | Conformal GA |
 
 ### Factory Signatures
@@ -303,9 +361,10 @@ def b_sta(
     pseudovectors: bool = False,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """STA: γ₀…γ₃, PSS → i.
-    If sigmas=True, also names timelike bivectors as σ₁, σ₂, σ₃.
-    If pseudovectors=True, also names trivectors as iσ₁, iσ₂, iσ₃ (implies sigmas)."""
+    """STA: γ₀…γ₃, PSS → i. Works with both Cl(1,3) and Cl(3,1).
+    Signs computed automatically from the metric via _product_sign().
+    If sigmas=True, names all 6 grade-2 bivectors (σₖ and iσₖ).
+    If pseudovectors=True, names all 4 grade-3 trivectors (iγₖ)."""
 
 def b_cga(
     *,
@@ -544,9 +603,12 @@ Remove `names` from any re-exports. Add exports for `BladeConvention` and all `b
 
 ### `basis_blade.py`
 
-`BasisBlade.rename()` gains a positional first argument matching the override value format:
+`BasisBlade` gains a `sign` field (default +1) used by rendering to flip the displayed coefficient. `rename()` gains a positional first argument matching the override value format:
 
 ```python
+class BasisBlade:
+    __slots__ = ("_bitmask", "_ascii", "_unicode", "_latex", "_sign")
+
 def rename(self, name=None, /, *, ascii=None, unicode=None, latex=None):
     # name can be: str (all three), 2-tuple, or 3-tuple
     # keyword args override individual formats
