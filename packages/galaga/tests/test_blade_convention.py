@@ -1,10 +1,12 @@
 """Tests for the BladeConvention system (SPEC-010)."""
 
+import numpy as np
 import pytest
 
 from galaga import (
     Algebra,
     BladeConvention,
+    Multivector,
     b_cga,
     b_default,
     b_gamma,
@@ -12,6 +14,7 @@ from galaga import (
     b_sigma,
     b_sigma_xyz,
     b_sta,
+    gp,
 )
 
 # ---- 1. Factory defaults ----
@@ -916,3 +919,45 @@ class TestCoverageGaps:
         """Override referencing nonexistent null vector raises."""
         with pytest.raises(ValueError, match="Null vector index"):
             Algebra(3, blades=b_default(overrides={"_1": "X"}))
+
+
+class TestSignConsistency:
+    """Verify that blade signs are consistent with the algebra's geometric product."""
+
+    @pytest.mark.parametrize("sig", [(1, -1, -1, -1), (-1, 1, 1, 1)])
+    @pytest.mark.parametrize(
+        "conv_fn",
+        [
+            lambda: b_sta(sigmas=True),
+            lambda: b_sta(pseudovectors=True),
+            lambda: b_sta(sigmas=True, pseudovectors=True),
+        ],
+    )
+    def test_named_blade_signs_match_products(self, sig, conv_fn):
+        """For every named blade with a sign, verify sign * canonical == named product."""
+        from galaga.blade_convention import NamedBlade
+
+        conv = conv_fn()
+        alg = Algebra(sig, blades=conv)
+
+        for key, val in conv.overrides.items():
+            if not isinstance(val, NamedBlade) or val.vectors is None:
+                continue
+            result = alg.scalar(1.0)
+            for vidx in val.vectors:
+                data = np.zeros(alg.dim)
+                data[1 << vidx] = 1.0
+                vec = Multivector(alg, data)
+                result = gp(result, vec)
+            # The result should be sign * canonical_blade at the bitmask
+            if isinstance(key, tuple):
+                bitmask = 0
+                for idx in key:
+                    bitmask |= 1 << idx
+            else:
+                continue  # skip string keys like "pss"
+            bb = alg._blades[bitmask]
+            assert np.isclose(result.data[bitmask], bb.sign), (
+                f"sig={sig}, blade={bb.unicode_name}, bitmask={bitmask:04b}: "
+                f"product coeff={result.data[bitmask]}, stored sign={bb.sign}"
+            )
