@@ -355,10 +355,10 @@ def b_sta(
         merged["+1-1"] = _signed_blade(("s1", "σ₁", r"\sigma_{1}"), _reorder_sign([1, 0]))
         merged["+1-2"] = _signed_blade(("s2", "σ₂", r"\sigma_{2}"), _reorder_sign([2, 0]))
         merged["+1-3"] = _signed_blade(("s3", "σ₃", r"\sigma_{3}"), _reorder_sign([3, 0]))
-        # iσₖ = I·γₖ·γ₀: signs computed from the full product
-        merged["-2-3"] = _signed_blade(("is1", "iσ₁", r"i\sigma_{1}"), -1)
-        merged["-1-3"] = _signed_blade(("is2", "iσ₂", r"i\sigma_{2}"), +1)
-        merged["-1-2"] = _signed_blade(("is3", "iσ₃", r"i\sigma_{3}"), -1)
+        # iσₖ = I·γₖ·γ₀: signs so that γ₂γ₃ = iσ₁, γ₁γ₃ = -iσ₂, γ₁γ₂ = iσ₃
+        merged["-2-3"] = _signed_blade(("is1", "iσ₁", r"i\sigma_{1}"), +1)
+        merged["-1-3"] = _signed_blade(("is2", "iσ₂", r"i\sigma_{2}"), -1)
+        merged["-1-2"] = _signed_blade(("is3", "iσ₃", r"i\sigma_{3}"), +1)
     if pseudovectors:
         # iγₖ = I·γₖ: signs from the product
         merged["-1-2-3"] = _signed_blade(("iy0", "iγ₀", r"i\gamma_{0}"), -1)
