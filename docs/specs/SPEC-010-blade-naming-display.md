@@ -151,6 +151,51 @@ cga = Algebra(4, 1, names=(
 ), blade_style="compact")
 ```
 
+### 7. Presets
+
+A preset is a single string that configures names + blade_style + blade_names together. Presets are passed via the existing `names` parameter — if the string matches a preset, the full configuration is applied.
+
+Existing presets (unchanged, only set basis vector names):
+
+| Preset | Vectors | Blade style | Blade overrides |
+|---|---|---|---|
+| `"e"` | e₁, e₂, e₃ (1-based) | juxtapose | none |
+| `"gamma"` | γ₀, γ₁, γ₂, γ₃ (0-based) | juxtapose | none |
+| `"sigma"` | σ₁, σ₂, σ₃ (1-based) | juxtapose | none |
+| `"sigma_xyz"` | σₓ, σᵧ, σ_z | juxtapose | none |
+
+New presets (set the full stack):
+
+| Preset | Vectors | Blade style | Blade overrides | Use case |
+|---|---|---|---|---|
+| `"e0"` | e₀, e₁, e₂, … (0-based) | compact | none | PGA, ganja.js-style |
+| `"pga"` | e₀, e₁, e₂, … (0-based) | compact | pseudoscalar → `I` | Standard PGA |
+| `"sta"` | γ₀, γ₁, γ₂, γ₃ (0-based) | juxtapose | σ₁/σ₂/σ₃ for space-time bivectors, `i` for pseudoscalar | Spacetime algebra |
+| `"cga"` | e₁, e₂, e₃, eₒ, e∞ | compact | `E₀` for null pair, `I` for pseudoscalar | Conformal GA |
+
+Examples:
+
+```python
+# PGA — one parameter does everything
+pga = Algebra(3, 0, 1, names="pga")
+# e₀²=0, basis: e₀ e₁ e₂ e₃, blades: e₀₁ e₁₂ e₀₁₂, pseudoscalar: I
+
+# STA — gamma vectors with sigma bivector aliases
+sta = Algebra(1, 3, names="sta")
+# basis: γ₀ γ₁ γ₂ γ₃, bivectors: σ₁ σ₂ σ₃ (for γ₀γ₁ etc), pseudoscalar: i
+
+# CGA — special basis names for null vectors
+cga = Algebra(4, 1, names="cga")
+# basis: e₁ e₂ e₃ eₒ e∞, pseudoscalar: I
+```
+
+Presets can be combined with explicit overrides — `blade_style` and `blade_names` take precedence over the preset's defaults:
+
+```python
+# PGA preset but with wedge display instead of compact
+Algebra(3, 0, 1, names="pga", blade_style="wedge")
+```
+
 ## Migration
 
 - All existing code continues to work unchanged. `names`, `repr_unicode`, `Notation`, and `BasisBlade.rename()` behave exactly as before.
