@@ -169,6 +169,26 @@ class TestAlgebra:
         with pytest.raises(TypeError, match="q and r must be integers"):
             Algebra(1, 1.0)
 
+    def test_tuple_preserves_ordering(self):
+        """Tuple constructor preserves exact basis ordering."""
+        alg = Algebra([1, -1, 0])
+        assert alg.signature == (1, -1, 0)
+        sqs = [gp(e, e).scalar_part for e in alg.basis_vectors()]
+        assert sqs == [1.0, -1.0, 0.0]
+
+    def test_tuple_null_first(self):
+        """Tuple with null first is not reordered."""
+        alg = Algebra((0, 1, 1))
+        assert alg.signature == (0, 1, 1)
+
+    def test_tuple_exotic_metric(self):
+        """Exotic interleaved metric preserves ordering."""
+        sig = (0, 1, 0, 1, 0, -1, 0, -1)
+        alg = Algebra(sig)
+        assert alg.signature == sig
+        sqs = [gp(e, e).scalar_part for e in alg.basis_vectors()]
+        assert sqs == [float(s) for s in sig]
+
     def test_repr(self, cl3, sta):
         """Algebra repr shows signature summary."""
         assert repr(cl3) == "Cl(3,0)"
