@@ -205,9 +205,18 @@ def build_blades(
     # Apply overrides
     if conv.overrides:
         for key, val in conv.overrides.items():
-            bitmask = _resolve_metric_role_key(key, signature)
+            if isinstance(key, tuple):
+                # Tuple of vector indices — compute bitmask directly
+                bitmask = 0
+                for idx in key:
+                    bitmask |= 1 << idx
+            else:
+                bitmask = _resolve_metric_role_key(key, signature)
             if isinstance(val, NamedBlade):
-                blades[bitmask] = BasisBlade(bitmask, val.ascii, val.unicode, val.latex, val.sign)
+                sign = val.sign
+                if sign is None and val.vectors is not None:
+                    _, sign = _product_sign(val.vectors, signature)
+                blades[bitmask] = BasisBlade(bitmask, val.ascii, val.unicode, val.latex, sign or 1)
             else:
                 a, u, lx = _parse_name_value(val)
                 blades[bitmask] = BasisBlade(bitmask, a, u, lx)
@@ -217,18 +226,19 @@ def build_blades(
 
 @dataclass
 class NamedBlade:
-    """A blade name with an explicit sign."""
+    """A blade name with an optional sign or vector ordering for sign computation."""
 
     ascii: str
     unicode: str
     latex: str
-    sign: int = 1
+    sign: int | None = None
+    vectors: list | None = None
 
 
-def _signed_blade(name_val, sign: int) -> NamedBlade:
-    """Create a NamedBlade from a name value (str, 2-tuple, 3-tuple) and sign."""
+def _named_blade(name_val, vectors: list) -> NamedBlade:
+    """Create a NamedBlade with vector indices for automatic sign computation."""
     a, u, lx = _parse_name_value(name_val)
-    return NamedBlade(a, u, lx, sign)
+    return NamedBlade(a, u, lx, vectors=vectors)
 
 
 def _reorder_sign(indices: list[int]) -> int:
@@ -244,6 +254,35 @@ def _reorder_sign(indices: list[int]) -> int:
             if lst[i] > lst[j]:
                 swaps += 1
     return (-1) ** swaps
+
+
+def _product_sign(indices: list[int], signature: tuple) -> tuple[int, int]:
+    """Compute the bitmask and sign of a product of basis vectors.
+
+    Handles repeated indices (contraction via metric) and reordering.
+    Returns (bitmask, sign).
+    """
+    sign = 1
+    bitmask = 0
+    for idx in indices:
+        bit = 1 << idx
+        if bitmask & bit:
+            # Repeated index: contract via metric
+            above = 0
+            for k in range(idx + 1, len(signature)):
+                if bitmask & (1 << k):
+                    above += 1
+            sign *= (-1) ** above * signature[idx]
+            bitmask ^= bit
+        else:
+            # New index: count swaps to insert in order
+            above = 0
+            for k in range(idx + 1, len(signature)):
+                if bitmask & (1 << k):
+                    above += 1
+            sign *= (-1) ** above
+            bitmask |= bit
+    return bitmask, sign
 
 
 # ── Factory functions ──
@@ -341,30 +380,30 @@ def b_sta(
 ) -> BladeConvention:
     """STA: γ₀…γ₃, PSS → i.
 
-    sigmas=True names the six grade-2 bivectors:
-      σₖ = γₖγ₀ (boost bivectors, sign=-1 vs canonical γ₀γₖ)
-      iσₖ (spatial rotation bivectors)
+    Works with both Cl(1,3) and Cl(3,1). Signs are computed automatically
+    from the metric so that σₖ = γₖγ₀ and iγₖ = I·γₖ display correctly.
 
-    pseudovectors=True names the four grade-3 trivectors as iγₖ.
-
-    Signs are computed so that γₖ*γ₀ displays as σₖ (not -σₖ).
+    sigmas=True names the six grade-2 bivectors (σₖ and iσₖ).
+    pseudovectors=True names the four grade-3 trivectors (iγₖ).
     """
+    # σₖ = γₖγ₀: vector indices [k, 0]
+    # iσₖ = I·γₖ·γ₀: vector indices [0,1,2,3, k, 0]
+    # iγₖ = I·γₖ: vector indices [0,1,2,3, k]
+    I_vecs = [0, 1, 2, 3]
+
     merged = {"pss": ("i", "i", "i")}
     if sigmas:
-        # σₖ = γₖγ₀: indices [k, 0] → canonical [0, k], one swap → sign=-1
-        merged["+1-1"] = _signed_blade(("s1", "σ₁", r"\sigma_{1}"), _reorder_sign([1, 0]))
-        merged["+1-2"] = _signed_blade(("s2", "σ₂", r"\sigma_{2}"), _reorder_sign([2, 0]))
-        merged["+1-3"] = _signed_blade(("s3", "σ₃", r"\sigma_{3}"), _reorder_sign([3, 0]))
-        # iσₖ = I·γₖ·γ₀: signs so that γ₂γ₃ = iσ₁, γ₁γ₃ = -iσ₂, γ₁γ₂ = iσ₃
-        merged["-2-3"] = _signed_blade(("is1", "iσ₁", r"i\sigma_{1}"), +1)
-        merged["-1-3"] = _signed_blade(("is2", "iσ₂", r"i\sigma_{2}"), -1)
-        merged["-1-2"] = _signed_blade(("is3", "iσ₃", r"i\sigma_{3}"), +1)
+        merged[(0, 1)] = _named_blade(("s1", "σ₁", r"\sigma_{1}"), [1, 0])
+        merged[(0, 2)] = _named_blade(("s2", "σ₂", r"\sigma_{2}"), [2, 0])
+        merged[(0, 3)] = _named_blade(("s3", "σ₃", r"\sigma_{3}"), [3, 0])
+        merged[(2, 3)] = _named_blade(("is1", "iσ₁", r"i\sigma_{1}"), I_vecs + [1, 0])
+        merged[(1, 3)] = _named_blade(("is2", "iσ₂", r"i\sigma_{2}"), I_vecs + [2, 0])
+        merged[(1, 2)] = _named_blade(("is3", "iσ₃", r"i\sigma_{3}"), I_vecs + [3, 0])
     if pseudovectors:
-        # iγₖ = I·γₖ: signs from the product
-        merged["-1-2-3"] = _signed_blade(("iy0", "iγ₀", r"i\gamma_{0}"), -1)
-        merged["+1-2-3"] = _signed_blade(("iy1", "iγ₁", r"i\gamma_{1}"), -1)
-        merged["+1-1-3"] = _signed_blade(("iy2", "iγ₂", r"i\gamma_{2}"), +1)
-        merged["+1-1-2"] = _signed_blade(("iy3", "iγ₃", r"i\gamma_{3}"), -1)
+        merged[(1, 2, 3)] = _named_blade(("iy0", "iγ₀", r"i\gamma_{0}"), I_vecs + [0])
+        merged[(0, 2, 3)] = _named_blade(("iy1", "iγ₁", r"i\gamma_{1}"), I_vecs + [1])
+        merged[(0, 1, 3)] = _named_blade(("iy2", "iγ₂", r"i\gamma_{2}"), I_vecs + [2])
+        merged[(0, 1, 2)] = _named_blade(("iy3", "iγ₃", r"i\gamma_{3}"), I_vecs + [3])
     if overrides:
         merged.update(overrides)
     return BladeConvention(

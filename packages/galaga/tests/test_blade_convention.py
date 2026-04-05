@@ -75,8 +75,8 @@ class TestFactoryDefaults:
         # Canonical STA convention: σₖ = γₖγ₀
         assert str(g1 * g0) == "σ₁"
         assert str(g0 * g1) == "-σ₁"
-        # iσ₃ labels γ₁γ₂
-        assert str(g1 * g2) == "iσ₃"
+        # iσ₃ = I·σ₃ = -γ₁γ₂, so γ₁γ₂ = -iσ₃
+        assert str(g1 * g2) == "-iσ₃"
 
     def test_b_sta_pseudovectors(self):
         """b_sta(pseudovectors=True): names grade-3 trivectors as iγₖ."""
@@ -138,13 +138,13 @@ class TestFactoryDefaults:
             0b0011: -1,  # σ₁ = γ₁γ₀ = -γ₀γ₁
             0b0100: 1,
             0b0101: -1,  # σ₂ = γ₂γ₀ = -γ₀γ₂
-            0b0110: 1,  # iσ₃: γ₁γ₂ = iσ₃
+            0b0110: -1,  # iσ₃ = -γ₁γ₂
             0b0111: 1,
             0b1000: 1,
             0b1001: -1,  # σ₃ = γ₃γ₀ = -γ₀γ₃
-            0b1010: -1,  # iσ₂: γ₁γ₃ = -iσ₂
+            0b1010: 1,  # iσ₂ = γ₁γ₃
             0b1011: 1,
-            0b1100: 1,  # iσ₁: γ₂γ₃ = iσ₁
+            0b1100: -1,  # iσ₁ = -γ₂γ₃
             0b1101: 1,
             0b1110: 1,
             0b1111: 1,
@@ -155,9 +155,9 @@ class TestFactoryDefaults:
         assert str(g0 * g1) == "-σ₁"
         assert str(g2 * g0) == "σ₂"
         assert str(g3 * g0) == "σ₃"
-        assert str(g2 * g3) == "iσ₁"
-        assert str(g1 * g3) == "-iσ₂"
-        assert str(g1 * g2) == "iσ₃"
+        assert str(g2 * g3) == "-iσ₁"
+        assert str(g1 * g3) == "iσ₂"
+        assert str(g1 * g2) == "-iσ₃"
 
     def test_b_sta_all_blades_pseudovectors(self):
         """b_sta(pseudovectors=True) complete blade table — names and signs."""
@@ -237,13 +237,13 @@ class TestFactoryDefaults:
             0b0011: -1,  # σ₁
             0b0100: 1,
             0b0101: -1,  # σ₂
-            0b0110: 1,  # iσ₃
+            0b0110: -1,  # iσ₃ = -γ₁γ₂
             0b0111: -1,  # iγ₃
             0b1000: 1,
             0b1001: -1,  # σ₃
-            0b1010: -1,  # iσ₂
+            0b1010: 1,  # iσ₂ = γ₁γ₃
             0b1011: 1,  # iγ₂
-            0b1100: 1,  # iσ₁
+            0b1100: -1,  # iσ₁ = -γ₂γ₃
             0b1101: -1,  # iγ₁
             0b1110: -1,  # iγ₀
             0b1111: 1,
@@ -253,9 +253,9 @@ class TestFactoryDefaults:
         assert str(g1 * g0) == "σ₁"
         assert str(g2 * g0) == "σ₂"
         assert str(g3 * g0) == "σ₃"
-        assert str(g2 * g3) == "iσ₁"
-        assert str(g1 * g3) == "-iσ₂"
-        assert str(g1 * g2) == "iσ₃"
+        assert str(g2 * g3) == "-iσ₁"
+        assert str(g1 * g3) == "iσ₂"
+        assert str(g1 * g2) == "-iσ₃"
         assert str(g0 * g1 * g2) == "-iγ₃"
         assert str(g0 * g1 * g3) == "iγ₂"
         assert str(g0 * g2 * g3) == "-iγ₁"
@@ -275,6 +275,216 @@ class TestFactoryDefaults:
         es = alg.basis_vectors()
         assert str(es[3]) == "e₊"
         assert str(es[4]) == "e₋"
+
+    def test_b_sta31_basic(self):
+        """b_sta for Cl(3,1): gamma vectors, PSS → i."""
+        alg = Algebra(3, 1, blades=b_sta())
+        g0, _, _, _ = alg.basis_vectors()
+        assert str(g0) == "γ₀"
+        assert str(alg.pseudoscalar()) == "i"
+
+    def test_b_sta31_sigmas(self):
+        """b_sta(sigmas=True) for Cl(3,1): σₖ = γₖγ₀ displays correctly."""
+        alg = Algebra(3, 1, blades=b_sta(sigmas=True))
+        g0, g1, g2, g3 = alg.basis_vectors()
+
+        # Canonical convention retained: σₖ = γₖγ₀
+        assert str(g1 * g0) == "σ₁"
+        assert str(g0 * g1) == "-σ₁"
+
+        # In Cl(3,1), iσ signs differ from Cl(1,3) due to metric
+        assert str(g2 * g3) == "iσ₁"
+        assert str(g1 * g3) == "-iσ₂"
+        assert str(g1 * g2) == "-iσ₃"
+
+    def test_b_sta31_pseudovectors(self):
+        """b_sta(pseudovectors=True) for Cl(3,1): names grade-3 trivectors as iγₖ."""
+        alg = Algebra(3, 1, blades=b_sta(pseudovectors=True))
+        g0, g1, g2, g3 = alg.basis_vectors()
+        trivec = g1 * g2 * g3
+        assert str(trivec) == "-iγ₀"
+
+    def test_b_sta31_all_blades_plain(self):
+        """b_sta() complete blade table for Cl(3,1)."""
+        alg = Algebra(3, 1, blades=b_sta())
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "γ₀γ₁",
+            0b0100: "γ₂",
+            0b0101: "γ₀γ₂",
+            0b0110: "γ₁γ₂",
+            0b0111: "γ₀γ₁γ₂",
+            0b1000: "γ₃",
+            0b1001: "γ₀γ₃",
+            0b1010: "γ₁γ₃",
+            0b1011: "γ₀γ₁γ₃",
+            0b1100: "γ₂γ₃",
+            0b1101: "γ₀γ₂γ₃",
+            0b1110: "γ₁γ₂γ₃",
+            0b1111: "i",
+        }
+
+    def test_b_sta31_all_blades_sigmas(self):
+        """b_sta(sigmas=True) complete blade table for Cl(3,1) — names and signs."""
+        alg = Algebra(3, 1, blades=b_sta(sigmas=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
+
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "σ₁",
+            0b0100: "γ₂",
+            0b0101: "σ₂",
+            0b0110: "iσ₃",
+            0b0111: "γ₀γ₁γ₂",
+            0b1000: "γ₃",
+            0b1001: "σ₃",
+            0b1010: "iσ₂",
+            0b1011: "γ₀γ₁γ₃",
+            0b1100: "iσ₁",
+            0b1101: "γ₀γ₂γ₃",
+            0b1110: "γ₁γ₂γ₃",
+            0b1111: "i",
+        }
+
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: -1,  # σ₁ = γ₁γ₀ = -γ₀γ₁
+            0b0100: 1,
+            0b0101: -1,  # σ₂ = γ₂γ₀ = -γ₀γ₂
+            0b0110: -1,  # iσ₃ = -γ₁γ₂
+            0b0111: 1,
+            0b1000: 1,
+            0b1001: -1,  # σ₃ = γ₃γ₀ = -γ₀γ₃
+            0b1010: -1,  # iσ₂ = -γ₁γ₃
+            0b1011: 1,
+            0b1100: 1,  # iσ₁ = γ₂γ₃
+            0b1101: 1,
+            0b1110: 1,
+            0b1111: 1,
+        }
+
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g1 * g0) == "σ₁"
+        assert str(g0 * g1) == "-σ₁"
+        assert str(g2 * g0) == "σ₂"
+        assert str(g3 * g0) == "σ₃"
+        assert str(g2 * g3) == "iσ₁"
+        assert str(g1 * g3) == "-iσ₂"
+        assert str(g1 * g2) == "-iσ₃"
+
+    def test_b_sta31_all_blades_pseudovectors(self):
+        """b_sta(pseudovectors=True) complete blade table for Cl(3,1) — names and signs."""
+        alg = Algebra(3, 1, blades=b_sta(pseudovectors=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
+
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "γ₀γ₁",
+            0b0100: "γ₂",
+            0b0101: "γ₀γ₂",
+            0b0110: "γ₁γ₂",
+            0b0111: "iγ₃",
+            0b1000: "γ₃",
+            0b1001: "γ₀γ₃",
+            0b1010: "γ₁γ₃",
+            0b1011: "iγ₂",
+            0b1100: "γ₂γ₃",
+            0b1101: "iγ₁",
+            0b1110: "iγ₀",
+            0b1111: "i",
+        }
+
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: 1,
+            0b0100: 1,
+            0b0101: 1,
+            0b0110: 1,
+            0b0111: -1,  # iγ₃
+            0b1000: 1,
+            0b1001: 1,
+            0b1010: 1,
+            0b1011: -1,  # iγ₂
+            0b1100: 1,
+            0b1101: 1,  # iγ₁
+            0b1110: -1,  # iγ₀
+            0b1111: 1,
+        }
+
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g0 * g1 * g2) == "-iγ₃"
+        assert str(g0 * g1 * g3) == "-iγ₂"
+        assert str(g0 * g2 * g3) == "iγ₁"
+        assert str(g1 * g2 * g3) == "-iγ₀"
+
+    def test_b_sta31_all_blades_both(self):
+        """b_sta(sigmas=True, pseudovectors=True) complete blade table for Cl(3,1) — names and signs."""
+        alg = Algebra(3, 1, blades=b_sta(sigmas=True, pseudovectors=True))
+        names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
+
+        assert names == {
+            0b0000: "1",
+            0b0001: "γ₀",
+            0b0010: "γ₁",
+            0b0011: "σ₁",
+            0b0100: "γ₂",
+            0b0101: "σ₂",
+            0b0110: "iσ₃",
+            0b0111: "iγ₃",
+            0b1000: "γ₃",
+            0b1001: "σ₃",
+            0b1010: "iσ₂",
+            0b1011: "iγ₂",
+            0b1100: "iσ₁",
+            0b1101: "iγ₁",
+            0b1110: "iγ₀",
+            0b1111: "i",
+        }
+
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: -1,  # σ₁
+            0b0100: 1,
+            0b0101: -1,  # σ₂
+            0b0110: -1,  # iσ₃
+            0b0111: -1,  # iγ₃
+            0b1000: 1,
+            0b1001: -1,  # σ₃
+            0b1010: -1,  # iσ₂
+            0b1011: -1,  # iγ₂
+            0b1100: 1,  # iσ₁
+            0b1101: 1,  # iγ₁
+            0b1110: -1,  # iγ₀
+            0b1111: 1,
+        }
+
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g1 * g0) == "σ₁"
+        assert str(g2 * g0) == "σ₂"
+        assert str(g3 * g0) == "σ₃"
+        assert str(g2 * g3) == "iσ₁"
+        assert str(g1 * g3) == "-iσ₂"
+        assert str(g1 * g2) == "-iσ₃"
+        assert str(g0 * g1 * g2) == "-iγ₃"
+        assert str(g0 * g1 * g3) == "-iγ₂"
+        assert str(g0 * g2 * g3) == "iγ₁"
+        assert str(g1 * g2 * g3) == "-iγ₀"
 
 
 # ---- 2. Style variations ----
@@ -400,8 +610,8 @@ class TestErrors:
             Algebra(3, blades=b_default(overrides={"foo": "X"}))
 
     def test_incompatible_sta_sigmas(self):
-        """b_sta(sigmas=True) on algebra with no negative vectors raises."""
-        with pytest.raises(ValueError):
+        """b_sta(sigmas=True) on 3D algebra raises (needs 4 vectors)."""
+        with pytest.raises((ValueError, IndexError)):
             Algebra(3, blades=b_sta(sigmas=True))
 
     def test_compact_mixed_prefix_fallback(self):
