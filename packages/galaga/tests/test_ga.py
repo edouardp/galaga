@@ -114,6 +114,46 @@ class TestAlgebra:
         a2 = Algebra((1, 1, -1, 0))
         assert np.array_equal(a1._mul_sign, a2._mul_sign)
 
+    def test_constructor_string_raises(self):
+        """String as first arg raises TypeError."""
+        with pytest.raises(TypeError, match="signature tuple/list or an int"):
+            Algebra("hello")
+
+    def test_constructor_float_raises(self):
+        """Float as p raises TypeError."""
+        with pytest.raises(TypeError, match="signature tuple/list or an int"):
+            Algebra(3.0)
+
+    def test_constructor_float_q_raises(self):
+        """Float as q raises TypeError."""
+        with pytest.raises(TypeError, match="q and r must be integers"):
+            Algebra(3, 1.5)
+
+    def test_constructor_negative_p_raises(self):
+        """Negative p raises ValueError."""
+        with pytest.raises(ValueError, match="non-negative"):
+            Algebra(-1)
+
+    def test_constructor_bool_raises(self):
+        """Bool raises TypeError (not treated as int)."""
+        with pytest.raises(TypeError, match="got bool"):
+            Algebra(True)
+
+    def test_constructor_bad_sig_value_raises(self):
+        """Signature with value other than +1/-1/0 raises ValueError."""
+        with pytest.raises(ValueError, match="must be .1, -1, or 0"):
+            Algebra([1, 2, -1])
+
+    def test_constructor_sig_with_q_raises(self):
+        """Passing q with an explicit signature raises TypeError."""
+        with pytest.raises(TypeError, match="q and r cannot be used"):
+            Algebra((1, 1), 1)
+
+    def test_constructor_none_raises(self):
+        """None raises TypeError."""
+        with pytest.raises(TypeError, match="signature tuple/list or an int"):
+            Algebra(None)
+
     def test_repr(self, cl3, sta):
         """Algebra repr shows signature summary."""
         assert repr(cl3) == "Cl(3,0)"

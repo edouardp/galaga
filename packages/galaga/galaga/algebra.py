@@ -167,12 +167,22 @@ class Algebra:
     ):
         self._notation = notation or Notation()
         # Resolve signature: iterable of squares, or (p, q, r) counts
-        try:
-            iter(p_or_signature)
-            signature = tuple(p_or_signature)
-        except TypeError:
-            # p_or_signature is an int p
+        if isinstance(p_or_signature, (int, np.integer)) and not isinstance(p_or_signature, bool):
+            if not isinstance(q, (int, np.integer)) or not isinstance(r, (int, np.integer)):
+                raise TypeError("q and r must be integers")
+            if p_or_signature < 0 or q < 0 or r < 0:
+                raise ValueError("p, q, r must be non-negative integers")
             signature = (1,) * p_or_signature + (-1,) * q + (0,) * r
+        elif isinstance(p_or_signature, (tuple, list)):
+            if q != 0 or r != 0:
+                raise TypeError("q and r cannot be used with an explicit signature")
+            signature = tuple(int(s) for s in p_or_signature)
+            if not all(s in (1, -1, 0) for s in signature):
+                raise ValueError("Signature values must be +1, -1, or 0")
+        else:
+            raise TypeError(
+                f"First argument must be a signature tuple/list or an int p, got {type(p_or_signature).__name__}"
+            )
         self._sig = signature
         self._n = len(signature)
         self._dim = 1 << self._n
