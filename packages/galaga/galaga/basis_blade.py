@@ -26,13 +26,14 @@ class BasisBlade:
     The bitmask encodes which basis vectors are present: e.g. e₁₃ = 0b101.
     """
 
-    __slots__ = ("_bitmask", "_ascii", "_unicode", "_latex")
+    __slots__ = ("_bitmask", "_ascii", "_unicode", "_latex", "_sign")
 
-    def __init__(self, bitmask: int, ascii: str, unicode: str, latex: str):
+    def __init__(self, bitmask: int, ascii: str, unicode: str, latex: str, sign: int = 1):
         self._bitmask = bitmask
         self._ascii = ascii
         self._unicode = unicode
         self._latex = latex
+        self._sign = sign
 
     @property
     def ascii_name(self) -> str:
@@ -57,6 +58,10 @@ class BasisBlade:
     @latex_name.setter
     def latex_name(self, value: str):
         self._latex = value
+
+    @property
+    def sign(self) -> int:
+        return self._sign
 
     def rename(
         self, name=None, /, *, ascii: str | None = None, unicode: str | None = None, latex: str | None = None

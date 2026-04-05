@@ -206,10 +206,44 @@ def build_blades(
     if conv.overrides:
         for key, val in conv.overrides.items():
             bitmask = _resolve_metric_role_key(key, signature)
-            a, u, lx = _parse_name_value(val)
-            blades[bitmask] = BasisBlade(bitmask, a, u, lx)
+            if isinstance(val, NamedBlade):
+                blades[bitmask] = BasisBlade(bitmask, val.ascii, val.unicode, val.latex, val.sign)
+            else:
+                a, u, lx = _parse_name_value(val)
+                blades[bitmask] = BasisBlade(bitmask, a, u, lx)
 
     return blades
+
+
+@dataclass
+class NamedBlade:
+    """A blade name with an explicit sign."""
+
+    ascii: str
+    unicode: str
+    latex: str
+    sign: int = 1
+
+
+def _signed_blade(name_val, sign: int) -> NamedBlade:
+    """Create a NamedBlade from a name value (str, 2-tuple, 3-tuple) and sign."""
+    a, u, lx = _parse_name_value(name_val)
+    return NamedBlade(a, u, lx, sign)
+
+
+def _reorder_sign(indices: list[int]) -> int:
+    """Sign from sorting a list of basis vector indices into canonical order.
+
+    Counts the number of adjacent swaps needed (bubble sort parity).
+    """
+    n = len(indices)
+    lst = list(indices)
+    swaps = 0
+    for i in range(n):
+        for j in range(i + 1, n):
+            if lst[i] > lst[j]:
+                swaps += 1
+    return (-1) ** swaps
 
 
 # ── Factory functions ──
@@ -308,30 +342,29 @@ def b_sta(
     """STA: γ₀…γ₃, PSS → i.
 
     sigmas=True names the six grade-2 bivectors:
-      σₖ = γₖγ₀ (boost bivectors): +1-1 → σ₁, +1-2 → σ₂, +1-3 → σ₃
-      iσₖ (spatial rotation bivectors): -2-3 → iσ₁, -1-3 → iσ₂, -1-2 → iσ₃
+      σₖ = γₖγ₀ (boost bivectors, sign=-1 vs canonical γ₀γₖ)
+      iσₖ (spatial rotation bivectors)
 
     pseudovectors=True names the four grade-3 trivectors as iγₖ.
 
-    Note: σₖ = γₖγ₀ = -γ₀γₖ. The blade name labels the canonical
-    (sorted) basis blade γ₀γₖ, so computing γₖ*γ₀ displays as -σₖ.
+    Signs are computed so that γₖ*γ₀ displays as σₖ (not -σₖ).
     """
     merged = {"pss": ("i", "i", "i")}
     if sigmas:
-        # Boost bivectors: σₖ = γₖγ₀ (labels canonical γ₀γₖ)
-        merged["+1-1"] = ("s1", "σ₁", r"\sigma_{1}")
-        merged["+1-2"] = ("s2", "σ₂", r"\sigma_{2}")
-        merged["+1-3"] = ("s3", "σ₃", r"\sigma_{3}")
-        # Spatial rotation bivectors: iσₖ
-        merged["-2-3"] = ("is1", "iσ₁", r"i\sigma_{1}")
-        merged["-1-3"] = ("is2", "iσ₂", r"i\sigma_{2}")
-        merged["-1-2"] = ("is3", "iσ₃", r"i\sigma_{3}")
+        # σₖ = γₖγ₀: indices [k, 0] → canonical [0, k], one swap → sign=-1
+        merged["+1-1"] = _signed_blade(("s1", "σ₁", r"\sigma_{1}"), _reorder_sign([1, 0]))
+        merged["+1-2"] = _signed_blade(("s2", "σ₂", r"\sigma_{2}"), _reorder_sign([2, 0]))
+        merged["+1-3"] = _signed_blade(("s3", "σ₃", r"\sigma_{3}"), _reorder_sign([3, 0]))
+        # iσₖ = I·γₖ·γ₀: signs computed from the full product
+        merged["-2-3"] = _signed_blade(("is1", "iσ₁", r"i\sigma_{1}"), -1)
+        merged["-1-3"] = _signed_blade(("is2", "iσ₂", r"i\sigma_{2}"), +1)
+        merged["-1-2"] = _signed_blade(("is3", "iσ₃", r"i\sigma_{3}"), -1)
     if pseudovectors:
-        # Grade-3 trivectors: iγₖ
-        merged["-1-2-3"] = ("iy0", "iγ₀", r"i\gamma_{0}")
-        merged["+1-2-3"] = ("iy1", "iγ₁", r"i\gamma_{1}")
-        merged["+1-1-3"] = ("iy2", "iγ₂", r"i\gamma_{2}")
-        merged["+1-1-2"] = ("iy3", "iγ₃", r"i\gamma_{3}")
+        # iγₖ = I·γₖ: signs from the product
+        merged["-1-2-3"] = _signed_blade(("iy0", "iγ₀", r"i\gamma_{0}"), -1)
+        merged["+1-2-3"] = _signed_blade(("iy1", "iγ₁", r"i\gamma_{1}"), -1)
+        merged["+1-1-3"] = _signed_blade(("iy2", "iγ₂", r"i\gamma_{2}"), +1)
+        merged["+1-1-2"] = _signed_blade(("iy3", "iγ₃", r"i\gamma_{3}"), -1)
     if overrides:
         merged.update(overrides)
     return BladeConvention(

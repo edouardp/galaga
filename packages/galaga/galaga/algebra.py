@@ -1061,6 +1061,7 @@ class Multivector:
             if abs(c) < 1e-12:
                 continue
             name = alg._blade_name(i, unicode=unicode)
+            c = c * alg._blades[i].sign
             if name == "":
                 terms.append(f"{c:g}")
             elif np.isclose(abs(c), 1.0):
@@ -1119,6 +1120,7 @@ class Multivector:
             c = self.data[i]
             if c == 0.0:
                 continue
+            c = c * alg._blades[i].sign
             name = alg._blade_name(i, unicode=True)
             formatted_c = format(c, spec)
             if name == "":
@@ -1167,6 +1169,7 @@ class Multivector:
                 else:
                     if abs(c) < 1e-12:
                         continue
+                c = c * alg._blades[i].sign
                 blade = alg._blade_latex(i)
                 term_nodes.append(_coeff_lnode(c, blade, coeff_format, style))
             if not term_nodes:
