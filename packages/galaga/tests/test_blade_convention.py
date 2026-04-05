@@ -72,7 +72,7 @@ class TestFactoryDefaults:
         """b_sta(sigmas=True): σₖ = γₖγ₀ displays correctly."""
         alg = Algebra(1, 3, blades=b_sta(sigmas=True))
         g0, g1, g2, g3 = alg.basis_vectors()
-        # σ₁ = γ₁γ₀ (reversed order from canonical)
+        # Canonical STA convention: σₖ = γₖγ₀
         assert str(g1 * g0) == "σ₁"
         assert str(g0 * g1) == "-σ₁"
         # iσ₃ labels γ₁γ₂
