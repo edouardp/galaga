@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.6.2 (2026-04-05)
+
+### Fixed
+
+- `Algebra(p, q, r)` basis ordering now matches clifford, kingdon, and ganja.js:
+  degenerate (r) basis vectors first, then positive (p), then negative (q).
+  `Algebra(3, 0, 1)` now produces `(0, 1, 1, 1)` instead of `(1, 1, 1, 0)`.
+  The tuple constructor `Algebra((1, 1, 1, 0))` is unchanged — it preserves
+  the user's explicit ordering. (Fixes #10)
+
 ## 0.6.1 (2026-04-05)
 
 ### Added
