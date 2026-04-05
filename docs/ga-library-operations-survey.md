@@ -170,15 +170,17 @@ galgebra and Grassmann.jl are the only libraries that cannot invert arbitrary mu
 
 All libraries agree on results. Syntax varies:
 
-| Library | Syntax |
-|---|---|
-| ganja.js | `R >>> x` |
-| clifford | Manual `R * x * ~R` |
-| kingdon | `R >> x` or `R.sw(x)` |
-| galaga | `sandwich(R, x)` or `sw(R, x)` |
-| galgebra | Manual `R * x * R.rev()` |
-| GeometricAlgebra.jl | `sandwich_prod(R, x)` or manual `R * x * ~R` |
-| Grassmann.jl | Manual `R * x * ~R` |
+| Library | Dedicated sandwich | Manual `R v ~R` syntax |
+|---|---|---|
+| ganja.js | `R >>> x` | `R * x * ~R` (~ is conjugate, not reverse — use `.Reverse` for correct sandwich) |
+| clifford | — | `R * x * ~R` |
+| kingdon | `R >> x` or `R.sw(x)` | `R * x * ~R` |
+| galaga | `sandwich(R, x)` or `sw(R, x)` | `R * x * ~R` |
+| galgebra | — | `R * x * R.rev()` |
+| GeometricAlgebra.jl | `sandwich_prod(R, x)` | `R * x * ~R` |
+| Grassmann.jl | — | `R * x * ~R` |
+
+Note: In all libraries except ganja.js, `~R` is the reverse, so `R * x * ~R` is the correct sandwich product. In ganja.js, `~` is Clifford conjugation, so the manual form `R * x * ~R` gives the wrong result for mixed-grade versors — use `R >>> x` or the explicit `.Reverse` method instead.
 
 ## Commutator
 
