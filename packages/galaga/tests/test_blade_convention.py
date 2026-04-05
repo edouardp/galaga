@@ -37,7 +37,7 @@ class TestFactoryDefaults:
         g0, g1, _, _ = alg.basis_vectors()
         assert str(g0) == "γ₀"
         assert str(g1) == "γ₁"
-        assert "γ₀γ₁" in str(g0 * g1)
+        assert str(g0 * g1) == "γ₀γ₁"
 
     def test_b_sigma(self):
         """b_sigma: 1-based, juxtapose."""
@@ -76,14 +76,14 @@ class TestFactoryDefaults:
         assert str(g1 * g0) == "σ₁"
         assert str(g0 * g1) == "-σ₁"
         # iσ₃ labels γ₁γ₂
-        assert "iσ₃" in str(g1 * g2)
+        assert str(g1 * g2) == "iσ₃"
 
     def test_b_sta_pseudovectors(self):
         """b_sta(pseudovectors=True): names grade-3 trivectors as iγₖ."""
         alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
         g0, g1, g2, g3 = alg.basis_vectors()
         trivec = g1 * g2 * g3
-        assert "iγ" in str(trivec)
+        assert str(trivec) == "-iγ₀"
 
     def test_b_sta_all_blades_plain(self):
         """b_sta() complete blade table."""
