@@ -170,17 +170,17 @@ galgebra and Grassmann.jl are the only libraries that cannot invert arbitrary mu
 
 All libraries agree on results. Syntax varies:
 
-| Library | Dedicated sandwich | Manual `R v ~R` syntax |
+| Library | Dedicated sandwich | Manual `R*v*rev(R)` |
 |---|---|---|
-| ganja.js | `R >>> x` | `R * x * ~R` (~ is conjugate, not reverse — use `.Reverse` for correct sandwich) |
+| ganja.js | `R >>> x` | `R * x * ~R` (but `~` is conjugate, not reverse — use `R * x * R.Reverse`) |
 | clifford | — | `R * x * ~R` |
 | kingdon | `R >> x` or `R.sw(x)` | `R * x * ~R` |
 | galaga | `sandwich(R, x)` or `sw(R, x)` | `R * x * ~R` |
 | galgebra | — | `R * x * R.rev()` |
 | GeometricAlgebra.jl | `sandwich_prod(R, x)` | `R * x * ~R` |
-| Grassmann.jl | — | `R * x * ~R` |
+| Grassmann.jl | `x ⊘ R` or `R >>> x` | `~R * x * R` (note: `>>>` uses `conj(R)*x*R`, and `⊘` uses `conj(R)⁻¹*x*R`) |
 
-Note: In all libraries except ganja.js, `~R` is the reverse, so `R * x * ~R` is the correct sandwich product. In ganja.js, `~` is Clifford conjugation, so the manual form `R * x * ~R` gives the wrong result for mixed-grade versors — use `R >>> x` or the explicit `.Reverse` method instead.
+Note on `~` in manual sandwich: since ganja.js maps `~` to Clifford conjugation (not reverse), writing `R * x * ~R` in ganja.js gives a different result than in other libraries. Use `R * x * R.Reverse` for the correct manual sandwich. Similarly, Grassmann.jl's `>>>` uses Clifford conjugate rather than reverse, matching its documented definition `η >>> ω = η*ω*conj(η)⁻¹`.
 
 ## Commutator
 
