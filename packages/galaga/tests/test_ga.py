@@ -93,8 +93,8 @@ class TestAlgebra:
         assert Algebra(1, 3).signature == (1, -1, -1, -1)
 
     def test_pqr_pga(self):
-        """Algebra(3, 0, 1) == Algebra((1,1,1,0))."""
-        assert Algebra(3, 0, 1).signature == (1, 1, 1, 0)
+        """Algebra(3, 0, 1) places null first: (0,1,1,1)."""
+        assert Algebra(3, 0, 1).signature == (0, 1, 1, 1)
 
     def test_pqr_p_only(self):
         """Algebra(0) gives the trivial algebra."""
@@ -111,7 +111,7 @@ class TestAlgebra:
     def test_pqr_matches_signature_form(self):
         """Algebra(p,q,r) produces same multiplication tables as Algebra(sig)."""
         a1 = Algebra(2, 1, 1)
-        a2 = Algebra((1, 1, -1, 0))
+        a2 = Algebra((0, 1, 1, -1))
         assert np.array_equal(a1._mul_sign, a2._mul_sign)
 
     def test_constructor_string_raises(self):

@@ -17,10 +17,15 @@ Make the first positional argument polymorphic:
 
 The `names`, `repr_unicode`, and `notation` keyword arguments are unchanged but are now keyword-only (enforced by `*`).
 
-The p,q,r form produces the signature `(+1,)*p + (-1,)*q + (0,)*r`.
+The p,q,r form produces the signature `(0,)*r + (+1,)*p + (-1,)*q` — degenerate
+first, then positive, then negative. This matches the convention used by
+clifford, kingdon, ganja.js, and most PGA literature (where the null basis
+vector is conventionally e₀).
 
 ## Consequences
 
-- `Algebra(3, 0, 1)` now works alongside `Algebra((1, 1, 1, 0))`.
-- Existing code using tuple signatures is unaffected.
+- `Algebra(3, 0, 1)` now works alongside `Algebra((0, 1, 1, 1))`.
+- `Algebra(3, 0, 1)` produces the same basis ordering as kingdon and clifford.
+- Existing code using tuple signatures is unaffected — the tuple form respects
+  the user's explicit ordering.
 - `names` was already used as a keyword argument everywhere, so making it keyword-only is not a breaking change.

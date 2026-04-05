@@ -92,7 +92,9 @@ class Algebra:
         Algebra(1, 3)               # Cl(1,3) — spacetime
         Algebra(3, 0, 1)            # Cl(3,0,1) — PGA
 
-    The signature ordering is: p positive vectors, then q negative, then r null.
+    The signature ordering is: r null vectors, then p positive, then q negative.
+    This matches the convention used by clifford, kingdon, ganja.js, and most
+    PGA literature (where the null basis vector is conventionally e₀).
 
     On construction, the algebra precomputes:
     - ``_mul_index[i,j]``: the bitmask of the result blade for basis blades i*j
@@ -172,7 +174,7 @@ class Algebra:
                 raise TypeError("q and r must be integers")
             if p_or_signature < 0 or q < 0 or r < 0:
                 raise ValueError("p, q, r must be non-negative integers")
-            signature = (1,) * p_or_signature + (-1,) * q + (0,) * r
+            signature = (0,) * r + (1,) * p_or_signature + (-1,) * q
         elif isinstance(p_or_signature, (tuple, list)):
             if q != 0 or r != 0:
                 raise TypeError("q and r cannot be used with an explicit signature")
