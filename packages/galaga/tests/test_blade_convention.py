@@ -160,9 +160,10 @@ class TestFactoryDefaults:
         assert str(g1 * g2) == "iσ₃"
 
     def test_b_sta_all_blades_pseudovectors(self):
-        """b_sta(pseudovectors=True) complete blade table."""
+        """b_sta(pseudovectors=True) complete blade table — names and signs."""
         alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
         names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
         assert names == {
             0b0000: "1",
             0b0001: "γ₀",
@@ -181,11 +182,36 @@ class TestFactoryDefaults:
             0b1110: "iγ₀",
             0b1111: "i",
         }
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: 1,
+            0b0100: 1,
+            0b0101: 1,
+            0b0110: 1,
+            0b0111: -1,  # γ₀γ₁γ₂ = -iγ₃
+            0b1000: 1,
+            0b1001: 1,
+            0b1010: 1,
+            0b1011: 1,  # γ₀γ₁γ₃ = +iγ₂
+            0b1100: 1,
+            0b1101: -1,  # γ₀γ₂γ₃ = -iγ₁
+            0b1110: -1,  # γ₁γ₂γ₃ = -iγ₀
+            0b1111: 1,
+        }
+        # Verify rendered products
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g0 * g1 * g2) == "-iγ₃"
+        assert str(g0 * g1 * g3) == "iγ₂"
+        assert str(g0 * g2 * g3) == "-iγ₁"
+        assert str(g1 * g2 * g3) == "-iγ₀"
 
     def test_b_sta_all_blades_both(self):
-        """b_sta(sigmas=True, pseudovectors=True) complete blade table."""
+        """b_sta(sigmas=True, pseudovectors=True) complete blade table — names and signs."""
         alg = Algebra(1, 3, blades=b_sta(sigmas=True, pseudovectors=True))
         names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
         assert names == {
             0b0000: "1",
             0b0001: "γ₀",
@@ -204,6 +230,36 @@ class TestFactoryDefaults:
             0b1110: "iγ₀",
             0b1111: "i",
         }
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: -1,  # σ₁
+            0b0100: 1,
+            0b0101: -1,  # σ₂
+            0b0110: 1,  # iσ₃
+            0b0111: -1,  # iγ₃
+            0b1000: 1,
+            0b1001: -1,  # σ₃
+            0b1010: -1,  # iσ₂
+            0b1011: 1,  # iγ₂
+            0b1100: 1,  # iσ₁
+            0b1101: -1,  # iγ₁
+            0b1110: -1,  # iγ₀
+            0b1111: 1,
+        }
+        # Verify all named products
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g1 * g0) == "σ₁"
+        assert str(g2 * g0) == "σ₂"
+        assert str(g3 * g0) == "σ₃"
+        assert str(g2 * g3) == "iσ₁"
+        assert str(g1 * g3) == "-iσ₂"
+        assert str(g1 * g2) == "iσ₃"
+        assert str(g0 * g1 * g2) == "-iγ₃"
+        assert str(g0 * g1 * g3) == "iγ₂"
+        assert str(g0 * g2 * g3) == "-iγ₁"
+        assert str(g1 * g2 * g3) == "-iγ₀"
 
     def test_b_cga(self):
         """b_cga: eₒ, e∞ names, E₀ for null pair, PSS → I."""
