@@ -109,9 +109,10 @@ class TestFactoryDefaults:
         }
 
     def test_b_sta_all_blades_sigmas(self):
-        """b_sta(sigmas=True) complete blade table."""
+        """b_sta(sigmas=True) complete blade table — names and signs."""
         alg = Algebra(1, 3, blades=b_sta(sigmas=True))
         names = {i: alg._blades[i].unicode_name for i in range(16)}
+        signs = {i: alg._blades[i].sign for i in range(16)}
         assert names == {
             0b0000: "1",
             0b0001: "γ₀",
@@ -130,6 +131,33 @@ class TestFactoryDefaults:
             0b1110: "γ₁γ₂γ₃",
             0b1111: "i",
         }
+        assert signs == {
+            0b0000: 1,
+            0b0001: 1,
+            0b0010: 1,
+            0b0011: -1,  # σ₁ = γ₁γ₀ = -γ₀γ₁
+            0b0100: 1,
+            0b0101: -1,  # σ₂ = γ₂γ₀ = -γ₀γ₂
+            0b0110: 1,  # iσ₃: γ₁γ₂ = iσ₃
+            0b0111: 1,
+            0b1000: 1,
+            0b1001: -1,  # σ₃ = γ₃γ₀ = -γ₀γ₃
+            0b1010: -1,  # iσ₂: γ₁γ₃ = -iσ₂
+            0b1011: 1,
+            0b1100: 1,  # iσ₁: γ₂γ₃ = iσ₁
+            0b1101: 1,
+            0b1110: 1,
+            0b1111: 1,
+        }
+        # Verify rendered products match standard convention
+        g0, g1, g2, g3 = alg.basis_vectors()
+        assert str(g1 * g0) == "σ₁"
+        assert str(g0 * g1) == "-σ₁"
+        assert str(g2 * g0) == "σ₂"
+        assert str(g3 * g0) == "σ₃"
+        assert str(g2 * g3) == "iσ₁"
+        assert str(g1 * g3) == "-iσ₂"
+        assert str(g1 * g2) == "iσ₃"
 
     def test_b_sta_all_blades_pseudovectors(self):
         """b_sta(pseudovectors=True) complete blade table."""
