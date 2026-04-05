@@ -1,5 +1,40 @@
 # Changelog
 
+## 1.0.0 (2026-04-05)
+
+### Breaking Changes
+
+- **`names=` parameter removed** — All blade display configuration now goes
+  through `blades=` accepting a `BladeConvention` object. Migration:
+  - `names="gamma"` → `blades=b_gamma()`
+  - `names="sigma"` → `blades=b_sigma()`
+  - `names="sigma_xyz"` → `blades=b_sigma_xyz()`
+  - `names=(code, uni)` → `blades=BladeConvention(vector_names=[...])`
+- **Default blade style is now compact** — `e₁₂` instead of `e₁e₂`. Use
+  `blades=b_default(style="juxtapose")` for the old behavior.
+- **`repr_unicode` defaults to `True`** — `repr()` now returns unicode by
+  default. Use `repr_unicode=False` for ASCII.
+
+### Added
+
+- **`BladeConvention` system** — New `blades=` parameter on `Algebra` with
+  7 convention factories: `b_default`, `b_gamma`, `b_sigma`, `b_sigma_xyz`,
+  `b_pga`, `b_sta`, `b_cga`.
+- **3 blade styles** — `"compact"` (`e₁₂`), `"juxtapose"` (`e₁e₂`),
+  `"wedge"` (`e₁∧e₂`), configurable per factory via `style=`.
+- **Metric-role override keys** — Name specific blades using `"+1-1"`, `"_1"`,
+  `"pss"` notation that is independent of internal index ordering.
+- **`blade()` lookup** — Now accepts metric-role strings, display name matches,
+  and prefix+digits with 0-based or 1-based indexing. (Fixes #8)
+- **`get_basis_blade()` accepts strings** — Metric-role keys and `"pss"`.
+- **`BasisBlade.rename()` positional arg** — Accepts string, 2-tuple, or
+  3-tuple matching the override value format.
+- **`b_sta(sigmas=True)`** — Opt-in σ₁/σ₂/σ₃ bivector aliases for STA.
+- **`b_sta(pseudovectors=True)`** — Opt-in iσ₁/iσ₂/iσ₃ trivector aliases.
+- **`b_cga(null_basis="plus_minus")`** — Switch between eₒ/e∞ and e₊/e₋.
+- **Full blade naming at construction** — Override any blade via `overrides=`
+  dict on any factory. (Fixes #9)
+
 ## 0.6.2 (2026-04-05)
 
 ### Fixed
