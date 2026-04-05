@@ -176,9 +176,10 @@ class Algebra:
         elif isinstance(p_or_signature, (tuple, list)):
             if q != 0 or r != 0:
                 raise TypeError("q and r cannot be used with an explicit signature")
-            signature = tuple(int(s) for s in p_or_signature)
-            if not all(s in (1, -1, 0) for s in signature):
+            signature = tuple(p_or_signature)
+            if not all(s in (1, -1, 0, 1.0, -1.0, 0.0) for s in signature):
                 raise ValueError("Signature values must be +1, -1, or 0")
+            signature = tuple(int(s) for s in signature)
         else:
             raise TypeError(
                 f"First argument must be a signature tuple/list or an int p, got {type(p_or_signature).__name__}"
