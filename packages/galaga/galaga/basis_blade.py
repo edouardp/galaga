@@ -58,8 +58,28 @@ class BasisBlade:
     def latex_name(self, value: str):
         self._latex = value
 
-    def rename(self, ascii: str | None = None, unicode: str | None = None, latex: str | None = None) -> BasisBlade:
-        """Override one or more name variants. Returns self for chaining."""
+    def rename(
+        self, name=None, /, *, ascii: str | None = None, unicode: str | None = None, latex: str | None = None
+    ) -> BasisBlade:
+        """Override one or more name variants. Returns self for chaining.
+
+        Args:
+            name: String (all three formats), 2-tuple (ascii, unicode),
+                  or 3-tuple (ascii, unicode, latex).
+            ascii: Override ASCII name only.
+            unicode: Override Unicode name only.
+            latex: Override LaTeX name only.
+        """
+        if name is not None:
+            if isinstance(name, str):
+                self._ascii = self._unicode = self._latex = name
+            elif isinstance(name, tuple) and len(name) == 2:
+                self._ascii, self._unicode = name
+                self._latex = name[1]
+            elif isinstance(name, tuple) and len(name) == 3:
+                self._ascii, self._unicode, self._latex = name
+            else:
+                raise ValueError(f"name must be str, 2-tuple, or 3-tuple, got {name!r}")
         if ascii is not None:
             self._ascii = ascii
         if unicode is not None:

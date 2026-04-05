@@ -26,7 +26,7 @@ Notes:
 | **ganja.js** | `e0, e1, e2, …` (0-indexed) | `e01, e12, …` (compact subscript) | None standard |
 | **clifford** | `e1, e2, e3, …` (1-indexed) | `e12, e13, …` (compact subscript) | Custom via layout |
 | **kingdon** | `e0, e1, e2, …` for degenerate; `e1, e2, …` otherwise | `e01, e12, …` (compact subscript) | None standard |
-| **galaga** | `e₁, e₂, e₃, …` (1-indexed, unicode subscripts) | `e₁e₂, e₁e₃, …` (concatenated) | Presets: `"gamma"` (γ₀γ₁…), `"sigma"` (σ₁σ₂…), `"sigma_xyz"`. Custom: `names=(code_list, unicode_list)` |
+| **galaga** | `e₁, e₂, e₃, …` (1-indexed, unicode subscripts) | `e₁₂, e₁₃, …` (compact, default) | Factories: `b_gamma()` (γ₀γ₁…), `b_sigma()` (σ₁σ₂…), `b_pga()`, `b_sta()`. Custom: `BladeConvention(vector_names=...)` |
 | **galgebra** | User-specified (e.g. `'e1 e2 e0'`, `'x y z'`) | `e1^e2`, `x^y` (wedge notation) | Fully user-controlled via constructor string |
 | **GeometricAlgebra.jl** | `v1, v2, v3, …` (1-indexed, `v` prefix) | `v12, v13, …` (compact subscript) | `BasisDisplayStyle`: custom prefix, separator, index labels, ordering. E.g. `prefix="𝐞"`, `prefix="γ"` with `indices="⁰¹²³"`, `prefix="d"` with `sep=" ∧ "` |
 | **Grassmann.jl** | `v1, v2, v3, …` or `v₁, v₂, …` (1-indexed) | `v₁₂, v₂₃, …` (compact subscript) | Named bases via `@basis (t=+1, x=-1)` |

@@ -2,7 +2,7 @@
 
 ## Status
 
-Draft — specification for review before implementation.
+Accepted — implemented on `feature/blade-convention` branch.
 
 ## Problem
 

@@ -301,7 +301,7 @@ Double reflection is always identity: `reflect(reflect(v, n), n) == v`.
 ## Spacetime Algebra
 
 ```python
-sta = Algebra((1, -1, -1, -1), names="gamma")
+sta = Algebra(1, 3, blades=b_sta())
 g0, g1, g2, g3 = sta.basis_vectors()
 
 print(g0 * g0)      #  1   (timelike)
@@ -312,42 +312,69 @@ print(sta.I)        # 𝑰
 
 ## Basis Naming
 
-Choose how basis vectors display — both in code (`repr`) and in print output (`str`).
+Control how basis blades display via the `blades=` parameter and convention factories.
 
-### Presets
+### Convention Factories
 
 ```python
-# Default: e₁, e₂, e₃
-alg = Algebra((1, 1, 1))
+from galaga import Algebra, b_default, b_gamma, b_sigma, b_sigma_xyz, b_pga, b_sta
+
+# Default: e₁, e₂, e₃ — compact subscripts (e₁₂ for bivectors)
+alg = Algebra(3)
 
 # Gamma: γ₀, γ₁, γ₂, γ₃
-sta = Algebra((1, -1, -1, -1), names="gamma")
+sta = Algebra(1, 3, blades=b_gamma())
+
+# STA with sigma bivector aliases
+sta = Algebra(1, 3, blades=b_sta(sigmas=True))
 
 # Sigma (numbered): σ₁, σ₂, σ₃
-pauli = Algebra((1, 1, 1), names="sigma")
+pauli = Algebra(3, blades=b_sigma())
 
 # Sigma (xyz): σₓ, σᵧ, σz
-pauli = Algebra((1, 1, 1), names="sigma_xyz")
+pauli = Algebra(3, blades=b_sigma_xyz())
+
+# PGA: 0-based, compact, pseudoscalar → I
+pga = Algebra(3, 0, 1, blades=b_pga())
 ```
 
-### Custom Names
-
-Provide `(code_names, unicode_names)` tuples:
+### Blade Styles
 
 ```python
-alg = Algebra((1, 1, 1), names=(["a", "b", "c"], ["𝐚", "𝐛", "𝐜"]))
-a, b, c = alg.basis_vectors()
-print(a + 2*b)      # 𝐚 + 2𝐛
-print(repr(a + 2*b)) # a + 2b
+Algebra(3, blades=b_default(style="compact"))      # e₁₂   (default)
+Algebra(3, blades=b_default(style="juxtapose"))     # e₁e₂
+Algebra(3, blades=b_default(style="wedge"))         # e₁∧e₂
+```
+
+### Custom Names and Overrides
+
+```python
+# Custom vector names
+alg = Algebra((1, 1, 1), blades=BladeConvention(
+    vector_names=[("a", "𝐚", "𝐚"), ("b", "𝐛", "𝐛"), ("c", "𝐜", "𝐜")]
+))
+
+# Override specific blades using metric-role keys
+alg = Algebra(3, blades=b_default(overrides={
+    "+1+2": "B",     # e₁₂ → B
+    "pss":  "I",     # pseudoscalar → I
+}))
 ```
 
 ### Blade Lookup
 
-Works with both default and custom names:
+```python
+alg.blade("e12")         # prefix + digits
+alg.blade("+1+2")        # metric-role key
+alg.blade("pss")         # pseudoscalar shorthand
+alg.blade("I")           # display name match (if overridden)
+```
+
+### Post-hoc Renaming
 
 ```python
-alg.blade("e12")         # e₁₂
-sta.blade("g0g1")        # γ₀γ₁
+alg.get_basis_blade("+1+2").rename("B")                    # all formats
+alg.get_basis_blade("+1+2").rename(("B12", "B₁₂", r"B_{12}"))  # per-format
 ```
 
 ## Display
@@ -365,7 +392,7 @@ The pseudoscalar always displays as `I` / `𝑰`:
 
 ```python
 print(alg.I)        # 𝑰
-print(repr(alg.I))  # I  (or 𝑰 with repr_unicode=True)
+print(repr(alg.I))  # 𝑰  (repr_unicode=True by default)
 ```
 
 Coefficients of ±1 are suppressed: `e₁₂` not `1e₁₂`, `-e₃` not `-1e₃`.
@@ -773,7 +800,7 @@ In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector 
 
 ## API Reference
 
-### `Algebra(signature, names=None)`
+### `Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None)`
 
 | Method / Property | Description |
 |---|---|

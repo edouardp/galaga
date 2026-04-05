@@ -124,6 +124,16 @@ from galaga.algebra import (
     wedge,
 )
 from galaga.basis_blade import BasisBlade
+from galaga.blade_convention import (
+    BladeConvention,
+    b_cga,
+    b_default,
+    b_gamma,
+    b_pga,
+    b_sigma,
+    b_sigma_xyz,
+    b_sta,
+)
 from galaga.expr import sym
 from galaga.notation import Notation
 from galaga.simplify import simplify
@@ -131,8 +141,16 @@ from galaga.simplify import simplify
 __all__ = [
     "Algebra",
     "BasisBlade",
+    "BladeConvention",
     "Multivector",
     "Notation",
+    "b_cga",
+    "b_default",
+    "b_gamma",
+    "b_pga",
+    "b_sigma",
+    "b_sigma_xyz",
+    "b_sta",
     "simplify",
     "sym",
     "gp",

@@ -64,9 +64,6 @@ def _sign_of_reorder(a: int, b: int) -> int:
     return 1 - 2 * (n & 1)
 
 
-_LETTER_SUBSCRIPTS = {"x": "ₓ", "y": "ᵧ"}
-
-
 import galaga.expr as _sym
 import galaga.render as _render
 from galaga.basis_blade import BasisBlade
@@ -109,14 +106,10 @@ class Algebra:
                         or an int p (number of positive basis vectors).
         q: Number of negative basis vectors (only when p is an int).
         r: Number of null/degenerate basis vectors (only when p is an int).
-        names: Display naming scheme. Can be:
-               - None or "e": default e₁, e₂, ... notation
-               - "gamma": γ₀, γ₁, ... (for spacetime algebra)
-               - "sigma": σ₁, σ₂, ... (for Pauli algebra)
-               - "sigma_xyz": σₓ, σᵧ, σz
-               - (code_names, unicode_names): custom per-vector names
-        repr_unicode: If True, ``repr()`` uses Unicode (same as ``str()``).
-                      If False (default), ``repr()`` uses ASCII for copy-paste.
+        blades: A BladeConvention controlling blade naming and display.
+                If None, uses b_default() (compact, 1-based, e prefix).
+        repr_unicode: If True (default), ``repr()`` uses Unicode.
+                      If False, ``repr()`` uses ASCII.
     """
 
     __slots__ = (
@@ -126,36 +119,12 @@ class Algebra:
         "_mul_index",
         "_mul_sign",
         "_grade_masks",
-        "_names",
-        "_latex_names",
         "_repr_unicode",
         "_complement_sign",
         "_blades",
+        "_blades_convention",
         "_notation",
     )
-
-    # Built-in naming presets: (code_names, unicode_names, latex_names)
-    # code_names  → used in repr() (ASCII-safe)
-    # unicode_names → used in str() (pretty terminal output)
-    # latex_names → used in .latex() (notebook rendering)
-    PRESETS = {
-        "e": None,  # default: e1, e2, ... / e₁, e₂, ...
-        "gamma": lambda n: (
-            [f"g{i}" for i in range(n)],
-            [f"γ{str(i).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
-            [f"\\gamma_{i}" for i in range(n)],
-        ),
-        "sigma": lambda n: (
-            [f"s{i + 1}" for i in range(n)],
-            [f"σ{str(i + 1).translate(str.maketrans('0123456789', '₀₁₂₃₄₅₆₇₈₉'))}" for i in range(n)],
-            [f"\\sigma_{i + 1}" for i in range(n)],
-        ),
-        "sigma_xyz": lambda n: (
-            [c for c in "xyzwvu"[:n]],
-            [f"σ{_LETTER_SUBSCRIPTS.get(c, c)}" for c in "xyzwvu"[:n]],
-            [f"\\sigma_{c}" for c in "xyzwvu"[:n]],
-        ),
-    }
 
     def __init__(
         self,
@@ -163,10 +132,12 @@ class Algebra:
         q: int = 0,
         r: int = 0,
         *,
-        names: str | tuple[list[str], list[str]] | None = None,
-        repr_unicode: bool = False,
+        blades=None,
+        repr_unicode: bool = True,
         notation: Notation | None = None,
     ):
+        from galaga.blade_convention import BladeConvention, b_default, build_blades
+
         self._notation = notation or Notation()
         # Resolve signature: iterable of squares, or (p, q, r) counts
         if isinstance(p_or_signature, (int, np.integer)) and not isinstance(p_or_signature, bool):
@@ -191,23 +162,12 @@ class Algebra:
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode
 
-        # Resolve naming scheme
-        if names is None or names == "e":
-            self._names = None  # default e1/e₁ scheme
-            self._latex_names = None
-        elif isinstance(names, str):
-            preset = self.PRESETS.get(names)
-            if preset is None:
-                raise ValueError(f"Unknown naming preset: {names!r}")
-            result = preset(self._n)
-            self._names = (result[0], result[1])
-            self._latex_names = result[2] if len(result) > 2 else None
-        else:
-            code, uni = names
-            if len(code) != self._n or len(uni) != self._n:
-                raise ValueError(f"Names must have {self._n} entries, got {len(code)}/{len(uni)}")
-            self._names = (list(code), list(uni))
-            self._latex_names = None
+        # Resolve blade convention
+        if blades is None:
+            blades = b_default()
+        if not isinstance(blades, BladeConvention):
+            raise TypeError(f"blades must be a BladeConvention, got {type(blades).__name__}")
+        self._blades_convention = blades
 
         # Precompute multiplication tables
         mul_index = np.empty((self._dim, self._dim), dtype=np.intp)
@@ -227,15 +187,11 @@ class Algebra:
         for k in range(self._n + 1):
             self._grade_masks[k] = np.array([bin(i).count("1") == k for i in range(self._dim)], dtype=bool)
 
-        # Precompute complement signs: complement(e_S) = sign[S] * e_{S^c}
-        # The complement is metric-independent — it maps grade-k to grade-(n-k)
-        # by index set complement, with the sign chosen so that
-        # e_S * complement(e_S) = pseudoscalar for all basis blades.
+        # Precompute complement signs
         full = self._dim - 1
         comp_sign = np.zeros(self._dim)
         for s in range(self._dim):
             sc = full ^ s
-            # Count swaps: for each bit in S^c, count bits in S above it
             swaps = 0
             for i in range(self._n):
                 if sc & (1 << i):
@@ -243,27 +199,8 @@ class Algebra:
             comp_sign[s] = (-1) ** swaps
         self._complement_sign = comp_sign
 
-        # Build BasisBlade objects for every blade in the algebra
-        _SUBS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
-        self._blades = {}
-        for idx in range(self._dim):
-            if idx == 0:
-                a, u, l = "1", "1", "1"
-            else:
-                if self._names is None:
-                    digits = "".join(str(k + 1) for k in range(self._n) if idx & (1 << k))
-                    a = "e" + digits
-                    u = "e" + digits.translate(_SUBS)
-                    l = f"e_{{{digits}}}"
-                else:
-                    code, uni = self._names
-                    a = "".join(code[k] for k in range(self._n) if idx & (1 << k))
-                    u = "".join(uni[k] for k in range(self._n) if idx & (1 << k))
-                    if self._latex_names is not None:
-                        l = " ".join(self._latex_names[k] for k in range(self._n) if idx & (1 << k))
-                    else:
-                        l = " ".join(code[k] for k in range(self._n) if idx & (1 << k))
-            self._blades[idx] = BasisBlade(idx, a, u, l)
+        # Build BasisBlade objects via convention
+        self._blades = build_blades(blades, signature)
 
     def _blade_product(self, a: int, b: int) -> tuple[int, float]:
         """Compute the geometric product of two basis blades given as bitmask indices.
@@ -408,57 +345,54 @@ class Algebra:
         return Multivector(self, data)
 
     def blade(self, name: str) -> Multivector:
-        """Lookup a basis blade by name, e.g. 'e1', 'e12', 'e123', or custom names.
+        """Lookup a basis blade by name.
 
-        For the default 'e' naming scheme, indices are parsed digit-by-digit
-        (e.g. 'e12' means e₁∧e₂). This is ambiguous for algebras with more
-        than 9 dimensions — use custom names in that case.
+        Search order:
+        1. Metric-role string (e.g. "+1-1", "pss")
+        2. Exact match against any name variant (ascii, unicode, latex)
+        3. Parse as prefix + digits using the convention's index_base
         """
+        from galaga.blade_convention import _resolve_metric_role_key
+
         if name == "1" or name == "":
             return self.scalar(1.0)
-        # Try custom code names first
-        if self._names is not None:
-            code_names = self._names[0]
-            # Try to parse as concatenation of code names (greedy, longest first)
-            bitmask = self._parse_blade_name(name, code_names)
-            if bitmask is not None:
+
+        # 1. Try metric-role key
+        try:
+            bitmask = _resolve_metric_role_key(name, self._sig)
+            data = np.zeros(self._dim)
+            data[bitmask] = 1.0
+            return Multivector(self, data)
+        except ValueError:
+            pass
+
+        # 2. Exact match against blade name variants
+        for idx, bb in self._blades.items():
+            if name in (bb.ascii_name, bb.unicode_name, bb.latex_name):
+                data = np.zeros(self._dim)
+                data[idx] = 1.0
+                return Multivector(self, data)
+
+        # 3. Prefix + digits parsing
+        conv = self._blades_convention
+        a_pre = conv.prefix
+        if name.startswith(a_pre):
+            digits_str = name[len(a_pre) :]
+            if digits_str.isdigit():
+                indices = [int(ch) for ch in digits_str]
+                bitmask = 0
+                for idx in indices:
+                    vec_idx = idx - conv.index_base
+                    if vec_idx < 0 or vec_idx >= self._n:
+                        raise ValueError(
+                            f"Basis index {idx} out of range for {self._n}D algebra (index_base={conv.index_base})"
+                        )
+                    bitmask |= 1 << vec_idx
                 data = np.zeros(self._dim)
                 data[bitmask] = 1.0
                 return Multivector(self, data)
-        # Default e-index parsing (digit-by-digit, only valid for n <= 9)
-        if not name.startswith("e"):
-            raise ValueError(f"Invalid blade name: {name!r}")
-        if self._n > 9:
-            raise ValueError(
-                f"Digit-by-digit blade parsing is ambiguous for {self._n}D algebras. "
-                f"Use custom names: Algebra(sig, names=(code_names, unicode_names))"
-            )
-        indices = [int(ch) for ch in name[1:]]
-        bitmask = 0
-        for idx in indices:
-            if idx < 1 or idx > self._n:
-                raise ValueError(f"Basis index {idx} out of range for {self._n}D algebra")
-            bitmask |= 1 << (idx - 1)
-        data = np.zeros(self._dim)
-        data[bitmask] = 1.0
-        return Multivector(self, data)
 
-    def _parse_blade_name(self, name: str, code_names: list[str]) -> int | None:
-        """Try to parse a blade name as concatenation of code names. Returns bitmask or None."""
-        bitmask = 0
-        remaining = name
-        while remaining:
-            matched = False
-            # Try longest names first to avoid ambiguity
-            for k in sorted(range(self._n), key=lambda k: -len(code_names[k])):
-                if remaining.startswith(code_names[k]):
-                    bitmask |= 1 << k
-                    remaining = remaining[len(code_names[k]) :]
-                    matched = True
-                    break
-            if not matched:
-                return None
-        return bitmask
+        raise ValueError(f"Unknown blade name: {name!r}")
 
     def rotor(self, B: Multivector, radians: float | None = None, degrees: float | None = None) -> Multivector:
         """Create a rotor R = cos(θ/2) - sin(θ/2)B̂ for rotation by θ in plane B.
@@ -508,16 +442,17 @@ class Algebra:
         return self._blades[index].latex_name
 
     def get_basis_blade(self, mv_or_index) -> BasisBlade:
-        """Look up a BasisBlade by multivector or bitmask index.
-
-        Returns the BasisBlade object, which can be renamed::
-
-            alg.get_basis_blade(e1 ^ e2).rename(latex=r"e_{12}")
-            alg.get_basis_blade(0b011).rename(ascii="B12")
+        """Look up a BasisBlade by multivector, bitmask, or metric-role string.
 
         Args:
-            mv_or_index: A Multivector (must be a basis blade) or an int bitmask.
+            mv_or_index: A Multivector (must be a basis blade), an int bitmask,
+                or a metric-role string (e.g. "+1-1", "pss").
         """
+        from galaga.blade_convention import _resolve_metric_role_key
+
+        if isinstance(mv_or_index, str):
+            bitmask = _resolve_metric_role_key(mv_or_index, self._sig)
+            return self._blades[bitmask]
         if isinstance(mv_or_index, int):
             return self._blades[mv_or_index]
         mv = mv_or_index
@@ -1143,8 +1078,10 @@ class Multivector:
         return result
 
     def __repr__(self) -> str:
-        """Unicode representation (same as str)."""
-        return self.__str__()
+        """Representation controlled by algebra.repr_unicode."""
+        if self.algebra._repr_unicode:
+            return self.__str__()
+        return self._format(unicode=False)
 
     def __str__(self) -> str:
         """Unicode representation, e.g. ``3 + 2e₁ - e₃``."""

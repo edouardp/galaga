@@ -6,6 +6,7 @@ import pytest
 from galaga import (
     Algebra,
     Multivector,
+    b_gamma,
     conjugate,
     doran_lasenby_inner,
     dorst_inner,
@@ -101,9 +102,9 @@ class TestAlgebra:
         assert Algebra(0).signature == ()
         assert Algebra(0).dim == 1
 
-    def test_pqr_with_names(self):
-        """Algebra(1, 3, names='gamma') works."""
-        sta = Algebra(1, 3, names="gamma")
+    def test_pqr_with_blades(self):
+        """Algebra(1, 3, blades=b_gamma()) works."""
+        sta = Algebra(1, 3, blades=b_gamma())
         assert sta.signature == (1, -1, -1, -1)
         e0, _, _, _ = sta.basis_vectors()
         assert "γ" in str(e0)
@@ -342,7 +343,7 @@ class TestMultivector:
 
     def test_repr_unicode_with_names(self):
         """Named algebras use their names in repr."""
-        sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
+        sta = Algebra((1, -1, -1, -1), blades=b_gamma(), repr_unicode=True)
         g0, g1, _, _ = sta.basis_vectors()
         assert "γ" in repr(g0 * g1)
 
@@ -1111,6 +1112,14 @@ class TestSqrt:
         e1, e2, _ = cl3.basis_vectors()
         R = exp(0.7 * (e1 ^ e2))
         sqR = sqrt(R)
+        assert np.allclose(gp(sqR, sqR).data, R.data)
+
+    def test_sqrt_lazy_rotor(self, cl3):
+        """sqrt of a lazy rotor returns lazy with correct data."""
+        e1, e2, _ = cl3.basis_vectors(lazy=True)
+        R = exp(0.7 * (e1 ^ e2))
+        sqR = sqrt(R)
+        assert sqR._is_lazy
         assert np.allclose(gp(sqR, sqR).data, R.data)
 
     def test_sqrt_pga_translator(self):

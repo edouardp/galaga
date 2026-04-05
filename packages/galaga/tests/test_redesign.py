@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from galaga import Algebra
+from galaga import Algebra, BladeConvention, b_gamma
 from galaga.expr import Sym, sym
 from galaga.simplify import simplify
 
@@ -264,7 +264,7 @@ class TestBasisBlades:
 
     def test_custom_names(self):
         """Custom names appear in basis vectors."""
-        sta = Algebra((1, -1, -1, -1), names="gamma")
+        sta = Algebra((1, -1, -1, -1), blades=b_gamma())
         g0, g1, g2, g3 = sta.basis_vectors()
         assert str(g0) != "0"
         assert "γ" in str(g0)
@@ -1459,16 +1459,17 @@ class TestBladeHighDimension:
         assert b is not None
 
     def test_blade_errors_for_10d_default_names(self):
-        """10D default names fail — subscripts only go to 9."""
+        """10D digit parsing fails for ambiguous names."""
         alg = Algebra(tuple([1] * 10))
-        with pytest.raises(ValueError, match="ambiguous"):
+        with pytest.raises(ValueError):
             alg.blade("e110")
 
     def test_blade_works_for_10d_custom_names(self):
         """10D works with custom names."""
-        names = ([f"v{i}" for i in range(10)], [f"v{i}" for i in range(10)])
-        alg = Algebra(tuple([1] * 10), names=names)
-        b = alg.blade("v0v1")
+        alg = Algebra(
+            tuple([1] * 10), blades=BladeConvention(vector_names=[(f"v{i}", f"v{i}", f"v{i}") for i in range(10)])
+        )
+        b = alg.blade("v01")
         assert b is not None
 
 
@@ -2018,7 +2019,7 @@ class TestCoverageGaps:
     def test_get_basis_blade_bad_type(self, cl3):
         """get_basis_blade with bad type raises."""
         with pytest.raises(TypeError):
-            cl3.get_basis_blade("not a mv")
+            cl3.get_basis_blade(3.14)
 
     def test_pow_non_int(self, cl3):
         """Non-int power raises TypeError."""
