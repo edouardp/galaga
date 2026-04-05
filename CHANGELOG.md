@@ -1,5 +1,24 @@
 # Changelog
 
+## 1.0.1 (2026-04-05)
+
+### Fixed
+
+- `b_sta(sigmas=True)`: blade signs are now computed from the metric via
+  `_product_sign()` instead of hardcoded. This fixes incorrect display of
+  iσₖ products and makes `b_sta` work correctly for both Cl(1,3) and Cl(3,1).
+- `b_sta(pseudovectors=True)`: trivector names are now `iγₖ` (not `iσₖ`),
+  with signs computed from the metric.
+
+### Added
+
+- `BasisBlade.sign` field for signed blade names. The display coefficient is
+  multiplied by the sign, so `σₖ = γₖγ₀` displays correctly as `σₖ` even
+  though the canonical blade `γ₀γₖ` has the opposite sign.
+- `TestSignConsistency`: parametrized test that mechanically verifies all
+  blade signs against the algebra's geometric product for both Cl(1,3) and
+  Cl(3,1).
+
 ## 1.0.0 (2026-04-05)
 
 ### Breaking Changes
