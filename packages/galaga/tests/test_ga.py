@@ -154,6 +154,21 @@ class TestAlgebra:
         with pytest.raises(TypeError, match="signature tuple/list or an int"):
             Algebra(None)
 
+    def test_constructor_fractional_sig_raises(self):
+        """Signature with 0.5 raises ValueError (not silently truncated)."""
+        with pytest.raises(ValueError, match="must be .1, -1, or 0"):
+            Algebra([1, -1, 0.5])
+
+    def test_constructor_float_sig_coerced(self):
+        """Float signature values 1.0/-1.0/0.0 are coerced to int."""
+        alg = Algebra([1.0, -1.0, 0.0])
+        assert alg.signature == (1, -1, 0)
+
+    def test_constructor_float_q_exact_raises(self):
+        """Float q even if whole number raises TypeError."""
+        with pytest.raises(TypeError, match="q and r must be integers"):
+            Algebra(1, 1.0)
+
     def test_repr(self, cl3, sta):
         """Algebra repr shows signature summary."""
         assert repr(cl3) == "Cl(3,0)"
