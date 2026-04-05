@@ -166,3 +166,22 @@ cga = Algebra(4, 1, names=(
 2. Should `blade_names` accept bitmask ints as keys (e.g. `{0b011: "B"}`) in addition to strings?
 3. For `blade_style="compact"`, how should non-numeric subscripts be handled? E.g. `γ₀` + `γ₁` → `γ₀₁`? Or `γ₀γ₁`?
 4. Should there be a `blade_names` preset for common patterns (e.g. `"pga_standard"` that names the pseudoscalar `I` and uses 0-based compact subscripts)?
+
+## Cross-Library Conventions to Support
+
+Based on the survey in `docs/ga-library-conventions.md`, the naming system should be able to reproduce the conventions of every major GA library. The following table shows the target configurations:
+
+| Convention | Indexing | Bivector style | Example | Configuration |
+|---|---|---|---|---|
+| ganja.js | 0-based | compact | `e01, e12` | `names="e0", blade_style="compact"` |
+| clifford | 1-based | compact | `e12, e13` | `blade_style="compact"` (default names) |
+| kingdon | 0-based (PGA) / 1-based | compact | `e01, e12` | `names="e0", blade_style="compact"` |
+| galaga current | 1-based | juxtapose | `e₁e₂, e₁e₃` | default (no change) |
+| galgebra | user-defined | wedge | `e1^e2, x^y` | `blade_style="wedge"` |
+| GeometricAlgebra.jl | 1-based, `v` prefix | compact | `v12, v13` | `names=(["v1","v2",...], ...)`, `blade_style="compact"` |
+| Grassmann.jl | 1-based, `v` prefix | compact | `v₁₂, v₂₃` | same as above |
+| STA (Doran-Lasenby) | 0-based, γ prefix | juxtapose | `γ₀γ₁, σ₁` | `names="gamma"`, with `blade_names` for σ aliases |
+| PGA (standard) | 0-based, compact | compact + I | `e₀₁, e₁₂, I` | `names="e0", blade_style="compact", blade_names={"e0123": "I"}` |
+| CGA | 1-based + special | compact | `e₁₂, eₒ∞` | custom `names` with `eₒ`, `e∞` |
+
+All of these should be achievable with the three parameters: `names`, `blade_style`, and `blade_names`. No configuration should require subclassing or monkey-patching.
