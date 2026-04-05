@@ -13,3 +13,5 @@ In Marimo Notebooks, When writing code for dynamically rendering markdown, gm.md
 - Use triple quotes to write multi-line markdown.
 - Use $ for inline math and $$ for display math.
 - Use {var} to insert the value of a variable into the markdown. It will be rendered as latex.
+
+Never use `git commit --amend` or `git push --force` (or `--force-with-lease`). Always create new commits.
