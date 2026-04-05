@@ -78,10 +78,21 @@ from galaga.notation import Notation
 class Algebra:
     """Immutable Clifford algebra Cl(p,q,r) defined by a metric signature.
 
-    The signature tuple defines each basis vector's square:
-    - ``+1`` for positive-definite (Euclidean) directions
-    - ``-1`` for negative-definite (e.g. timelike in STA)
-    - ``0``  for degenerate/null directions (e.g. projective GA)
+    Can be constructed two ways:
+
+    1. Explicit signature — an iterable of basis vector squares::
+
+        Algebra((1, 1, 1))          # Cl(3,0) — 3D Euclidean
+        Algebra((1, -1, -1, -1))    # Cl(1,3) — spacetime
+        Algebra((1, 1, 1, 0))       # Cl(3,0,1) — PGA
+
+    2. Cl(p, q, r) notation — counts of +1, -1, and 0 basis vectors::
+
+        Algebra(3)                  # Cl(3,0) — 3D Euclidean
+        Algebra(1, 3)               # Cl(1,3) — spacetime
+        Algebra(3, 0, 1)            # Cl(3,0,1) — PGA
+
+    The signature ordering is: p positive vectors, then q negative, then r null.
 
     On construction, the algebra precomputes:
     - ``_mul_index[i,j]``: the bitmask of the result blade for basis blades i*j
@@ -92,8 +103,10 @@ class Algebra:
     nonzero coefficients, with no per-product sign/metric computation.
 
     Args:
-        signature: Tuple of +1, -1, or 0 for each basis vector's square.
-                   Length n defines the algebra dimension 2^n.
+        p_or_signature: Either an iterable of +1/-1/0 (explicit signature),
+                        or an int p (number of positive basis vectors).
+        q: Number of negative basis vectors (only when p is an int).
+        r: Number of null/degenerate basis vectors (only when p is an int).
         names: Display naming scheme. Can be:
                - None or "e": default e₁, e₂, ... notation
                - "gamma": γ₀, γ₁, ... (for spacetime algebra)
@@ -144,24 +157,23 @@ class Algebra:
 
     def __init__(
         self,
-        signature: tuple[int, ...],
+        p_or_signature,
+        q: int = 0,
+        r: int = 0,
+        *,
         names: str | tuple[list[str], list[str]] | None = None,
         repr_unicode: bool = False,
         notation: Notation | None = None,
     ):
         self._notation = notation or Notation()
-        """Create a Clifford algebra from a metric signature.
-
-        Args:
-            signature: Tuple of +1, -1, or 0 for each basis vector's square.
-                ``(1,1,1)`` → Cl(3,0), ``(1,-1,-1,-1)`` → Cl(1,3), ``(1,1,1,0)`` → PGA.
-            names: Basis vector naming scheme. ``None`` or ``"e"`` for default
-                (e1, e2, …). Presets: ``"gamma"``, ``"sigma"``, ``"sigma_xyz"``.
-                Or a ``(code_names, unicode_names)`` tuple for custom names.
-            repr_unicode: If True, ``repr()`` on multivectors uses Unicode
-                (matching ``str()``). Useful in IPython/REPL.
-        """
-        self._sig = tuple(signature)
+        # Resolve signature: iterable of squares, or (p, q, r) counts
+        try:
+            iter(p_or_signature)
+            signature = tuple(p_or_signature)
+        except TypeError:
+            # p_or_signature is an int p
+            signature = (1,) * p_or_signature + (-1,) * q + (0,) * r
+        self._sig = signature
         self._n = len(signature)
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode

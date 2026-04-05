@@ -84,6 +84,36 @@ class TestAlgebra:
         assert sta.dim == 16
         assert sta.signature == (1, -1, -1, -1)
 
+    def test_pqr_euclidean(self):
+        """Algebra(3) == Algebra((1,1,1))."""
+        assert Algebra(3).signature == (1, 1, 1)
+
+    def test_pqr_sta(self):
+        """Algebra(1, 3) == Algebra((1,-1,-1,-1))."""
+        assert Algebra(1, 3).signature == (1, -1, -1, -1)
+
+    def test_pqr_pga(self):
+        """Algebra(3, 0, 1) == Algebra((1,1,1,0))."""
+        assert Algebra(3, 0, 1).signature == (1, 1, 1, 0)
+
+    def test_pqr_p_only(self):
+        """Algebra(0) gives the trivial algebra."""
+        assert Algebra(0).signature == ()
+        assert Algebra(0).dim == 1
+
+    def test_pqr_with_names(self):
+        """Algebra(1, 3, names='gamma') works."""
+        sta = Algebra(1, 3, names="gamma")
+        assert sta.signature == (1, -1, -1, -1)
+        e0, _, _, _ = sta.basis_vectors()
+        assert "γ" in str(e0)
+
+    def test_pqr_matches_signature_form(self):
+        """Algebra(p,q,r) produces same multiplication tables as Algebra(sig)."""
+        a1 = Algebra(2, 1, 1)
+        a2 = Algebra((1, 1, -1, 0))
+        assert np.array_equal(a1._mul_sign, a2._mul_sign)
+
     def test_repr(self, cl3, sta):
         """Algebra repr shows signature summary."""
         assert repr(cl3) == "Cl(3,0)"
