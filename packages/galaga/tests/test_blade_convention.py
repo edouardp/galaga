@@ -152,7 +152,7 @@ class TestFactoryDefaults:
             0b1110: 1,
             0b1111: 1,
         }
-        # Verify rendered products match standard convention
+        # Verify rendered products (σₖ = γₖγ₀, i = γ₀γ₁γ₂γ₃)
         g0, g1, g2, g3 = alg.basis_vectors()
         assert str(g1 * g0) == "σ₁"
         assert str(g0 * g1) == "-σ₁"
