@@ -36,7 +36,7 @@ Libraries disagree on which inner product `|` maps to:
 | ganja.js | Hestenes (kills scalars) | 0 | e2 | -e2 |
 | clifford | Hestenes (kills scalars) | 0 | e2 | -e2 |
 | kingdon | Doran–Lasenby (includes scalars) | 5e1 | e2 | -e2 |
-| galaga | Doran–Lasenby (includes scalars) | 5e1 | e2 | -e2 |
+| galaga | Doran–Lasenby (includes scalars) | 5e₁ | e₂ | -e₂ |
 | galgebra | Hestenes (kills scalars) | 0 | e2 | -e2 |
 | GeometricAlgebra.jl | Left contraction | 0 | v2 | 0 |
 | Grassmann.jl | Right contraction | 0 | 0 | v2 |
@@ -52,7 +52,7 @@ For vector·vector and vector·bivector, all libraries agree. The difference onl
 | Left contraction | `<<` | `.lc()` | `.lc()` | `left_contraction()` | `<` | `⨼` | `<` |
 | Right contraction | `>>` | — | `.rc()` | `right_contraction()` | `>` | `⨽` | `>`, `\|`, `⋅` |
 | Hestenes inner | `\|` | `\|` | — | `hestenes_inner()` | `\|` | — | — |
-| Doran–Lasenby | — | — | `\|` | `\|`, `doran_lasenby_inner()` | — | `⋅` | — |
+| Doran–Lasenby | — | — | `\|` | `\|`, `doran_lasenby_inner()`, `dorst_inner()`, `ip(mode="dorst")` | — | `⋅` | — |
 | Scalar product | `.Dot` | — | `.sp()` | `scalar_product()` | — | `⊙` | — |
 | Conventional left | — | — | — | — | — | — | `<<` |
 | Conventional right | — | — | — | — | — | — | `>>` |
@@ -124,7 +124,7 @@ All libraries implement bivector exp via `cos(|B|) + sin(|B|)/|B| * B` for Eucli
 | ganja.js | General (works on all) | ✓ | No |
 | clifford | General (Shirokov-based) | ✓ | No |
 | kingdon | Hitzer (d≤5) / Shirokov (d≥6) | ✓ | No |
-| galaga | General (as of 0.6.1) | ✓ | No |
+| galaga | General (Hitzer d≤5, Shirokov d≥6) | ✓ | No |
 | galgebra | Versor only (`~x/(x*~x)`) | ✗ (raises TypeError) | No (raises) |
 | GeometricAlgebra.jl | General | ✓ | No |
 | Grassmann.jl | Versor only | ✗ (raises "undefined") | No (raises) |
@@ -138,7 +138,7 @@ galgebra and Grassmann.jl are the only libraries that cannot invert arbitrary mu
 | ganja.js | ✗ | ✗ | — |
 | clifford | ✗ | ✗ | — |
 | kingdon | ✓ | ✓ | Study number decomposition |
-| galaga | ✓ | ✓ | Study number decomposition (as of 0.6.0) |
+| galaga | ✓ | ✓ | Study number decomposition |
 | galgebra | ✗ | ✗ | — |
 | GeometricAlgebra.jl | ✓ | ✓ | `sqrt(R)` |
 | Grassmann.jl | ✓ | ✓ | `sqrt(R)` |
@@ -150,7 +150,7 @@ galgebra and Grassmann.jl are the only libraries that cannot invert arbitrary mu
 | ganja.js | ? | ? | ? | ? |
 | clifford | ✗ | ✗ | ✗ | ✗ |
 | kingdon | ✓ | ✓ | ✓ | ✓ |
-| galaga | ✓ (as of 0.6.0) | ✓ | ✓ | ✓ |
+| galaga | ✓ | ✓ | ✓ | ✓ |
 | galgebra | ✗ | ✗ | ✗ | ✗ |
 | GeometricAlgebra.jl | ✗ | ✗ | ✗ | ✗ |
 
@@ -189,7 +189,7 @@ Note on `~` in manual sandwich: since ganja.js maps `~` to Clifford conjugation 
 | ganja.js | — | Manual |
 | clifford | ½(ab - ba) | `a.commutator(b)`, `a.anticommutator(b)` |
 | kingdon | ½(ab - ba) | `a.cp(b)`, `a.acp(b)` |
-| galaga | ab - ba (full), also ½ via `lie_bracket` | `commutator(a,b)`, `lie_bracket(a,b)` |
+| galaga | ab - ba (full), also ½ via `lie_bracket` | `commutator(a,b)`, `anticommutator(a,b)`, `lie_bracket(a,b)`, `jordan_product(a,b)` |
 | galgebra | — | Manual |
 | GeometricAlgebra.jl | — | Manual |
 
@@ -200,7 +200,7 @@ Note on `~` in manual sandwich: since ganja.js maps `~` to Clifford conjugation 
 | ganja.js | ✓ (`&`) | — | Built-in |
 | clifford | ✓ (`.vee()`) | ✓ (`.meet()`, `.join()`) | Via dual |
 | kingdon | ✓ (`&` or `.rp()`) | — | Via sign tables in codegen |
-| galaga | ✓ (`regressive_product()`) | ✓ (`meet`, `join`) | Via complement (metric-independent) |
+| galaga | ✓ (`regressive_product()`, `metric_regressive_product()`) | ✓ (`meet`, `join`) | Via complement (metric-independent); also metric-based via dual |
 | galgebra | ✗ | ✗ | — |
 | GeometricAlgebra.jl | ✓ (`∨` or `antiwedge()`) | — | Built-in |
 | Grassmann.jl | ✓ (`∨`) | — | Built-in |
@@ -229,13 +229,24 @@ Note on `~` in manual sandwich: since ganja.js maps `~` to Clifford conjugation 
 - `@alg.register` for compiling custom expressions
 
 ### galaga
-- Lazy expression trees for symbolic display
-- 5 named inner product variants + unified `ip()` dispatcher
+- Lazy expression trees for symbolic display with `display()` rendering
+- `Notation` system: `functional()`, `functional_short()`, custom rendering
+- 5 named inner product variants + unified `ip()` dispatcher (modes: `"doran_lasenby"`, `"dorst"`, `"hestenes"`, `"left"`, `"right"`, `"scalar"`)
+- `dorst_inner` alias for `doran_lasenby_inner`
 - `complement`/`uncomplement` (metric-independent duality)
 - `meet`/`join`, `project`/`reject`/`reflect`
-- `lie_bracket`, `jordan_product`
-- Type predicates: `is_scalar`, `is_vector`, `is_bivector`, `is_even`, `is_rotor`
-- Naming presets: `"gamma"`, `"sigma"`, `"sigma_xyz"`
+- `lie_bracket`, `jordan_product`, `anticommutator`
+- Type predicates: `is_scalar`, `is_vector`, `is_bivector`, `is_even`, `is_rotor`, `is_basis_blade`
+- Grade utilities: `grades()`, `even_grades()`, `odd_grades()`
+- `BladeConvention` system with 7 factories: `b_default`, `b_gamma`, `b_sigma`, `b_sigma_xyz`, `b_pga`, `b_sta`, `b_cga`
+- 3 blade styles: `"compact"` (`e₁₂`), `"juxtapose"` (`e₁e₂`), `"wedge"` (`e₁∧e₂`)
+- `b_sta(sigmas=True, pseudovectors=True)` for σₖ/iσₖ/iγₖ aliases
+- `b_cga(null_basis="origin_infinity"|"plus_minus")` for CGA conventions
+- Per-blade overrides via metric-role keys (`"+1-1"`, `"_1"`, `"pss"`)
+- Named constants: `alg.pi`, `.tau`, `.e`, `.h`, `.hbar`, `.c`, `.sqrt2`
+- `fraction()`/`frac()` for symbolic fractions
+- `scalar_sqrt()` with symbolic rendering
+- `simplify()` engine with fixed-point iteration
 
 ### galgebra
 - Full symbolic computation via SymPy
