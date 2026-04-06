@@ -202,6 +202,59 @@ class TestAlgebra:
         assert e2.data[2] == 1.0
         assert e3.data[4] == 1.0
 
+    def test_basis_blades_grade1(self, cl3):
+        """basis_blades(1) returns the same blades as basis_vectors()."""
+        vecs = cl3.basis_vectors()
+        blades = cl3.basis_blades(1)
+        assert len(blades) == len(vecs)
+        for v, b in zip(vecs, blades):
+            assert np.array_equal(v.data, b.data)
+
+    def test_basis_blades_grade2(self, cl3):
+        """basis_blades(2) returns all 3 bivectors in Cl(3,0)."""
+        bivectors = cl3.basis_blades(2)
+        assert len(bivectors) == 3
+        # e12=0b011=3, e13=0b101=5, e23=0b110=6
+        assert bivectors[0].data[3] == 1.0
+        assert bivectors[1].data[5] == 1.0
+        assert bivectors[2].data[6] == 1.0
+
+    def test_basis_blades_grade0_and_max(self, cl3):
+        """basis_blades(0) is the scalar, basis_blades(n) is the pseudoscalar."""
+        scalars = cl3.basis_blades(0)
+        assert len(scalars) == 1
+        assert scalars[0].data[0] == 1.0
+        trivectors = cl3.basis_blades(3)
+        assert len(trivectors) == 1
+        assert trivectors[0].data[7] == 1.0
+
+    def test_basis_blades_lazy(self, cl3):
+        """basis_blades with lazy=True returns lazy multivectors."""
+        e12, e13, e23 = cl3.basis_blades(2, lazy=True)
+        assert e12._is_lazy
+
+    def test_locals_all(self, cl3):
+        """locals() returns all non-scalar blades keyed by ASCII name."""
+        d = cl3.locals()
+        assert set(d.keys()) == {"e1", "e2", "e3", "e12", "e13", "e23", "e123"}
+        assert d["e12"].data[3] == 1.0
+
+    def test_locals_filtered(self, cl3):
+        """locals(grades=[1]) returns only vectors."""
+        d = cl3.locals(grades=[1])
+        assert set(d.keys()) == {"e1", "e2", "e3"}
+
+    def test_locals_lazy(self, cl3):
+        """locals(lazy=True) returns lazy multivectors."""
+        d = cl3.locals(lazy=True)
+        assert d["e1"]._is_lazy
+
+    def test_locals_gamma_convention(self):
+        """locals() uses ASCII names from the blade convention."""
+        alg = Algebra(1, 3, blades=b_gamma())
+        d = alg.locals(grades=[1])
+        assert set(d.keys()) == {"y0", "y1", "y2", "y3"}
+
     def test_pseudoscalar(self, cl3):
         """Pseudoscalar is the highest-grade blade."""
         I = cl3.pseudoscalar()

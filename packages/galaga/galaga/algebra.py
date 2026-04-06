@@ -263,6 +263,56 @@ class Algebra:
             vecs.append(mv)
         return tuple(vecs)
 
+    def basis_blades(self, grade: int, *, lazy: bool = False) -> tuple[Multivector, ...]:
+        """Return all basis blades of a given grade, in canonical bitmask order.
+
+        Args:
+            grade: The grade to select (0 = scalars, 1 = vectors, 2 = bivectors, …).
+            lazy: If True, return lazy blades that build expression trees.
+
+        Example::
+
+            e12, e13, e23 = alg.basis_blades(2)
+        """
+        blades = []
+        for idx in range(self._dim):
+            if bin(idx).count("1") == grade:
+                data = np.zeros(self._dim)
+                data[idx] = 1.0
+                mv = Multivector(self, data)
+                mv._is_lazy = lazy
+                blades.append(mv)
+        return tuple(blades)
+
+    def locals(self, *, grades: list[int] | None = None, lazy: bool = False) -> dict[str, Multivector]:
+        """Return a dict of all basis blades keyed by ASCII name.
+
+        Designed for ``locals().update(alg.locals())`` in notebooks and
+        top-level scripts. Keys are valid Python identifiers derived from
+        the blade convention (e.g. ``e1``, ``e12``, ``y0y1``, ``s1``).
+
+        Args:
+            grades: If given, only include these grades. E.g. ``[1, 2]``.
+            lazy: If True, blades are lazy (build expression trees).
+
+        Example::
+
+            locals().update(alg.locals())          # all blades
+            locals().update(alg.locals(grades=[1, 2]))  # vectors + bivectors
+        """
+        result = {}
+        for idx, bb in self._blades.items():
+            if idx == 0:
+                continue
+            if grades is not None and bin(idx).count("1") not in grades:
+                continue
+            data = np.zeros(self._dim)
+            data[idx] = 1.0
+            mv = Multivector(self, data)
+            mv._is_lazy = lazy
+            result[bb.ascii_name] = mv
+        return result
+
     def pseudoscalar(self, lazy: bool = False) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""
         data = np.zeros(self._dim)
