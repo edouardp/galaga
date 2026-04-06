@@ -70,6 +70,7 @@ helps future contributors understand why certain choices were made.
 | [055](055-dual-constructor-pqr.md) | Dual Constructor — Signature or Cl(p,q,r) | Accepted |
 | [056](056-real-clifford-algebras-only.md) | Real Clifford Algebras Only | Accepted |
 | [057](057-blade-convention.md) | BladeConvention Replaces names= Parameter | Accepted |
+| [058](058-basis-blades-and-locals.md) | basis_blades(k) and locals() for Bulk Blade Access | Accepted |
 
 ## Creating New ADRs
 
