@@ -382,7 +382,7 @@ def b_cga(
 Notes:
 - `overrides` is on every factory — lets you tweak any blade without building a full `BladeConvention` by hand.
 - When a factory has built-in overrides (e.g. `b_pga` has `{"pss": "I"}`), user-supplied `overrides` are merged with the factory's defaults. User entries win on conflict (last one wins).
-- `b_pga` and `b_cga` have `pseudoscalar=` since naming the PSS is the most common override.
+- `b_pga` and `b_cga` have `pss=` since naming the PSS is the most common override.
 - `b_cga` has `euclidean=` (3 or 4) and `null_basis=` to switch between `eₒ/e∞` and `e₊/e₋`.
 - `b_sigma_xyz` has no `start=` since the subscripts are letters, not numbers.
 
@@ -414,7 +414,7 @@ b_default(style="compact")       # e₁₂ instead of e₁e₂
 b_default(prefix="v")            # v₁, v₂, … instead of e₁, e₂, …
 b_default(start=0)               # e₀, e₁, … (0-based)
 b_gamma(start=1)                 # γ₁, γ₂, γ₃, γ₄ (1-based)
-b_pga(pseudoscalar="𝐈")          # custom pseudoscalar name
+b_pga(pss="𝐈")                   # custom pseudoscalar name
 b_cga(null_basis="plus_minus")   # e₊, e₋ instead of eₒ, e∞
 ```
 
@@ -843,7 +843,7 @@ alg = Algebra(4, blades=b_gamma(start=1))
 assert str(alg.basis_vectors()[0]) == "γ₁"
 
 # pga with custom pseudoscalar
-alg = Algebra(3, 0, 1, blades=b_pga(pseudoscalar="𝐈"))
+alg = Algebra(3, 0, 1, blades=b_pga(pss="𝐈"))
 assert str(alg.pseudoscalar()) == "𝐈"
 ```
 

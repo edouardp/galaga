@@ -293,14 +293,20 @@ def b_default(
     prefix: str = "e",
     start: int = 1,
     style: str = "compact",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Default: e₁, e₂, … (1-based, compact)."""
+    merged = {}
+    if pss is not None:
+        merged["pss"] = pss
+    if overrides:
+        merged.update(overrides)
     return BladeConvention(
         prefix=prefix,
         index_base=start,
         style=style,
-        overrides=overrides,
+        overrides=merged or None,
     )
 
 
@@ -308,14 +314,20 @@ def b_gamma(
     *,
     start: int = 0,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Gamma: γ₀, γ₁, … (0-based, juxtapose)."""
+    merged = {}
+    if pss is not None:
+        merged["pss"] = pss
+    if overrides:
+        merged.update(overrides)
     return BladeConvention(
         prefix="γ",
         index_base=start,
         style=style,
-        overrides=overrides,
+        overrides=merged or None,
     )
 
 
@@ -323,44 +335,55 @@ def b_sigma(
     *,
     start: int = 1,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Sigma: σ₁, σ₂, … (1-based, juxtapose)."""
+    merged = {}
+    if pss is not None:
+        merged["pss"] = pss
+    if overrides:
+        merged.update(overrides)
     return BladeConvention(
         prefix="σ",
         index_base=start,
         style=style,
-        overrides=overrides,
+        overrides=merged or None,
     )
 
 
 def b_sigma_xyz(
     *,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Sigma xyz: σₓ, σᵧ, σ_z."""
     _LETTER_SUBS = {"x": "ₓ", "y": "ᵧ"}
     letters = "xyzwvu"
-    # Store as a callable that generates names for n dimensions
     names = [(c, f"σ{_LETTER_SUBS.get(c, c)}", f"\\sigma_{c}") for c in letters]
+    merged = {}
+    if pss is not None:
+        merged["pss"] = pss
+    if overrides:
+        merged.update(overrides)
     return BladeConvention(
         vector_names=names,
         style=style,
-        overrides=overrides,
+        overrides=merged or None,
     )
 
 
 def b_pga(
     *,
     style: str = "compact",
-    pseudoscalar: str | tuple | None = "I",
+    pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """PGA: e₀, e₁, … (0-based, compact, PSS → I)."""
     merged = {}
-    if pseudoscalar is not None:
-        merged["pss"] = pseudoscalar
+    if pss is not None:
+        merged["pss"] = pss
     if overrides:
         merged.update(overrides)
     return BladeConvention(
@@ -376,6 +399,7 @@ def b_sta(
     style: str = "juxtapose",
     sigmas: bool = False,
     pseudovectors: bool = False,
+    pss: str | tuple | None = ("i", "i", "i"),
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """STA: γ₀…γ₃, PSS → i.
@@ -386,12 +410,11 @@ def b_sta(
     sigmas=True names the six grade-2 bivectors (σₖ and iσₖ).
     pseudovectors=True names the four grade-3 trivectors (iγₖ).
     """
-    # σₖ = γₖγ₀: vector indices [k, 0]
-    # iσₖ = I·γₖ·γ₀: vector indices [0,1,2,3, k, 0]
-    # iγₖ = I·γₖ: vector indices [0,1,2,3, k]
     I_vecs = [0, 1, 2, 3]
 
-    merged = {"pss": ("i", "i", "i")}
+    merged = {}
+    if pss is not None:
+        merged["pss"] = pss
     if sigmas:
         merged[(0, 1)] = _named_blade(("s1", "σ₁", r"\sigma_{1}"), [1, 0])
         merged[(0, 2)] = _named_blade(("s2", "σ₂", r"\sigma_{2}"), [2, 0])
@@ -419,7 +442,7 @@ def b_cga(
     euclidean: int = 3,
     null_basis: str = "origin_infinity",
     style: str = "compact",
-    pseudoscalar: str | tuple | None = "I",
+    pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """CGA: e₁…eₙ, eₒ, e∞ (compact, PSS → I)."""
@@ -438,8 +461,8 @@ def b_cga(
         raise ValueError(f"Unknown null_basis: {null_basis!r}")
 
     merged = {}
-    if pseudoscalar is not None:
-        merged["pss"] = pseudoscalar
+    if pss is not None:
+        merged["pss"] = pss
     # Null pair override: last positive ∧ the negative
     merged[f"+{euclidean + 1}-1"] = ("E0", "E₀", "E_{0}")
     if overrides:

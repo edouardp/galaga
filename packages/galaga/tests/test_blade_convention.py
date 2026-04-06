@@ -790,8 +790,8 @@ class TestFactoryKeywords:
         assert str(alg.basis_vectors()[0]) == "γ₁"
 
     def test_pga_custom_pseudoscalar(self):
-        """b_pga(pseudoscalar='𝐈') uses custom PSS name."""
-        alg = Algebra(3, 0, 1, blades=b_pga(pseudoscalar="𝐈"))
+        """b_pga(pss='𝐈') uses custom PSS name."""
+        alg = Algebra(3, 0, 1, blades=b_pga(pss="𝐈"))
         assert str(alg.pseudoscalar()) == "𝐈"
 
     def test_style_override_on_factory(self):
