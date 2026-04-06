@@ -263,11 +263,11 @@ class Algebra:
             vecs.append(mv)
         return tuple(vecs)
 
-    def basis_blades(self, grade: int, *, lazy: bool = False) -> tuple[Multivector, ...]:
+    def basis_blades(self, k: int, *, lazy: bool = False) -> tuple[Multivector, ...]:
         """Return all basis blades of a given grade, in canonical bitmask order.
 
         Args:
-            grade: The grade to select (0 = scalars, 1 = vectors, 2 = bivectors, …).
+            k: The grade to select (0 = scalars, 1 = vectors, 2 = bivectors, …).
             lazy: If True, return lazy blades that build expression trees.
 
         Example::
@@ -276,7 +276,7 @@ class Algebra:
         """
         blades = []
         for idx in range(self._dim):
-            if bin(idx).count("1") == grade:
+            if bin(idx).count("1") == k:
                 data = np.zeros(self._dim)
                 data[idx] = 1.0
                 mv = Multivector(self, data)
