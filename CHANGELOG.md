@@ -1,5 +1,18 @@
 # Changelog
 
+## 1.1.0 (2026-04-06)
+
+### Breaking Changes
+
+- **`pseudoscalar=` renamed to `pss=`** on `b_pga` and `b_cga` factory
+  functions, matching the metric-role key used in overrides.
+
+### Added
+
+- `pss=` parameter on all 7 blade convention factories (`b_default`,
+  `b_gamma`, `b_sigma`, `b_sigma_xyz`, `b_pga`, `b_sta`, `b_cga`) for
+  naming the pseudoscalar without reaching for `overrides=`.
+
 ## 1.0.2 (2026-04-06)
 
 ### Added
