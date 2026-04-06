@@ -25,9 +25,15 @@ A Sym's LaTeX name is a single glyph if:
 
 ### Rule 3: Unit Accent Special Case
 
-For `Unit` with accent kind:
-- Single-glyph Sym → narrow hat: `\hat{a}`
-- Multi-char Sym or compound → fraction form: `\frac{x}{\lVert x \rVert}`
+For `Unit` with accent kind, LaTeX and unicode diverge:
 
-This is because `\widehat{SR}` looks odd for unit vectors; the fraction
-form is clearer.
+**LaTeX** — hat accents render well at any width, so:
+- Single-glyph Sym → narrow hat: `\hat{a}`
+- Multi-char Sym → wide hat: `\widehat{SR}`
+- Compound expression → wide hat: `\widehat{\left(a + b\right)}`
+
+**Unicode** — there is no wide-hat equivalent, so multi-char and compound
+expressions fall back to the mathematically equivalent fraction form:
+- Single-glyph Sym → combining accent: `â`
+- Multi-char Sym → fraction: `SR/‖SR‖`
+- Compound expression → fraction: `(a + b)/‖a + b‖`

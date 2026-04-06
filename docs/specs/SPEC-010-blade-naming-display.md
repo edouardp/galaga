@@ -139,15 +139,14 @@ overrides = {
     "pss":  "i",
 }
 
-# With pseudovectors (implies sigmas):
+# With pseudovectors (independent of sigmas):
 b_sta(pseudovectors=True)  # adds:
 overrides = {
-    "+1-1":    "σ₁",
-    "+1-2":    "σ₂",
-    "+1-3":    "σ₃",
-    "-1-2-3":  "iσ₁",   # trivector → iσ₁
-    "+1-2-3":  "iσ₂",   # trivector → iσ₂
-    "+1-1-3":  "iσ₃",   # trivector → iσ₃
+    # trivector → iγₖ (pseudoscalar times gamma)
+    # bitmask (1,2,3): iγ₀ = I·γ₀
+    # bitmask (0,2,3): iγ₁ = I·γ₁
+    # bitmask (0,1,3): iγ₂ = I·γ₂
+    # bitmask (0,1,2): iγ₃ = I·γ₃
     "pss":     "i",
 }
 ```
@@ -665,9 +664,9 @@ alg = Algebra(1, 3, blades=b_sta(sigmas=True))
 g0, g1, _, _ = alg.basis_vectors()
 assert str(g0 * g1) == "σ₁"
 
-# b_sta(pseudovectors=True): implies sigmas, adds iσ trivectors
+# b_sta(pseudovectors=True): adds iγ trivectors (independent of sigmas)
 alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
-# verify trivector names contain "iσ"
+# verify trivector names contain "iγ"
 
 # b_sigma, b_sigma_xyz: correct prefixes
 # b_cga: eₒ, e∞ names, E₀ for null pair
