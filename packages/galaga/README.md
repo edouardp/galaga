@@ -68,7 +68,7 @@ alg.rotor(B, radians=θ) # rotor for rotation by θ in plane B
 e1, e2, e3 = alg.basis_blades(1)          # same as basis_vectors()
 e12, e13, e23 = alg.basis_blades(2)        # all bivectors
 
-# Inject all blades into local scope (notebooks / top-level scripts)
+# Alternatively, inject all blades into local scope (notebooks / top-level scripts)
 d = alg.locals(grades=[1, 2], lazy=True)
 locals().update(d)
 print("Injected:", ", ".join(d))           # Injected: e1, e2, e3, e12, e13, e23
