@@ -73,8 +73,8 @@ Every product has a definitive named function. Operators are optional shorthand.
 | Scalar product | `scalar_product(a, b)` | | `∗` |
 | Commutator | `commutator(a, b)` | | `[a, b]` |
 | Anticommutator | `anticommutator(a, b)` | | `{a, b}` |
-| Lie bracket | `lie_bracket(a, b)` | | `[a, b]` |
-| Jordan product | `jordan_product(a, b)` | | `{a, b}` |
+| Lie bracket | `lie_bracket(a, b)` | | `½[a, b]` |
+| Jordan product | `jordan_product(a, b)` | | `½{a, b}` |
 
 ```python
 e1, e2, e3 = alg.basis_vectors()
@@ -887,6 +887,7 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`latex_rewrites_demo.py`** — LaTeX rewrite pipeline demo
 - **`galaga_marimo_demo.py`** — galaga-marimo t-string rendering demo
 - **`blade_renaming.py`** — Basis blade renaming API
+- **`blade_conventions.py`** — Blade convention gallery
 
 ### `algebra/` — Core GA Operations
 
@@ -901,6 +902,7 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`exp_log_rotors.py`** — Rotor exponentials and logarithms
 - **`rotor_demo.py`** — Rotor construction and rotation
 - **`rotors_from_reflections.py`** — How rotors arise from reflection composition
+- **`rotations_from_bivectors.py`** — Rotations from bivectors
 - **`sandwich_products.py`** — Reflections and rotor sandwiches
 - **`meets_joins_pga.py`** — Projective joins using PGA complement patterns
 
@@ -973,7 +975,7 @@ uv run pytest packages/galaga/tests/ -v                                    # run
 uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # with coverage
 ```
 
-1200+ tests. Tests include:
+1500+ tests. Tests include:
 - Algebraic identities (associativity, distributivity, reverse-of-product)
 - Golden tests for Cl(2,0), Cl(3,0), Cl(1,3)
 - All five inner products with mixed-grade cases where they diverge
@@ -996,7 +998,7 @@ uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # wit
 ### Architecture Decision Records (ADRs)
 
 Design decisions are documented in `docs/adrs/`. Each ADR records the context,
-decision, and consequences for a significant design choice. 50+ ADRs covering
+decision, and consequences for a significant design choice. 57 ADRs covering
 the symbolic layer, rendering pipeline, notation system, linting, packaging,
 and more.
 
@@ -1020,6 +1022,7 @@ authoritative rules with decision tables and examples that map to tests.
 | SPEC-007 | Unicode coefficient formatting |
 | SPEC-008 | Lazy/eager propagation rules |
 | SPEC-009 | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
+| SPEC-010 | Blade naming and display system |
 
 ### Other Documentation
 

@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-03-30
 deciders: edouard
 ---
@@ -61,12 +61,19 @@ moves into the NotationRule itself via additional fields, not into the renderer.
 - Bad, because it's a significant refactor of two core files
 - Risk, because 1335 tests must continue to pass
 
-## Implementation Plan
+## Implementation Record
 
-1. Branch from main
-2. Refactor `render.py` — notation lookup first, then dispatch on kind
-3. Refactor `latex_build.py` — same pattern
-4. Extend `NotationRule` with fields for special behaviour (e.g. `sup_style`
-   for Exp, `smart_spacing` for Gp)
-5. Run full test suite after each step
-6. Merge when green
+The motivation came from adding `Notation.functional()` (`935d728`, `b894135`)
+which required 8 individual fixes because operations bypassed the notation
+system. The refactor was implemented immediately after this ADR was written:
+
+1. Refactored both `render.py` and `latex_build.py` — notation lookup first,
+   then dispatch on `rule.kind`. Removed Gp and Unit pre-notation special
+   cases. Structural cases (Sym, Scalar, Neg, ScalarMul, Add, Sub, Div)
+   remain pre-notation as they have no notation rules. All 1335 tests passed
+   unchanged. (`7e97491`)
+2. Subsequent commits built on the new architecture without regressions:
+   `unit_fraction` notation kind (`fd08736`), LNode-based scientific notation
+   (`091483b`), postfix brace-wrapping fixes (`a63e917`, `c320db2`, `cd9ff92`),
+   compound Sym name parenthesization (`a63e917`), inner_expr in Sym nodes
+   (`0d1834e`), LaTeX functional notation escaping (`d22df22`).

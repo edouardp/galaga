@@ -30,7 +30,7 @@ helps future contributors understand why certain choices were made.
 | [015](015-uv-workspace-monorepo.md) | uv Workspace for Monorepo | Accepted |
 | [016](016-t-string-rendering.md) | T-String Rendering in Marimo Notebooks | Accepted |
 | [017](017-doran-lasenby-inner-as-pipe.md) | Doran–Lasenby Inner Product as the \| Operator | Accepted |
-| [018](018-unified-naming-evaluation-semantics.md) | Unified Naming and Evaluation Semantics on Multivector | Accepted |
+| [018](018-unified-naming-evaluation-semantics.md) | Unified Naming and Evaluation Semantics on Multivector | Partially superseded by 028 |
 | [019](019-basis-blades-named-eager.md) | Basis Blades as Named Eager Multivectors | Accepted |
 | [020](020-lazy-propagation-through-operators.md) | Lazy Propagation Through Operators | Accepted |
 | [021](021-lazy-basis-blades.md) | Lazy Basis Blades via basis_vectors(lazy=True) | Accepted |
@@ -44,10 +44,32 @@ helps future contributors understand why certain choices were made.
 | [029](029-configurable-notation.md) | Configurable Notation System | Accepted |
 | [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks | Accepted |
 | [031](031-complement-based-regressive-product.md) | Complement-Based Regressive Product | Accepted |
-| [032](032-dynamic-basis-blade-renaming.md) | Dynamic BasisBlade Renaming | Accepted |
+| [032](032-dynamic-basis-blade-renaming.md) | Dynamic BasisBlade Renaming | Superseded by 057 |
 | [033](033-unicode-repr-default.md) | Unicode repr() by Default | Accepted |
 | [034](034-three-phase-latex-pipeline.md) | Three-Phase LaTeX Render Pipeline | Accepted |
-| [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks for GA Teaching | Accepted |
+| [035](035-ruff-linting.md) | Ruff for Python Linting and Formatting | Accepted |
+| [036](036-shellcheck.md) | Shellcheck for Shell Script Linting | Accepted |
+| [037](037-bandit-security.md) | Bandit for Security Scanning | Accepted |
+| [038](038-rumdl-markdown.md) | Rumdl for Markdown Linting | Accepted |
+| [039](039-pip-audit.md) | Pip-audit for Dependency Vulnerability Scanning | Accepted |
+| [040](040-pyrefly-type-checking.md) | Pyrefly for Type Checking | Accepted |
+| [041](041-pre-commit-hooks.md) | Pre-commit Hooks for Automated Quality Gates | Accepted |
+| [042](042-scalar-sqrt.md) | scalar_sqrt as a Symbolic-First Convenience | Accepted |
+| [043](043-notation-first-rendering.md) | Notation-First Rendering Architecture | Accepted |
+| [044](044-remove-standalone-scalar.md) | Remove Standalone scalar() Function | Accepted |
+| [045](045-near-unit-display-tolerance.md) | Near-Unit Coefficient Display Tolerance | Accepted |
+| [046](046-remove-symbolic-dropins.md) | Remove Symbolic Drop-in Function Replacements | Accepted |
+| [047](047-sym-inner-expr.md) | Sym Inner Expression for Structural Rendering Decisions | Accepted |
+| [048](048-unit-fraction-notation.md) | unit_fraction Notation Kind | Accepted |
+| [049](049-defer-poincare-dual.md) | Defer Poincaré/Hodge Dual as Separate Function | Deferred |
+| [050](050-latex-scientific-notation.md) | LaTeX Scientific Notation via LNodes and Notation Setting | Accepted |
+| [051](051-scalar-constants.md) | Algebra Scalar Constants and Fractions | Accepted |
+| [052](052-general-multivector-inverse.md) | General Multivector Inverse via Hitzer/Shirokov | Accepted |
+| [053](053-general-sqrt-study-number.md) | General Square Root via Study Number Decomposition | Accepted |
+| [054](054-outer-transcendentals.md) | Outer (Wedge) Transcendental Functions | Accepted |
+| [055](055-dual-constructor-pqr.md) | Dual Constructor — Signature or Cl(p,q,r) | Accepted |
+| [056](056-real-clifford-algebras-only.md) | Real Clifford Algebras Only | Accepted |
+| [057](057-blade-convention.md) | BladeConvention Replaces names= Parameter | Accepted |
 
 ## Creating New ADRs
 

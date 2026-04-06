@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: accepted (partially superseded by ADR-028)
 date: 2026-03-25
 deciders: edouard
 supersedes: partially supersedes ADR-004, ADR-013

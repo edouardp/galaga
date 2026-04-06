@@ -1,5 +1,5 @@
 ---
-status: accepted
+status: superseded by ADR-057
 date: 2026-03-27
 deciders: edouard
 ---

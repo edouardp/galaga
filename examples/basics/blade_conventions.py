@@ -54,7 +54,7 @@ def _(mo):
             self._lines.append(" ".join(parts))
 
         def _repr_html_(self):
-            return mo.md("\n\n".join(self._lines)).text
+            return mo.md("<br/>".join(self._lines)).text
 
     return (Display,)
 
@@ -276,11 +276,13 @@ def _(Algebra, Display, b_sta):
     _alg = Algebra(1, 3, blades=b_sta(sigmas=True))
     _g0, _g1, _g2, _g3 = _alg.basis_vectors()
     _d = Display()
+    _d("Boosts")
     _d("σ₁ = γ₁γ₀:", _g1 * _g0)
     _d("σ₂ = γ₂γ₀:", _g2 * _g0)
     _d("σ₃ = γ₃γ₀:", _g3 * _g0)
+    _d("Rotations")
     _d("iσ₁ (γ₂γ₃):", _g2 * _g3)
-    _d("iσ₂ (γ₁γ₃):", _g1 * _g3)
+    _d("iσ₂ (γ₃γ₁):", _g3 * _g1)
     _d("iσ₃ (γ₁γ₂):", _g1 * _g2)
     _d
     return
@@ -301,7 +303,7 @@ def _(Algebra, Display, b_sta):
     _d = Display()
     _d("iγ₀ (γ₁γ₂γ₃):", _g1 * _g2 * _g3)
     _d("iγ₁ (γ₀γ₂γ₃):", _g0 * _g2 * _g3)
-    _d("iγ₂ (γ₀γ₁γ₃):", _g0 * _g1 * _g3)
+    _d("iγ₂ (γ₀γ₃γ₁):", _g0 * _g3 * _g1)
     _d("iγ₃ (γ₀γ₁γ₂):", _g0 * _g1 * _g2)
     _d
     return
@@ -321,8 +323,8 @@ def _(Algebra, Display, b_sta):
     _g0, _g1, _g2, _g3 = _alg.basis_vectors()
     _d = Display()
     _d("Grade 1:", _g0, _g1, _g2, _g3)
-    _d("Grade 2:", _g1 * _g0, _g2 * _g0, _g3 * _g0, _g2 * _g3, _g1 * _g3, _g1 * _g2)
-    _d("Grade 3:", _g1 * _g2 * _g3, _g0 * _g2 * _g3, _g0 * _g1 * _g3, _g0 * _g1 * _g2)
+    _d("Grade 2:", _g1 * _g0, _g2 * _g0, _g3 * _g0, _g2 * _g3, _g3 * _g1, _g1 * _g2)
+    _d("Grade 3:", _g1 * _g2 * _g3, _g0 * _g2 * _g3, _g0 * _g3 * _g1, _g0 * _g1 * _g2)
     _d("Grade 4:", _alg.pseudoscalar())
     _d
     return
@@ -441,7 +443,7 @@ def _(Algebra, Display):
     _e1, _e2, _e3 = _alg.basis_vectors()
     _d = Display()
     _d("Before:", _e1 ^ _e2)
-    _alg.get_basis_blade("+1+2").rename("B")
+    _alg.get_basis_blade(_e1 ^ _e2).rename("B")
     _d("After:", _e1 ^ _e2)
     _d
     return
