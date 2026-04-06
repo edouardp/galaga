@@ -278,7 +278,7 @@ class Algebra:
         for idx in range(self._dim):
             if bin(idx).count("1") == k:
                 data = np.zeros(self._dim)
-                data[idx] = 1.0
+                data[idx] = self._blades[idx].sign if idx in self._blades else 1.0
                 mv = Multivector(self, data)
                 mv._is_lazy = lazy
                 blades.append(mv)
@@ -307,7 +307,7 @@ class Algebra:
             if grades is not None and bin(idx).count("1") not in grades:
                 continue
             data = np.zeros(self._dim)
-            data[idx] = 1.0
+            data[idx] = bb.sign
             mv = Multivector(self, data)
             mv._is_lazy = lazy
             result[bb.ascii_name] = mv

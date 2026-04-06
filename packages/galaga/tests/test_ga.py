@@ -7,6 +7,7 @@ from galaga import (
     Algebra,
     Multivector,
     b_gamma,
+    b_sta,
     conjugate,
     doran_lasenby_inner,
     dorst_inner,
@@ -254,6 +255,23 @@ class TestAlgebra:
         alg = Algebra(1, 3, blades=b_gamma())
         d = alg.locals(grades=[1])
         assert set(d.keys()) == {"y0", "y1", "y2", "y3"}
+
+    def test_locals_respects_blade_sign(self):
+        """locals() applies BasisBlade.sign so σ₁ = γ₁γ₀ has correct coefficient."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True))
+        g0, g1, g2, g3 = alg.basis_vectors()
+        d = alg.locals(grades=[2])
+        assert d["s1"] == g1 * g0  # σ₁ = γ₁γ₀
+        assert d["s2"] == g2 * g0
+        assert d["s3"] == g3 * g0
+
+    def test_basis_blades_respects_blade_sign(self):
+        """basis_blades() applies BasisBlade.sign for signed conventions."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True))
+        g0, g1, g2, g3 = alg.basis_vectors()
+        bivs = alg.basis_blades(2)
+        # First bivector (bitmask 0b0011 = γ₀γ₁) should equal γ₁γ₀ = σ₁
+        assert bivs[0] == g1 * g0
 
     def test_pseudoscalar(self, cl3):
         """Pseudoscalar is the highest-grade blade."""
