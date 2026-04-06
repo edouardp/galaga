@@ -1,5 +1,23 @@
 # Changelog
 
+## 1.0.2 (2026-04-06)
+
+### Added
+
+- `Algebra.basis_blades(k)` — returns all basis blades of grade `k` as a
+  tuple in canonical order. Complements `basis_vectors()` for higher grades.
+  `e12, e13, e23 = alg.basis_blades(2)`.
+- `Algebra.locals()` — returns a dict of all basis blades keyed by ASCII
+  name, designed for `locals().update(alg.locals())` in notebooks. Supports
+  `grades=` filter and `lazy=` flag. Keys follow the blade convention
+  (`e1`, `e12`, `y0y1`, `s1`, etc.).
+
+### Fixed
+
+- `basis_blades()` and `locals()` now apply `BasisBlade.sign`, so signed
+  conventions (e.g. `b_sta(sigmas=True)` where σ₁ = γ₁γ₀) produce blades
+  with the correct coefficient.
+
 ## 1.0.1 (2026-04-05)
 
 ### Fixed
