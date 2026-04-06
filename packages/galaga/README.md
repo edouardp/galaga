@@ -2,6 +2,7 @@
 
 A numeric geometric algebra library with a stable, programmer-first API.
 
+- **Single dependency** — only NumPy. No framework lock-in, installs in seconds
 - **Named functions are the contract** — `gp`, `op`, `grade`, `reverse`, `dual`, `inverse` never change meaning
 - **Operators are sugar** — `*`, `^`, `|`, `~` are convenience only
 - **No ambiguity** — every inner product variant has its own name
