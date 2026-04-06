@@ -318,6 +318,7 @@ def b_default(
     prefix: str = "e",
     start: int = 1,
     style: str = "compact",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Default: e₁, e₂, … (1-based, compact)."""
@@ -326,6 +327,7 @@ def b_gamma(
     *,
     start: int = 0,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Gamma: γ₀, γ₁, … (0-based, juxtapose)."""
@@ -334,6 +336,7 @@ def b_sigma(
     *,
     start: int = 1,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Sigma: σ₁, σ₂, … (1-based, juxtapose)."""
@@ -341,6 +344,7 @@ def b_sigma(
 def b_sigma_xyz(
     *,
     style: str = "juxtapose",
+    pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Sigma xyz: σₓ, σᵧ, σ_z."""
@@ -348,7 +352,7 @@ def b_sigma_xyz(
 def b_pga(
     *,
     style: str = "compact",
-    pseudoscalar: str | tuple | None = "I",
+    pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """PGA: e₀, e₁, … (0-based, compact, PSS → I)."""
@@ -358,6 +362,7 @@ def b_sta(
     style: str = "juxtapose",
     sigmas: bool = False,
     pseudovectors: bool = False,
+    pss: str | tuple | None = ("i", "i", "i"),
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """STA: γ₀…γ₃, PSS → i. Works with both Cl(1,3) and Cl(3,1).
@@ -370,7 +375,7 @@ def b_cga(
     euclidean: int = 3,
     null_basis: str = "origin_infinity",  # or "plus_minus"
     style: str = "compact",
-    pseudoscalar: str | tuple | None = "I",
+    pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """CGA: e₁…eₙ, eₒ, e∞ (compact, PSS → I).
@@ -380,9 +385,8 @@ def b_cga(
 ```
 
 Notes:
-- `overrides` is on every factory — lets you tweak any blade without building a full `BladeConvention` by hand.
+- `pss=` and `overrides=` are on every factory — `pss=` names the pseudoscalar, `overrides=` tweaks any blade.
 - When a factory has built-in overrides (e.g. `b_pga` has `{"pss": "I"}`), user-supplied `overrides` are merged with the factory's defaults. User entries win on conflict (last one wins).
-- `b_pga` and `b_cga` have `pss=` since naming the PSS is the most common override.
 - `b_cga` has `euclidean=` (3 or 4) and `null_basis=` to switch between `eₒ/e∞` and `e₊/e₋`.
 - `b_sigma_xyz` has no `start=` since the subscripts are letters, not numbers.
 

@@ -51,6 +51,8 @@ pga = Algebra((1, 1, 1, 0))        # Cl(3,0,1) — Projective GA
 ```python
 alg.basis_vectors()              # (e₁, e₂, e₃) — named + eager
 alg.basis_vectors(lazy=True)     # (e₁, e₂, e₃) — named + lazy (symbolic)
+alg.basis_blades(2)              # (e₁₂, e₁₃, e₂₃) — all grade-k blades
+alg.locals()                     # {"e1": e₁, "e12": e₁₂, …} for locals().update()
 alg.pseudoscalar()               # e₁₂₃ (also alg.I)
 alg.identity            # scalar 1 (𝟙)
 alg.scalar(5.0)         # 5
@@ -318,7 +320,7 @@ Control how basis blades display via the `blades=` parameter and convention fact
 ### Convention Factories
 
 ```python
-from galaga import Algebra, b_default, b_gamma, b_sigma, b_sigma_xyz, b_pga, b_sta
+from galaga import Algebra, b_default, b_gamma, b_sigma, b_sigma_xyz, b_pga, b_sta, b_cga
 
 # Default: e₁, e₂, e₃ — compact subscripts (e₁₂ for bivectors)
 alg = Algebra(3)
@@ -326,8 +328,8 @@ alg = Algebra(3)
 # Gamma: γ₀, γ₁, γ₂, γ₃
 sta = Algebra(1, 3, blades=b_gamma())
 
-# STA with sigma bivector aliases
-sta = Algebra(1, 3, blades=b_sta(sigmas=True))
+# STA with sigma bivector aliases, pseudoscalar → I
+sta = Algebra(1, 3, blades=b_sta(sigmas=True, pss="I"))
 
 # Sigma (numbered): σ₁, σ₂, σ₃
 pauli = Algebra(3, blades=b_sigma())
@@ -337,7 +339,13 @@ pauli = Algebra(3, blades=b_sigma_xyz())
 
 # PGA: 0-based, compact, pseudoscalar → I
 pga = Algebra(3, 0, 1, blades=b_pga())
+
+# CGA: e₁…e₃, eₒ, e∞
+cga = Algebra(4, 1, blades=b_cga())
 ```
+
+All factories accept `pss=` to name the pseudoscalar, `style=` to choose
+blade display, and `overrides=` for per-blade customisation.
 
 ### Blade Styles
 
