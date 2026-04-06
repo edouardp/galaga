@@ -794,6 +794,56 @@ class TestFactoryKeywords:
         alg = Algebra(3, 0, 1, blades=b_pga(pss="𝐈"))
         assert str(alg.pseudoscalar()) == "𝐈"
 
+    def test_default_pss(self):
+        """b_default(pss='I') names the pseudoscalar."""
+        alg = Algebra(3, blades=b_default(pss="I"))
+        assert str(alg.pseudoscalar()) == "I"
+
+    def test_default_pss_none(self):
+        """b_default(pss=None) leaves pseudoscalar unnamed."""
+        alg = Algebra(3, blades=b_default(pss=None))
+        assert str(alg.pseudoscalar()) == "e₁₂₃"
+
+    def test_gamma_pss(self):
+        """b_gamma(pss='I') names the pseudoscalar."""
+        alg = Algebra(3, blades=b_gamma(pss="I"))
+        assert str(alg.pseudoscalar()) == "I"
+
+    def test_sigma_pss(self):
+        """b_sigma(pss='I') names the pseudoscalar."""
+        alg = Algebra(3, blades=b_sigma(pss="I"))
+        assert str(alg.pseudoscalar()) == "I"
+
+    def test_sigma_xyz_pss(self):
+        """b_sigma_xyz(pss='ω') names the pseudoscalar."""
+        alg = Algebra(3, blades=b_sigma_xyz(pss="ω"))
+        assert str(alg.pseudoscalar()) == "ω"
+
+    def test_sta_pss_override(self):
+        """b_sta(pss='I') overrides the default 'i'."""
+        alg = Algebra(1, 3, blades=b_sta(pss="I"))
+        assert str(alg.pseudoscalar()) == "I"
+
+    def test_sta_pss_default(self):
+        """b_sta() defaults to pss='i'."""
+        alg = Algebra(1, 3, blades=b_sta())
+        assert str(alg.pseudoscalar()) == "i"
+
+    def test_cga_pss(self):
+        """b_cga(pss='Ω') names the pseudoscalar."""
+        alg = Algebra(4, 1, blades=b_cga(pss="Ω"))
+        assert str(alg.pseudoscalar()) == "Ω"
+
+    def test_cga_pss_none(self):
+        """b_cga(pss=None) leaves pseudoscalar unnamed."""
+        alg = Algebra(4, 1, blades=b_cga(pss=None))
+        assert "e" in str(alg.pseudoscalar())  # default blade name
+
+    def test_pga_pss_none(self):
+        """b_pga(pss=None) leaves pseudoscalar unnamed."""
+        alg = Algebra(2, 0, 1, blades=b_pga(pss=None))
+        assert str(alg.pseudoscalar()) != "I"
+
     def test_style_override_on_factory(self):
         """Style can be overridden on any factory."""
         alg = Algebra(3, blades=b_gamma(style="compact"))
