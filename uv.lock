@@ -572,7 +572,7 @@ wheels = [
 
 [[package]]
 name = "galaga"
-version = "1.0.2"
+version = "1.1.0"
 source = { editable = "packages/galaga" }
 dependencies = [
     { name = "numpy" },

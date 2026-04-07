@@ -333,7 +333,7 @@ Control how basis blades display via the `blades=` parameter and convention fact
 ### Convention Factories
 
 ```python
-from galaga import Algebra, b_default, b_gamma, b_sigma, b_sigma_xyz, b_pga, b_sta, b_cga
+from galaga import Algebra, b_default, b_gamma, b_sigma, b_sigma_xyz, b_pga, b_sta, b_cga, b_complex, b_quaternion
 
 # Default: e₁, e₂, e₃ — compact subscripts (e₁₂ for bivectors)
 alg = Algebra(3)
@@ -355,6 +355,12 @@ pga = Algebra(3, 0, 1, blades=b_pga())
 
 # CGA: e₁…e₃, eₒ, e∞
 cga = Algebra(4, 1, blades=b_cga())
+
+# Complex numbers: Cl(0,1) with i
+alg_c = Algebra(0, 1, blades=b_complex())
+
+# Quaternions: Cl(3,0) with i, j, k bivectors
+alg_q = Algebra(3, blades=b_quaternion())
 ```
 
 All factories accept `pss=` to name the pseudoscalar, `style=` to choose
@@ -799,6 +805,17 @@ cross = dual(a ^ b)              # a × b as a vector
 ```
 
 The wedge gives a bivector (oriented plane); the dual converts it to the normal vector. Only meaningful in 3D where bivectors and vectors are dual.
+
+### Hodge Star (Poincaré Dual)
+
+The Hodge star `⋆x = xI⁻¹` uses the full geometric product instead of left contraction. It agrees with `dual()` on blades but differs on mixed-grade multivectors:
+
+```python
+def hodge_star(x):
+    return x * inverse(x.algebra.pseudoscalar())
+```
+
+Like `dual()`, this requires an invertible pseudoscalar — it does not work in degenerate algebras (PGA). Use `complement()` there instead.
 
 ### Bivector Commutator Algebra
 
