@@ -123,6 +123,7 @@ class Algebra:
         "_complement_sign",
         "_blades",
         "_blades_convention",
+        "_display_order",
         "_notation",
     )
 
@@ -202,6 +203,17 @@ class Algebra:
         # Build BasisBlade objects via convention
         self._blades = build_blades(blades, signature)
 
+        # Resolve display order
+        if blades.display_order is not None:
+            do = tuple(blades.display_order)
+            if len(do) != self._dim:
+                raise ValueError(f"display_order has {len(do)} entries, expected {self._dim}")
+            if set(do) != set(range(self._dim)):
+                raise ValueError("display_order must be a permutation of range(dim)")
+            self._display_order = do
+        else:
+            self._display_order = tuple(range(self._dim))
+
     def _blade_product(self, a: int, b: int) -> tuple[int, float]:
         """Compute the geometric product of two basis blades given as bitmask indices.
 
@@ -275,7 +287,7 @@ class Algebra:
             e12, e13, e23 = alg.basis_blades(2)
         """
         blades = []
-        for idx in range(self._dim):
+        for idx in self._display_order:
             if bin(idx).count("1") == k:
                 data = np.zeros(self._dim)
                 data[idx] = self._blades[idx].sign if idx in self._blades else 1.0
@@ -1139,7 +1151,7 @@ class Multivector:
     def _format(self, unicode: bool = False) -> str:
         alg = self.algebra
         terms = []
-        for i in range(alg.dim):
+        for i in alg._display_order:
             c = self.data[i]
             if abs(c) < 1e-12:
                 continue
@@ -1199,7 +1211,7 @@ class Multivector:
         # Numeric format spec — apply to each coefficient, no threshold
         alg = self.algebra
         terms = []
-        for i in range(alg.dim):
+        for i in alg._display_order:
             c = self.data[i]
             if c == 0.0:
                 continue
@@ -1244,7 +1256,7 @@ class Multivector:
             alg = self.algebra
             style = alg._notation.scientific
             term_nodes = []
-            for i in range(alg.dim):
+            for i in alg._display_order:
                 c = self.data[i]
                 if coeff_format:
                     if c == 0.0:

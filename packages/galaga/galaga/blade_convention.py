@@ -43,6 +43,7 @@ class BladeConvention:
     overrides: dict | None = None
     index_base: int = 1
     prefix: str = "e"
+    display_order: tuple | None = None
 
 
 def _parse_name_value(val):
@@ -514,4 +515,7 @@ def b_quaternion(
     }
     if overrides:
         merged.update(overrides)
-    return BladeConvention(overrides=merged)
+    return BladeConvention(
+        overrides=merged,
+        display_order=(0b000, 0b110, 0b101, 0b011, 0b001, 0b010, 0b100, 0b111),
+    )
