@@ -75,7 +75,7 @@ def _(mo):
 
     galaga provides `b_complex()` and `b_quaternion()` convention factories
     that let you work with complex numbers and quaternions directly as
-    Clifford algebra elements.
+    Clifford algebra elements. Both use bivectors as imaginary units.
     """)
     return
 
@@ -88,6 +88,9 @@ def _(mo):
     The bivector $e_1 \wedge e_2$ squares to $-1$, giving us the imaginary
     unit $i = e_{12}$. The even subalgebra (scalars + bivectors) is
     isomorphic to the complex numbers.
+
+    We set the notation so that `reverse()` (complex conjugation) renders
+    as $z^{*}$.
     """)
     return
 
@@ -101,9 +104,7 @@ def _(Algebra, Display, Notation, NotationRule, b_complex):
             "Reverse", "latex", NotationRule(kind="superscript", symbol="*")
         ),
     )
-    _e1, _e2 = alg_c.basis_vectors()
     _i = alg_c.pseudoscalar()
-
     _d = Display()
     _d("i = e₁e₂,  i² =", _i * _i)
     _d
@@ -121,26 +122,25 @@ def _(mo):
 @app.cell
 def _(Display, alg_c):
     _i = alg_c.pseudoscalar()
-    _z1 = (3 + 4 * _i).name("z₁")
-    _z2 = (1 - 2 * _i).name("z₂")
+    _z1 = (3 + 4 * _i).name("z_1")
+    _z2 = (1 - 2 * _i).name("z_2")
     _d = Display()
     _d(f"${_z1.display().latex()}$")
     _d(f"${_z2.display().latex()}$")
-    _d("z₁ + z₂ =", _z1 + _z2)
-    _d("z₁ · z₂ =", _z1 * _z2)
-    _d("z₁² =", _z1 * _z1)
+    _d(f"${(_z1 + _z2).display().latex()}$")
+    _d(f"${(_z1 * _z2).display().latex()}$")
+    _d(f"${(_z1**2).display().latex()}$")
     _d
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### Complex conjugation via reverse
 
     In Cl(2,0), the reverse negates the grade-2 part (the bivector $i$),
-    acting as complex conjugation. We set the notation so reverse renders
-    as $z^{*}$.
+    acting as complex conjugation: $\widetilde{a + bi} = a - bi$.
     """)
     return
 
@@ -149,11 +149,11 @@ def _(mo):
 def _(Display, alg_c, norm, reverse):
     _i = alg_c.pseudoscalar()
     _z = (3 + 4 * _i).name("z")
-    _zc = reverse(_z)
+    _zstar = reverse(_z)
     _d = Display()
     _d(f"${_z.display().latex()}$")
-    _d(f"${_zc.display().latex()}$")
-    _d(f"${(_z * _zc).display().latex()}$")
+    _d(f"${_zstar.display().latex()}$")
+    _d(f"${(_z * _zstar).display().latex()}$")
     _d(f"${norm(_z).display().latex()}$")
     _d
     return
@@ -173,17 +173,17 @@ def _(mo):
 def _(Display, alg_c, exp, np):
     _i = alg_c.pseudoscalar()
     _theta = np.pi / 4
-    _rot = exp(_i * alg_c.scalar(_theta))
+    _r = exp(_i * alg_c.scalar(_theta))
     _d = Display()
-    _d(f"exp(i·π/4) =", _rot)
-    _d(f"cos(π/4) = {np.cos(_theta):.6f}, sin(π/4) = {np.sin(_theta):.6f}")
+    _d(f"exp(i·π/4) =", _r)
+    _d(f"cos(π/4) = {np.cos(_theta):.6f},  sin(π/4) = {np.sin(_theta):.6f}")
     _d
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### Complex division
 
     Division uses the Clifford inverse: $z_1 / z_2 = z_1 z_2^{-1}$.
@@ -194,13 +194,13 @@ def _(mo):
 @app.cell
 def _(Display, alg_c):
     _i = alg_c.pseudoscalar()
-    _z1 = (3 + 4 * _i).name("z₁")
-    _z2 = (1 - 2 * _i).name("z₂")
+    _z1 = (3 + 4 * _i).name("z_1")
+    _z2 = (1 - 2 * _i).name("z_2")
     _d = Display()
     _d(f"${_z1.display().latex()}$")
     _d(f"${_z2.display().latex()}$")
-    _d("z₁ / z₂ =", _z1 / _z2)
-    _d("z₂ · (z₁/z₂) =", _z2 * (_z1 / _z2))
+    _d(f"${(_z1 / _z2).display().latex()}$")
+    _d(f"${(_z2 * (_z1 / _z2)).display().latex()}$")
     _d
     return
 
@@ -222,10 +222,8 @@ def _(mo):
 @app.cell
 def _(Algebra, Display, b_quaternion):
     alg_q = Algebra(3, blades=b_quaternion())
-    _e1, _e2, _e3 = alg_q.basis_vectors()
     i, j, k = alg_q.basis_blades(k=2)
     _d = Display()
-    _d("i =", i, "  j =", j, "  k =", k)
     _d("i² =", i * i, "  j² =", j * j, "  k² =", k * k)
     _d("ijk =", i * j * k)
     _d
@@ -260,53 +258,65 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_q, i, j, k):
-    _q1 = alg_q.scalar(1) + 2 * i + 3 * j + 4 * k
-    _q2 = alg_q.scalar(2) - i + j - 3 * k
+def _(Display, i, j, k):
+    _q1 = (1 + 2 * i + 3 * j + 4 * k).name("q_1")
+    _q2 = (2 - i + j - 3 * k).name("q_2")
     _d = Display()
-    _d("q₁ =", _q1)
-    _d("q₂ =", _q2)
-    _d("q₁ + q₂ =", _q1 + _q2)
-    _d("q₁ · q₂ =", _q1 * _q2)
+    _d(f"${_q1.display().latex()}$")
+    _d(f"${_q2.display().latex()}$")
+    _d(f"${(_q1 + _q2).display().latex()}$")
+    _d(f"${(_q1 * _q2).display().latex()}$")
     _d
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### Quaternion conjugate, norm, inverse
 
-    The quaternion conjugate is the Clifford conjugate (reverse ∘ involute),
-    which negates the bivector part.
+    The quaternion conjugate is the Clifford conjugate (reverse $\circ$
+    involute), which negates the bivector part: $\bar{q} = a - bi - cj - dk$.
     """)
     return
 
 
 @app.cell
-def _(Display, alg_q, conjugate, i, inverse, j, k, norm):
-    _q = alg_q.scalar(1) + 2 * i + 3 * j + 4 * k
+def _(Display, conjugate, i, inverse, j, k, norm):
+    _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
     _qbar = conjugate(_q)
+    _qinv = inverse(_q)
     _d = Display()
-    _d("q =", _q)
-    _d("q̄ = conjugate(q) =", _qbar)
-    _d("q · q̄ =", _q * _qbar)
-    _d("|q| =", norm(_q))
-    _d("q⁻¹ =", inverse(_q))
-    _d("q · q⁻¹ =", _q * inverse(_q))
+    _d(f"${_q.display().latex()}$")
+    _d(f"${_qbar.display().latex()}$")
+    _d(f"${(_q * _qbar).display().latex()}$")
+    _d(f"${norm(_q).display().latex()}$")
+    _d(f"${_qinv.display().latex()}$")
+    _d(f"${(_q * _qinv).display().latex()}$")
     _d
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ### 3D rotation via quaternion sandwich
+
+    A unit quaternion $q = \cos(\theta/2) + \sin(\theta/2)(ai + bj + ck)$
+    rotates a pure quaternion $v = xi + yj + zk$ by angle $\theta$ around
+    axis $(a, b, c)$ via the sandwich product $qv\bar{q}$.
+    """)
     return
 
 
 @app.cell
 def _(Display, alg_q, conjugate, exp, i, j, np):
-    # Rotate j by 90° around the i axis
     _theta = np.pi / 2
-    _q = exp(i * alg_q.scalar(_theta / 2))
+    _r = exp(i * alg_q.scalar(_theta / 2))
     _v = j
-    _rotated = _q * _v * conjugate(_q)
+    _rotated = _r * _v * conjugate(_r)
     _d = Display()
-    _d(f"Rotation quaternion (90° around i): q =", _q)
+    _d(f"Rotation quaternion (90° around i):", _r)
     _d("v =", _v)
     _d("qvq̄ =", _rotated)
     _d
@@ -347,21 +357,19 @@ def _(Display, alg_q, exp, i, log, np):
 def _(mo):
     mo.md("""
     ### Unit quaternion
-
-    `unit(q)` normalises any quaternion to unit length.
     """)
     return
 
 
 @app.cell
-def _(Display, alg_q, i, j, k, norm, unit):
-    _q = alg_q.scalar(1) + 2 * i + 3 * j + 4 * k
+def _(Display, i, j, k, norm, unit):
+    _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
     _qu = unit(_q)
     _d = Display()
-    _d("q =", _q)
-    _d("|q| =", norm(_q))
-    _d("unit(q) =", _qu)
-    _d("|unit(q)| =", norm(_qu))
+    _d(f"${_q.display().latex()}$")
+    _d(f"${norm(_q).display().latex()}$")
+    _d(f"${_qu.display().latex()}$")
+    _d(f"${norm(_qu).display().latex()}$")
     _d
     return
 
