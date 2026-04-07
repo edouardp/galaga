@@ -242,21 +242,6 @@ def _named_blade(name_val, vectors: list) -> NamedBlade:
     return NamedBlade(a, u, lx, vectors=vectors)
 
 
-def _reorder_sign(indices: list[int]) -> int:
-    """Sign from sorting a list of basis vector indices into canonical order.
-
-    Counts the number of adjacent swaps needed (bubble sort parity).
-    """
-    n = len(indices)
-    lst = list(indices)
-    swaps = 0
-    for i in range(n):
-        for j in range(i + 1, n):
-            if lst[i] > lst[j]:
-                swaps += 1
-    return (-1) ** swaps
-
-
 def _product_sign(indices: list[int], signature: tuple) -> tuple[int, int]:
     """Compute the bitmask and sign of a product of basis vectors.
 
