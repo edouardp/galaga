@@ -176,6 +176,31 @@ def _(Algebra, Display, b_complex, exp, np):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
+    ### Complex division
+
+    Division uses the Clifford inverse: $z_1 / z_2 = z_1 z_2^{-1}$.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, Display, b_complex):
+    _alg = Algebra(0, 1, blades=b_complex())
+    (_i,) = _alg.basis_vectors()
+    _z1 = _alg.scalar(3) + 4 * _i
+    _z2 = _alg.scalar(1) - 2 * _i
+    _d = Display()
+    _d("z₁ =", _z1)
+    _d("z₂ =", _z2)
+    _d("z₁ / z₂ =", _z1 / _z2)
+    _d("z₂ · (z₁/z₂) =", _z2 * (_z1 / _z2))
+    _d
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
     ---
 
     ## Quaternions — Cl(3,0) bivectors
@@ -289,6 +314,59 @@ def _(Display, alg_q, conjugate, exp, i, j, k, np):
     _d(f"Rotation quaternion (90° around i): q =", _q)
     _d("v =", _v)
     _d("qvq̄ =", _rotated)
+    _d
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### Log, exp, and SLERP
+
+    `log(q)` extracts the bivector (rotation axis × half-angle) from a unit
+    quaternion. Scaling it and re-exponentiating gives spherical linear
+    interpolation (SLERP).
+    """)
+    return
+
+
+@app.cell
+def _(Display, alg_q, exp, i, log, np):
+    _theta = np.pi / 3
+    _q = exp(i * alg_q.scalar(_theta / 2))
+    _b = log(_q)
+    _d = Display()
+    _d("q = exp(iπ/6) =", _q)
+    _d("log(q) =", _b)
+    _d("exp(log(q)) =", exp(_b))
+    _d()
+    _d("SLERP — interpolate from identity to q:")
+    for _t in [0.0, 0.25, 0.5, 0.75, 1.0]:
+        _qt = exp(alg_q.scalar(_t) * _b)
+        _d(f"  t={_t}:", _qt)
+    _d
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md("""
+    ### Unit quaternion
+
+    `unit(q)` normalises any quaternion to unit length.
+    """)
+    return
+
+
+@app.cell
+def _(Display, alg_q, i, j, k, norm, unit):
+    _q = alg_q.scalar(1) + 2 * i + 3 * j + 4 * k
+    _qu = unit(_q)
+    _d = Display()
+    _d("q =", _q)
+    _d("|q| =", norm(_q))
+    _d("unit(q) =", _qu)
+    _d("|unit(q)| =", norm(_qu))
     _d
     return
 
