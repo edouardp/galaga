@@ -490,8 +490,8 @@ def b_quaternion(
 
     Use with ``Algebra(3, blades=b_quaternion())``.
 
-    Note: terms display in bitmask order (k, j, i) not conventional
-    (i, j, k). See SPEC-011 for future display ordering support.
+    Display order is set so terms render as 1 + 2i + 3j + 4k
+    (conventional order, not bitmask order).
     """
     merged = {
         "+2+3": "i",

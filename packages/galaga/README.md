@@ -1014,7 +1014,7 @@ uv run pytest packages/galaga/tests/ -v                                    # run
 uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # with coverage
 ```
 
-1500+ tests. Tests include:
+1600+ tests. Tests include:
 - Algebraic identities (associativity, distributivity, reverse-of-product)
 - Golden tests for Cl(2,0), Cl(3,0), Cl(1,3)
 - All five inner products with mixed-grade cases where they diverge
@@ -1037,7 +1037,7 @@ uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # wit
 ### Architecture Decision Records (ADRs)
 
 Design decisions are documented in `docs/adrs/`. Each ADR records the context,
-decision, and consequences for a significant design choice. 57 ADRs covering
+decision, and consequences for a significant design choice. 59 ADRs covering
 the symbolic layer, rendering pipeline, notation system, linting, packaging,
 and more.
 
@@ -1062,6 +1062,7 @@ authoritative rules with decision tables and examples that map to tests.
 | SPEC-008 | Lazy/eager propagation rules |
 | SPEC-009 | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
 | SPEC-010 | Blade naming and display system |
+| SPEC-011 | Custom basis blade display ordering |
 
 ### Other Documentation
 
