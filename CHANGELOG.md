@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.1.1 (2026-04-07)
+
+### Added
+
+- **`b_complex()` convention factory** — Cl(0,1) with basis vector named `i`
+- **`b_quaternion()` convention factory** — Cl(3,0) with bivectors `i`, `j`, `k` satisfying Hamilton's identities
+- **Custom display ordering** (SPEC-011) — `BladeConvention.display_order` controls term order in rendering and `basis_blades()`; quaternions now display as `1 + 2i + 3j + 4k`
+- **`blade()` accepts Multivector and `lazy=`** — `alg.blade(e1^e2, lazy=True)` works
+- Improved `dual()` error message in degenerate algebras — guides users to `complement()`
+- Hodge star recipe in README
+- Example notebook: complex numbers and quaternions (arithmetic, conjugation, Euler's formula, division, log/exp, SLERP, rotation)
+
+### Fixed
+
+- Removed dead code (`_reorder_sign`, unreachable return in `_fmt_coeff`)
+
+### Tests
+
+- 1652 tests, 98% coverage
+- 18 quaternion/complex identity and display tests
+- 16 display ordering tests
+- 14 coverage gap tests
+
 ## 1.1.0 (2026-04-06)
 
 ### Breaking Changes
