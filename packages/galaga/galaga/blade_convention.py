@@ -475,7 +475,6 @@ def b_complex(
         merged.update(overrides)
     return BladeConvention(
         overrides=merged,
-        display_order=(0b00, 0b11, 0b01, 0b10),
     )
 
 
