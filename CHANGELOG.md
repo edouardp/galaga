@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.2.0 (2026-04-07)
+
+### Changed
+
+- **`b_complex()` now uses Cl(2,0) even subalgebra** — `i = e₁₂` (bivector),
+  consistent with `b_quaternion()`. Use `Algebra(2, blades=b_complex())`
+  instead of `Algebra(0, 1, blades=b_complex())`. Complex conjugation is
+  now `reverse()` (not `involute()`).
+
+### Added
+
+- **`.bar` property** — shortcut for `conjugate(x)`, alongside `.inv`, `.dag`, `.sq`
+
+### Fixed
+
+- Removed unnecessary `display_order` from `b_complex()` (bitmask order is already correct for Cl(2,0))
+
 ## 1.1.1 (2026-04-07)
 
 ### Added
