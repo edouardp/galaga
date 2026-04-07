@@ -39,6 +39,12 @@ class TestBladeLazyPaths(unittest.TestCase):
         mv = alg.blade("e12", lazy=True)
         assert mv._is_lazy
 
+    def test_prefix_digits_out_of_range(self):
+        """blade('e9') raises ValueError for 3D algebra."""
+        alg = Algebra(3)
+        with self.assertRaises(ValueError):
+            alg.blade("e9")
+
     def test_blade_mv_not_basis(self):
         """blade(non_basis_mv) raises ValueError."""
         alg = Algebra(3)
