@@ -17,6 +17,8 @@ tables and examples that map directly to tests.
 | [SPEC-007](SPEC-007-unicode-coefficient-formatting.md) | Draft | Unicode coefficient formatting |
 | [SPEC-008](SPEC-008-lazy-eager-propagation.md) | Draft | Lazy/eager propagation rules |
 | [SPEC-009](SPEC-009-expression-tree-rendering.md) | Draft | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
+| [SPEC-010](SPEC-010-blade-naming-display.md) | Accepted | Blade naming and display system |
+| [SPEC-011](SPEC-011-display-ordering.md) | Pending | Custom basis blade display ordering |
 
 ## Format
 
