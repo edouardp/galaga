@@ -32,8 +32,6 @@ def _():
 
     return (
         Algebra,
-        Notation,
-        NotationRule,
         b_complex,
         b_quaternion,
         conjugate,
@@ -42,7 +40,6 @@ def _():
         log,
         norm,
         np,
-        reverse,
         unit,
     )
 
@@ -56,7 +53,9 @@ def _(mo):
         def __call__(self, *p):
             parts = []
             for _p in p:
-                if hasattr(_p, "latex"):
+                if hasattr(_p, "display"):
+                    parts.append(f"${_p.display()}$")
+                elif hasattr(_p, "latex"):
                     parts.append(f"${_p.latex()}$")
                 else:
                     parts.append(str(_p))
@@ -96,17 +95,14 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, Notation, NotationRule, b_complex):
-    alg_c = Algebra(
-        2,
-        blades=b_complex(),
-        notation=Notation.default().set(
-            "Reverse", "latex", NotationRule(kind="superscript", symbol="*")
-        ),
-    )
-    _i = alg_c.pseudoscalar()
+def _(Algebra, Display, b_complex):
+    alg_c = Algebra(2, blades=b_complex())
+
+    _i = alg_c.pseudoscalar(lazy=True)
+
     _d = Display()
-    _d("i = e₁e₂,  i² =", _i * _i)
+    _d( _i )
+    _d( _i**2 )
     _d
     return (alg_c,)
 
@@ -122,14 +118,16 @@ def _(mo):
 @app.cell
 def _(Display, alg_c):
     _i = alg_c.pseudoscalar()
+
     _z1 = (3 + 4 * _i).name("z_1")
     _z2 = (1 - 2 * _i).name("z_2")
+
     _d = Display()
-    _d(f"${_z1.display().latex()}$")
-    _d(f"${_z2.display().latex()}$")
-    _d(f"${(_z1 + _z2).display().latex()}$")
-    _d(f"${(_z1 * _z2).display().latex()}$")
-    _d(f"${(_z1**2).display().latex()}$")
+    _d( _z1 )
+    _d( _z2 )
+    _d( _z1 + _z2 )
+    _d( _z1 * _z2 )
+    _d( _z1**2 )
     _d
     return
 
@@ -146,15 +144,17 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_c, norm, reverse):
+def _(Display, alg_c, conjugate, norm):
     _i = alg_c.pseudoscalar()
+
     _z = (3 + 4 * _i).name("z")
-    _zstar = reverse(_z)
+    _z_bar = conjugate(_z)
+
     _d = Display()
-    _d(f"${_z.display().latex()}$")
-    _d(f"${_zstar.display().latex()}$")
-    _d(f"${(_z * _zstar).display().latex()}$")
-    _d(f"${norm(_z).display().latex()}$")
+    _d( _z )
+    _d( _z_bar )
+    _d( _z * _z_bar )
+    _d( norm(_z) )
     _d
     return
 
@@ -172,11 +172,13 @@ def _(mo):
 @app.cell
 def _(Display, alg_c, exp, np):
     _i = alg_c.pseudoscalar()
-    _theta = np.pi / 4
-    _r = exp(_i * alg_c.scalar(_theta))
+
+    _theta = 0.25 * alg_c.pi
+    _r = exp(_theta * _i)
+
     _d = Display()
-    _d(f"exp(i·π/4) =", _r)
-    _d(f"cos(π/4) = {np.cos(_theta):.6f},  sin(π/4) = {np.sin(_theta):.6f}")
+    _d( _r )
+    _d(f"cos(π/4) = {np.cos(_theta.scalar_part):.6f},  sin(π/4) = {np.sin(_theta.scalar_part):.6f}")
     _d
     return
 
@@ -194,13 +196,15 @@ def _(mo):
 @app.cell
 def _(Display, alg_c):
     _i = alg_c.pseudoscalar()
+
     _z1 = (3 + 4 * _i).name("z_1")
     _z2 = (1 - 2 * _i).name("z_2")
+
     _d = Display()
-    _d(f"${_z1.display().latex()}$")
-    _d(f"${_z2.display().latex()}$")
-    _d(f"${(_z1 / _z2).display().latex()}$")
-    _d(f"${(_z2 * (_z1 / _z2)).display().latex()}$")
+    _d( _z1 )
+    _d( _z2 )
+    _d( _z1 / _z2 )
+    _d( _z2 * (_z1 / _z2) )
     _d
     return
 
@@ -220,20 +224,16 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, b_quaternion):
+def _(Algebra, b_quaternion):
     alg_q = Algebra(3, blades=b_quaternion())
-    i, j, k = alg_q.basis_blades(k=2)
-    _d = Display()
-    _d("i² =", i * i, "  j² =", j * j, "  k² =", k * k)
-    _d("ijk =", i * j * k)
-    _d
+    i, j, k = alg_q.basis_blades(k=2, lazy=True)
     return alg_q, i, j, k
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ### Hamilton's multiplication table
+    ### Hamilton's Quaternion Identities
     """)
     return
 
@@ -241,8 +241,18 @@ def _(mo):
 @app.cell
 def _(Display, i, j, k):
     _d = Display()
-    _d("ij =", i * j, "  jk =", j * k, "  ki =", k * i)
-    _d("ji =", j * i, "  kj =", k * j, "  ik =", i * k)
+    _d( i**2 )
+    _d( j**2 )
+    _d( k**2 )
+    _d( i*j*k )
+    _d()
+    _d( i*j )
+    _d( j*k )
+    _d( k*i )
+    _d()
+    _d( j*i )
+    _d( k*j )
+    _d( i*k )
     _d
     return
 
@@ -261,11 +271,12 @@ def _(mo):
 def _(Display, i, j, k):
     _q1 = (1 + 2 * i + 3 * j + 4 * k).name("q_1")
     _q2 = (2 - i + j - 3 * k).name("q_2")
+
     _d = Display()
-    _d(f"${_q1.display().latex()}$")
-    _d(f"${_q2.display().latex()}$")
-    _d(f"${(_q1 + _q2).display().latex()}$")
-    _d(f"${(_q1 * _q2).display().latex()}$")
+    _d( _q1 )
+    _d( _q2 )
+    _d( _q1 + _q2 )
+    _d( _q1 * _q2 )
     _d
     return
 
@@ -283,42 +294,45 @@ def _(mo):
 
 @app.cell
 def _(Display, conjugate, i, inverse, j, k, norm):
-    _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
+    _q = (1 + 2*i + 3*j + 4*k).name("q")
     _qbar = conjugate(_q)
     _qinv = inverse(_q)
+
     _d = Display()
-    _d(f"${_q.display().latex()}$")
-    _d(f"${_qbar.display().latex()}$")
-    _d(f"${(_q * _qbar).display().latex()}$")
-    _d(f"${norm(_q).display().latex()}$")
-    _d(f"${_qinv.display().latex()}$")
-    _d(f"${(_q * _qinv).display().latex()}$")
+    _d( _q )
+    _d( _qbar )
+    _d( _q * _qbar )
+    _d( norm(_q) )
+    _d( _qinv )
+    _d( _q * _qinv )
     _d
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
+    mo.md("""
     ### 3D rotation via quaternion sandwich
 
     A unit quaternion $q = \cos(\theta/2) + \sin(\theta/2)(ai + bj + ck)$
     rotates a pure quaternion $v = xi + yj + zk$ by angle $\theta$ around
-    axis $(a, b, c)$ via the sandwich product $qv\bar{q}$.
+    axis $(a, b, c)$ via the sandwich product $q v \bar{q}$.
     """)
     return
 
 
 @app.cell
 def _(Display, alg_q, conjugate, exp, i, j, np):
-    _theta = np.pi / 2
-    _r = exp(i * alg_q.scalar(_theta / 2))
-    _v = j
-    _rotated = _r * _v * conjugate(_r)
+    _theta = 0.25 * alg_q.pi
+    _axis = i
+    _q = exp(_theta * _axis).name("q")
+    _v = j.eval().name('v')
+    _rotated = (_q * _v * conjugate(_q)).name("v'")
+
     _d = Display()
-    _d(f"Rotation quaternion (90° around i):", _r)
-    _d("v =", _v)
-    _d("qvq̄ =", _rotated)
+    _d( _v )
+    _d( _q, fr"$\qquad$ ({np.degrees(_theta.scalar_part)*2}° rotation around {_axis})")
+    _d( _rotated )
     _d
     return
 
@@ -336,9 +350,9 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_q, exp, i, log, np):
-    _theta = np.pi / 3
-    _q = exp(i * alg_q.scalar(_theta / 2))
+def _(Display, alg_q, exp, i, log):
+    _theta = alg_q.pi / 3
+    _q = exp(i * _theta / 2)
     _b = log(_q)
     _d = Display()
     _d("q = exp(iπ/6) =", _q)
@@ -365,12 +379,18 @@ def _(mo):
 def _(Display, i, j, k, norm, unit):
     _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
     _qu = unit(_q)
+
     _d = Display()
-    _d(f"${_q.display().latex()}$")
-    _d(f"${norm(_q).display().latex()}$")
-    _d(f"${_qu.display().latex()}$")
-    _d(f"${norm(_qu).display().latex()}$")
+    _d( _q )
+    _d( norm(_q) )
+    _d( _qu )
+    _d( norm(_qu) )
     _d
+    return
+
+
+@app.cell
+def _():
     return
 
 

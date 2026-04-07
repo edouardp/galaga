@@ -1113,6 +1113,11 @@ class Multivector:
         return ~self
 
     @property
+    def bar(self) -> Multivector:
+        """Clifford conjugate: x̄ (reverse ∘ involute)"""
+        return conjugate(self)
+
+    @property
     def sq(self) -> Multivector:
         """Squared: x²"""
         if self._is_lazy:
