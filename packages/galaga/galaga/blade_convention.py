@@ -473,3 +473,45 @@ def b_cga(
         style=style,
         overrides=merged,
     )
+
+
+def b_complex(
+    *,
+    overrides: dict[str, str | tuple] | None = None,
+) -> BladeConvention:
+    """Complex numbers via Cl(0,1): scalar + i.
+
+    The single basis vector (e₁² = -1) is named i.
+    Use with ``Algebra(0, 1, blades=b_complex())``.
+    """
+    merged = {"-1": ("i", "i", "i")}
+    if overrides:
+        merged.update(overrides)
+    return BladeConvention(
+        vector_names=[("i", "i", "i")],
+        overrides=merged,
+    )
+
+
+def b_quaternion(
+    *,
+    overrides: dict[str, str | tuple] | None = None,
+) -> BladeConvention:
+    """Quaternions via Cl(3,0) bivectors: i = e₂₃, j = e₁₃, k = e₁₂.
+
+    All three bivectors square to -1 and satisfy Hamilton's identities:
+    i² = j² = k² = ijk = -1, ij = k, jk = i, ki = j.
+
+    Use with ``Algebra(3, blades=b_quaternion())``.
+
+    Note: terms display in bitmask order (k, j, i) not conventional
+    (i, j, k). See SPEC-011 for future display ordering support.
+    """
+    merged = {
+        "+2+3": "i",
+        "+1+3": "j",
+        "+1+2": "k",
+    }
+    if overrides:
+        merged.update(overrides)
+    return BladeConvention(overrides=merged)
