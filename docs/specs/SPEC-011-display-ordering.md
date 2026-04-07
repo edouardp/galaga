@@ -56,8 +56,11 @@ def b_quaternion(...) -> BladeConvention:
 ## Impact
 
 - Three rendering methods need to iterate in `display_order` instead of `range(dim)`
+- `Algebra.basis_blades(k=...)` should return blades in the `display_order` sequence
+  (filtered to the requested grade), not bitmask order — so that unpacking like
+  `k, j, i = alg.basis_blades(k=2)` follows the convention's intended ordering
 - `display_order` must be validated at algebra construction time (correct length, valid bitmasks)
-- No impact on computation — only display
+- No impact on computation — only display and iteration order
 
 ## Why Not Now
 
