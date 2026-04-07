@@ -17,28 +17,28 @@ def _():
 
     from galaga import (
         Algebra,
+        Notation,
         b_complex,
         b_quaternion,
         conjugate,
         exp,
-        gp,
         inverse,
-        involute,
         log,
         norm,
         reverse,
         unit,
     )
+    from galaga.notation import NotationRule
 
     return (
         Algebra,
+        Notation,
+        NotationRule,
         b_complex,
         b_quaternion,
         conjugate,
         exp,
-        gp,
         inverse,
-        involute,
         log,
         norm,
         np,
@@ -82,10 +82,10 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Complex Numbers — Cl(2,0) even subalgebra
 
-    The bivector $e_1 \\wedge e_2$ squares to $-1$, giving us the imaginary
+    The bivector $e_1 \wedge e_2$ squares to $-1$, giving us the imaginary
     unit $i = e_{12}$. The even subalgebra (scalars + bivectors) is
     isomorphic to the complex numbers.
     """)
@@ -93,14 +93,21 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, b_complex):
-    _alg = Algebra(2, blades=b_complex())
-    _e1, _e2 = _alg.basis_vectors()
-    _i = _e1 ^ _e2
+def _(Algebra, Display, Notation, NotationRule, b_complex):
+    alg_c = Algebra(
+        2,
+        blades=b_complex(),
+        notation=Notation.default().set(
+            "Reverse", "latex", NotationRule(kind="superscript", symbol="*")
+        ),
+    )
+    _e1, _e2 = alg_c.basis_vectors()
+    _i = alg_c.pseudoscalar()
+
     _d = Display()
-    _d("i = e₁∧e₂, i² =", _i * _i)
+    _d("i = e₁e₂,  i² =", _i * _i)
     _d
-    return
+    return (alg_c,)
 
 
 @app.cell(hide_code=True)
@@ -112,15 +119,13 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, b_complex):
-    _alg = Algebra(2, blades=b_complex())
-    _e1, _e2 = _alg.basis_vectors()
-    _i = _e1 ^ _e2
-    _z1 = _alg.scalar(3) + 4 * _i
-    _z2 = _alg.scalar(1) - 2 * _i
+def _(Display, alg_c):
+    _i = alg_c.pseudoscalar()
+    _z1 = (3 + 4 * _i).name("z₁")
+    _z2 = (1 - 2 * _i).name("z₂")
     _d = Display()
-    _d("z₁ =", _z1)
-    _d("z₂ =", _z2)
+    _d(f"${_z1.display().latex()}$")
+    _d(f"${_z2.display().latex()}$")
     _d("z₁ + z₂ =", _z1 + _z2)
     _d("z₁ · z₂ =", _z1 * _z2)
     _d("z₁² =", _z1 * _z1)
@@ -134,44 +139,41 @@ def _(mo):
     ### Complex conjugation via reverse
 
     In Cl(2,0), the reverse negates the grade-2 part (the bivector $i$),
-    acting as complex conjugation.
+    acting as complex conjugation. We set the notation so reverse renders
+    as $z^{*}$.
     """)
     return
 
 
 @app.cell
-def _(Algebra, Display, b_complex, norm, reverse):
-    _alg = Algebra(2, blades=b_complex())
-    _e1, _e2 = _alg.basis_vectors()
-    _i = _e1 ^ _e2
-    _z = _alg.scalar(3) + 4 * _i
-    _zbar = reverse(_z)
+def _(Display, alg_c, norm, reverse):
+    _i = alg_c.pseudoscalar()
+    _z = (3 + 4 * _i).name("z")
+    _zc = reverse(_z)
     _d = Display()
-    _d("z =", _z)
-    _d("z̄ = involute(z) =", _zbar)
-    _d("z · z̄ =", _z * _zbar)
-    _d("|z| =", norm(_z))
+    _d(f"${_z.display().latex()}$")
+    _d(f"${_zc.display().latex()}$")
+    _d(f"${(_z * _zc).display().latex()}$")
+    _d(f"${norm(_z).display().latex()}$")
     _d
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### Euler's formula
 
-    $e^{i\\theta} = \\cos\\theta + i\\sin\\theta$ works directly via `exp()`.
+    $e^{i\theta} = \cos\theta + i\sin\theta$ works directly via `exp()`.
     """)
     return
 
 
 @app.cell
-def _(Algebra, Display, b_complex, exp, np):
-    _alg = Algebra(2, blades=b_complex())
-    _e1, _e2 = _alg.basis_vectors()
-    _i = _e1 ^ _e2
+def _(Display, alg_c, exp, np):
+    _i = alg_c.pseudoscalar()
     _theta = np.pi / 4
-    _rot = exp(_i * _alg.scalar(_theta))
+    _rot = exp(_i * alg_c.scalar(_theta))
     _d = Display()
     _d(f"exp(i·π/4) =", _rot)
     _d(f"cos(π/4) = {np.cos(_theta):.6f}, sin(π/4) = {np.sin(_theta):.6f}")
@@ -190,15 +192,13 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, b_complex):
-    _alg = Algebra(2, blades=b_complex())
-    _e1, _e2 = _alg.basis_vectors()
-    _i = _e1 ^ _e2
-    _z1 = _alg.scalar(3) + 4 * _i
-    _z2 = _alg.scalar(1) - 2 * _i
+def _(Display, alg_c):
+    _i = alg_c.pseudoscalar()
+    _z1 = (3 + 4 * _i).name("z₁")
+    _z2 = (1 - 2 * _i).name("z₂")
     _d = Display()
-    _d("z₁ =", _z1)
-    _d("z₂ =", _z2)
+    _d(f"${_z1.display().latex()}$")
+    _d(f"${_z2.display().latex()}$")
     _d("z₁ / z₂ =", _z1 / _z2)
     _d("z₂ · (z₁/z₂) =", _z2 * (_z1 / _z2))
     _d
@@ -298,20 +298,8 @@ def _(Display, alg_q, conjugate, i, inverse, j, k, norm):
     return
 
 
-@app.cell(hide_code=True)
-def _(mo):
-    mo.md("""
-    ### 3D rotation via quaternion sandwich
-
-    A unit quaternion $q = \\cos(\\theta/2) + \\sin(\\theta/2)(ai + bj + ck)$
-    rotates a pure quaternion $v = xi + yj + zk$ by angle $\\theta$ around
-    axis $(a, b, c)$ via the sandwich product $qv\\bar{q}$.
-    """)
-    return
-
-
 @app.cell
-def _(Display, alg_q, conjugate, exp, i, j, k, np):
+def _(Display, alg_q, conjugate, exp, i, j, np):
     # Rotate j by 90° around the i axis
     _theta = np.pi / 2
     _q = exp(i * alg_q.scalar(_theta / 2))
