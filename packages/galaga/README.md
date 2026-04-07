@@ -927,6 +927,7 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 - **`galaga_marimo_demo.py`** — galaga-marimo t-string rendering demo
 - **`blade_renaming.py`** — Basis blade renaming API
 - **`blade_conventions.py`** — Blade convention gallery
+- **`complex_and_quaternions.py`** — Complex numbers and quaternions via b_complex() and b_quaternion()
 
 ### `algebra/` — Core GA Operations
 
