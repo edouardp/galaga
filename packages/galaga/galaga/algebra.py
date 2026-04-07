@@ -584,7 +584,6 @@ def _fmt_coeff(c: float) -> str:
     if abs(c) >= 1e-6 and ("e" in s or "E" in s):
         s = f"{c:.6f}".rstrip("0").rstrip(".")
     return s
-    return f"{c:g}"
 
 
 def _sci_lnode(s: str, style: str):
