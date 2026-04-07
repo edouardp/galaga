@@ -68,15 +68,12 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
+    mo.md("""
     ## Complex Numbers — Cl(2,0) even subalgebra
 
     The bivector $e_1 \wedge e_2$ squares to $-1$, giving us the imaginary
     unit $i = e_{12}$. The even subalgebra (scalars + bivectors) is
     isomorphic to the complex numbers.
-
-    We set the notation so that `reverse()` (complex conjugation) renders
-    as $z^{*}$.
     """)
     return
 
@@ -125,7 +122,7 @@ def _(mo):
     ### Complex conjugation via reverse
 
     In Cl(2,0), the reverse negates the grade-2 part (the bivector $i$),
-    acting as complex conjugation: $\widetilde{a + bi} = a - bi$.
+    acting as complex conjugation: $\overline{a + bi} = a - bi$.
     """)
     return
 
@@ -135,12 +132,11 @@ def _(Display, alg_c, conjugate, norm):
     _i = alg_c.pseudoscalar()
 
     _z = (3 + 4 * _i).name("z")
-    _z_bar = conjugate(_z)
 
     _d = Display()
     _d( _z )
-    _d( _z_bar )
-    _d( _z * _z_bar )
+    _d( conjugate(_z) )
+    _d( _z * conjugate(_z) )
     _d( norm(_z) )
     _d
     return
@@ -165,7 +161,8 @@ def _(Display, alg_c, exp, np):
 
     _d = Display()
     _d( _r )
-    _d(f"cos(π/4) = {np.cos(_theta.scalar_part):.6f},  sin(π/4) = {np.sin(_theta.scalar_part):.6f}")
+    _d(f"$cos(0.25\\pi) \\quad = \\quad {np.cos(_theta.scalar_part):.6f}$")
+    _d(f"$sin(0.25\\pi) \\quad = \\quad {np.sin(_theta.scalar_part):.6f}$")
     _d
     return
 
@@ -282,16 +279,14 @@ def _(mo):
 @app.cell
 def _(Display, conjugate, i, inverse, j, k, norm):
     _q = (1 + 2*i + 3*j + 4*k).name("q")
-    _qbar = conjugate(_q)
-    _qinv = inverse(_q)
 
     _d = Display()
     _d( _q )
-    _d( _qbar )
-    _d( _q * _qbar )
+    _d( conjugate(_q) )
+    _d( _q * conjugate(_q) )
     _d( norm(_q) )
-    _d( _qinv )
-    _d( _q * _qinv )
+    _d( inverse(_q) )
+    _d( _q * inverse(_q) )
     _d
     return
 
