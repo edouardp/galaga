@@ -356,8 +356,8 @@ pga = Algebra(3, 0, 1, blades=b_pga())
 # CGA: e₁…e₃, eₒ, e∞
 cga = Algebra(4, 1, blades=b_cga())
 
-# Complex numbers: Cl(0,1) with i
-alg_c = Algebra(0, 1, blades=b_complex())
+# Complex numbers: Cl(2,0) with i = e₁₂
+alg_c = Algebra(2, blades=b_complex())
 
 # Quaternions: Cl(3,0) with i, j, k bivectors
 alg_q = Algebra(3, blades=b_quaternion())

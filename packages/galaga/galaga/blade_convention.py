@@ -465,17 +465,17 @@ def b_complex(
     *,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """Complex numbers via Cl(0,1): scalar + i.
+    """Complex numbers via Cl(2,0) even subalgebra: i = e₁₂.
 
-    The single basis vector (e₁² = -1) is named i.
-    Use with ``Algebra(0, 1, blades=b_complex())``.
+    The bivector e₁∧e₂ squares to -1 and acts as the imaginary unit.
+    Use with ``Algebra(2, blades=b_complex())``.
     """
-    merged = {"-1": ("i", "i", "i")}
+    merged = {"+1+2": "i"}
     if overrides:
         merged.update(overrides)
     return BladeConvention(
-        vector_names=[("i", "i", "i")],
         overrides=merged,
+        display_order=(0b00, 0b11, 0b01, 0b10),
     )
 
 

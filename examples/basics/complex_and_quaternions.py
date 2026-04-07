@@ -83,19 +83,22 @@ def _(mo):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Complex Numbers — Cl(0,1)
+    ## Complex Numbers — Cl(2,0) even subalgebra
 
-    A single basis vector with $e_1^2 = -1$ gives us the imaginary unit $i$.
+    The bivector $e_1 \\wedge e_2$ squares to $-1$, giving us the imaginary
+    unit $i = e_{12}$. The even subalgebra (scalars + bivectors) is
+    isomorphic to the complex numbers.
     """)
     return
 
 
 @app.cell
 def _(Algebra, Display, b_complex):
-    _alg = Algebra(0, 1, blades=b_complex())
-    _i = _alg.basis_vectors()[0]
+    _alg = Algebra(2, blades=b_complex())
+    _e1, _e2 = _alg.basis_vectors()
+    _i = _e1 ^ _e2
     _d = Display()
-    _d("i² =", _i * _i)
+    _d("i = e₁∧e₂, i² =", _i * _i)
     _d
     return
 
@@ -110,8 +113,9 @@ def _(mo):
 
 @app.cell
 def _(Algebra, Display, b_complex):
-    _alg = Algebra(0, 1, blades=b_complex())
-    (_i,) = _alg.basis_vectors()
+    _alg = Algebra(2, blades=b_complex())
+    _e1, _e2 = _alg.basis_vectors()
+    _i = _e1 ^ _e2
     _z1 = _alg.scalar(3) + 4 * _i
     _z2 = _alg.scalar(1) - 2 * _i
     _d = Display()
@@ -127,20 +131,21 @@ def _(Algebra, Display, b_complex):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ### Complex conjugation via grade involution
+    ### Complex conjugation via reverse
 
-    In Cl(0,1), grade involution negates the grade-1 part (the imaginary
-    component), acting as complex conjugation.
+    In Cl(2,0), the reverse negates the grade-2 part (the bivector $i$),
+    acting as complex conjugation.
     """)
     return
 
 
 @app.cell
-def _(Algebra, Display, b_complex, involute, norm):
-    _alg = Algebra(0, 1, blades=b_complex())
-    (_i,) = _alg.basis_vectors()
+def _(Algebra, Display, b_complex, norm, reverse):
+    _alg = Algebra(2, blades=b_complex())
+    _e1, _e2 = _alg.basis_vectors()
+    _i = _e1 ^ _e2
     _z = _alg.scalar(3) + 4 * _i
-    _zbar = involute(_z)
+    _zbar = reverse(_z)
     _d = Display()
     _d("z =", _z)
     _d("z̄ = involute(z) =", _zbar)
@@ -162,8 +167,9 @@ def _(mo):
 
 @app.cell
 def _(Algebra, Display, b_complex, exp, np):
-    _alg = Algebra(0, 1, blades=b_complex())
-    (_i,) = _alg.basis_vectors()
+    _alg = Algebra(2, blades=b_complex())
+    _e1, _e2 = _alg.basis_vectors()
+    _i = _e1 ^ _e2
     _theta = np.pi / 4
     _rot = exp(_i * _alg.scalar(_theta))
     _d = Display()
@@ -185,8 +191,9 @@ def _(mo):
 
 @app.cell
 def _(Algebra, Display, b_complex):
-    _alg = Algebra(0, 1, blades=b_complex())
-    (_i,) = _alg.basis_vectors()
+    _alg = Algebra(2, blades=b_complex())
+    _e1, _e2 = _alg.basis_vectors()
+    _i = _e1 ^ _e2
     _z1 = _alg.scalar(3) + 4 * _i
     _z2 = _alg.scalar(1) - 2 * _i
     _d = Display()

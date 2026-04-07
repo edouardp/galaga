@@ -171,18 +171,19 @@ if __name__ == "__main__":
 
 
 class TestComplexFactory(unittest.TestCase):
-    """Verify b_complex() convention for Cl(0,1)."""
+    """Verify b_complex() convention for Cl(2,0) even subalgebra."""
 
     def setUp(self):
-        self.alg = Algebra(0, 1, blades=b_complex())
-        (self.i,) = self.alg.basis_vectors()
+        self.alg = Algebra(2, blades=b_complex())
+        e1, e2 = self.alg.basis_vectors()
+        self.i = e1 ^ e2
 
     def test_i_squared(self):
         """i² = -1."""
         assert (self.i * self.i).scalar_part == -1.0
 
     def test_display(self):
-        """Basis vector displays as i."""
+        """Bivector e12 displays as i."""
         assert str(self.i) == "i"
 
     def test_complex_arithmetic(self):
@@ -192,10 +193,10 @@ class TestComplexFactory(unittest.TestCase):
         assert z2.scalar_part == -7.0
         assert str(z) == "3 + 4i"
 
-    def test_complex_conjugate_via_involute(self):
-        """Grade involution acts as complex conjugation: involute(a + bi) = a - bi."""
-        from galaga import involute
+    def test_complex_conjugate_via_reverse(self):
+        """Reverse acts as complex conjugation for bivectors: ~(a + bi) = a - bi."""
+        from galaga import reverse
 
         z = self.alg.scalar(3) + 4 * self.i
-        zc = involute(z)
+        zc = reverse(z)
         assert str(zc) == "3 - 4i"
