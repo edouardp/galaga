@@ -394,25 +394,52 @@ class Algebra:
             data[1 << k] = c
         return Multivector(self, data)
 
-    def blade(self, name: str) -> Multivector:
-        """Lookup a basis blade by name.
+    def blade(self, name, *, lazy: bool = False) -> Multivector:
+        """Lookup a basis blade by name or multivector.
 
-        Search order:
+        Returns the canonical basis blade (coefficient +1 at the bitmask).
+        For sign-compensated blades matching basis_blades() output, use
+        basis_blades() instead.
+
+        Args:
+            name: A string (metric-role key, display name, or prefix+digits),
+                or a Multivector (must be a single basis blade).
+            lazy: If True, return a lazy (symbolic) multivector.
+
+        Search order for strings:
         1. Metric-role string (e.g. "+1-1", "pss")
         2. Exact match against any name variant (ascii, unicode, latex)
         3. Parse as prefix + digits using the convention's index_base
         """
         from galaga.blade_convention import _resolve_metric_role_key
 
+        if isinstance(name, Multivector):
+            nonzero = np.nonzero(np.abs(name.data) > 1e-12)[0]
+            if len(nonzero) != 1:
+                raise ValueError("Not a basis blade — has multiple nonzero components")
+            bitmask = int(nonzero[0])
+            data = np.zeros(self._dim)
+            data[bitmask] = 1.0
+            mv = Multivector(self, data)
+            if lazy:
+                mv.lazy()
+            return mv
+
         if name == "1" or name == "":
-            return self.scalar(1.0)
+            mv = self.scalar(1.0)
+            if lazy:
+                mv.lazy()
+            return mv
 
         # 1. Try metric-role key
         try:
             bitmask = _resolve_metric_role_key(name, self._sig)
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
-            return Multivector(self, data)
+            mv = Multivector(self, data)
+            if lazy:
+                mv.lazy()
+            return mv
         except ValueError:
             pass
 
@@ -421,7 +448,10 @@ class Algebra:
             if name in (bb.ascii_name, bb.unicode_name, bb.latex_name):
                 data = np.zeros(self._dim)
                 data[idx] = 1.0
-                return Multivector(self, data)
+                mv = Multivector(self, data)
+                if lazy:
+                    mv.lazy()
+                return mv
 
         # 3. Prefix + digits parsing
         conv = self._blades_convention
@@ -440,7 +470,10 @@ class Algebra:
                     bitmask |= 1 << vec_idx
                 data = np.zeros(self._dim)
                 data[bitmask] = 1.0
-                return Multivector(self, data)
+                mv = Multivector(self, data)
+                if lazy:
+                    mv.lazy()
+                return mv
 
         raise ValueError(f"Unknown blade name: {name!r}")
 
@@ -1647,7 +1680,13 @@ def dual(x: Multivector) -> Multivector:
     pseudoscalar. We use left contraction (not geometric product with I⁻¹)
     because it gives the correct grade mapping for all signatures.
     """
-    I_inv = inverse(x.algebra.pseudoscalar())
+    try:
+        I_inv = inverse(x.algebra.pseudoscalar())
+    except ValueError:
+        raise ValueError(
+            "dual() requires an invertible pseudoscalar (I² ≠ 0). "
+            "This algebra has a degenerate metric — use complement() instead."
+        ) from None
     return left_contraction(x, I_inv)
 
 
