@@ -14,20 +14,7 @@ def _():
 @app.cell
 def _():
     import numpy as np
-
-    from galaga import (
-        Algebra,
-        Notation,
-        b_complex,
-        b_quaternion,
-        conjugate,
-        exp,
-        inverse,
-        log,
-        norm,
-        reverse,
-        unit,
-    )
+    from galaga import Algebra, b_complex, b_quaternion, conjugate, exp, inverse, log, norm, reverse, unit
     from galaga.notation import NotationRule
 
     return (
@@ -161,7 +148,7 @@ def _(Display, alg_c, conjugate, norm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(r"""
+    mo.md("""
     ### Euler's formula
 
     $e^{i\theta} = \cos\theta + i\sin\theta$ works directly via `exp()`.
@@ -352,17 +339,19 @@ def _(mo):
 @app.cell
 def _(Display, alg_q, exp, i, log):
     _theta = alg_q.pi / 3
+
     _q = exp(i * _theta / 2)
-    _b = log(_q)
+    _b = log(_q).name("q_{log}")
+
     _d = Display()
-    _d("q = exp(iπ/6) =", _q)
-    _d("log(q) =", _b)
-    _d("exp(log(q)) =", exp(_b))
+    _d( _q )
+    _d( _b )
+    _d( exp(_b) )
     _d()
     _d("SLERP — interpolate from identity to q:")
     for _t in [0.0, 0.25, 0.5, 0.75, 1.0]:
-        _qt = exp(alg_q.scalar(_t) * _b)
-        _d(f"  t={_t}:", _qt)
+        _qt = exp( _t * _b )
+        _d(f"  {_t}: $\\qquad$", _qt)
     _d
     return
 
@@ -378,13 +367,12 @@ def _(mo):
 @app.cell
 def _(Display, i, j, k, norm, unit):
     _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
-    _qu = unit(_q)
 
     _d = Display()
     _d( _q )
     _d( norm(_q) )
-    _d( _qu )
-    _d( norm(_qu) )
+    _d( unit(_q) )
+    _d( norm(unit(_q)) )
     _d
     return
 
