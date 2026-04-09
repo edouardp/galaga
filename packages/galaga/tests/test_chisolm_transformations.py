@@ -433,3 +433,97 @@ class TestCl3CrossProductDuality:
         assert ga_cross.data[1] == pytest.approx(np_cross[0], abs=1e-10)
         assert ga_cross.data[2] == pytest.approx(np_cross[1], abs=1e-10)
         assert ga_cross.data[4] == pytest.approx(np_cross[2], abs=1e-10)
+
+
+# ===========================================================================
+# Section 9.5.2: Hyperbolic rotors (boosts) in STA
+#
+# Chisolm §9.5.2 (label:rotors): In a plane where B² = +1 (indefinite
+# inner product), the biversor ab = ±exp(-Bφ/2) where the exponential
+# uses cosh/sinh instead of cos/sin. In STA Cl(1,3), a timelike-spacelike
+# bivector plane has B² = +1, and the resulting rotor is a Lorentz boost.
+# ===========================================================================
+
+
+class TestHyperbolicRotorSTA:
+    """§9.5.2 (label:rotors): Hyperbolic rotors (boosts) in Cl(1,3).
+
+    When B² = +1 (timelike bivector plane), exp(B) uses cosh/sinh:
+        exp(-Bφ/2) = cosh(φ/2) - B sinh(φ/2)
+    and the sandwich product RvR⁻¹ preserves the Minkowski inner product.
+    """
+
+    @pytest.fixture
+    def sta(self):
+        return Algebra(1, 3)
+
+    def test_timelike_bivector_squares_positive(self, sta):
+        """A time-space bivector B = γ₀γ₁ satisfies B² = +1 in Cl(1,3)."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = gp(g0, g1)
+        B2 = gp(B, B).scalar_part
+        assert B2 == pytest.approx(1.0)
+
+    def test_boost_rotor_form(self, sta):
+        """exp(-Bφ/2) = cosh(φ/2) - B sinh(φ/2) for timelike B."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = op(g0, g1)  # B² = +1
+        for phi in [0.0, 0.5, 1.0, 2.0]:
+            R = exp(-phi / 2 * B)
+            expected = sta.scalar(np.cosh(phi / 2)) - np.sinh(phi / 2) * B
+            assert np.allclose(R.data, expected.data, atol=1e-12)
+
+    def test_boost_rotor_norm(self, sta):
+        """Boost rotor satisfies R~R = 1."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = op(g0, g1)
+        for phi in [0.0, 0.5, 1.0, 2.0]:
+            R = exp(-phi / 2 * B)
+            RRt = gp(R, reverse(R))
+            assert RRt.scalar_part == pytest.approx(1.0, abs=1e-12)
+            non_scalar = RRt.data.copy()
+            non_scalar[0] = 0
+            assert np.allclose(non_scalar, 0, atol=1e-12)
+
+    def test_boost_preserves_minkowski_inner_product(self, sta):
+        """Boosted vectors preserve the Minkowski inner product: a'·b' = a·b."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = op(g0, g1)
+        R = exp(-0.7 * B)
+        rng = np.random.default_rng(300)
+        for _ in range(5):
+            a = _rvec(sta, rng)
+            b = _rvec(sta, rng)
+            a_boost = sandwich(R, a)
+            b_boost = sandwich(R, b)
+            ip_orig = gp(a, b).scalar_part
+            ip_boost = gp(a_boost, b_boost).scalar_part
+            assert ip_orig == pytest.approx(ip_boost, abs=1e-10)
+
+    def test_boost_preserves_grade(self, sta):
+        """Boosted vector is still a vector."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = op(g0, g1)
+        R = exp(-0.5 * B)
+        rng = np.random.default_rng(301)
+        v = _rvec(sta, rng)
+        v_boost = sandwich(R, v)
+        assert is_vector(v_boost)
+
+    def test_boost_of_timelike_basis(self, sta):
+        """Boosting γ₀ along γ₁: γ₀' = cosh(φ)γ₀ + sinh(φ)γ₁."""
+        g0, g1, _, _ = sta.basis_vectors()
+        B = op(g0, g1)
+        phi = 0.8
+        R = exp(-phi / 2 * B)
+        g0_boost = sandwich(R, g0)
+        expected = np.cosh(phi) * g0 + np.sinh(phi) * g1
+        assert np.allclose(g0_boost.data, expected.data, atol=1e-10)
+
+    def test_euclidean_vs_hyperbolic_bivector(self, sta):
+        """Spacelike bivector B = γ₁γ₂ has B² = -1 (Euclidean rotation)."""
+        _, g1, g2, _ = sta.basis_vectors()
+        B = gp(g1, g2)
+        B2 = gp(B, B).scalar_part
+        # γ₁² = -1, γ₂² = -1, so (γ₁γ₂)² = -γ₁γ₂γ₁γ₂ = -(-1)(-1) = -1
+        assert B2 == pytest.approx(-1.0)
