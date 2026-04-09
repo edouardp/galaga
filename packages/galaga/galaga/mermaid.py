@@ -36,6 +36,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     lines: list[str] = [f"graph {direction}"]
     counter = [0]
     node_ids: dict[int, str] = {}
+    named_ids: list[str] = []
 
     def visit(node: Expr) -> str:
         nid = id(node)
@@ -61,6 +62,8 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
             if label != val:
                 label = f"{label}<br>{val}"
         lines.append(f'    {node_id}["{label}"]')
+        if isinstance(node, Sym) and node._name is not None:
+            named_ids.append(node_id)
 
         if isinstance(node, Sym):
             # If this named MV has a deeper expression tree, expand it
@@ -86,6 +89,9 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         return node_id
 
     visit(expr)
+    if named_ids:
+        for nid in named_ids:
+            lines.append(f"    style {nid} fill:#e0f0ff,stroke:#4a90d9")
     return "\n".join(lines)
 
 
