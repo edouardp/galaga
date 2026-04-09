@@ -38,6 +38,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     node_ids: dict[int, str] = {}
     named_ids: list[str] = []
     blade_ids: list[str] = []
+    scalar_ids: list[str] = []
 
     def visit(node: Expr) -> str:
         nid = id(node)
@@ -71,6 +72,8 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
             )
             if has_inner:
                 named_ids.append(node_id)
+            elif node._grade == 0:
+                scalar_ids.append(node_id)
             else:
                 blade_ids.append(node_id)
 
@@ -98,12 +101,12 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         return node_id
 
     visit(expr)
-    if named_ids:
-        for nid in named_ids:
-            lines.append(f"    style {nid} fill:#e0f0ff,stroke:#4a90d9")
-    if blade_ids:
-        for nid in blade_ids:
-            lines.append(f"    style {nid} fill:#f0ffe0,stroke:#6a9a30")
+    for nid in named_ids:
+        lines.append(f"    style {nid} fill:#e0f0ff,stroke:#4a90d9")
+    for nid in blade_ids:
+        lines.append(f"    style {nid} fill:#f0ffe0,stroke:#6a9a30")
+    for nid in scalar_ids:
+        lines.append(f"    style {nid} fill:#fff0e0,stroke:#d9a04a")
     return "\n".join(lines)
 
 
