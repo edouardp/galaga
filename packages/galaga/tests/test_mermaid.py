@@ -60,14 +60,14 @@ class TestExprToMermaid:
         v = alg.vector([1, 2, 3])
         v.name("v")
         result = expr_to_mermaid(v._to_expr(), show_values=True)
-        assert "<br>= " in result
+        assert "<br>" in result
 
     def test_no_values(self):
         alg = _alg()
         v = alg.vector([1, 0, 0])
         v.name("v")
         result = expr_to_mermaid(v._to_expr(), show_values=False)
-        assert "<br>= " not in result
+        assert "<br>" not in result
 
     def test_direction(self):
         result = expr_to_mermaid(Scalar(1), direction="LR")

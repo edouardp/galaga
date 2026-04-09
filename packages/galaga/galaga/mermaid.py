@@ -49,7 +49,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         label = _escape(_render_node(node))
         if show_values:
             val = _escape(_value_str(node))
-            label = f"{label}<br>= {val}"
+            label = f"{label}<br>{val}"
         lines.append(f'    {node_id}["{label}"]')
 
         if isinstance(node, (Sym, Scalar)):
