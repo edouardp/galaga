@@ -96,6 +96,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     lines: list[str] = [f"graph {direction}"]
     counter = [0]
     node_ids: dict[int, str] = {}
+    edges: set[tuple[str, str]] = set()
     named_ids: list[str] = []
     blade_ids: list[str] = []
     scalar_ids: list[str] = []
@@ -131,13 +132,18 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         classify(node, node_id)
         return node_id
 
+    def add_edge(from_id: str, to_id: str):
+        if (from_id, to_id) not in edges:
+            edges.add((from_id, to_id))
+            lines.append(f"    {from_id} --> {to_id}")
+
     if compact:
 
         def visit_compact(node: Expr) -> str:
             node_id = make_node(node)
             for child in _collect_significant_children(node):
                 child_id = visit_compact(child)
-                lines.append(f"    {node_id} --> {child_id}")
+                add_edge(node_id, child_id)
             return node_id
 
         visit_compact(expr)
@@ -148,14 +154,14 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
             if isinstance(node, Sym):
                 inner = _inner_tree(node)
                 if inner is not None:
-                    lines.append(f"    {node_id} --> {visit(inner)}")
+                    add_edge(node_id, visit(inner))
             elif isinstance(node, Scalar):
                 pass
             elif hasattr(node, "a") and hasattr(node, "b"):
-                lines.append(f"    {node_id} --> {visit(node.a)}")
-                lines.append(f"    {node_id} --> {visit(node.b)}")
+                add_edge(node_id, visit(node.a))
+                add_edge(node_id, visit(node.b))
             elif hasattr(node, "x"):
-                lines.append(f"    {node_id} --> {visit(node.x)}")
+                add_edge(node_id, visit(node.x))
             return node_id
 
         visit(expr)
