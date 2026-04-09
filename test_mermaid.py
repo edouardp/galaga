@@ -43,15 +43,23 @@ def _(mo):
 def _(Algebra):
     alg = Algebra(3, repr_unicode=True)
     e1, e2, e3 = alg.basis_vectors(lazy=True)
-    return e1, e2, e3
+    return alg, e1, e2, e3
 
 
 @app.cell
-def _(e1, e2, e3, exp, np, op):
+def _(mo):
+    d_slider = mo.ui.slider(start=0, stop=360, step=5, value=60, label="angle d (degrees)")
+    d_slider  # noqa: B018
+    return (d_slider,)
+
+
+@app.cell
+def _(alg, d_slider, e1, e2, e3, exp, np, op):
     a = (e1 + e2).name("a")
     b = e3.name("b")
     B = op(a, b).name("B")
-    R = exp(-B / 2 * (np.pi / 3)).name("R")
+    d = alg.scalar(np.radians(d_slider.value)).name("d")
+    R = exp(-B * d / 2).name("R")
     return (R,)
 
 
