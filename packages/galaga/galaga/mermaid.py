@@ -49,7 +49,17 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         label = _escape(_render_node(node))
         if show_values:
             val = _escape(_value_str(node))
-            label = f"{label}<br>{val}"
+            # For named Syms with an inner tree, show "name = expr"
+            if isinstance(node, Sym) and node._inner_expr is not None:
+                inner_str = _escape(render(node._inner_expr))
+                label = f"{node._name} = {inner_str}"
+            elif isinstance(node, Sym) and hasattr(node, "_mv") and node._mv._expr is not None:
+                inner = node._mv._expr
+                if not (isinstance(inner, Sym) and inner._name == node._name):
+                    inner_str = _escape(render(inner))
+                    label = f"{node._name} = {inner_str}"
+            if label != val:
+                label = f"{label}<br>{val}"
         lines.append(f'    {node_id}["{label}"]')
 
         if isinstance(node, Sym):
