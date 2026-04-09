@@ -52,7 +52,17 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
             label = f"{label}<br>{val}"
         lines.append(f'    {node_id}["{label}"]')
 
-        if isinstance(node, (Sym, Scalar)):
+        if isinstance(node, Sym):
+            # If this named MV has a deeper expression tree, expand it
+            inner = node._inner_expr
+            if inner is None and hasattr(node, "_mv") and node._mv._expr is not None:
+                inner = node._mv._expr
+                if isinstance(inner, Sym) and inner._name == node._name:
+                    inner = None
+            if inner is not None:
+                child_id = visit(inner)
+                lines.append(f"    {node_id} --> {child_id}")
+        elif isinstance(node, Scalar):
             pass
         elif hasattr(node, "a") and hasattr(node, "b"):
             a_id = visit(node.a)
