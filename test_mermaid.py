@@ -23,9 +23,10 @@ def _():
     import numpy as np
 
     from galaga import Algebra, exp, gp, op, sandwich
+    from galaga.blade_convention import b_sta
     from galaga.mermaid import mv_to_mermaid
 
-    return Algebra, exp, gp, mo, mv_to_mermaid, np, op, sandwich
+    return Algebra, b_sta, exp, gp, mo, mv_to_mermaid, np, op, sandwich
 
 
 @app.cell(hide_code=True)
@@ -102,8 +103,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), repr_unicode=True)
+def _(Algebra, b_sta):
+    sta = Algebra((1, -1, -1, -1), repr_unicode=True, blades=b_sta())
     g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
     return g0, g1, g3, sta
 
