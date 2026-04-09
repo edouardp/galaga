@@ -122,8 +122,8 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
                 blade_ids.append(node_id)
 
     def make_node(node: Expr) -> str:
-        # Named Syms sharing the same underlying MV collapse to one node
-        if isinstance(node, Sym) and node._name is not None:
+        # Only dedupe user-named compound Syms (R, B, v), not leaf basis blades
+        if isinstance(node, Sym) and _is_named_sym(node):
             nid = id(node._mv)
         else:
             nid = id(node)
