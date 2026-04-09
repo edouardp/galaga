@@ -1,8 +1,9 @@
 """Tests for mermaid expression tree diagram generation."""
 
+from galaga_mermaid import expr_to_mermaid, mv_to_mermaid
+
 from galaga import Algebra, gp
 from galaga.expr import Scalar
-from galaga.mermaid import expr_to_mermaid, mv_to_mermaid
 
 
 def _alg():

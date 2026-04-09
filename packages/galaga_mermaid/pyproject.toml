@@ -1,0 +1,33 @@
+[project]
+name = "galaga-mermaid"
+version = "0.1.0"
+description = "Mermaid diagram generation for galaga expression trees"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Edouard Poor" }]
+keywords = ["geometric-algebra", "mermaid", "diagram", "expression-tree"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Scientific/Engineering :: Mathematics",
+]
+dependencies = [
+    "galaga>=1.2.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/edouardp/galaga"
+Repository = "https://github.com/edouardp/galaga"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["galaga_mermaid"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

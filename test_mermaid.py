@@ -11,7 +11,8 @@ def _():
 
     _root = str(Path(__file__).resolve().parent)
     _gamo = str(Path(__file__).resolve().parent / "packages" / "galaga_marimo")
-    for p in [_root, _gamo]:
+    _gmer = str(Path(__file__).resolve().parent / "packages" / "galaga_mermaid")
+    for p in [_root, _gamo, _gmer]:
         if p not in sys.path:
             sys.path.insert(0, p)
     return
@@ -21,10 +22,10 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
+    from galaga_mermaid import mv_to_mermaid
 
     from galaga import Algebra, exp, gp, op, sandwich
     from galaga.blade_convention import b_sta
-    from galaga.mermaid import mv_to_mermaid
 
     return Algebra, b_sta, exp, gp, mo, mv_to_mermaid, np, op, sandwich
 
