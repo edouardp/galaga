@@ -1,35 +1,28 @@
 """Generate Mermaid graph diagrams from lazy Multivector expression trees.
 
 Walks the Expr tree and produces a Mermaid flowchart string showing every
-node, its operation type, and the evaluated numeric value at each level.
+node's rendered unicode expression and its evaluated numeric value.
 """
 
 from __future__ import annotations
 
-from galaga.expr import Expr, Grade, Scalar, ScalarDiv, ScalarMul, Sym
+from galaga.expr import Expr, Scalar, Sym
+from galaga.render import render
 
 
-def _node_label(node: Expr) -> str:
-    """Human-readable label for a single node (no children)."""
-    t = type(node).__name__
-    if isinstance(node, Sym):
-        return f"{t}: {node._name_ascii}"
-    if isinstance(node, Scalar):
-        return f"{t}: {node._value:g}"
-    if isinstance(node, ScalarMul):
-        return f"{t}: k={node.k:g}"
-    if isinstance(node, ScalarDiv):
-        return f"{t}: k={node.k:g}"
-    if isinstance(node, Grade):
-        return f"{t}: k={node.k}"
-    return t
+def _escape(s: str) -> str:
+    return s.replace('"', "#quot;")
+
+
+def _render_node(node: Expr) -> str:
+    """Render the node as unicode text."""
+    return render(node)
 
 
 def _value_str(node: Expr) -> str:
-    """Compact string of the evaluated value."""
     try:
         mv = node.eval()
-        return str(mv)
+        return str(mv.eval())  # .eval() strips name → shows numeric coefficients
     except Exception:
         return "?"
 
@@ -37,13 +30,8 @@ def _value_str(node: Expr) -> str:
 def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = True) -> str:
     """Convert an Expr tree to a Mermaid flowchart string.
 
-    Args:
-        expr: Root expression node.
-        direction: Mermaid graph direction (TD, LR, BT, RL).
-        show_values: If True, include evaluated values on each node.
-
-    Returns:
-        A complete Mermaid graph definition string.
+    Each node shows its rendered unicode expression and optionally
+    the evaluated numeric value on a second line.
     """
     lines: list[str] = [f"graph {direction}"]
     counter = [0]
@@ -58,18 +46,14 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
         node_id = f"n{counter[0]}"
         node_ids[nid] = node_id
 
-        label = _node_label(node)
+        label = _escape(_render_node(node))
         if show_values:
-            val = _value_str(node)
-            # Escape quotes for mermaid
-            val = val.replace('"', "#quot;")
-            label = f"{label}\\n= {val}"
-        label = label.replace('"', "#quot;")
+            val = _escape(_value_str(node))
+            label = f"{label}<br>= {val}"
         lines.append(f'    {node_id}["{label}"]')
 
-        # Recurse into children
         if isinstance(node, (Sym, Scalar)):
-            pass  # leaves
+            pass
         elif hasattr(node, "a") and hasattr(node, "b"):
             a_id = visit(node.a)
             b_id = visit(node.b)
@@ -86,14 +70,6 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
 
 
 def mv_to_mermaid(mv, **kwargs) -> str:
-    """Generate a Mermaid diagram from a lazy Multivector.
-
-    Args:
-        mv: A Multivector (lazy with expression tree).
-        **kwargs: Passed to expr_to_mermaid.
-
-    Returns:
-        Mermaid graph string.
-    """
+    """Generate a Mermaid diagram from a lazy Multivector."""
     expr = mv._to_expr()
     return expr_to_mermaid(expr, **kwargs)
