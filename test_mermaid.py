@@ -22,10 +22,10 @@ def _():
     import marimo as mo
     import numpy as np
 
-    from galaga import Algebra, exp, op, sandwich
+    from galaga import Algebra, exp, gp, op, sandwich
     from galaga.mermaid import mv_to_mermaid
 
-    return Algebra, exp, mo, mv_to_mermaid, np, op, sandwich
+    return Algebra, exp, gp, mo, mv_to_mermaid, np, op, sandwich
 
 
 @app.cell(hide_code=True)
@@ -49,49 +49,97 @@ def _(Algebra):
 @app.cell
 def _(mo):
     d_slider = mo.ui.slider(start=0, stop=360, step=5, value=60, label="angle d (degrees)")
-    d_slider  # noqa: B018
     return (d_slider,)
 
 
 @app.cell
 def _(alg, d_slider, e1, e2, e3, exp, np, op):
     a = (e1 + e2).name("a")
-    b = e3.name("b")
+    b = e3.eval().name("b")
     B = op(a, b).name("B")
-    d = alg.scalar(np.radians(d_slider.value)).name("d")
+    d = alg.scalar(np.radians(d_slider.value)).name(latex=r"\theta")
     R = exp(-B * d / 2).name("R")
     return (R,)
 
 
 @app.cell
-def _(R, e1, e2, e3, mo, sandwich):
+def _(R, d_slider, e1, e2, e3, mo, mv_to_mermaid, sandwich):
     v = (3 * e1 + e2 - 2 * e3).name("v")
-    v_rot = sandwich(R, v)
+    v_rot = sandwich(R, v).name("v'")
 
-    mo.md(
-        f"""
-    ## Sandwich Product: R v R̃
+    _diagram = mv_to_mermaid(v_rot, compact=True)
 
-    **v** = `{v.eval()}`
-
-    **v′** = `{v_rot.eval()}`
-    """
+    mo.vstack(
+        [
+            d_slider,
+            mo.md(
+                f"""
+        ${v.display()}$ <br/>
+        ${v_rot.display()}$ <br/>
+        """
+            ),
+            mo.mermaid(_diagram),
+        ]
     )
-    return (v_rot,)
+    return
 
 
 @app.cell
+def _():
+    return
+
+
+@app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## Expression Tree for v′ = R v R̃
+    ## Boosting an Electromagnetic Field (STA)
+
+    In spacetime algebra Cl(1,3), the EM field is a bivector F.
+    A Lorentz boost L = exp(γ₀γ₃ φ/2) transforms it via F′ = L F L̃.
+    The Lorentz invariant F² is preserved.
     """)
     return
 
 
 @app.cell
-def _(mo, mv_to_mermaid, v_rot):
-    _diagram = mv_to_mermaid(v_rot)
-    mo.mermaid(_diagram)
+def _(Algebra):
+    sta = Algebra((1, -1, -1, -1), repr_unicode=True)
+    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+    return g0, g1, g3, sta
+
+
+@app.cell
+def _(mo):
+    phi_slider = mo.ui.slider(start=0, stop=2.0, step=0.05, value=0.6, label="rapidity φ")
+    return (phi_slider,)
+
+
+@app.cell
+def _(exp, g0, g1, g3, gp, mo, mv_to_mermaid, phi_slider, sandwich, sta):
+    _F = (2.0 * (g0 * g1) + 0.5 * (g1 * g3)).name("F")
+    _phi = sta.scalar(phi_slider.value).name(latex=r"\phi")
+    _L = exp(g0 * g3 * _phi / 2).name("L")
+    _F_prime = sandwich(_L, _F).name(latex=r"F'")
+    _F_sq = gp(_F, _F).name(latex=r"F^2")
+    _F_prime_sq = gp(_F_prime, _F_prime).name(latex=r"F'^2")
+
+    _diagram = mv_to_mermaid(_F_prime, compact=True)
+
+    mo.vstack(
+        [
+            phi_slider,
+            mo.md(
+                f"""
+        ${_F.display()}$ <br/>
+        ${_L.display()}$ <br/>
+        ${_F_prime.display()}$ <br/>
+        ${_F_sq.display()}$ <br/>
+        ${_F_prime_sq.display()}$ ← Lorentz invariant preserved
+        """
+            ),
+            mo.mermaid(_diagram),
+        ]
+    )
     return
 
 
