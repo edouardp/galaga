@@ -122,7 +122,11 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
                 blade_ids.append(node_id)
 
     def make_node(node: Expr) -> str:
-        nid = id(node)
+        # Named Syms sharing the same underlying MV collapse to one node
+        if isinstance(node, Sym) and node._name is not None:
+            nid = id(node._mv)
+        else:
+            nid = id(node)
         if nid in node_ids:
             return node_ids[nid]
         counter[0] += 1
