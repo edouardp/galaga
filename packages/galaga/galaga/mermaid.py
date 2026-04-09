@@ -107,7 +107,10 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
             val = _escape(_value_str(node))
             if _is_named_sym(node):
                 inner = _inner_tree(node)
-                label = f"{node._name} = {_escape(render(inner))}"
+                inner_str = _escape(render(inner))
+                label = f"{node._name} = {inner_str}"
+                if inner_str == val:
+                    return label
             if label != val:
                 label = f"{label}<br>{val}"
         return label
