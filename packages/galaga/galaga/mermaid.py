@@ -58,7 +58,9 @@ def _collect_significant_children(node: Expr) -> list[Expr]:
     result: list[Expr] = []
 
     def walk(n: Expr):
-        if isinstance(n, (Sym, Scalar)):
+        if isinstance(n, Scalar):
+            return  # skip bare numeric constants
+        if isinstance(n, Sym):
             result.append(n)
             return
         # Postfix op on a Sym is significant (e.g. Reverse(R) → R̃)
@@ -74,7 +76,7 @@ def _collect_significant_children(node: Expr) -> list[Expr]:
     if isinstance(node, Sym):
         inner = _inner_tree(node)
         if inner is not None:
-            walk(inner) if not isinstance(inner, (Sym, Scalar)) else result.append(inner)
+            walk(inner) if not isinstance(inner, Sym) else result.append(inner)
     elif hasattr(node, "a") and hasattr(node, "b"):
         walk(node.a)
         walk(node.b)
