@@ -6,6 +6,12 @@ Section 9.4: Skew-symmetric operators via bivectors.
 
 Each test is named after the equation or theorem it verifies.
 The docstring cites the exact reference in the paper.
+
+Convention note — commutator product:
+    Chisolm defines the commutator as  [A, B] := ½(AB − BA)  (Eq. 2.61).
+    In galaga this is ``lie_bracket(A, B)``, NOT ``commutator(A, B)``.
+    galaga's ``commutator(A, B)`` omits the ½ factor: it computes AB − BA.
+    All tests in this file use ``lie_bracket`` to match the paper exactly.
 """
 
 import numpy as np
@@ -181,15 +187,25 @@ class TestBladeWedgeDualProportionalToI:
 
 # ===========================================================================
 # Section 5.6: Commutator properties
+#
+# CONVENTION: Chisolm's "commutator" [A, B] := ½(AB − BA) includes a ½
+# factor (Eq. 2.61). In galaga:
+#   - lie_bracket(A, B)  = ½(AB − BA)   ← matches Chisolm, used here
+#   - commutator(A, B)   =   AB − BA    ← twice Chisolm's convention
+#   - jordan_product(A,B) = ½(AB + BA)  ← the symmetric counterpart
+#   - anticommutator(A,B) =   AB + BA   ← twice jordan_product
 # ===========================================================================
 
 # ---------------------------------------------------------------------------
 # Eq. 2.62 (label:commident) — [A, BC] = [A,B]C + B[A,C]  (Leibniz rule)
-# galaga's lie_bracket is (AB-BA)/2, matching Chisolm's convention.
+# Uses lie_bracket = ½(AB−BA), matching Chisolm's [A,B].
 # ---------------------------------------------------------------------------
 
 class TestEq262CommutatorLeibniz:
-    """Eq. 2.62 (§5.6, label:commident): [A,BC] = [A,B]C + B[A,C]."""
+    """Eq. 2.62 (§5.6, label:commident): [A,BC] = [A,B]C + B[A,C].
+
+    Uses galaga's lie_bracket (½(AB−BA)) which matches Chisolm's commutator.
+    """
 
     def test_random(self, alg):
         """Commutator Leibniz rule for random multivectors."""
@@ -209,7 +225,10 @@ class TestEq262CommutatorLeibniz:
 # ---------------------------------------------------------------------------
 
 class TestJacobiIdentity:
-    """After Eq. 2.62 (§5.6): [A,[B,C]] + [B,[C,A]] + [C,[A,B]] = 0."""
+    """After Eq. 2.62 (§5.6): [A,[B,C]] + [B,[C,A]] + [C,[A,B]] = 0.
+
+    Uses galaga's lie_bracket (½(AB−BA)) which matches Chisolm's commutator.
+    """
 
     def test_random(self, alg):
         """Jacobi identity for random multivectors."""
@@ -231,7 +250,10 @@ class TestJacobiIdentity:
 # ---------------------------------------------------------------------------
 
 class TestBivectorCommutatorPreservesGrade:
-    """Theorem after Eq. 2.66 (§5.6): [A₂, B_r] = ⟨A₂ B_r⟩_r."""
+    """Theorem after Eq. 2.66 (§5.6): [A₂, B_r] = ⟨A₂ B_r⟩_r.
+
+    Uses galaga's lie_bracket (½(AB−BA)) which matches Chisolm's commutator.
+    """
 
     def test_per_grade(self, alg):
         """Commutator of bivector with r-vector is an r-vector."""
@@ -263,11 +285,14 @@ class TestBivectorCommutatorPreservesGrade:
 # ---------------------------------------------------------------------------
 # Eq. 2.65 (label:commutewithvec) —
 # [a, A] = a⌋A₊ + a∧A₋  (vector commutator decomposition)
-# Using lie_bracket which matches Chisolm's ½(aA - Aa) convention.
+# Uses lie_bracket = ½(aA−Aa), matching Chisolm's [a,A].
 # ---------------------------------------------------------------------------
 
 class TestEq265VectorCommutatorDecomposition:
-    """Eq. 2.65 (§5.6, label:commutewithvec): [a,A] = a⌋A₊ + a∧A₋."""
+    """Eq. 2.65 (§5.6, label:commutewithvec): [a,A] = a⌋A₊ + a∧A₋.
+
+    Uses galaga's lie_bracket (½(AB−BA)) which matches Chisolm's commutator.
+    """
 
     def test_random(self, alg):
         """Vector commutator decomposes into contraction of even + wedge of odd."""
@@ -287,7 +312,10 @@ class TestEq265VectorCommutatorDecomposition:
 # ---------------------------------------------------------------------------
 
 class TestBivectorsClosedUnderCommutation:
-    """§5.6: The set of bivectors is closed under commutation."""
+    """§5.6: The set of bivectors is closed under commutation.
+
+    Uses galaga's lie_bracket (½(AB−BA)) which matches Chisolm's commutator.
+    """
 
     def test_bivector_commutator_is_bivector(self, alg):
         """[B₂, C₂] is a bivector."""
