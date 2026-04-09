@@ -398,11 +398,11 @@ class TestCl3QuaternionStructure:
 # ---------------------------------------------------------------------------
 
 class TestCl3CrossProductDuality:
-    """§6.2: a×b = (a∧b)I⁻¹ in Cl(3,0).
+    """§6.2 (label:crossprod): a×b = dual(a∧b) = (a∧b)I⁻¹ in Cl(3,0).
 
-    Note: Chisolm writes a×b = -(a∧b)I⁻¹, but the sign depends on the
-    pseudoscalar orientation convention. In galaga, I = e₁₂₃ and the
-    relation is a×b = (a∧b)I⁻¹ (no minus sign).
+    Chisolm defines dual(A) = A·I⁻¹ (Eq. 2.56, label:dualdef), so
+    a×b = (a∧b)I⁻¹. This is equivalent to Wikipedia's a×b = -I(a∧b)
+    since I⁻¹ = -I when I² = -1 and I commutes with all elements in 3D.
     """
 
     def test_basis_cross_products(self, cl3):
