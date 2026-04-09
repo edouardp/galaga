@@ -1,4 +1,5 @@
 """Tests derived from Chisolm, "Geometric Algebra" (arXiv:1205.5935v1).
+https://arxiv.org/abs/1205.5935
 
 Sections 2–3: Definitions/Axioms and Contents of a Geometric Algebra.
 

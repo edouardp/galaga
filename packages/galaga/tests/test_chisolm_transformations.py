@@ -1,4 +1,5 @@
 """Tests derived from Chisolm, "Geometric Algebra" (arXiv:1205.5935v1).
+https://arxiv.org/abs/1205.5935
 
 Section 7: Projections, reflections, and rotations.
 Section 6: Euclidean space specializations (Cl(2,0), Cl(3,0)).

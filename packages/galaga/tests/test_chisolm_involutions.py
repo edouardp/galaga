@@ -1,4 +1,5 @@
 """Tests derived from Chisolm, "Geometric Algebra" (arXiv:1205.5935v1).
+https://arxiv.org/abs/1205.5935
 
 Section 5: Other operations — grade involution, reversion, Clifford
 conjugation, scalar product, and their interrelations.
