@@ -106,7 +106,7 @@ def _(mo):
 def _(Algebra, b_sta):
     sta = Algebra((1, -1, -1, -1), repr_unicode=True, blades=b_sta())
     g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
-    return g0, g1, g3, sta
+    return g0, g1, g2, g3, sta
 
 
 @app.cell
@@ -136,6 +136,79 @@ def _(exp, g0, g1, g3, gp, mo, mv_to_mermaid, phi_slider, sandwich, sta):
         ${_F_prime.display()}$ <br/>
         ${_F_sq.display()}$ <br/>
         ${_F_prime_sq.display()}$ ← Lorentz invariant preserved
+        """
+            ),
+            mo.mermaid(_diagram),
+        ]
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Thomas-Wigner Rotation
+
+    Two non-collinear boosts don't compose to a pure boost — there's a leftover
+    spatial rotation. Factor the composite rotor $R = R_y R_x$ into a pure boost
+    $L$ and a residual Wigner rotation $W = \widetilde{L} R$.
+    """)
+    return
+
+
+@app.cell
+def _(mo):
+    tw_phi_x = mo.ui.slider(start=0.0, stop=2.0, step=0.02, value=0.7, label="x-rapidity")
+    tw_phi_y = mo.ui.slider(start=0.0, stop=2.0, step=0.02, value=0.9, label="y-rapidity")
+    return tw_phi_x, tw_phi_y
+
+
+@app.cell
+def _(
+    exp,
+    g0,
+    g1,
+    g2,
+    mo,
+    mv_to_mermaid,
+    np,
+    sandwich,
+    sta,
+    tw_phi_x,
+    tw_phi_y,
+):
+    from galaga import unit
+
+    _Bx = (g0 * g1).name(latex=r"B_x")
+    _By = (g0 * g2).name(latex=r"B_y")
+    _phi_x = sta.scalar(tw_phi_x.value).name(latex=r"\phi_x")
+    _phi_y = sta.scalar(tw_phi_y.value).name(latex=r"\phi_y")
+    _Rx = exp(_phi_x / 2 * _Bx).name(latex=r"R_x")
+    _Ry = exp(_phi_y / 2 * _By).name(latex=r"R_y")
+    _R = (_Ry * _Rx).name("R")
+
+    _u = sandwich(_R, g0).name("u")
+    _L = unit(1 + _u * g0).name("L")
+    _W = (~_L * _R).name("W")
+
+    _cos = np.clip(sandwich(_W, g1).eval().vector_part[1], -1.0, 1.0)
+    _angle = np.degrees(np.arccos(_cos))
+
+    _diagram = mv_to_mermaid(_W, compact=True)
+
+    mo.vstack(
+        [
+            tw_phi_x,
+            tw_phi_y,
+            mo.md(
+                f"""
+        ${_Rx.display()}$ <br/>
+        ${_Ry.display()}$ <br/>
+        ${_R.display()}$ <br/>
+        ${_u.display()}$ <br/>
+        ${_L.display()}$ <br/>
+        ${_W.display()}$ <br/>
+        Wigner rotation angle: **{_angle:.3f}°**
         """
             ),
             mo.mermaid(_diagram),
