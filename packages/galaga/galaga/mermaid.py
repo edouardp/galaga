@@ -135,7 +135,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     def add_edge(from_id: str, to_id: str):
         if (from_id, to_id) not in edges:
             edges.add((from_id, to_id))
-            lines.append(f"    {from_id} --> {to_id}")
+            lines.append(f"    {to_id} --> {from_id}")
 
     if compact:
 
