@@ -37,6 +37,7 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     counter = [0]
     node_ids: dict[int, str] = {}
     named_ids: list[str] = []
+    blade_ids: list[str] = []
 
     def visit(node: Expr) -> str:
         nid = id(node)
@@ -63,7 +64,15 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
                 label = f"{label}<br>{val}"
         lines.append(f'    {node_id}["{label}"]')
         if isinstance(node, Sym) and node._name is not None:
-            named_ids.append(node_id)
+            # Basis blades are leaf Syms with no inner expression tree
+            has_inner = node._inner_expr is not None or (
+                node._mv._expr is not None
+                and not (isinstance(node._mv._expr, Sym) and node._mv._expr._name == node._name)
+            )
+            if has_inner:
+                named_ids.append(node_id)
+            else:
+                blade_ids.append(node_id)
 
         if isinstance(node, Sym):
             # If this named MV has a deeper expression tree, expand it
@@ -92,6 +101,9 @@ def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = Tr
     if named_ids:
         for nid in named_ids:
             lines.append(f"    style {nid} fill:#e0f0ff,stroke:#4a90d9")
+    if blade_ids:
+        for nid in blade_ids:
+            lines.append(f"    style {nid} fill:#f0ffe0,stroke:#6a9a30")
     return "\n".join(lines)
 
 
