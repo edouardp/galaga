@@ -179,12 +179,12 @@ def _(
 ):
     from galaga import unit
 
-    _Bx = (g0 * g1).name(latex=r"B_x")
-    _By = (g0 * g2).name(latex=r"B_y")
-    _phi_x = sta.scalar(tw_phi_x.value).name(latex=r"\phi_x")
-    _phi_y = sta.scalar(tw_phi_y.value).name(latex=r"\phi_y")
-    _Rx = exp(_phi_x / 2 * _Bx).name(latex=r"R_x")
-    _Ry = exp(_phi_y / 2 * _By).name(latex=r"R_y")
+    _Bx = (g0 * g1).name(latex=r"B_x", unicode="Bₓ")
+    _By = (g0 * g2).name(latex=r"B_y", unicode="Bᵧ")
+    _phi_x = sta.scalar(tw_phi_x.value).name(latex=r"\phi_x", unicode="ϕₓ")
+    _phi_y = sta.scalar(tw_phi_y.value).name(latex=r"\phi_y", unicode="ϕᵧ")
+    _Rx = exp(_phi_x / 2 * _Bx).name(latex=r"R_x", unicode="Rₓ")
+    _Ry = exp(_phi_y / 2 * _By).name(latex=r"R_y", unicode="Rᵧ")
     _R = (_Ry * _Rx).name("R")
 
     _u = sandwich(_R, g0).name("u")
