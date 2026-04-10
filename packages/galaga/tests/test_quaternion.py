@@ -183,6 +183,13 @@ class TestQuaternionVectorNames(unittest.TestCase):
         self.assertEqual(str(j), "j")
         self.assertEqual(str(k), "k")
 
+    def test_custom_vector_names_latex(self):
+        """Regression: single-char vector names must not produce z_{z} in LaTeX."""
+        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
+        x, y, z = alg.basis_vectors()
+        self.assertEqual(z.latex(), "z")
+        self.assertEqual(x.latex(), "x")
+
 
 class TestComplexFactory(unittest.TestCase):
     """Verify b_complex() convention for Cl(2,0) even subalgebra."""

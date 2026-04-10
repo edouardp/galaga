@@ -169,10 +169,12 @@ def build_blades(
         l_parts = [vec_names[k][2] for k in bits]
 
         if conv.style == "compact":
-            # Try to merge subscripts under common prefix
-            u_prefix = _common_prefix(u_parts)
-            a_prefix = _common_prefix(a_parts)
-            if u_prefix and a_prefix:
+            if len(bits) == 1:
+                # Single vector — use names directly, no merging needed
+                a = a_parts[0]
+                u = u_parts[0]
+                lx = l_parts[0]
+            elif (u_prefix := _common_prefix(u_parts)) and (a_prefix := _common_prefix(a_parts)):
                 u_subs = "".join(p[len(u_prefix) :] for p in u_parts)
                 a_subs = "".join(p[len(a_prefix) :] for p in a_parts)
                 a = f"{a_prefix}{a_subs}"
