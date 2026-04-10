@@ -162,7 +162,7 @@ class TestQuaternionBladeLookup(unittest.TestCase):
     def test_lazy_blade_lookup(self):
         """blade('i', lazy=True) returns a lazy multivector."""
         i = self.alg.blade("i", lazy=True)
-        assert i._is_lazy
+        assert i._is_symbolic
         assert str(i) == "i"
 
 

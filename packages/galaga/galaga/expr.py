@@ -132,7 +132,7 @@ class Sym(Expr):
     Grade auto-detection: if the wrapped MV is homogeneous, that grade is
     recorded for use by simplify() (e.g. grade(v,1) → v when v is grade-1).
 
-    _inner_expr: if this Sym was created from a named lazy MV that had an
+    _inner_expr: if this Sym was created from a named symbolic MV that had an
     expression tree, the original tree is preserved here. This lets the
     renderer detect compound expressions (e.g. a ∧ b) and wrap them in
     parens when applying postfix operations.
@@ -344,20 +344,20 @@ def _ensure_expr(x) -> Expr:
 
 
 def _is_symbolic(x) -> bool:
-    """True if x is a lazy Multivector (has an expression tree)."""
-    return isinstance(x, _alg.Multivector) and x._is_lazy
+    """True if x is a symbolic Multivector (has an expression tree)."""
+    return isinstance(x, _alg.Multivector) and x._is_symbolic
 
 
 def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None) -> _alg.Multivector:
     """Create a named symbolic copy of a multivector.
 
     Returns a new Multivector that is a copy of mv, with .name(name) applied.
-    If no name is given, the copy is made lazy (symbolic but anonymous).
+    If no name is given, the copy is made symbolic but anonymous.
     Non-mutating: the original mv is not modified.
     """
     copy = _alg.Multivector(mv.algebra, mv.data)
     if name is not None:
         copy.name(name)
     else:
-        copy.lazy()
+        copy.symbolic()
     return copy

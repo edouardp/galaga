@@ -34,7 +34,7 @@ class TestNameMethod:
         """.name() sets lazy mode."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
-        assert v._is_lazy is True
+        assert v._is_symbolic is True
 
     def test_name_preserves_value(self, cl3):
         """.name() doesn't change numeric data."""
@@ -62,7 +62,7 @@ class TestAnonMethod:
         """.anon() keeps lazy/eager state."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v").anon()
-        assert v._is_lazy is True
+        assert v._is_symbolic is True
 
     def test_anon_on_anonymous_is_noop(self, cl3):
         """.anon() on unnamed MV is a no-op."""
@@ -77,14 +77,14 @@ class TestLazyEagerMethods:
         """.lazy() makes eager MV lazy."""
         e1, _, _ = cl3.basis_vectors()
         v = (e1).lazy()
-        assert v._is_lazy is True
+        assert v._is_symbolic is True
 
     def test_eager_on_lazy(self, cl3):
         """.eager() makes lazy MV eager."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         B.eager()
-        assert B._is_lazy is False
+        assert B._is_symbolic is False
         assert B._name is None  # eager() strips name by default
 
     def test_eager_with_name(self, cl3):
@@ -92,7 +92,7 @@ class TestLazyEagerMethods:
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         B.eager("B")
-        assert B._is_lazy is False
+        assert B._is_symbolic is False
         assert B._name == "B"
         assert str(B) == "B"
 
@@ -101,7 +101,7 @@ class TestLazyEagerMethods:
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         Be = B.eval()
-        assert Be._is_lazy is False
+        assert Be._is_symbolic is False
         assert Be._name is None  # eval() returns anonymous
         assert Be is not B  # eval() returns a new copy
         assert Be == B  # same value
@@ -112,19 +112,19 @@ class TestLazyEagerMethods:
         B = (e1 ^ e2).name("B")
         B.eager("B")
         assert B._name == "B"
-        assert B._is_lazy is False
+        assert B._is_symbolic is False
 
     def test_idempotence_lazy(self, cl3):
         """.lazy().lazy() is idempotent."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.lazy().lazy()
-        assert v._is_lazy is True
+        assert v._is_symbolic is True
 
     def test_idempotence_eager(self, cl3):
         """.eager().eager() is idempotent."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.eager().eager()
-        assert v._is_lazy is False
+        assert v._is_symbolic is False
 
     def test_idempotence_anon(self, cl3):
         """.anon().anon() is idempotent."""
@@ -184,7 +184,7 @@ class TestLazyPropagation:
         e1, e2, e3 = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         x = B + e3
-        assert x._is_lazy is True
+        assert x._is_symbolic is True
         assert "B" in str(x)
         assert "e₃" in str(x)
 
@@ -192,21 +192,21 @@ class TestLazyPropagation:
         """Eager + eager = eager."""
         e1, e2, _ = cl3.basis_vectors()
         x = e1 + e2
-        assert x._is_lazy is False
+        assert x._is_symbolic is False
 
     def test_lazy_mul(self, cl3):
         """Lazy * eager = lazy."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         x = B * e1
-        assert x._is_lazy is True
+        assert x._is_symbolic is True
 
     def test_scalar_mul_lazy(self, cl3):
         """Scalar * lazy = lazy."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         x = 2 * B
-        assert x._is_lazy is True
+        assert x._is_symbolic is True
         assert "2" in str(x)
         assert "B" in str(x)
 
@@ -222,7 +222,7 @@ class TestLazyPropagation:
         e1, e2, e3 = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         x = (B + e3).eager()
-        assert x._is_lazy is False
+        assert x._is_symbolic is False
         # Should have concrete data
         assert np.any(x.data != 0)
 
@@ -232,7 +232,7 @@ class TestBasisBlades:
         """Default basis vectors are named + eager."""
         e1, e2, e3 = cl3.basis_vectors()
         assert str(e1) != "0"  # basis blade renders by name
-        assert e1._is_lazy is False
+        assert e1._is_symbolic is False
 
     def test_basis_str(self, cl3):
         """Basis vector str() shows name."""
@@ -299,7 +299,7 @@ class TestSymAlias:
         e1, e2, _ = cl3.basis_vectors()
         R = sym(e1 * e2, "R")
         Re = R.eval()
-        assert Re._is_lazy is False
+        assert Re._is_symbolic is False
         assert Re._name is None  # eval() returns anonymous
         assert Re == e1 * e2  # same value
 
@@ -317,14 +317,14 @@ class TestSpecUseCases:
         e1, e2, e3 = cl3.basis_vectors()
         x = 2 * e1 + 3 * e2
         # Basis blades are named + eager, result is eager
-        assert x._is_lazy is False
+        assert x._is_symbolic is False
 
     def test_use_case_2_named_symbolic_bivector(self, cl3):
         """Define a named symbolic bivector."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
         assert str(B) == "B"
-        assert B._is_lazy is True
+        assert B._is_symbolic is True
 
     def test_use_case_3_reveal_structure(self, cl3):
         """Reveal the symbolic structure again."""
@@ -355,7 +355,7 @@ class TestSpecUseCases:
         expr = ((e1 + e2) ^ e3).lazy()
         str(expr)  # ensure it renders without error
         # Should show symbolic structure, not just a name
-        assert expr._is_lazy is True
+        assert expr._is_symbolic is True
 
     def test_use_case_7_rotor_workflow(self, cl3):
         """Rotor workflow."""
@@ -366,10 +366,10 @@ class TestSpecUseCases:
         v = e1
         v_rot = R * v * ~R
         # v_rot is lazy because R is lazy
-        assert v_rot._is_lazy is True
+        assert v_rot._is_symbolic is True
         # Can get concrete result
         concrete = v_rot.eager()
-        assert concrete._is_lazy is False
+        assert concrete._is_symbolic is False
         assert np.any(concrete.data != 0)
 
     def test_use_case_8_basis_basis_blade_rename(self, cl3):
@@ -383,7 +383,7 @@ class TestSpecUseCases:
         """Symbolic shorthand over symbolic structure."""
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).lazy()
-        assert B._is_lazy is True
+        assert B._is_symbolic is True
 
         B = B.name("B")
         assert str(B) == "B"
@@ -408,7 +408,7 @@ class TestAdditionalCoverage:
         e1, _, _ = cl3.basis_vectors()
         B = e1.name("B")
         x = B + 5
-        assert x._is_lazy
+        assert x._is_symbolic
         assert x == e1 + 5
 
     def test_lazy_sub_scalar(self, cl3):
@@ -416,7 +416,7 @@ class TestAdditionalCoverage:
         e1, _, _ = cl3.basis_vectors()
         B = e1.name("B")
         x = B - 2
-        assert x._is_lazy
+        assert x._is_symbolic
         assert x == e1 - 2
 
     def test_lazy_rsub_scalar(self, cl3):
@@ -424,7 +424,7 @@ class TestAdditionalCoverage:
         e1, _, _ = cl3.basis_vectors()
         B = e1.name("B")
         x = 10 - B
-        assert x._is_lazy
+        assert x._is_symbolic
         assert x == 10 - e1
 
     def test_lazy_radd_scalar(self, cl3):
@@ -439,7 +439,7 @@ class TestAdditionalCoverage:
         e1, _, _ = cl3.basis_vectors()
         B = e1.name("B")
         x = -B
-        assert x._is_lazy
+        assert x._is_symbolic
         assert str(x) == "-B"
 
     def test_lazy_div(self, cl3):
@@ -447,7 +447,7 @@ class TestAdditionalCoverage:
         e1, _, _ = cl3.basis_vectors()
         B = e1.name("B")
         x = B / 2
-        assert x._is_lazy
+        assert x._is_symbolic
         assert x == e1 / 2
 
     def test_lazy_xor(self, cl3):
@@ -455,7 +455,7 @@ class TestAdditionalCoverage:
         e1, e2, _ = cl3.basis_vectors()
         v = e1.name("v")
         x = v ^ e2
-        assert x._is_lazy
+        assert x._is_symbolic
         assert "v" in str(x)
 
     def test_lazy_or(self, cl3):
@@ -463,14 +463,14 @@ class TestAdditionalCoverage:
         e1, e2, _ = cl3.basis_vectors()
         v = e1.name("v")
         x = v | e2
-        assert x._is_lazy
+        assert x._is_symbolic
 
     def test_lazy_invert(self, cl3):
         """~lazy stays lazy."""
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
         x = ~v
-        assert x._is_lazy
+        assert x._is_symbolic
         assert "v" in str(x)
 
     def test_xor_with_expr(self, cl3):
@@ -551,7 +551,7 @@ class TestAdditionalCoverage:
         a = e1.name("a")
         b = e2.name("b")
         x = a * b
-        assert x._is_lazy
+        assert x._is_symbolic
         assert "a" in str(x)
         assert "b" in str(x)
 
@@ -1021,7 +1021,7 @@ class TestSandwichLazy:
         R = (e1 * e2).name("R")
         v = e1.name("v")
         result = sandwich(R, v)
-        assert result._is_lazy
+        assert result._is_symbolic
         assert "R" in str(result)
         assert "v" in str(result)
 
@@ -1041,7 +1041,7 @@ class TestSandwichLazy:
 
         e1, e2, _ = cl3.basis_vectors()
         result = sandwich(e1 * e2, e1)
-        assert result._is_lazy is False
+        assert result._is_symbolic is False
 
     def test_sandwich_one_lazy_operand(self, cl3):
         """One lazy operand makes result lazy."""
@@ -1051,7 +1051,7 @@ class TestSandwichLazy:
         R = (e1 * e2).name("R")
         # lazy rotor, eager vector
         result = sandwich(R, e1)
-        assert result._is_lazy
+        assert result._is_symbolic
         assert "R" in str(result)
 
     def test_sw_alias_lazy(self, cl3):
@@ -1061,7 +1061,7 @@ class TestSandwichLazy:
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
         result = sw(R, e1)
-        assert result._is_lazy
+        assert result._is_symbolic
 
 
 class TestSmallValueDisplay:
@@ -1217,7 +1217,7 @@ class TestDivExprNode:
         a = cl3.scalar(10.0)
         b = cl3.scalar(2.0)
         result = a / b
-        assert result._is_lazy is False
+        assert result._is_symbolic is False
         assert result.scalar_part == 5.0
 
     def test_div_lazy_by_eager(self, cl3):
@@ -1225,7 +1225,7 @@ class TestDivExprNode:
         a = cl3.scalar(10.0).name("a")
         b = cl3.scalar(2.0)
         result = a / b
-        assert result._is_lazy is True
+        assert result._is_symbolic is True
         assert "a" in str(result)
 
     def test_div_eager_by_lazy(self, cl3):
@@ -1234,7 +1234,7 @@ class TestDivExprNode:
         a = cl3.scalar(10.0)
         b = cl3.scalar(2.0).name("b")
         result = a / b
-        assert result._is_lazy is True
+        assert result._is_symbolic is True
         assert "b" in str(result)
 
     def test_scalar_div_still_works(self, cl3):
@@ -1266,7 +1266,7 @@ class TestDivExprNode:
         B = (e1 ^ e2).name("B")
         R = exp(B * cl3.scalar(np.pi / 4).name("θ"))
         concrete = R.eval()
-        assert concrete._is_lazy is False
+        assert concrete._is_symbolic is False
         assert abs(concrete.scalar_part - np.cos(np.pi / 4)) < 1e-10
 
 
@@ -1337,19 +1337,19 @@ class TestBasisVectorsLazy:
     def test_default_is_eager(self, cl3):
         """basis_vectors() default is eager."""
         e1, _, _ = cl3.basis_vectors()
-        assert e1._is_lazy is False
+        assert e1._is_symbolic is False
 
     def test_lazy_flag(self, cl3):
         """basis_vectors(lazy=True) returns lazy MVs."""
         e1, _, _ = cl3.basis_vectors(lazy=True)
-        assert e1._is_lazy is True
+        assert e1._is_symbolic is True
         assert str(e1) != "0"  # basis blade renders by name
 
     def test_lazy_ops_build_trees(self, cl3):
         """Lazy ops build expression trees."""
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         result = e1 ^ e2
-        assert result._is_lazy is True
+        assert result._is_symbolic is True
         assert "∧" in str(result)
 
     def test_lazy_eval_gives_concrete(self, cl3):
@@ -1762,7 +1762,7 @@ class TestSymNoName:
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1)
-        assert a._is_lazy is True
+        assert a._is_symbolic is True
         assert a is not e1
 
     def test_sym_no_name_chain(self, cl3):
@@ -2191,21 +2191,21 @@ class TestReveal:
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
-        assert v.reveal()._is_lazy is True
+        assert v.reveal()._is_symbolic is True
 
     def test_eval_forces_eager(self):
         """eval() forces eager."""
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
-        assert v.eval()._is_lazy is False
+        assert v.eval()._is_symbolic is False
 
     def test_eager_named_reveals_components(self):
         """reveal() on named eager shows coefficients."""
         alg = Algebra((1, 1, 1))
         w = alg.vector([1, 2, 3]).name("w").eager()
         r = w.reveal()
-        assert r._is_lazy is False
+        assert r._is_symbolic is False
         assert "w" not in str(r)
         assert "e" in str(r)
 
@@ -2259,7 +2259,7 @@ class TestReveal:
         alg = Algebra((1, 1, 1))
         s = alg.scalar(np.pi).name(latex=r"\pi")
         r = s.reveal()
-        assert r._is_lazy is True
+        assert r._is_symbolic is True
         # eval gives numeric
         assert "3.14" in str(s.eval())
 
@@ -2421,4 +2421,4 @@ class TestCopyAs:
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
         w = (e1 + e1).copy_as("w")
-        assert w._is_lazy
+        assert w._is_symbolic

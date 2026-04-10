@@ -13,7 +13,7 @@ The library is split into two modules:
 
 - ``ga.symbolic``  — An expression-tree layer for pretty-printing and symbolic
   manipulation. Provides ``simplify()`` and drop-in replacements for all
-  numeric functions that detect lazy ``Multivector`` arguments and build
+  numeric functions that detect symbolic ``Multivector`` arguments and build
   expression trees. The ``Expr`` class hierarchy is an internal implementation
   detail.
 
@@ -23,12 +23,12 @@ Every ``Multivector`` independently controls two orthogonal axes:
 
 - **Identity / display** — ``.name("B")`` assigns a display name;
   ``.anon()`` removes it.
-- **Evaluation strategy** — ``.lazy()`` preserves expression trees;
-  ``.eager()`` forces concrete evaluation in-place (strips name by default,
-  or ``.eager("B")`` to keep it); ``.eval()`` returns a new anonymous eager
+- **Evaluation strategy** — ``.symbolic()`` preserves expression trees;
+  ``.numeric()`` forces concrete evaluation in-place (strips name by default,
+  or ``.numeric("B")`` to keep it); ``.eval()`` returns a new anonymous numeric
   copy without mutating the original.
 
-Basis blades from ``Algebra.basis_vectors()`` are **named + eager** by default:
+Basis blades from ``Algebra.basis_vectors()`` are **named + numeric** by default:
 they have display names (``e₁``) but behave as concrete numeric objects.
 
 ``sym(mv, "R")`` is a convenience alias for ``mv.name("R")``.
@@ -48,8 +48,8 @@ Design Principles
   always available.
 - **Aliases exist for convenience**, not as separate implementations.
   ``wedge`` is literally ``op``, ``rev`` is literally ``reverse``, etc.
-- **Lazy is contagious.** When a lazy MV operates with an eager one, the
-  result is lazy. When all operands are eager, the fast numeric path is taken.
+- **Symbolic is contagious.** When a symbolic MV operates with a numeric one, the
+  result is symbolic. When all operands are numeric, the fast numeric path is taken.
 """
 
 from galaga.algebra import (

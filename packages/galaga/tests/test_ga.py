@@ -232,7 +232,7 @@ class TestAlgebra:
     def test_basis_blades_lazy(self, cl3):
         """basis_blades with lazy=True returns lazy multivectors."""
         e12, e13, e23 = cl3.basis_blades(2, lazy=True)
-        assert e12._is_lazy
+        assert e12._is_symbolic
 
     def test_locals_all(self, cl3):
         """locals() returns all non-scalar blades keyed by ASCII name."""
@@ -248,7 +248,7 @@ class TestAlgebra:
     def test_locals_lazy(self, cl3):
         """locals(lazy=True) returns lazy multivectors."""
         d = cl3.locals(lazy=True)
-        assert d["e1"]._is_lazy
+        assert d["e1"]._is_symbolic
 
     def test_locals_gamma_convention(self):
         """locals() uses ASCII names from the blade convention."""
@@ -1190,7 +1190,7 @@ class TestSqrt:
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         R = exp(0.7 * (e1 ^ e2))
         sqR = sqrt(R)
-        assert sqR._is_lazy
+        assert sqR._is_symbolic
         assert np.allclose(gp(sqR, sqR).data, R.data)
 
     def test_sqrt_pga_translator(self):
@@ -1386,7 +1386,7 @@ class TestScalarSqrtSymbolic:
         alg = Algebra((1, 1, 1))
         s = alg.scalar(9.0).name("s")
         result = scalar_sqrt(s)
-        assert result._is_lazy
+        assert result._is_symbolic
         assert result._expr is not None
 
     def test_unicode_rendering(self):

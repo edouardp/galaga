@@ -454,7 +454,7 @@ class TestEndToEndLatex:
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
         c = complement(v)
-        assert c._is_lazy
+        assert c._is_symbolic
         assert r"\complement" in c.latex()
 
     def test_log_lazy(self):

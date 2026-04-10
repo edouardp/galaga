@@ -68,11 +68,11 @@ import galaga.expr as _sym
 import galaga.render as _render
 from galaga.basis_blade import BasisBlade
 from galaga.latex_symbols import LatexSymbols
-from galaga.lazy import lazy_binary, lazy_unary
 from galaga.notation import Notation
+from galaga.symbolic import symbolic_binary, symbolic_unary
 
 
-def _resolve_lazy(lazy: bool | None, symbolic: bool | None) -> bool:
+def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
     """Resolve lazy=/symbolic= pair. Raises if both are explicitly set."""
     if lazy is not None and symbolic is not None:
         raise ValueError("Cannot pass both lazy= and symbolic=; use one or the other")
@@ -276,21 +276,21 @@ class Algebra:
         return self._notation
 
     def basis_vectors(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
-        """Return the n basis 1-vectors (named + eager by default).
+        """Return the n basis 1-vectors (named + numeric by default).
 
         Args:
-            lazy: If True, return named + lazy blades that build expression
+            lazy: Deprecated alias for symbolic.
+            symbolic: If True, return named + symbolic blades that build expression
                   trees when used in arithmetic.
-            symbolic: Alias for lazy.
         """
-        lazy = _resolve_lazy(lazy, symbolic)
+        is_symbolic = _resolve_symbolic(lazy, symbolic)
         vecs = []
         for k in range(self._n):
             bitmask = 1 << k
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
-            mv._is_lazy = lazy
+            mv._is_symbolic = is_symbolic
             vecs.append(mv)
         return tuple(vecs)
 
@@ -299,21 +299,21 @@ class Algebra:
 
         Args:
             k: The grade to select (0 = scalars, 1 = vectors, 2 = bivectors, …).
-            lazy: If True, return lazy blades that build expression trees.
-            symbolic: Alias for lazy.
+            lazy: Deprecated alias for symbolic.
+            symbolic: If True, return symbolic blades that build expression trees.
 
         Example::
 
             e12, e13, e23 = alg.basis_blades(2)
         """
-        lazy = _resolve_lazy(lazy, symbolic)
+        is_symbolic = _resolve_symbolic(lazy, symbolic)
         blades = []
         for idx in self._display_order:
             if bin(idx).count("1") == k:
                 data = np.zeros(self._dim)
                 data[idx] = self._blades[idx].sign if idx in self._blades else 1.0
                 mv = Multivector(self, data)
-                mv._is_lazy = lazy
+                mv._is_symbolic = is_symbolic
                 blades.append(mv)
         return tuple(blades)
 
@@ -326,15 +326,15 @@ class Algebra:
 
         Args:
             grades: If given, only include these grades. E.g. ``[1, 2]``.
-            lazy: If True, blades are lazy (build expression trees).
-            symbolic: Alias for lazy.
+            lazy: Deprecated alias for symbolic.
+            symbolic: If True, blades are symbolic (build expression trees).
 
         Example::
 
             locals().update(alg.locals())          # all blades
             locals().update(alg.locals(grades=[1, 2]))  # vectors + bivectors
         """
-        lazy = _resolve_lazy(lazy, symbolic)
+        is_symbolic = _resolve_symbolic(lazy, symbolic)
         result = {}
         for idx, bb in self._blades.items():
             if idx == 0:
@@ -344,18 +344,18 @@ class Algebra:
             data = np.zeros(self._dim)
             data[idx] = bb.sign
             mv = Multivector(self, data)
-            mv._is_lazy = lazy
+            mv._is_symbolic = is_symbolic
             result[bb.ascii_name] = mv
         return result
 
     def pseudoscalar(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""
-        lazy = _resolve_lazy(lazy, symbolic)
+        is_symbolic = _resolve_symbolic(lazy, symbolic)
         data = np.zeros(self._dim)
         data[self._dim - 1] = 1.0
         mv = Multivector(self, data)
-        if lazy:
-            mv._is_lazy = True
+        if is_symbolic:
+            mv._is_symbolic = True
         return mv
 
     @property
@@ -375,7 +375,7 @@ class Algebra:
         return Multivector(self, data)
 
     def fraction(self, numerator: int, denominator: int) -> Multivector:
-        """Create a named scalar fraction: fraction(1, 2) → lazy MV displaying as 1/2.
+        """Create a named scalar fraction: fraction(1, 2) → symbolic MV displaying as 1/2.
 
         Both numerator and denominator are named so the expression tree
         renders symbolically (e.g. \\frac{1}{2} in LaTeX).
@@ -390,37 +390,37 @@ class Algebra:
 
     @property
     def pi(self) -> Multivector:
-        """π as a named lazy scalar."""
+        """π as a named symbolic scalar."""
         return self.scalar(np.pi).name(latex=r"\pi")
 
     @property
     def e(self) -> Multivector:
-        """Euler's number e as a named lazy scalar."""
+        """Euler's number e as a named symbolic scalar."""
         return self.scalar(np.e).name(latex=r"e")
 
     @property
     def tau(self) -> Multivector:
-        """τ = 2π as a named lazy scalar with expression tree."""
+        """τ = 2π as a named symbolic scalar with expression tree."""
         return (2 * self.pi).name(latex=r"\tau")
 
     @property
     def sqrt2(self) -> Multivector:
-        """√2 as a named lazy scalar with Sqrt expression tree."""
+        """√2 as a named symbolic scalar with Sqrt expression tree."""
         return scalar_sqrt(self.scalar(2).name("2"))
 
     @property
     def h(self) -> Multivector:
-        """Planck constant h as a named lazy scalar."""
+        """Planck constant h as a named symbolic scalar."""
         return self.scalar(6.62607015e-34).name(latex=r"h")
 
     @property
     def hbar(self) -> Multivector:
-        """Reduced Planck constant ℏ = h/2π as a named lazy scalar."""
+        """Reduced Planck constant ℏ = h/2π as a named symbolic scalar."""
         return self.scalar(1.054571817e-34).name(latex=r"\hbar")
 
     @property
     def c(self) -> Multivector:
-        """Speed of light c as a named lazy scalar."""
+        """Speed of light c as a named symbolic scalar."""
         return self.scalar(299792458.0).name(latex=r"c")
 
     def vector(self, coeffs) -> Multivector:
@@ -440,15 +440,15 @@ class Algebra:
         Args:
             name: A string (metric-role key, display name, or prefix+digits),
                 or a Multivector (must be a single basis blade).
-            lazy: If True, return a lazy (symbolic) multivector.
-            symbolic: Alias for lazy.
+            lazy: Deprecated alias for symbolic.
+            symbolic: If True, return a symbolic multivector.
 
         Search order for strings:
         1. Metric-role string (e.g. "+1-1", "pss")
         2. Exact match against any name variant (ascii, unicode, latex)
         3. Parse as prefix + digits using the convention's index_base
         """
-        lazy = _resolve_lazy(lazy, symbolic)
+        is_symbolic = _resolve_symbolic(lazy, symbolic)
         from galaga.blade_convention import _resolve_metric_role_key
 
         if isinstance(name, Multivector):
@@ -459,14 +459,14 @@ class Algebra:
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
-            if lazy:
-                mv.lazy()
+            if is_symbolic:
+                mv.symbolic()
             return mv
 
         if name == "1" or name == "":
             mv = self.scalar(1.0)
-            if lazy:
-                mv.lazy()
+            if is_symbolic:
+                mv.symbolic()
             return mv
 
         # 1. Try metric-role key
@@ -475,8 +475,8 @@ class Algebra:
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
-            if lazy:
-                mv.lazy()
+            if is_symbolic:
+                mv.symbolic()
             return mv
         except ValueError:
             pass
@@ -487,8 +487,8 @@ class Algebra:
                 data = np.zeros(self._dim)
                 data[idx] = 1.0
                 mv = Multivector(self, data)
-                if lazy:
-                    mv.lazy()
+                if is_symbolic:
+                    mv.symbolic()
                 return mv
 
         # 3. Prefix + digits parsing
@@ -509,8 +509,8 @@ class Algebra:
                 data = np.zeros(self._dim)
                 data[bitmask] = 1.0
                 mv = Multivector(self, data)
-                if lazy:
-                    mv.lazy()
+                if is_symbolic:
+                    mv.symbolic()
                 return mv
 
         raise ValueError(f"Unknown blade name: {name!r}")
@@ -709,7 +709,7 @@ class Multivector:
         data: Dense NumPy float64 array of length ``algebra.dim``.
     """
 
-    __slots__ = ("algebra", "data", "_name", "_name_latex", "_name_unicode", "_is_lazy", "_expr", "_grade")
+    __slots__ = ("algebra", "data", "_name", "_name_latex", "_name_unicode", "_is_symbolic", "_expr", "_grade")
 
     def __init__(self, algebra: Algebra, data: np.ndarray):
         """Wrap a coefficient array as a multivector in the given algebra.
@@ -723,7 +723,7 @@ class Multivector:
         self._name = None
         self._name_latex = None
         self._name_unicode = None
-        self._is_lazy = False
+        self._is_symbolic = False
         self._expr = None
         self._grade = None
 
@@ -741,7 +741,7 @@ class Multivector:
         mv._name = overrides.get("_name", self._name)
         mv._name_latex = overrides.get("_name_latex", self._name_latex)
         mv._name_unicode = overrides.get("_name_unicode", self._name_unicode)
-        mv._is_lazy = overrides.get("_is_lazy", self._is_lazy)
+        mv._is_symbolic = overrides.get("_is_symbolic", self._is_symbolic)
         mv._expr = overrides.get("_expr", self._expr)
         mv._grade = overrides.get("_grade", self._grade)
         return mv
@@ -754,7 +754,7 @@ class Multivector:
         unicode: str | None = None,
         ascii: str | None = None,
     ) -> Multivector:
-        """Assign a display name in-place. Sets lazy. Returns self.
+        """Assign a display name in-place. Sets symbolic. Returns self.
 
         At least one of ``label`` or ``latex`` must be provided. If ``latex``
         is given, ``unicode`` and ``ascii`` are auto-derived from it unless
@@ -781,7 +781,7 @@ class Multivector:
         self._name = ascii or label or latex
         self._name_latex = latex or label
         self._name_unicode = unicode or label or self._name
-        self._is_lazy = True
+        self._is_symbolic = True
         # Auto-detect grade if homogeneous
         if self._grade is None:
             self._grade = self.homogeneous_grade()
@@ -791,7 +791,7 @@ class Multivector:
         return self
 
     def anon(self) -> Multivector:
-        """Remove the display name in-place. Preserves lazy/eager. Returns self."""
+        """Remove the display name in-place. Preserves symbolic/numeric. Returns self."""
         if isinstance(self._expr, _sym.Sym) and self._expr._name == (self._name_unicode or self._name):
             self._expr = None
         self._name = None
@@ -799,19 +799,23 @@ class Multivector:
         self._name_unicode = None
         return self
 
-    def lazy(self) -> Multivector:
-        """Set lazy mode in-place. Returns self."""
-        self._is_lazy = True
+    def symbolic(self) -> Multivector:
+        """Set symbolic mode in-place. Returns self."""
+        self._is_symbolic = True
         return self
 
-    def eager(self, name: str | None = None) -> Multivector:
-        """Force eager evaluation in-place. Strips name unless one is given.
+    def lazy(self) -> Multivector:
+        """Deprecated alias for symbolic()."""
+        return self.symbolic()
+
+    def numeric(self, name: str | None = None) -> Multivector:
+        """Force numeric evaluation in-place. Strips name unless one is given.
 
         Args:
-            name: If provided, set this as the display name (named eager).
-                  If omitted, the name is cleared (anonymous eager).
+            name: If provided, set this as the display name (named numeric).
+                  If omitted, the name is cleared (anonymous numeric).
         """
-        self._is_lazy = False
+        self._is_symbolic = False
         self._expr = None
         if name is not None:
             self._name = name
@@ -823,10 +827,14 @@ class Multivector:
             self._name_unicode = None
         return self
 
+    def eager(self, name: str | None = None) -> Multivector:
+        """Deprecated alias for numeric()."""
+        return self.numeric(name)
+
     def eval(self) -> Multivector:
         """Return a new anonymous eager copy — the concrete numeric result."""
         return self._copy_with(
-            _is_lazy=False,
+            _is_symbolic=False,
             _expr=None,
             _name=None,
             _name_latex=None,
@@ -834,7 +842,7 @@ class Multivector:
         )
 
     def reveal(self) -> Multivector:
-        """Return a new anonymous copy with the same lazy/eager state.
+        """Return a new anonymous copy with the same symbolic/numeric state.
 
         Like eval() but preserves laziness. Useful for displaying the
         underlying value of a named MV without mutating it.
@@ -864,7 +872,7 @@ class Multivector:
         eval_latex = eval_mv.latex()
 
         reveal_latex = None
-        if self._is_lazy and self._expr is not None:
+        if self._is_symbolic and self._expr is not None:
             r_latex = self.reveal().latex()
             if r_latex != name_latex and r_latex != eval_latex:
                 reveal_latex = r_latex
@@ -883,7 +891,7 @@ class Multivector:
         """Convert this MV to an Expr node for use in expression trees.
 
         Named MVs become Sym nodes (so they appear by name in trees).
-        Anonymous lazy MVs use their stored expr tree.
+        Anonymous symbolic MVs use their stored expr tree.
         Anonymous eager MVs become Sym nodes with their string representation,
         using the algebra's LaTeX name for single basis blades.
         """
@@ -903,22 +911,22 @@ class Multivector:
 
     # --- Operator overloads ---
 
-    def _is_any_lazy(self, other=None) -> bool:
-        if self._is_lazy:
+    def _is_any_symbolic(self, other=None) -> bool:
+        if self._is_symbolic:
             return True
-        if isinstance(other, Multivector) and other._is_lazy:
+        if isinstance(other, Multivector) and other._is_symbolic:
             return True
         return False
 
-    def _lazy_result(self, data: np.ndarray, expr) -> Multivector:
-        """Build a lazy MV with computed data and an expression tree."""
+    def _symbolic_result(self, data: np.ndarray, expr) -> Multivector:
+        """Build a symbolic MV with computed data and an expression tree."""
         mv = Multivector.__new__(Multivector)
         mv.algebra = self.algebra
         mv.data = np.array(data, dtype=np.float64)
         mv._name = None
         mv._name_latex = None
         mv._name_unicode = None
-        mv._is_lazy = True
+        mv._is_symbolic = True
         mv._expr = expr
         mv._grade = None
         return mv
@@ -929,22 +937,22 @@ class Multivector:
         if isinstance(other, (int, float)):
             d = self.data.copy()
             d[0] += other
-            if self._is_lazy:
-                return self._lazy_result(d, _sym.Add(self._to_expr(), _sym.Scalar(other)))
+            if self._is_symbolic:
+                return self._symbolic_result(d, _sym.Add(self._to_expr(), _sym.Scalar(other)))
             return Multivector(self.algebra, d)
         self._check_same(other)
-        if self._is_any_lazy(other):
-            return self._lazy_result(
+        if self._is_any_symbolic(other):
+            return self._symbolic_result(
                 self.data + other.data,
                 _sym.Add(self._to_expr(), other._to_expr()),
             )
         return Multivector(self.algebra, self.data + other.data)
 
     def __radd__(self, other):
-        if isinstance(other, (int, float)) and self._is_lazy:
+        if isinstance(other, (int, float)) and self._is_symbolic:
             d = self.data.copy()
             d[0] += other
-            return self._lazy_result(d, _sym.Add(_sym.Scalar(other), self._to_expr()))
+            return self._symbolic_result(d, _sym.Add(_sym.Scalar(other), self._to_expr()))
         return self.__add__(other)
 
     def __sub__(self, other):
@@ -953,12 +961,12 @@ class Multivector:
         if isinstance(other, (int, float)):
             d = self.data.copy()
             d[0] -= other
-            if self._is_lazy:
-                return self._lazy_result(d, _sym.Sub(self._to_expr(), _sym.Scalar(other)))
+            if self._is_symbolic:
+                return self._symbolic_result(d, _sym.Sub(self._to_expr(), _sym.Scalar(other)))
             return Multivector(self.algebra, d)
         self._check_same(other)
-        if self._is_any_lazy(other):
-            return self._lazy_result(
+        if self._is_any_symbolic(other):
+            return self._symbolic_result(
                 self.data - other.data,
                 _sym.Sub(self._to_expr(), other._to_expr()),
             )
@@ -968,21 +976,21 @@ class Multivector:
         if isinstance(other, (int, float)):
             d = -self.data.copy()
             d[0] += other
-            if self._is_lazy:
-                return self._lazy_result(d, _sym.Sub(_sym.Scalar(other), self._to_expr()))
+            if self._is_symbolic:
+                return self._symbolic_result(d, _sym.Sub(_sym.Scalar(other), self._to_expr()))
             return Multivector(self.algebra, d)
         return NotImplemented
 
     def __neg__(self):
-        if self._is_lazy:
-            return self._lazy_result(-self.data, _sym.Neg(self._to_expr()))
+        if self._is_symbolic:
+            return self._symbolic_result(-self.data, _sym.Neg(self._to_expr()))
         return Multivector(self.algebra, -self.data)
 
     def __mul__(self, other):
         """Geometric product (a * b) or scalar multiplication."""
         if isinstance(other, (int, float)):
-            if self._is_lazy:
-                return self._lazy_result(
+            if self._is_symbolic:
+                return self._symbolic_result(
                     self.data * other,
                     _sym.ScalarMul(other, self._to_expr()),
                 )
@@ -991,8 +999,8 @@ class Multivector:
         if isinstance(other, _sym.Expr):
             return _sym.Gp(self._to_expr(), other)
         self._check_same(other)
-        if self._is_any_lazy(other):
-            return self._lazy_result(
+        if self._is_any_symbolic(other):
+            return self._symbolic_result(
                 gp(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data)).data,
                 _sym.Gp(self._to_expr(), other._to_expr()),
             )
@@ -1000,8 +1008,8 @@ class Multivector:
 
     def __rmul__(self, other):
         if isinstance(other, (int, float)):
-            if self._is_lazy:
-                return self._lazy_result(
+            if self._is_symbolic:
+                return self._symbolic_result(
                     self.data * other,
                     _sym.ScalarMul(other, self._to_expr()),
                 )
@@ -1014,9 +1022,9 @@ class Multivector:
         """Outer product (a ^ b)."""
         if isinstance(other, _sym.Expr):
             return _sym.Op(self._to_expr(), other)
-        if isinstance(other, Multivector) and self._is_any_lazy(other):
+        if isinstance(other, Multivector) and self._is_any_symbolic(other):
             result = op(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
-            return self._lazy_result(
+            return self._symbolic_result(
                 result.data,
                 _sym.Op(self._to_expr(), other._to_expr()),
             )
@@ -1026,9 +1034,9 @@ class Multivector:
         """Doran–Lasenby inner product (a | b)."""
         if isinstance(other, _sym.Expr):
             return _sym.Dli(self._to_expr(), other)
-        if isinstance(other, Multivector) and self._is_any_lazy(other):
+        if isinstance(other, Multivector) and self._is_any_symbolic(other):
             result = doran_lasenby_inner(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
-            return self._lazy_result(
+            return self._symbolic_result(
                 result.data,
                 _sym.Dli(self._to_expr(), other._to_expr()),
             )
@@ -1036,15 +1044,15 @@ class Multivector:
 
     def __invert__(self):
         """Reverse (~a)."""
-        if self._is_lazy:
+        if self._is_symbolic:
             result = reverse(Multivector(self.algebra, self.data))
-            return self._lazy_result(result.data, _sym.Reverse(self._to_expr()))
+            return self._symbolic_result(result.data, _sym.Reverse(self._to_expr()))
         return reverse(self)
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
-            if self._is_lazy:
-                return self._lazy_result(
+            if self._is_symbolic:
+                return self._symbolic_result(
                     self.data / other,
                     _sym.ScalarDiv(self._to_expr(), other),
                 )
@@ -1055,9 +1063,9 @@ class Multivector:
                 s = other.data[0]
                 if abs(s) < 1e-300:
                     raise ZeroDivisionError("Division by zero scalar multivector")
-                # If either side is lazy, build a Div tree
-                if self._is_any_lazy(other):
-                    return self._lazy_result(
+                # If either side is symbolic, build a Div tree
+                if self._is_any_symbolic(other):
+                    return self._symbolic_result(
                         self.data / s,
                         _sym.Div(self._to_expr(), other._to_expr()),
                     )
@@ -1128,9 +1136,9 @@ class Multivector:
     @property
     def inv(self) -> Multivector:
         """Inverse: x⁻¹"""
-        if self._is_lazy:
+        if self._is_symbolic:
             result = inverse(Multivector(self.algebra, self.data))
-            return self._lazy_result(result.data, _sym.Inverse(self._to_expr()))
+            return self._symbolic_result(result.data, _sym.Inverse(self._to_expr()))
         return inverse(self)
 
     @property
@@ -1146,9 +1154,9 @@ class Multivector:
     @property
     def sq(self) -> Multivector:
         """Squared: x²"""
-        if self._is_lazy:
+        if self._is_symbolic:
             result = gp(Multivector(self.algebra, self.data), Multivector(self.algebra, self.data))
-            return self._lazy_result(result.data, _sym.Squared(self._to_expr()))
+            return self._symbolic_result(result.data, _sym.Squared(self._to_expr()))
         return gp(self, self)
 
     @property
@@ -1219,7 +1227,7 @@ class Multivector:
             return self._name_unicode
         if self._name is not None:
             return self._name
-        if self._is_lazy and self._expr is not None:
+        if self._is_symbolic and self._expr is not None:
             return _render.render(self._expr, self.algebra._notation)
         return self._format(unicode=True)
 
@@ -1233,13 +1241,13 @@ class Multivector:
         if spec in ("unicode", "u"):
             if self._name_unicode is not None:
                 return self._name_unicode
-            if self._is_lazy and self._expr is not None:
+            if self._is_symbolic and self._expr is not None:
                 return _render.render(self._expr, self.algebra._notation)
             return self._format(unicode=True)
         if spec in ("ascii", "a"):
             if self._name is not None:
                 return self._name
-            if self._is_lazy and self._expr is not None:
+            if self._is_symbolic and self._expr is not None:
                 return _render.render(self._expr, self.algebra._notation)
             return self._format(unicode=False)
         # Numeric format spec — apply to each coefficient, no threshold
@@ -1280,8 +1288,8 @@ class Multivector:
             raw = self._name_latex
         elif self._name is not None and coeff_format is None:
             raw = self._name
-        # Anonymous lazy → delegate to renderer
-        elif self._is_lazy and self._expr is not None and coeff_format is None:
+        # Anonymous symbolic → delegate to renderer
+        elif self._is_symbolic and self._expr is not None and coeff_format is None:
             raw = _render.render_latex(self._expr, self.algebra._notation)
         else:
             # Eager anonymous → coefficient rendering via LNodes
@@ -1345,7 +1353,7 @@ class Multivector:
 # ============================================================
 
 
-@lazy_binary("Gp")
+@symbolic_binary("Gp")
 def gp(a: Multivector, b: Multivector) -> Multivector:
     """Geometric product — the fundamental product of Clifford algebra.
 
@@ -1366,7 +1374,7 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Op")
+@symbolic_binary("Op")
 def op(a: Multivector, b: Multivector) -> Multivector:
     """Outer (wedge) product — keeps only the grade-raising part of gp.
 
@@ -1392,7 +1400,7 @@ def op(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Lc")
+@symbolic_binary("Lc")
 def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Left contraction: a ⌋ b.
 
@@ -1424,7 +1432,7 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Rc")
+@symbolic_binary("Rc")
 def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Right contraction: a ⌊ b.
 
@@ -1450,7 +1458,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Hi")
+@symbolic_binary("Hi")
 def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     """Hestenes inner product.
 
@@ -1481,7 +1489,7 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Dli")
+@symbolic_binary("Dli")
 def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     """Doran–Lasenby inner product: grade-|r-s| part of gp(a,b), including scalars.
 
@@ -1511,7 +1519,7 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
 dorst_inner = doran_lasenby_inner
 
 
-@lazy_binary("Sp")
+@symbolic_binary("Sp")
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
     return grade(gp(a, b), 0)
@@ -1519,21 +1527,21 @@ def scalar_product(a: Multivector, b: Multivector) -> Multivector:
 
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""
-    if a._is_lazy or b._is_lazy:
+    if a._is_symbolic or b._is_symbolic:
         result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) - gp(
             Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
         )
-        return a._lazy_result(result.data, _sym.Commutator(a._to_expr(), b._to_expr()))
+        return a._symbolic_result(result.data, _sym.Commutator(a._to_expr(), b._to_expr()))
     return gp(a, b) - gp(b, a)
 
 
 def anticommutator(a: Multivector, b: Multivector) -> Multivector:
     """Anticommutator: ab + ba."""
-    if a._is_lazy or b._is_lazy:
+    if a._is_symbolic or b._is_symbolic:
         result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) + gp(
             Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
         )
-        return a._lazy_result(result.data, _sym.Anticommutator(a._to_expr(), b._to_expr()))
+        return a._symbolic_result(result.data, _sym.Anticommutator(a._to_expr(), b._to_expr()))
     return gp(a, b) + gp(b, a)
 
 
@@ -1543,9 +1551,9 @@ def lie_bracket(a: Multivector, b: Multivector) -> Multivector:
     The half-scaled commutator under which bivectors form a Lie algebra
     with clean structure constants: [Bᵢ, Bⱼ] = εᵢⱼₖ Bₖ.
     """
-    if a._is_lazy or b._is_lazy:
+    if a._is_symbolic or b._is_symbolic:
         result = commutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
-        return a._lazy_result(result.data, _sym.LieBracket(a._to_expr(), b._to_expr()))
+        return a._symbolic_result(result.data, _sym.LieBracket(a._to_expr(), b._to_expr()))
     return commutator(a, b) * 0.5
 
 
@@ -1555,9 +1563,9 @@ def jordan_product(a: Multivector, b: Multivector) -> Multivector:
     The symmetric part of the geometric product. For vectors,
     this equals the inner product: a ∘ b = a · b.
     """
-    if a._is_lazy or b._is_lazy:
+    if a._is_symbolic or b._is_symbolic:
         result = anticommutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
-        return a._lazy_result(result.data, _sym.JordanProduct(a._to_expr(), b._to_expr()))
+        return a._symbolic_result(result.data, _sym.JordanProduct(a._to_expr(), b._to_expr()))
     return anticommutator(a, b) * 0.5
 
 
@@ -1578,7 +1586,7 @@ def reverse(x: Multivector) -> Multivector:
     ~V = vₖ...v₂v₁. The sandwich product R x ~R uses the reverse to
     apply rotations/boosts, and V~V gives the squared norm.
     """
-    if x._is_lazy:
+    if x._is_symbolic:
         return ~x
     alg = x.algebra
     out = x.data.copy()
@@ -1589,7 +1597,7 @@ def reverse(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary("Involute")
+@symbolic_unary("Involute")
 def involute(x: Multivector) -> Multivector:
     """Grade involution (hat): grade-k component is multiplied by (-1)^k.
 
@@ -1604,7 +1612,7 @@ def involute(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary("Conjugate")
+@symbolic_unary("Conjugate")
 def conjugate(x: Multivector) -> Multivector:
     """Clifford conjugate: reverse composed with grade involution.
 
@@ -1616,15 +1624,15 @@ def conjugate(x: Multivector) -> Multivector:
 
 def grade(x: Multivector, k: int | str) -> Multivector:
     """Extract grade-k component, or 'even'/'odd' for parity selection."""
-    if x._is_lazy:
+    if x._is_symbolic:
         if k == "even":
             result = even_grades(Multivector(x.algebra, x.data))
-            return x._lazy_result(result.data, _sym.Even(x._to_expr()))
+            return x._symbolic_result(result.data, _sym.Even(x._to_expr()))
         if k == "odd":
             result = odd_grades(Multivector(x.algebra, x.data))
-            return x._lazy_result(result.data, _sym.Odd(x._to_expr()))
+            return x._symbolic_result(result.data, _sym.Odd(x._to_expr()))
         result = grade(Multivector(x.algebra, x.data), k)
-        return x._lazy_result(result.data, _sym.Grade(x._to_expr(), k))
+        return x._symbolic_result(result.data, _sym.Grade(x._to_expr(), k))
     if k == "even":
         return even_grades(x)
     if k == "odd":
@@ -1664,11 +1672,11 @@ def scalar_sqrt(x) -> Multivector:
     if not isinstance(x, Multivector):
         raise TypeError(f"scalar_sqrt expects a Multivector or number, got {type(x).__name__}")
     # Lazy path
-    if x._is_lazy:
+    if x._is_symbolic:
         import galaga.expr as _expr_mod
 
         result = scalar_sqrt(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, _expr_mod.Sqrt(x._to_expr()))
+        return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))
     # Eager path
     if not is_scalar(x):
         raise ValueError("scalar_sqrt requires a pure scalar multivector")
@@ -1696,11 +1704,11 @@ def sqrt(x) -> Multivector:
         return scalar_sqrt(x)
     if not isinstance(x, Multivector):
         raise TypeError(f"sqrt expects a Multivector or number, got {type(x).__name__}")
-    if x._is_lazy:
+    if x._is_symbolic:
         import galaga.expr as _expr_mod
 
         result = sqrt(Multivector(x.algebra, x.data))
-        return x._lazy_result(result.data, _expr_mod.Sqrt(x._to_expr()))
+        return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))
     if is_scalar(x):
         return scalar_sqrt(x)
     a = x.scalar_part
@@ -1717,7 +1725,7 @@ def sqrt(x) -> Multivector:
     return bI / (2 * cp) + x.algebra.scalar(cp)
 
 
-@lazy_unary("Dual")
+@symbolic_unary("Dual")
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.
 
@@ -1738,7 +1746,7 @@ def dual(x: Multivector) -> Multivector:
     return left_contraction(x, I_inv)
 
 
-@lazy_unary("Undual")
+@symbolic_unary("Undual")
 def undual(x: Multivector) -> Multivector:
     """Undual: left-contract x into the pseudoscalar (inverse of dual).
 
@@ -1748,7 +1756,7 @@ def undual(x: Multivector) -> Multivector:
     return left_contraction(x, I)
 
 
-@lazy_unary("Complement")
+@symbolic_unary("Complement")
 def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
@@ -1768,7 +1776,7 @@ def complement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_unary("Uncomplement")
+@symbolic_unary("Uncomplement")
 def uncomplement(x: Multivector) -> Multivector:
     """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
     alg = x.algebra
@@ -1782,7 +1790,7 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@lazy_binary("Regressive")
+@symbolic_binary("Regressive")
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
 
@@ -1815,15 +1823,15 @@ def norm2(x: Multivector) -> float:
 
 
 def norm(x: Multivector):
-    """Norm: sqrt(|norm2(x)|). Returns float for eager, lazy scalar MV for lazy."""
-    if x._is_lazy:
+    """Norm: sqrt(|norm2(x)|). Returns float for numeric, symbolic scalar MV for symbolic."""
+    if x._is_symbolic:
         val = float(np.sqrt(abs(norm2(x))))
         result = x.algebra.scalar(val)
-        return x._lazy_result(result.data, _sym.Norm(x._to_expr()))
+        return x._symbolic_result(result.data, _sym.Norm(x._to_expr()))
     return float(np.sqrt(abs(norm2(x))))
 
 
-@lazy_unary("Unit")
+@symbolic_unary("Unit")
 def unit(x: Multivector) -> Multivector:
     """Normalize to unit multivector."""
     n = norm(x)
@@ -1832,7 +1840,7 @@ def unit(x: Multivector) -> Multivector:
     return x / n
 
 
-@lazy_unary("Inverse")
+@symbolic_unary("Inverse")
 def inverse(x: Multivector) -> Multivector:
     """General multivector inverse: x⁻¹ such that x * x⁻¹ = 1.
 
@@ -1953,14 +1961,14 @@ def is_basis_blade(x: Multivector) -> bool:
     return np.count_nonzero(np.abs(x.data) > 1e-12) == 1
 
 
-@lazy_unary("Even")
+@symbolic_unary("Even")
 def even_grades(x: Multivector) -> Multivector:
     """Extract even-grade components."""
     alg = x.algebra
     return grades(x, [k for k in range(0, alg.n + 1, 2)])
 
 
-@lazy_unary("Odd")
+@symbolic_unary("Odd")
 def odd_grades(x: Multivector) -> Multivector:
     """Extract odd-grade components."""
     alg = x.algebra
@@ -1969,7 +1977,7 @@ def odd_grades(x: Multivector) -> Multivector:
 
 def squared(x: Multivector) -> Multivector:
     """Geometric product of x with itself: x²."""
-    if x._is_lazy:
+    if x._is_symbolic:
         return x.sq
     return gp(x, x)
 
@@ -1981,7 +1989,7 @@ def sandwich(r: Multivector, x: Multivector) -> Multivector:
     r*~r = 1), this applies the rotation/boost encoded by r to x.
     Grade-preserving: if x is grade-k, the result is also grade-k.
 
-    Laziness-aware: if r or x is lazy, the result is lazy with a symbolic
+    Laziness-aware: if r or x is symbolic, the result is symbolic with a symbolic
     expression tree.
     """
     return r * x * ~r
@@ -1990,7 +1998,7 @@ def sandwich(r: Multivector, x: Multivector) -> Multivector:
 sw = sandwich
 
 
-@lazy_unary("Exp")
+@symbolic_unary("Exp")
 def exp(B: Multivector) -> Multivector:
     """Bivector exponential: exp(B) = cos(|B|) + sin(|B|) * B/|B|.
 
@@ -2017,7 +2025,7 @@ def exp(B: Multivector) -> Multivector:
         return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
 
 
-@lazy_unary("Log")
+@symbolic_unary("Log")
 def log(R: Multivector) -> Multivector:
     """Rotor logarithm: extract the bivector B such that exp(B) = R.
 
@@ -2047,7 +2055,7 @@ def log(R: Multivector) -> Multivector:
         return (phi / mag) * B
 
 
-@lazy_unary("OuterExp")
+@symbolic_unary("OuterExp")
 def outerexp(x: Multivector) -> Multivector:
     """Outer exponential: 1 + x + x∧x/2! + x∧x∧x/3! + ...
 
@@ -2064,7 +2072,7 @@ def outerexp(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0])
 
 
-@lazy_unary("OuterSin")
+@symbolic_unary("OuterSin")
 def outersin(x: Multivector) -> Multivector:
     """Outer sine: odd terms of the outer exponential series."""
     alg = x.algebra
@@ -2079,7 +2087,7 @@ def outersin(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0]) if terms else alg.scalar(0.0)
 
 
-@lazy_unary("OuterCos")
+@symbolic_unary("OuterCos")
 def outercos(x: Multivector) -> Multivector:
     """Outer cosine: even terms of the outer exponential series."""
     alg = x.algebra
@@ -2094,7 +2102,7 @@ def outercos(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0])
 
 
-@lazy_unary("OuterTan")
+@symbolic_unary("OuterTan")
 def outertan(x: Multivector) -> Multivector:
     """Outer tangent: outersin(x) / outercos(x)."""
     return gp(outersin(x), inverse(outercos(x)))

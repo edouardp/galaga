@@ -16,3 +16,4 @@ __marimo__/
 *.swo
 *~
 test.py
+.kiro/

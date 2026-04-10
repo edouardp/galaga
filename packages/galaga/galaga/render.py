@@ -1,7 +1,7 @@
 """Precedence-aware tree-walking renderer for symbolic expressions.
 
 This is the single source of truth for how Expr trees become strings.
-Both Multivector.__str__() and .latex() delegate here for lazy MVs.
+Both Multivector.__str__() and .latex() delegate here for symbolic MVs.
 
 Architecture:
   - OpInfo registry: each Expr node type has a precedence level, associativity,
