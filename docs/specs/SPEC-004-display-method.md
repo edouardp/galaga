@@ -50,3 +50,10 @@ The returned object has:
 - `._repr_latex_()` → `$...$` wrapped (for Jupyter/marimo)
 - `.__str__()` / `.__repr__()` → raw LaTeX string
 - Detected as LaTeX by galaga-marimo via `.latex()` method
+
+### Rule 6: Algebra Display Mode
+
+When `Algebra(display=True)`, `Multivector.__repr__`, `__str__`, and
+`_repr_latex_` delegate to `self.display()` automatically. This makes
+notebook and REPL output show the `name = expression = value` form
+without explicit `.display()` calls.

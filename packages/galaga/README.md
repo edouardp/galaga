@@ -839,7 +839,7 @@ In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector 
 
 ## API Reference
 
-### `Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None)`
+### `Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None, display=False)`
 
 | Method / Property | Description |
 |---|---|

@@ -25,7 +25,7 @@ Additionally, `blade()` lookup uses digit-parsing that assumes 1-based indexing 
 ## Constructor
 
 ```python
-Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None)
+Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None, display=False)
 ```
 
 The `names=` parameter is removed. All blade display configuration goes through `blades=`:
@@ -41,6 +41,8 @@ Algebra((1,1,1), blades=b_default(style="compact"))
 When `blades=None` (default), `b_default()` is used internally — compact style, 1-based, `e` prefix.
 
 `repr_unicode` controls whether `__repr__` uses unicode or ascii blade names. Default is `True` (unicode). This is orthogonal to the `BladeConvention` — it selects which name variant to use during non-LaTeX rendering.
+
+`display` controls whether `__repr__`, `__str__`, and `_repr_latex_` on multivectors delegate to `mv.display()`. When `True`, notebook and REPL output automatically shows the `name = expression = value` form. Default is `False` (standard rendering).
 
 ## BladeConvention
 
