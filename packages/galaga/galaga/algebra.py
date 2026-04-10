@@ -72,13 +72,15 @@ from galaga.lazy import lazy_binary, lazy_unary
 from galaga.notation import Notation
 
 
-def _resolve_lazy(lazy: bool, symbolic: bool | None) -> bool:
+def _resolve_lazy(lazy: bool | None, symbolic: bool | None) -> bool:
     """Resolve lazy=/symbolic= pair. Raises if both are explicitly set."""
+    if lazy is not None and symbolic is not None:
+        raise ValueError("Cannot pass both lazy= and symbolic=; use one or the other")
     if symbolic is not None:
-        if lazy:
-            raise ValueError("Cannot pass both lazy=True and symbolic=; use one or the other")
         return symbolic
-    return lazy
+    if lazy is not None:
+        return lazy
+    return False
 
 
 class Algebra:
@@ -273,7 +275,7 @@ class Algebra:
         """The Notation object controlling symbolic rendering."""
         return self._notation
 
-    def basis_vectors(self, lazy: bool = False, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
+    def basis_vectors(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return the n basis 1-vectors (named + eager by default).
 
         Args:
@@ -292,7 +294,7 @@ class Algebra:
             vecs.append(mv)
         return tuple(vecs)
 
-    def basis_blades(self, k: int, *, lazy: bool = False, symbolic: bool | None = None) -> tuple[Multivector, ...]:
+    def basis_blades(self, k: int, *, lazy: bool | None = None, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return all basis blades of a given grade, in canonical bitmask order.
 
         Args:
@@ -315,7 +317,7 @@ class Algebra:
                 blades.append(mv)
         return tuple(blades)
 
-    def locals(self, *, grades: list[int] | None = None, lazy: bool = False, symbolic: bool | None = None) -> dict[str, Multivector]:
+    def locals(self, *, grades: list[int] | None = None, lazy: bool | None = None, symbolic: bool | None = None) -> dict[str, Multivector]:
         """Return a dict of all basis blades keyed by ASCII name.
 
         Designed for ``locals().update(alg.locals())`` in notebooks and
@@ -346,7 +348,7 @@ class Algebra:
             result[bb.ascii_name] = mv
         return result
 
-    def pseudoscalar(self, lazy: bool = False, *, symbolic: bool | None = None) -> Multivector:
+    def pseudoscalar(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""
         lazy = _resolve_lazy(lazy, symbolic)
         data = np.zeros(self._dim)
@@ -428,7 +430,7 @@ class Algebra:
             data[1 << k] = c
         return Multivector(self, data)
 
-    def blade(self, name, *, lazy: bool = False, symbolic: bool | None = None) -> Multivector:
+    def blade(self, name, *, lazy: bool | None = None, symbolic: bool | None = None) -> Multivector:
         """Lookup a basis blade by name or multivector.
 
         Returns the canonical basis blade (coefficient +1 at the bitmask).

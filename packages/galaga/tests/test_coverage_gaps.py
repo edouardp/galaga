@@ -201,6 +201,8 @@ class TestSymbolicAlias(unittest.TestCase):
     def test_conflict_raises(self):
         with self.assertRaises(ValueError):
             self.alg.basis_vectors(lazy=True, symbolic=True)
+        with self.assertRaises(ValueError):
+            self.alg.basis_vectors(lazy=False, symbolic=False)
 
     def test_symbolic_false_is_eager(self):
         vecs = self.alg.basis_vectors(symbolic=False)
