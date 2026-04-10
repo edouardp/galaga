@@ -480,6 +480,7 @@ def b_complex(
 
 def b_quaternion(
     *,
+    vector_names: list | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Quaternions via Cl(3,0) bivectors: i = e₂₃, j = e₁₃, k = e₁₂.
@@ -488,6 +489,11 @@ def b_quaternion(
     i² = j² = k² = ijk = -1, ij = k, jk = i, ki = j.
 
     Use with ``Algebra(3, blades=b_quaternion())``.
+
+    Args:
+        vector_names: Optional names for the three basis vectors.
+                      Each entry is a string or (ascii, unicode, latex) tuple.
+        overrides: Additional blade name overrides.
 
     Display order is set so terms render as 1 + 2i + 3j + 4k
     (conventional order, not bitmask order).
@@ -500,6 +506,7 @@ def b_quaternion(
     if overrides:
         merged.update(overrides)
     return BladeConvention(
+        vector_names=vector_names,
         overrides=merged,
         display_order=(0b000, 0b110, 0b101, 0b011, 0b001, 0b010, 0b100, 0b111),
     )

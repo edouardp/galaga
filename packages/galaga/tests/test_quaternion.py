@@ -170,6 +170,20 @@ if __name__ == "__main__":
     unittest.main()
 
 
+class TestQuaternionVectorNames(unittest.TestCase):
+    def test_custom_vector_names(self):
+        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
+        x, y, z = alg.basis_vectors()
+        self.assertEqual(str(x), "x")
+        self.assertEqual(str(y), "y")
+        self.assertEqual(str(z), "z")
+        # bivector names still work
+        i, j, k = alg.basis_blades(2)
+        self.assertEqual(str(i), "i")
+        self.assertEqual(str(j), "j")
+        self.assertEqual(str(k), "k")
+
+
 class TestComplexFactory(unittest.TestCase):
     """Verify b_complex() convention for Cl(2,0) even subalgebra."""
 
