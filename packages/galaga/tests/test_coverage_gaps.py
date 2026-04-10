@@ -170,3 +170,38 @@ class TestAlgebraDisplayMode(unittest.TestCase):
         # Default mode: repr is just the name
         self.assertEqual(repr(v), "v")
         self.assertEqual(v._repr_latex_(), "$v$")
+
+
+class TestSymbolicAlias(unittest.TestCase):
+    """Tests for symbolic= as alias for lazy=."""
+
+    def setUp(self):
+        self.alg = Algebra(3)
+
+    def test_basis_vectors_symbolic(self):
+        vecs = self.alg.basis_vectors(symbolic=True)
+        self.assertTrue(vecs[0]._is_lazy)
+
+    def test_basis_blades_symbolic(self):
+        blades = self.alg.basis_blades(2, symbolic=True)
+        self.assertTrue(blades[0]._is_lazy)
+
+    def test_locals_symbolic(self):
+        d = self.alg.locals(symbolic=True)
+        self.assertTrue(next(iter(d.values()))._is_lazy)
+
+    def test_pseudoscalar_symbolic(self):
+        ps = self.alg.pseudoscalar(symbolic=True)
+        self.assertTrue(ps._is_lazy)
+
+    def test_blade_symbolic(self):
+        mv = self.alg.blade("e1", symbolic=True)
+        self.assertTrue(mv._is_lazy)
+
+    def test_conflict_raises(self):
+        with self.assertRaises(ValueError):
+            self.alg.basis_vectors(lazy=True, symbolic=True)
+
+    def test_symbolic_false_is_eager(self):
+        vecs = self.alg.basis_vectors(symbolic=False)
+        self.assertFalse(vecs[0]._is_lazy)

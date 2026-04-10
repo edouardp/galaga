@@ -72,6 +72,15 @@ from galaga.lazy import lazy_binary, lazy_unary
 from galaga.notation import Notation
 
 
+def _resolve_lazy(lazy: bool, symbolic: bool | None) -> bool:
+    """Resolve lazy=/symbolic= pair. Raises if both are explicitly set."""
+    if symbolic is not None:
+        if lazy:
+            raise ValueError("Cannot pass both lazy=True and symbolic=; use one or the other")
+        return symbolic
+    return lazy
+
+
 class Algebra:
     """Immutable Clifford algebra Cl(p,q,r) defined by a metric signature.
 
@@ -264,13 +273,15 @@ class Algebra:
         """The Notation object controlling symbolic rendering."""
         return self._notation
 
-    def basis_vectors(self, lazy: bool = False) -> tuple[Multivector, ...]:
+    def basis_vectors(self, lazy: bool = False, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return the n basis 1-vectors (named + eager by default).
 
         Args:
             lazy: If True, return named + lazy blades that build expression
                   trees when used in arithmetic.
+            symbolic: Alias for lazy.
         """
+        lazy = _resolve_lazy(lazy, symbolic)
         vecs = []
         for k in range(self._n):
             bitmask = 1 << k
@@ -281,17 +292,19 @@ class Algebra:
             vecs.append(mv)
         return tuple(vecs)
 
-    def basis_blades(self, k: int, *, lazy: bool = False) -> tuple[Multivector, ...]:
+    def basis_blades(self, k: int, *, lazy: bool = False, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return all basis blades of a given grade, in canonical bitmask order.
 
         Args:
             k: The grade to select (0 = scalars, 1 = vectors, 2 = bivectors, …).
             lazy: If True, return lazy blades that build expression trees.
+            symbolic: Alias for lazy.
 
         Example::
 
             e12, e13, e23 = alg.basis_blades(2)
         """
+        lazy = _resolve_lazy(lazy, symbolic)
         blades = []
         for idx in self._display_order:
             if bin(idx).count("1") == k:
@@ -302,7 +315,7 @@ class Algebra:
                 blades.append(mv)
         return tuple(blades)
 
-    def locals(self, *, grades: list[int] | None = None, lazy: bool = False) -> dict[str, Multivector]:
+    def locals(self, *, grades: list[int] | None = None, lazy: bool = False, symbolic: bool | None = None) -> dict[str, Multivector]:
         """Return a dict of all basis blades keyed by ASCII name.
 
         Designed for ``locals().update(alg.locals())`` in notebooks and
@@ -312,12 +325,14 @@ class Algebra:
         Args:
             grades: If given, only include these grades. E.g. ``[1, 2]``.
             lazy: If True, blades are lazy (build expression trees).
+            symbolic: Alias for lazy.
 
         Example::
 
             locals().update(alg.locals())          # all blades
             locals().update(alg.locals(grades=[1, 2]))  # vectors + bivectors
         """
+        lazy = _resolve_lazy(lazy, symbolic)
         result = {}
         for idx, bb in self._blades.items():
             if idx == 0:
@@ -331,8 +346,9 @@ class Algebra:
             result[bb.ascii_name] = mv
         return result
 
-    def pseudoscalar(self, lazy: bool = False) -> Multivector:
+    def pseudoscalar(self, lazy: bool = False, *, symbolic: bool | None = None) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""
+        lazy = _resolve_lazy(lazy, symbolic)
         data = np.zeros(self._dim)
         data[self._dim - 1] = 1.0
         mv = Multivector(self, data)
@@ -412,7 +428,7 @@ class Algebra:
             data[1 << k] = c
         return Multivector(self, data)
 
-    def blade(self, name, *, lazy: bool = False) -> Multivector:
+    def blade(self, name, *, lazy: bool = False, symbolic: bool | None = None) -> Multivector:
         """Lookup a basis blade by name or multivector.
 
         Returns the canonical basis blade (coefficient +1 at the bitmask).
@@ -423,12 +439,14 @@ class Algebra:
             name: A string (metric-role key, display name, or prefix+digits),
                 or a Multivector (must be a single basis blade).
             lazy: If True, return a lazy (symbolic) multivector.
+            symbolic: Alias for lazy.
 
         Search order for strings:
         1. Metric-role string (e.g. "+1-1", "pss")
         2. Exact match against any name variant (ascii, unicode, latex)
         3. Parse as prefix + digits using the convention's index_base
         """
+        lazy = _resolve_lazy(lazy, symbolic)
         from galaga.blade_convention import _resolve_metric_role_key
 
         if isinstance(name, Multivector):
