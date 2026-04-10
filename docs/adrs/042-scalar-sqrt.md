@@ -45,7 +45,7 @@ The symbolic rendering payoff is significant:
 ### Consequences
 
 - Good, because physics expressions render naturally without SymPy
-- Good, because it follows the existing `@lazy_unary` / Expr node pattern
+- Good, because it follows the existing `@symbolic_unary` / Expr node pattern
 - Bad, because it's not a GA operation — sets a precedent for scalar math functions
 - Bad, because the plain number acceptance is architecturally inconsistent
 - Acceptable, because the scope is deliberately narrow (one function, not a

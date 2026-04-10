@@ -1,11 +1,5 @@
 # Changelog
 
-## Unreleased
-
-### Added
-
-- **`Algebra(display=True)`** — when enabled, `repr()`, `str()`, and `_repr_latex_()` on multivectors delegate to `.display()`, automatically showing `name = expression = value` in notebooks and REPLs
-
 ## 1.2.0 (2026-04-07)
 
 ### Changed

@@ -38,6 +38,6 @@ by `.eval()` to show the concrete multivector result.
   spin, geometry, or kinematics independently
 * Good, because each notebook can include interactive controls and visuals
   without becoming structurally overloaded
-* Good, because the examples now consistently demonstrate `basis_vectors(lazy=True)`
+* Good, because the examples now consistently demonstrate `basis_vectors(symbolic=True)`
   as the preferred teaching entry point
 * Bad, because there is some overlap between notebooks in related domains

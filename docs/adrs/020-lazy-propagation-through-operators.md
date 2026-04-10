@@ -17,7 +17,7 @@ should the result be? And how should the expression tree be built?
 * Lazy values exist to preserve symbolic structure — that structure should
   survive through operations
 * Eager-only operations should have zero overhead (no tree building)
-* The result must always have correct numeric data (for `.eager()` / `.eval()`)
+* The result must always have correct numeric data (for `.numeric()` / `.eval()`)
 * Named operands should appear by name in expression trees
 
 ## Decision Outcome

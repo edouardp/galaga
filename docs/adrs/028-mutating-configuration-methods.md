@@ -9,20 +9,20 @@ supersedes: partially supersedes ADR-018
 
 ## Context and Problem Statement
 
-The methods `.name()`, `.anon()`, `.lazy()`, and `.eager()` configure how a
+The methods `.name()`, `.anon()`, `.symbolic()`, and `.numeric()` configure how a
 multivector participates in symbolic expressions. Should they mutate the
 object in-place or return copies?
 
 ## Decision Outcome
 
 All four methods **mutate in-place** and return `self`. In addition,
-`.name()` also enables lazy (symbolic) mode by default.
+`.name()` also enables symbolic mode by default.
 
 `.eval()` is the sole non-mutating method — it returns a new anonymous
-eager copy.
+numeric copy.
 
 ```python
-R = (e1 ^ e2).name("R")   # mutates, sets lazy
+R = (e1 ^ e2).name("R")   # mutates, sets symbolic
 v = e1.name("v")
 expr = R * v * ~R          # symbolic expression
 
@@ -55,17 +55,17 @@ This reduces rebinding noise and reads like manipulating mathematical objects.
 ### 3. `.name()` as the common entry to symbolic mode
 
 In practice, naming is the dominant way users introduce symbols. Making
-`.name()` also set the lazy flag:
+`.name()` also set the symbolic flag:
 
 - matches user intent ("this is now a symbol"),
-- avoids extra calls (`.name(...).lazy()`),
+- avoids extra calls (`.name(...).symbolic()`),
 - keeps the common path concise.
 
-An override for the implicit lazy is simply `.name("foo").eager()`.
+An override for the implicit lazy is simply `.name("foo").numeric()`.
 
 ### 4. Clear separation of concerns
 
-- **State/configuration methods mutate:** `.name()`, `.anon()`, `.lazy()`, `.eager()`
+- **State/configuration methods mutate:** `.name()`, `.anon()`, `.symbolic()`, `.numeric()`
 - **Computation does not mutate:** `.eval()` returns a new concrete value
 
 This keeps side effects localized and predictable.
