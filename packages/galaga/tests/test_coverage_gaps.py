@@ -134,3 +134,39 @@ class TestGammaFactoryPss(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAlgebraDisplayMode(unittest.TestCase):
+    """Tests for Algebra(display=True) routing repr/str/latex through .display()."""
+
+    def setUp(self):
+        self.alg = Algebra(3, display=True)
+        self.e1, self.e2, self.e3 = self.alg.basis_vectors()
+
+    def test_named_repr_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        self.assertIn("=", repr(v))
+        self.assertIn("v", repr(v))
+
+    def test_named_str_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        self.assertIn("=", str(v))
+
+    def test_named_repr_latex_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        latex = v._repr_latex_()
+        self.assertTrue(latex.startswith("$"))
+        self.assertIn("=", latex)
+
+    def test_unnamed_no_equals(self):
+        """Unnamed mv has only one part, so display() produces no '='."""
+        w = 2 * self.e1 + 3 * self.e2
+        self.assertNotIn("=", repr(w))
+
+    def test_default_display_false(self):
+        alg = Algebra(3)
+        e1, e2, _ = alg.basis_vectors()
+        v = (2 * e1 + 3 * e2).name("v")
+        # Default mode: repr is just the name
+        self.assertEqual(repr(v), "v")
+        self.assertEqual(v._repr_latex_(), "$v$")

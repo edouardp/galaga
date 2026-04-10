@@ -110,6 +110,9 @@ class Algebra:
                 If None, uses b_default() (compact, 1-based, e prefix).
         repr_unicode: If True (default), ``repr()`` uses Unicode.
                       If False, ``repr()`` uses ASCII.
+        display: If True, ``repr()``, ``str()``, and ``_repr_latex_()`` on
+                 multivectors delegate to ``mv.display()`` (showing
+                 name = expression = value) instead of the default rendering.
     """
 
     __slots__ = (
@@ -125,6 +128,7 @@ class Algebra:
         "_blades_convention",
         "_display_order",
         "_notation",
+        "_display_mode",
     )
 
     def __init__(
@@ -136,6 +140,7 @@ class Algebra:
         blades=None,
         repr_unicode: bool = True,
         notation: Notation | None = None,
+        display: bool = False,
     ):
         from galaga.blade_convention import BladeConvention, b_default, build_blades
 
@@ -162,6 +167,7 @@ class Algebra:
         self._n = len(signature)
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode
+        self._display_mode = display
 
         # Resolve blade convention
         if blades is None:
@@ -1179,12 +1185,16 @@ class Multivector:
 
     def __repr__(self) -> str:
         """Representation controlled by algebra.repr_unicode."""
+        if self.algebra._display_mode:
+            return repr(self.display())
         if self.algebra._repr_unicode:
             return self.__str__()
         return self._format(unicode=False)
 
     def __str__(self) -> str:
         """Unicode representation, e.g. ``3 + 2e₁ - e₃``."""
+        if self.algebra._display_mode:
+            return str(self.display())
         if self._name_unicode is not None:
             return self._name_unicode
         if self._name is not None:
@@ -1289,6 +1299,8 @@ class Multivector:
 
     def _repr_latex_(self) -> str:
         """Jupyter/Marimo notebook integration."""
+        if self.algebra._display_mode:
+            return self.display()._repr_latex_()
         return f"${self.latex()}$"
 
 
