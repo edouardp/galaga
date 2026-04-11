@@ -1,5 +1,38 @@
 # Changelog
 
+## 1.3.0 (2026-04-11)
+
+### Added
+
+- **`symbolic=` alias for `lazy=`** — all basis-returning methods (`basis_vectors()`, `basis_blades()`, `pseudoscalar()`, `blade()`, `locals()`) now accept `symbolic=True` as a clearer alternative to `lazy=True`. Both work; `symbolic=` is preferred going forward. (ADR-062)
+- **`display=True` on `Algebra`** — `Algebra(3, display=True)` makes `repr()` show the evaluated form by default, useful for REPL exploration. (ADR-061)
+- **`vector_names=` parameter on `b_quaternion()`** — customise the vector basis names
+- **Chisolm reference test suite** — 2062+ identities from Chisolm's *Geometric Algebra* (arXiv:1205.5935v1) covering products, involutions, duality, commutator identities, projections, reflections, rotations, and Lorentz boosts. (ADR-060)
+
+### Fixed
+
+- **Symbolic `ScalarMul(1, x)` no longer renders as `1x`** — both unicode and LaTeX renderers now suppress the unit coefficient for `k == +1`, matching the existing `k == -1` suppression. (ADR-063)
+- **Compact-style LaTeX for single-char vector names** — `z` now renders as `z`, not `z_{z}`
+
+### Changed
+
+- **Renamed `lazy` internals to `symbolic`** throughout the codebase. The `lazy=` parameter continues to work as an alias. (ADR-062)
+
+### Docs
+
+- ADR-060: Chisolm paper as reference test suite
+- ADR-061: Algebra-level display mode
+- ADR-062: Rename lazy to symbolic
+- ADR-063: Suppress unit coefficient in symbolic ScalarMul rendering
+- Updated SPEC-004, SPEC-008, SPEC-010, README, and all ADRs to use symbolic/numeric terminology
+- Clarified `lie_bracket` vs `commutator` convention in docstrings
+
+### Tests
+
+- 5 new test files with 2062+ Chisolm-derived identities
+- Regression tests for `ScalarMul(1, x)` suppression
+- 1975+ tests passing
+
 ## 1.2.0 (2026-04-07)
 
 ### Changed
