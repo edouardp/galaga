@@ -171,6 +171,20 @@ class TestAlgebraDisplayMode(unittest.TestCase):
         self.assertEqual(repr(v), "v")
         self.assertEqual(v._repr_latex_(), "$v$")
 
+    def test_display_result_format_spec(self):
+        """_DisplayResult supports format specs for coefficient formatting."""
+        v = (2.123456 * self.e1 + 3.789012 * self.e2).name("v")
+        d = v.display()
+        formatted = f"{d:.2f}"
+        self.assertIn("2.12", formatted)
+        self.assertIn("3.79", formatted)
+
+    def test_display_result_format_empty(self):
+        """_DisplayResult with empty format spec returns default rendering."""
+        v = (2 * self.e1).name("v")
+        d = v.display()
+        self.assertEqual(f"{d}", str(d))
+
 
 class TestSymbolicAlias(unittest.TestCase):
     """Tests for symbolic= as alias for lazy=."""
