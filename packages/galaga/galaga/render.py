@@ -31,7 +31,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from galaga.expr import (
+from .expr import (
     Add,
     Anticommutator,
     Commutator,
@@ -71,7 +71,7 @@ from galaga.expr import (
     Undual,
     Unit,
 )
-from galaga.notation import Notation
+from .notation import Notation
 
 _SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 # Characters that don't count toward "visual width" — used to decide
@@ -305,8 +305,8 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 
 
 def render_latex(node: Expr, notation: Notation | None = None) -> str:
-    from galaga.latex_build import build
-    from galaga.latex_emit import emit
-    from galaga.latex_rewrite import rewrite
+    from .latex_build import build
+    from .latex_emit import emit
+    from .latex_rewrite import rewrite
 
     return emit(rewrite(build(node, notation)))

@@ -19,7 +19,7 @@ from __future__ import annotations
 import re
 from dataclasses import dataclass
 
-from galaga.basis_blade import BasisBlade
+from .basis_blade import BasisBlade
 
 _SUBS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 

@@ -11,8 +11,8 @@ the tree stops changing, capped at 100 iterations.
 
 from __future__ import annotations
 
-import galaga.algebra as _alg
-from galaga.expr import (
+from . import algebra as _alg
+from .expr import (
     Add,
     Anticommutator,
     Commutator,

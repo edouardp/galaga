@@ -15,7 +15,7 @@ Node categories:
 
 from __future__ import annotations
 
-import galaga.algebra as _alg
+from . import algebra as _alg
 
 Numeric = int | float
 
@@ -53,12 +53,12 @@ class Expr:
         return str(self)
 
     def __str__(self) -> str:
-        from galaga.render import render
+        from .render import render
 
         return render(self)
 
     def latex(self, wrap: str | None = None) -> str:
-        from galaga.render import render_latex
+        from .render import render_latex
 
         raw = render_latex(self)
         if wrap == "$":

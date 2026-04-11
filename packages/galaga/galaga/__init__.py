@@ -52,7 +52,7 @@ Design Principles
   result is symbolic. When all operands are numeric, the fast numeric path is taken.
 """
 
-from galaga.algebra import (
+from .algebra import (
     Algebra,
     Multivector,
     anticommutator,
@@ -123,8 +123,8 @@ from galaga.algebra import (
     unit,
     wedge,
 )
-from galaga.basis_blade import BasisBlade
-from galaga.blade_convention import (
+from .basis_blade import BasisBlade
+from .blade_convention import (
     BladeConvention,
     b_cga,
     b_complex,
@@ -136,9 +136,9 @@ from galaga.blade_convention import (
     b_sigma_xyz,
     b_sta,
 )
-from galaga.expr import sym
-from galaga.notation import Notation
-from galaga.simplify import simplify
+from .expr import sym
+from .notation import Notation
+from .simplify import simplify
 
 __all__ = [
     "Algebra",

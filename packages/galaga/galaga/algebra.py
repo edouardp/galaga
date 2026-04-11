@@ -64,12 +64,12 @@ def _sign_of_reorder(a: int, b: int) -> int:
     return 1 - 2 * (n & 1)
 
 
-import galaga.expr as _sym
-import galaga.render as _render
-from galaga.basis_blade import BasisBlade
-from galaga.latex_symbols import LatexSymbols
-from galaga.notation import Notation
-from galaga.symbolic import symbolic_binary, symbolic_unary
+from . import expr as _sym
+from . import render as _render
+from .basis_blade import BasisBlade
+from .latex_symbols import LatexSymbols
+from .notation import Notation
+from .symbolic import symbolic_binary, symbolic_unary
 
 
 def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
@@ -153,7 +153,7 @@ class Algebra:
         notation: Notation | None = None,
         display_repr: bool = False,
     ):
-        from galaga.blade_convention import BladeConvention, b_default, build_blades
+        from .blade_convention import BladeConvention, b_default, build_blades
 
         self._notation = notation or Notation()
         # Resolve signature: iterable of squares, or (p, q, r) counts
@@ -294,7 +294,9 @@ class Algebra:
             vecs.append(mv)
         return tuple(vecs)
 
-    def basis_blades(self, k: int, *, lazy: bool | None = None, symbolic: bool | None = None) -> tuple[Multivector, ...]:
+    def basis_blades(
+        self, k: int, *, lazy: bool | None = None, symbolic: bool | None = None
+    ) -> tuple[Multivector, ...]:
         """Return all basis blades of a given grade, in canonical bitmask order.
 
         Args:
@@ -317,7 +319,9 @@ class Algebra:
                 blades.append(mv)
         return tuple(blades)
 
-    def locals(self, *, grades: list[int] | None = None, lazy: bool | None = None, symbolic: bool | None = None) -> dict[str, Multivector]:
+    def locals(
+        self, *, grades: list[int] | None = None, lazy: bool | None = None, symbolic: bool | None = None
+    ) -> dict[str, Multivector]:
         """Return a dict of all basis blades keyed by ASCII name.
 
         Designed for ``locals().update(alg.locals())`` in notebooks and
@@ -449,7 +453,7 @@ class Algebra:
         3. Parse as prefix + digits using the convention's index_base
         """
         is_symbolic = _resolve_symbolic(lazy, symbolic)
-        from galaga.blade_convention import _resolve_metric_role_key
+        from .blade_convention import _resolve_metric_role_key
 
         if isinstance(name, Multivector):
             nonzero = np.nonzero(np.abs(name.data) > 1e-12)[0]
@@ -569,7 +573,7 @@ class Algebra:
             mv_or_index: A Multivector (must be a basis blade), an int bitmask,
                 or a metric-role string (e.g. "+1-1", "pss").
         """
-        from galaga.blade_convention import _resolve_metric_role_key
+        from .blade_convention import _resolve_metric_role_key
 
         if isinstance(mv_or_index, str):
             bitmask = _resolve_metric_role_key(mv_or_index, self._sig)
@@ -617,7 +621,7 @@ def _sci_lnode(s: str, style: str):
 
     Returns an LNode (Text, or Seq with Sup for scientific notation).
     """
-    from galaga.latex_nodes import Seq, Sup, Text
+    from .latex_nodes import Seq, Sup, Text
 
     if style == "raw":
         return Text(s)
@@ -634,7 +638,7 @@ def _sci_lnode(s: str, style: str):
 
 def _coeff_lnode(c: float, blade: str, coeff_format: str | None, style: str):
     """Build an LNode for a single coefficient × blade term."""
-    from galaga.latex_nodes import Seq, Text
+    from .latex_nodes import Seq, Text
 
     if coeff_format:
         formatted = format(c, coeff_format)
@@ -1300,7 +1304,7 @@ class Multivector:
             raw = _render.render_latex(self._expr, self.algebra._notation)
         else:
             # Eager anonymous → coefficient rendering via LNodes
-            from galaga.latex_emit import emit
+            from .latex_emit import emit
 
             alg = self.algebra
             style = alg._notation.scientific
@@ -1680,7 +1684,7 @@ def scalar_sqrt(x) -> Multivector:
         raise TypeError(f"scalar_sqrt expects a Multivector or number, got {type(x).__name__}")
     # Lazy path
     if x._is_symbolic:
-        import galaga.expr as _expr_mod
+        from . import expr as _expr_mod
 
         result = scalar_sqrt(Multivector(x.algebra, x.data))
         return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))
@@ -1712,7 +1716,7 @@ def sqrt(x) -> Multivector:
     if not isinstance(x, Multivector):
         raise TypeError(f"sqrt expects a Multivector or number, got {type(x).__name__}")
     if x._is_symbolic:
-        import galaga.expr as _expr_mod
+        from . import expr as _expr_mod
 
         result = sqrt(Multivector(x.algebra, x.data))
         return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))

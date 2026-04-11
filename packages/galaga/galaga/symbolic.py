@@ -33,7 +33,7 @@ def _make_numeric(mv):
     This strips all symbolic metadata (_is_symbolic, _expr, _name) so the
     decorated function's numeric path runs without triggering symbolic logic.
     """
-    from galaga.algebra import Multivector
+    from .algebra import Multivector
 
     return Multivector(mv.algebra, mv.data)
 
@@ -49,7 +49,7 @@ def symbolic_unary(sym_node_name: str):
         @functools.wraps(func)
         def wrapper(x):
             if x._is_symbolic:
-                import galaga.expr as _expr_mod
+                from . import expr as _expr_mod
 
                 NodeClass = getattr(_expr_mod, sym_node_name)
                 result = func(_make_numeric(x))
@@ -72,7 +72,7 @@ def symbolic_binary(sym_node_name: str):
         @functools.wraps(func)
         def wrapper(a, b):
             if a._is_symbolic or b._is_symbolic:
-                import galaga.expr as _expr_mod
+                from . import expr as _expr_mod
 
                 NodeClass = getattr(_expr_mod, sym_node_name)
                 result = func(_make_numeric(a), _make_numeric(b))

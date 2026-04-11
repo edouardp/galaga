@@ -11,7 +11,7 @@ renderer in render.py, ensuring consistent precedence decisions.
 
 from __future__ import annotations
 
-from galaga.expr import (
+from .expr import (
     Add,
     Conjugate,
     Div,
@@ -31,9 +31,9 @@ from galaga.expr import (
     Sym,
     Unit,
 )
-from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
-from galaga.notation import Notation
-from galaga.render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
+from .latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
+from .notation import Notation
+from .render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
 
 _DEFAULT = Notation()
 

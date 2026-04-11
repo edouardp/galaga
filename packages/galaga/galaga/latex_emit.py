@@ -7,7 +7,7 @@ straightforward serialization of the intermediate representation.
 
 from __future__ import annotations
 
-from galaga.latex_nodes import Command, Frac, LNode, Parens, Seq, SlashFrac, Sup, Text
+from .latex_nodes import Command, Frac, LNode, Parens, Seq, SlashFrac, Sup, Text
 
 
 def emit(node: LNode) -> str:
