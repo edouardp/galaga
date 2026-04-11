@@ -53,7 +53,7 @@ The returned object has:
 
 ### Rule 6: Algebra Display Mode
 
-When `Algebra(display=True)`, `Multivector.__repr__`, `__str__`, and
+When `Algebra(display_repr=True)`, `Multivector.__repr__`, `__str__`, and
 `_repr_latex_` delegate to `self.display()` automatically. This makes
 notebook and REPL output show the `name = expression = value` form
 without explicit `.display()` calls.

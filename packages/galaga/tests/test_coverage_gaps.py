@@ -137,10 +137,10 @@ if __name__ == "__main__":
 
 
 class TestAlgebraDisplayMode(unittest.TestCase):
-    """Tests for Algebra(display=True) routing repr/str/latex through .display()."""
+    """Tests for Algebra(display_repr=True) routing repr/str/latex through .display()."""
 
     def setUp(self):
-        self.alg = Algebra(3, display=True)
+        self.alg = Algebra(3, display_repr=True)
         self.e1, self.e2, self.e3 = self.alg.basis_vectors()
 
     def test_named_repr_uses_display(self):

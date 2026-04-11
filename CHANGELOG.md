@@ -5,7 +5,7 @@
 ### Added
 
 - **`symbolic=` alias for `lazy=`** — all basis-returning methods (`basis_vectors()`, `basis_blades()`, `pseudoscalar()`, `blade()`, `locals()`) now accept `symbolic=True` as a clearer alternative to `lazy=True`. Both work; `symbolic=` is preferred going forward. (ADR-062)
-- **`display=True` on `Algebra`** — `Algebra(3, display=True)` makes `repr()` show the evaluated form by default, useful for REPL exploration. (ADR-061)
+- **`display_repr=True` on `Algebra`** — `Algebra(3, display_repr=True)` makes `repr()` show the `.display()` form by default, useful for REPL exploration. Renamed from `display=` for clarity. (ADR-061)
 - **`vector_names=` parameter on `b_quaternion()`** — customise the vector basis names
 - **Chisolm reference test suite** — 2062+ identities from Chisolm's *Geometric Algebra* (arXiv:1205.5935v1) covering products, involutions, duality, commutator identities, projections, reflections, rotations, and Lorentz boosts. (ADR-060)
 

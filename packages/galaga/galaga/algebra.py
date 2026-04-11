@@ -121,7 +121,7 @@ class Algebra:
                 If None, uses b_default() (compact, 1-based, e prefix).
         repr_unicode: If True (default), ``repr()`` uses Unicode.
                       If False, ``repr()`` uses ASCII.
-        display: If True, ``repr()``, ``str()``, and ``_repr_latex_()`` on
+        display_repr: If True, ``repr()``, ``str()``, and ``_repr_latex_()`` on
                  multivectors delegate to ``mv.display()`` (showing
                  name = expression = value) instead of the default rendering.
     """
@@ -151,7 +151,7 @@ class Algebra:
         blades=None,
         repr_unicode: bool = True,
         notation: Notation | None = None,
-        display: bool = False,
+        display_repr: bool = False,
     ):
         from galaga.blade_convention import BladeConvention, b_default, build_blades
 
@@ -178,7 +178,7 @@ class Algebra:
         self._n = len(signature)
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode
-        self._display_mode = display
+        self._display_mode = display_repr
 
         # Resolve blade convention
         if blades is None:

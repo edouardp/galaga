@@ -24,15 +24,19 @@ on every multivector — tedious when exploring interactively.
 
 ## Decision
 
-Add a `display: bool = False` keyword argument to `Algebra.__init__`.
+Add a `display_repr: bool = False` keyword argument to `Algebra.__init__`.
 When `True`, `Multivector.__repr__`, `__str__`, and `_repr_latex_` delegate
 to `self.display()` instead of their default rendering.
 
+Originally named `display=`, renamed to `display_repr=` for clarity — the
+name says exactly what it changes (the repr behaviour) rather than the
+vague `display`.
+
 ## Consequences
 
-* `Algebra(3, display=True)` makes every multivector auto-render in the
+* `Algebra(3, display_repr=True)` makes every multivector auto-render in the
   `name = expression = value` form in notebooks and REPLs
 * Unnamed multivectors are unaffected in practice — `display()` deduplicates
   parts, so a single-part result has no `=` sign
-* Default behaviour (`display=False`) is unchanged; no existing code breaks
+* Default behaviour (`display_repr=False`) is unchanged; no existing code breaks
 * The flag is stored as `Algebra._display_mode` and checked in three methods
