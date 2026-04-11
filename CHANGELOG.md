@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.1 (2026-04-11)
+
+### Changed
+
+- **Renamed `display=` to `display_repr=`** on `Algebra.__init__` — the parameter name now says exactly what it changes. (ADR-061)
+
 ## 1.3.0 (2026-04-11)
 
 ### Added
