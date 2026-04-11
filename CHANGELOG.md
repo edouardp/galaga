@@ -29,7 +29,7 @@
 
 ### Tests
 
-- 5 new test files with 2062+ Chisolm-derived identities
+- 5 new Chisolm-derived test files (309 parametrized test cases)
 - Regression tests for `ScalarMul(1, x)` suppression
 - 1975+ tests passing
 
