@@ -127,6 +127,11 @@ class TestScalarMulDiv:
         a, _, _ = syms
         assert render(ScalarMul(-1, a)) == "-a"
 
+    def test_scalar_mul_pos1(self, syms):
+        """ScalarMul by +1 suppresses the coefficient."""
+        a, _, _ = syms
+        assert render(ScalarMul(1, a)) == "a"
+
     def test_scalar_mul_sum(self, syms):
         """ScalarMul of sum wraps in parens."""
         a, b, _ = syms

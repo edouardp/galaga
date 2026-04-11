@@ -84,6 +84,8 @@ def _build(node: Expr, n: Notation) -> LNode:
         inner = _build(node.x, n)
         if node.k == -1:
             return Seq([Text("-"), _wp(inner, node.x, 61)])
+        if node.k == 1:
+            return inner
         return Seq([Text(f"{node.k:g} "), _wp(inner, node.x, 61)])
 
     # ScalarDiv: frac{child}{k}

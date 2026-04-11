@@ -207,7 +207,11 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         return f"-{_w(render(node.x, n), node.x, 61)}"
     if t is ScalarMul:
         i = render(node.x, n)
-        return f"-{_w(i, node.x, 61)}" if node.k == -1 else f"{node.k:g}{_w(i, node.x, 61)}"
+        if node.k == -1:
+            return f"-{_w(i, node.x, 61)}"
+        if node.k == 1:
+            return i
+        return f"{node.k:g}{_w(i, node.x, 61)}"
     if t is ScalarDiv:
         return f"{_w(render(node.x, n), node.x, 70)}/{node.k:g}"
 

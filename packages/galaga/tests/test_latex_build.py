@@ -109,6 +109,10 @@ class TestArithmetic:
         """ScalarMul by -1 renders as -a."""
         assert _latex(ScalarMul(-1, a)) == "-a"
 
+    def test_scalar_mul_pos1(self):
+        """ScalarMul by +1 suppresses the coefficient."""
+        assert _latex(ScalarMul(1, a)) == "a"
+
     def test_scalar_div(self):
         """ScalarDiv renders as \frac."""
         assert _latex(ScalarDiv(a, 2)) == r"\frac{a}{2}"
