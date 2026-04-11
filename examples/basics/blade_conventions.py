@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.22.4"
+__generated_with = "0.22.5"
 app = marimo.App(width="medium")
 
 
@@ -23,6 +23,7 @@ def _():
         b_sigma,
         b_sigma_xyz,
         b_sta,
+        b_quaternion
     )
 
     return (
@@ -32,6 +33,7 @@ def _():
         b_default,
         b_gamma,
         b_pga,
+        b_quaternion,
         b_sigma,
         b_sigma_xyz,
         b_sta,
@@ -47,7 +49,9 @@ def _(mo):
         def __call__(self, *p):
             parts = []
             for _p in p:
-                if hasattr(_p, "latex"):
+                if hasattr(_p, "display"):
+                    parts.append(f"${_p.display()}$")
+                elif hasattr(_p, "latex"):
                     parts.append(f"${_p.latex()}$")
                 else:
                     parts.append(str(_p))
@@ -386,6 +390,37 @@ def _(Algebra, Display, b_cga):
     _d = Display()
     _d("Euclidean:", _e1, _e2, _e3)
     _d("Null pair:", _ep, _em)
+    _d("Null bivector:", _ep ^ _em)
+    _d
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Quaternions
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, Display, b_quaternion):
+    _alg = Algebra(3, blades=b_quaternion())
+    i, j, k = _alg.basis_blades(k=2, lazy=True)
+
+    _d = Display()
+    _d( i**2 )
+    _d( j**2 )
+    _d( k**2 )
+    _d( i*j*k )
+    _d()
+    _d( i*j )
+    _d( j*k )
+    _d( k*i )
+    _d()
+    _d( j*i )
+    _d( k*j )
+    _d( i*k )
     _d
     return
 

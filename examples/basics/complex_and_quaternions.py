@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.22.4"
+__generated_with = "0.22.5"
 app = marimo.App(width="medium")
 
 
@@ -144,7 +144,7 @@ def _(Display, alg_c, conjugate, norm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### Euler's formula
 
     $e^{i\theta} = \cos\theta + i\sin\theta$ works directly via `exp()`.
@@ -293,7 +293,7 @@ def _(Display, conjugate, i, inverse, j, k, norm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ### 3D rotation via quaternion sandwich
 
     A unit quaternion $q = \cos(\theta/2) + \sin(\theta/2)(ai + bj + ck)$
