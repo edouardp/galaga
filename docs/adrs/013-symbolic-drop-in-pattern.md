@@ -10,7 +10,7 @@ superseded-by: ADR-018
 > **Note:** This ADR is partially superseded by [ADR-018](018-unified-naming-evaluation-semantics.md).
 > The drop-in pattern still exists, but the detection logic now checks for lazy
 > `Multivector` objects (via `_is_symbolic()`) in addition to `Expr` instances.
-> `sym()` returns a `Multivector` with `_is_lazy=True`, not an `Expr`.
+> `sym()` returns a `Multivector` with `_is_symbolic=True`, not an `Expr`.
 
 ## Context and Problem Statement
 

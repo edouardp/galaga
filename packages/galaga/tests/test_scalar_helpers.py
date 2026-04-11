@@ -25,7 +25,7 @@ class TestFraction:
     def test_half_display(self, alg):
         """fraction(1, 2) is lazy with expression tree."""
         f = alg.fraction(1, 2)
-        assert f._is_lazy
+        assert f._is_symbolic
 
     def test_third(self, alg):
         """fraction(1, 3) has value 1/3."""
@@ -64,7 +64,7 @@ class TestFraction:
         """fraction works in lazy expressions."""
         e1, _, _ = alg.basis_vectors(lazy=True)
         result = alg.frac(1, 2) * e1
-        assert result._is_lazy
+        assert result._is_symbolic
         assert np.isclose(result.eval().data[1], 0.5)
 
     def test_in_exp(self, alg):
@@ -91,7 +91,7 @@ class TestScalarConstants:
 
     def test_pi_lazy(self, alg):
         """pi is lazy."""
-        assert alg.pi._is_lazy
+        assert alg.pi._is_symbolic
 
     def test_e_value(self, alg):
         """e_constant has value e."""
@@ -119,7 +119,7 @@ class TestScalarConstants:
 
     def test_sqrt2_lazy(self, alg):
         """sqrt2 is lazy."""
-        assert alg.sqrt2._is_lazy
+        assert alg.sqrt2._is_symbolic
 
     def test_h_value(self, alg):
         """h has Planck constant value."""
@@ -148,7 +148,7 @@ class TestScalarConstants:
     def test_constants_in_expressions(self, alg):
         """Constants work in lazy expressions."""
         E = alg.hbar * alg.c
-        assert E._is_lazy
+        assert E._is_symbolic
         assert np.isclose(E.eval().scalar_part, 1.054571817e-34 * 299792458.0)
 
     def test_pi_in_fraction(self, alg):

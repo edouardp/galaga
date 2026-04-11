@@ -10,8 +10,8 @@ deciders: edouard
 
 The `galaga.symbolic` module contained drop-in replacements for every function
 in `galaga.algebra` (gp, grade, reverse, norm, etc.). These detected lazy
-Multivector arguments and built expression trees. However, the `@lazy_unary`
-and `@lazy_binary` decorators on the algebra functions already do the same
+Multivector arguments and built expression trees. However, the `@symbolic_unary`
+and `@symbolic_binary` decorators on the algebra functions already do the same
 thing — making the drop-ins redundant.
 
 Users had two ways to get lazy behaviour:

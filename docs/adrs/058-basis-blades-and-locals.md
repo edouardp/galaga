@@ -12,7 +12,7 @@ Notebooks frequently need named variables for higher-grade basis blades.
 `basis_vectors()` only returns grade-1 blades, so users wrote boilerplate:
 
 ```python
-e1, e2, e3 = alg.basis_vectors(lazy=True)
+e1, e2, e3 = alg.basis_vectors(symbolic=True)
 e12 = (e1 * e2).name(latex=r"e_{12}")
 e23 = (e2 * e3).name(latex=r"e_{23}")
 e31 = (e3 * e1).name(latex=r"e_{31}")
@@ -26,11 +26,11 @@ blades. Using `.eval()` avoids the tree but is still per-blade boilerplate.
 
 Add two methods to `Algebra`:
 
-1. **`basis_blades(k, *, lazy=False)`** — returns a tuple of all grade-k
+1. **`basis_blades(k, *, symbolic=False)`** — returns a tuple of all grade-k
    basis blades in canonical bitmask order. Mirrors `basis_vectors()` for
    arbitrary grades.
 
-2. **`locals(*, grades=None, lazy=False)`** — returns a `dict[str, Multivector]`
+2. **`locals(*, grades=None, symbolic=False)`** — returns a `dict[str, Multivector]`
    of all non-scalar basis blades, keyed by ASCII name from the blade
    convention. Designed for `locals().update(alg.locals())` in notebook
    cells and top-level scripts.
@@ -46,7 +46,7 @@ functions. This is acceptable because GA notebook code lives in cells.
 ## Consequences
 
 - Notebook boilerplate drops from N lines to one:
-  `locals().update(alg.locals(grades=[1, 2], lazy=True))`
+  `locals().update(alg.locals(grades=[1, 2], symbolic=True))`
 - Dict keys follow the blade convention: `e1`, `e12`, `y0y1`, `s1`, etc.
   Renaming a blade changes the key in subsequent `locals()` calls.
 - `basis_blades(k)` parameter is named `k` to match the standard GA

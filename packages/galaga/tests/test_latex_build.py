@@ -109,6 +109,10 @@ class TestArithmetic:
         """ScalarMul by -1 renders as -a."""
         assert _latex(ScalarMul(-1, a)) == "-a"
 
+    def test_scalar_mul_pos1(self):
+        """ScalarMul by +1 suppresses the coefficient."""
+        assert _latex(ScalarMul(1, a)) == "a"
+
     def test_scalar_div(self):
         """ScalarDiv renders as \frac."""
         assert _latex(ScalarDiv(a, 2)) == r"\frac{a}{2}"
@@ -454,7 +458,7 @@ class TestEndToEndLatex:
         e1, _, _ = alg.basis_vectors(lazy=True)
         v = e1.name("v")
         c = complement(v)
-        assert c._is_lazy
+        assert c._is_symbolic
         assert r"\complement" in c.latex()
 
     def test_log_lazy(self):

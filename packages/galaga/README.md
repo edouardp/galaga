@@ -8,7 +8,7 @@ A numeric geometric algebra library with a stable, programmer-first API.
 - **No ambiguity** — every inner product variant has its own name
 - **Unicode pretty-printing** — `3 + 2e₁ - e₃`, `γ₀γ₁`, `σₓσᵧ`
 - **Symbolic expression trees** — write `grade(R * v * ~R, 1)` and see `⟨RvR̃⟩₁`
-- **Naming and evaluation** — `.name("B")`, `.anon()`, `.lazy()`, `.eager()` mutate in-place; `.eval()` returns a copy
+- **Naming and evaluation** — `.name("B")`, `.anon()`, `.symbolic()`, `.numeric()` mutate in-place; `.eval()` returns a copy
 - **LaTeX-driven naming** — `.name(latex=r"\theta")` auto-derives unicode (θ) and ASCII (theta)
 
 ## Install
@@ -49,8 +49,8 @@ pga = Algebra((1, 1, 1, 0))        # Cl(3,0,1) — Projective GA
 ### Constructors
 
 ```python
-alg.basis_vectors()              # (e₁, e₂, e₃) — named + eager
-alg.basis_vectors(lazy=True)     # (e₁, e₂, e₃) — named + lazy (symbolic)
+alg.basis_vectors()              # (e₁, e₂, e₃) — named + numeric
+alg.basis_vectors(symbolic=True) # (e₁, e₂, e₃) — named + symbolic
 alg.basis_blades(2)              # (e₁₂, e₁₃, e₂₃) — all grade-k blades
 alg.locals()                     # {"e1": e₁, "e12": e₁₂, …} for locals().update()
 alg.pseudoscalar()               # e₁₂₃ (also alg.I)
@@ -69,7 +69,7 @@ e1, e2, e3 = alg.basis_blades(1)          # same as basis_vectors()
 e12, e13, e23 = alg.basis_blades(2)        # all bivectors
 
 # Alternatively, inject all blades into local scope (notebooks / top-level scripts)
-d = alg.locals(grades=[1, 2], lazy=True)
+d = alg.locals(grades=[1, 2], symbolic=True)
 locals().update(d)
 print("Injected:", ", ".join(d))           # Injected: e1, e2, e3, e12, e13, e23
 ```
@@ -432,7 +432,7 @@ Name multivectors and build expression trees that render as mathematical notatio
 ### Naming and Evaluation
 
 Any multivector can be named and made symbolic with `.name()`.
-All configuration methods (`.name()`, `.anon()`, `.lazy()`, `.eager()`)
+All configuration methods (`.name()`, `.anon()`, `.symbolic()`, `.numeric()`)
 **mutate in-place** and return `self`. Only `.eval()` returns a new copy.
 
 ```python
@@ -485,13 +485,13 @@ print(x.eval())       # e₁₂ + e₃  (concrete)
 
 Names don't propagate — the result is anonymous but named operands appear by name in the expression tree.
 
-### Lazy Basis Blades
+### Symbolic Basis Blades
 
-For fully symbolic workflows, use `lazy=True` — every operation builds an
+For fully symbolic workflows, use `symbolic=True` — every operation builds an
 expression tree automatically:
 
 ```python
-e1, e2, e3 = alg.basis_vectors(lazy=True)
+e1, e2, e3 = alg.basis_vectors(symbolic=True)
 
 e1 ^ e2              # e₁∧e₂  (not e₁₂)
 e1 * e2              # e₁e₂
@@ -567,8 +567,8 @@ print(expr)          # ⟨RvR̃⟩₁
 print(expr.eval())   # concrete Multivector result
 ```
 
-`.eval()` returns a new anonymous eager copy (non-mutating).
-`.eager()` mutates in-place.
+`.eval()` returns a new anonymous numeric copy (non-mutating).
+`.numeric()` mutates in-place.
 
 ### LaTeX Output
 
@@ -647,7 +647,7 @@ from galaga.notation import Notation, NotationRule
 
 # Use Hestenes convention (reverse as dagger)
 alg = Algebra((1, 1, 1), notation=Notation.hestenes())
-e1, e2, _ = alg.basis_vectors(lazy=True)
+e1, e2, _ = alg.basis_vectors(symbolic=True)
 v = e1.name("v")
 print(reverse(v))   # v†
 
@@ -839,11 +839,11 @@ In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector 
 
 ## API Reference
 
-### `Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None)`
+### `Algebra(p_or_signature, q=0, r=0, *, blades=None, repr_unicode=True, notation=None, display=False)`
 
 | Method / Property | Description |
 |---|---|
-| `basis_vectors(lazy=False)` | Tuple of basis 1-vectors (lazy=True for symbolic) |
+| `basis_vectors(symbolic=False)` | Tuple of basis 1-vectors (symbolic=True for expression trees) |
 | `pseudoscalar()` | Unit pseudoscalar |
 | `I` | Unit pseudoscalar (property) |
 | `identity` | Scalar 1 |
@@ -857,12 +857,12 @@ In 3D Euclidean space, the Lie bracket of bivectors is isomorphic to the vector 
 | Property / Method | Description |
 |---|---|
 | `[k]` | Grade-k projection (`x[2]` = `grade(x, 2)`) |
-| `.name(label, *, latex=, unicode=, ascii=)` | Set display name, set lazy (mutates). `label` optional if `latex` given. |
+| `.name(label, *, latex=, unicode=, ascii=)` | Set display name, set symbolic (mutates). `label` optional if `latex` given. |
 | `.anon()` | Remove display name (mutates) |
-| `.lazy()` | Set lazy mode (mutates) |
-| `.eager()` | Force eager, strip name (mutates) |
-| `.eager("B")` | Force eager, keep/set name (mutates) |
-| `.eval()` | Return a new anonymous eager copy (non-mutating) |
+| `.symbolic()` | Set symbolic mode (mutates) |
+| `.numeric()` | Force numeric, strip name (mutates) |
+| `.numeric("B")` | Force numeric, keep/set name (mutates) |
+| `.eval()` | Return a new anonymous numeric copy (non-mutating) |
 | `.inv` | Inverse |
 | `.dag` | Reverse (dagger) |
 | `.sq` | Squared (geometric product with self) |
@@ -916,8 +916,8 @@ Interactive [marimo](https://marimo.io) notebooks in `examples/`:
 
 ### `basics/` — Library Features
 
-- **`naming_demo.py`** — `.name()`, `.anon()`, `.lazy()`, `.eager()`, real-world examples
-- **`lazy_blades_demo.py`** — `basis_vectors(lazy=True)` for fully symbolic workflows
+- **`naming_demo.py`** — `.name()`, `.anon()`, `.symbolic()`, `.numeric()`, real-world examples
+- **`lazy_blades_demo.py`** — `basis_vectors(symbolic=True)` for fully symbolic workflows
 - **`latex_naming_demo.py`** — LaTeX-driven naming across physics domains
 - **`rendering_gallery.py`** — Visual gallery of all expression types with LaTeX rendering
 - **`symbolic_demo.py`** — Expression trees, rendering, simplification, LaTeX output
@@ -1023,9 +1023,9 @@ uv run pytest packages/galaga/tests/ --cov=galaga --cov-report=term        # wit
 - Projection/rejection complement property, reflection involution
 - Symbolic rendering, evaluation, simplification rules
 - LaTeX output for both `Multivector` and `Expr`
-- Naming/evaluation semantics: `.name()`, `.anon()`, `.lazy()`, `.eager()`
-- Lazy propagation through all operators
-- Lazy basis blades: `basis_vectors(lazy=True)`
+- Naming/evaluation semantics: `.name()`, `.anon()`, `.symbolic()`, `.numeric()`
+- Symbolic propagation through all operators
+- Symbolic basis blades: `basis_vectors(symbolic=True)`
 - MV / MV division, ScalarDiv/Div/Exp expression nodes
 - Precedence-aware rendering (93 dedicated tests)
 - LaTeX symbol mapping (101 tests) and auto-derivation

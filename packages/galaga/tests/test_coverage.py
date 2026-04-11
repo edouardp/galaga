@@ -580,14 +580,14 @@ class TestSymbolicMixedInputs:
         e1, e2, _ = cl3.basis_vectors()
         R = sym(e1 * e2, "R")
         result = sgp(e1, R)
-        assert result._is_lazy
+        assert result._is_symbolic
 
     def test_op_mv_and_expr(self, cl3):
         """op(MV, Expr) coerces correctly."""
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
         result = sop(e2, a)
-        assert result._is_lazy
+        assert result._is_symbolic
 
 
 class TestScalarExpr:

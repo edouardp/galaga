@@ -169,10 +169,12 @@ def build_blades(
         l_parts = [vec_names[k][2] for k in bits]
 
         if conv.style == "compact":
-            # Try to merge subscripts under common prefix
-            u_prefix = _common_prefix(u_parts)
-            a_prefix = _common_prefix(a_parts)
-            if u_prefix and a_prefix:
+            if len(bits) == 1:
+                # Single vector — use names directly, no merging needed
+                a = a_parts[0]
+                u = u_parts[0]
+                lx = l_parts[0]
+            elif (u_prefix := _common_prefix(u_parts)) and (a_prefix := _common_prefix(a_parts)):
                 u_subs = "".join(p[len(u_prefix) :] for p in u_parts)
                 a_subs = "".join(p[len(a_prefix) :] for p in a_parts)
                 a = f"{a_prefix}{a_subs}"
@@ -480,6 +482,7 @@ def b_complex(
 
 def b_quaternion(
     *,
+    vector_names: list | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
     """Quaternions via Cl(3,0) bivectors: i = e₂₃, j = e₁₃, k = e₁₂.
@@ -488,6 +491,11 @@ def b_quaternion(
     i² = j² = k² = ijk = -1, ij = k, jk = i, ki = j.
 
     Use with ``Algebra(3, blades=b_quaternion())``.
+
+    Args:
+        vector_names: Optional names for the three basis vectors.
+                      Each entry is a string or (ascii, unicode, latex) tuple.
+        overrides: Additional blade name overrides.
 
     Display order is set so terms render as 1 + 2i + 3j + 4k
     (conventional order, not bitmask order).
@@ -500,6 +508,7 @@ def b_quaternion(
     if overrides:
         merged.update(overrides)
     return BladeConvention(
+        vector_names=vector_names,
         overrides=merged,
         display_order=(0b000, 0b110, 0b101, 0b011, 0b001, 0b010, 0b100, 0b111),
     )

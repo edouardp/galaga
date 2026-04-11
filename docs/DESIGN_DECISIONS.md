@@ -31,22 +31,22 @@ The ½ in `lie_bracket` vs `commutator` is not a formatting choice — it change
 - **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays.
 - **`galaga.symbolic`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree.
 
-`Multivector` is the single public type. It can be named or anonymous, lazy or eager — these are orthogonal axes controlled by `.name()`, `.anon()`, `.lazy()`, `.eager()`.
+`Multivector` is the single public type. It can be named or anonymous, symbolic or numeric — these are orthogonal axes controlled by `.name()`, `.anon()`, `.symbolic()`, `.numeric()`.
 
 ## 6. Naming and evaluation are orthogonal
 
 Every multivector independently controls two things:
 
 - **Identity / display** — named (prints as `B`) or anonymous (prints as `e₁₂`)
-- **Evaluation strategy** — lazy (preserves expression tree) or eager (concrete coefficients)
+- **Evaluation strategy** — symbolic (carries expression tree) or numeric (concrete coefficients only)
 
-`.name("B")` makes an object named + lazy by default. `.eager()` forces concrete evaluation in-place and strips the name (or `.eager("B")` to keep it). `.eval()` returns a new anonymous eager copy without mutating the original. `.anon()` removes the name while preserving the lazy/eager state.
+`.name("B")` makes an object named + symbolic by default. `.numeric()` forces concrete evaluation in-place and strips the name (or `.numeric("B")` to keep it). `.eval()` returns a new anonymous numeric copy without mutating the original. `.anon()` removes the name while preserving the symbolic/numeric state.
 
-Basis blades are **named + eager** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead. Use `basis_vectors(lazy=True)` for fully symbolic workflows where every operation builds an expression tree.
+Basis blades are **named + numeric** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead. Use `basis_vectors(symbolic=True)` for fully symbolic workflows where every operation builds an expression tree.
 
-## 7. Lazy is contagious
+## 7. Symbolic is contagious
 
-When a lazy multivector participates in an operation with an eager one, the result is lazy. The result carries both concrete data (for `.eval()`) and an expression tree (for display). Names don't propagate — the result is anonymous, but named operands appear by name in the tree.
+When a symbolic multivector participates in an operation with a numeric one, the result is symbolic. The result carries both concrete data (for `.eval()`) and an expression tree (for display). Names don't propagate — the result is anonymous, but named operands appear by name in the tree.
 
 When all operands are eager, the fast numeric path is taken with zero symbolic overhead.
 

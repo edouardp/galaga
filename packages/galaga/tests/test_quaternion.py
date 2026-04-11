@@ -162,12 +162,33 @@ class TestQuaternionBladeLookup(unittest.TestCase):
     def test_lazy_blade_lookup(self):
         """blade('i', lazy=True) returns a lazy multivector."""
         i = self.alg.blade("i", lazy=True)
-        assert i._is_lazy
+        assert i._is_symbolic
         assert str(i) == "i"
 
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestQuaternionVectorNames(unittest.TestCase):
+    def test_custom_vector_names(self):
+        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
+        x, y, z = alg.basis_vectors()
+        self.assertEqual(str(x), "x")
+        self.assertEqual(str(y), "y")
+        self.assertEqual(str(z), "z")
+        # bivector names still work
+        i, j, k = alg.basis_blades(2)
+        self.assertEqual(str(i), "i")
+        self.assertEqual(str(j), "j")
+        self.assertEqual(str(k), "k")
+
+    def test_custom_vector_names_latex(self):
+        """Regression: single-char vector names must not produce z_{z} in LaTeX."""
+        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
+        x, y, z = alg.basis_vectors()
+        self.assertEqual(z.latex(), "z")
+        self.assertEqual(x.latex(), "x")
 
 
 class TestComplexFactory(unittest.TestCase):

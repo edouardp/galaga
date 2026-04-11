@@ -12,19 +12,19 @@ class TestBladeLazyPaths(unittest.TestCase):
         """blade(metric_role, lazy=True) returns lazy MV."""
         alg = Algebra(3)
         mv = alg.blade("+1+2", lazy=True)
-        assert mv._is_lazy
+        assert mv._is_symbolic
 
     def test_display_name_lazy(self):
         """blade(display_name, lazy=True) returns lazy MV."""
         sta = Algebra(1, 3, blades=b_sta(sigmas=True))
         mv = sta.blade("σ₁", lazy=True)
-        assert mv._is_lazy
+        assert mv._is_symbolic
 
     def test_scalar_blade_lazy(self):
         """blade('1', lazy=True) returns lazy scalar."""
         alg = Algebra(3)
         mv = alg.blade("1", lazy=True)
-        assert mv._is_lazy
+        assert mv._is_symbolic
         assert mv.scalar_part == 1.0
 
     def test_empty_string_blade(self):
@@ -37,7 +37,7 @@ class TestBladeLazyPaths(unittest.TestCase):
         """blade('e12', lazy=True) returns lazy MV."""
         alg = Algebra(3)
         mv = alg.blade("e12", lazy=True)
-        assert mv._is_lazy
+        assert mv._is_symbolic
 
     def test_prefix_digits_out_of_range(self):
         """blade('e9') raises ValueError for 3D algebra."""
@@ -57,7 +57,7 @@ class TestBladeLazyPaths(unittest.TestCase):
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         mv = alg.blade(e1 ^ e2, lazy=True)
-        assert mv._is_lazy
+        assert mv._is_symbolic
 
 
 class TestDisplayResultEdgeCases(unittest.TestCase):
@@ -134,3 +134,90 @@ class TestGammaFactoryPss(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAlgebraDisplayMode(unittest.TestCase):
+    """Tests for Algebra(display_repr=True) routing repr/str/latex through .display()."""
+
+    def setUp(self):
+        self.alg = Algebra(3, display_repr=True)
+        self.e1, self.e2, self.e3 = self.alg.basis_vectors()
+
+    def test_named_repr_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        self.assertIn("=", repr(v))
+        self.assertIn("v", repr(v))
+
+    def test_named_str_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        self.assertIn("=", str(v))
+
+    def test_named_repr_latex_uses_display(self):
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        latex = v._repr_latex_()
+        self.assertTrue(latex.startswith("$"))
+        self.assertIn("=", latex)
+
+    def test_unnamed_no_equals(self):
+        """Unnamed mv has only one part, so display() produces no '='."""
+        w = 2 * self.e1 + 3 * self.e2
+        self.assertNotIn("=", repr(w))
+
+    def test_default_display_false(self):
+        alg = Algebra(3)
+        e1, e2, _ = alg.basis_vectors()
+        v = (2 * e1 + 3 * e2).name("v")
+        # Default mode: repr is just the name
+        self.assertEqual(repr(v), "v")
+        self.assertEqual(v._repr_latex_(), "$v$")
+
+    def test_display_result_format_spec(self):
+        """_DisplayResult supports format specs for coefficient formatting."""
+        v = (2.123456 * self.e1 + 3.789012 * self.e2).name("v")
+        d = v.display()
+        formatted = f"{d:.2f}"
+        self.assertIn("2.12", formatted)
+        self.assertIn("3.79", formatted)
+
+    def test_display_result_format_empty(self):
+        """_DisplayResult with empty format spec returns default rendering."""
+        v = (2 * self.e1).name("v")
+        d = v.display()
+        self.assertEqual(f"{d}", str(d))
+
+
+class TestSymbolicAlias(unittest.TestCase):
+    """Tests for symbolic= as alias for lazy=."""
+
+    def setUp(self):
+        self.alg = Algebra(3)
+
+    def test_basis_vectors_symbolic(self):
+        vecs = self.alg.basis_vectors(symbolic=True)
+        self.assertTrue(vecs[0]._is_symbolic)
+
+    def test_basis_blades_symbolic(self):
+        blades = self.alg.basis_blades(2, symbolic=True)
+        self.assertTrue(blades[0]._is_symbolic)
+
+    def test_locals_symbolic(self):
+        d = self.alg.locals(symbolic=True)
+        self.assertTrue(next(iter(d.values()))._is_symbolic)
+
+    def test_pseudoscalar_symbolic(self):
+        ps = self.alg.pseudoscalar(symbolic=True)
+        self.assertTrue(ps._is_symbolic)
+
+    def test_blade_symbolic(self):
+        mv = self.alg.blade("e1", symbolic=True)
+        self.assertTrue(mv._is_symbolic)
+
+    def test_conflict_raises(self):
+        with self.assertRaises(ValueError):
+            self.alg.basis_vectors(lazy=True, symbolic=True)
+        with self.assertRaises(ValueError):
+            self.alg.basis_vectors(lazy=False, symbolic=False)
+
+    def test_symbolic_false_is_eager(self):
+        vecs = self.alg.basis_vectors(symbolic=False)
+        self.assertFalse(vecs[0]._is_symbolic)

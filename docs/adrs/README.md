@@ -33,7 +33,7 @@ helps future contributors understand why certain choices were made.
 | [018](018-unified-naming-evaluation-semantics.md) | Unified Naming and Evaluation Semantics on Multivector | Partially superseded by 028 |
 | [019](019-basis-blades-named-eager.md) | Basis Blades as Named Eager Multivectors | Accepted |
 | [020](020-lazy-propagation-through-operators.md) | Lazy Propagation Through Operators | Accepted |
-| [021](021-lazy-basis-blades.md) | Lazy Basis Blades via basis_vectors(lazy=True) | Accepted |
+| [021](021-lazy-basis-blades.md) | Symbolic Basis Blades via basis_vectors(symbolic=True) | Accepted |
 | [022](022-blade-lookup-dimension-guard.md) | Blade Lookup Rejects Digit-by-Digit Parsing Above 9D | Accepted |
 | [023](023-squared-parenthesization.md) | Parenthesization in Squared Rendering | Accepted |
 | [024](024-latex-driven-name-derivation.md) | LaTeX-Driven Name Derivation | Accepted |

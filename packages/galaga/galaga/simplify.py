@@ -88,7 +88,7 @@ def _eq(a: Expr, b: Expr) -> bool:
 def simplify(expr) -> Expr:
     """Apply algebraic rewrite rules to simplify an expression tree.
 
-    Accepts an ``Expr`` or a lazy ``Multivector`` (extracts its expression tree).
+    Accepts an ``Expr`` or a symbolic ``Multivector`` (extracts its expression tree).
 
     Runs ``_simplify()`` repeatedly until the tree stops changing (fixed-point
     iteration). This handles cascading rules like ``a - (-a) → a + a → 2a``.

@@ -1,7 +1,7 @@
 """Precedence-aware tree-walking renderer for symbolic expressions.
 
 This is the single source of truth for how Expr trees become strings.
-Both Multivector.__str__() and .latex() delegate here for lazy MVs.
+Both Multivector.__str__() and .latex() delegate here for symbolic MVs.
 
 Architecture:
   - OpInfo registry: each Expr node type has a precedence level, associativity,
@@ -207,7 +207,11 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         return f"-{_w(render(node.x, n), node.x, 61)}"
     if t is ScalarMul:
         i = render(node.x, n)
-        return f"-{_w(i, node.x, 61)}" if node.k == -1 else f"{node.k:g}{_w(i, node.x, 61)}"
+        if node.k == -1:
+            return f"-{_w(i, node.x, 61)}"
+        if node.k == 1:
+            return i
+        return f"{node.k:g}{_w(i, node.x, 61)}"
     if t is ScalarDiv:
         return f"{_w(render(node.x, n), node.x, 70)}/{node.k:g}"
 

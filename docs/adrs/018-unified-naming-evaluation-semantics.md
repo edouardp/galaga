@@ -28,7 +28,7 @@ completely different type from `Multivector`. This created friction:
 
 ## Considered Options
 
-1. **Enrich Multivector** — Add `.name()`, `.anon()`, `.lazy()`, `.eager()`
+1. **Enrich Multivector** — Add `.name()`, `.anon()`, `.symbolic()`, `.numeric()`
    directly to `Multivector`, with an optional internal `Expr` tree
 2. **New unified class** — Replace both `Multivector` and `Expr` with a new type
 3. **Keep separate types** — Improve interop but maintain the type boundary
@@ -36,31 +36,31 @@ completely different type from `Multivector`. This created friction:
 ## Decision Outcome
 
 Chosen option: "Enrich Multivector" — every multivector can independently be
-named or anonymous, lazy or eager.
+named or anonymous, symbolic or numeric.
 
 ### The Two Axes
 
 | | **Anonymous** | **Named** |
 |---|---|---|
-| **Eager** | Plain numeric MV (default) | Basis blades, named constants |
-| **Lazy** | Expression structure visible | `B = (e1^e2).name("B")` |
+| **Numeric** | Plain numeric MV (default) | Basis blades, named constants |
+| **Symbolic** | Expression structure visible | `B = (e1^e2).name("B")` |
 
 ### API
 
 ```python
-mv.name("B")                    # named + lazy (default)
+mv.name("B")                    # named + symbolic (default)
 mv.name("B", latex=r"\mathbf{B}")  # with format overrides
-mv.anon()                       # remove name, keep lazy/eager
-mv.lazy()                       # prefer symbolic representation
-mv.eager()                      # force eager in-place, strip name
-mv.eager("B")                   # force eager in-place, keep/set name
-mv.eval()                       # return new anonymous eager copy
+mv.anon()                       # remove name, keep symbolic/numeric
+mv.symbolic()                       # prefer symbolic representation
+mv.numeric()                      # force numeric in-place, strip name
+mv.numeric("B")                   # force numeric in-place, keep/set name
+mv.eval()                       # return new anonymous numeric copy
 ```
 
 ### Internal Representation
 
 `Multivector` gains optional fields: `_name`, `_name_latex`, `_name_unicode`,
-`_is_lazy`, `_expr`, `_grade`. The `Expr` class hierarchy remains as the
+`_is_symbolic`, `_expr`, `_grade`. The `Expr` class hierarchy remains as the
 internal expression tree — it's now an implementation detail, not a public type
 that users need to work with directly.
 

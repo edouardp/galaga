@@ -25,7 +25,7 @@ makes objects lazy by default. How should basis blades work?
 ## Decision Outcome
 
 `Algebra.basis_vectors()`, `pseudoscalar()`, and `blade()` return multivectors
-that are **named + eager**: `_name` is set, `_is_lazy` is `False`.
+that are **named + numeric**: `_name` is set, `_is_symbolic` is `False`.
 
 ```python
 alg = Algebra((1, 1, 1))
@@ -34,7 +34,7 @@ e1, e2, e3 = alg.basis_vectors()
 e1._name          # "e1"
 e1._name_unicode  # "e₁"
 e1._name_latex    # "e_{1}"
-e1._is_lazy       # False
+e1._is_symbolic       # False
 ```
 
 The special display behavior of basis blades (coefficient elision, `e12`
