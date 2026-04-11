@@ -659,6 +659,9 @@ class _DisplayResult:
     def __repr__(self) -> str:
         return self._render()
 
+    def __format__(self, spec: str) -> str:
+        return self._render(coeff_format=spec if spec else None)
+
 
 class Multivector:
     """A multivector in a Clifford algebra.
