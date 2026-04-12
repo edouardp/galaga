@@ -26,7 +26,7 @@ In projective geometric algebra, the term **motor** replaces "rotor" for the gen
 
 ### Key disagreement
 
-Is every element of the even subalgebra with $R\tilde{R} = 1$ a rotor?  Mathematicians say yes (it's the definition of $\mathrm{Spin}(V)$). GA practitioners sometimes insist a rotor must be *constructible* as a product of vectors. For finite-dimensional real Clifford algebras these are the same set, but the conceptual framing differs.
+Is every element of the even subalgebra with $R\tilde{R} = 1$ a rotor?  Mathematicians say yes — it's the definition of $\mathrm{Spin}(V)$. GA practitioners sometimes insist a rotor must be *constructible* as a product of vectors. For finite-dimensional real Clifford algebras these are the same set, but the conceptual framing differs.
 
 ## What is a "generator"?
 
@@ -64,7 +64,7 @@ $$
 
 only works when $B^2 = -1$.
 
-Chisolm also handles the other cases in $\S$9.3.1:
+Chisolm also handles the other cases in $\S$ 9.3.1:
 
 | $B^2$ | Type               | Rotor form                         | Interpretation                 |
 | ----- | ------------------ | ---------------------------------- | ------------------------------ |
