@@ -14,6 +14,8 @@ In Marimo Notebooks, When writing code for dynamically rendering markdown, gm.md
 - Use $ for inline math and $$ for display math.
 - Use {var} to insert the value of a variable into the markdown. It will be rendered as latex.
 
+Only update CHANGELOG.md when doing a release.
+
 Never use `git commit --amend` or `git push --force` (or `--force-with-lease`). Always create new commits.
 
 Working with Geometric Algebra code:

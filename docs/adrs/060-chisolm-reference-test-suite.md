@@ -144,3 +144,35 @@ Five test files in `packages/galaga/tests/`, totalling 309 tests:
   Minkowski, degenerate, mixed)
 * Neutral, because the paper doesn't cover PGA-specific operations (meet, join)
   or CGA — those need separate test sources
+
+## Addendum: Cohoe Reference Tests (2024-04-12)
+
+A second reference source was added: Cohoe, "Rigorous Development of
+Geometric Algebra" (David Cohoe, September 18, 2024). This paper takes a
+more foundational approach, building GA from the universal property and
+constructing the exterior algebra isomorphism before deriving grading and
+products.
+
+**test_cohoe.py** — 84 tests covering identities new or differently stated
+compared to Chisolm:
+
+- Generalised anticommutator: aX − X*a = 2(a⌋X) (Thm 3.19)
+- Antisymmetry of iterated contractions: a⌋(b⌋X) + b⌋(a⌋X) = 0 (Thm 3.17)
+- Vector contraction nilpotency: a⌋(a⌋X) = 0 (Thm 3.20)
+- Grade involution and contraction sign: (a⌋X)* = −a⌋(X*) (Thm 3.18)
+- Vector contraction with scalar is zero (Thm 3.15)
+- Contraction-involution identities: involute and reverse distribute over
+  left/right contractions, with reverse swapping left↔right (§5.2)
+- Scalar part invariant under reverse: ⟨A†⟩ = ⟨A⟩ (Thm 4.11)
+- Grade projection commutes with involutions (Thm 4.9/4.10)
+- Grade projection commutes with vector contraction (Thm 4.12)
+- Vector contraction via grade projection: ⟨aX⟩_{n−1} = a⌋X (Thm 5.2)
+- Right product decomposition: Xv = X⌊v + X∧v (Thm 5.6)
+- All vector inner products agree: a⌋b = a⌊b = B(a,b) (§5.2)
+- Scalar product vanishes for different grades (Thm 5.3)
+- Scalar product symmetry (Thm 5.4)
+- Norm squared invariant under reverse (Thm 5.5)
+- Versor norm identity: A†A = AA† = |A|² (Thm 6.2)
+- Sandwich distributes over outer product (Thm 6.4)
+
+Full review: `docs/review-cohoe-rigorous-ga.md`
