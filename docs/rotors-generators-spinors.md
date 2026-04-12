@@ -112,7 +112,7 @@ This is the simplest definition and the one most GA software uses. But it doesn'
 
 ### Definition 2: Mathematics — "element of a minimal left ideal"
 
-The Chevalley/Lounesto definition. Pick an idempotent $p$ (like $p = \frac{1}{2}(1 + e_n)$) and form the minimal left ideal $\mathrm{Cl}(V)p$. Spinors are elements of this ideal.
+The Chevalley/Lounesto definition. Pick an idempotent $p$ — like $p = \frac{1}{2}(1 + e_n)$ — and form the minimal left ideal $\mathrm{Cl}(V)p$. Spinors are elements of this ideal.
 
 This is more general than Definition 1. The even subalgebra and a minimal left ideal are not the same thing in general, though they are isomorphic as $\mathrm{Spin}(V)$ representations in many cases.
 
@@ -150,7 +150,7 @@ The choice of spinor definition determines what "rotor" and "generator" mean:
 
 - **If spinor = even element** (GA): a rotor is a normalized spinor, and the bivector you exponentiate is just "the thing in the exponent." No separate concept of "generator" is needed.
 
-- **If spinor = column vector** (physics): a rotor is a *matrix* acting on spinors, the bivector is a *matrix* in the Lie algebra (a "generator"), and $\exp$ maps generators to group elements. The $\frac{1}{2}$ shows up because the Lie algebra representation has a factor of $\frac{1}{2}$ built in (the $\sigma_i/2$ for $\mathrm{SU}(2)$).
+- **If spinor = column vector** (physics): a rotor is a *matrix* acting on spinors, the bivector is a *matrix* in the Lie algebra (a "generator"), and $\exp$ maps generators to group elements. The $\frac{1}{2}$ shows up because the Lie algebra representation has a factor of $\frac{1}{2}$ built in — the $\sigma_i/2$ for $\mathrm{SU}(2)$.
 
 - **If spinor = ideal element** (Lounesto): a rotor acts by left multiplication on the ideal, and the bivector generates this action.
 
