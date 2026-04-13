@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.1 (2026-04-13)
+
+### Added
+
+- **`norm2()` renders symbolically** — `norm2(v)` now displays as `‖v‖²` (unicode) and `\lVert v \rVert^{2}` (LaTeX) instead of expanding to `⟨v~v⟩₀`.
+
 ## 1.4.0 (2026-04-13)
 
 ### Added
