@@ -69,7 +69,7 @@ from . import render as _render
 from .basis_blade import BasisBlade
 from .latex_symbols import LatexSymbols
 from .notation import Notation
-from .symbolic import symbolic_binary, symbolic_unary
+from .ops import ga_op
 
 
 def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
@@ -1055,9 +1055,6 @@ class Multivector:
 
     def __invert__(self):
         """Reverse (~a)."""
-        if self._is_symbolic:
-            result = reverse(Multivector(self.algebra, self.data))
-            return self._symbolic_result(result.data, _sym.Reverse(self._to_expr()))
         return reverse(self)
 
     def __truediv__(self, other):
@@ -1364,7 +1361,7 @@ class Multivector:
 # ============================================================
 
 
-@symbolic_binary("Gp")
+@ga_op("gp", arity=2)
 def gp(a: Multivector, b: Multivector) -> Multivector:
     """Geometric product — the fundamental product of Clifford algebra.
 
@@ -1385,7 +1382,7 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Op")
+@ga_op("op", arity=2)
 def op(a: Multivector, b: Multivector) -> Multivector:
     """Outer (wedge) product — keeps only the grade-raising part of gp.
 
@@ -1411,7 +1408,7 @@ def op(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Lc")
+@ga_op("left_contraction", arity=2)
 def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Left contraction: a ⌋ b.
 
@@ -1443,7 +1440,7 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Rc")
+@ga_op("right_contraction", arity=2)
 def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Right contraction: a ⌊ b.
 
@@ -1469,7 +1466,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Hi")
+@ga_op("hestenes_inner", arity=2)
 def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     """Hestenes inner product.
 
@@ -1500,7 +1497,7 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Dli")
+@ga_op("doran_lasenby_inner", arity=2)
 def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     """Doran–Lasenby inner product: grade-|r-s| part of gp(a,b), including scalars.
 
@@ -1530,59 +1527,48 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
 dorst_inner = doran_lasenby_inner
 
 
-@symbolic_binary("Sp")
+@ga_op("scalar_product", arity=2)
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
     return grade(gp(a, b), 0)
 
 
+@ga_op("commutator", arity=2)
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""
-    if a._is_symbolic or b._is_symbolic:
-        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) - gp(
-            Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
-        )
-        return a._symbolic_result(result.data, _sym.Commutator(a._to_expr(), b._to_expr()))
     return gp(a, b) - gp(b, a)
 
 
+@ga_op("anticommutator", arity=2)
 def anticommutator(a: Multivector, b: Multivector) -> Multivector:
     """Anticommutator: ab + ba."""
-    if a._is_symbolic or b._is_symbolic:
-        result = gp(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) + gp(
-            Multivector(b.algebra, b.data), Multivector(a.algebra, a.data)
-        )
-        return a._symbolic_result(result.data, _sym.Anticommutator(a._to_expr(), b._to_expr()))
     return gp(a, b) + gp(b, a)
 
 
+@ga_op("lie_bracket", arity=2)
 def lie_bracket(a: Multivector, b: Multivector) -> Multivector:
     """Lie bracket: ½(ab - ba).
 
     The half-scaled commutator under which bivectors form a Lie algebra
     with clean structure constants: [Bᵢ, Bⱼ] = εᵢⱼₖ Bₖ.
     """
-    if a._is_symbolic or b._is_symbolic:
-        result = commutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
-        return a._symbolic_result(result.data, _sym.LieBracket(a._to_expr(), b._to_expr()))
     return commutator(a, b) * 0.5
 
 
+@ga_op("jordan_product", arity=2)
 def jordan_product(a: Multivector, b: Multivector) -> Multivector:
     """Jordan product: ½(ab + ba).
 
     The symmetric part of the geometric product. For vectors,
     this equals the inner product: a ∘ b = a · b.
     """
-    if a._is_symbolic or b._is_symbolic:
-        result = anticommutator(Multivector(a.algebra, a.data), Multivector(b.algebra, b.data)) * 0.5
-        return a._symbolic_result(result.data, _sym.JordanProduct(a._to_expr(), b._to_expr()))
     return anticommutator(a, b) * 0.5
 
 
 # --- Unary operations ---
 
 
+@ga_op("reverse", arity=1)
 def reverse(x: Multivector) -> Multivector:
     """Reverse (†, tilde): reverses the order of basis vectors in each blade.
 
@@ -1597,8 +1583,6 @@ def reverse(x: Multivector) -> Multivector:
     ~V = vₖ...v₂v₁. The sandwich product R x ~R uses the reverse to
     apply rotations/boosts, and V~V gives the squared norm.
     """
-    if x._is_symbolic:
-        return ~x
     alg = x.algebra
     out = x.data.copy()
     for k in range(alg.n + 1):
@@ -1608,7 +1592,7 @@ def reverse(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_unary("Involute")
+@ga_op("involute", arity=1)
 def involute(x: Multivector) -> Multivector:
     """Grade involution (hat): grade-k component is multiplied by (-1)^k.
 
@@ -1623,7 +1607,7 @@ def involute(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_unary("Conjugate")
+@ga_op("conjugate", arity=1)
 def conjugate(x: Multivector) -> Multivector:
     """Clifford conjugate: reverse composed with grade involution.
 
@@ -1736,7 +1720,7 @@ def sqrt(x) -> Multivector:
     return bI / (2 * cp) + x.algebra.scalar(cp)
 
 
-@symbolic_unary("Dual")
+@ga_op("dual", arity=1)
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.
 
@@ -1757,7 +1741,7 @@ def dual(x: Multivector) -> Multivector:
     return left_contraction(x, I_inv)
 
 
-@symbolic_unary("Undual")
+@ga_op("undual", arity=1)
 def undual(x: Multivector) -> Multivector:
     """Undual: left-contract x into the pseudoscalar (inverse of dual).
 
@@ -1767,7 +1751,7 @@ def undual(x: Multivector) -> Multivector:
     return left_contraction(x, I)
 
 
-@symbolic_unary("Complement")
+@ga_op("complement", arity=1)
 def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
@@ -1787,7 +1771,7 @@ def complement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_unary("Uncomplement")
+@ga_op("uncomplement", arity=1)
 def uncomplement(x: Multivector) -> Multivector:
     """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
     alg = x.algebra
@@ -1801,7 +1785,7 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@symbolic_binary("Regressive")
+@ga_op("regressive_product", arity=2)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
 
@@ -1842,7 +1826,7 @@ def norm(x: Multivector):
     return float(np.sqrt(abs(norm2(x))))
 
 
-@symbolic_unary("Unit")
+@ga_op("unit", arity=1)
 def unit(x: Multivector) -> Multivector:
     """Normalize to unit multivector."""
     n = norm(x)
@@ -1851,7 +1835,7 @@ def unit(x: Multivector) -> Multivector:
     return x / n
 
 
-@symbolic_unary("Inverse")
+@ga_op("inverse", arity=1)
 def inverse(x: Multivector) -> Multivector:
     """General multivector inverse: x⁻¹ such that x * x⁻¹ = 1.
 
@@ -1972,14 +1956,14 @@ def is_basis_blade(x: Multivector) -> bool:
     return np.count_nonzero(np.abs(x.data) > 1e-12) == 1
 
 
-@symbolic_unary("Even")
+@ga_op("even_grades", arity=1)
 def even_grades(x: Multivector) -> Multivector:
     """Extract even-grade components."""
     alg = x.algebra
     return grades(x, [k for k in range(0, alg.n + 1, 2)])
 
 
-@symbolic_unary("Odd")
+@ga_op("odd_grades", arity=1)
 def odd_grades(x: Multivector) -> Multivector:
     """Extract odd-grade components."""
     alg = x.algebra
@@ -2009,7 +1993,7 @@ def sandwich(r: Multivector, x: Multivector) -> Multivector:
 sw = sandwich
 
 
-@symbolic_unary("Exp")
+@ga_op("exp", arity=1)
 def exp(B: Multivector) -> Multivector:
     """Bivector exponential: exp(B) = cos(|B|) + sin(|B|) * B/|B|.
 
@@ -2036,7 +2020,7 @@ def exp(B: Multivector) -> Multivector:
         return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
 
 
-@symbolic_unary("Log")
+@ga_op("log", arity=1)
 def log(R: Multivector) -> Multivector:
     """Rotor logarithm: extract the bivector B such that exp(B) = R.
 
@@ -2066,7 +2050,7 @@ def log(R: Multivector) -> Multivector:
         return (phi / mag) * B
 
 
-@symbolic_unary("OuterExp")
+@ga_op("outerexp", arity=1)
 def outerexp(x: Multivector) -> Multivector:
     """Outer exponential: 1 + x + x∧x/2! + x∧x∧x/3! + ...
 
@@ -2083,7 +2067,7 @@ def outerexp(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0])
 
 
-@symbolic_unary("OuterSin")
+@ga_op("outersin", arity=1)
 def outersin(x: Multivector) -> Multivector:
     """Outer sine: odd terms of the outer exponential series."""
     alg = x.algebra
@@ -2098,7 +2082,7 @@ def outersin(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0]) if terms else alg.scalar(0.0)
 
 
-@symbolic_unary("OuterCos")
+@ga_op("outercos", arity=1)
 def outercos(x: Multivector) -> Multivector:
     """Outer cosine: even terms of the outer exponential series."""
     alg = x.algebra
@@ -2113,7 +2097,7 @@ def outercos(x: Multivector) -> Multivector:
     return sum(terms[1:], start=terms[0])
 
 
-@symbolic_unary("OuterTan")
+@ga_op("outertan", arity=1)
 def outertan(x: Multivector) -> Multivector:
     """Outer tangent: outersin(x) / outercos(x)."""
     return gp(outersin(x), inverse(outercos(x)))

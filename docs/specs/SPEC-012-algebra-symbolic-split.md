@@ -92,7 +92,7 @@ This creates several problems:
 ┌──────────────────────────────────────────────────┐
 │  ops.py  (NEW — operation registry)              │
 │                                                  │
-│  @ga_op("op", arity=2, sym_node="Op",            │
+│  @ga_op("op", arity=2,                           │
 │         grade=lambda g,h,n: g+h if g+h<=n ...)   │
 │  def op(a, b):                                   │
 │      # pure numeric implementation               │

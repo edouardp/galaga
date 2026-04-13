@@ -361,3 +361,43 @@ def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None)
     else:
         copy.symbolic()
     return copy
+
+
+# ── Register symbolic handlers for @ga_op operations ──
+
+from .ops import register_symbolic_handler
+
+_HANDLER_MAP = {
+    "gp": Gp,
+    "op": Op,
+    "left_contraction": Lc,
+    "right_contraction": Rc,
+    "hestenes_inner": Hi,
+    "doran_lasenby_inner": Dli,
+    "scalar_product": Sp,
+    "commutator": Commutator,
+    "anticommutator": Anticommutator,
+    "lie_bracket": LieBracket,
+    "jordan_product": JordanProduct,
+    "reverse": Reverse,
+    "involute": Involute,
+    "conjugate": Conjugate,
+    "dual": Dual,
+    "undual": Undual,
+    "complement": Complement,
+    "uncomplement": Uncomplement,
+    "regressive_product": Regressive,
+    "unit": Unit,
+    "inverse": Inverse,
+    "even_grades": Even,
+    "odd_grades": Odd,
+    "exp": Exp,
+    "log": Log,
+    "outerexp": OuterExp,
+    "outersin": OuterSin,
+    "outercos": OuterCos,
+    "outertan": OuterTan,
+}
+
+for _name, _handler in _HANDLER_MAP.items():
+    register_symbolic_handler(_name, _handler)
