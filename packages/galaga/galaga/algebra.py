@@ -1009,12 +1009,6 @@ class Multivector:
         # Handle Expr operands (e.g. _sym.Scalar(1) from symbolic module)
         if isinstance(other, _sym.Expr):
             return _sym.Gp(self._to_expr(), other)
-        self._check_same(other)
-        if self._is_any_symbolic(other):
-            return self._symbolic_result(
-                gp(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data)).data,
-                _sym.Gp(self._to_expr(), other._to_expr()),
-            )
         return gp(self, other)
 
     def __rmul__(self, other):
@@ -1033,24 +1027,12 @@ class Multivector:
         """Outer product (a ^ b)."""
         if isinstance(other, _sym.Expr):
             return _sym.Op(self._to_expr(), other)
-        if isinstance(other, Multivector) and self._is_any_symbolic(other):
-            result = op(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
-            return self._symbolic_result(
-                result.data,
-                _sym.Op(self._to_expr(), other._to_expr()),
-            )
         return op(self, other)
 
     def __or__(self, other):
         """Doran–Lasenby inner product (a | b)."""
         if isinstance(other, _sym.Expr):
             return _sym.Dli(self._to_expr(), other)
-        if isinstance(other, Multivector) and self._is_any_symbolic(other):
-            result = doran_lasenby_inner(Multivector(self.algebra, self.data), Multivector(other.algebra, other.data))
-            return self._symbolic_result(
-                result.data,
-                _sym.Dli(self._to_expr(), other._to_expr()),
-            )
         return doran_lasenby_inner(self, other)
 
     def __invert__(self):
