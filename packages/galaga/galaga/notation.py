@@ -139,6 +139,7 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     # Wrap
     "Grade": _wrap("⟨", "⟩", r"\langle ", r" \rangle", "<", ">"),
     "Norm": _wrap("‖", "‖", r"\lVert ", r" \rVert", "||", "||"),
+    "Norm2": _wrap("‖", "‖²", r"\lVert ", r" \rVert^{2}", "||", "||^2"),
     "Unit": {
         "ascii": NotationRule(kind="accent", combining="", fallback_prefix="unit(", symbol=")"),
         "unicode": NotationRule(kind="accent", combining="\u0302", fallback_prefix="", symbol="/"),

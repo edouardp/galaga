@@ -1813,6 +1813,9 @@ join = op
 
 def norm2(x: Multivector) -> Multivector:
     """Squared norm: grade-0 part of x * ~x. Returns a scalar multivector."""
+    if x._is_symbolic:
+        result = norm2(Multivector(x.algebra, x.data))
+        return x._symbolic_result(result.data, build_expr("norm2", x._to_expr()))
     return grade(gp(x, reverse(x)), 0)
 
 

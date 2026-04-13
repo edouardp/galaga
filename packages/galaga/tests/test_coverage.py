@@ -1132,6 +1132,15 @@ class TestFloatConversion:
         assert result._grade == 0
         assert float(result) == 1.0
 
+    def test_norm2_symbolic_rendering(self, cl3):
+        """norm2 renders as ‖v‖² symbolically."""
+        from galaga import norm2
+
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert str(norm2(v)) == "‖v‖²"
+        assert norm2(v).latex() == r"\lVert v \rVert^{2}"
+
     def test_float_symbolic_scalar(self, cl3):
         """float() works on symbolic grade-0 result."""
         e1, _, _ = cl3.basis_vectors()

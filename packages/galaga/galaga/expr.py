@@ -262,6 +262,7 @@ _NODE_NAMES = {
 # Additional unary nodes for functions not in GA_OPS
 _EXTRA_UNARY = {
     "Norm": "norm",
+    "Norm2": "norm2",
     "Sqrt": "scalar_sqrt",
 }
 
@@ -302,6 +303,7 @@ Undual = Undual  # noqa: F821, PLW0127
 Complement = Complement  # noqa: F821, PLW0127
 Uncomplement = Uncomplement  # noqa: F821, PLW0127
 Norm = Norm  # noqa: F821, PLW0127
+Norm2 = Norm2  # noqa: F821, PLW0127
 Unit = Unit  # noqa: F821, PLW0127
 Inverse = Inverse  # noqa: F821, PLW0127
 Even = Even  # noqa: F821, PLW0127
@@ -471,6 +473,7 @@ _HANDLER_MAP = {
     "squared": Squared,
     "grade": Grade,
     "norm": Norm,
+    "norm2": Norm2,
     "sqrt": Sqrt,
 }
 
