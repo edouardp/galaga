@@ -50,19 +50,19 @@ This creates several problems:
 │  def commutator(a, b):                          │
 │      if a._is_symbolic:   ←── manual dispatch   │
 │          ...build _sym.Commutator...            │
-│      return gp(a,b) - gp(b,a)                  │
+│      return gp(a,b) - gp(b,a)                   │
 │                                                 │
 │  Multivector._symbolic_result()                 │
 │      # builds symbolic MV, references _sym.*    │
 │                                                 │
-├──────────── imports ────────────────────────────►│
+├──────────── imports ───────────────────────────►│
 │                                                 │
 │  expr.py                                        │
 │                                                 │
-│  Gp = _make_binary_expr("Gp", "gp")            │
-│  # eval() calls _alg.gp()  ←── back-reference  │
+│  Gp = _make_binary_expr("Gp", "gp")             │
+│  # eval() calls _alg.gp()  ←── back-reference   │
 │                                                 │
-├──────────── imports ────────────────────────────►│
+├──────────── imports ───────────────────────────►│
 │                                                 │
 │  render.py / notation.py                        │
 │  # keyed by expr node class names               │
@@ -100,7 +100,7 @@ This creates several problems:
 │  GA_OPS = { "op": OpInfo(...), ... }             │
 │  # inspectable registry of all operations        │
 │                                                  │
-│  No symbolic imports. No expr imports.            │
+│  No symbolic imports. No expr imports.           │
 ├──────────────────────────────────────────────────┤
 │  algebra.py  (slimmed down)                      │
 │                                                  │
@@ -118,9 +118,9 @@ This creates several problems:
 │  # registers symbolic handlers back into ops.py  │
 │                                                  │
 │  Dependency: expr → ops → (nothing)              │
-│              expr → algebra (for Multivector)     │
-│              algebra → ops (for implementations)  │
-│              algebra ✗ expr  (BROKEN)             │
+│              expr → algebra (for Multivector)    │
+│              algebra → ops (for implementations) │
+│              algebra ✗ expr  (BROKEN)            │
 ├──────────────────────────────────────────────────┤
 │  render.py / notation.py                         │
 │                                                  │
@@ -148,7 +148,6 @@ No cycles. `ops.py` is a leaf — it depends on nothing except NumPy.
 @ga_op(
     name="op",                    # registry key, matches function name
     arity=2,                      # 1 or 2
-    sym_node="Op",                # expr node class name (for symbolic layer)
     grade=lambda g, h, n: ...,   # grade propagation rule (optional)
 )
 def op(a, b):
@@ -162,6 +161,9 @@ The decorator:
 2. Wraps it to handle symbolic dispatch (if a symbolic handler is registered)
 3. Wraps it to apply the grade rule to the result
 
+The decorator carries only algebraic metadata. It does not reference
+symbolic node class names — that mapping is owned by `expr.py`.
+
 ### The `GA_OPS` registry
 
 ```python
@@ -170,27 +172,29 @@ class OpInfo:
     name: str
     func: Callable          # the numeric implementation
     arity: int              # 1 or 2
-    sym_node: str           # expr node class name
     grade_rule: Callable | None  # grade propagation function
 ```
 
 Inspectable, iterable, testable:
 ```python
 for name, info in GA_OPS.items():
-    print(f"{name}: arity={info.arity}, sym_node={info.sym_node}")
+    print(f"{name}: arity={info.arity}")
 ```
 
 ### Symbolic handler registration
 
-The symbolic layer registers itself at import time:
+The symbolic layer owns the mapping from operation name to expression node
+class. It registers handlers at import time:
 
 ```python
 # In expr.py (or a setup function called at import)
 from .ops import register_symbolic_handler
 
-for name, info in GA_OPS.items():
-    NodeClass = _make_node(info.sym_node, name)
-    register_symbolic_handler(name, NodeClass)
+# The op name → node class mapping lives here, not in ops.py
+register_symbolic_handler("op", Op)
+register_symbolic_handler("gp", Gp)
+register_symbolic_handler("reverse", Reverse)
+# ...or auto-derived from a naming convention / table
 ```
 
 The `@ga_op` wrapper checks for a registered handler:
