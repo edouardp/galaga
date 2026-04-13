@@ -14,6 +14,7 @@ from galaga import (
     complement,
     conjugate,
     doran_lasenby_inner,
+    dual,
     even_grades,
     gp,
     grade,
@@ -28,6 +29,7 @@ from galaga import (
     lie_bracket,
     odd_grades,
     op,
+    regressive_product,
     reverse,
     right_contraction,
     sandwich,
@@ -235,6 +237,107 @@ class TestMultivectorConvenience:
         """non-scalar * MV returns NotImplemented."""
         e1, _, _ = cl3.basis_vectors()
         assert e1.__rmul__("bad") is NotImplemented
+
+    def test_add_notimplemented(self, cl3):
+        """MV + non-scalar/non-MV returns NotImplemented."""
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__add__("bad") is NotImplemented
+
+    def test_sub_notimplemented(self, cl3):
+        """MV - non-scalar/non-MV returns NotImplemented."""
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__sub__("bad") is NotImplemented
+
+    def test_mul_notimplemented(self, cl3):
+        """MV * non-scalar/non-MV returns NotImplemented."""
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__mul__("bad") is NotImplemented
+
+    def test_xor_notimplemented(self, cl3):
+        """MV ^ non-MV returns NotImplemented."""
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__xor__("bad") is NotImplemented
+
+    def test_or_notimplemented(self, cl3):
+        """MV | non-MV returns NotImplemented."""
+        e1, _, _ = cl3.basis_vectors()
+        assert e1.__or__("bad") is NotImplemented
+
+
+class TestArchitecturalInvariants:
+    """Enforce the dependency and registry invariants from SPEC-012."""
+
+    def test_ops_never_imports_expr(self):
+        """ops.py must not import expr.py or render.py."""
+        import importlib
+
+        source = importlib.util.find_spec("galaga.ops").origin
+        with open(source) as f:
+            text = f.read()
+        # Only check top-level imports (not inside functions)
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            if not line.startswith((" ", "\t")) and ("import expr" in stripped or "import render" in stripped):
+                pytest.fail(f"ops.py has forbidden import: {stripped}")
+
+    def test_algebra_never_imports_expr(self):
+        """algebra.py must not import expr.py."""
+        import importlib
+
+        source = importlib.util.find_spec("galaga.algebra").origin
+        with open(source) as f:
+            text = f.read()
+        for line in text.splitlines():
+            stripped = line.lstrip()
+            if stripped.startswith("#"):
+                continue
+            if "import expr" in stripped and "build_expr" not in stripped:
+                pytest.fail(f"algebra.py has forbidden import: {stripped}")
+
+    def test_every_ga_op_has_handler(self):
+        """Every operation in GA_OPS has a registered symbolic handler."""
+        from galaga.ops import _SYMBOLIC_HANDLERS, GA_OPS
+
+        for name in GA_OPS:
+            assert name in _SYMBOLIC_HANDLERS, f"GA op '{name}' has no symbolic handler"
+
+    def test_ga_ops_count(self):
+        """GA_OPS has the expected number of operations."""
+        from galaga.ops import GA_OPS
+
+        assert len(GA_OPS) == 29, f"Expected 29 GA ops, got {len(GA_OPS)}: {sorted(GA_OPS.keys())}"
+
+    def test_handler_map_covers_ga_ops(self):
+        """Every GA op is in the handler map (subset check)."""
+        from galaga.ops import _SYMBOLIC_HANDLERS, GA_OPS
+
+        ga_op_names = set(GA_OPS.keys())
+        handler_names = set(_SYMBOLIC_HANDLERS.keys())
+        missing = ga_op_names - handler_names
+        assert not missing, f"GA ops without handlers: {missing}"
+
+    def test_node_names_match_ga_ops(self):
+        """Every GA op has a corresponding entry in _NODE_NAMES."""
+        from galaga.expr import _NODE_NAMES
+        from galaga.ops import GA_OPS
+
+        node_op_names = set(_NODE_NAMES.keys())
+        ga_op_names = set(GA_OPS.keys())
+        missing = ga_op_names - node_op_names
+        assert not missing, f"GA ops without node classes: {missing}"
+
+    def test_node_names_arity_matches_ga_ops(self):
+        """Arity in _NODE_NAMES matches GA_OPS."""
+        from galaga.expr import _NODE_NAMES
+        from galaga.ops import GA_OPS
+
+        for op_name, (class_name, arity) in _NODE_NAMES.items():
+            assert op_name in GA_OPS, f"Node '{class_name}' has no GA op '{op_name}'"
+            assert GA_OPS[op_name].arity == arity, (
+                f"Arity mismatch for '{op_name}': _NODE_NAMES={arity}, GA_OPS={GA_OPS[op_name].arity}"
+            )
 
 
 class TestIpFunction:
@@ -968,6 +1071,223 @@ class TestSymbolicGradeEvenOdd:
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sodd_grades(v)) == "⟨v⟩₋"
+
+
+class TestFloatConversion:
+    """__float__ and __abs__ on Multivector."""
+
+    # --- Should succeed ---
+
+    def test_float_scalar(self, cl3):
+        """float() works on grade-0 MVs."""
+        s = cl3.scalar(3.5)
+        assert float(s) == 3.5
+
+    def test_float_scalar_product(self, cl3):
+        """float() works on result of scalar_product."""
+        e1, e2, _ = cl3.basis_vectors()
+        assert float(scalar_product(e1, e1)) == 1.0
+
+    def test_float_grade_projection(self, cl3):
+        """float() works on grade-0 projection."""
+        e1, e2, _ = cl3.basis_vectors()
+        v = e1 + 2 * e2
+        assert float(grade(gp(v, v), 0)) == 5.0
+
+    def test_float_zero(self, cl3):
+        """float() on zero MV returns 0.0."""
+        z = cl3.scalar(0.0)
+        assert float(z) == 0.0
+
+    def test_float_hestenes_inner_vectors(self, cl3):
+        """float() on hestenes_inner of same-grade vectors."""
+        e1, _, _ = cl3.basis_vectors()
+        assert float(hestenes_inner(e1, e1)) == 1.0
+
+    def test_float_doran_lasenby_inner_vectors(self, cl3):
+        """float() on doran_lasenby_inner of same-grade vectors."""
+        e1, _, _ = cl3.basis_vectors()
+        assert float(doran_lasenby_inner(e1, e1)) == 1.0
+
+    def test_float_left_contraction_same_grade(self, cl3):
+        """float() on left_contraction of same-grade blades."""
+        e1, _, _ = cl3.basis_vectors()
+        assert float(left_contraction(e1, e1)) == 1.0
+
+    def test_float_scalar_arithmetic(self, cl3):
+        """float() on scalar arithmetic results."""
+        a = cl3.scalar(3.0)
+        b = cl3.scalar(2.0)
+        assert float(a + b) == 5.0
+        assert float(a * 2) == 6.0
+        assert float(a / 2) == 1.5
+
+    def test_float_norm2(self, cl3):
+        """norm2 returns a scalar Multivector convertible to float."""
+        from galaga import Multivector, norm2
+
+        e1, _, _ = cl3.basis_vectors()
+        result = norm2(e1)
+        assert isinstance(result, Multivector)
+        assert result._grade == 0
+        assert float(result) == 1.0
+
+    def test_float_symbolic_scalar(self, cl3):
+        """float() works on symbolic grade-0 result."""
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        sp = scalar_product(v, v)
+        assert float(sp) == 1.0
+
+    def test_abs_scalar(self, cl3):
+        """abs() works on scalar MVs."""
+        s = cl3.scalar(-3.5)
+        assert abs(s) == 3.5
+
+    # --- Should throw ---
+
+    def test_float_vector_raises(self, cl3):
+        """float() on a vector raises TypeError."""
+        e1, _, _ = cl3.basis_vectors()
+        with pytest.raises(TypeError, match="grade-1"):
+            float(e1)
+
+    def test_float_bivector_raises(self, cl3):
+        """float() on a bivector raises TypeError."""
+        e1, e2, _ = cl3.basis_vectors()
+        with pytest.raises(TypeError, match="grade-2"):
+            float(e1 ^ e2)
+
+    def test_float_pseudoscalar_raises(self, cl3):
+        """float() on pseudoscalar raises TypeError."""
+        with pytest.raises(TypeError, match=f"grade-{cl3.n}"):
+            float(cl3.pseudoscalar())
+
+    def test_float_mixed_raises(self, cl3):
+        """float() on a mixed-grade MV raises TypeError."""
+        e1, _, _ = cl3.basis_vectors()
+        mv = cl3.scalar(1.0) + e1
+        with pytest.raises(TypeError, match="mixed-grade"):
+            float(mv)
+
+    def test_float_rotor_raises(self, cl3):
+        """float() on a rotor (grade 0+2) raises TypeError."""
+        import math
+
+        e1, e2, _ = cl3.basis_vectors()
+        rotor = cl3.scalar(math.cos(0.5)) + math.sin(0.5) * (e1 ^ e2)
+        with pytest.raises(TypeError, match="mixed-grade"):
+            float(rotor)
+
+    def test_float_op_result_raises(self, cl3):
+        """float() on outer product result raises TypeError."""
+        e1, e2, _ = cl3.basis_vectors()
+        with pytest.raises(TypeError, match="grade-2"):
+            float(e1 ^ e2)
+
+    def test_float_reverse_bivector_raises(self, cl3):
+        """float() on reverse of bivector raises TypeError."""
+        e1, e2, _ = cl3.basis_vectors()
+        with pytest.raises(TypeError, match="grade-2"):
+            float(reverse(e1 ^ e2))
+
+    def test_float_dual_vector_raises(self, cl3):
+        """float() on dual of vector raises TypeError."""
+        e1, _, _ = cl3.basis_vectors()
+        with pytest.raises(TypeError, match="grade-2"):
+            float(dual(e1))
+
+
+class TestGradePropagation:
+    """Grade rules propagate through @ga_op operations."""
+
+    def test_op_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        w = sym(e2, "w")
+        assert (v ^ w)._grade == 2
+
+    def test_left_contraction_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        B = sym(e1 ^ e2, "B")
+        assert left_contraction(v, B)._grade == 1
+
+    def test_right_contraction_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        B = sym(e1 ^ e2, "B")
+        assert right_contraction(B, v)._grade == 1
+
+    def test_doran_lasenby_inner_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        B = sym(e1 ^ e2, "B")
+        assert doran_lasenby_inner(v, B)._grade == 1
+
+    def test_hestenes_inner_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        w = sym(e2, "w")
+        assert hestenes_inner(v, w)._grade == 0
+
+    def test_scalar_product_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        w = sym(e2, "w")
+        assert scalar_product(v, w)._grade == 0
+
+    def test_reverse_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        B = sym(e1 ^ e2, "B")
+        assert reverse(B)._grade == 2
+
+    def test_involute_grade(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert involute(v)._grade == 1
+
+    def test_conjugate_grade(self, cl3):
+        e1, e2, _ = cl3.basis_vectors()
+        B = sym(e1 ^ e2, "B")
+        assert conjugate(B)._grade == 2
+
+    def test_dual_grade(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert dual(v)._grade == 2
+
+    def test_complement_grade(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert complement(v)._grade == 2
+
+    def test_unit_grade(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert unit(v)._grade == 1
+
+    def test_inverse_grade(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        assert inverse(v)._grade == 1
+
+    def test_regressive_product_grade(self, cl3):
+        e1, e2, e3 = cl3.basis_vectors()
+        B1 = sym(e1 ^ e2, "B1")
+        B2 = sym(e2 ^ e3, "B2")
+        assert regressive_product(B1, B2)._grade == 1
+
+    def test_gp_no_grade(self, cl3):
+        """GP doesn't propagate grade (mixed in general)."""
+        e1, e2, _ = cl3.basis_vectors()
+        v = sym(e1, "v")
+        w = sym(e2, "w")
+        # gp of two grade-1 gives grade-0 + grade-2, so _grade comes from
+        # homogeneous_grade detection on the numeric result, not from a rule
+        result = gp(v, w)
+        # Should be None since gp has no grade rule and result is mixed
+        assert result._grade is None
 
 
 class TestLatex:

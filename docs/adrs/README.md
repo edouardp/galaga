@@ -72,7 +72,13 @@ helps future contributors understand why certain choices were made.
 | [057](057-blade-convention.md) | BladeConvention Replaces names= Parameter | Accepted |
 | [058](058-basis-blades-and-locals.md) | basis_blades(k) and locals() for Bulk Blade Access | Accepted |
 | [059](059-display-ordering.md) | Custom Basis Blade Display Ordering | Accepted |
-| [058](058-basis-blades-and-locals.md) | basis_blades(k) and locals() for Bulk Blade Access | Accepted |
+| [060](060-chisolm-reference-test-suite.md) | Chisolm Reference Test Suite | Accepted |
+| [061](061-algebra-display-mode.md) | Algebra Display Mode | Accepted |
+| [062](062-rename-lazy-to-symbolic.md) | Rename Lazy to Symbolic | Accepted |
+| [063](063-suppress-unit-scalar-mul.md) | Suppress Unit Scalar Multiplication | Accepted |
+| [064](064-relative-imports-in-packages.md) | Use Relative Imports Within Packages | Accepted |
+| [065](065-operation-registry.md) | Operation Registry Breaks algebra↔expr Circular Dependency | Accepted |
+| [066](066-grade-propagation-and-float.md) | Grade Propagation via @ga_op and \_\_float\_\_ Conversion | Accepted |
 
 ## Creating New ADRs
 

@@ -473,27 +473,6 @@ class TestAdditionalCoverage:
         assert x._is_symbolic
         assert "v" in str(x)
 
-    def test_xor_with_expr(self, cl3):
-        """MV ^ Expr works."""
-        e1, e2, _ = cl3.basis_vectors()
-        expr = Sym(e2, "b")
-        result = e1 ^ expr
-        assert "b" in str(result)
-
-    def test_or_with_expr(self, cl3):
-        """MV | Expr works."""
-        e1, e2, _ = cl3.basis_vectors()
-        expr = Sym(e2, "b")
-        result = e1 | expr
-        assert "b" in str(result)
-
-    def test_sub_with_expr(self, cl3):
-        """MV - Expr works."""
-        e1, e2, _ = cl3.basis_vectors()
-        expr = Sym(e2, "b")
-        result = e1 - expr
-        assert "b" in str(result)
-
     def test_format_unicode_named(self, cl3):
         """format(named, 'unicode') shows name."""
         e1, _, _ = cl3.basis_vectors()

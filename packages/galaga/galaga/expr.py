@@ -15,6 +15,8 @@ Node categories:
 
 from __future__ import annotations
 
+import sys as _sys
+
 from . import algebra as _alg
 
 Numeric = int | float
@@ -89,7 +91,7 @@ class Expr:
     def __mul__(self, other):
         if isinstance(other, (int, float)):
             return ScalarMul(other, self)
-        return Gp(self, _ensure_expr(other))
+        return Gp(self, _ensure_expr(other))  # noqa: F821
 
     def __rmul__(self, other):
         if isinstance(other, (int, float)):
@@ -97,13 +99,13 @@ class Expr:
         return _ensure_expr(other).__mul__(self)
 
     def __xor__(self, other):
-        return Op(self, _ensure_expr(other))
+        return Op(self, _ensure_expr(other))  # noqa: F821
 
     def __or__(self, other):
-        return Hi(self, _ensure_expr(other))
+        return Hi(self, _ensure_expr(other))  # noqa: F821
 
     def __invert__(self):
-        return Reverse(self)
+        return Reverse(self)  # noqa: F821
 
     def __truediv__(self, other):
         if isinstance(other, (int, float)):
@@ -112,11 +114,11 @@ class Expr:
 
     @property
     def inv(self) -> Expr:
-        return Inverse(self)
+        return Inverse(self)  # noqa: F821
 
     @property
     def dag(self) -> Expr:
-        return Reverse(self)
+        return Reverse(self)  # noqa: F821
 
     @property
     def sq(self) -> Expr:
@@ -195,8 +197,11 @@ class Scalar(Expr):
 
 # ── Generated binary/unary nodes ──
 #
-# Most nodes are identical: __init__ coerces args, eval() delegates to
-# ga.algebra. Generated from tables to eliminate boilerplate.
+# Node classes are auto-generated from tables. The _NODE_NAMES table is the
+# single mapping from GA operation names to Expr class names. Adding a new
+# @ga_op in algebra.py requires only adding an entry here and a handler
+# registration below. The invariant tests enforce that these stay in sync
+# with GA_OPS.
 
 
 def _make_binary_expr(name, alg_func_name):
@@ -219,40 +224,95 @@ def _make_unary_expr(name, alg_func_name):
     return type(name, (Expr,), {"__init__": __init__, "eval": eval})
 
 
-# Binary
-Gp = _make_binary_expr("Gp", "gp")
-Op = _make_binary_expr("Op", "op")
-Lc = _make_binary_expr("Lc", "left_contraction")
-Rc = _make_binary_expr("Rc", "right_contraction")
-Hi = _make_binary_expr("Hi", "hestenes_inner")
-Dli = _make_binary_expr("Dli", "doran_lasenby_inner")
-Sp = _make_binary_expr("Sp", "scalar_product")
-Commutator = _make_binary_expr("Commutator", "commutator")
-Anticommutator = _make_binary_expr("Anticommutator", "anticommutator")
-LieBracket = _make_binary_expr("LieBracket", "lie_bracket")
-JordanProduct = _make_binary_expr("JordanProduct", "jordan_product")
-Regressive = _make_binary_expr("Regressive", "regressive_product")
+# op_name → (class_name, arity)
+_NODE_NAMES = {
+    # Binary
+    "gp": ("Gp", 2),
+    "op": ("Op", 2),
+    "left_contraction": ("Lc", 2),
+    "right_contraction": ("Rc", 2),
+    "hestenes_inner": ("Hi", 2),
+    "doran_lasenby_inner": ("Dli", 2),
+    "scalar_product": ("Sp", 2),
+    "commutator": ("Commutator", 2),
+    "anticommutator": ("Anticommutator", 2),
+    "lie_bracket": ("LieBracket", 2),
+    "jordan_product": ("JordanProduct", 2),
+    "regressive_product": ("Regressive", 2),
+    # Unary
+    "reverse": ("Reverse", 1),
+    "involute": ("Involute", 1),
+    "conjugate": ("Conjugate", 1),
+    "dual": ("Dual", 1),
+    "undual": ("Undual", 1),
+    "complement": ("Complement", 1),
+    "uncomplement": ("Uncomplement", 1),
+    "unit": ("Unit", 1),
+    "inverse": ("Inverse", 1),
+    "even_grades": ("Even", 1),
+    "odd_grades": ("Odd", 1),
+    "exp": ("Exp", 1),
+    "log": ("Log", 1),
+    "outerexp": ("OuterExp", 1),
+    "outersin": ("OuterSin", 1),
+    "outercos": ("OuterCos", 1),
+    "outertan": ("OuterTan", 1),
+}
 
-# Unary
-Reverse = _make_unary_expr("Reverse", "reverse")
-Involute = _make_unary_expr("Involute", "involute")
-Conjugate = _make_unary_expr("Conjugate", "conjugate")
-Dual = _make_unary_expr("Dual", "dual")
-Undual = _make_unary_expr("Undual", "undual")
-Complement = _make_unary_expr("Complement", "complement")
-Uncomplement = _make_unary_expr("Uncomplement", "uncomplement")
-Norm = _make_unary_expr("Norm", "norm")
-Unit = _make_unary_expr("Unit", "unit")
-Inverse = _make_unary_expr("Inverse", "inverse")
-Exp = _make_unary_expr("Exp", "exp")
-Log = _make_unary_expr("Log", "log")
-OuterExp = _make_unary_expr("OuterExp", "outerexp")
-OuterSin = _make_unary_expr("OuterSin", "outersin")
-OuterCos = _make_unary_expr("OuterCos", "outercos")
-OuterTan = _make_unary_expr("OuterTan", "outertan")
-Even = _make_unary_expr("Even", "even_grades")
-Odd = _make_unary_expr("Odd", "odd_grades")
-Sqrt = _make_unary_expr("Sqrt", "scalar_sqrt")
+# Additional unary nodes for functions not in GA_OPS
+_EXTRA_UNARY = {
+    "Norm": "norm",
+    "Sqrt": "scalar_sqrt",
+}
+
+_this = _sys.modules[__name__]
+
+for _op_name, (_class_name, _arity) in _NODE_NAMES.items():
+    if _arity == 2:
+        _cls = _make_binary_expr(_class_name, _op_name)
+    else:
+        _cls = _make_unary_expr(_class_name, _op_name)
+    setattr(_this, _class_name, _cls)
+
+for _class_name, _func_name in _EXTRA_UNARY.items():
+    _cls = _make_unary_expr(_class_name, _func_name)
+    setattr(_this, _class_name, _cls)
+
+# The setattr loop above populates these names at runtime.
+# Re-export them as module-level locals for static imports.
+# (The Expr class methods reference Gp/Op/Hi/Reverse/Inverse/ScalarDiv
+# before this point, but they execute after module load completes.)
+Gp = Gp  # noqa: F821, PLW0127
+Op = Op  # noqa: F821, PLW0127
+Lc = Lc  # noqa: F821, PLW0127
+Rc = Rc  # noqa: F821, PLW0127
+Hi = Hi  # noqa: F821, PLW0127
+Dli = Dli  # noqa: F821, PLW0127
+Sp = Sp  # noqa: F821, PLW0127
+Commutator = Commutator  # noqa: F821, PLW0127
+Anticommutator = Anticommutator  # noqa: F821, PLW0127
+LieBracket = LieBracket  # noqa: F821, PLW0127
+JordanProduct = JordanProduct  # noqa: F821, PLW0127
+Regressive = Regressive  # noqa: F821, PLW0127
+Reverse = Reverse  # noqa: F821, PLW0127
+Involute = Involute  # noqa: F821, PLW0127
+Conjugate = Conjugate  # noqa: F821, PLW0127
+Dual = Dual  # noqa: F821, PLW0127
+Undual = Undual  # noqa: F821, PLW0127
+Complement = Complement  # noqa: F821, PLW0127
+Uncomplement = Uncomplement  # noqa: F821, PLW0127
+Norm = Norm  # noqa: F821, PLW0127
+Unit = Unit  # noqa: F821, PLW0127
+Inverse = Inverse  # noqa: F821, PLW0127
+Even = Even  # noqa: F821, PLW0127
+Odd = Odd  # noqa: F821, PLW0127
+Exp = Exp  # noqa: F821, PLW0127
+Log = Log  # noqa: F821, PLW0127
+OuterExp = OuterExp  # noqa: F821, PLW0127
+OuterSin = OuterSin  # noqa: F821, PLW0127
+OuterCos = OuterCos  # noqa: F821, PLW0127
+OuterTan = OuterTan  # noqa: F821, PLW0127
+Sqrt = Sqrt  # noqa: F821, PLW0127
 
 
 # ── Hand-written nodes (need custom eval or extra fields) ──
@@ -365,9 +425,12 @@ def sym(mv: _alg.Multivector, name: str | None = None, grade: int | None = None)
 
 # ── Register symbolic handlers for @ga_op operations ──
 
-from .ops import register_symbolic_handler
+from .ops import register_sym_factory, register_symbolic_handler
+
+register_sym_factory(Sym, Sym)
 
 _HANDLER_MAP = {
+    # GA operations
     "gp": Gp,
     "op": Op,
     "left_contraction": Lc,
@@ -397,6 +460,18 @@ _HANDLER_MAP = {
     "outersin": OuterSin,
     "outercos": OuterCos,
     "outertan": OuterTan,
+    # Arithmetic / structural nodes
+    "add": Add,
+    "sub": Sub,
+    "neg": Neg,
+    "scalar": Scalar,
+    "scalar_mul": ScalarMul,
+    "scalar_div": ScalarDiv,
+    "div": Div,
+    "squared": Squared,
+    "grade": Grade,
+    "norm": Norm,
+    "sqrt": Sqrt,
 }
 
 for _name, _handler in _HANDLER_MAP.items():

@@ -64,12 +64,14 @@ def _sign_of_reorder(a: int, b: int) -> int:
     return 1 - 2 * (n & 1)
 
 
-from . import expr as _sym
 from . import render as _render
 from .basis_blade import BasisBlade
+from .blade_convention import BladeConvention, _resolve_metric_role_key, b_default, build_blades
+from .latex_emit import emit as _latex_emit
+from .latex_nodes import Seq, Sup, Text
 from .latex_symbols import LatexSymbols
 from .notation import Notation
-from .ops import ga_op
+from .ops import build_expr, ga_op, is_sym, make_sym
 
 
 def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
@@ -153,8 +155,6 @@ class Algebra:
         notation: Notation | None = None,
         display_repr: bool = False,
     ):
-        from .blade_convention import BladeConvention, b_default, build_blades
-
         self._notation = notation or Notation()
         # Resolve signature: iterable of squares, or (p, q, r) counts
         if isinstance(p_or_signature, (int, np.integer)) and not isinstance(p_or_signature, bool):
@@ -291,6 +291,7 @@ class Algebra:
             data[bitmask] = 1.0
             mv = Multivector(self, data)
             mv._is_symbolic = is_symbolic
+            mv._grade = 1
             vecs.append(mv)
         return tuple(vecs)
 
@@ -316,6 +317,7 @@ class Algebra:
                 data[idx] = self._blades[idx].sign if idx in self._blades else 1.0
                 mv = Multivector(self, data)
                 mv._is_symbolic = is_symbolic
+                mv._grade = k
                 blades.append(mv)
         return tuple(blades)
 
@@ -349,6 +351,7 @@ class Algebra:
             data[idx] = bb.sign
             mv = Multivector(self, data)
             mv._is_symbolic = is_symbolic
+            mv._grade = bin(idx).count("1")
             result[bb.ascii_name] = mv
         return result
 
@@ -358,6 +361,7 @@ class Algebra:
         data = np.zeros(self._dim)
         data[self._dim - 1] = 1.0
         mv = Multivector(self, data)
+        mv._grade = self._n
         if is_symbolic:
             mv._is_symbolic = True
         return mv
@@ -376,7 +380,9 @@ class Algebra:
         """Create a scalar multivector (grade-0) with the given value."""
         data = np.zeros(self._dim)
         data[0] = value
-        return Multivector(self, data)
+        mv = Multivector(self, data)
+        mv._grade = 0
+        return mv
 
     def fraction(self, numerator: int, denominator: int) -> Multivector:
         """Create a named scalar fraction: fraction(1, 2) → symbolic MV displaying as 1/2.
@@ -432,7 +438,9 @@ class Algebra:
         data = np.zeros(self._dim)
         for k, c in enumerate(coeffs):
             data[1 << k] = c
-        return Multivector(self, data)
+        mv = Multivector(self, data)
+        mv._grade = 1
+        return mv
 
     def blade(self, name, *, lazy: bool | None = None, symbolic: bool | None = None) -> Multivector:
         """Lookup a basis blade by name or multivector.
@@ -453,7 +461,6 @@ class Algebra:
         3. Parse as prefix + digits using the convention's index_base
         """
         is_symbolic = _resolve_symbolic(lazy, symbolic)
-        from .blade_convention import _resolve_metric_role_key
 
         if isinstance(name, Multivector):
             nonzero = np.nonzero(np.abs(name.data) > 1e-12)[0]
@@ -573,8 +580,6 @@ class Algebra:
             mv_or_index: A Multivector (must be a basis blade), an int bitmask,
                 or a metric-role string (e.g. "+1-1", "pss").
         """
-        from .blade_convention import _resolve_metric_role_key
-
         if isinstance(mv_or_index, str):
             bitmask = _resolve_metric_role_key(mv_or_index, self._sig)
             return self._blades[bitmask]
@@ -621,8 +626,6 @@ def _sci_lnode(s: str, style: str):
 
     Returns an LNode (Text, or Seq with Sup for scientific notation).
     """
-    from .latex_nodes import Seq, Sup, Text
-
     if style == "raw":
         return Text(s)
     m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
@@ -638,8 +641,6 @@ def _sci_lnode(s: str, style: str):
 
 def _coeff_lnode(c: float, blade: str, coeff_format: str | None, style: str):
     """Build an LNode for a single coefficient × blade term."""
-    from .latex_nodes import Seq, Text
-
     if coeff_format:
         formatted = format(c, coeff_format)
         coeff_node = _sci_lnode(formatted, style)
@@ -798,12 +799,12 @@ class Multivector:
             self._grade = self.homogeneous_grade()
         # Build a Sym expr so .anon() can reveal the name-based tree
         if self._expr is None:
-            self._expr = _sym.Sym(self, self._name_unicode, name_latex=self._name_latex, name_ascii=self._name)
+            self._expr = make_sym(self, self._name_unicode, name_latex=self._name_latex, name_ascii=self._name)
         return self
 
     def anon(self) -> Multivector:
         """Remove the display name in-place. Preserves symbolic/numeric. Returns self."""
-        if isinstance(self._expr, _sym.Sym) and self._expr._name == (self._name_unicode or self._name):
+        if is_sym(self._expr) and self._expr._name == (self._name_unicode or self._name):
             self._expr = None
         self._name = None
         self._name_latex = None
@@ -907,8 +908,8 @@ class Multivector:
         using the algebra's LaTeX name for single basis blades.
         """
         if self._name is not None:
-            inner = self._expr if self._expr is not None and not isinstance(self._expr, _sym.Sym) else None
-            return _sym.Sym(
+            inner = self._expr if self._expr is not None and not is_sym(self._expr) else None
+            return make_sym(
                 self,
                 self._name_unicode or self._name,
                 name_latex=self._name_latex,
@@ -918,7 +919,7 @@ class Multivector:
         if self._expr is not None:
             return self._expr
         display = str(self)
-        return _sym.Sym(self, display, name_latex=self.latex())
+        return make_sym(self, display, name_latex=self.latex())
 
     # --- Operator overloads ---
 
@@ -943,19 +944,19 @@ class Multivector:
         return mv
 
     def __add__(self, other):
-        if isinstance(other, _sym.Expr):
-            return _sym.Add(self._to_expr(), other)
         if isinstance(other, (int, float)):
             d = self.data.copy()
             d[0] += other
             if self._is_symbolic:
-                return self._symbolic_result(d, _sym.Add(self._to_expr(), _sym.Scalar(other)))
+                return self._symbolic_result(d, build_expr("add", self._to_expr(), build_expr("scalar", other)))
             return Multivector(self.algebra, d)
+        if not isinstance(other, Multivector):
+            return NotImplemented
         self._check_same(other)
         if self._is_any_symbolic(other):
             return self._symbolic_result(
                 self.data + other.data,
-                _sym.Add(self._to_expr(), other._to_expr()),
+                build_expr("add", self._to_expr(), other._to_expr()),
             )
         return Multivector(self.algebra, self.data + other.data)
 
@@ -963,23 +964,23 @@ class Multivector:
         if isinstance(other, (int, float)) and self._is_symbolic:
             d = self.data.copy()
             d[0] += other
-            return self._symbolic_result(d, _sym.Add(_sym.Scalar(other), self._to_expr()))
+            return self._symbolic_result(d, build_expr("add", build_expr("scalar", other), self._to_expr()))
         return self.__add__(other)
 
     def __sub__(self, other):
-        if isinstance(other, _sym.Expr):
-            return _sym.Sub(self._to_expr(), other)
         if isinstance(other, (int, float)):
             d = self.data.copy()
             d[0] -= other
             if self._is_symbolic:
-                return self._symbolic_result(d, _sym.Sub(self._to_expr(), _sym.Scalar(other)))
+                return self._symbolic_result(d, build_expr("sub", self._to_expr(), build_expr("scalar", other)))
             return Multivector(self.algebra, d)
+        if not isinstance(other, Multivector):
+            return NotImplemented
         self._check_same(other)
         if self._is_any_symbolic(other):
             return self._symbolic_result(
                 self.data - other.data,
-                _sym.Sub(self._to_expr(), other._to_expr()),
+                build_expr("sub", self._to_expr(), other._to_expr()),
             )
         return Multivector(self.algebra, self.data - other.data)
 
@@ -988,13 +989,13 @@ class Multivector:
             d = -self.data.copy()
             d[0] += other
             if self._is_symbolic:
-                return self._symbolic_result(d, _sym.Sub(_sym.Scalar(other), self._to_expr()))
+                return self._symbolic_result(d, build_expr("sub", build_expr("scalar", other), self._to_expr()))
             return Multivector(self.algebra, d)
         return NotImplemented
 
     def __neg__(self):
         if self._is_symbolic:
-            return self._symbolic_result(-self.data, _sym.Neg(self._to_expr()))
+            return self._symbolic_result(-self.data, build_expr("neg", self._to_expr()))
         return Multivector(self.algebra, -self.data)
 
     def __mul__(self, other):
@@ -1003,12 +1004,11 @@ class Multivector:
             if self._is_symbolic:
                 return self._symbolic_result(
                     self.data * other,
-                    _sym.ScalarMul(other, self._to_expr()),
+                    build_expr("scalar_mul", other, self._to_expr()),
                 )
             return Multivector(self.algebra, self.data * other)
-        # Handle Expr operands (e.g. _sym.Scalar(1) from symbolic module)
-        if isinstance(other, _sym.Expr):
-            return _sym.Gp(self._to_expr(), other)
+        if not isinstance(other, Multivector):
+            return NotImplemented
         return gp(self, other)
 
     def __rmul__(self, other):
@@ -1016,7 +1016,7 @@ class Multivector:
             if self._is_symbolic:
                 return self._symbolic_result(
                     self.data * other,
-                    _sym.ScalarMul(other, self._to_expr()),
+                    build_expr("scalar_mul", other, self._to_expr()),
                 )
             return Multivector(self.algebra, self.data * other)
         if isinstance(other, Multivector):
@@ -1025,14 +1025,14 @@ class Multivector:
 
     def __xor__(self, other):
         """Outer product (a ^ b)."""
-        if isinstance(other, _sym.Expr):
-            return _sym.Op(self._to_expr(), other)
+        if not isinstance(other, Multivector):
+            return NotImplemented
         return op(self, other)
 
     def __or__(self, other):
         """Doran–Lasenby inner product (a | b)."""
-        if isinstance(other, _sym.Expr):
-            return _sym.Dli(self._to_expr(), other)
+        if not isinstance(other, Multivector):
+            return NotImplemented
         return doran_lasenby_inner(self, other)
 
     def __invert__(self):
@@ -1044,7 +1044,7 @@ class Multivector:
             if self._is_symbolic:
                 return self._symbolic_result(
                     self.data / other,
-                    _sym.ScalarDiv(self._to_expr(), other),
+                    build_expr("scalar_div", self._to_expr(), other),
                 )
             return Multivector(self.algebra, self.data / other)
         if isinstance(other, Multivector):
@@ -1053,11 +1053,10 @@ class Multivector:
                 s = other.data[0]
                 if abs(s) < 1e-300:
                     raise ZeroDivisionError("Division by zero scalar multivector")
-                # If either side is symbolic, build a Div tree
                 if self._is_any_symbolic(other):
                     return self._symbolic_result(
                         self.data / s,
-                        _sym.Div(self._to_expr(), other._to_expr()),
+                        build_expr("div", self._to_expr(), other._to_expr()),
                     )
                 return Multivector(self.algebra, self.data / s)
             return self * inverse(other)
@@ -1128,7 +1127,7 @@ class Multivector:
         """Inverse: x⁻¹"""
         if self._is_symbolic:
             result = inverse(Multivector(self.algebra, self.data))
-            return self._symbolic_result(result.data, _sym.Inverse(self._to_expr()))
+            return self._symbolic_result(result.data, build_expr("inverse", self._to_expr()))
         return inverse(self)
 
     @property
@@ -1146,13 +1145,33 @@ class Multivector:
         """Squared: x²"""
         if self._is_symbolic:
             result = gp(Multivector(self.algebra, self.data), Multivector(self.algebra, self.data))
-            return self._symbolic_result(result.data, _sym.Squared(self._to_expr()))
+            return self._symbolic_result(result.data, build_expr("squared", self._to_expr()))
         return gp(self, self)
 
     @property
     def scalar_part(self) -> float:
         """Extract grade-0 coefficient as a float."""
         return float(self.data[0])
+
+    def __float__(self) -> float:
+        """Convert to float. Only valid for scalar (grade-0) multivectors."""
+        if self._grade is None:
+            self._grade = self.homogeneous_grade()
+        if self._grade is not None and self._grade != 0:
+            raise TypeError(
+                f"Cannot convert grade-{self._grade} multivector to float; "
+                "only scalar (grade-0) multivectors support float()"
+            )
+        # _grade is 0 or None (zero MV) — both are valid scalars
+        if self._grade is None and np.any(np.abs(self.data[1:]) > 1e-12):
+            raise TypeError(
+                "Cannot convert mixed-grade multivector to float; only scalar (grade-0) multivectors support float()"
+            )
+        return float(self.data[0])
+
+    def __abs__(self) -> float:
+        """Absolute value. Only valid for scalar (grade-0) multivectors."""
+        return abs(float(self))
 
     @property
     def vector_part(self) -> np.ndarray:
@@ -1283,8 +1302,6 @@ class Multivector:
             raw = _render.render_latex(self._expr, self.algebra._notation)
         else:
             # Eager anonymous → coefficient rendering via LNodes
-            from .latex_emit import emit
-
             alg = self.algebra
             style = alg._notation.scientific
             term_nodes = []
@@ -1302,9 +1319,9 @@ class Multivector:
             if not term_nodes:
                 raw = format(0.0, coeff_format) if coeff_format else "0"
             else:
-                raw = emit(term_nodes[0])
+                raw = _latex_emit(term_nodes[0])
                 for tn in term_nodes[1:]:
-                    s = emit(tn)
+                    s = _latex_emit(tn)
                     if s.startswith("-"):
                         raw += " - " + s[1:]
                     else:
@@ -1364,7 +1381,7 @@ def gp(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("op", arity=2)
+@ga_op("op", arity=2, grade=lambda r, s, n: r + s if r + s <= n else None)
 def op(a: Multivector, b: Multivector) -> Multivector:
     """Outer (wedge) product — keeps only the grade-raising part of gp.
 
@@ -1390,7 +1407,7 @@ def op(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("left_contraction", arity=2)
+@ga_op("left_contraction", arity=2, grade=lambda r, s, n: s - r if s >= r else None)
 def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Left contraction: a ⌋ b.
 
@@ -1422,7 +1439,7 @@ def left_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("right_contraction", arity=2)
+@ga_op("right_contraction", arity=2, grade=lambda r, s, n: r - s if r >= s else None)
 def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     """Right contraction: a ⌊ b.
 
@@ -1448,7 +1465,7 @@ def right_contraction(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("hestenes_inner", arity=2)
+@ga_op("hestenes_inner", arity=2, grade=lambda r, s, n: abs(r - s) if r > 0 and s > 0 else None)
 def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     """Hestenes inner product.
 
@@ -1479,7 +1496,7 @@ def hestenes_inner(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("doran_lasenby_inner", arity=2)
+@ga_op("doran_lasenby_inner", arity=2, grade=lambda r, s, n: abs(r - s))
 def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
     """Doran–Lasenby inner product: grade-|r-s| part of gp(a,b), including scalars.
 
@@ -1509,7 +1526,7 @@ def doran_lasenby_inner(a: Multivector, b: Multivector) -> Multivector:
 dorst_inner = doran_lasenby_inner
 
 
-@ga_op("scalar_product", arity=2)
+@ga_op("scalar_product", arity=2, grade=lambda r, s, n: 0)
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
     return grade(gp(a, b), 0)
@@ -1550,7 +1567,7 @@ def jordan_product(a: Multivector, b: Multivector) -> Multivector:
 # --- Unary operations ---
 
 
-@ga_op("reverse", arity=1)
+@ga_op("reverse", arity=1, grade=lambda k, n: k)
 def reverse(x: Multivector) -> Multivector:
     """Reverse (†, tilde): reverses the order of basis vectors in each blade.
 
@@ -1574,7 +1591,7 @@ def reverse(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("involute", arity=1)
+@ga_op("involute", arity=1, grade=lambda k, n: k)
 def involute(x: Multivector) -> Multivector:
     """Grade involution (hat): grade-k component is multiplied by (-1)^k.
 
@@ -1589,7 +1606,7 @@ def involute(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("conjugate", arity=1)
+@ga_op("conjugate", arity=1, grade=lambda k, n: k)
 def conjugate(x: Multivector) -> Multivector:
     """Clifford conjugate: reverse composed with grade involution.
 
@@ -1604,12 +1621,14 @@ def grade(x: Multivector, k: int | str) -> Multivector:
     if x._is_symbolic:
         if k == "even":
             result = even_grades(Multivector(x.algebra, x.data))
-            return x._symbolic_result(result.data, _sym.Even(x._to_expr()))
+            return x._symbolic_result(result.data, build_expr("even_grades", x._to_expr()))
         if k == "odd":
             result = odd_grades(Multivector(x.algebra, x.data))
-            return x._symbolic_result(result.data, _sym.Odd(x._to_expr()))
+            return x._symbolic_result(result.data, build_expr("odd_grades", x._to_expr()))
         result = grade(Multivector(x.algebra, x.data), k)
-        return x._symbolic_result(result.data, _sym.Grade(x._to_expr(), k))
+        mv = x._symbolic_result(result.data, build_expr("grade", x._to_expr(), k))
+        mv._grade = k
+        return mv
     if k == "even":
         return even_grades(x)
     if k == "odd":
@@ -1620,7 +1639,9 @@ def grade(x: Multivector, k: int | str) -> Multivector:
     out = np.zeros(alg.dim)
     mask = alg._grade_masks[k]
     out[mask] = x.data[mask]
-    return Multivector(alg, out)
+    mv = Multivector(alg, out)
+    mv._grade = k
+    return mv
 
 
 def grades(x: Multivector, ks: list[int]) -> Multivector:
@@ -1650,10 +1671,8 @@ def scalar_sqrt(x) -> Multivector:
         raise TypeError(f"scalar_sqrt expects a Multivector or number, got {type(x).__name__}")
     # Lazy path
     if x._is_symbolic:
-        from . import expr as _expr_mod
-
         result = scalar_sqrt(Multivector(x.algebra, x.data))
-        return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))
+        return x._symbolic_result(result.data, build_expr("sqrt", x._to_expr()))
     # Eager path
     if not is_scalar(x):
         raise ValueError("scalar_sqrt requires a pure scalar multivector")
@@ -1682,10 +1701,8 @@ def sqrt(x) -> Multivector:
     if not isinstance(x, Multivector):
         raise TypeError(f"sqrt expects a Multivector or number, got {type(x).__name__}")
     if x._is_symbolic:
-        from . import expr as _expr_mod
-
         result = sqrt(Multivector(x.algebra, x.data))
-        return x._symbolic_result(result.data, _expr_mod.Sqrt(x._to_expr()))
+        return x._symbolic_result(result.data, build_expr("sqrt", x._to_expr()))
     if is_scalar(x):
         return scalar_sqrt(x)
     a = x.scalar_part
@@ -1702,7 +1719,7 @@ def sqrt(x) -> Multivector:
     return bI / (2 * cp) + x.algebra.scalar(cp)
 
 
-@ga_op("dual", arity=1)
+@ga_op("dual", arity=1, grade=lambda k, n: n - k)
 def dual(x: Multivector) -> Multivector:
     """Dual: left-contract x into the inverse pseudoscalar.
 
@@ -1723,7 +1740,7 @@ def dual(x: Multivector) -> Multivector:
     return left_contraction(x, I_inv)
 
 
-@ga_op("undual", arity=1)
+@ga_op("undual", arity=1, grade=lambda k, n: n - k)
 def undual(x: Multivector) -> Multivector:
     """Undual: left-contract x into the pseudoscalar (inverse of dual).
 
@@ -1733,7 +1750,7 @@ def undual(x: Multivector) -> Multivector:
     return left_contraction(x, I)
 
 
-@ga_op("complement", arity=1)
+@ga_op("complement", arity=1, grade=lambda k, n: n - k)
 def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
@@ -1753,7 +1770,7 @@ def complement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("uncomplement", arity=1)
+@ga_op("uncomplement", arity=1, grade=lambda k, n: n - k)
 def uncomplement(x: Multivector) -> Multivector:
     """Inverse of complement: ``uncomplement(complement(x)) = x`` for all x."""
     alg = x.algebra
@@ -1767,7 +1784,7 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
-@ga_op("regressive_product", arity=2)
+@ga_op("regressive_product", arity=2, grade=lambda r, s, n: r + s - n if r + s >= n else None)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
 
@@ -1794,21 +1811,21 @@ meet = regressive_product
 join = op
 
 
-def norm2(x: Multivector) -> float:
-    """Squared norm: scalar part of x * ~x."""
-    return gp(x, reverse(x)).scalar_part
+def norm2(x: Multivector) -> Multivector:
+    """Squared norm: grade-0 part of x * ~x. Returns a scalar multivector."""
+    return grade(gp(x, reverse(x)), 0)
 
 
 def norm(x: Multivector):
     """Norm: sqrt(|norm2(x)|). Returns float for numeric, symbolic scalar MV for symbolic."""
     if x._is_symbolic:
-        val = float(np.sqrt(abs(norm2(x))))
+        val = float(np.sqrt(abs(float(norm2(x)))))
         result = x.algebra.scalar(val)
-        return x._symbolic_result(result.data, _sym.Norm(x._to_expr()))
-    return float(np.sqrt(abs(norm2(x))))
+        return x._symbolic_result(result.data, build_expr("norm", x._to_expr()))
+    return float(np.sqrt(abs(float(norm2(x)))))
 
 
-@ga_op("unit", arity=1)
+@ga_op("unit", arity=1, grade=lambda k, n: k)
 def unit(x: Multivector) -> Multivector:
     """Normalize to unit multivector."""
     n = norm(x)
@@ -1817,7 +1834,7 @@ def unit(x: Multivector) -> Multivector:
     return x / n
 
 
-@ga_op("inverse", arity=1)
+@ga_op("inverse", arity=1, grade=lambda k, n: k)
 def inverse(x: Multivector) -> Multivector:
     """General multivector inverse: x⁻¹ such that x * x⁻¹ = 1.
 
@@ -1938,14 +1955,14 @@ def is_basis_blade(x: Multivector) -> bool:
     return np.count_nonzero(np.abs(x.data) > 1e-12) == 1
 
 
-@ga_op("even_grades", arity=1)
+@ga_op("even_grades", arity=1, grade=lambda k, n: k if k % 2 == 0 else None)
 def even_grades(x: Multivector) -> Multivector:
     """Extract even-grade components."""
     alg = x.algebra
     return grades(x, [k for k in range(0, alg.n + 1, 2)])
 
 
-@ga_op("odd_grades", arity=1)
+@ga_op("odd_grades", arity=1, grade=lambda k, n: k if k % 2 == 1 else None)
 def odd_grades(x: Multivector) -> Multivector:
     """Extract odd-grade components."""
     alg = x.algebra

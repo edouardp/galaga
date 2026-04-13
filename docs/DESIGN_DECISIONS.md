@@ -26,10 +26,11 @@ The ½ in `lie_bracket` vs `commutator` is not a formatting choice — it change
 
 `wedge` is literally `op`. `rev` is literally `reverse`. `normalize` is literally `unit`. They share the same function object — no divergence, no maintenance burden.
 
-## 5. Two-layer architecture
+## 5. Three-layer architecture
 
-- **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays.
-- **`galaga.symbolic`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree.
+- **`galaga.ops`** — The operation registry. A leaf module with no internal dependencies. Every GA operation is registered here via `@ga_op` with algebraic metadata (name, arity, grade rule). The symbolic layer registers handlers against operation names. This breaks the circular dependency between algebra and expr.
+- **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays. Never imports `expr`.
+- **`galaga.expr`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree. Node classes are auto-generated from a table that mirrors the operation registry.
 
 `Multivector` is the single public type. It can be named or anonymous, symbolic or numeric — these are orthogonal axes controlled by `.name()`, `.anon()`, `.symbolic()`, `.numeric()`.
 
