@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.4.0 (2026-04-13)
+
+### Added
+
+- **`__float__()` and `__abs__()` on Multivector** — `float(mv)` returns the scalar coefficient for grade-0
+  multivectors, raises `TypeError` with a descriptive message otherwise. `abs(mv)` delegates to
+  `abs(float(mv))`. (ADR-066)
+- **Automatic grade propagation** — 18 of 29 GA operations now propagate `_grade` through the `@ga_op`
+  wrapper. Factory methods (`scalar()`, `basis_vectors()`, `pseudoscalar()`, `vector()`, `basis_blades()`,
+  `locals()`) and `grade(x, k)` also set `_grade` on results. (ADR-066)
+- **`ops.py` operation registry** — all 29 GA operations registered via `@ga_op` with algebraic metadata
+  (name, arity, grade rule). The symbolic layer registers handlers at import time. (ADR-065)
+
+### Changed
+
+- **`norm2()` returns a scalar Multivector** instead of a bare `float`. Use `float(norm2(x))` where a
+  float is needed. (ADR-066)
+- **Circular dependency broken** — `algebra.py` no longer imports `expr.py`. The dependency graph is now
+  `algebra.py → ops.py ← expr.py` with no cycles. (ADR-065, SPEC-012)
+- **Bare `Expr` operands no longer accepted** — `Multivector + Expr` and similar mixed operations now
+  return `NotImplemented`, letting Python's operator dispatch handle fallback. This was an internal-only
+  pattern with no public API impact.
+- **Expression node classes auto-generated** — `expr.py` generates node classes from a `_NODE_NAMES` table
+  instead of 31 manual declarations. (SPEC-012 Phase 6)
+- **Architecture updated to three layers** — `ops.py` (registry) → `algebra.py` (numeric) → `expr.py`
+  (symbolic). Documented in DESIGN_DECISIONS.md.
+
 ## 1.3.1 (2026-04-11)
 
 ### Changed
