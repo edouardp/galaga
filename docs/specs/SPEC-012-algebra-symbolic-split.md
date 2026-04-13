@@ -197,6 +197,22 @@ register_symbolic_handler("reverse", Reverse)
 # ...or auto-derived from a naming convention / table
 ```
 
+### Which operations get symbolic nodes?
+
+Not every registered operation needs a symbolic node. The criterion is
+**notational identity**: does the operation have its own symbol that a
+reader of the mathematics would recognise as a single concept?
+
+| Has symbolic node | Why | Examples |
+|---|---|---|
+| Yes | Own notation — displays as a named concept | `commutator` → `[a, b]`, `lie_bracket` → `½[a, b]`, `op` → `a ∧ b` |
+| No | Decomposes naturally in the expression tree | `sandwich(r, x)` → `rx~r`, `norm(x)` → `√⟨xx̃⟩₀` |
+
+Every `@ga_op` gets a registry entry (for grade tracking, arity, etc.),
+but the symbolic node mapping in `expr.py` is a **subset** of `GA_OPS`,
+not a 1:1 correspondence. Operations without a symbolic node simply let
+their composed sub-expressions appear in the tree.
+
 The `@ga_op` wrapper checks for a registered handler:
 
 ```python
