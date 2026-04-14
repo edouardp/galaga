@@ -39,4 +39,6 @@ vague `display`.
 * Unnamed multivectors are unaffected in practice — `display()` deduplicates
   parts, so a single-part result has no `=` sign
 * Default behaviour (`display_repr=False`) is unchanged; no existing code breaks
-* The flag is stored as `Algebra._display_mode` and checked in three methods
+* The flag is stored as `Algebra._display_mode` and checked in four methods:
+  `__repr__`, `__str__`, `_repr_latex_`, and `latex()` (so that
+  `galaga_marimo.md(t"{mv}")` also expands to the full display form)

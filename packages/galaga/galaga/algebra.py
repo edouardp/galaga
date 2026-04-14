@@ -880,12 +880,12 @@ class Multivector:
         """Return a LaTeX-renderable object showing name = expression = value, omitting duplicates."""
         parts = []
         eval_mv = self.eval()
-        name_latex = self.latex() if self._name is not None else None
-        eval_latex = eval_mv.latex()
+        name_latex = self._latex_raw() if self._name is not None else None
+        eval_latex = eval_mv._latex_raw()
 
         reveal_latex = None
         if self._is_symbolic and self._expr is not None:
-            r_latex = self.reveal().latex()
+            r_latex = self.reveal()._latex_raw()
             if r_latex != name_latex and r_latex != eval_latex:
                 reveal_latex = r_latex
 
@@ -1283,15 +1283,8 @@ class Multivector:
                 result += " + " + t
         return result
 
-    def latex(self, wrap: str | None = None, coeff_format: str | None = None) -> str:
-        """Return LaTeX representation of this multivector.
-
-        Args:
-            wrap: Optional delimiter — '$' for inline, '$$' for display block.
-            coeff_format: Optional format spec for coefficients (e.g. '.3f').
-                         When set, all coefficients are shown explicitly
-                         (the drop-1 convention is disabled).
-        """
+    def _latex_raw(self, wrap: str | None = None, coeff_format: str | None = None) -> str:
+        """Core LaTeX rendering, ignoring display_mode. Used by display()."""
         # Named → return name
         if self._name_latex is not None and coeff_format is None:
             raw = self._name_latex
@@ -1331,6 +1324,20 @@ class Multivector:
         if wrap == "$$":
             return f"$$\n{raw}\n$$"
         return raw
+
+    def latex(self, wrap: str | None = None, coeff_format: str | None = None) -> str:
+        """Return LaTeX representation of this multivector.
+
+        Args:
+            wrap: Optional delimiter — '$' for inline, '$$' for display block.
+            coeff_format: Optional format spec for coefficients (e.g. '.3f').
+                         When set, all coefficients are shown explicitly
+                         (the drop-1 convention is disabled).
+        """
+        # Display mode: delegate to display() for the full name = expr = value form
+        if self.algebra._display_mode and wrap is None and coeff_format is None:
+            return self.display().latex()
+        return self._latex_raw(wrap=wrap, coeff_format=coeff_format)
 
     def _repr_latex_(self) -> str:
         """Jupyter/Marimo notebook integration."""

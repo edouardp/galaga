@@ -185,6 +185,27 @@ class TestAlgebraDisplayMode(unittest.TestCase):
         d = v.display()
         self.assertEqual(f"{d}", str(d))
 
+    def test_named_latex_uses_display(self):
+        """latex() should return the full display form when display_repr=True."""
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        latex = v.latex()
+        self.assertIn("=", latex)
+        self.assertIn("v", latex)
+
+    def test_latex_coeff_format_bypasses_display(self):
+        """latex(coeff_format=...) should bypass display mode."""
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        latex = v.latex(coeff_format=".1f")
+        # coeff_format goes through the normal path, not display()
+        self.assertIn("2.0", latex)
+
+    def test_latex_wrap_bypasses_display(self):
+        """latex(wrap='$') should bypass display mode."""
+        v = (2 * self.e1 + 3 * self.e2).name("v")
+        latex = v.latex(wrap="$")
+        self.assertTrue(latex.startswith("$"))
+        self.assertTrue(latex.endswith("$"))
+
 
 class TestSymbolicAlias(unittest.TestCase):
     """Tests for symbolic= as alias for lazy=."""
