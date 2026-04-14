@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.4.3 (2026-04-15)
+
+### Fixed
+
+- **`latex()` respects `display_repr=True`** — `Multivector.latex()` now delegates to `display()`
+  when the algebra has `display_repr=True`, so `galaga_marimo.md(t"{v}")` renders the
+  full `name = expression = value` form without needing `{v.display()}`. Previously only `__repr__`,
+  `__str__`, and `_repr_latex_` honoured the flag. (ADR-061)
+
 ## 1.4.2 (2026-04-13)
 
 ### Added
