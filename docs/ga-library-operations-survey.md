@@ -182,16 +182,56 @@ All libraries agree on results. Syntax varies:
 
 Note on `~` in manual sandwich: since ganja.js maps `~` to Clifford conjugation (not reverse), writing `R * x * ~R` in ganja.js gives a different result than in other libraries. Use `R * x * R.Reverse` for the correct manual sandwich. Similarly, Grassmann.jl's `>>>` uses Clifford conjugate rather than reverse, matching its documented definition `η >>> ω = η*ω*conj(η)⁻¹`.
 
-## Commutator
+## Commutator and Anticommutator
 
-| Library | Commutator scaling | Syntax |
-|---|---|---|
-| ganja.js | — | Manual |
-| clifford | ½(ab - ba) | `a.commutator(b)`, `a.anticommutator(b)` |
-| kingdon | ½(ab - ba) | `a.cp(b)`, `a.acp(b)` |
-| galaga | ab - ba (full), also ½ via `lie_bracket` | `commutator(a,b)`, `anticommutator(a,b)`, `lie_bracket(a,b)`, `jordan_product(a,b)` |
-| galgebra | — | Manual |
-| GeometricAlgebra.jl | — | Manual |
+All results verified in Cl(3,0,0) with `a = e12`, `b = e23`. The raw algebraic result is `e12*e23 - e23*e12 = 2*e13`.
+
+### Built-in Support
+
+| Library | Has commutator | Has anticommutator | Syntax |
+|---|---|---|---|
+| ganja.js | ✗ | ✗ | Manual only |
+| clifford | ✓ | ✓ | `a.commutator(b)`, `a.anticommutator(b)` |
+| kingdon | ✓ | ✓ | `a.cp(b)`, `a.acp(b)` |
+| galaga | ✓ | ✓ | `commutator(a,b)`, `anticommutator(a,b)`, `lie_bracket(a,b)`, `jordan_product(a,b)` |
+| galgebra | ✗ | ✗ | Manual only |
+| GeometricAlgebra.jl | ✗ | ✗ | Manual only |
+| Grassmann.jl | ✗ | ✗ | Manual only |
+
+### Commutator Scaling Convention
+
+The key disagreement: does "commutator" mean `ab - ba` or `½(ab - ba)`?
+
+| Library | `commutator(e12, e23)` | Definition | Factor |
+|---|---|---|---|
+| clifford | `e13` | ½(ab - ba) | ½ |
+| kingdon | `e13` | ½(ab - ba) | ½ |
+| galaga `commutator()` | `2*e13` | ab - ba | 1 |
+| galaga `lie_bracket()` | `e13` | ½(ab - ba) | ½ |
+
+clifford and kingdon both use the ½-scaled convention for their "commutator product" — matching the GA tradition where bivectors form a Lie algebra with clean structure constants. galaga splits this into two functions: `commutator()` gives the raw `ab - ba` (matching the standard mathematical definition), while `lie_bracket()` gives the ½-scaled version.
+
+### Anticommutator Scaling Convention
+
+| Library | `anticommutator(e1, e1)` | Definition | Factor |
+|---|---|---|---|
+| clifford | `1` | ½(ab + ba) | ½ |
+| kingdon | `1` | ½(ab + ba) | ½ |
+| galaga `anticommutator()` | `2` | ab + ba | 1 |
+| galaga `jordan_product()` | `1` | ½(ab + ba) | ½ |
+
+The same pattern: clifford and kingdon include the ½ factor in their anticommutator; galaga separates the raw operation from the ½-scaled Jordan product.
+
+### Summary of Naming Across Libraries
+
+| Operation | clifford | kingdon | galaga |
+|---|---|---|---|
+| ab - ba | (no function) | (no function) | `commutator(a, b)` |
+| ½(ab - ba) | `.commutator()` | `.cp()` | `lie_bracket(a, b)` |
+| ab + ba | (no function) | (no function) | `anticommutator(a, b)` |
+| ½(ab + ba) | `.anticommutator()` | `.acp()` | `jordan_product(a, b)` |
+
+galaga is the only library that exposes all four variants as named functions. clifford and kingdon each expose only the ½-scaled pair. The remaining libraries (ganja.js, galgebra, GeometricAlgebra.jl, Grassmann.jl) have no built-in commutator at all — users compute `a*b - b*a` manually.
 
 ## Regressive Product
 
