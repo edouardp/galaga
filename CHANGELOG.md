@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.0 (2026-04-19)
+
+### Added
+
+- **Basis vector protection** — Basis vectors returned by `basis_vectors()`, `basis_blades()`,
+`locals()`, `pseudoscalar()`, and `blade()` are now protected from in-place mutation. Calling
+`.name()` on a basis vector returns a named copy instead of mutating the original. The common
+pattern `v = e1.name("v")` continues to work unchanged. (ADR-067)
+
 ## 1.4.3 (2026-04-15)
 
 ### Fixed
