@@ -49,6 +49,82 @@ class TestNameMethod:
         assert v._name == "v_ascii"
 
 
+class TestBasisProtection:
+    """Basis vectors are protected from in-place mutation by .name()."""
+
+    def test_name_returns_copy_for_basis_vector(self, cl3):
+        """name() on a basis vector returns a new MV, not self."""
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert v is not e1
+
+    def test_basis_vector_unchanged_after_name(self, cl3):
+        """The original basis vector is not mutated."""
+        e1, _, _ = cl3.basis_vectors()
+        e1.name("v")
+        assert e1._name is None
+        assert e1._is_symbolic is False
+
+    def test_named_copy_has_correct_name(self, cl3):
+        """The returned copy has the name set."""
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert v._name == "v"
+        assert v._is_symbolic is True
+
+    def test_named_copy_not_protected(self, cl3):
+        """The copy returned by name() is not itself protected."""
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert v._is_basis is False
+
+    def test_basis_blades_protected(self):
+        """basis_blades() returns protected MVs."""
+        alg = Algebra(3)
+        (e12,) = alg.basis_blades(2)[:1]
+        B = e12.name("B")
+        assert B is not e12
+        assert e12._name is None
+
+    def test_locals_protected(self):
+        """locals() returns protected MVs."""
+        alg = Algebra(2)
+        blades = alg.locals()
+        e1 = blades["e1"]
+        v = e1.name("v")
+        assert v is not e1
+        assert e1._name is None
+
+    def test_pseudoscalar_protected(self):
+        """pseudoscalar() returns a protected MV."""
+        alg = Algebra(2)
+        I = alg.pseudoscalar()
+        named = I.name("I")
+        assert named is not I
+        assert I._name is None
+
+    def test_blade_lookup_protected(self):
+        """blade() returns a protected MV."""
+        alg = Algebra(3)
+        e1 = alg.blade("e1")
+        v = e1.name("v")
+        assert v is not e1
+        assert e1._name is None
+
+    def test_arithmetic_result_not_protected(self, cl3):
+        """MVs from arithmetic are not protected."""
+        e1, e2, _ = cl3.basis_vectors()
+        mv = e1 + e2
+        v = mv.name("v")
+        assert v is mv  # in-place mutation, not a copy
+
+    def test_named_copy_preserves_value(self, cl3):
+        """The named copy has the same numeric data."""
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v")
+        assert (v.data == e1.data).all()
+
+
 class TestAnonMethod:
     def test_anon_clears_name(self, cl3):
         """.anon() removes the display name."""
@@ -2140,8 +2216,8 @@ class TestCoverageGaps:
         from galaga.expr import _coerce
 
         e1, _, _ = cl3.basis_vectors()
-        e1.name("x")
-        result = _coerce(e1)
+        x = e1.name("x")
+        result = _coerce(x)
         assert isinstance(result, Sym)
 
 

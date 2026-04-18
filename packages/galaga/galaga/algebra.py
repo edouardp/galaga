@@ -292,6 +292,7 @@ class Algebra:
             mv = Multivector(self, data)
             mv._is_symbolic = is_symbolic
             mv._grade = 1
+            mv._is_basis = True
             vecs.append(mv)
         return tuple(vecs)
 
@@ -318,6 +319,7 @@ class Algebra:
                 mv = Multivector(self, data)
                 mv._is_symbolic = is_symbolic
                 mv._grade = k
+                mv._is_basis = True
                 blades.append(mv)
         return tuple(blades)
 
@@ -352,6 +354,7 @@ class Algebra:
             mv = Multivector(self, data)
             mv._is_symbolic = is_symbolic
             mv._grade = bin(idx).count("1")
+            mv._is_basis = True
             result[bb.ascii_name] = mv
         return result
 
@@ -362,6 +365,7 @@ class Algebra:
         data[self._dim - 1] = 1.0
         mv = Multivector(self, data)
         mv._grade = self._n
+        mv._is_basis = True
         if is_symbolic:
             mv._is_symbolic = True
         return mv
@@ -470,6 +474,7 @@ class Algebra:
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
+            mv._is_basis = True
             if is_symbolic:
                 mv.symbolic()
             return mv
@@ -486,6 +491,7 @@ class Algebra:
             data = np.zeros(self._dim)
             data[bitmask] = 1.0
             mv = Multivector(self, data)
+            mv._is_basis = True
             if is_symbolic:
                 mv.symbolic()
             return mv
@@ -498,6 +504,7 @@ class Algebra:
                 data = np.zeros(self._dim)
                 data[idx] = 1.0
                 mv = Multivector(self, data)
+                mv._is_basis = True
                 if is_symbolic:
                     mv.symbolic()
                 return mv
@@ -520,6 +527,7 @@ class Algebra:
                 data = np.zeros(self._dim)
                 data[bitmask] = 1.0
                 mv = Multivector(self, data)
+                mv._is_basis = True
                 if is_symbolic:
                     mv.symbolic()
                 return mv
@@ -721,7 +729,17 @@ class Multivector:
         data: Dense NumPy float64 array of length ``algebra.dim``.
     """
 
-    __slots__ = ("algebra", "data", "_name", "_name_latex", "_name_unicode", "_is_symbolic", "_expr", "_grade")
+    __slots__ = (
+        "algebra",
+        "data",
+        "_name",
+        "_name_latex",
+        "_name_unicode",
+        "_is_symbolic",
+        "_expr",
+        "_grade",
+        "_is_basis",
+    )
 
     def __init__(self, algebra: Algebra, data: np.ndarray):
         """Wrap a coefficient array as a multivector in the given algebra.
@@ -738,6 +756,7 @@ class Multivector:
         self._is_symbolic = False
         self._expr = None
         self._grade = None
+        self._is_basis = False
 
     def _check_same(self, other: Multivector):
         if self.algebra is not other.algebra:
@@ -756,6 +775,7 @@ class Multivector:
         mv._is_symbolic = overrides.get("_is_symbolic", self._is_symbolic)
         mv._expr = overrides.get("_expr", self._expr)
         mv._grade = overrides.get("_grade", self._grade)
+        mv._is_basis = False
         return mv
 
     def name(
@@ -766,7 +786,11 @@ class Multivector:
         unicode: str | None = None,
         ascii: str | None = None,
     ) -> Multivector:
-        """Assign a display name in-place. Sets symbolic. Returns self.
+        """Assign a display name. Sets symbolic. Returns self (or a copy for basis vectors).
+
+        For basis vectors returned by basis_vectors(), basis_blades(), locals(),
+        pseudoscalar(), or blade(), this returns a named copy — the original
+        basis vector is not mutated.
 
         At least one of ``label`` or ``latex`` must be provided. If ``latex``
         is given, ``unicode`` and ``ascii`` are auto-derived from it unless
@@ -781,6 +805,10 @@ class Multivector:
         """
         if label is None and latex is None:
             raise ValueError("At least one of label or latex must be provided")
+        # Protect basis vectors: operate on a copy instead of mutating
+        if self._is_basis:
+            copy = self._copy_with()
+            return copy.name(label, latex=latex, unicode=unicode, ascii=ascii)
         # Auto-derive unicode/ascii from latex if not explicitly given
         if latex is not None and (unicode is None or ascii is None):
             result = LatexSymbols().lookup(latex)
@@ -941,6 +969,7 @@ class Multivector:
         mv._is_symbolic = True
         mv._expr = expr
         mv._grade = None
+        mv._is_basis = False
         return mv
 
     def __add__(self, other):
