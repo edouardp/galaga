@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.6.1 (2026-04-19)
+
+### Fixed
+
+- **`recognize=` uses MV's own LaTeX name** — Labels are now pulled from each known MV's
+`.name(latex=...)` instead of requiring explicit dict keys. Pass any collection (list, tuple,
+dict) of named MVs — no label duplication needed.
+
+- **`recognize=` shows all matching labels** — When multiple known MVs match a result, all are
+shown (e.g. `(≡ \uparrow ≡ |0⟩)`) instead of only the first.
+
 ## 1.6.0 (2026-04-19)
 
 ### Added
