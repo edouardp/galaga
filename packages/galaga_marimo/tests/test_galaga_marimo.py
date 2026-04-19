@@ -700,3 +700,65 @@ class TestGAIntegration:
         assert "# Result" in result
         assert "$" in result
         assert "has components" in result
+
+
+class TestRecognize:
+    """Tests for the recognize= parameter that annotates known MVs."""
+
+    @pytest.fixture
+    def alg(self):
+        from galaga import Algebra
+
+        return Algebra(2)
+
+    def test_recognize_matches_known(self, alg):
+        """When a value matches a known MV, annotation is appended."""
+        e1, e2 = alg.basis_vectors()
+        u = alg.scalar(1.0).name(r"\uparrow")
+        knowns = {r"\uparrow": u}
+        # Render a scalar 1.0 (same data as u)
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv \uparrow" in rendered
+
+    def test_recognize_no_match(self, alg):
+        """When no match, no annotation."""
+        e1, e2 = alg.basis_vectors()
+        u = alg.scalar(1.0).name(r"\uparrow")
+        knowns = {r"\uparrow": u}
+        t = FakeTemplate(FakeInterpolation(e1))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv" not in rendered
+
+    def test_recognize_skips_self_match(self, alg):
+        """Don't annotate if the MV's own name matches the label."""
+        u = alg.scalar(1.0).name(r"\uparrow")
+        knowns = {r"\uparrow": u}
+        t = FakeTemplate(FakeInterpolation(u))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv" not in rendered
+
+    def test_recognize_non_mv_value_ignored(self):
+        """Non-MV values are not matched."""
+        knowns = {r"\uparrow": "not a multivector"}
+        t = FakeTemplate(FakeInterpolation("hello"))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv" not in rendered
+
+    def test_recognize_none_is_noop(self, alg):
+        """recognize=None produces no annotations."""
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv))
+        rendered = render_template(t, recognize=None)
+        assert r"\equiv" not in rendered
+
+    def test_recognize_block_mode(self, alg):
+        """Recognition works in block mode too."""
+        u = alg.scalar(1.0).name(r"\uparrow")
+        knowns = {r"\uparrow": u}
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv, format_spec="block"))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv \uparrow" in rendered
+        assert "$$" in rendered

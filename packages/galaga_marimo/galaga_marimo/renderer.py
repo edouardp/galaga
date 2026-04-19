@@ -110,6 +110,40 @@ def _escape_md(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
+def _recognize_value(value: Any, recognize: dict, tol: float = 1e-10) -> str | None:
+    """Check if value matches any known MV. Return its label or None."""
+    import numpy as np
+
+    data = getattr(value, "data", None)
+    if not isinstance(data, np.ndarray):
+        return None
+    # Don't annotate if the value already has a name matching a known
+    name = getattr(value, "_name_latex", None) or getattr(value, "_name", None)
+    for label, known in recognize.items():
+        known_data = getattr(known, "data", None)
+        if not isinstance(known_data, np.ndarray):
+            continue
+        if data.shape != known_data.shape:
+            continue
+        if np.allclose(data, known_data, atol=tol):
+            # Skip if the MV's own name matches this label
+            if name and name == label:
+                return None
+            return label
+    return None
+
+
+def _append_recognition(assembled: str, label: str, kind: RenderKind) -> str:
+    """Append a recognition annotation to rendered LaTeX."""
+    # Get LaTeX for the label — use it directly (it may contain LaTeX commands)
+    annotation = rf"\equiv {label}"
+    if kind == RenderKind.INLINE_LATEX:
+        # $...$ → $... \quad (\equiv label)$
+        return assembled[:-1] + rf" \quad ({annotation})$"
+    # $$...$$ → $$... \quad (\equiv label)$$
+    return assembled.rstrip().rstrip("$") + rf" \quad ({annotation})$$" + "\n\n"
+
+
 def _assemble(rendered: Rendered) -> str:
     """Convert a Rendered value to its markdown string."""
     if rendered.kind == RenderKind.INLINE_LATEX:
@@ -119,11 +153,17 @@ def _assemble(rendered: Rendered) -> str:
     return _escape_md(rendered.value)
 
 
-def render_template(template: Template) -> str:
+def render_template(template: Template, recognize: dict | None = None) -> str:
     """Walk a t-string Template and produce a markdown string.
 
     Literal parts pass through unchanged. Interpolations are classified
     and rendered according to their type and format spec.
+
+    Args:
+        template: A t-string Template to render.
+        recognize: Optional dict mapping label strings to Multivectors.
+            When a rendered MV's numeric value matches a known MV, an
+            annotation ``(≡ label)`` is appended in LaTeX.
     """
     parts: list[str] = []
     for item in template:
@@ -131,5 +171,10 @@ def render_template(template: Template) -> str:
             parts.append(item)
         elif isinstance(item, Interpolation):
             rendered = render_value(item.value, item.conversion, item.format_spec)
-            parts.append(_assemble(rendered))
+            assembled = _assemble(rendered)
+            if recognize and rendered.kind in (RenderKind.INLINE_LATEX, RenderKind.BLOCK_LATEX):
+                match = _recognize_value(item.value, recognize)
+                if match is not None:
+                    assembled = _append_recognition(assembled, match, rendered.kind)
+            parts.append(assembled)
     return "".join(parts)

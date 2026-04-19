@@ -11,7 +11,7 @@ from typing import Any
 from galaga_marimo.renderer import _get_latex, _has_latex, render_template
 
 
-def md(template: Template) -> Any:
+def md(template: Template, *, recognize: dict | None = None) -> Any:
     """Render a t-string template as marimo markdown.
 
     GA objects with a .latex() method are automatically rendered as
@@ -22,10 +22,16 @@ def md(template: Template) -> Any:
         gm.md(t"Debug: {mv!r}")          # repr as text
         gm.md(t"Value: {x:.3f}")         # numeric formatting
 
+    Args:
+        template: A t-string template.
+        recognize: Optional dict mapping LaTeX label strings to known
+            Multivectors. When a rendered MV's numeric value matches a
+            known, ``(≡ label)`` is appended.
+
     Returns a marimo Html object if marimo is available, otherwise
     returns the rendered markdown string.
     """
-    markdown = render_template(template)
+    markdown = render_template(template, recognize=recognize)
     import textwrap
 
     markdown = textwrap.dedent(markdown).strip()
@@ -180,15 +186,17 @@ class Doc:
     You can also call d.render() explicitly.
     """
 
-    def __init__(self):
+    def __init__(self, *, recognize: dict | None = None):
         self._parts: list[str] = []
         self._result = None
+        self._recognize = recognize
 
-    def md(self, template: Template) -> None:
+    def md(self, template: Template, *, recognize: dict | None = None) -> None:
         """Append a rendered t-string as a markdown paragraph."""
         import textwrap
 
-        rendered = render_template(template)
+        rec = recognize if recognize is not None else self._recognize
+        rendered = render_template(template, recognize=rec)
         self._parts.append(textwrap.dedent(rendered).strip())
 
     def inline(self, template: Template) -> None:
@@ -251,7 +259,7 @@ class Doc:
         return False
 
 
-def doc() -> Doc:
+def doc(*, recognize: dict | None = None) -> Doc:
     """Create a markdown builder for loop/conditional content.
 
     Usage::
@@ -261,6 +269,10 @@ def doc() -> Doc:
             for name, expr in items:
                 d.md(t"**{name}:** {expr} = {expr.eval()}")
 
+    Args:
+        recognize: Optional dict mapping LaTeX labels to known MVs.
+            Applied to all d.md() calls unless overridden per-call.
+
     Returns a marimo Html object when the context manager exits.
     """
-    return Doc()
+    return Doc(recognize=recognize)
