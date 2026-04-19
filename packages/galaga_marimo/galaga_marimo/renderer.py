@@ -110,16 +110,16 @@ def _escape_md(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> str | None:
-    """Check if value matches any known MV. Return its LaTeX label or None."""
+def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> list[str]:
+    """Check if value matches any known MVs. Return list of LaTeX labels."""
     import numpy as np
 
     data = getattr(value, "data", None)
     if not isinstance(data, np.ndarray):
-        return None
-    # Don't annotate if the value already has a name matching a known
+        return []
     name = getattr(value, "_name_latex", None) or getattr(value, "_name", None)
     knowns = recognize.values() if isinstance(recognize, dict) else recognize
+    matches = []
     for known in knowns:
         known_data = getattr(known, "data", None)
         if not isinstance(known_data, np.ndarray):
@@ -130,22 +130,18 @@ def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> str | None:
         if not label:
             continue
         if np.allclose(data, known_data, atol=tol):
-            # Skip if the value's own name matches
             if name and name == label:
-                return None
-            return label
-    return None
+                continue
+            matches.append(label)
+    return matches
 
 
-def _append_recognition(assembled: str, label: str, kind: RenderKind) -> str:
-    """Append a recognition annotation to rendered LaTeX."""
-    # Get LaTeX for the label — use it directly (it may contain LaTeX commands)
-    annotation = rf"\equiv {label}"
+def _append_recognition(assembled: str, labels: list[str], kind: RenderKind) -> str:
+    """Append recognition annotations to rendered LaTeX."""
+    annotation = r" \equiv ".join(labels)
     if kind == RenderKind.INLINE_LATEX:
-        # $...$ → $... \quad (\equiv label)$
-        return assembled[:-1] + rf" \quad ({annotation})$"
-    # $$...$$ → $$... \quad (\equiv label)$$
-    return assembled.rstrip().rstrip("$") + rf" \quad ({annotation})$$" + "\n\n"
+        return assembled[:-1] + rf" \quad (\equiv {annotation})$"
+    return assembled.rstrip().rstrip("$") + rf" \quad (\equiv {annotation})$$" + "\n\n"
 
 
 def _assemble(rendered: Rendered) -> str:
@@ -178,8 +174,8 @@ def render_template(template: Template, recognize: dict | list | tuple | None = 
             rendered = render_value(item.value, item.conversion, item.format_spec)
             assembled = _assemble(rendered)
             if recognize and rendered.kind in (RenderKind.INLINE_LATEX, RenderKind.BLOCK_LATEX):
-                match = _recognize_value(item.value, recognize)
-                if match is not None:
-                    assembled = _append_recognition(assembled, match, rendered.kind)
+                matches = _recognize_value(item.value, recognize)
+                if matches:
+                    assembled = _append_recognition(assembled, matches, rendered.kind)
             parts.append(assembled)
     return "".join(parts)

@@ -779,3 +779,14 @@ class TestRecognize:
         t = FakeTemplate(FakeInterpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
+
+    def test_recognize_multiple_matches(self, alg):
+        """All matching knowns are shown."""
+        u = alg.scalar(1.0).name(r"\uparrow")
+        ket0 = alg.scalar(1.0).name(r"|0\rangle")
+        knowns = [u, ket0]
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\uparrow" in rendered
+        assert r"|0\rangle" in rendered
