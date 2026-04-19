@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.6.0 (2026-04-19)
+
+### Added
+
+- **Basis vector protection** — Basis vectors returned by `basis_vectors()`, `basis_blades()`,
+`locals()`, `pseudoscalar()`, and `blade()` are now protected from in-place mutation. Calling
+`.name()` on a basis vector returns a named copy instead of mutating the original. The common
+pattern `v = e1.name("v")` continues to work unchanged. (ADR-067)
+
+- **`recognize=` for known MV annotation** (galaga-marimo) — `gm.md()` and `Doc.md()` accept a
+`recognize={label: mv, ...}` dict. When a rendered multivector's numeric value matches a known,
+`(≡ label)` is appended in LaTeX. Useful for identifying computed results as named states in
+quantum/physics notebooks. (ADR-068)
+
 ## 1.5.0 (2026-04-19)
 
 ### Added
