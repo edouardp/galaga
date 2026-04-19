@@ -715,8 +715,7 @@ class TestRecognize:
         """When a value matches a known MV, annotation is appended."""
         e1, e2 = alg.basis_vectors()
         u = alg.scalar(1.0).name(r"\uparrow")
-        knowns = {r"\uparrow": u}
-        # Render a scalar 1.0 (same data as u)
+        knowns = [u]
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
@@ -726,7 +725,7 @@ class TestRecognize:
         """When no match, no annotation."""
         e1, e2 = alg.basis_vectors()
         u = alg.scalar(1.0).name(r"\uparrow")
-        knowns = {r"\uparrow": u}
+        knowns = [u]
         t = FakeTemplate(FakeInterpolation(e1))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
@@ -734,14 +733,14 @@ class TestRecognize:
     def test_recognize_skips_self_match(self, alg):
         """Don't annotate if the MV's own name matches the label."""
         u = alg.scalar(1.0).name(r"\uparrow")
-        knowns = {r"\uparrow": u}
+        knowns = [u]
         t = FakeTemplate(FakeInterpolation(u))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
 
     def test_recognize_non_mv_value_ignored(self):
         """Non-MV values are not matched."""
-        knowns = {r"\uparrow": "not a multivector"}
+        knowns = ["not a multivector"]
         t = FakeTemplate(FakeInterpolation("hello"))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
@@ -756,9 +755,27 @@ class TestRecognize:
     def test_recognize_block_mode(self, alg):
         """Recognition works in block mode too."""
         u = alg.scalar(1.0).name(r"\uparrow")
-        knowns = {r"\uparrow": u}
+        knowns = [u]
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv, format_spec="block"))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv \uparrow" in rendered
         assert "$$" in rendered
+
+    def test_recognize_dict_values_used(self, alg):
+        """Dict values are iterated (keys ignored)."""
+        u = alg.scalar(1.0).name(r"\uparrow")
+        knowns = {"up": u}  # key is irrelevant, label comes from MV
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv \uparrow" in rendered
+
+    def test_recognize_unnamed_known_skipped(self, alg):
+        """Known MVs without a name are skipped."""
+        unnamed = alg.scalar(1.0)  # no .name() called
+        knowns = [unnamed]
+        result_mv = alg.scalar(1.0)
+        t = FakeTemplate(FakeInterpolation(result_mv))
+        rendered = render_template(t, recognize=knowns)
+        assert r"\equiv" not in rendered

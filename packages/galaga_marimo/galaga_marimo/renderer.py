@@ -110,8 +110,8 @@ def _escape_md(s: str) -> str:
     return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
 
 
-def _recognize_value(value: Any, recognize: dict, tol: float = 1e-10) -> str | None:
-    """Check if value matches any known MV. Return its label or None."""
+def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> str | None:
+    """Check if value matches any known MV. Return its LaTeX label or None."""
     import numpy as np
 
     data = getattr(value, "data", None)
@@ -119,14 +119,18 @@ def _recognize_value(value: Any, recognize: dict, tol: float = 1e-10) -> str | N
         return None
     # Don't annotate if the value already has a name matching a known
     name = getattr(value, "_name_latex", None) or getattr(value, "_name", None)
-    for label, known in recognize.items():
+    knowns = recognize.values() if isinstance(recognize, dict) else recognize
+    for known in knowns:
         known_data = getattr(known, "data", None)
         if not isinstance(known_data, np.ndarray):
             continue
         if data.shape != known_data.shape:
             continue
+        label = getattr(known, "_name_latex", None) or getattr(known, "_name", None)
+        if not label:
+            continue
         if np.allclose(data, known_data, atol=tol):
-            # Skip if the MV's own name matches this label
+            # Skip if the value's own name matches
             if name and name == label:
                 return None
             return label
@@ -153,7 +157,7 @@ def _assemble(rendered: Rendered) -> str:
     return _escape_md(rendered.value)
 
 
-def render_template(template: Template, recognize: dict | None = None) -> str:
+def render_template(template: Template, recognize: dict | list | tuple | None = None) -> str:
     """Walk a t-string Template and produce a markdown string.
 
     Literal parts pass through unchanged. Interpolations are classified
@@ -161,9 +165,10 @@ def render_template(template: Template, recognize: dict | None = None) -> str:
 
     Args:
         template: A t-string Template to render.
-        recognize: Optional dict mapping label strings to Multivectors.
-            When a rendered MV's numeric value matches a known MV, an
-            annotation ``(≡ label)`` is appended in LaTeX.
+        recognize: Optional collection of named Multivectors (list, dict,
+            or any iterable). When a rendered MV's numeric value matches
+            a known, an annotation ``(≡ label)`` is appended using the
+            known MV's own LaTeX name.
     """
     parts: list[str] = []
     for item in template:

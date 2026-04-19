@@ -30,7 +30,7 @@ e1, e2 = alg.basis_vectors()
 u = alg.scalar(1.0).name(r"\uparrow")
 d = (e1 * e2).name(r"\downarrow")
 
-knowns = {r"\uparrow": u, r"\downarrow": d}
+knowns = [u, d]
 
 result = alg.scalar(1.0)
 gm.md(t"Result: {result}", recognize=knowns)
@@ -45,4 +45,5 @@ with gm.doc(recognize=knowns) as d:
     d.md(t"g₋(↓) = {g_minus(d)}")
 ```
 
-Labels are LaTeX strings — use whatever notation fits your domain.
+Labels are taken from each MV's `.name(latex=...)` — pass any collection
+(list, tuple, dict) of named multivectors.

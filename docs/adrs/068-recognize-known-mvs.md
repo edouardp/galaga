@@ -22,16 +22,21 @@ a physics-level interpretation. Recognition belongs in the rendering layer.
 Add a `recognize=` parameter to `galaga_marimo.md()` and `Doc.md()`.
 
 ```python
-knowns = {r"\uparrow": u, r"\downarrow": d}
+knowns = [u, d]
 gm.md(t"Result: {result}", recognize=knowns)
 # → Result: $1 \quad (\equiv \uparrow)$
 ```
 
 ### Design choices
 
-- **Per-call, not global state.** The `recognize` dict is passed explicitly.
-  `Doc` accepts it at construction (applies to all `d.md()` calls) or
-  per-call (overrides the constructor default).
+- **Per-call, not global state.** The `recognize` collection is passed
+  explicitly. `Doc` accepts it at construction (applies to all `d.md()`
+  calls) or per-call (overrides the constructor default).
+
+- **Labels from the MV itself.** The annotation uses the known MV's own
+  `_name_latex` (or `_name` fallback). No need to duplicate labels in a
+  dict key — just pass a list of named MVs. Dicts are also accepted
+  (values are iterated, keys ignored).
 
 - **Rendering layer only.** Recognition lives in `galaga_marimo.renderer`,
   not in the algebra or Multivector. The algebra is unaware of it.
@@ -41,6 +46,9 @@ gm.md(t"Result: {result}", recognize=knowns)
 
 - **Self-match suppression.** If the rendered MV's own `_name_latex` matches
   the recognition label, no annotation is added (avoids `↑ (≡ ↑)`).
+
+- **Unnamed knowns skipped.** If a known MV has no name, it cannot produce
+  a label and is silently skipped.
 
 - **Annotation format.** `\quad (\equiv label)` appended inside the LaTeX
   delimiters. Works for both inline `$...$` and block `$$...$$`.
