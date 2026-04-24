@@ -1,6 +1,6 @@
 [project]
 name = "galaga-marimo"
-version = "1.6.3"
+version = "1.6.4"
 description = "Marimo notebook helpers for geometric algebra — t-string powered LaTeX rendering"
 readme = "README.md"
 requires-python = ">=3.14"
@@ -19,7 +19,7 @@ classifiers = [
     "Framework :: Jupyter",
 ]
 dependencies = [
-    "galaga>=1.6.3",
+    "galaga>=1.6.4",
     "marimo>=0.21.1",
 ]
 
