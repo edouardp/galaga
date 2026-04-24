@@ -68,7 +68,9 @@ from . import render as _render
 from .basis_blade import BasisBlade
 from .blade_convention import BladeConvention, _resolve_metric_role_key, b_default, build_blades
 from .latex_emit import emit as _latex_emit
-from .latex_nodes import Seq, Sup, Text
+from .latex_nodes import Seq, Text
+from .latex_nodes import fmt_coeff as _fmt_coeff
+from .latex_nodes import sci_lnode as _sci_lnode
 from .latex_symbols import LatexSymbols
 from .notation import Notation
 from .ops import build_expr, ga_op, is_sym, make_sym
@@ -610,41 +612,6 @@ class Algebra:
         if zero:
             parts.append(str(zero))
         return f"Cl({','.join(parts)})"
-
-
-import re as _re
-
-
-def _fmt_coeff(c: float) -> str:
-    """Format a coefficient for default LaTeX display.
-
-    Uses Python's :g (6 significant digits) but forces non-scientific
-    notation for numbers with abs >= 1e-6.
-    """
-    if c == 0:
-        return "0"
-    s = f"{c:g}"
-    if abs(c) >= 1e-6 and ("e" in s or "E" in s):
-        s = f"{c:.6f}".rstrip("0").rstrip(".")
-    return s
-
-
-def _sci_lnode(s: str, style: str):
-    """Convert a formatted number string to an LNode, handling scientific notation.
-
-    Returns an LNode (Text, or Seq with Sup for scientific notation).
-    """
-    if style == "raw":
-        return Text(s)
-    m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
-    if not m:
-        return Text(s)
-    sign, mantissa, exp = m.groups()
-    exp_int = int(exp)
-    sep = r" \times " if style == "times" else r" \cdot "
-    if mantissa in ("1", "1."):
-        return Seq([Text(sign), Sup(Text("10"), Text(str(exp_int)))])
-    return Seq([Text(f"{sign}{mantissa}{sep}"), Sup(Text("10"), Text(str(exp_int)))])
 
 
 def _coeff_lnode(c: float, blade: str, coeff_format: str | None, style: str):

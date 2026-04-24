@@ -706,3 +706,56 @@ class TestSlashFracAmbiguity:
         result = _latex(Gp(ScalarDiv(a, 2), b))
         assert r"\left(" not in result
         assert r"\frac{a}{2}" in result
+
+
+class TestScientificNotation:
+    """Expression tree Scalar/ScalarMul/ScalarDiv use scientific notation."""
+
+    def _latex_with(self, expr, style="times"):
+        from galaga.notation import Notation
+
+        n = Notation()
+        n.scientific = style
+        return emit(rewrite(build(expr, n)))
+
+    def test_scalar_small_number(self):
+        """Scalar with |c| < 1e-6 renders as scientific notation."""
+        result = self._latex_with(Scalar(1.2e-7))
+        assert result == r"1.2 \times 10^{-7}"
+
+    def test_scalar_normal_number(self):
+        """Scalar with |c| >= 1e-6 renders without scientific notation."""
+        result = self._latex_with(Scalar(3.14))
+        assert result == "3.14"
+
+    def test_scalar_cdot_style(self):
+        """Scalar with cdot style uses \\cdot."""
+        result = self._latex_with(Scalar(1.2e-7), style="cdot")
+        assert result == r"1.2 \cdot 10^{-7}"
+
+    def test_scalar_raw_style(self):
+        """Scalar with raw style passes through Python format."""
+        result = self._latex_with(Scalar(1.2e-7), style="raw")
+        assert result == "1.2e-07"
+
+    def test_scalarmul_small_coeff(self):
+        """ScalarMul with small coefficient renders scientific notation."""
+        result = self._latex_with(ScalarMul(5.5e-8, a))
+        assert r"\times 10^{-8}" in result
+        assert "5.5" in result
+
+    def test_scalarmul_normal_coeff(self):
+        """ScalarMul with normal coefficient renders plain number."""
+        result = self._latex_with(ScalarMul(2.5, a))
+        assert result == "2.5 a"
+
+    def test_scalardiv_small_denominator(self):
+        """ScalarDiv with small denominator renders scientific notation in frac."""
+        result = self._latex_with(ScalarDiv(a, 1.2e-7))
+        assert r"\times 10^{-7}" in result
+        assert r"\frac" in result
+
+    def test_scalar_mantissa_one_suppressed(self):
+        """Scalar 1e-10 suppresses mantissa."""
+        result = self._latex_with(Scalar(1e-10))
+        assert result == r"10^{-10}"

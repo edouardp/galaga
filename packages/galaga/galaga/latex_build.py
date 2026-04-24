@@ -31,7 +31,7 @@ from .expr import (
     Sym,
     Unit,
 )
-from .latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text
+from .latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text, fmt_coeff, sci_lnode
 from .notation import Notation
 from .render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
 
@@ -72,7 +72,7 @@ def _build(node: Expr, n: Notation) -> LNode:
     if t is Sym:
         return Text(node._name_latex)
     if t is Scalar:
-        return Text(f"{node._value:g}")
+        return sci_lnode(fmt_coeff(node._value), n.scientific)
 
     # Neg: -child
     if t is Neg:
@@ -86,11 +86,11 @@ def _build(node: Expr, n: Notation) -> LNode:
             return Seq([Text("-"), _wp(inner, node.x, 61)])
         if node.k == 1:
             return inner
-        return Seq([Text(f"{node.k:g} "), _wp(inner, node.x, 61)])
+        return Seq([sci_lnode(fmt_coeff(node.k), n.scientific), Text(" "), _wp(inner, node.x, 61)])
 
     # ScalarDiv: frac{child}{k}
     if t is ScalarDiv:
-        return Frac(_build(node.x, n), Text(f"{node.k:g}"))
+        return Frac(_build(node.x, n), sci_lnode(fmt_coeff(node.k), n.scientific))
 
     # Add: a + b (renders as a - b when b is negative)
     if t is Add:

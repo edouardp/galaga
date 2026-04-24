@@ -33,9 +33,12 @@ alg.notation.scientific = "cdot"  # switch style
 
 ### Implementation
 
-- `_sci_lnode()` parses a formatted number string and returns an LNode tree
-- `_coeff_lnode()` builds a complete coefficient × blade term as an LNode
+- `fmt_coeff()` and `sci_lnode()` live in `latex_nodes.py`, shared by both
+  the eager MV path (`algebra.py`) and the expression tree path (`latex_build.py`)
+- `_coeff_lnode()` in `algebra.py` builds a complete coefficient × blade term as an LNode
 - `Multivector.latex()` builds LNodes per term, then emits them
+- `latex_build.py` uses `sci_lnode(fmt_coeff(value), n.scientific)` for
+  `Scalar`, `ScalarMul`, and `ScalarDiv` expression nodes
 - The `Sup(Text("10"), Text("-6"))` is a proper render tree node, handled
   by the existing emit pipeline
 
@@ -44,4 +47,5 @@ alg.notation.scientific = "cdot"  # switch style
 - Good, because scientific notation is rendered via the LNode tree, not regex
 - Good, because the style is configurable per-algebra via Notation
 - Good, because no special-case string transforms to maintain
-- Good, because new coefficient formatting paths automatically get correct rendering
+- Good, because both eager MVs and symbolic expression trees share the same rendering
+- Good, because `fmt_coeff`/`sci_lnode` live in `latex_nodes.py` alongside the node types they construct

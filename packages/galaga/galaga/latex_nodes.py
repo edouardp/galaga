@@ -25,6 +25,7 @@ Node types:
 
 from __future__ import annotations
 
+import re as _re
 from dataclasses import dataclass
 
 
@@ -91,3 +92,38 @@ class SlashFrac(LNode):
 
     num: LNode
     den: LNode
+
+
+# --- Coefficient formatting helpers ---
+
+
+def fmt_coeff(c: float) -> str:
+    """Format a coefficient for default LaTeX display.
+
+    Uses Python's :g (6 significant digits) but forces non-scientific
+    notation for numbers with abs >= 1e-6.
+    """
+    if c == 0:
+        return "0"
+    s = f"{c:g}"
+    if abs(c) >= 1e-6 and ("e" in s or "E" in s):
+        s = f"{c:.6f}".rstrip("0").rstrip(".")
+    return s
+
+
+def sci_lnode(s: str, style: str) -> LNode:
+    """Convert a formatted number string to an LNode, handling scientific notation.
+
+    Returns Text for plain numbers, or Seq with Sup for scientific notation.
+    """
+    if style == "raw":
+        return Text(s)
+    m = _re.match(r"^(-?)(\d+\.?\d*)[eE]([+-]?\d+)$", s)
+    if not m:
+        return Text(s)
+    sign, mantissa, exp = m.groups()
+    exp_int = int(exp)
+    sep = r" \times " if style == "times" else r" \cdot "
+    if mantissa in ("1", "1."):
+        return Seq([Text(sign), Sup(Text("10"), Text(str(exp_int)))])
+    return Seq([Text(f"{sign}{mantissa}{sep}"), Sup(Text("10"), Text(str(exp_int)))])
