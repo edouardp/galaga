@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.6.2 (2026-04-24)
+
+### Fixed
+
+- **Scientific notation in expression trees** — Symbolic expressions with small
+coefficients (|c| < 1e-6) now render as `1.2 \times 10^{-7}` in LaTeX instead
+of raw `1.2e-07`. Affects `Scalar`, `ScalarMul`, and `ScalarDiv` expression
+nodes. Respects `alg.notation.scientific` setting (`"times"`, `"cdot"`, `"raw"`).
+
+### Changed
+
+- **`fmt_coeff` / `sci_lnode` moved to `latex_nodes.py`** — Coefficient formatting
+helpers are now shared between the eager MV path (`algebra.py`) and the expression
+tree path (`latex_build.py`). No API change — these are internal functions.
+
 ## 1.6.1 (2026-04-19)
 
 ### Fixed
