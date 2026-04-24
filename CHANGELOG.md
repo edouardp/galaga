@@ -1,6 +1,12 @@
 # Changelog
 
-## 1.6.2 (2026-04-24)
+## 1.6.5 (2026-04-24)
+
+### Fixed
+
+- **Versioning in CHANGELOG** - now back in sync
+
+## 1.6.4 (2026-04-24)
 
 ### Fixed
 
