@@ -28,6 +28,45 @@ A lightweight fix: add an `_is_basis` flag to multivectors created by factory me
 
 `basis_vectors(lazy=...)`, `basis_blades(lazy=...)`, `pseudoscalar(lazy=...)`, `locals(lazy=...)`, and `blade(lazy=...)` all accept the deprecated `lazy=` kwarg alongside `symbolic=`. The `.lazy()` and `.eager()` methods on Multivector are also deprecated shims. v2 should remove these entirely.
 
+### Rename "symbolic" to what it actually is: expression tracking
+
+The current `symbolic=True` / `_is_symbolic` flag conflates three separate concerns:
+
+1. **Expression tracking** — recording the tree of operations that produced a value (`a ∧ b`, not `0.5e₁₂ + ...`)
+2. **Naming** — giving a display label to a value (`v`, `R`, `B`)
+3. **Evaluation strategy** — when to compute the numeric result
+
+In practice, galaga always computes eagerly — `.data` is never deferred. The "symbolic" layer is just an optional expression tree annotation stapled onto the numeric result. Calling `.name("v")` turns on expression tracking as a side effect. `symbolic=True` on `basis_vectors()` turns on both tracking and naming. The word "symbolic" is misleading because there's nothing symbolic about it.
+
+A cleaner model:
+
+```
+Multivector
+  .data          # always present, always numeric
+  .expr          # optional: the expression tree (None if not tracked)
+  .name          # optional: display label (None if unnamed)
+```
+
+With `.expr` and `.name` fully orthogonal:
+- Named + tracked: `v = e1.name("v"); w = v ^ e2` → w has expr `v ∧ e₂` and no name
+- Named + untracked: just a label for display, no tree
+- Unnamed + tracked: anonymous intermediate with full expression history
+- Unnamed + untracked: plain numeric MV (the default)
+
+`display_repr=True` on Algebra would go away — `repr()` would show whatever information is available (name, expression, value) without needing a global flag.
+
+**Naming candidates for the parameter/method:**
+
+| Option | Parameter | Method | Pros | Cons |
+|---|---|---|---|---|
+| `expr` | `basis_vectors(expr=True)` | `.expr` (read-only) | Short, same word as the attribute | `expr=True` reads slightly odd |
+| `traced` | `basis_vectors(traced=True)` | `.trace()` / `.untrace()` | Familiar concept | "trace" means matrix trace in math |
+| `track` | `basis_vectors(track=True)` | `.track()` / `.untrack()` | Verb form | Vague — track what? |
+| `track_expressions` | `basis_vectors(track_expressions=True)` | `.track_expressions()` | Completely explicit | Verbose |
+| `expressions` | `basis_vectors(expressions=True)` | — | Clear | Slightly odd as a boolean |
+
+Recommendation: `expr=True` for the parameter (matches the existing `.expr` attribute), no toggle method (you either create with it or without). The context manager alternative (`with alg.tracking(): ...`) is conceptually cleaner but harder to implement (thread-local state, escaping MVs).
+
 ### Commutator / anti-commutator naming
 
 The current decisions around `½[A,B]` vs `[A,B]` for the commutator, Lie bracket, anti-commutator, and Jordan product all feel easy to get wrong. The ½ factor is a silent convention difference that users may not notice. Consider making the naming more explicit:
@@ -90,6 +129,111 @@ The name `display_repr` is bad — it describes the mechanism, not the intent. B
 - `display="result"` — similar, emphasises that you're showing the evaluated result alongside the name
 - `display_full=True` — boolean variant if we don't want a string enum
 
+### Display depends on too many independent axes
+
+What a multivector shows when printed depends on:
+
+1. **Has a name?** → show `v = ...` vs just `...`
+2. **Has an expression tree?** → show `v = a ∧ b = 0.5e₁₂` vs `v = 0.5e₁₂`
+3. **Algebra-level display mode?** → `display_repr=True` changes `repr()` globally
+4. **Format spec?** → `f"{mv:latex}"` vs `f"{mv}"` vs `f"{mv:ascii}"`
+5. **Notebook context?** → `_repr_latex_()` for Jupyter, `gm.md(t"...")` for marimo
+
+The permutations are getting large, and the current design mixes per-MV state (name, expr), per-algebra state (display_repr, notation), and per-call state (format spec) in ways that are hard to reason about.
+
+**Design principle: obvious choices should be simple, complicated ones should be possible.**
+
+The obvious cases and what they should look like:
+
+```python
+# Just compute — no ceremony
+e1, e2, e3 = alg.basis_vectors()
+v = 2*e1 + 3*e2
+print(v)                    # 2e₁ + 3e₂
+
+# Name things for a notebook — one extra word
+e1, e2, e3 = alg.basis_vectors(expr=True)
+v = (2*e1 + 3*e2).name("v")
+print(v)                    # v = 2e₁ + 3e₂
+
+# Show the derivation — already there from expr=True
+R = exp(-0.5 * B)
+w = sandwich(R, v)
+print(w)                    # RvR̃ = 1.73e₁ + ...
+
+# Full control — format spec
+f"{w:value}"                # 1.73e₁ + ...
+f"{w:name}"                 # w'
+f"{w:expr}"                 # RvR̃
+f"{w:full}"                 # w' = RvR̃ = 1.73e₁ + ...
+```
+
+The key insight: the **default display** should be determined by what information the MV carries, not by a global flag:
+
+| Has name | Has expr | Default display |
+|---|---|---|
+| no | no | `2e₁ + 3e₂` (value only) |
+| yes | no | `v = 2e₁ + 3e₂` (name = value) |
+| no | yes | `2e₁ + 3e₂` (value only — expr available but not shown by default) |
+| yes | yes | `v = a ∧ b = 2e₁ + 3e₂` (name = expr = value) |
+
+This eliminates `display_repr=True` entirely. The display is driven by the data, not a flag. Users who want to override the default use format specs or `.display()`.
+
+The remaining question: should unnamed MVs with expression trees show the expression by default? Showing it is noisy for intermediate computations. Not showing it means the tree is invisible unless you ask. The table above says "don't show by default" — the expression tree is there for `.display()` and format specs, not for casual `print()`.
+
+### Format spec design: content × format
+
+Display has two independent dimensions: **what** to show (content) and **how** to render it (format). Currently the format spec only controls the format axis (`:latex`, `:unicode`, `:ascii`). There's no way to say "give me just the name in latex" vs "give me the value in latex."
+
+The full matrix:
+
+| | ascii | unicode | latex |
+|---|---|---|---|
+| **name** | `w'` | `w'` | `\mathbf{w}'` |
+| **expr** | `sw(R, v)` | `RvR̃` | `R v \tilde{R}` |
+| **value** | `1.73e1 + ...` | `1.73e₁ + ...` | `1.73 e_{1} + ...` |
+| **full** | all joined with `=` | | |
+
+Proposal: compound format spec with `/` separator:
+
+```python
+f"{mv:name/latex}"      # \mathbf{w}'
+f"{mv:expr/unicode}"    # RvR̃
+f"{mv:value/ascii}"     # 1.73e1
+f"{mv:full/latex}"      # \mathbf{w}' = R v \tilde{R} = ...
+f"{mv:latex}"           # default content, latex format (backward compat)
+f"{mv}"                 # default content, unicode (current behavior)
+```
+
+The first part selects content, the second selects format. Either can be omitted for the default. This also works outside f-strings via `format(mv, "name/latex")`.
+
+Why `/`: Python f-strings only allow one `:` separator (`{expr:format_spec}`), so `{mv:name:latex}` is a syntax error. `.` conflicts with numeric specs like `.3f`. `-` conflicts with alignment specs. `/` is unambiguous and reads naturally.
+
+### Property vs method collision on `.name`
+
+Currently `.name()` is a method that sets the display name. But v2 wants `.name` as a readable property too. Python doesn't allow both — `mv.name` is either a property (returns the string) or a method (returns a bound method).
+
+Options:
+
+1. **Different names for read vs write**: `.name` (property, read) and `.named("v")` (method, returns copy with name set). This fits the v2 direction of non-mutating methods.
+
+2. **Dual-use method**: `.name()` returns current name, `.name("v")` sets it. jQuery-style. Works but unconventional in Python.
+
+3. **Separate names entirely**: `.label` (property) and `.name("v")` (method). Avoids the collision but introduces a new word.
+
+Recommendation: option 1.
+
+```python
+mv.name              # "v" or None (property, read-only)
+mv.expr              # Expr tree or None (property, read-only)
+
+mv.named("v")        # returns new MV with name set (non-mutating)
+mv.named("v", latex=r"\mathbf{v}")  # with format overrides
+mv.unnamed()         # returns new MV with name cleared
+```
+
+This makes the read path (properties) and write path (methods returning copies) completely distinct. No mutation, no ambiguity, no collision. The method names are past-tense adjectives (`named`, `unnamed`) which signal "returns a new thing with this quality" rather than "mutate in place."
+
 ### Simplification is pattern-matching only
 
 `simplify()` uses fixed-point pattern matching on expression trees (ADR-014). It cannot do algebraic simplification (trig identities, collection of like terms in symbolic coefficients). This is fine for the current numeric-first design, but will become a limitation once SymPy integration lands. Assess the boundary between galaga's simplifier and SymPy's.
@@ -101,6 +245,16 @@ There's no way to save/load an `Algebra` or `Multivector` to disk. For notebooks
 ### Long names as the primary API
 
 `ip()`, `op()`, `gp()` are too aggressively shortened. The primary API should use the long names (`inner_product`, `outer_product`, `geometric_product`), with the short names as aliases. This is consistent with the existing pattern where `wedge = op` and `rev = reverse`, but currently the short names are what users encounter first.
+
+### Rename `involute()` to `grade_involution()`
+
+`reverse`, `conjugate` (Clifford conjugate), and `involute` (grade involution) are all involutions. Having an operation called `involute` is confusing — it sounds like a generic term for any involution, not the specific operation that negates odd-grade components. The primary name should be `grade_involution()`, with `involute` kept as a deprecated alias. This makes the three involutions self-describing:
+
+- `reverse(x)` — reverses blade factor order
+- `clifford_conjugate(x)` — (consider also renaming `conjugate`)
+- `grade_involution(x)` — negates odd-grade components
+
+An alternative is to keep `involute()` but add a `kind=` parameter: `involute(x, kind="grade")` / `involute(x, kind="clifford")` / `involute(x, kind="reverse")`. This conflicts with ADR-003's principle ("two named functions beat one function with a mode flag") and the same reasoning that argues against `ip(a, b, mode=)`. Three distinct operations should have three distinct names.
 
 ### Variadic products
 
