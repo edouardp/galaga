@@ -1,0 +1,20 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "galaga-matrix"
+version = "0.1.0"
+description = "Matrix representations for galaga Clifford algebras"
+requires-python = ">=3.11"
+license = "MIT"
+dependencies = [
+    "galaga>=1.2.0",
+    "numpy>=1.24.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["galaga_matrix"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
