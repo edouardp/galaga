@@ -79,6 +79,7 @@ helps future contributors understand why certain choices were made.
 | [064](064-relative-imports-in-packages.md) | Use Relative Imports Within Packages | Accepted |
 | [065](065-operation-registry.md) | Operation Registry Breaks algebra↔expr Circular Dependency | Accepted |
 | [066](066-grade-propagation-and-float.md) | Grade Propagation via @ga_op and \_\_float\_\_ Conversion | Accepted |
+| [067](067-strip-whitespace-from-latex-names.md) | Strip Whitespace from LaTeX Names | Accepted |
 
 ## Creating New ADRs
 

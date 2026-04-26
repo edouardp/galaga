@@ -49,6 +49,45 @@ class TestNameMethod:
         assert v._name == "v_ascii"
 
 
+class TestNameStripsWhitespace:
+    """ADR-067: .name() strips leading/trailing whitespace and the renderer
+    ignores spaces inside brace groups."""
+
+    def test_label_stripped(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("  v  ")
+        assert v._name == "v"
+        assert v._name_unicode == "v"
+        assert v._name_latex == "v"
+
+    def test_latex_outer_whitespace_stripped(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name(latex=r"  \theta  ")
+        assert v._name_latex == r"\theta"
+
+    def test_unicode_stripped(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v", unicode=" θ ")
+        assert v._name_unicode == "θ"
+
+    def test_ascii_stripped(self, cl3):
+        e1, _, _ = cl3.basis_vectors()
+        v = e1.name("v", ascii=" theta ")
+        assert v._name == "theta"
+
+    def test_internal_brace_space_no_rendering_difference(self):
+        """Space inside braces must not change squared rendering (ADR-067)."""
+        from galaga.blade_convention import b_sta
+
+        sta = Algebra((1, -1, -1, -1), blades=b_sta())
+        g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+        v1 = (2 * g0 + 3 * g1).name(latex=r"x_{(+---)}")
+        v2 = (2 * g0 + 3 * g1).name(latex=r"x_{(-+++) }")
+        # Both should use bare ^2, not \left(...\right)^2
+        assert r"\left" not in (v1**2).latex()
+        assert r"\left" not in (v2**2).latex()
+
+
 class TestBasisProtection:
     """Basis vectors are protected from in-place mutation by .name()."""
 

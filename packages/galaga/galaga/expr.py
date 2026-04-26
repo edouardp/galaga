@@ -162,14 +162,24 @@ class Sym(Expr):
         wrapping when a postfix is applied.
 
         Uses inner_expr when available: compound if the inner expression is
-        binary AND the name contains spaces (wasn't abbreviated to a simple name).
+        binary AND the name contains spaces outside brace groups (wasn't
+        abbreviated to a simple name).
         Falls back to checking the name string for infix operators.
         """
         latex = self._name_latex or self._name
         if self._inner_expr is not None:
             if not (hasattr(self._inner_expr, "a") and hasattr(self._inner_expr, "b")):
                 return False
-            return " " in latex
+            # Only count spaces outside {} groups (ADR-067)
+            depth = 0
+            for ch in latex:
+                if ch == "{":
+                    depth += 1
+                elif ch == "}":
+                    depth -= 1
+                elif ch == " " and depth == 0:
+                    return True
+            return False
         # Fallback: check name string for operator patterns
         return any(op in latex for op in (r"\wedge", r"\vee", r"\cdot", " + ", " - "))
 
