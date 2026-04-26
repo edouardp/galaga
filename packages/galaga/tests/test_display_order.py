@@ -17,10 +17,11 @@ class TestDisplayOrderValidation(unittest.TestCase):
         )
         assert alg._display_order == (0, 2, 1, 3)
 
-    def test_none_gives_bitmask_order(self):
-        """None defaults to ascending bitmask order."""
+    def test_none_gives_grade_sorted_order(self):
+        """None defaults to grade-sorted order."""
         alg = Algebra(3)
-        assert alg._display_order == tuple(range(8))
+        # scalar, vectors, bivectors, pseudoscalar
+        assert alg._display_order == (0, 1, 2, 4, 3, 5, 6, 7)
 
     def test_wrong_length_raises(self):
         """display_order with wrong length raises ValueError."""
@@ -42,11 +43,20 @@ class TestDisplayOrderRendering(unittest.TestCase):
     """Rules 2 and 4: rendering respects display_order."""
 
     def test_default_order_unchanged(self):
-        """Without display_order, bitmask order is used (no regression)."""
+        """Without display_order, grade-sorted order is used."""
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         mv = e1 + 2 * e2 + 3 * e3
         assert str(mv) == "e₁ + 2e₂ + 3e₃"
+
+    def test_default_grade_sorted_mixed(self):
+        """Default display groups all vectors before bivectors."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        mv = alg.scalar(1) + e1 + e2 + (e1 ^ e2) + e3
+        s = str(mv)
+        # e₃ (grade 1) must appear before e₁₂ (grade 2)
+        assert s.index("e₃") < s.index("e₁₂")
 
     def test_quaternion_display_order(self):
         """Quaternion terms display in i, j, k order."""

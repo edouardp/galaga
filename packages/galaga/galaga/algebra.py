@@ -231,7 +231,8 @@ class Algebra:
                 raise ValueError("display_order must be a permutation of range(dim)")
             self._display_order = do
         else:
-            self._display_order = tuple(range(self._dim))
+            # Default: grade-sorted, then bitmask within each grade
+            self._display_order = tuple(sorted(range(self._dim), key=lambda b: (bin(b).count("1"), b)))
 
     def _blade_product(self, a: int, b: int) -> tuple[int, float]:
         """Compute the geometric product of two basis blades given as bitmask indices.
@@ -785,6 +786,15 @@ class Multivector:
                     unicode = uni_derived
                 if ascii is None:
                     ascii = asc_derived
+        # Strip whitespace to prevent rendering heuristic misclassification (ADR-067)
+        if label is not None:
+            label = label.strip()
+        if latex is not None:
+            latex = latex.strip()
+        if unicode is not None:
+            unicode = unicode.strip()
+        if ascii is not None:
+            ascii = ascii.strip()
         self._name = ascii or label or latex
         self._name_latex = latex or label
         self._name_unicode = unicode or label or self._name
