@@ -403,18 +403,26 @@ def b_sta(
     merged = {}
     if pss is not None:
         merged["pss"] = pss
+    # Derive the prefix for compound blade names from the pss name.
+    # pss can be a string (same for all formats) or a 3-tuple (ascii, unicode, latex).
+    if isinstance(pss, str):
+        _pa, _pu, _pl = pss, pss, pss
+    elif pss is not None:
+        _pa, _pu, _pl = pss[0], pss[1], pss[2]
+    else:
+        _pa, _pu, _pl = "i", "i", "i"
     if sigmas:
         merged[(0, 1)] = _named_blade(("s1", "σ₁", r"\sigma_{1}"), [1, 0])
         merged[(0, 2)] = _named_blade(("s2", "σ₂", r"\sigma_{2}"), [2, 0])
         merged[(0, 3)] = _named_blade(("s3", "σ₃", r"\sigma_{3}"), [3, 0])
-        merged[(2, 3)] = _named_blade(("is1", "iσ₁", r"i\sigma_{1}"), I_vecs + [1, 0])
-        merged[(1, 3)] = _named_blade(("is2", "iσ₂", r"i\sigma_{2}"), I_vecs + [2, 0])
-        merged[(1, 2)] = _named_blade(("is3", "iσ₃", r"i\sigma_{3}"), I_vecs + [3, 0])
+        merged[(2, 3)] = _named_blade((f"{_pa}s1", f"{_pu}σ₁", rf"{_pl}\sigma_{{1}}"), I_vecs + [1, 0])
+        merged[(1, 3)] = _named_blade((f"{_pa}s2", f"{_pu}σ₂", rf"{_pl}\sigma_{{2}}"), I_vecs + [2, 0])
+        merged[(1, 2)] = _named_blade((f"{_pa}s3", f"{_pu}σ₃", rf"{_pl}\sigma_{{3}}"), I_vecs + [3, 0])
     if pseudovectors:
-        merged[(1, 2, 3)] = _named_blade(("iy0", "iγ₀", r"i\gamma_{0}"), I_vecs + [0])
-        merged[(0, 2, 3)] = _named_blade(("iy1", "iγ₁", r"i\gamma_{1}"), I_vecs + [1])
-        merged[(0, 1, 3)] = _named_blade(("iy2", "iγ₂", r"i\gamma_{2}"), I_vecs + [2])
-        merged[(0, 1, 2)] = _named_blade(("iy3", "iγ₃", r"i\gamma_{3}"), I_vecs + [3])
+        merged[(1, 2, 3)] = _named_blade((f"{_pa}y0", f"{_pu}γ₀", rf"{_pl}\gamma_{{0}}"), I_vecs + [0])
+        merged[(0, 2, 3)] = _named_blade((f"{_pa}y1", f"{_pu}γ₁", rf"{_pl}\gamma_{{1}}"), I_vecs + [1])
+        merged[(0, 1, 3)] = _named_blade((f"{_pa}y2", f"{_pu}γ₂", rf"{_pl}\gamma_{{2}}"), I_vecs + [2])
+        merged[(0, 1, 2)] = _named_blade((f"{_pa}y3", f"{_pu}γ₃", rf"{_pl}\gamma_{{3}}"), I_vecs + [3])
     if overrides:
         merged.update(overrides)
     return BladeConvention(
