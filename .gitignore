@@ -17,3 +17,5 @@ __marimo__/
 *~
 test.py
 .kiro/
+.session.jsonl
+.spacebot/
