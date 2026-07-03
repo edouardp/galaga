@@ -260,5 +260,5 @@ This is a very nice identity we don't currently test.
   from grade involution — context-dependent in the paper.
 - The paper's left contraction definition via universal property construction
   matches the standard grade-projection definition we use.
-- Degenerate signatures (PGA) should be included in test fixtures since
-  Cohoe's proofs don't require non-degeneracy.
+  - Degenerate signatures (PGA) should be included in test fixtures since
+    Cohoe's proofs don't require non-degeneracy.
