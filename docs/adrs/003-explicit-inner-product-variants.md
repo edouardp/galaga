@@ -26,6 +26,10 @@ expose the others?
 
 ## Decision Outcome
 
+Galaga uses geometric-algebra terminology as its primary vocabulary. Where the
+GA literature has competing conventions, Galaga chooses one documented default
+and exposes the other conventions under explicit names.
+
 Chosen option: "One function per variant" — `left_contraction`,
 `right_contraction`, `hestenes_inner`, `doran_lasenby_inner`, `scalar_product`
 are all first-class functions. The `|` operator maps to `doran_lasenby_inner`.

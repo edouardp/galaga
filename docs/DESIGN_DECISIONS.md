@@ -10,7 +10,16 @@ Operators (`*`, `^`, `|`, `~`) are sugar — convenient, but not the API you dep
 
 ## 2. No ambiguity
 
-Where mathematics has competing conventions, we expose each one explicitly rather than picking a default.
+Galaga uses geometric-algebra terminology as its primary vocabulary. Where the
+GA literature has competing conventions, Galaga chooses one documented default
+and exposes the other conventions under explicit names.
+
+For example, in linear algebra "inner product" usually means a scalar-valued
+metric pairing such as `<x, y>`. In geometric algebra, "inner product" commonly
+means a grade-selecting part of the geometric product, and it may return a
+multivector rather than only a scalar. Galaga, as a geometric algebra library,
+uses the geometric algebra approach to inner products while naming each
+competing GA convention explicitly.
 
 - Inner products: `left_contraction`, `right_contraction`, `hestenes_inner`, `doran_lasenby_inner`, `scalar_product` — all available, all named.
 - Commutator family: `commutator` (ab − ba), `lie_bracket` (½(ab − ba)), `anticommutator` (ab + ba), `jordan_product` (½(ab + ba)) — four functions, no boolean flags.
