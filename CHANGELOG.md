@@ -1,5 +1,57 @@
 # Changelog
 
+## 1.7.0 (2026-07-03)
+
+### Added
+
+- **`galaga_matrix` package published to PyPI** — Matrix representations for
+  Clifford algebras, now released alongside galaga and galaga-marimo.
+
+- **Spinor column conversions** — `to_spinor_column()` / `from_spinor_column()`
+  convert even-grade multivectors to/from complex spinor column vectors (Pauli
+  spinors for Cl(3,0), Dirac spinors for Cl(1,3)). Full roundtrip guaranteed
+  for complex and quaternionic algebras.
+
+- **Quaternionic spinor conversions** — `to_spinor_quaternion()` /
+  `from_spinor_quaternion()` for algebras classified as M(k,ℍ). Cl(1,3) Dirac
+  spinors can be represented as 2-component quaternion columns.
+
+- **`to_quaternion_matrix()` for Cl(1,3)** — Uses an explicit M(2,ℍ) basis
+  with proper quaternion-block structure.
+
+- **New example notebooks** — Spinor column conversions, Dirac/Weyl/Majorana
+  bases, STA Dirac bilinears, matrix representations.
+
+- **ADR-069: Quaternion bivector assignment** — Documents why `b_quaternion()`
+  uses i=e₂₃, j=e₁₃, k=e₁₂ (rotation axis convention).
+
+- **CGA convenience functions proposal** — Design doc for future conformal GA
+  helpers.
+
+### Fixed
+
+- **`exp()` for non-simple bivectors** (#11) — Previously used the simple-bivector
+  formula unconditionally, producing wrong results for compound bivectors in n≥4
+  (e.g., `exp(0.3·e₁₂ + 0.5·e₃₄)` was missing the e₁₂₃₄ cross term and wasn't
+  a valid rotor). Now checks whether B² is purely scalar; falls back to Taylor
+  series for non-simple inputs.
+
+- **`exp()` for mixed-grade inputs** — `exp(1 + e₁)` and similar mixed-grade
+  elements now produce correct results in all dimensions. The n≤3 shortcut that
+  skipped the B² check has been removed.
+
+### Changed
+
+- **Display order defaults to grade-sorted** — Multivector terms now render in
+  grade order (scalar, vectors, bivectors, ...) instead of raw bitmask order.
+
+- **`b_sta()` compound blade naming** — Uses the pseudoscalar name as prefix for
+  compound blades (e.g., `iσ₁` instead of `Iσ₁`).
+
+- **Makefile overhauled** — `make help` shows all targets; added `test-galaga-matrix`,
+  `test-galaga-mermaid`, `update-deps` (with 7-day supply chain lag), `security`,
+  `validate`, and interactive `make release`.
+
 ## 1.6.5 (2026-04-24)
 
 ### Fixed
