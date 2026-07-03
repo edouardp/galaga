@@ -4,12 +4,12 @@ build-backend = "hatchling.build"
 
 [project]
 name = "galaga-matrix"
-version = "0.1.0"
+version = "1.6.5"
 description = "Matrix representations for galaga Clifford algebras"
 requires-python = ">=3.11"
 license = "MIT"
 dependencies = [
-    "galaga>=1.2.0",
+    "galaga>=1.6.5",
     "numpy>=1.24.0",
 ]
 
