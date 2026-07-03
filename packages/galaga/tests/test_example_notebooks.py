@@ -6,6 +6,9 @@ EXAMPLES = ROOT / "examples"
 
 
 NOTEBOOKS = [
+    "basics/spinor_column_conversions.py",
+    "spacetime/dirac_bilinears_sta.py",
+    "spacetime/weyl_chiral_basis.py",
     "physics/special_relativity_lazy.py",
     "spacetime/electromagnetism_lazy.py",
     "quantum/quantum_spin_lazy.py",
@@ -64,14 +67,14 @@ def test_new_example_notebooks_compile():
             compile(source, str(EXAMPLES / notebook), "exec")
         else:
             assert "app = marimo.App()" in source
-            assert '__generated_with = "0.21.1"' in source
+            assert '__generated_with = "' in source
 
 
-def test_new_example_notebooks_use_lazy_teaching_pattern():
-    """Check notebooks use lazy basis vectors, galaga_marimo import, eval(), and gm.md."""
+def test_new_example_notebooks_use_symbolic_teaching_pattern():
+    """Check notebooks use symbolic basis vectors, galaga_marimo import, eval(), and gm.md."""
     for notebook in NOTEBOOKS:
         source = (EXAMPLES / notebook).read_text()
-        assert "basis_vectors(lazy=True)" in source
+        assert "basis_vectors(lazy=True)" in source or "basis_vectors(symbolic=True)" in source
         assert "import galaga_marimo as gm" in source
         assert ".eval()" in source
         assert 'gm.md(t"""' in source or "gm.md(t'''" in source
