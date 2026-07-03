@@ -1267,6 +1267,223 @@ class TestExpNonSimpleBivector:
         assert np.allclose(RRr.data[1:], 0, atol=1e-10), "R~R has non-scalar components"
 
 
+class TestExpGeneralInputs:
+    """exp() on non-bivector inputs: vectors, scalars, mixed-grade, pseudoscalars."""
+
+    def _taylor_exp(self, X, N=50):
+        """Ground-truth exp via Taylor series."""
+        alg = X.algebra
+        R = alg.scalar(1.0)
+        term = alg.scalar(1.0)
+        for k in range(1, N):
+            term = term * X * alg.scalar(1.0 / k)
+            R = R + term
+            if np.max(np.abs(term.data)) < 1e-15:
+                break
+        return R
+
+    # ── Scalars ──
+
+    def test_exp_positive_scalar(self):
+        """exp(a) = e^a for positive scalar."""
+        alg = Algebra(3)
+        assert np.isclose(exp(alg.scalar(2.0)).scalar_part, np.exp(2.0))
+
+    def test_exp_negative_scalar(self):
+        """exp(a) = e^a for negative scalar."""
+        alg = Algebra(3)
+        assert np.isclose(exp(alg.scalar(-1.5)).scalar_part, np.exp(-1.5))
+
+    def test_exp_zero_scalar(self):
+        """exp(0) = 1."""
+        alg = Algebra(3)
+        R = exp(alg.scalar(0.0))
+        assert np.isclose(R.scalar_part, 1.0)
+        assert np.allclose(R.data[1:], 0)
+
+    # ── Vectors ──
+
+    def test_exp_euclidean_vector(self):
+        """exp(v) for v²>0 gives cosh+sinh form."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        v = 0.7 * e1  # v² = 0.49 > 0
+        R = exp(v)
+        expected = alg.scalar(np.cosh(0.7)) + np.sinh(0.7) * e1
+        assert np.allclose(R.data, expected.data, atol=1e-10)
+
+    def test_exp_antieuclidean_vector(self):
+        """exp(v) for v²<0 gives cos+sin form."""
+        alg = Algebra(1, 3)
+        e1 = alg.basis_vectors()[1]  # spacelike, e1²=-1
+        v = 0.7 * e1
+        R = exp(v)
+        R_expected = self._taylor_exp(v)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_null_vector(self):
+        """exp(v) for v²=0 gives 1+v."""
+        pga = Algebra(2, 0, 1)
+        e = pga.basis_vectors()
+        v = e[0]  # null vector, e0²=0 (degenerate direction comes first)
+        R = exp(v)
+        expected = pga.scalar(1.0) + v
+        assert np.allclose(R.data, expected.data)
+
+    def test_exp_vector_sum_cl3(self):
+        """exp(e1+e2) in Cl(3,0) where (e1+e2)²=2."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        v = e[0] + e[1]
+        R = exp(v)
+        R_expected = self._taylor_exp(v)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    # ── Pseudoscalar ──
+
+    def test_exp_pseudoscalar_cl3(self):
+        """exp(I) in Cl(3,0) where I²=-1."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        I = e[0] * e[1] * e[2]
+        R = exp(I)
+        expected = alg.scalar(np.cos(1.0)) + np.sin(1.0) * I
+        assert np.allclose(R.data, expected.data, atol=1e-10)
+
+    def test_exp_pseudoscalar_sta(self):
+        """exp(I) in Cl(1,3) where I²=-1."""
+        sta = Algebra(1, 3)
+        e = sta.basis_vectors()
+        I = e[0] * e[1] * e[2] * e[3]
+        R = exp(I)
+        R_expected = self._taylor_exp(I)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_pseudoscalar_cl4(self):
+        """exp(I) in Cl(4,0) where I²=+1."""
+        alg = Algebra(4)
+        e = alg.basis_vectors()
+        I = e[0] * e[1] * e[2] * e[3]
+        R = exp(I)
+        # I²=+1 → exp(I) = cosh(1) + sinh(1)*I
+        expected = alg.scalar(np.cosh(1.0)) + np.sinh(1.0) * I
+        assert np.allclose(R.data, expected.data, atol=1e-10)
+
+    # ── Mixed grade ──
+
+    def test_exp_scalar_plus_vector(self):
+        """exp(1 + e1) in Cl(3,0) — mixed grade, X² non-scalar."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        X = alg.scalar(1.0) + e[0]
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_vector_plus_bivector(self):
+        """exp(e1 + e12) in Cl(3,0) — mixed odd+even grade."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        X = e[0] + e[0] * e[1]
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_scalar_plus_bivector(self):
+        """exp(1 + e12) in Cl(3,0) — scalar + bivector."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        X = alg.scalar(1.0) + e[0] * e[1]
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_mixed_grade_sta(self):
+        """exp(1 + γ₀) in Cl(1,3) — scalar + timelike vector."""
+        sta = Algebra(1, 3)
+        e = sta.basis_vectors()
+        X = sta.scalar(1.0) + e[0]
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_full_even_element(self):
+        """exp(scalar + bivector + pseudoscalar) in Cl(3,0)."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        I = e[0] * e[1] * e[2]
+        X = alg.scalar(0.5) + 0.3 * (e[0] * e[1]) + 0.2 * I
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    # ── Trivectors and higher ──
+
+    def test_exp_trivector_positive_square(self):
+        """exp(trivector) with X²>0."""
+        sta = Algebra(1, 3)
+        e = sta.basis_vectors()
+        X = e[1] * e[2] * e[3]  # grade-3
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_trivector_negative_square(self):
+        """exp(trivector) with X²<0."""
+        sta = Algebra(1, 3)
+        e = sta.basis_vectors()
+        X = e[0] * e[1] * e[2]  # grade-3, involves timelike
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    # ── Small coefficients (ħ-scale) ──
+
+    def test_exp_tiny_bivector(self):
+        """exp(ε·B) ≈ 1 + ε·B for very small ε."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        eps = 1e-30
+        B = eps * (e[0] * e[1])
+        R = exp(B)
+        expected = alg.scalar(1.0) + B  # cos(ε)≈1, sin(ε)≈ε
+        assert np.allclose(R.data, expected.data, atol=1e-40)
+
+    def test_exp_tiny_non_simple(self):
+        """exp(ε·(e12+e34)) for ħ-scale ε still produces valid rotor."""
+        alg = Algebra(4)
+        e = alg.basis_vectors()
+        eps = 1e-30
+        B = eps * (e[0] * e[1]) + eps * (e[2] * e[3])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-40)
+
+    # ── Parametrized random ──
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_random_multivector_cl3(self, seed):
+        """Random full MV in Cl(3,0) — exp matches Taylor."""
+        alg = Algebra(3)
+        np.random.seed(seed + 500)
+        data = 0.3 * np.random.randn(alg.dim)
+        X = Multivector(alg, data)
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_random_multivector_cl13(self, seed):
+        """Random full MV in Cl(1,3) — exp matches Taylor."""
+        alg = Algebra(1, 3)
+        np.random.seed(seed + 600)
+        data = 0.2 * np.random.randn(alg.dim)
+        X = Multivector(alg, data)
+        R = exp(X)
+        R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+
 class TestSqrt:
     """Square root via Study number decomposition."""
 
