@@ -1253,7 +1253,7 @@ class TestExpNonSimpleBivector:
 
     @pytest.mark.parametrize("seed", range(5))
     def test_random_bivector_cl41(self, seed):
-        """Random bivectors in Cl(4,1) must produce valid rotors."""
+        """Random bivectors in Cl(4,1) must match Taylor and produce valid rotors."""
         alg = Algebra(4, 1)
         np.random.seed(seed)
         e = alg.basis_vectors()
@@ -1262,6 +1262,8 @@ class TestExpNonSimpleBivector:
             for j in range(i + 1, 5):
                 B = B + np.random.uniform(-0.5, 0.5) * (e[i] * e[j])
         R = exp(B)
+        R_expected = self._taylor_exp(B, N=80)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10), "exp(B) differs from Taylor"
         RRr = R * reverse(R)
         assert np.isclose(RRr.scalar_part, 1.0, atol=1e-10), f"R~R scalar = {RRr.scalar_part}"
         assert np.allclose(RRr.data[1:], 0, atol=1e-10), "R~R has non-scalar components"
@@ -1407,7 +1409,7 @@ class TestExpGeneralInputs:
         R_expected = self._taylor_exp(X)
         assert np.allclose(R.data, R_expected.data, atol=1e-10)
 
-    def test_exp_full_even_element(self):
+    def test_exp_mixed_scalar_bivector_pseudoscalar_cl3(self):
         """exp(scalar + bivector + pseudoscalar) in Cl(3,0)."""
         alg = Algebra(3)
         e = alg.basis_vectors()
@@ -1435,6 +1437,20 @@ class TestExpGeneralInputs:
         X = e[0] * e[1] * e[2]  # grade-3, involves timelike
         R = exp(X)
         R_expected = self._taylor_exp(X)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_exp_non_simple_trivector_cl5(self):
+        """exp(pure grade-3 X) in Cl(5,0) where X² has a grade-4 part."""
+        alg = Algebra(5)
+        e = alg.basis_vectors()
+        X = (e[0] * e[1] * e[2]) + (e[0] * e[3] * e[4])
+        X2 = X * X
+
+        assert np.allclose(grade(X, 3).data, X.data)
+        assert np.max(np.abs(grade(X2, 4).data)) > 1e-12
+
+        R = exp(X)
+        R_expected = self._taylor_exp(X, N=80)
         assert np.allclose(R.data, R_expected.data, atol=1e-10)
 
     # ── Small coefficients (ħ-scale) ──
