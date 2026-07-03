@@ -2010,29 +2010,45 @@ sw = sandwich
 
 @ga_op("exp", arity=1)
 def exp(B: Multivector) -> Multivector:
-    """Bivector exponential: exp(B) = cos(|B|) + sin(|B|) * B/|B|.
+    """Bivector exponential.
 
-    For a bivector B in a Euclidean algebra (B² < 0), this produces a rotor.
-    For a timelike bivector (B² > 0), uses hyperbolic functions instead:
-    exp(B) = cosh(|B|) + sinh(|B|) * B/|B|.
-    For a null bivector (B² = 0), exp(B) = 1 + B.
+    For a simple bivector (B² is a scalar):
+      - B² < 0 (spacelike): exp(B) = cos(|B|) + sin(|B|) * B/|B|
+      - B² > 0 (timelike):  exp(B) = cosh(|B|) + sinh(|B|) * B/|B|
+      - B² = 0 (null):      exp(B) = 1 + B
 
-    This is the standard way to build a rotor from a bivector without
-    manually computing cos(θ/2) and sin(θ/2). Note: ``alg.rotor(B, radians=θ)``
-    computes ``exp(-θ/2 * B)`` for a unit bivector B.
+    For a non-simple bivector (B² has non-scalar components, i.e., the
+    bivector decomposes into multiple planes), uses a Taylor series.
+    This arises in n ≥ 4 for bivectors like e₁₂ + e₃₄.
     """
-    B2 = gp(B, B).scalar_part
-    if abs(B2) < 1e-15:
-        # Null bivector: exp(B) = 1 + B
-        return B.algebra.scalar(1.0) + B
-    if B2 < 0:
-        # Spacelike bivector (Euclidean rotation): B² < 0
-        mag = np.sqrt(-B2)
-        return B.algebra.scalar(np.cos(mag)) + np.sin(mag) / mag * B
-    else:
-        # Timelike bivector (hyperbolic/boost): B² > 0
-        mag = np.sqrt(B2)
-        return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
+    B2 = gp(B, B)
+    # Check if B² is purely scalar — the condition for the fast formula.
+    if np.allclose(B2.data[1:], 0, atol=1e-14):
+        B2_scalar = B2.data[0]
+        if abs(B2_scalar) < 1e-15:
+            # Null bivector: exp(B) = 1 + B
+            return B.algebra.scalar(1.0) + B
+        if B2_scalar < 0:
+            # Spacelike bivector (Euclidean rotation): B² < 0
+            mag = np.sqrt(-B2_scalar)
+            return B.algebra.scalar(np.cos(mag)) + np.sin(mag) / mag * B
+        else:
+            # Timelike bivector (hyperbolic/boost): B² > 0
+            mag = np.sqrt(B2_scalar)
+            return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
+
+    # Non-simple bivector: Taylor series exp(B) = Σ Bᵏ/k!
+    # Converges for all finite B. For algebras up to n=8 (dim=256),
+    # terms vanish quickly because high powers cycle through the algebra.
+    alg = B.algebra
+    result = alg.scalar(1.0)
+    term = alg.scalar(1.0)
+    for k in range(1, 50):
+        term = gp(term, B) * (1.0 / k)
+        result = result + term
+        if np.max(np.abs(term.data)) < 1e-15:
+            break
+    return result
 
 
 @ga_op("log", arity=1)

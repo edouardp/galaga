@@ -1162,6 +1162,111 @@ class TestExpLog:
         assert np.allclose(B.data, 0, atol=1e-12)
 
 
+class TestExpNonSimpleBivector:
+    """exp() must handle non-simple bivectors correctly (n >= 4). GH #11."""
+
+    def _taylor_exp(self, B, N=40):
+        """Ground-truth exp via Taylor series."""
+        alg = B.algebra
+        R = alg.scalar(1.0)
+        term = alg.scalar(1.0)
+        for k in range(1, N):
+            term = term * B * alg.scalar(1.0 / k)
+            R = R + term
+            if np.max(np.abs(term.data)) < 1e-15:
+                break
+        return R
+
+    def test_cl40_commuting_orthogonal_planes(self):
+        """exp(0.3·e12 + 0.5·e34) in Cl(4,0) must include the e1234 cross term."""
+        alg = Algebra(4)
+        e = alg.basis_vectors()
+        B = 0.3 * (e[0] * e[1]) + 0.5 * (e[2] * e[3])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_cl41_commuting_orthogonal_planes(self):
+        """exp(0.3·e12 + 0.5·e34) in Cl(4,1) — same bug, different algebra."""
+        alg = Algebra(4, 1)
+        e = alg.basis_vectors()
+        B = 0.3 * (e[0] * e[1]) + 0.5 * (e[2] * e[3])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_cl13_boost_plus_rotation(self):
+        """STA boost + rotation in orthogonal planes: exp(0.5·γ₀γ₁ + 0.3·γ₂γ₃)."""
+        alg = Algebra(1, 3)
+        e = alg.basis_vectors()
+        B = 0.5 * (e[0] * e[1]) + 0.3 * (e[2] * e[3])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_cl22_commuting_orthogonal_planes(self):
+        """Cl(2,2) with commuting bivectors in disjoint planes."""
+        alg = Algebra(2, 2)
+        e = alg.basis_vectors()
+        B = 0.3 * (e[0] * e[1]) + 0.5 * (e[2] * e[3])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    def test_result_is_rotor(self):
+        """exp(B) must satisfy R·~R = 1 for any bivector B."""
+        alg = Algebra(4, 1)
+        e = alg.basis_vectors()
+        B = 0.3 * (e[0] * e[1]) + 0.5 * (e[2] * e[3]) + 0.1 * (e[0] * e[4])
+        R = exp(B)
+        RRr = R * reverse(R)
+        assert np.isclose(RRr.scalar_part, 1.0, atol=1e-10)
+        assert np.allclose(RRr.data[1:], 0, atol=1e-10)
+
+    def test_product_of_individual_exps(self):
+        """For commuting B1, B2: exp(B1+B2) = exp(B1)·exp(B2)."""
+        alg = Algebra(4)
+        e = alg.basis_vectors()
+        B1 = 0.3 * (e[0] * e[1])
+        B2 = 0.5 * (e[2] * e[3])
+        R_sum = exp(B1 + B2)
+        R_product = exp(B1) * exp(B2)
+        assert np.allclose(R_sum.data, R_product.data, atol=1e-10)
+
+    def test_simple_bivectors_unchanged(self):
+        """Simple bivectors must still work (regression guard)."""
+        alg = Algebra(4)
+        e = alg.basis_vectors()
+        B = 0.7 * (e[0] * e[1])
+        R = exp(B)
+        expected = alg.scalar(np.cos(0.7)) + np.sin(0.7) * (e[0] * e[1])
+        assert np.allclose(R.data, expected.data, atol=1e-10)
+
+    def test_3d_bivector_unchanged(self):
+        """In Cl(3,0) all bivectors are simple — must still be correct."""
+        alg = Algebra(3)
+        e = alg.basis_vectors()
+        B = 0.3 * (e[0] * e[1]) + 0.5 * (e[1] * e[2])
+        R = exp(B)
+        R_expected = self._taylor_exp(B)
+        assert np.allclose(R.data, R_expected.data, atol=1e-10)
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_random_bivector_cl41(self, seed):
+        """Random bivectors in Cl(4,1) must produce valid rotors."""
+        alg = Algebra(4, 1)
+        np.random.seed(seed)
+        e = alg.basis_vectors()
+        B = alg.scalar(0.0)
+        for i in range(5):
+            for j in range(i + 1, 5):
+                B = B + np.random.uniform(-0.5, 0.5) * (e[i] * e[j])
+        R = exp(B)
+        RRr = R * reverse(R)
+        assert np.isclose(RRr.scalar_part, 1.0, atol=1e-10), f"R~R scalar = {RRr.scalar_part}"
+        assert np.allclose(RRr.data[1:], 0, atol=1e-10), "R~R has non-scalar components"
+
+
 class TestSqrt:
     """Square root via Study number decomposition."""
 
