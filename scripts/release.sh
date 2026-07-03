@@ -22,11 +22,13 @@ echo "==> Bumping $CURRENT -> $NEW"
 # --- Update versions in both pyproject.toml files ---
 sed -i '' "s/^version = \"$CURRENT\"/version = \"$NEW\"/" \
     "$ROOT/packages/galaga/pyproject.toml" \
-    "$ROOT/packages/galaga_marimo/pyproject.toml"
+    "$ROOT/packages/galaga_marimo/pyproject.toml" \
+    "$ROOT/packages/galaga_matrix/pyproject.toml"
 
-# --- Update galaga dep pin in galaga-marimo ---
+# --- Update galaga dep pin in galaga-marimo and galaga-matrix ---
 sed -i '' "s/\"galaga>=.*\"/\"galaga>=$NEW\"/" \
-    "$ROOT/packages/galaga_marimo/pyproject.toml"
+    "$ROOT/packages/galaga_marimo/pyproject.toml" \
+    "$ROOT/packages/galaga_matrix/pyproject.toml"
 
 # --- Update CHANGELOG ---
 DATE=$(date +%Y-%m-%d)
@@ -67,6 +69,9 @@ git commit -m "Release v$NEW"
 echo "==> Running galaga tests"
 uv run pytest packages/galaga/tests/ -v
 
+echo "==> Running galaga-matrix tests"
+PYTHONPATH=.:packages/galaga_matrix uv run pytest packages/galaga_matrix/tests/ -v
+
 echo "==> Running galaga-marimo tests (Python 3.14)"
 TMPVENV=$(mktemp -d)/release-test
 uv venv "$TMPVENV" --python 3.14
@@ -76,14 +81,16 @@ rm -rf "$TMPVENV"
 
 # --- Build + check ---
 echo "==> Building"
-rm -rf dist/ packages/galaga_marimo/dist/
+rm -rf dist/ packages/galaga_marimo/dist/ packages/galaga_matrix/dist/
 cd packages/galaga && uv build
 cd "$ROOT/packages/galaga_marimo" && uv build
+cd "$ROOT/packages/galaga_matrix" && uv build
 cd "$ROOT"
 
 echo "==> Twine check"
 uvx twine check dist/galaga-*
 uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
+uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
 
 # --- Publish ---
 echo "==> Publishing galaga"
@@ -91,6 +98,9 @@ uv publish --keyring-provider subprocess --username __token__ dist/galaga-*
 
 echo "==> Publishing galaga-marimo"
 uv publish --keyring-provider subprocess --username __token__ packages/galaga_marimo/dist/galaga_marimo-*
+
+echo "==> Publishing galaga-matrix"
+uv publish --keyring-provider subprocess --username __token__ packages/galaga_matrix/dist/galaga_matrix-*
 
 # --- Tag + push + release ---
 echo "==> Tagging v$NEW"
