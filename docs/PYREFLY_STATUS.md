@@ -5,16 +5,16 @@ It currently reports **138 errors** and runs as a non-blocking warning.
 
 ## Error Breakdown
 
-| Category | Count | Description |
-|---|---|---|
-| `missing-attribute` | 117 | Accessing attributes on base `Expr`/`LNode` types |
-| `bad-argument-type` | 6 | Passing `str \| None` where `str` expected |
-| `bad-return` | 4 | Return type mismatches |
-| `bad-index` | 4 | Indexing issues |
-| `unsupported-operation` | 3 | Operators on union types |
-| `bad-override` | 2 | Method signature mismatches |
-| `no-matching-overload` | 1 | numpy overload resolution |
-| `bad-function-definition` | 1 | Signature issue |
+| Category                  | Count | Description                                       |
+| ------------------------- | ----- | ------------------------------------------------- |
+| `missing-attribute`       | 117   | Accessing attributes on base `Expr`/`LNode` types |
+| `bad-argument-type`       | 6     | Passing `str \| None` where `str` expected        |
+| `bad-return`              | 4     | Return type mismatches                            |
+| `bad-index`               | 4     | Indexing issues                                   |
+| `unsupported-operation`   | 3     | Operators on union types                          |
+| `bad-override`            | 2     | Method signature mismatches                       |
+| `no-matching-overload`    | 1     | numpy overload resolution                         |
+| `bad-function-definition` | 1     | Signature issue                                   |
 
 ## Root Causes
 
