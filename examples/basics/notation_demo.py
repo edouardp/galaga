@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.4"
 app = marimo.App()
 
 
@@ -276,6 +276,11 @@ def _(gm):
     | `wrap` | Delimiters around content | `⟨x⟩₁`, `exp(x)` |
     | `juxtaposition` | No symbol, smart spacing | `ab`, `pi ve` |
     """)
+    return
+
+
+@app.cell
+def _():
     return
 
 

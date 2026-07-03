@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.1"
+__generated_with = "0.23.4"
 app = marimo.App()
 
 
@@ -59,7 +59,7 @@ def _(MatrixRepr, to_matrix, to_quaternion_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     # Matrix Representations of Clifford Algebras
@@ -73,7 +73,7 @@ def _(gm):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ## Pauli Matrices — $\\mathrm{{Cl}}(3,0)$
@@ -105,7 +105,7 @@ def _(Algebra, MatrixRepr, compact_basis, gm):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ### Vector → Matrix → Vector roundtrip
@@ -141,7 +141,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ## Dirac Matrices — $\\mathrm{{Cl}}(1,3)$
@@ -180,7 +180,7 @@ def _(Algebra, MatrixRepr, compact_basis, gm, np):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ### Product homomorphism
@@ -193,12 +193,12 @@ def _(gm):
 
 @app.cell
 def _(Algebra, MatrixRepr, gm, gp, np, to_matrix):
-    _sta = Algebra(1, 3)
+    _sta = Algebra(1, 3, display_repr=True)
     _g0, _g1, _g2, _g3 = _sta.basis_vectors(symbolic=True)
 
     _a = (2 * _g0 + _g1).name(latex="a")
     _b = (_g2 - 3 * _g3).name(latex="b")
-    _ab = gp(_a, _b).name(latex="ab")
+    _ab = gp(_a, _b)
 
     _Ma = to_matrix(_a, mode="compact")
     _Mb = to_matrix(_b, mode="compact")
@@ -206,11 +206,11 @@ def _(Algebra, MatrixRepr, gm, gp, np, to_matrix):
     _product = _Ma @ _Mb
 
     gm.md(t"""
-    {_a.display()}
+    {_a}
 
-    {_b.display()}
+    {_b}
 
-    {_ab.display()}
+    {_ab}
 
     {MatrixRepr(_Mab, label="M(ab)"):block}
 
@@ -221,7 +221,7 @@ def _(Algebra, MatrixRepr, gm, gp, np, to_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ## Left-Regular Representation
@@ -255,7 +255,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ### PGA — degenerate algebra
@@ -287,7 +287,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ## Rotors in Matrix Form
@@ -326,7 +326,9 @@ def _(Algebra, MatrixRepr, exp, from_matrix, gm, np, sandwich, to_matrix):
 
     {MatrixRepr(_MR, label="M(R)"):block}
 
-    $M(R)$ is unitary: $M(R)^\\dagger M(R) = I$: {np.allclose(_MR_dag @ _MR, np.eye(2))}
+    $M(R)$ is unitary: $M(R)^\\dagger M(R) = \\mathbb{{I}}$: {np.allclose(_MR_dag @ _MR, np.eye(2))}
+
+    $M(R)$ is special, aka determinant = 1: $det(M(R)) = 1$: {np.allclose(np.linalg.det(_MR), 1)}
 
     Rotate {_v} via matrix sandwich $M(R) \\, M(\\mathbf{{v}}) \\, M(R)^\\dagger$:
 
@@ -337,7 +339,7 @@ def _(Algebra, MatrixRepr, exp, from_matrix, gm, np, sandwich, to_matrix):
     return
 
 
-@app.cell(hide_code=True)
+@app.cell
 def _(gm):
     gm.md(t"""
     ## Comparison: Compact vs Left-Regular

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.4"
 app = marimo.App()
 
 
@@ -36,12 +36,13 @@ def _():
         commutator, anticommutator, lie_bracket, jordan_product,
         even_grades, odd_grades,
     )
-    from galaga import simplify
+    from galaga import simplify, b_sta
     import galaga_marimo as gm
 
     return (
         Algebra,
         anticommutator,
+        b_sta,
         commutator,
         conjugate,
         dual,
@@ -583,8 +584,8 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma")
+def _(Algebra, b_sta):
+    sta = Algebra((1, -1, -1, -1), blades=b_sta())
     g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
     return g0, g1, g2, g3, sta
 
@@ -594,7 +595,7 @@ def _(g0, g1, g2, g3):
     _E = (g1 * g0).name("E", latex=r"\mathbf{E}")
     _B = (g1 * g2).name("B", latex=r"\mathbf{B}")
     _I = (g0 * g1 * g2 * g3).name("I")
-    _F = (_E.eval() + _I.eval() * _B.eval()).name("F", latex=r"\mathcal{F}")
+    _F = (_E + _I * _B)
     _F
     return
 
