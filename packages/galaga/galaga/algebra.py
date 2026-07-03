@@ -2021,26 +2021,25 @@ def exp(B: Multivector) -> Multivector:
     bivector decomposes into multiple planes), uses a Taylor series.
     This arises in n ≥ 4 for bivectors like e₁₂ + e₃₄.
     """
+    alg = B.algebra
+
+    # In n ≤ 3 every bivector is simple (the bivector space is at most 3D,
+    # so B∧B = 0 always holds). Skip the check and use the fast formula.
+    if alg.n <= 3:
+        B2_scalar = gp(B, B).data[0]
+        return _exp_scalar_square(alg, B, B2_scalar)
+
+    # In n ≥ 4, non-simple bivectors exist. Check whether B² is purely scalar
+    # by testing for any non-zero grade-4+ component. An exact != 0 check is
+    # safe here: genuine non-simple bivectors produce cross terms (e.g. e₁₂₃₄)
+    # proportional to the product of the plane coefficients — never near the
+    # float noise floor. A simple bivector with FP noise routing to the Taylor
+    # path is harmless (correct, just slower).
     B2 = gp(B, B)
-    # Check if B² is purely scalar — the condition for the fast formula.
-    if np.allclose(B2.data[1:], 0, atol=1e-14):
-        B2_scalar = B2.data[0]
-        if abs(B2_scalar) < 1e-15:
-            # Null bivector: exp(B) = 1 + B
-            return B.algebra.scalar(1.0) + B
-        if B2_scalar < 0:
-            # Spacelike bivector (Euclidean rotation): B² < 0
-            mag = np.sqrt(-B2_scalar)
-            return B.algebra.scalar(np.cos(mag)) + np.sin(mag) / mag * B
-        else:
-            # Timelike bivector (hyperbolic/boost): B² > 0
-            mag = np.sqrt(B2_scalar)
-            return B.algebra.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
+    if not np.any(B2.data[1:] != 0):
+        return _exp_scalar_square(alg, B, B2.data[0])
 
     # Non-simple bivector: Taylor series exp(B) = Σ Bᵏ/k!
-    # Converges for all finite B. For algebras up to n=8 (dim=256),
-    # terms vanish quickly because high powers cycle through the algebra.
-    alg = B.algebra
     result = alg.scalar(1.0)
     term = alg.scalar(1.0)
     for k in range(1, 50):
@@ -2049,6 +2048,18 @@ def exp(B: Multivector) -> Multivector:
         if np.max(np.abs(term.data)) < 1e-15:
             break
     return result
+
+
+def _exp_scalar_square(alg: Algebra, B: Multivector, B2_scalar: float) -> Multivector:
+    """Fast exp for a bivector whose square is a known scalar."""
+    if abs(B2_scalar) < 1e-15:
+        return alg.scalar(1.0) + B
+    if B2_scalar < 0:
+        mag = np.sqrt(-B2_scalar)
+        return alg.scalar(np.cos(mag)) + np.sin(mag) / mag * B
+    else:
+        mag = np.sqrt(B2_scalar)
+        return alg.scalar(np.cosh(mag)) + np.sinh(mag) / mag * B
 
 
 @ga_op("log", arity=1)
