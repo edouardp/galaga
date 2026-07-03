@@ -2,14 +2,21 @@
 
 ## Confirmed edge cases
 
-### Double algebras: compact from_matrix is lossy
+### Double algebras: compact from_matrix may be non-injective
 
 When `(q - p) mod 8 ∈ {3, 7}`, the Clifford algebra is a direct sum of two
 simple algebras (e.g. Cl(0,3) ≅ ℍ ⊕ ℍ). The compact representation only
-captures one summand, so `from_matrix` cannot recover the original multivector.
+captures one summand for some signatures, so `from_matrix` cannot always recover
+the original multivector.
+
+See [Double Clifford Algebras](double-algebras.md) for the mathematical
+background and the connection to compact matrix roundtrips.
 
 **Affected algebras** (up to n=8): Cl(1,0), Cl(2,1), Cl(3,2), Cl(4,3),
 Cl(0,3), Cl(1,4), Cl(5,0), Cl(6,1), Cl(2,5).
+
+`from_matrix(..., mode="compact")` now checks the real system rank and raises
+`TypeError` when the selected compact representation is not injective.
 
 **Workaround**: use `mode="left-regular"` for exact roundtrips.
 
@@ -28,15 +35,12 @@ simple matrix algebra classification. `to_matrix(mv, mode="compact")` raises
 exterior algebra part and represent the Cl(p,q) factor compactly, but the
 resulting object is a matrix of exterior algebra elements, not a plain matrix.
 
-### from_matrix compact uses least-squares
+### from_matrix compact uses strict least-squares
 
 The coefficient extraction uses `np.linalg.lstsq` on the real/imaginary parts
 of the flattened blade matrices. For simple algebras this is exact (the system
-is full-rank). For double algebras the system is rank-deficient and lstsq
-returns the minimum-norm solution, which silently differs from the original.
-
-A future version could check the rank and warn or raise for rank-deficient
-cases.
+is full-rank). Rank-deficient systems raise `TypeError`, and matrices outside
+the image of the representation raise `ValueError` after a residual check.
 
 ## Known gaps
 
@@ -59,13 +63,14 @@ This means `to_matrix` output for general signatures should not be compared
 across library versions or against other libraries — only the algebraic
 properties (squares, anticommutation, product homomorphism) are guaranteed.
 
-### No quaternionic output format
+### Limited quaternionic output format
 
-The classification identifies some algebras as having quaternionic entries
-(e.g. Cl(0,2) ≅ ℍ). The current implementation always embeds quaternions as
-2×2 complex blocks. A future version could offer a `format="quaternion"`
-option that returns quaternion-valued matrices (using a quaternion type from
-numpy-quaternion or similar).
+The quaternion matrix and quaternion spinor APIs require an explicit
+quaternion-block basis. They currently support Cl(0,2) and Cl(1,3). Other
+quaternionic signatures raise `TypeError` until a block basis is added.
+
+Double algebras such as Cl(0,3) are rejected by quaternion APIs; a one-summand
+representation is not exposed as a full quaternionic conversion.
 
 ### MatrixRepr formatting is basic
 

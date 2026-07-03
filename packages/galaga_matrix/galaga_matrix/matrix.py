@@ -15,8 +15,9 @@ Provides two representation modes:
   General case via the periodicity theorem for all other signatures.
 
   Note: for "double" algebras (Cl(p,q) ≅ A ⊕ A, i.e. (q-p) mod 8 ∈ {3,7}),
-  the compact representation is an irreducible representation of one summand.
-  ``to_matrix`` works but ``from_matrix`` may not roundtrip exactly.
+  the compact representation may be an irreducible representation of one
+  summand. ``to_matrix`` works, but ``from_matrix`` raises when the selected
+  representation is not injective.
 """
 
 from __future__ import annotations
@@ -51,7 +52,7 @@ def to_matrix(mv: Multivector, mode: str = "left-regular") -> np.ndarray:
     Args:
         mv: The multivector to convert.
         mode: ``"left-regular"`` (default) for the 2ⁿ×2ⁿ real representation,
-              or ``"compact"`` for the minimal faithful representation.
+              or ``"compact"`` for the smaller classification-based representation.
 
     Returns:
         A 2D numpy array (real or complex depending on mode and algebra).
@@ -356,10 +357,12 @@ def _tensor_step(
 
 
 def compact_basis(alg: Algebra) -> list[np.ndarray]:
-    """Return the compact gamma matrices for the algebra's generators.
+    """Return compact gamma matrices for the algebra's generators.
 
-    These are the minimal-dimension faithful matrix representation of the
-    basis vectors. All higher blades are obtained as products of these.
+    For simple Clifford algebras this is faithful. For double algebras
+    ((q-p) mod 8 in {3, 7}) this may be one irreducible summand and therefore
+    may not be faithful on the full algebra. Strict inverse APIs check rank
+    before reconstructing coefficients.
     """
     p = sum(1 for s in alg.signature if s > 0)
     q = sum(1 for s in alg.signature if s < 0)
@@ -369,15 +372,17 @@ def compact_basis(alg: Algebra) -> list[np.ndarray]:
     return _general_compact_basis(p, q)
 
 
-def _build_compact_blade_matrices(alg: Algebra) -> np.ndarray:
-    """Build compact matrices for ALL basis blades (not just vectors).
+def _build_blade_matrices_from_gammas(alg: Algebra, gammas: list[np.ndarray]) -> np.ndarray:
+    """Build matrices for all basis blades from vector gamma matrices.
 
     Returns shape (2^n, k, k) where k is the compact matrix dimension.
     Index 0 is the identity (scalar blade).
     """
-    gammas = compact_basis(alg)
     n = alg.n
     dim = alg.dim
+    if n == 0:
+        return np.ones((1, 1, 1), dtype=complex)
+
     k = gammas[0].shape[0]
     dtype = gammas[0].dtype
 
@@ -405,13 +410,21 @@ def _build_compact_blade_matrices(alg: Algebra) -> np.ndarray:
     return blade_mats
 
 
-def _to_compact(mv: Multivector) -> np.ndarray:
-    blade_mats = _build_compact_blade_matrices(mv.algebra)
+def _build_compact_blade_matrices(alg: Algebra) -> np.ndarray:
+    """Build compact matrices for all basis blades."""
+    return _build_blade_matrices_from_gammas(alg, compact_basis(alg))
+
+
+def _to_matrix_from_blade_mats(mv: Multivector, blade_mats: np.ndarray) -> np.ndarray:
     k = blade_mats.shape[1]
     result = np.zeros((k, k), dtype=blade_mats.dtype)
     for i in np.nonzero(mv.data)[0]:
         result += mv.data[i] * blade_mats[i]
     return result
+
+
+def _to_compact(mv: Multivector) -> np.ndarray:
+    return _to_matrix_from_blade_mats(mv, _build_compact_blade_matrices(mv.algebra))
 
 
 def _from_compact(alg: Algebra, mat: np.ndarray) -> Multivector:
@@ -431,7 +444,16 @@ def _from_compact(alg: Algebra, mat: np.ndarray) -> Multivector:
     A = np.vstack([flat_basis.real.T, flat_basis.imag.T])  # (2k², dim)
     flat_mat = mat.reshape(k * k)
     b = np.concatenate([flat_mat.real, flat_mat.imag])  # (2k²,)
-    coeffs, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+    coeffs, _, rank, _ = np.linalg.lstsq(A, b, rcond=None)
+    if rank < dim:
+        raise TypeError(
+            "Compact representation is not injective for this algebra; cannot recover a unique multivector."
+        )
+
+    err = np.linalg.norm(A @ coeffs - b)
+    if err > 1e-9:
+        raise ValueError("Matrix is not in the image of this Clifford representation.")
+
     return Multivector(alg, coeffs)
 
 
@@ -460,6 +482,16 @@ class Quat:
                 sign = "+" if coeff > 0 and parts else ""
                 parts.append(f"{sign}{coeff:.4g}{label}")
         return "".join(parts) or "0"
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Quat):
+            return NotImplemented
+        return (
+            abs(self.a - other.a) < 1e-12
+            and abs(self.b - other.b) < 1e-12
+            and abs(self.c - other.c) < 1e-12
+            and abs(self.d - other.d) < 1e-12
+        )
 
     def latex(self) -> str:
         parts = []
@@ -494,24 +526,398 @@ def _extract_quat(block: np.ndarray) -> Quat:
     return Quat(a, b, c, d)
 
 
+def _signature_pq(alg: Algebra) -> tuple[int, int]:
+    return (
+        sum(1 for s in alg.signature if s > 0),
+        sum(1 for s in alg.signature if s < 0),
+    )
+
+
+def _quaternion_block_basis(alg: Algebra) -> list[np.ndarray]:
+    """Return gamma matrices arranged as 2x2 complex quaternion blocks.
+
+    This is intentionally separate from compact_basis: the standard Dirac
+    matrices used there for Cl(1,3) are not in this block convention.
+    """
+    p, q = _signature_pq(alg)
+    etype, _ = _classify(p, q)
+    if etype != "quaternion":
+        if "quaternion" in etype:
+            raise TypeError(
+                f"Cl({p},{q}) is type '{etype}', not a single quaternionic matrix algebra. "
+                "Quaternion form requires a simple quaternionic algebra."
+            )
+        raise TypeError(
+            f"Cl({p},{q}) is type '{etype}', not quaternionic. Quaternion form requires a simple quaternionic algebra."
+        )
+
+    if (p, q) == (0, 2):
+        return compact_basis(alg)
+
+    if (p, q) == (1, 3):
+        z = np.zeros((2, 2), dtype=complex)
+        one = _quat_to_complex(1, 0, 0, 0)
+        minus_one = _quat_to_complex(-1, 0, 0, 0)
+        qi = _quat_to_complex(0, 1, 0, 0)
+        qj = _quat_to_complex(0, 0, 1, 0)
+        qk = _quat_to_complex(0, 0, 0, 1)
+
+        g0 = np.block([[one, z], [z, minus_one]])
+        return [
+            g0,
+            np.block([[z, qi], [qi, z]]),
+            np.block([[z, qj], [qj, z]]),
+            np.block([[z, qk], [qk, z]]),
+        ]
+
+    raise TypeError(f"Quaternion block representation is not implemented for Cl({p},{q}).")
+
+
+def _build_quaternion_block_blade_matrices(alg: Algebra) -> np.ndarray:
+    return _build_blade_matrices_from_gammas(alg, _quaternion_block_basis(alg))
+
+
+def _to_quaternion_block_complex(mv: Multivector) -> np.ndarray:
+    return _to_matrix_from_blade_mats(mv, _build_quaternion_block_blade_matrices(mv.algebra))
+
+
+# ── Spinor (column vector) representation ──
+
+
+def _choose_idempotent(gammas: list[np.ndarray], k: int) -> np.ndarray:
+    """Choose an idempotent p = ½(I + γ) where γ is diagonal and γ² = I.
+
+    Prefers the first basis vector whose compact matrix is diagonal and
+    squares to +I. For Cl(3,0) this gives σ₃, yielding p = diag(1,0).
+    For Cl(1,3) this gives γ⁰, yielding p = diag(1,1,0,0).
+    """
+    I_k = np.eye(k, dtype=complex)
+
+    for g in gammas:
+        if np.allclose(g, np.diag(np.diag(g))) and np.allclose(g @ g, I_k):
+            return 0.5 * (I_k + g)
+
+    # Fallback: use first gamma that squares to +I (may not be diagonal)
+    for g in gammas:
+        if np.allclose(g @ g, I_k):
+            return 0.5 * (I_k + g)
+
+    # Last resort: project onto first column
+    p = np.zeros((k, k), dtype=complex)
+    p[0, 0] = 1.0
+    return p
+
+
+def _even_indices(dim: int) -> np.ndarray:
+    return np.array([i for i in range(dim) if i.bit_count() % 2 == 0])
+
+
+def _spinor_reference_vector_from_gammas(gammas: list[np.ndarray]) -> np.ndarray:
+    if not gammas:
+        return np.ones((1, 1), dtype=complex)
+
+    k = gammas[0].shape[0]
+    p = _choose_idempotent(gammas, k)
+    norms = np.linalg.norm(p, axis=0)
+    col = int(np.argmax(norms))
+    if norms[col] < 1e-14:
+        u = np.zeros((k, 1), dtype=complex)
+        u[0, 0] = 1.0
+        return u
+    return p[:, col : col + 1]
+
+
+def _spinor_reference_vector(alg: Algebra) -> np.ndarray:
+    return _spinor_reference_vector_from_gammas(compact_basis(alg))
+
+
+def _spinor_system_matrix_from_blade_mats(
+    alg: Algebra,
+    blade_mats: np.ndarray,
+    reference: np.ndarray,
+) -> tuple[np.ndarray, np.ndarray]:
+    even_indices = _even_indices(alg.dim)
+    cols = (blade_mats[even_indices] @ reference)[:, :, 0]  # (n_even, k)
+    A_complex = cols.T  # (k, n_even)
+    A_real = np.vstack([A_complex.real, A_complex.imag])
+    return A_real, even_indices
+
+
+def _spinor_system_matrix(alg: Algebra) -> tuple[np.ndarray, np.ndarray]:
+    return _spinor_system_matrix_from_blade_mats(
+        alg,
+        _build_compact_blade_matrices(alg),
+        _spinor_reference_vector(alg),
+    )
+
+
+def _quaternion_spinor_system_matrix(alg: Algebra) -> tuple[np.ndarray, np.ndarray]:
+    gammas = _quaternion_block_basis(alg)
+    return _spinor_system_matrix_from_blade_mats(
+        alg,
+        _build_blade_matrices_from_gammas(alg, gammas),
+        _spinor_reference_vector_from_gammas(gammas),
+    )
+
+
+def _spinor_system_is_full_rank(A: np.ndarray, even_indices: np.ndarray) -> bool:
+    return bool(np.linalg.matrix_rank(A, tol=1e-10) == len(even_indices))
+
+
+def _unsupported_spinor_error(alg: Algebra) -> TypeError:
+    p, q = _signature_pq(alg)
+    etype, _ = _classify(p, q)
+    return TypeError(
+        f"Cl({p},{q}) (type '{etype}') does not support faithful spinor roundtrip "
+        "with the selected compact representation and reference spinor. "
+        "Use to_matrix(mv, mode='compact') for the full matrix representation."
+    )
+
+
+def _spinor_roundtrip_possible(alg: Algebra) -> bool:
+    """Check if even-grade MVs can be faithfully represented as spinor columns.
+
+    This is a rank check for the actual reference-vector map, not a dimension
+    count inferred from the algebra classification.
+    """
+    try:
+        A, even_indices = _spinor_system_matrix(alg)
+    except NotImplementedError:
+        return False
+    return _spinor_system_is_full_rank(A, even_indices)
+
+
+def to_spinor_column(mv: Multivector) -> np.ndarray:
+    """Convert an even-grade multivector to its spinor column vector.
+
+    For Cl(3,0): returns a 2×1 complex column (Pauli spinor).
+    For Cl(1,3): returns a 4×1 complex column (Dirac spinor).
+
+    The spinor is the action of the compact matrix representation on a fixed
+    reference column u: spinor(ψ) = ρ(ψ)u. Faithful roundtrip is guaranteed only
+    when the resulting real even-blade system is full rank.
+
+    Args:
+        mv: An even-grade multivector.
+
+    Returns:
+        A (k, 1) complex numpy array — the spinor column vector.
+
+    Raises:
+        ValueError: If the multivector has odd-grade components.
+        TypeError: If the algebra does not support faithful spinor roundtrip.
+    """
+    from galaga import is_even
+
+    if not is_even(mv):
+        raise ValueError(
+            "to_spinor_column requires an even-grade multivector. "
+            "Use galaga.even_grades(mv) to project to the even part first."
+        )
+
+    if not _spinor_roundtrip_possible(mv.algebra):
+        raise _unsupported_spinor_error(mv.algebra)
+
+    return _to_compact(mv) @ _spinor_reference_vector(mv.algebra)
+
+
+def to_spinor_matrix(mv: Multivector) -> np.ndarray:
+    """Compatibility alias for to_spinor_column."""
+    return to_spinor_column(mv)
+
+
+def _solve_spinor_system(
+    alg: Algebra,
+    spinor: np.ndarray,
+    A: np.ndarray,
+    even_indices: np.ndarray,
+) -> Multivector:
+    if not _spinor_system_is_full_rank(A, even_indices):
+        raise _unsupported_spinor_error(alg)
+
+    k = A.shape[0] // 2
+    spinor = np.asarray(spinor, dtype=complex)
+    if spinor.shape == (k,):
+        spinor = spinor.reshape(k, 1)
+    if spinor.shape != (k, 1):
+        raise ValueError(f"Expected ({k}, 1) spinor, got {spinor.shape}")
+
+    b = np.concatenate([spinor[:, 0].real, spinor[:, 0].imag])
+    coeffs_even, _, rank, _ = np.linalg.lstsq(A, b, rcond=None)
+    if rank != len(even_indices):
+        raise TypeError("Selected spinor map is rank-deficient.")
+
+    err = np.linalg.norm(A @ coeffs_even - b)
+    if err > 1e-9:
+        raise ValueError("Spinor column is not in the image of this Clifford spinor representation.")
+
+    data = np.zeros(alg.dim)
+    data[even_indices] = coeffs_even
+    return Multivector(alg, data)
+
+
+def from_spinor_column(alg: Algebra, spinor: np.ndarray) -> Multivector:
+    """Recover an even-grade multivector from a spinor column vector.
+
+    The inverse of to_spinor_column. Given a (k,1) column vector,
+    reconstructs the even MV ψ such that to_spinor_column(ψ) ≈ spinor.
+
+    Args:
+        alg: The Clifford algebra.
+        spinor: A (k, 1) or (k,) complex array.
+
+    Returns:
+        The even-grade multivector.
+
+    Raises:
+        ValueError: If the spinor has the wrong shape.
+        TypeError: If the algebra does not support faithful spinor roundtrip.
+    """
+    try:
+        A, even_indices = _spinor_system_matrix(alg)
+    except NotImplementedError as exc:
+        raise _unsupported_spinor_error(alg) from exc
+    return _solve_spinor_system(alg, spinor, A, even_indices)
+
+
+def from_spinor_matrix(alg: Algebra, spinor: np.ndarray) -> Multivector:
+    """Compatibility alias for from_spinor_column."""
+    return from_spinor_column(alg, spinor)
+
+
+# ── Quaternion spinor (column vector) representation ──
+
+
+def _quat_from_column_pair(z0: complex, z1: complex) -> Quat:
+    """Extract a quaternion from a pair of complex numbers.
+
+    Uses the convention that the first column of the 2×2 complex embedding
+    of q = a + bi + cj + dk is:
+        [[a + bi], [-c + di]]
+
+    So given z0 = a + bi and z1 = -c + di:
+        a = Re(z0), b = Im(z0), c = -Re(z1), d = Im(z1)
+    """
+    a = z0.real
+    b = z0.imag
+    c = -z1.real
+    d = z1.imag
+    return Quat(a, b, c, d)
+
+
+def _column_pair_from_quat(q: Quat) -> tuple[complex, complex]:
+    """Convert a quaternion to its column-pair complex representation.
+
+    Inverse of _quat_from_column_pair.
+    q = a + bi + cj + dk → z0 = a + bi, z1 = -c + di
+    """
+    z0 = q.a + q.b * 1j
+    z1 = -q.c + q.d * 1j
+    return z0, z1
+
+
+def to_spinor_quaternion(mv: Multivector) -> list[Quat]:
+    """Convert an even-grade multivector to a quaternionic spinor column.
+
+    Only works for supported simple quaternionic algebras with an explicit
+    quaternion-block basis. Currently this covers Cl(0,2) and Cl(1,3).
+
+    The quaternionic spinor is obtained by:
+    1. Building a quaternion-block matrix representation.
+    2. Applying it to the fixed reference spinor column.
+    3. Reading consecutive pairs of complex entries as quaternion components.
+
+    Args:
+        mv: An even-grade multivector in a quaternionic algebra.
+
+    Returns:
+        A list of Quat objects — the quaternionic spinor column.
+
+    Raises:
+        ValueError: If the multivector has odd-grade components.
+        TypeError: If the algebra is not supported as a simple quaternionic
+            block representation.
+    """
+    from galaga import is_even
+
+    if not is_even(mv):
+        raise ValueError(
+            "to_spinor_quaternion requires an even-grade multivector. "
+            "Use galaga.even_grades(mv) to project to the even part first."
+        )
+
+    p, q = _signature_pq(mv.algebra)
+    _, qdim = _classify(p, q)
+    gammas = _quaternion_block_basis(mv.algebra)
+    A, even_indices = _quaternion_spinor_system_matrix(mv.algebra)
+    if not _spinor_system_is_full_rank(A, even_indices):
+        raise TypeError(
+            f"Cl({p},{q}) does not support faithful quaternionic spinor roundtrip "
+            "with the selected quaternion-block representation."
+        )
+
+    spinor = _to_quaternion_block_complex(mv) @ _spinor_reference_vector_from_gammas(gammas)
+
+    # Read pairs of complex entries as quaternion components
+    result = []
+    for i in range(qdim):
+        z0 = spinor[2 * i, 0]
+        z1 = spinor[2 * i + 1, 0]
+        result.append(_quat_from_column_pair(z0, z1))
+    return result
+
+
+def from_spinor_quaternion(alg: Algebra, spinor: list[Quat]) -> Multivector:
+    """Recover an even-grade multivector from a quaternionic spinor column.
+
+    The inverse of to_spinor_quaternion for the same quaternion-block basis.
+
+    Args:
+        alg: The Clifford algebra (must be quaternionic).
+        spinor: A list of Quat objects (length = qdim).
+
+    Returns:
+        The even-grade multivector.
+
+    Raises:
+        TypeError: If the algebra is not supported as a simple quaternionic
+            block representation.
+        ValueError: If the spinor has the wrong length.
+    """
+    p, q = _signature_pq(alg)
+    _, qdim = _classify(p, q)
+    _quaternion_block_basis(alg)
+
+    if len(spinor) != qdim:
+        raise ValueError(f"Expected {qdim} quaternion entries, got {len(spinor)}")
+
+    # Convert quaternion list back to complex column vector
+    complex_col = np.zeros((2 * qdim, 1), dtype=complex)
+    for i, qval in enumerate(spinor):
+        if not isinstance(qval, Quat):
+            raise TypeError(f"Expected Quat entries, got {type(qval).__name__} at index {i}")
+        z0, z1 = _column_pair_from_quat(qval)
+        complex_col[2 * i, 0] = z0
+        complex_col[2 * i + 1, 0] = z1
+
+    A, even_indices = _quaternion_spinor_system_matrix(alg)
+    return _solve_spinor_system(alg, complex_col, A, even_indices)
+
+
+# ── Quaternion matrix form ──
+
+
 def to_quaternion_matrix(mv: Multivector) -> list[list[Quat]]:
     """Convert a multivector to its quaternion matrix form.
 
-    Only works for algebras classified as quaternionic: (q-p) mod 8 ∈ {2, 4}.
-    Returns a list-of-lists of Quat objects.
-
-    For Cl(1,3) (STA): returns a 2×2 quaternion matrix.
-    For Cl(0,2): returns a 1×1 quaternion matrix.
+    Only works for supported simple quaternionic algebras with an explicit
+    quaternion-block basis. Currently this covers Cl(0,2) and Cl(1,3).
     """
-    p = sum(1 for s in mv.algebra.signature if s > 0)
-    q = sum(1 for s in mv.algebra.signature if s < 0)
-    etype, qdim = _classify(p, q)
-    if "quaternion" not in etype:
-        raise TypeError(
-            f"Cl({p},{q}) is type '{etype}', not quaternionic. Quaternion matrix form requires (q-p) mod 8 ∈ {{2, 4}}."
-        )
+    p, q = _signature_pq(mv.algebra)
+    _, qdim = _classify(p, q)
+    _quaternion_block_basis(mv.algebra)
 
-    cmat = _to_compact(mv)
+    cmat = _to_quaternion_block_complex(mv)
     # cmat is (2*qdim × 2*qdim) complex — read as (qdim × qdim) quaternion blocks
     rows = []
     for i in range(qdim):

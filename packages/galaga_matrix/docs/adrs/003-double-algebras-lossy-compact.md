@@ -1,10 +1,15 @@
 ---
-status: accepted
+status: superseded
 date: 2026-04-26
 deciders: edouard
+superseded_by: 005-strict-inverses-and-spinor-conventions.md
 ---
 
 # ADR-003: Double Algebras Have Lossy Compact from_matrix
+
+Superseded by [ADR-005](005-strict-inverses-and-spinor-conventions.md).
+Compact `from_matrix` now raises when the selected compact representation is
+not injective, instead of silently returning a least-squares projection.
 
 ## Context and Problem Statement
 

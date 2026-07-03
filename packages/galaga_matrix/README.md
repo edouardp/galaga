@@ -6,14 +6,17 @@ Matrix representations for [galaga](../../packages/galaga) Clifford algebras.
 
 ## What it does
 
-Every multivector in a Clifford algebra can be represented as a matrix. This package provides `to_matrix` / `from_matrix` conversions and a `MatrixRepr` wrapper with LaTeX rendering for use in marimo notebooks and Jupyter.
+Every multivector in a Clifford algebra can be represented as a matrix. This package provides `to_matrix` / `from_matrix` conversions, spinor-column conversions for supported even subalgebras, quaternion-block output for selected quaternionic signatures, and a `MatrixRepr` wrapper with LaTeX rendering for use in marimo notebooks and Jupyter.
+
+The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
+`to_spinor_matrix` / `from_spinor_matrix` are compatibility aliases.
 
 ## Two modes
 
 | Mode | Matrix size | Entries | Works for | Roundtrips |
 |---|---|---|---|---|
 | `left-regular` | 2ⁿ × 2ⁿ | real | any Cl(p,q,r) | always |
-| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | non-degenerate Cl(p,q) | simple algebras only |
+| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | non-degenerate Cl(p,q) | only when the selected representation is injective |
 
 ## Quick start
 
@@ -74,7 +77,9 @@ All other non-degenerate signatures are handled by the general periodicity recur
 ## Limitations
 
 - **Degenerate algebras** (r > 0): only `left-regular` mode works. `compact` raises `NotImplementedError`.
-- **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix` compact works, but `from_matrix` compact is lossy — the representation maps two distinct multivectors to the same matrix.
+- **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix` compact works, but `from_matrix` compact raises if the selected compact representation is not injective. Use `left-regular` for exact inverse conversion. See [Double Clifford Algebras](docs/double-algebras.md).
+- **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
+- **Spinor roundtrip**: spinor conversions are rank-checked for the actual reference-column map. Signatures whose even subalgebra is not injective under that map raise `TypeError`.
 - **No caching**: blade matrices are rebuilt on every call. Fine for interactive use, not for hot loops.
 
 ## Architecture decisions
@@ -84,5 +89,5 @@ See [docs/adrs/](docs/adrs/README.md).
 ## Tests
 
 ```bash
-PYTHONPATH=packages/galaga_matrix pytest packages/galaga_matrix/tests/
+PYTHONPATH=.:packages/galaga_matrix uv run pytest packages/galaga_matrix/tests/
 ```
