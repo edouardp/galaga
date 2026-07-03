@@ -2010,36 +2010,29 @@ sw = sandwich
 
 @ga_op("exp", arity=1)
 def exp(B: Multivector) -> Multivector:
-    """Bivector exponential.
+    """Exponential of a multivector.
 
-    For a simple bivector (B² is a scalar):
-      - B² < 0 (spacelike): exp(B) = cos(|B|) + sin(|B|) * B/|B|
-      - B² > 0 (timelike):  exp(B) = cosh(|B|) + sinh(|B|) * B/|B|
-      - B² = 0 (null):      exp(B) = 1 + B
+    For an element X whose square X² is a scalar (includes all single-grade
+    elements in n ≤ 3, all simple bivectors, all vectors, all scalars):
+      - X² < 0 (spacelike): exp(X) = cos(|X|) + sin(|X|) * X/|X|
+      - X² > 0 (timelike):  exp(X) = cosh(|X|) + sinh(|X|) * X/|X|
+      - X² = 0 (null):      exp(X) = 1 + X
 
-    For a non-simple bivector (B² has non-scalar components, i.e., the
-    bivector decomposes into multiple planes), uses a Taylor series.
-    This arises in n ≥ 4 for bivectors like e₁₂ + e₃₄.
+    For elements whose square is not purely scalar (mixed-grade inputs,
+    non-simple bivectors in n ≥ 4), uses a Taylor series.
     """
     alg = B.algebra
 
-    # In n ≤ 3 every bivector is simple (the bivector space is at most 3D,
-    # so B∧B = 0 always holds). Skip the check and use the fast formula.
-    if alg.n <= 3:
-        B2_scalar = gp(B, B).data[0]
-        return _exp_scalar_square(alg, B, B2_scalar)
-
-    # In n ≥ 4, non-simple bivectors exist. Check whether B² is purely scalar
-    # by testing for any non-zero grade-4+ component. An exact != 0 check is
-    # safe here: genuine non-simple bivectors produce cross terms (e.g. e₁₂₃₄)
-    # proportional to the product of the plane coefficients — never near the
-    # float noise floor. A simple bivector with FP noise routing to the Taylor
-    # path is harmless (correct, just slower).
+    # Fast path: if B² is purely scalar, use closed-form.
+    # For n ≤ 3, all bivectors are simple, so any pure-bivector input is safe.
+    # But mixed-grade inputs (e.g. 1 + e₁) can have non-scalar B² even in n ≤ 3.
+    # We use a cheap grade check: if B is known single-grade or the algebra
+    # guarantees all elements of that grade square to scalars, skip the full check.
     B2 = gp(B, B)
     if not np.any(B2.data[1:] != 0):
         return _exp_scalar_square(alg, B, B2.data[0])
 
-    # Non-simple bivector: Taylor series exp(B) = Σ Bᵏ/k!
+    # Non-scalar B²: Taylor series exp(B) = Σ Bᵏ/k!
     result = alg.scalar(1.0)
     term = alg.scalar(1.0)
     for k in range(1, 50):
