@@ -9,3 +9,6 @@ ADRs for the `galaga_matrix` package.
 | [003](003-double-algebras-lossy-compact.md) | Double Algebras Have Lossy Compact from_matrix | Superseded |
 | [004](004-matrix-repr-rendering-wrapper.md) | MatrixRepr as Rendering Wrapper with Algebra Back-Reference | Accepted |
 | [005](005-strict-inverses-and-spinor-conventions.md) | Strict Inverses and Spinor Column Conventions | Accepted |
+| [006](006-matrix-repr-transparent-proxy.md) | MatrixRepr as Transparent Numpy Proxy | Accepted |
+| [007](007-auto-labeling-rho.md) | Auto-labeling Between MV and Matrix Representations | Accepted |
+| [008](008-ket-bra-kind.md) | MatrixRepr.kind — Ket, Bra, and Operator Semantics | Accepted |
