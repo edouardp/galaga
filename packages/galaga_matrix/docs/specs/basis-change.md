@@ -1,172 +1,139 @@
-# Basis Change for Matrix Representations
+# SPEC: Basis Change for Dirac Matrix Representations
 
-## Overview
+## Status
 
-`MatrixRepr.to_basis(name)` transforms a matrix representation from one named
-basis to another via similarity transform: M' = S M S⁻¹ (for operators) or
-ψ' = S ψ (for spinor columns).
+Proposed — not yet implemented.
 
-## Named Bases
+## Problem
 
-### Dirac / Cl(1,3) bases
+The compact matrix representation for Cl(1,3) and Cl(3,1) produces γ matrices
+in the Dirac (standard) basis. Physics uses several other named bases — Weyl
+(chiral) and Majorana — which are related by unitary similarity transforms.
 
-All apply to 4×4 compact matrices from Cl(1,3) or Cl(3,1).
+Users working with the Weyl basis (where γ⁵ is diagonal and chiral projections
+are trivial) or the Majorana basis (where all γ matrices are purely imaginary
+and spinors can be real) currently have no way to convert within galaga_matrix.
 
-| Name | Also called | Key property | γ⁰ | γ⁵ |
-|------|-------------|--------------|-----|-----|
-| `"dirac"` | standard, canonical | γ⁰ diagonal | diag(I₂, −I₂) | off-diagonal |
-| `"weyl"` | chiral | γ⁵ diagonal, chirality manifest | [[0,I],[I,0]] | diag(−I₂, I₂) |
-| `"majorana"` | — | all γ purely imaginary, spinors real | σ₂-based | σ₂-based |
+## Rules
 
-### Pauli / Cl(3,0) bases
+### Rule 1: `MatrixRepr.to_basis(target)` method
 
-Only one standard basis exists for 2×2 Pauli matrices (σ₃ diagonal). No
-basis change is offered for Cl(3,0) initially. Could later add:
+Transforms the matrix to a named basis via similarity: M' = S M S†.
+Returns a new `MatrixRepr` with the transformed data.
 
-| Name | Property |
-|------|----------|
-| `"pauli"` | standard (σ₃ diagonal) — identity transform |
-| `"circular"` | σ₁ diagonal — rotates to circular polarisation basis |
+| Source basis | Target | Transform S |
+|---|---|---|
+| `"dirac"` | `"weyl"` | (1/√2) [[I₂, −I₂], [I₂, I₂]] |
+| `"dirac"` | `"majorana"` | (1/√2) [[I₂, σ₂], [σ₂, −I₂]] |
+| `"weyl"` | `"dirac"` | S_weyl† |
+| `"weyl"` | `"majorana"` | S_maj · S_weyl† |
+| `"majorana"` | `"dirac"` | S_maj† (= S_maj, self-adjoint) |
+| `"majorana"` | `"weyl"` | S_weyl · S_maj† |
 
-## Transform Matrices
+### Rule 2: `.basis` attribute
 
-All transforms are unitary: S⁻¹ = S†.
+`MatrixRepr` gains a `basis` attribute:
 
-### Dirac → Weyl
+| Value | Meaning |
+|---|---|
+| `None` | Unspecified (default for all current code) |
+| `"dirac"` | Dirac/standard basis |
+| `"weyl"` | Weyl/chiral basis |
+| `"majorana"` | Majorana basis |
+| `"pauli"` | Standard Pauli (Cl(3,0), no-op) |
 
-$$
-S_{\text{weyl}} = \frac{1}{\sqrt{2}}
-\begin{pmatrix} I_2 & -I_2 \\ I_2 & I_2 \end{pmatrix}
-= \frac{1}{\sqrt{2}}(1 + \gamma^5 \gamma^0)
-$$
+`to_matrix(mv, mode="dirac")` sets `basis="dirac"`.
+`to_matrix(mv, mode="compact")` for Cl(1,3)/Cl(3,1) sets `basis="dirac"`.
+`to_basis(target)` sets `basis=target` on the result.
 
-### Dirac → Majorana
+### Rule 3: Default source basis
 
-$$
-S_{\text{maj}} = \frac{1}{\sqrt{2}}
-\begin{pmatrix} I_2 & \sigma_2 \\ \sigma_2 & -I_2 \end{pmatrix}
-$$
+When `.basis` is `None`, it is treated as `"dirac"` for 4×4 matrices from
+Cl(1,3)/Cl(3,1), and `"pauli"` for 2×2 matrices from Cl(3,0)/Cl(0,3).
 
-Note: $S_{\text{maj}}$ is self-adjoint ($S = S^\dagger$).
+### Rule 4: No-op when source == target
 
-### Weyl → Majorana
+`M.to_basis("dirac")` on a matrix already in Dirac basis returns `self`
+(no copy, no computation).
 
-Compose: $S_{\text{weyl→maj}} = S_{\text{maj}} \cdot S_{\text{weyl}}^{-1}$.
-Or compute directly from the Weyl-basis γ matrices.
-
-## API
-
-### `MatrixRepr.to_basis(target: str) -> MatrixRepr`
-
-```python
-M = to_matrix(g0, mode="dirac")   # 4×4 in Dirac basis
-M_weyl = M.to_basis("weyl")       # 4×4 in Weyl basis
-M_maj = M.to_basis("majorana")    # 4×4 in Majorana basis
-```
-
-**Behaviour:**
-
-1. Validate that the current matrix is 4×4 from a Cl(1,3) or Cl(3,1) algebra
-   (or that mode is `"dirac"`, `"compact"` with appropriate algebra).
-2. Determine the source basis from `self.basis` (default: `"dirac"`).
-3. Look up the transform S from source → target.
-4. Compute: `new_mat = S @ self.mat @ S.H` (for operators/full MVs).
-5. Return new `MatrixRepr` with:
-   - `mat = new_mat`
-   - `basis = target` (new attribute)
-   - `mode` unchanged (still `"compact"` or `"dirac"`)
-   - `algebra` inherited
-   - `label` updated if present: e.g., `ρ_{\text{weyl}}(ψ)`
-
-### New attribute: `MatrixRepr.basis`
-
-- Type: `str | None`
-- Default: `None` (meaning "whatever the compact representation produces",
-  which is `"dirac"` for Cl(1,3) and `"pauli"` for Cl(3,0))
-- Set explicitly by `to_basis()` or by `to_matrix(mv, mode="dirac")` etc.
-
-### `from_matrix` with basis
-
-When converting back to a multivector, the basis must be accounted for.
-`from_matrix` checks `MatrixRepr.basis`:
-
-- If `basis` is `None` or `"dirac"`: use compact inverse directly.
-- If `basis` is `"weyl"` or `"majorana"`: first transform back to Dirac
-  basis (apply S⁻¹ M S), then use compact inverse.
-
-This ensures roundtrip:
-```python
-from_matrix(to_matrix(v).to_basis("weyl"))  # == v
-```
-
-## Validation Rules
-
-| Source mode/algebra | Allowed target bases |
-|---------------------|---------------------|
-| Cl(1,3) compact/dirac | `"dirac"`, `"weyl"`, `"majorana"` |
-| Cl(3,1) compact/dirac | `"dirac"`, `"weyl"`, `"majorana"` |
-| Cl(3,0) compact/pauli | `"pauli"` (no-op), later `"circular"` |
-| Any other | `TypeError` |
-
-## Error Cases
+### Rule 5: Validation
 
 | Condition | Error |
-|-----------|-------|
-| Matrix not 4×4 for Dirac bases | `TypeError("to_basis('weyl') requires 4×4 Dirac matrix")` |
-| Algebra not Cl(1,3) or Cl(3,1) | `TypeError("to_basis('weyl') requires Cl(1,3) or Cl(3,1)")` |
-| Unknown basis name | `ValueError("Unknown basis 'foo'; use 'dirac', 'weyl', or 'majorana'")` |
-| Basis already matches target | Return self (no-op, no copy) |
+|---|---|
+| Matrix not 4×4 | `TypeError("requires 4×4 Dirac matrix")` |
+| Algebra not Cl(1,3) or Cl(3,1) | `TypeError("requires Cl(1,3) or Cl(3,1)")` |
+| Unknown basis name | `ValueError("Unknown basis; use 'dirac', 'weyl', or 'majorana'")` |
 
-## Spinor Column Transforms
+### Rule 6: `from_matrix` with non-default basis
 
-For spinor columns (from `to_spinor_column`), the transform is single-sided:
-
-$$
-\psi' = S \psi
-$$
-
-This is not handled by `MatrixRepr.to_basis()` since spinor columns are raw
-ndarrays, not MatrixRepr. A future `to_spinor_column(mv, basis="weyl")` could
-be added, or a standalone `change_spinor_basis(spinor, from_basis, to_basis)`.
-
-## Storage of Transform Matrices
-
-Store as module-level constants in `galaga_matrix/bases.py`:
+When a `MatrixRepr` has `basis` set to `"weyl"` or `"majorana"`,
+`from_matrix` transforms back to Dirac basis before applying the compact
+inverse. This ensures roundtrip correctness:
 
 ```python
-# bases.py
-import numpy as np
-
-I2 = np.eye(2, dtype=complex)
-s2 = np.array([[0, -1j], [1j, 0]], dtype=complex)  # Pauli σ₂
-
-S_DIRAC_TO_WEYL = (1/np.sqrt(2)) * np.block([[I2, -I2], [I2, I2]])
-S_DIRAC_TO_MAJORANA = (1/np.sqrt(2)) * np.block([[I2, s2], [s2, -I2]])
-
-TRANSFORMS = {
-    ("dirac", "weyl"): S_DIRAC_TO_WEYL,
-    ("dirac", "majorana"): S_DIRAC_TO_MAJORANA,
-    ("weyl", "dirac"): S_DIRAC_TO_WEYL.conj().T,
-    ("majorana", "dirac"): S_DIRAC_TO_MAJORANA.conj().T,
-    ("weyl", "majorana"): S_DIRAC_TO_MAJORANA @ S_DIRAC_TO_WEYL.conj().T,
-    ("majorana", "weyl"): S_DIRAC_TO_WEYL @ S_DIRAC_TO_MAJORANA.conj().T,
-}
+from_matrix(to_matrix(v, mode="dirac").to_basis("weyl"))  # == v
 ```
 
-## Verification Tests
+### Rule 7: Label propagation
 
-For each basis, verify the Clifford relations hold:
+If the source has a label, the result label is updated:
+
+| Source label | Result label |
+|---|---|
+| `\rho(ψ)` | `\rho_{\text{weyl}}(ψ)` |
+| `\sigma_1` | `\sigma_1^{(\text{weyl})}` |
+| `None` | `None` |
+
+### Rule 8: Metadata propagation
+
+`algebra` and `mode` are inherited. `basis` is set to target. `label` is
+updated per Rule 7.
+
+## Examples
 
 ```python
-gammas_weyl = [to_matrix(gi, mode="dirac").to_basis("weyl") for gi in basis_vectors]
-for i in range(4):
-    for j in range(4):
-        anticomm = gammas[i] @ gammas[j] + gammas[j] @ gammas[i]
-        assert np.allclose(anticomm.mat, 2 * eta[i,j] * np.eye(4))
+sta = Algebra(1, 3)
+g0, g1, g2, g3 = sta.basis_vectors()
+
+# Convert γ⁰ to Weyl basis
+M = to_matrix(g0, mode="dirac")        # Dirac basis: diag(I₂, −I₂)
+W = M.to_basis("weyl")                 # Weyl basis: [[0,I],[I,0]]
+assert W.basis == "weyl"
+assert np.allclose(W.mat, [[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
+
+# γ⁵ is diagonal in Weyl basis
+g5 = to_matrix(1j * g0 * g1 * g2 * g3, mode="dirac")
+g5_weyl = g5.to_basis("weyl")
+assert np.allclose(np.diag(g5_weyl.mat), [-1, -1, 1, 1])
+
+# Majorana basis: all γ purely imaginary
+M_maj = M.to_basis("majorana")
+assert np.allclose(M_maj.mat.real, 0)  # (for spatial γ)
+# Note: γ⁰ in Majorana basis is real, spatial γ are imaginary
+
+# Roundtrip
+v = g0 + 0.5 * g1
+assert np.allclose(from_matrix(to_matrix(v).to_basis("weyl")).data, v.data)
+
+# Chain
+assert np.allclose(
+    M.to_basis("weyl").to_basis("majorana").to_basis("dirac").mat,
+    M.mat,
+    atol=1e-12
+)
 ```
 
-Additional checks:
-- Weyl basis: γ⁵ is diagonal with entries (−1,−1,+1,+1)
-- Majorana basis: all γ matrices are purely imaginary
-- Roundtrip: `from_matrix(to_matrix(v).to_basis("weyl")) == v`
-- `to_basis("dirac").to_basis("weyl").to_basis("dirac")` is identity
+## Edge Cases
+
+- `to_basis("dirac")` on a Dirac-basis matrix: returns self (no-op).
+- `to_basis("weyl")` on a matrix with no algebra: raises `TypeError`.
+- `to_basis("weyl")` on a `"pauli"` mode 2×2 matrix: raises `TypeError`.
+- Quaternion MatrixRepr: raises `TypeError`.
+
+## Impact
+
+- New file: `galaga_matrix/bases.py` — stores transform matrices as constants.
+- New attribute: `MatrixRepr.basis` (str | None).
+- New method: `MatrixRepr.to_basis(target: str) -> MatrixRepr`.
+- Modified: `from_matrix` — checks `.basis`, transforms back if non-default.
+- Modified: `to_matrix` — sets `.basis` for Dirac/Pauli modes.
