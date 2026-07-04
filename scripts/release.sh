@@ -30,6 +30,9 @@ sed -i '' "s/\"galaga>=.*\"/\"galaga>=$NEW\"/" \
     "$ROOT/packages/galaga_marimo/pyproject.toml" \
     "$ROOT/packages/galaga_matrix/pyproject.toml"
 
+# --- Regenerate lockfile to reflect version changes ---
+uv lock
+
 # --- Update CHANGELOG ---
 DATE=$(date +%Y-%m-%d)
 CHANGELOG="$ROOT/CHANGELOG.md"
