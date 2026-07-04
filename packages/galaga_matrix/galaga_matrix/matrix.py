@@ -61,6 +61,7 @@ def to_matrix(mv: Multivector, mode: str = "left-regular") -> MatrixRepr:
 
     Returns:
         A MatrixRepr wrapping the matrix, with algebra and mode metadata set.
+        If the multivector has a name, the label is set to ``\\rho(name)``.
     """
     from .repr import MatrixRepr
 
@@ -70,7 +71,13 @@ def to_matrix(mv: Multivector, mode: str = "left-regular") -> MatrixRepr:
         mat = _to_compact(mv)
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
-    return MatrixRepr(mat, algebra=mv.algebra, mode=mode)
+
+    label = None
+    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    if mv_name:
+        label = rf"\rho({mv_name})"
+
+    return MatrixRepr(mat, label=label, algebra=mv.algebra, mode=mode)
 
 
 def from_matrix(alg: Algebra, mat, mode: str = "left-regular") -> Multivector:
@@ -83,20 +90,29 @@ def from_matrix(alg: Algebra, mat, mode: str = "left-regular") -> Multivector:
               a mode already set, that mode is used and this argument is ignored.
 
     Returns:
-        The corresponding multivector.
+        The corresponding multivector. If the input MatrixRepr has a label,
+        the multivector is named ``\\rho^{-1}(label)``.
     """
     from .repr import MatrixRepr
 
+    mat_label = None
     if isinstance(mat, MatrixRepr):
         if mat.mode and mat.mode != "quaternion":
             mode = mat.mode
+        mat_label = mat.label
         mat = mat.mat
 
     if mode == "left-regular":
-        return _from_left_regular(alg, mat)
-    if mode == "compact":
-        return _from_compact(alg, mat)
-    raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+        mv = _from_left_regular(alg, mat)
+    elif mode == "compact":
+        mv = _from_compact(alg, mat)
+    else:
+        raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+
+    if mat_label:
+        mv.name(latex=rf"\rho^{{-1}}({mat_label})")
+
+    return mv
 
 
 # ── Left-regular implementation ──

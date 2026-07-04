@@ -1531,3 +1531,72 @@ class TestMatrixReprQuaternionReject:
         A = MatrixRepr(qm)
         with pytest.raises(TypeError, match="quaternion"):
             A.inv()
+
+
+class TestMatrixReprNaming:
+    """Label propagation: MV name → ρ(name), MatrixRepr label → ρ⁻¹(label)."""
+
+    def test_to_matrix_named_mv_gets_rho_label(self):
+        """Named MV produces MatrixRepr with ρ(name) label."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = (e1 * e2).name(latex=r"\hat{B}")
+        M = to_matrix(R, mode="compact")
+        assert M.label == r"\rho(\hat{B})"
+
+    def test_to_matrix_unnamed_mv_no_label(self):
+        """Unnamed MV produces MatrixRepr with no label."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        v = 2 * e1 + 3 * e2
+        M = to_matrix(v, mode="compact")
+        assert M.label is None
+
+    def test_from_matrix_labeled_gives_rho_inv_name(self):
+        """Labeled MatrixRepr produces MV named ρ⁻¹(label)."""
+        alg = Algebra(3)
+        M = MatrixRepr(
+            np.array([[0, 1], [1, 0]], dtype=complex),
+            label=r"\sigma_1",
+            algebra=alg,
+            mode="compact",
+        )
+        mv = from_matrix(alg, M)
+        assert mv._name_latex == r"\rho^{-1}(\sigma_1)"
+
+    def test_from_matrix_unlabeled_no_name(self):
+        """Unlabeled MatrixRepr produces unnamed MV."""
+        alg = Algebra(3)
+        M = MatrixRepr(
+            np.array([[0, 1], [1, 0]], dtype=complex),
+            algebra=alg,
+            mode="compact",
+        )
+        mv = from_matrix(alg, M)
+        assert getattr(mv, "_name_latex", None) is None
+
+    def test_from_matrix_raw_ndarray_no_name(self):
+        """Raw ndarray produces unnamed MV (backward compat)."""
+        alg = Algebra(3)
+        mat = np.array([[0, 1], [1, 0]], dtype=complex)
+        mv = from_matrix(alg, mat, mode="compact")
+        assert getattr(mv, "_name_latex", None) is None
+
+    def test_roundtrip_named_mv(self):
+        """Named MV → to_matrix → from_matrix preserves data, gets composed name."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = (0.5 * (e1 * e2)).name(latex="B")
+        M = to_matrix(R, mode="compact")
+        assert M.label == r"\rho(B)"
+        mv2 = from_matrix(alg, M)
+        assert np.allclose(R.data, mv2.data)
+        assert mv2._name_latex == r"\rho^{-1}(\rho(B))"
+
+    def test_to_matrix_ascii_name_fallback(self):
+        """MV with only ASCII name (no latex) still gets labeled."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = (e1 * e2).name("B12")
+        M = to_matrix(R, mode="compact")
+        assert M.label == r"\rho(B12)"
