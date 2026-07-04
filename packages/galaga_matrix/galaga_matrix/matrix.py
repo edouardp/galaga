@@ -51,19 +51,25 @@ def _left_regular_matrix(alg: Algebra) -> np.ndarray:
     return L
 
 
-def to_matrix(mv: Multivector, mode: str = "left-regular") -> MatrixRepr:
+def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     """Convert a multivector to its matrix representation.
 
     Args:
         mv: The multivector to convert.
-        mode: ``"left-regular"`` (default) for the 2ⁿ×2ⁿ real representation,
-              or ``"compact"`` for the smaller classification-based representation.
+        mode: ``"compact"`` for the minimal classification-based representation,
+              ``"left-regular"`` for the 2ⁿ×2ⁿ real representation, or ``None``
+              (default) to auto-select: ``"compact"`` for non-degenerate algebras,
+              ``"left-regular"`` for degenerate algebras (r > 0).
 
     Returns:
         A MatrixRepr wrapping the matrix, with algebra and mode metadata set.
         If the multivector has a name, the label is set to ``\\rho(name)``.
     """
     from .repr import MatrixRepr
+
+    if mode is None:
+        r = sum(1 for s in mv.algebra.signature if s == 0)
+        mode = "compact" if r == 0 else "left-regular"
 
     if mode == "left-regular":
         mat = _to_left_regular(mv)

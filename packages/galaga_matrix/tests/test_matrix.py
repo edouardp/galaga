@@ -22,7 +22,7 @@ class TestLeftRegular:
     def test_scalar_is_identity(self):
         alg = Algebra(2)
         s = alg.scalar(3.0)
-        mat = to_matrix(s)
+        mat = to_matrix(s, mode="left-regular")
         assert np.allclose(mat, 3.0 * np.eye(4))
 
     def test_roundtrip_vector(self):
@@ -58,7 +58,7 @@ class TestLeftRegular:
     def test_shape(self):
         alg = Algebra(4)
         e = alg.basis_vectors()
-        mat = to_matrix(e[0])
+        mat = to_matrix(e[0], mode="left-regular")
         assert mat.shape == (16, 16)
 
     def test_wrong_shape_raises(self):
