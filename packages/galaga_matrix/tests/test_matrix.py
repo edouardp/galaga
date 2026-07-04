@@ -9,7 +9,6 @@ from galaga_matrix.matrix import (
     _quaternion_block_basis,
     _spinor_roundtrip_possible,
     compact_basis,
-    to_quaternion_matrix,
 )
 
 from galaga import Algebra
@@ -380,7 +379,7 @@ class TestQuaternionMatrix:
     def test_sta_gamma0_is_real_diagonal(self):
         sta = Algebra(1, 3)
         g0 = sta.basis_vectors()[0]
-        qm = to_quaternion_matrix(g0)
+        qm = to_matrix(g0, mode="quaternion")._qmat
         assert len(qm) == 2
         assert qm[0][0].a == pytest.approx(1)
         assert qm[1][1].a == pytest.approx(-1)
@@ -391,7 +390,7 @@ class TestQuaternionMatrix:
     def test_sta_is_2x2(self):
         sta = Algebra(1, 3)
         g1 = sta.basis_vectors()[1]
-        qm = to_quaternion_matrix(g1)
+        qm = to_matrix(g1, mode="quaternion")._qmat
         assert len(qm) == 2
         assert len(qm[0]) == 2
 
@@ -399,7 +398,7 @@ class TestQuaternionMatrix:
         """Cl(1,3) quaternion matrix form uses real M(2,H) blocks."""
         sta = Algebra(1, 3)
         g1 = sta.basis_vectors()[1]
-        qm = to_quaternion_matrix(g1)
+        qm = to_matrix(g1, mode="quaternion")._qmat
 
         assert qm[0][0] == Quat(0)
         assert qm[1][1] == Quat(0)
@@ -423,7 +422,7 @@ class TestQuaternionMatrix:
     def test_cl02_is_1x1(self):
         alg = Algebra(0, 2)
         e1 = alg.basis_vectors()[0]
-        qm = to_quaternion_matrix(e1)
+        qm = to_matrix(e1, mode="quaternion")._qmat
         assert len(qm) == 1
         assert len(qm[0]) == 1
         # e1 in Cl(0,2) should be pure imaginary quaternion
@@ -434,18 +433,18 @@ class TestQuaternionMatrix:
     def test_non_quaternionic_raises(self):
         cl3 = Algebra(3)
         with pytest.raises(TypeError, match="not quaternionic"):
-            to_quaternion_matrix(cl3.basis_vectors()[0])
+            to_matrix(cl3.basis_vectors()[0], mode="quaternion")
 
     def test_quaternionic_double_algebra_raises(self):
         alg = Algebra(0, 3)
         with pytest.raises(TypeError, match="not a single quaternionic matrix algebra"):
-            to_quaternion_matrix(alg.scalar(1.0))
+            to_matrix(alg.scalar(1.0), mode="quaternion")
 
     def test_unsupported_quaternionic_block_basis_raises(self):
         alg = Algebra(4, 0)
 
         with pytest.raises(TypeError, match="not implemented"):
-            to_quaternion_matrix(alg.scalar(1.0))
+            to_matrix(alg.scalar(1.0), mode="quaternion")
 
     def test_quat_latex(self):
         q = Quat(1, 0, -1, 0)

@@ -7,7 +7,7 @@ Provides ``MatrixRepr``, a wrapper around matrix data that:
 - Acts as a transparent numpy proxy via ``__array_ufunc__``
 
 Handles complex matrices (from left-regular and compact modes) and
-quaternion matrices (from ``to_quaternion_matrix``).
+quaternion matrices (from ``to_matrix(mv, mode="quaternion")``).
 """
 
 from __future__ import annotations
@@ -63,7 +63,7 @@ class MatrixRepr:
     Handles two data formats:
 
     - **numpy array** (real or complex): from ``to_matrix``
-    - **list-of-lists of Quat**: from ``to_quaternion_matrix``
+    - **list-of-lists of Quat**: from ``to_matrix(mv, mode="quaternion")``
 
     The format is auto-detected from the data type.
 

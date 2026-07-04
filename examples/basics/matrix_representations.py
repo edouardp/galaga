@@ -26,7 +26,7 @@ def _():
     from galaga import b_sta
 
     import galaga_marimo as gm
-    from galaga_matrix import to_matrix, from_matrix, MatrixRepr, QuatMatrixRepr, to_quaternion_matrix
+    from galaga_matrix import to_matrix, from_matrix, MatrixRepr, QuatMatrixRepr
     from galaga_matrix.matrix import compact_basis
 
     return (
@@ -42,12 +42,11 @@ def _():
         np,
         sandwich,
         to_matrix,
-        to_quaternion_matrix,
     )
 
 
 @app.cell
-def _(MatrixRepr, to_matrix, to_quaternion_matrix):
+def _(MatrixRepr, to_matrix):
     # Monkey patch, oook oook
     from galaga.algebra import Multivector
     #from galaga_matrix import to_matrix, MatrixRepr
@@ -55,7 +54,7 @@ def _(MatrixRepr, to_matrix, to_quaternion_matrix):
     Multivector.matrix = property(lambda self: MatrixRepr(to_matrix(self), algebra=self.algebra, mode="left-regular"))
     Multivector.pauli = property(lambda self: MatrixRepr(to_matrix(self, mode="compact"), algebra=self.algebra, mode="compact"))
     Multivector.dirac = property(lambda self: MatrixRepr(to_matrix(self, mode="compact"), algebra=self.algebra, mode="compact"))
-    Multivector.quat = property(lambda self: MatrixRepr(to_quaternion_matrix(self)))
+    Multivector.quat = property(lambda self: MatrixRepr(to_matrix(self)), mode="quaternion")
     return
 
 

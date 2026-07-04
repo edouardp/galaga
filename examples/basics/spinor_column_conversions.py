@@ -32,7 +32,6 @@ def _():
         from_spinor_matrix,
         from_spinor_quaternion,
         to_matrix,
-        to_quaternion_matrix,
         to_spinor_column,
         to_spinor_matrix,
         to_spinor_quaternion,
@@ -54,7 +53,6 @@ def _():
         np,
         reverse,
         to_matrix,
-        to_quaternion_matrix,
         to_spinor_column,
         to_spinor_matrix,
         to_spinor_quaternion,
@@ -979,7 +977,7 @@ def _(
     sta_g0,
     sta_g1,
     sta_g2,
-    to_quaternion_matrix,
+    to_matrix,
     to_spinor_quaternion,
 ):
     _quat_rotor = (
@@ -989,7 +987,7 @@ def _(
     _quat_column = to_spinor_quaternion(_quat_rotor)
     _quat_roundtrip = from_spinor_quaternion(sta, _quat_column).name(latex=r"Q'")
     _quat_roundtrip_ok = np.allclose(_quat_roundtrip.data, _quat_rotor.data, atol=1e-10)
-    _gamma1_quat_matrix = to_quaternion_matrix(sta_g1.eval())
+    _gamma1_quat_matrix = to_matrix(sta_g1.eval(), mode="quaternion")
     _quat_column_matrix = [[_quat_column[0]], [_quat_column[1]]]
 
     gm.md(t"""
