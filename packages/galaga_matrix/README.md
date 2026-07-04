@@ -2,7 +2,7 @@
 
 Matrix representations for [galaga](../../packages/galaga) Clifford algebras.
 
-> **Status**: experimental, not published. Lives in the monorepo but is not a workspace member or released package.
+> **Status**: published to PyPI alongside galaga. Released as part of the monorepo.
 
 ## What it does
 
@@ -28,11 +28,21 @@ from galaga_matrix import to_matrix, from_matrix, MatrixRepr
 cl3 = Algebra(3)
 e1, e2, e3 = cl3.basis_vectors()
 
-mat = to_matrix(e1, mode="compact")   # 2×2 Pauli σ₁
-mr = MatrixRepr(mat, label=r"\sigma_1", algebra=cl3, mode="compact")
-mr.latex()       # raw LaTeX
-mr._repr_latex_()  # for Jupyter
-mr.mv            # back to Multivector
+mat = to_matrix(e1, mode="compact")   # returns MatrixRepr (2×2 Pauli σ₁)
+mat.label                              # None (e1 is unnamed)
+mat @ mat                              # MatrixRepr: σ₁² = I
+mat.inv()                              # MatrixRepr: σ₁⁻¹ = σ₁
+mat.trace()                            # 0 (traceless)
+mat.mv                                 # back to Multivector
+
+# Named MV gets automatic ρ(name) label
+R = (e1 * e2).name(latex=r"\hat{B}")
+M = to_matrix(R, mode="compact")      # M.label = "\\rho(\\hat{B})"
+M.latex()                              # "\\rho(\\hat{B}) = \\begin{pmatrix}..."
+
+# from_matrix accepts MatrixRepr or raw ndarray
+from_matrix(cl3, M)                    # MV named ρ⁻¹(ρ(B̂))
+from_matrix(cl3, M.mat, mode="compact")  # unnamed MV (raw array)
 
 # Dirac matrices from Cl(1,3)
 sta = Algebra(1, 3)
@@ -47,13 +57,22 @@ to_matrix(v)  # 8×8 real matrix
 
 ## MatrixRepr
 
-`MatrixRepr` wraps a numpy matrix with:
+`MatrixRepr` is a transparent numpy proxy that wraps a matrix with:
 
-- `.latex(wrap=None|"$"|"$$")` — raw LaTeX, inline, or display mode
-- `._repr_latex_()` — Jupyter rendering
-- `.__array__()` — seamless use with `np.array()`, `np.trace()`, `np.linalg.det()`, etc.
-- `.mv` — convert back to a galaga `Multivector` (requires `algebra=` at construction)
-- `.mat` — the underlying numpy array
+- **All arithmetic operations** — `@`, `+`, `-`, `*`, `/`, `**` return `MatrixRepr`
+- **Linear algebra** — `.T`, `.H`, `.conj()`, `.trace()`, `.det()`, `.inv()`
+- **Numpy interop** — `np.add(M, N)`, `np.conj(M)` etc. return `MatrixRepr` via `__array_ufunc__`
+- **Metadata propagation** — `algebra` and `mode` pass through operations; `label` does not
+- **Indexing** — `M[i,j]` for elements, `M[0:2, 0:2]` for submatrices
+- **Rendering** — `.latex()`, `._repr_latex_()` for notebooks
+- **Escape hatch** — `.mat` gives the raw numpy array
+- **Roundtrip** — `.mv` converts back to a `Multivector` (requires `algebra=`)
+- **Factories** — `MatrixRepr.identity(k)`, `MatrixRepr.zeros((m,n))`, `.kron(other)`
+
+### Auto-labeling
+
+`to_matrix(named_mv)` labels the result as `ρ(name)`. `from_matrix(alg, labeled_matrix)`
+names the recovered MV as `ρ⁻¹(label)`. Unnamed inputs pass through without labeling.
 
 Works in galaga_marimo t-strings:
 
