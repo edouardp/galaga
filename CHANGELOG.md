@@ -1,5 +1,53 @@
 # Changelog
 
+## 1.7.3 (2026-07-04)
+
+### Added
+
+- **`MatrixRepr.to_basis()`** — Transform between Dirac, Weyl (chiral), and
+  Majorana matrix bases via unitary similarity. Basis-aware: `from_matrix`
+  automatically transforms back before recovering the MV. Chain-safe:
+  `M.to_basis("weyl").to_basis("majorana").to_basis("dirac") == M`.
+
+- **Spinor columns as MatrixRepr with ket/bra semantics** —
+  `to_spinor_column` now returns `MatrixRepr` with `kind="ket"`, carrying
+  algebra, basis, and ket-notation labels (`|ρ(ψ)⟩`). Conjugate transpose
+  (`.H`) converts ket↔bra. `bra @ ket` gives a scalar (inner product).
+  `operator @ ket` gives a ket. Basis changes on kets use single-sided
+  transforms (S·ψ, not S·M·S†).
+
+- **`to_matrix` mode aliases** — `mode="pauli"` (validates Cl(3,0)/Cl(0,3)),
+  `mode="dirac"` (validates Cl(1,3)/Cl(3,1)), `mode="quaternion"` (returns
+  quaternion-entry MatrixRepr). Wrong algebra raises `TypeError`.
+
+- **`MatrixRepr.kind` attribute** — tracks `"operator"`, `"ket"`, or `"bra"`
+  for correct dispatch of basis transforms, product semantics, and labeling.
+
+- **`MatrixRepr.basis` attribute** — tracks which named basis the matrix is in
+  (`"dirac"`, `"weyl"`, `"majorana"`, `"pauli"`, or `None`).
+
+### Changed
+
+- **`to_matrix` defaults to compact** — Non-degenerate algebras now default to
+  `mode="compact"` (was `"left-regular"`). PGA/degenerate still default to
+  `"left-regular"`.
+
+- **`from_matrix(MatrixRepr)` single-arg form** — No need to pass algebra when
+  the `MatrixRepr` already carries one.
+
+- **`from_spinor_column(MatrixRepr)` single-arg form** — Same convenience for
+  spinor roundtrips.
+
+### Removed
+
+- **`to_quaternion_matrix`** — Removed from public API. Use
+  `to_matrix(mv, mode="quaternion")` instead. Internal helper remains.
+
+### Fixed
+
+- **Release script** — `uv lock` after version bump (no more dirty lockfile).
+  PyPI token fetched once at start (one password prompt, not six).
+
 ## 1.7.2 (2026-07-04)
 
 ### Changed

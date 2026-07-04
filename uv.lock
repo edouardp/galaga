@@ -563,7 +563,7 @@ wheels = [
 
 [[package]]
 name = "galaga"
-version = "1.7.2"
+version = "1.7.3"
 source = { editable = "packages/galaga" }
 dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
