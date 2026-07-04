@@ -1600,3 +1600,42 @@ class TestMatrixReprNaming:
         R = (e1 * e2).name("B12")
         M = to_matrix(R, mode="compact")
         assert M.label == r"\rho(B12)"
+
+
+class TestMatrixReprCopyConstruction:
+    """MatrixRepr(MatrixRepr) copies data and inherits metadata."""
+
+    def test_wrap_copies_data(self):
+        A = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex))
+        B = MatrixRepr(A)
+        assert np.allclose(B.mat, A.mat)
+        # Verify it's a copy, not a reference
+        B.mat[0, 0] = 999
+        assert A.mat[0, 0] == 1
+
+    def test_wrap_inherits_metadata(self):
+        alg = Algebra(3)
+        A = MatrixRepr(np.eye(2, dtype=complex), label=r"\sigma_1", algebra=alg, mode="compact")
+        B = MatrixRepr(A)
+        assert B.label == r"\sigma_1"
+        assert B.algebra is alg
+        assert B.mode == "compact"
+
+    def test_wrap_override_label(self):
+        A = MatrixRepr(np.eye(2, dtype=complex), label="old")
+        B = MatrixRepr(A, label="new")
+        assert B.label == "new"
+
+    def test_wrap_override_algebra(self):
+        alg1 = Algebra(3)
+        alg2 = Algebra(2)
+        A = MatrixRepr(np.eye(2, dtype=complex), algebra=alg1)
+        B = MatrixRepr(A, algebra=alg2)
+        assert B.algebra is alg2
+
+    def test_wrap_operations_still_work(self):
+        A = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex))
+        B = MatrixRepr(A)
+        C = B @ B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[7, 10], [15, 22]])

@@ -82,7 +82,16 @@ class MatrixRepr:
         algebra=None,
         mode: str = "left-regular",
     ):
-        if isinstance(data, np.ndarray):
+        if isinstance(data, MatrixRepr):
+            # Unwrap: copy the underlying matrix, inherit metadata if not overridden
+            self.mat = data.mat.copy() if data.mat is not None else None
+            self._qmat = [row[:] for row in data._qmat] if data._qmat is not None else None
+            if self._qmat is not None:
+                mode = "quaternion"
+            self.label = label if label is not None else data.label
+            self.algebra = algebra if algebra is not None else data.algebra
+            self.mode = mode if mode != "left-regular" else data.mode
+        elif isinstance(data, np.ndarray):
             self.mat = data
             self._qmat = None
         elif isinstance(data, list):
@@ -92,9 +101,10 @@ class MatrixRepr:
         else:
             self.mat = np.asarray(data)
             self._qmat = None
-        self.label = label
-        self.algebra = algebra
-        self.mode = mode
+        if not isinstance(data, MatrixRepr):
+            self.label = label
+            self.algebra = algebra
+            self.mode = mode
 
     def _wrap(self, result: np.ndarray, label: str | None = None) -> MatrixRepr:
         """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode."""
