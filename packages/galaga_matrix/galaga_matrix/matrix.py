@@ -56,10 +56,14 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
 
     Args:
         mv: The multivector to convert.
-        mode: ``"compact"`` for the minimal classification-based representation,
-              ``"left-regular"`` for the 2ⁿ×2ⁿ real representation, or ``None``
-              (default) to auto-select: ``"compact"`` for non-degenerate algebras,
-              ``"left-regular"`` for degenerate algebras (r > 0).
+        mode: One of:
+            - ``None`` (default): auto-select ``"compact"`` for non-degenerate,
+              ``"left-regular"`` for degenerate algebras.
+            - ``"compact"``: minimal complex matrix (works for any non-degenerate Cl(p,q)).
+            - ``"left-regular"``: 2ⁿ×2ⁿ real matrix (works for all algebras).
+            - ``"quaternion"``: quaternion-entry matrix (requires quaternionic algebra).
+            - ``"pauli"``: alias for compact, requires Cl(3,0) or Cl(0,3).
+            - ``"dirac"``: alias for compact, requires Cl(1,3) or Cl(3,1).
 
     Returns:
         A MatrixRepr wrapping the matrix, with algebra and mode metadata set.
@@ -71,12 +75,29 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
         r = sum(1 for s in mv.algebra.signature if s == 0)
         mode = "compact" if r == 0 else "left-regular"
 
-    if mode == "left-regular":
-        mat = _to_left_regular(mv)
+    p, q = _signature_pq(mv.algebra)
+
+    if mode == "pauli":
+        if (p, q) not in ((3, 0), (0, 3)):
+            raise TypeError(f"mode='pauli' requires Cl(3,0) or Cl(0,3), got Cl({p},{q}).")
+        mat = _to_compact(mv)
+    elif mode == "dirac":
+        if (p, q) not in ((1, 3), (3, 1)):
+            raise TypeError(f"mode='dirac' requires Cl(1,3) or Cl(3,1), got Cl({p},{q}).")
+        mat = _to_compact(mv)
     elif mode == "compact":
         mat = _to_compact(mv)
+    elif mode == "left-regular":
+        mat = _to_left_regular(mv)
+    elif mode == "quaternion":
+        qmat = to_quaternion_matrix(mv)
+        label = None
+        mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+        if mv_name:
+            label = rf"\rho({mv_name})"
+        return MatrixRepr(qmat, label=label, algebra=mv.algebra, mode=mode)
     else:
-        raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
     label = None
     mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
@@ -123,19 +144,25 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
 
     mat_label = None
     if isinstance(mat, MatrixRepr):
-        if mat.mode and mat.mode != "quaternion":
+        if mat.mode == "quaternion":
+            raise TypeError(
+                "Cannot convert quaternion MatrixRepr back to MV via from_matrix. "
+                "Use to_matrix(mv, mode='compact') instead, or pass mode='compact' "
+                "to to_matrix for a roundtrippable representation."
+            )
+        if mat.mode:
             mode = mat.mode
         if mat.algebra is not None and alg is None:
             alg = mat.algebra
         mat_label = mat.label
         mat = mat.mat
 
-    if mode == "left-regular":
+    if mode in ("left-regular",):
         mv = _from_left_regular(alg, mat)
-    elif mode == "compact":
+    elif mode in ("compact", "pauli", "dirac"):
         mv = _from_compact(alg, mat)
     else:
-        raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'pauli', or 'dirac'.")
 
     if mat_label:
         mv.name(latex=rf"\rho^{{-1}}({mat_label})")

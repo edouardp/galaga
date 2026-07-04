@@ -1684,3 +1684,116 @@ class TestFromMatrixSingleArg:
         mat = to_matrix(v, mode="compact")
         mv = from_matrix(alg, mat)
         assert np.allclose(v.data, mv.data)
+
+
+class TestToMatrixModes:
+    """to_matrix mode parameter: compact, left-regular, quaternion, pauli, dirac."""
+
+    def test_pauli_cl30(self):
+        """mode='pauli' works for Cl(3,0) and gives 2×2."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1, mode="pauli")
+        assert M.shape == (2, 2)
+        assert M.mode == "pauli"
+
+    def test_pauli_cl03(self):
+        """mode='pauli' works for Cl(0,3)."""
+        alg = Algebra(0, 3)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1, mode="pauli")
+        assert M.shape == (2, 2)
+
+    def test_pauli_wrong_algebra_raises(self):
+        """mode='pauli' on Cl(1,3) raises TypeError."""
+        sta = Algebra(1, 3)
+        e0 = sta.basis_vectors()[0]
+        with pytest.raises(TypeError, match="pauli.*requires"):
+            to_matrix(e0, mode="pauli")
+
+    def test_dirac_cl13(self):
+        """mode='dirac' works for Cl(1,3) and gives 4×4."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac")
+        assert M.shape == (4, 4)
+        assert M.mode == "dirac"
+
+    def test_dirac_cl31(self):
+        """mode='dirac' works for Cl(3,1)."""
+        alg = Algebra(3, 1)
+        e0 = alg.basis_vectors()[0]
+        M = to_matrix(e0, mode="dirac")
+        assert M.shape == (4, 4)
+
+    def test_dirac_wrong_algebra_raises(self):
+        """mode='dirac' on Cl(3,0) raises TypeError."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        with pytest.raises(TypeError, match="dirac.*requires"):
+            to_matrix(e1, mode="dirac")
+
+    def test_quaternion_mode(self):
+        """mode='quaternion' returns MatrixRepr with Quat data."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        assert M.mode == "quaternion"
+        assert M._qmat is not None
+        assert len(M._qmat) == 2
+
+    def test_quaternion_wrong_algebra_raises(self):
+        """mode='quaternion' on non-quaternionic algebra raises."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        with pytest.raises(TypeError):
+            to_matrix(e1, mode="quaternion")
+
+    def test_pauli_roundtrip(self):
+        """Pauli mode roundtrips via from_matrix."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        v = 2 * e1 + 3 * e2 - e3
+        M = to_matrix(v, mode="pauli")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data)
+
+    def test_dirac_roundtrip(self):
+        """Dirac mode roundtrips via from_matrix."""
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        v = g[0] + 0.5 * g[1]
+        M = to_matrix(v, mode="dirac")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data)
+
+    def test_quaternion_from_matrix_raises(self):
+        """from_matrix on quaternion MatrixRepr raises TypeError."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        with pytest.raises(TypeError, match="quaternion"):
+            from_matrix(M)
+
+    def test_default_mode_compact(self):
+        """Default mode for Cl(3,0) is compact."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1)
+        assert M.mode == "compact"
+        assert M.shape == (2, 2)
+
+    def test_default_mode_left_regular_pga(self):
+        """Default mode for PGA is left-regular."""
+        pga = Algebra(2, 0, 1)
+        e = pga.basis_vectors()
+        M = to_matrix(e[0])
+        assert M.mode == "left-regular"
+        assert M.shape == (8, 8)
+
+    def test_invalid_mode_raises(self):
+        """Unknown mode raises ValueError."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        with pytest.raises(ValueError, match="Unknown mode"):
+            to_matrix(e1, mode="bogus")
