@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.7.1 (2026-07-04)
+
+### Added
+
+- **`MatrixRepr` transparent numpy proxy** — All arithmetic operations (`@`, `+`,
+  `-`, `*`, `/`, `**`) now return `MatrixRepr` instances, preserving algebra and
+  mode metadata. Includes `.T`, `.H`, `.conj()`, `.trace()`, `.det()`, `.inv()`,
+  and factory methods `MatrixRepr.identity(k)`, `.zeros(shape)`, `.kron(other)`.
+
+- **`to_matrix()` returns `MatrixRepr`** — No longer returns a bare numpy array.
+  The result carries algebra/mode metadata and supports chained operations.
+  Existing code using `np.allclose(to_matrix(v), ...)` still works via `__array__`.
+
+- **`from_matrix()` accepts `MatrixRepr` or ndarray** — Passing a `MatrixRepr`
+  auto-inherits its mode; passing a raw array works as before.
+
+- **Auto-labeling with ρ notation** — `to_matrix(named_mv)` labels the result
+  as `\rho(name)`. `from_matrix(alg, labeled_matrix)` names the recovered MV
+  as `\rho^{-1}(label)`. Unnamed inputs pass through without labeling.
+
+- **`MatrixRepr(MatrixRepr)` copy construction** — Wrapping an existing
+  `MatrixRepr` copies the underlying data (not a reference) and inherits
+  label/algebra/mode, with optional overrides via keyword args.
+
+- **`__array_ufunc__` interception** — numpy operations like `np.add(M, N)`,
+  `np.conj(M)` return `MatrixRepr` instead of bare arrays.
+
 ## 1.7.0 (2026-07-03)
 
 ### Added
