@@ -1639,3 +1639,48 @@ class TestMatrixReprCopyConstruction:
         C = B @ B
         assert isinstance(C, MatrixRepr)
         assert np.allclose(C.mat, [[7, 10], [15, 22]])
+
+
+class TestFromMatrixSingleArg:
+    """from_matrix(MatrixRepr) without explicit algebra."""
+
+    def test_roundtrip_compact(self):
+        """from_matrix(to_matrix(B, mode='compact')) works without passing alg."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        B = 0.5 * (e1 * e2) + 0.3 * (e2 * e3)
+        mv = from_matrix(to_matrix(B, mode="compact"))
+        assert np.allclose(B.data, mv.data)
+
+    def test_roundtrip_left_regular(self):
+        """from_matrix(to_matrix(v)) works for left-regular mode."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        v = 2 * e1 - e3
+        mv = from_matrix(to_matrix(v))
+        assert np.allclose(v.data, mv.data)
+
+    def test_raw_ndarray_without_alg_raises(self):
+        """from_matrix(ndarray) without algebra raises TypeError."""
+        import pytest
+
+        mat = np.eye(4, dtype=complex)
+        with pytest.raises(TypeError, match="MatrixRepr with an algebra"):
+            from_matrix(mat)
+
+    def test_matrixrepr_without_algebra_raises(self):
+        """from_matrix(MatrixRepr(no algebra)) raises ValueError."""
+        import pytest
+
+        M = MatrixRepr(np.eye(2, dtype=complex), mode="compact")
+        with pytest.raises(ValueError, match="no algebra reference"):
+            from_matrix(M)
+
+    def test_two_arg_form_still_works(self):
+        """from_matrix(alg, mat) still works as before."""
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        v = e1 + e2
+        mat = to_matrix(v, mode="compact")
+        mv = from_matrix(alg, mat)
+        assert np.allclose(v.data, mv.data)

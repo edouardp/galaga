@@ -80,14 +80,17 @@ def to_matrix(mv: Multivector, mode: str = "left-regular") -> MatrixRepr:
     return MatrixRepr(mat, label=label, algebra=mv.algebra, mode=mode)
 
 
-def from_matrix(alg: Algebra, mat, mode: str = "left-regular") -> Multivector:
+def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector:
     """Recover a multivector from its matrix representation.
 
+    Can be called as:
+        from_matrix(alg, mat)              — explicit algebra + ndarray or MatrixRepr
+        from_matrix(matrix_repr)           — MatrixRepr that already carries an algebra
+
     Args:
-        alg: The Clifford algebra.
-        mat: A MatrixRepr or numpy array (must match the expected shape for the mode).
-        mode: ``"left-regular"`` or ``"compact"``. If *mat* is a MatrixRepr with
-              a mode already set, that mode is used and this argument is ignored.
+        alg_or_mat: The Clifford algebra, OR a MatrixRepr (if it carries an algebra).
+        mat: A MatrixRepr or numpy array. Optional if first arg is a MatrixRepr.
+        mode: ``"left-regular"`` or ``"compact"``. Overridden by MatrixRepr.mode if present.
 
     Returns:
         The corresponding multivector. If the input MatrixRepr has a label,
@@ -95,10 +98,29 @@ def from_matrix(alg: Algebra, mat, mode: str = "left-regular") -> Multivector:
     """
     from .repr import MatrixRepr
 
+    # Handle single-argument call: from_matrix(matrix_repr)
+    if mat is None:
+        if not isinstance(alg_or_mat, MatrixRepr):
+            raise TypeError(
+                "from_matrix(x) requires x to be a MatrixRepr with an algebra. "
+                "For raw arrays, use from_matrix(alg, array, mode=...)."
+            )
+        mat = alg_or_mat
+        alg = mat.algebra
+        if alg is None:
+            raise ValueError(
+                "MatrixRepr has no algebra reference. Pass the algebra explicitly: from_matrix(alg, matrix_repr)."
+            )
+    else:
+        # Two-argument call: from_matrix(alg, mat)
+        alg = alg_or_mat
+
     mat_label = None
     if isinstance(mat, MatrixRepr):
         if mat.mode and mat.mode != "quaternion":
             mode = mat.mode
+        if mat.algebra is not None and alg is None:
+            alg = mat.algebra
         mat_label = mat.label
         mat = mat.mat
 
