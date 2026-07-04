@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.7.2 (2026-07-04)
+
+### Changed
+
+- **`to_matrix()` defaults to compact mode** — Non-degenerate algebras (r=0)
+  now default to `"compact"` instead of `"left-regular"`. `to_matrix(e1)` in
+  Cl(3,0) gives the 2×2 Pauli matrix directly. Degenerate algebras (PGA, etc.)
+  still default to `"left-regular"`. Explicit `mode=` still works as before.
+
+- **`from_matrix(MatrixRepr)` works without explicit algebra** — When a
+  `MatrixRepr` carries an algebra reference (as it does from `to_matrix()`),
+  you can call `from_matrix(M)` directly. Raw ndarrays still require
+  `from_matrix(alg, array)`.
+
 ## 1.7.1 (2026-07-04)
 
 ### Added
