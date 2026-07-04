@@ -824,7 +824,25 @@ def to_spinor_column(mv: Multivector) -> np.ndarray:
     if not _spinor_roundtrip_possible(mv.algebra):
         raise _unsupported_spinor_error(mv.algebra)
 
-    return _to_compact(mv) @ _spinor_reference_vector(mv.algebra)
+    from .repr import MatrixRepr
+
+    spinor = _to_compact(mv) @ _spinor_reference_vector(mv.algebra)
+
+    # Determine basis
+    p, q = _signature_pq(mv.algebra)
+    basis = None
+    if (p, q) in ((1, 3), (3, 1)):
+        basis = "dirac"
+    elif (p, q) in ((3, 0), (0, 3)):
+        basis = "pauli"
+
+    # Label with ket notation if MV is named
+    label = None
+    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    if mv_name:
+        label = rf"\left|\rho({mv_name})\right\rangle"
+
+    return MatrixRepr(spinor, label=label, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
 
 
 def to_spinor_matrix(mv: Multivector) -> np.ndarray:
@@ -862,15 +880,17 @@ def _solve_spinor_system(
     return Multivector(alg, data)
 
 
-def from_spinor_column(alg: Algebra, spinor: np.ndarray) -> Multivector:
+def from_spinor_column(alg_or_spinor, spinor=None) -> Multivector:
     """Recover an even-grade multivector from a spinor column vector.
 
-    The inverse of to_spinor_column. Given a (k,1) column vector,
-    reconstructs the even MV ψ such that to_spinor_column(ψ) ≈ spinor.
+    Can be called as:
+        from_spinor_column(alg, spinor)   — explicit algebra + ndarray or MatrixRepr
+        from_spinor_column(matrix_repr)   — MatrixRepr ket that carries an algebra
 
     Args:
-        alg: The Clifford algebra.
-        spinor: A (k, 1) or (k,) complex array.
+        alg_or_spinor: The Clifford algebra, OR a MatrixRepr ket with algebra.
+        spinor: A (k, 1) or (k,) complex array, or MatrixRepr. Optional if first
+                arg is a MatrixRepr.
 
     Returns:
         The even-grade multivector.
@@ -879,6 +899,37 @@ def from_spinor_column(alg: Algebra, spinor: np.ndarray) -> Multivector:
         ValueError: If the spinor has the wrong shape.
         TypeError: If the algebra does not support faithful spinor roundtrip.
     """
+    from .repr import MatrixRepr
+
+    if spinor is None:
+        if not isinstance(alg_or_spinor, MatrixRepr):
+            raise TypeError(
+                "from_spinor_column(x) requires x to be a MatrixRepr. "
+                "For raw arrays, use from_spinor_column(alg, array)."
+            )
+        mr = alg_or_spinor
+        alg = mr.algebra
+        if alg is None:
+            raise ValueError("MatrixRepr has no algebra reference.")
+        # If in a non-default basis, transform back to dirac
+        spinor_data = mr.mat
+        if mr.basis in ("weyl", "majorana"):
+            from .bases import TRANSFORMS
+
+            S_back = TRANSFORMS[(mr.basis, "dirac")]
+            spinor_data = S_back @ spinor_data
+        spinor = spinor_data
+    else:
+        alg = alg_or_spinor
+        if isinstance(spinor, MatrixRepr):
+            if spinor.basis in ("weyl", "majorana"):
+                from .bases import TRANSFORMS
+
+                S_back = TRANSFORMS[(spinor.basis, "dirac")]
+                spinor = S_back @ spinor.mat
+            else:
+                spinor = spinor.mat
+
     try:
         A, even_indices = _spinor_system_matrix(alg)
     except NotImplementedError as exc:

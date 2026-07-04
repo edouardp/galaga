@@ -82,6 +82,7 @@ class MatrixRepr:
         algebra=None,
         mode: str = "left-regular",
         basis: str | None = None,
+        kind: str = "operator",
     ):
         if isinstance(data, MatrixRepr):
             # Unwrap: copy the underlying matrix, inherit metadata if not overridden
@@ -93,6 +94,7 @@ class MatrixRepr:
             self.algebra = algebra if algebra is not None else data.algebra
             self.mode = mode if mode != "left-regular" else data.mode
             self.basis = basis if basis is not None else data.basis
+            self.kind = kind if kind != "operator" else data.kind
         elif isinstance(data, np.ndarray):
             self.mat = data
             self._qmat = None
@@ -108,10 +110,11 @@ class MatrixRepr:
             self.algebra = algebra
             self.mode = mode
             self.basis = basis
+            self.kind = kind
 
     def _wrap(self, result: np.ndarray, label: str | None = None) -> MatrixRepr:
-        """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode/basis."""
-        return MatrixRepr(result, label=label, algebra=self.algebra, mode=self.mode, basis=self.basis)
+        """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode/basis/kind."""
+        return MatrixRepr(result, label=label, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=self.kind)
 
     def _require_mat(self) -> np.ndarray:
         """Get the numpy array or raise if quaternion."""
@@ -156,7 +159,18 @@ class MatrixRepr:
     # ── Arithmetic operators ──
 
     def __matmul__(self, other) -> MatrixRepr:
-        return self._wrap(self._require_mat() @ _unwrap(other))
+        other_mat = _unwrap(other)
+        result = self._require_mat() @ other_mat
+        # Type propagation: operator @ ket → ket, bra @ ket → scalar
+        other_kind = other.kind if isinstance(other, MatrixRepr) else "operator"
+        if self.kind == "bra" and other_kind == "ket":
+            return result[0, 0]  # inner product → complex scalar
+        result_kind = self.kind
+        if self.kind == "operator" and other_kind == "ket":
+            result_kind = "ket"
+        elif self.kind == "ket" and other_kind == "bra":
+            result_kind = "operator"
+        return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=result_kind)
 
     def __rmatmul__(self, other) -> MatrixRepr:
         return self._wrap(_unwrap(other) @ self._require_mat())
@@ -206,8 +220,21 @@ class MatrixRepr:
 
     @property
     def H(self) -> MatrixRepr:
-        """Conjugate transpose (Hermitian adjoint)."""
-        return self._wrap(self._require_mat().conj().T)
+        """Conjugate transpose (Hermitian adjoint). Ket becomes bra and vice versa."""
+        result = self._require_mat().conj().T
+        new_kind = self.kind
+        new_label = self.label
+        if self.kind == "ket":
+            new_kind = "bra"
+            if self.label and r"\right\rangle" in self.label:
+                new_label = self.label.replace(r"\left|", r"\left\langle ").replace(r"\right\rangle", r"\right|")
+        elif self.kind == "bra":
+            new_kind = "ket"
+            if self.label and r"\right|" in self.label:
+                new_label = self.label.replace(r"\left\langle ", r"\left|").replace(r"\right|", r"\right\rangle")
+        return MatrixRepr(
+            result, label=new_label, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=new_kind
+        )
 
     def conj(self) -> MatrixRepr:
         """Element-wise complex conjugate."""
@@ -250,8 +277,8 @@ class MatrixRepr:
         if target not in DIRAC_BASES:
             raise ValueError(f"Unknown basis {target!r}; use 'dirac', 'weyl', or 'majorana'.")
 
-        if mat.shape != (4, 4):
-            raise TypeError(f"to_basis({target!r}) requires a 4×4 Dirac matrix, got {mat.shape}.")
+        if mat.shape not in ((4, 4), (4, 1), (1, 4)):
+            raise TypeError(f"to_basis({target!r}) requires a 4-dim Dirac representation, got {mat.shape}.")
 
         # Determine source basis
         source = self.basis or "dirac"
@@ -264,7 +291,12 @@ class MatrixRepr:
             raise TypeError(f"Cannot change basis from {source!r}; not a recognized Dirac basis.")
 
         S = TRANSFORMS[(source, target)]
-        new_mat = S @ mat @ S.conj().T
+        if self.kind == "ket":
+            new_mat = S @ mat
+        elif self.kind == "bra":
+            new_mat = mat @ S.conj().T
+        else:
+            new_mat = S @ mat @ S.conj().T
 
         # Update label if present
         new_label = None

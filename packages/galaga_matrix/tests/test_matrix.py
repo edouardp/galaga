@@ -781,7 +781,7 @@ class TestSpinorMatrix:
         e1, e2, e3 = alg.basis_vectors()
         R = exp(-0.5 * (e1 * e2))
         spinor = to_spinor_matrix(R)
-        R2 = from_spinor_matrix(alg, spinor.flatten())
+        R2 = from_spinor_matrix(alg, spinor.mat.flatten())
         assert np.allclose(R.data, R2.data, atol=1e-10)
 
     def test_spinor_norm_equals_mv_norm(self):
@@ -1896,7 +1896,7 @@ class TestBasisChange:
         alg = Algebra(3)
         e1 = alg.basis_vectors()[0]
         M = to_matrix(e1, mode="compact")
-        with pytest.raises(TypeError, match="4×4"):
+        with pytest.raises(TypeError, match="4-dim"):
             M.to_basis("weyl")
 
     def test_unknown_basis_raises(self):
@@ -1936,3 +1936,145 @@ class TestBasisChange:
         M = to_matrix(mv, mode="dirac").to_basis("majorana")
         mv2 = from_matrix(M)
         assert np.allclose(mv.data, mv2.data, atol=1e-10)
+
+
+class TestSpinorKetBra:
+    """Spinor columns as MatrixRepr with ket/bra semantics."""
+
+    def test_to_spinor_column_returns_matrixrepr(self):
+        """to_spinor_column returns MatrixRepr, not raw array."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        result = to_spinor_column(s)
+        assert isinstance(result, MatrixRepr)
+
+    def test_ket_kind(self):
+        """Spinor column has kind='ket'."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        ket = to_spinor_column(s)
+        assert ket.kind == "ket"
+        assert ket.shape == (2, 1)
+
+    def test_ket_basis_set(self):
+        """Spinor carries basis information."""
+        from galaga_matrix import to_spinor_column
+
+        sta = Algebra(1, 3)
+        s = sta.scalar(1.0)
+        ket = to_spinor_column(s)
+        assert ket.basis == "dirac"
+
+    def test_ket_algebra_set(self):
+        """Spinor carries algebra reference."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        ket = to_spinor_column(s)
+        assert ket.algebra is alg
+
+    def test_ket_label_from_named_mv(self):
+        """Named MV gets ket label."""
+        from galaga_matrix import to_spinor_column
+
+        from galaga import exp
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = exp(-0.3 * (e1 * e2)).name(latex=r"\psi")
+        ket = to_spinor_column(R)
+        assert r"\left|" in ket.label
+        assert r"\psi" in ket.label
+        assert r"\right\rangle" in ket.label
+
+    def test_ket_H_gives_bra(self):
+        """Conjugate transpose of ket gives bra."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        ket = to_spinor_column(s)
+        bra = ket.H
+        assert bra.kind == "bra"
+        assert bra.shape == (1, 2)
+
+    def test_bra_H_gives_ket(self):
+        """Conjugate transpose of bra gives ket."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        bra = to_spinor_column(s).H
+        ket = bra.H
+        assert ket.kind == "ket"
+        assert ket.shape == (2, 1)
+
+    def test_bra_ket_inner_product_scalar(self):
+        """bra @ ket gives a complex scalar, not MatrixRepr."""
+        from galaga_matrix import to_spinor_column
+
+        from galaga import exp
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = exp(-0.3 * (e1 * e2))
+        ket = to_spinor_column(R)
+        bra = ket.H
+        overlap = bra @ ket
+        assert isinstance(overlap, (complex, np.complexfloating))
+        # For a rotor, ⟨ψ|ψ⟩ = 1
+        assert np.isclose(abs(overlap), 1.0, atol=1e-10)
+
+    def test_operator_matmul_ket_gives_ket(self):
+        """operator @ ket returns ket."""
+        from galaga_matrix import to_matrix, to_spinor_column
+
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        M = to_matrix(g[0], mode="dirac")
+        ket = to_spinor_column(sta.scalar(1.0))
+        result = M @ ket
+        assert isinstance(result, MatrixRepr)
+        assert result.kind == "ket"
+        assert result.shape == (4, 1)
+
+    def test_from_spinor_column_single_arg(self):
+        """from_spinor_column(MatrixRepr) works without explicit algebra."""
+        from galaga_matrix import from_spinor_column, to_spinor_column
+
+        from galaga import exp
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        R = exp(-0.5 * (e1 * e2))
+        ket = to_spinor_column(R)
+        R2 = from_spinor_column(ket)
+        assert np.allclose(R.data, R2.data, atol=1e-10)
+
+    def test_from_spinor_column_weyl_roundtrip(self):
+        """Spinor in Weyl basis roundtrips correctly."""
+        from galaga_matrix import from_spinor_column, to_spinor_column
+
+        from galaga import exp
+
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        R = exp(-0.3 * (g[0] * g[1]))
+        ket = to_spinor_column(R).to_basis("weyl")
+        assert ket.basis == "weyl"
+        R2 = from_spinor_column(ket)
+        assert np.allclose(R.data, R2.data, atol=1e-10)
+
+    def test_numpy_allclose_still_works(self):
+        """np.allclose(to_spinor_column(R), ...) works via __array__."""
+        from galaga_matrix import to_spinor_column
+
+        alg = Algebra(3)
+        s = alg.scalar(1.0)
+        ket = to_spinor_column(s)
+        assert np.allclose(ket, [[1], [0]])
