@@ -104,7 +104,16 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     if mv_name:
         label = rf"\rho({mv_name})"
 
-    return MatrixRepr(mat, label=label, algebra=mv.algebra, mode=mode)
+    # Set basis for modes that correspond to a named basis
+    basis = None
+    if mode in ("dirac", "pauli"):
+        basis = mode
+    elif mode == "compact" and (p, q) in ((1, 3), (3, 1)):
+        basis = "dirac"
+    elif mode == "compact" and (p, q) in ((3, 0), (0, 3)):
+        basis = "pauli"
+
+    return MatrixRepr(mat, label=label, algebra=mv.algebra, mode=mode, basis=basis)
 
 
 def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector:
@@ -143,6 +152,7 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         alg = alg_or_mat
 
     mat_label = None
+    mat_basis = None
     if isinstance(mat, MatrixRepr):
         if mat.mode == "quaternion":
             raise TypeError(
@@ -155,7 +165,15 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         if mat.algebra is not None and alg is None:
             alg = mat.algebra
         mat_label = mat.label
+        mat_basis = mat.basis
         mat = mat.mat
+
+    # If the matrix is in a non-default basis, transform back to Dirac before inverting
+    if mat_basis in ("weyl", "majorana"):
+        from .bases import TRANSFORMS
+
+        S_back = TRANSFORMS[(mat_basis, "dirac")]
+        mat = S_back @ mat @ S_back.conj().T
 
     if mode in ("left-regular",):
         mv = _from_left_regular(alg, mat)

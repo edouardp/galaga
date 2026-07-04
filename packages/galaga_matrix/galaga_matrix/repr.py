@@ -81,6 +81,7 @@ class MatrixRepr:
         label: str | None = None,
         algebra=None,
         mode: str = "left-regular",
+        basis: str | None = None,
     ):
         if isinstance(data, MatrixRepr):
             # Unwrap: copy the underlying matrix, inherit metadata if not overridden
@@ -91,6 +92,7 @@ class MatrixRepr:
             self.label = label if label is not None else data.label
             self.algebra = algebra if algebra is not None else data.algebra
             self.mode = mode if mode != "left-regular" else data.mode
+            self.basis = basis if basis is not None else data.basis
         elif isinstance(data, np.ndarray):
             self.mat = data
             self._qmat = None
@@ -105,10 +107,11 @@ class MatrixRepr:
             self.label = label
             self.algebra = algebra
             self.mode = mode
+            self.basis = basis
 
     def _wrap(self, result: np.ndarray, label: str | None = None) -> MatrixRepr:
-        """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode."""
-        return MatrixRepr(result, label=label, algebra=self.algebra, mode=self.mode)
+        """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode/basis."""
+        return MatrixRepr(result, label=label, algebra=self.algebra, mode=self.mode, basis=self.basis)
 
     def _require_mat(self) -> np.ndarray:
         """Get the numpy array or raise if quaternion."""
@@ -221,6 +224,60 @@ class MatrixRepr:
     def inv(self) -> MatrixRepr:
         """Matrix inverse."""
         return self._wrap(np.linalg.inv(self._require_mat()))
+
+    # ── Basis change ──
+
+    def to_basis(self, target: str) -> MatrixRepr:
+        """Transform to a named basis via similarity: M' = S M S†.
+
+        Supported bases for Cl(1,3) / Cl(3,1) 4×4 matrices:
+            ``"dirac"``, ``"weyl"``, ``"majorana"``
+
+        Args:
+            target: The target basis name.
+
+        Returns:
+            A new MatrixRepr in the target basis with .basis set.
+
+        Raises:
+            TypeError: If the matrix is not 4×4 from Cl(1,3) or Cl(3,1).
+            ValueError: If target is not a recognized basis name.
+        """
+        from .bases import DIRAC_BASES, TRANSFORMS
+
+        mat = self._require_mat()
+
+        if target not in DIRAC_BASES:
+            raise ValueError(f"Unknown basis {target!r}; use 'dirac', 'weyl', or 'majorana'.")
+
+        if mat.shape != (4, 4):
+            raise TypeError(f"to_basis({target!r}) requires a 4×4 Dirac matrix, got {mat.shape}.")
+
+        # Determine source basis
+        source = self.basis or "dirac"
+
+        # No-op if already in target basis
+        if source == target:
+            return self
+
+        if source not in DIRAC_BASES:
+            raise TypeError(f"Cannot change basis from {source!r}; not a recognized Dirac basis.")
+
+        S = TRANSFORMS[(source, target)]
+        new_mat = S @ mat @ S.conj().T
+
+        # Update label if present
+        new_label = None
+        if self.label:
+            new_label = rf"{self.label}^{{(\text{{{target}}})}}"
+
+        return MatrixRepr(
+            new_mat,
+            label=new_label,
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=target,
+        )
 
     # ── Factory methods ──
 

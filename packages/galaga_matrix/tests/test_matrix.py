@@ -1796,3 +1796,143 @@ class TestToMatrixModes:
         e1 = alg.basis_vectors()[0]
         with pytest.raises(ValueError, match="Unknown mode"):
             to_matrix(e1, mode="bogus")
+
+
+class TestBasisChange:
+    """MatrixRepr.to_basis() for Dirac/Weyl/Majorana transformations."""
+
+    def _sta(self):
+        return Algebra(1, 3)
+
+    def test_to_basis_weyl_gamma0(self):
+        """γ⁰ in Weyl basis is [[0,I],[I,0]]."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac").to_basis("weyl")
+        expected = np.array([[0, 0, 1, 0], [0, 0, 0, 1], [1, 0, 0, 0], [0, 1, 0, 0]], dtype=complex)
+        assert np.allclose(M.mat, expected, atol=1e-12)
+
+    def test_to_basis_weyl_gamma5_diagonal(self):
+        """γ⁵ is diagonal in Weyl basis."""
+        sta = self._sta()
+        g = sta.basis_vectors()
+        # γ⁵ = i γ⁰γ¹γ²γ³ — the pseudoscalar with i factor
+        g5_mv = sta.scalar(1.0) * g[0] * g[1] * g[2] * g[3]
+        g5 = to_matrix(g5_mv, mode="dirac").to_basis("weyl")
+        diag = np.diag(g5.mat)
+        # The pseudoscalar e0123 in Weyl basis should be diagonal
+        # (exact values depend on sign convention, just check diagonality)
+        off_diag = g5.mat - np.diag(diag)
+        assert np.allclose(off_diag, 0, atol=1e-12)
+
+    def test_to_basis_sets_basis_attribute(self):
+        """to_basis sets the .basis attribute."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac")
+        assert M.basis == "dirac"
+        assert M.to_basis("weyl").basis == "weyl"
+        assert M.to_basis("majorana").basis == "majorana"
+
+    def test_to_basis_noop(self):
+        """to_basis with same basis returns self."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac")
+        assert M.to_basis("dirac") is M
+
+    def test_roundtrip_weyl(self):
+        """from_matrix(to_matrix(v).to_basis('weyl')) recovers original MV."""
+        sta = self._sta()
+        g = sta.basis_vectors()
+        v = g[0] + 0.5 * g[1] - 0.3 * g[2]
+        M = to_matrix(v, mode="dirac").to_basis("weyl")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data, atol=1e-10)
+
+    def test_roundtrip_majorana(self):
+        """from_matrix(to_matrix(v).to_basis('majorana')) recovers original MV."""
+        sta = self._sta()
+        g = sta.basis_vectors()
+        v = g[0] + 0.7 * g[3]
+        M = to_matrix(v, mode="dirac").to_basis("majorana")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data, atol=1e-10)
+
+    def test_chain_identity(self):
+        """dirac → weyl → majorana → dirac is identity."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac")
+        M_chain = M.to_basis("weyl").to_basis("majorana").to_basis("dirac")
+        assert np.allclose(M.mat, M_chain.mat, atol=1e-12)
+
+    def test_clifford_relations_weyl(self):
+        """Clifford relations hold in Weyl basis."""
+        sta = self._sta()
+        g = sta.basis_vectors()
+        gammas = [to_matrix(gi, mode="dirac").to_basis("weyl") for gi in g]
+        I4 = np.eye(4, dtype=complex)
+        for i in range(4):
+            for j in range(4):
+                anticomm = (gammas[i] @ gammas[j] + gammas[j] @ gammas[i]).mat
+                expected = 2 * sta.signature[i] * I4 if i == j else np.zeros((4, 4))
+                assert np.allclose(anticomm, expected, atol=1e-10)
+
+    def test_clifford_relations_majorana(self):
+        """Clifford relations hold in Majorana basis."""
+        sta = self._sta()
+        g = sta.basis_vectors()
+        gammas = [to_matrix(gi, mode="dirac").to_basis("majorana") for gi in g]
+        I4 = np.eye(4, dtype=complex)
+        for i in range(4):
+            for j in range(4):
+                anticomm = (gammas[i] @ gammas[j] + gammas[j] @ gammas[i]).mat
+                expected = 2 * sta.signature[i] * I4 if i == j else np.zeros((4, 4))
+                assert np.allclose(anticomm, expected, atol=1e-10)
+
+    def test_wrong_size_raises(self):
+        """to_basis on non-4×4 matrix raises TypeError."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1, mode="compact")
+        with pytest.raises(TypeError, match="4×4"):
+            M.to_basis("weyl")
+
+    def test_unknown_basis_raises(self):
+        """Unknown basis name raises ValueError."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="dirac")
+        with pytest.raises(ValueError, match="Unknown basis"):
+            M.to_basis("bogus")
+
+    def test_quaternion_raises(self):
+        """to_basis on quaternion MatrixRepr raises TypeError."""
+        sta = self._sta()
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        with pytest.raises(TypeError, match="quaternion"):
+            M.to_basis("weyl")
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_random_mv_roundtrip_weyl(self, seed):
+        """Random MV roundtrips through Weyl basis."""
+        sta = self._sta()
+        np.random.seed(seed + 700)
+        data = np.random.randn(sta.dim)
+        mv = Multivector(sta, data)
+        M = to_matrix(mv, mode="dirac").to_basis("weyl")
+        mv2 = from_matrix(M)
+        assert np.allclose(mv.data, mv2.data, atol=1e-10)
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_random_mv_roundtrip_majorana(self, seed):
+        """Random MV roundtrips through Majorana basis."""
+        sta = self._sta()
+        np.random.seed(seed + 800)
+        data = np.random.randn(sta.dim)
+        mv = Multivector(sta, data)
+        M = to_matrix(mv, mode="dirac").to_basis("majorana")
+        mv2 = from_matrix(M)
+        assert np.allclose(mv.data, mv2.data, atol=1e-10)
