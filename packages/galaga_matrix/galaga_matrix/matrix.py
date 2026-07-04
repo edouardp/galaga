@@ -22,10 +22,15 @@ Provides two representation modes:
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 import numpy as np
 
 from galaga import Algebra
 from galaga.algebra import Multivector
+
+if TYPE_CHECKING:
+    from .repr import MatrixRepr
 
 # ── Left-regular representation ──
 
@@ -46,7 +51,7 @@ def _left_regular_matrix(alg: Algebra) -> np.ndarray:
     return L
 
 
-def to_matrix(mv: Multivector, mode: str = "left-regular") -> np.ndarray:
+def to_matrix(mv: Multivector, mode: str = "left-regular") -> MatrixRepr:
     """Convert a multivector to its matrix representation.
 
     Args:
@@ -55,26 +60,38 @@ def to_matrix(mv: Multivector, mode: str = "left-regular") -> np.ndarray:
               or ``"compact"`` for the smaller classification-based representation.
 
     Returns:
-        A 2D numpy array (real or complex depending on mode and algebra).
+        A MatrixRepr wrapping the matrix, with algebra and mode metadata set.
     """
+    from .repr import MatrixRepr
+
     if mode == "left-regular":
-        return _to_left_regular(mv)
-    if mode == "compact":
-        return _to_compact(mv)
-    raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+        mat = _to_left_regular(mv)
+    elif mode == "compact":
+        mat = _to_compact(mv)
+    else:
+        raise ValueError(f"Unknown mode {mode!r}; use 'left-regular' or 'compact'")
+    return MatrixRepr(mat, algebra=mv.algebra, mode=mode)
 
 
-def from_matrix(alg: Algebra, mat: np.ndarray, mode: str = "left-regular") -> Multivector:
+def from_matrix(alg: Algebra, mat, mode: str = "left-regular") -> Multivector:
     """Recover a multivector from its matrix representation.
 
     Args:
         alg: The Clifford algebra.
-        mat: The matrix (must match the expected shape for the mode).
-        mode: ``"left-regular"`` or ``"compact"``.
+        mat: A MatrixRepr or numpy array (must match the expected shape for the mode).
+        mode: ``"left-regular"`` or ``"compact"``. If *mat* is a MatrixRepr with
+              a mode already set, that mode is used and this argument is ignored.
 
     Returns:
         The corresponding multivector.
     """
+    from .repr import MatrixRepr
+
+    if isinstance(mat, MatrixRepr):
+        if mat.mode and mat.mode != "quaternion":
+            mode = mat.mode
+        mat = mat.mat
+
     if mode == "left-regular":
         return _from_left_regular(alg, mat)
     if mode == "compact":
