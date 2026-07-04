@@ -96,14 +96,18 @@ uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
 uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
 
 # --- Publish ---
+echo "==> Fetching PyPI token (one password prompt)..."
+UV_PUBLISH_TOKEN=$(keyring get https://upload.pypi.org/legacy/ __token__)
+export UV_PUBLISH_TOKEN
+
 echo "==> Publishing galaga"
-uv publish --keyring-provider subprocess --username __token__ dist/galaga-*
+uv publish dist/galaga-*
 
 echo "==> Publishing galaga-marimo"
-uv publish --keyring-provider subprocess --username __token__ packages/galaga_marimo/dist/galaga_marimo-*
+uv publish packages/galaga_marimo/dist/galaga_marimo-*
 
 echo "==> Publishing galaga-matrix"
-uv publish --keyring-provider subprocess --username __token__ packages/galaga_matrix/dist/galaga_matrix-*
+uv publish packages/galaga_matrix/dist/galaga_matrix-*
 
 # --- Tag + push + release ---
 echo "==> Tagging v$NEW"
