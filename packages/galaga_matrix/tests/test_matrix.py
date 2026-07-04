@@ -1126,3 +1126,408 @@ class TestQuatMatrixRepr:
         qm = [[Quat(1)]]
         qr = QuatMatrixRepr(qm)
         assert qr._repr_latex_().startswith("$")
+
+
+# ── MatrixRepr transparent proxy ──
+
+
+class TestMatrixReprArithmetic:
+    """Arithmetic operators on MatrixRepr."""
+
+    def _make(self, data, **kwargs):
+        return MatrixRepr(np.array(data, dtype=complex), **kwargs)
+
+    def test_matmul_two_repr(self):
+        """MatrixRepr @ MatrixRepr returns MatrixRepr."""
+        A = self._make([[1, 2], [3, 4]])
+        B = self._make([[5, 6], [7, 8]])
+        C = A @ B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, np.array([[19, 22], [43, 50]], dtype=complex))
+
+    def test_matmul_with_ndarray(self):
+        """MatrixRepr @ ndarray returns MatrixRepr."""
+        A = self._make([[1, 0], [0, 1]])
+        B = np.array([[3, 4], [5, 6]], dtype=complex)
+        C = A @ B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, B)
+
+    def test_rmatmul_with_ndarray(self):
+        """ndarray @ MatrixRepr returns MatrixRepr."""
+        A = np.array([[1, 2], [3, 4]], dtype=complex)
+        B = self._make([[1, 0], [0, 1]])
+        C = A @ B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, A)
+
+    def test_add(self):
+        A = self._make([[1, 2], [3, 4]])
+        B = self._make([[10, 20], [30, 40]])
+        C = A + B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[11, 22], [33, 44]])
+
+    def test_radd(self):
+        A = self._make([[1, 0], [0, 1]])
+        C = np.eye(2, dtype=complex) + A
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, 2 * np.eye(2))
+
+    def test_sub(self):
+        A = self._make([[5, 6], [7, 8]])
+        B = self._make([[1, 2], [3, 4]])
+        C = A - B
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[4, 4], [4, 4]])
+
+    def test_rsub(self):
+        A = self._make([[1, 0], [0, 1]])
+        C = np.eye(2, dtype=complex) * 3 - A
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, 2 * np.eye(2))
+
+    def test_mul_scalar(self):
+        A = self._make([[1, 2], [3, 4]])
+        C = A * 2
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[2, 4], [6, 8]])
+
+    def test_rmul_scalar(self):
+        A = self._make([[1, 2], [3, 4]])
+        C = 3 * A
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[3, 6], [9, 12]])
+
+    def test_truediv_scalar(self):
+        A = self._make([[4, 6], [8, 10]])
+        C = A / 2
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[2, 3], [4, 5]])
+
+    def test_neg(self):
+        A = self._make([[1, -2], [3, -4]])
+        C = -A
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[-1, 2], [-3, 4]])
+
+    def test_pos(self):
+        A = self._make([[1, 2], [3, 4]])
+        C = +A
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, A.mat)
+
+    def test_pow_square(self):
+        A = self._make([[0, 1], [1, 0]])  # Pauli X
+        C = A**2
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, np.eye(2))
+
+    def test_pow_zero(self):
+        A = self._make([[1, 2], [3, 4]])
+        C = A**0
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, np.eye(2))
+
+    def test_pow_negative(self):
+        """A**(-1) is the matrix inverse."""
+        A = self._make([[1, 2], [3, 4]])
+        C = A ** (-1)
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat @ A.mat, np.eye(2), atol=1e-10)
+
+
+class TestMatrixReprUnary:
+    """Transpose, conjugate, trace, det, inv."""
+
+    def _make(self, data, **kwargs):
+        return MatrixRepr(np.array(data, dtype=complex), **kwargs)
+
+    def test_transpose(self):
+        A = self._make([[1, 2], [3, 4]])
+        assert isinstance(A.T, MatrixRepr)
+        assert np.allclose(A.T.mat, [[1, 3], [2, 4]])
+
+    def test_hermitian(self):
+        A = self._make([[1, 1j], [-1j, 2]])
+        H = A.H
+        assert isinstance(H, MatrixRepr)
+        assert np.allclose(H.mat, [[1, 1j], [-1j, 2]])  # this one is Hermitian
+
+    def test_hermitian_non_hermitian(self):
+        A = self._make([[0, 1j], [0, 0]])
+        H = A.H
+        assert np.allclose(H.mat, [[0, 0], [-1j, 0]])
+
+    def test_conj(self):
+        A = self._make([[1 + 1j, 2 - 1j], [3, 4 + 2j]])
+        C = A.conj()
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[1 - 1j, 2 + 1j], [3, 4 - 2j]])
+
+    def test_trace(self):
+        A = self._make([[1, 2], [3, 4]])
+        assert A.trace() == 5
+
+    def test_trace_complex(self):
+        A = self._make([[1 + 1j, 0], [0, 2 - 1j]])
+        assert A.trace() == 3
+
+    def test_det(self):
+        A = self._make([[1, 2], [3, 4]])
+        assert np.isclose(A.det(), -2)
+
+    def test_det_singular(self):
+        A = self._make([[1, 2], [2, 4]])
+        assert np.isclose(A.det(), 0)
+
+    def test_inv(self):
+        A = self._make([[1, 2], [3, 4]])
+        Ainv = A.inv()
+        assert isinstance(Ainv, MatrixRepr)
+        assert np.allclose((A @ Ainv).mat, np.eye(2), atol=1e-10)
+
+    def test_inv_roundtrip(self):
+        A = self._make([[1, 1j], [0, 1]])
+        assert np.allclose((A.inv() @ A).mat, np.eye(2), atol=1e-10)
+
+
+class TestMatrixReprShape:
+    """Shape, dtype, len, getitem."""
+
+    def _make(self, data, **kwargs):
+        return MatrixRepr(np.array(data, dtype=complex), **kwargs)
+
+    def test_shape(self):
+        A = self._make([[1, 2, 3], [4, 5, 6]])
+        assert A.shape == (2, 3)
+
+    def test_dtype(self):
+        A = self._make([[1, 2], [3, 4]])
+        assert A.dtype == complex
+
+    def test_len(self):
+        A = self._make([[1, 2], [3, 4], [5, 6]])
+        assert len(A) == 3
+
+    def test_getitem_element(self):
+        A = self._make([[1, 2], [3, 4]])
+        assert A[0, 0] == 1
+        assert A[1, 1] == 4
+
+    def test_getitem_row(self):
+        A = self._make([[1, 2], [3, 4]])
+        row = A[0, :]
+        # 1D result is returned raw (not wrapped)
+        assert isinstance(row, np.ndarray)
+        assert np.allclose(row, [1, 2])
+
+    def test_getitem_submatrix(self):
+        A = self._make([[1, 2, 3], [4, 5, 6], [7, 8, 9]])
+        sub = A[0:2, 0:2]
+        assert isinstance(sub, MatrixRepr)
+        assert np.allclose(sub.mat, [[1, 2], [4, 5]])
+
+
+class TestMatrixReprNumpyInterop:
+    """__array_ufunc__ and numpy function interop."""
+
+    def _make(self, data, **kwargs):
+        return MatrixRepr(np.array(data, dtype=complex), **kwargs)
+
+    def test_np_add(self):
+        A = self._make([[1, 2], [3, 4]])
+        B = self._make([[10, 20], [30, 40]])
+        C = np.add(A, B)
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[11, 22], [33, 44]])
+
+    def test_np_multiply(self):
+        A = self._make([[1, 2], [3, 4]])
+        C = np.multiply(A, 2)
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[2, 4], [6, 8]])
+
+    def test_np_conj(self):
+        A = self._make([[1 + 1j, 2], [3, 4 - 1j]])
+        C = np.conj(A)
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[1 - 1j, 2], [3, 4 + 1j]])
+
+    def test_np_matmul(self):
+        A = self._make([[1, 0], [0, 1]])
+        B = self._make([[5, 6], [7, 8]])
+        C = np.matmul(A, B)
+        assert isinstance(C, MatrixRepr)
+        assert np.allclose(C.mat, [[5, 6], [7, 8]])
+
+    def test_np_trace(self):
+        """np.trace returns scalar (not wrapped)."""
+        A = self._make([[1, 2], [3, 4]])
+        assert np.trace(A) == 5
+
+    def test_np_linalg_det(self):
+        """np.linalg.det works through __array__."""
+        A = self._make([[1, 2], [3, 4]])
+        assert np.isclose(np.linalg.det(A), -2)
+
+    def test_np_allclose_with_repr(self):
+        """np.allclose works between MatrixRepr and array."""
+        A = self._make([[1, 2], [3, 4]])
+        assert np.allclose(A, [[1, 2], [3, 4]])
+
+
+class TestMatrixReprFactory:
+    """Factory methods: identity, zeros, kron."""
+
+    def test_identity(self):
+        I = MatrixRepr.identity(3)
+        assert isinstance(I, MatrixRepr)
+        assert I.shape == (3, 3)
+        assert np.allclose(I.mat, np.eye(3))
+
+    def test_identity_with_algebra(self):
+        alg = Algebra(3)
+        I = MatrixRepr.identity(2, algebra=alg, mode="compact")
+        assert I.algebra is alg
+        assert I.mode == "compact"
+
+    def test_zeros(self):
+        Z = MatrixRepr.zeros((2, 3))
+        assert isinstance(Z, MatrixRepr)
+        assert Z.shape == (2, 3)
+        assert np.allclose(Z.mat, 0)
+
+    def test_kron(self):
+        A = MatrixRepr(np.eye(2, dtype=complex))
+        B = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex))
+        K = A.kron(B)
+        assert isinstance(K, MatrixRepr)
+        assert K.shape == (4, 4)
+        expected = np.kron(np.eye(2), [[1, 2], [3, 4]])
+        assert np.allclose(K.mat, expected)
+
+
+class TestMatrixReprMetadata:
+    """Metadata propagation through operations."""
+
+    def test_algebra_propagates_through_matmul(self):
+        alg = Algebra(3)
+        A = MatrixRepr(np.eye(2, dtype=complex), algebra=alg, mode="compact")
+        B = MatrixRepr(np.eye(2, dtype=complex))
+        C = A @ B
+        assert C.algebra is alg
+        assert C.mode == "compact"
+
+    def test_mode_propagates_through_add(self):
+        A = MatrixRepr(np.eye(2, dtype=complex), mode="compact")
+        B = MatrixRepr(np.eye(2, dtype=complex))
+        C = A + B
+        assert C.mode == "compact"
+
+    def test_label_not_propagated(self):
+        """Labels are specific to a named matrix and shouldn't propagate."""
+        A = MatrixRepr(np.eye(2, dtype=complex), label=r"\sigma_1")
+        B = MatrixRepr(np.eye(2, dtype=complex))
+        C = A @ B
+        assert C.label is None
+
+    def test_algebra_propagates_through_inv(self):
+        alg = Algebra(3)
+        A = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex), algebra=alg, mode="compact")
+        Ainv = A.inv()
+        assert Ainv.algebra is alg
+
+    def test_algebra_propagates_through_transpose(self):
+        alg = Algebra(3)
+        A = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex), algebra=alg, mode="left-regular")
+        assert A.T.algebra is alg
+        assert A.T.mode == "left-regular"
+
+
+class TestMatrixReprPauliAlgebra:
+    """Integration: Pauli matrices as MatrixRepr obey the Clifford relations."""
+
+    def _pauli(self):
+        s1 = MatrixRepr(np.array([[0, 1], [1, 0]], dtype=complex), label=r"\sigma_1")
+        s2 = MatrixRepr(np.array([[0, -1j], [1j, 0]], dtype=complex), label=r"\sigma_2")
+        s3 = MatrixRepr(np.array([[1, 0], [0, -1]], dtype=complex), label=r"\sigma_3")
+        I2 = MatrixRepr.identity(2)
+        return s1, s2, s3, I2
+
+    def test_pauli_squares_to_identity(self):
+        s1, s2, s3, I2 = self._pauli()
+        assert np.allclose((s1 @ s1).mat, I2.mat)
+        assert np.allclose((s2 @ s2).mat, I2.mat)
+        assert np.allclose((s3 @ s3).mat, I2.mat)
+
+    def test_pauli_anticommutation(self):
+        s1, s2, s3, I2 = self._pauli()
+        assert np.allclose((s1 @ s2 + s2 @ s1).mat, 0)
+        assert np.allclose((s2 @ s3 + s3 @ s2).mat, 0)
+        assert np.allclose((s3 @ s1 + s1 @ s3).mat, 0)
+
+    def test_pauli_products(self):
+        s1, s2, s3, I2 = self._pauli()
+        # σ₁σ₂ = iσ₃
+        assert np.allclose((s1 @ s2).mat, 1j * s3.mat)
+        # σ₂σ₃ = iσ₁
+        assert np.allclose((s2 @ s3).mat, 1j * s1.mat)
+        # σ₃σ₁ = iσ₂
+        assert np.allclose((s3 @ s1).mat, 1j * s2.mat)
+
+    def test_pauli_hermitian(self):
+        s1, s2, s3, _ = self._pauli()
+        assert np.allclose(s1.H.mat, s1.mat)
+        assert np.allclose(s2.H.mat, s2.mat)
+        assert np.allclose(s3.H.mat, s3.mat)
+
+    def test_pauli_traceless(self):
+        s1, s2, s3, _ = self._pauli()
+        assert s1.trace() == 0
+        assert s2.trace() == 0
+        assert s3.trace() == 0
+
+    def test_pauli_det(self):
+        s1, s2, s3, _ = self._pauli()
+        assert np.isclose(s1.det(), -1)
+        assert np.isclose(s2.det(), -1)
+        assert np.isclose(s3.det(), -1)
+
+    def test_rotor_from_pauli(self):
+        """exp(-iθ/2 σ₃) via MatrixRepr arithmetic."""
+        _, _, s3, I2 = self._pauli()
+        theta = np.pi / 3
+        # R = cos(θ/2)I - i sin(θ/2)σ₃
+        R = I2 * np.cos(theta / 2) + s3 * (-1j * np.sin(theta / 2))
+        assert isinstance(R, MatrixRepr)
+        # R should be unitary: R @ R.H = I
+        assert np.allclose((R @ R.H).mat, np.eye(2), atol=1e-10)
+
+
+class TestMatrixReprQuaternionReject:
+    """Quaternion MatrixRepr correctly rejects numeric operations."""
+
+    def test_quat_add_raises(self):
+        qm = [[Quat(1, 0, 0, 0)]]
+        A = MatrixRepr(qm)
+        with pytest.raises(TypeError, match="quaternion"):
+            A + A
+
+    def test_quat_matmul_raises(self):
+        qm = [[Quat(1, 0, 0, 0)]]
+        A = MatrixRepr(qm)
+        with pytest.raises(TypeError, match="quaternion"):
+            A @ A
+
+    def test_quat_shape_raises(self):
+        qm = [[Quat(1, 0, 0, 0)]]
+        A = MatrixRepr(qm)
+        with pytest.raises(TypeError, match="quaternion"):
+            _ = A.shape
+
+    def test_quat_inv_raises(self):
+        qm = [[Quat(1, 0, 0, 0)]]
+        A = MatrixRepr(qm)
+        with pytest.raises(TypeError, match="quaternion"):
+            A.inv()
