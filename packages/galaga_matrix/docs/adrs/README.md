@@ -12,3 +12,4 @@ ADRs for the `galaga_matrix` package.
 | [006](006-matrix-repr-transparent-proxy.md) | MatrixRepr as Transparent Numpy Proxy | Accepted |
 | [007](007-auto-labeling-rho.md) | Auto-labeling Between MV and Matrix Representations | Accepted |
 | [008](008-ket-bra-kind.md) | MatrixRepr.kind — Ket, Bra, and Operator Semantics | Accepted |
+| [009](009-unified-quaternion-storage.md) | Unified Quaternion Storage — Always Numpy-Backed | Accepted |

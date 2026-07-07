@@ -379,7 +379,7 @@ class TestQuaternionMatrix:
     def test_sta_gamma0_is_real_diagonal(self):
         sta = Algebra(1, 3)
         g0 = sta.basis_vectors()[0]
-        qm = to_matrix(g0, mode="quaternion")._qmat
+        qm = to_matrix(g0, mode="quaternion").quat
         assert len(qm) == 2
         assert qm[0][0].a == pytest.approx(1)
         assert qm[1][1].a == pytest.approx(-1)
@@ -390,7 +390,7 @@ class TestQuaternionMatrix:
     def test_sta_is_2x2(self):
         sta = Algebra(1, 3)
         g1 = sta.basis_vectors()[1]
-        qm = to_matrix(g1, mode="quaternion")._qmat
+        qm = to_matrix(g1, mode="quaternion").quat
         assert len(qm) == 2
         assert len(qm[0]) == 2
 
@@ -398,7 +398,7 @@ class TestQuaternionMatrix:
         """Cl(1,3) quaternion matrix form uses real M(2,H) blocks."""
         sta = Algebra(1, 3)
         g1 = sta.basis_vectors()[1]
-        qm = to_matrix(g1, mode="quaternion")._qmat
+        qm = to_matrix(g1, mode="quaternion").quat
 
         assert qm[0][0] == Quat(0)
         assert qm[1][1] == Quat(0)
@@ -422,7 +422,7 @@ class TestQuaternionMatrix:
     def test_cl02_is_1x1(self):
         alg = Algebra(0, 2)
         e1 = alg.basis_vectors()[0]
-        qm = to_matrix(e1, mode="quaternion")._qmat
+        qm = to_matrix(e1, mode="quaternion").quat
         assert len(qm) == 1
         assert len(qm[0]) == 1
         # e1 in Cl(0,2) should be pure imaginary quaternion
@@ -1505,31 +1505,32 @@ class TestMatrixReprPauliAlgebra:
 
 
 class TestMatrixReprQuaternionReject:
-    """Quaternion MatrixRepr correctly rejects numeric operations."""
+    """Quaternion MatrixRepr now supports numeric operations (unified storage)."""
 
-    def test_quat_add_raises(self):
+    def test_quat_add(self):
         qm = [[Quat(1, 0, 0, 0)]]
         A = MatrixRepr(qm)
-        with pytest.raises(TypeError, match="quaternion"):
-            A + A
+        B = A + A
+        assert isinstance(B, MatrixRepr)
+        # 1+1 = 2 as quaternion
+        assert np.isclose(B.quat[0][0].a, 2.0)
 
-    def test_quat_matmul_raises(self):
+    def test_quat_matmul(self):
         qm = [[Quat(1, 0, 0, 0)]]
         A = MatrixRepr(qm)
-        with pytest.raises(TypeError, match="quaternion"):
-            A @ A
+        B = A @ A
+        assert isinstance(B, MatrixRepr)
 
-    def test_quat_shape_raises(self):
+    def test_quat_shape(self):
         qm = [[Quat(1, 0, 0, 0)]]
         A = MatrixRepr(qm)
-        with pytest.raises(TypeError, match="quaternion"):
-            _ = A.shape
+        assert A.shape == (2, 2)  # 1×1 quat = 2×2 complex
 
-    def test_quat_inv_raises(self):
+    def test_quat_inv(self):
         qm = [[Quat(1, 0, 0, 0)]]
         A = MatrixRepr(qm)
-        with pytest.raises(TypeError, match="quaternion"):
-            A.inv()
+        Ainv = A.inv()
+        assert isinstance(Ainv, MatrixRepr)
 
 
 class TestMatrixReprNaming:
@@ -1738,8 +1739,8 @@ class TestToMatrixModes:
         g0 = sta.basis_vectors()[0]
         M = to_matrix(g0, mode="quaternion")
         assert M.mode == "quaternion"
-        assert M._qmat is not None
-        assert len(M._qmat) == 2
+        assert M.quat is not None
+        assert len(M.quat) == 2
 
     def test_quaternion_wrong_algebra_raises(self):
         """mode='quaternion' on non-quaternionic algebra raises."""
@@ -1766,13 +1767,13 @@ class TestToMatrixModes:
         v2 = from_matrix(M)
         assert np.allclose(v.data, v2.data)
 
-    def test_quaternion_from_matrix_raises(self):
-        """from_matrix on quaternion MatrixRepr raises TypeError."""
+    def test_quaternion_from_matrix_roundtrip(self):
+        """from_matrix on quaternion MatrixRepr roundtrips correctly."""
         sta = Algebra(1, 3)
         g0 = sta.basis_vectors()[0]
         M = to_matrix(g0, mode="quaternion")
-        with pytest.raises(TypeError, match="quaternion"):
-            from_matrix(M)
+        mv = from_matrix(M)
+        assert np.allclose(g0.data, mv.data, atol=1e-10)
 
     def test_default_mode_compact(self):
         """Default mode for Cl(3,0) is compact."""
@@ -2078,3 +2079,210 @@ class TestSpinorKetBra:
         s = alg.scalar(1.0)
         ket = to_spinor_column(s)
         assert np.allclose(ket, [[1], [0]])
+
+
+class TestQuaternionUnifiedStorage:
+    """Quaternion mode: numpy-backed, arithmetic works, .quat property, roundtrip."""
+
+    def test_quat_mode_has_numpy_mat(self):
+        """mode='quaternion' stores a numpy array, not None."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        assert M.mat is not None
+        assert isinstance(M.mat, np.ndarray)
+
+    def test_quat_property_returns_grid(self):
+        """.quat returns list-of-lists of Quat."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        qm = M.quat
+        assert len(qm) == 2
+        assert len(qm[0]) == 2
+        assert isinstance(qm[0][0], Quat)
+
+    def test_quat_property_non_quaternion_raises(self):
+        """.quat raises TypeError on non-quaternion mode."""
+        alg = Algebra(3)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1, mode="compact")
+        with pytest.raises(TypeError, match="quaternion"):
+            _ = M.quat
+
+    def test_quat_matmul(self):
+        """Quaternion matrices can be multiplied."""
+        sta = Algebra(1, 3)
+        g0, g1 = sta.basis_vectors()[:2]
+        M0 = to_matrix(g0, mode="quaternion")
+        M1 = to_matrix(g1, mode="quaternion")
+        M01 = M0 @ M1
+        assert isinstance(M01, MatrixRepr)
+        assert M01.mode == "quaternion"
+        # γ₀γ₁ as quaternion matrix
+        expected = to_matrix(g0 * g1, mode="quaternion")
+        assert np.allclose(M01.mat, expected.mat, atol=1e-10)
+
+    def test_quat_add(self):
+        """Quaternion matrices can be added."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        M2 = M + M
+        assert isinstance(M2, MatrixRepr)
+        assert np.allclose(M2.mat, 2 * M.mat)
+
+    def test_quat_scalar_mul(self):
+        """Quaternion matrices support scalar multiplication."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        M3 = 3 * M
+        assert np.allclose(M3.mat, 3 * M.mat)
+
+    def test_quat_inv(self):
+        """Quaternion matrix inverse works."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        Minv = M.inv()
+        identity = M @ Minv
+        assert np.allclose(identity.mat, np.eye(4, dtype=complex), atol=1e-10)
+
+    def test_quat_trace(self):
+        """Quaternion matrix trace works."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        # γ₀ is traceless (Tr = 0 for gamma matrices)
+        # But in quaternion block form, Tr might differ — let's just check it runs
+        tr = M.trace()
+        assert isinstance(tr, (complex, np.complexfloating))
+
+    def test_quat_det(self):
+        """Quaternion matrix determinant works."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        d = M.det()
+        assert isinstance(d, (complex, np.complexfloating))
+
+    def test_quat_transpose(self):
+        """Quaternion matrix .T works."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        Mt = M.T
+        assert isinstance(Mt, MatrixRepr)
+        assert Mt.mode == "quaternion"
+
+    def test_quat_hermitian(self):
+        """Quaternion matrix .H works."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        Mh = M.H
+        assert isinstance(Mh, MatrixRepr)
+
+    def test_quat_roundtrip(self):
+        """from_matrix(to_matrix(mv, mode='quaternion')) roundtrips."""
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        v = g[0] + 0.5 * g[1] - 0.3 * g[2]
+        M = to_matrix(v, mode="quaternion")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data, atol=1e-10)
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_quat_random_mv_roundtrip(self, seed):
+        """Random MVs in Cl(1,3) roundtrip through quaternion mode."""
+        sta = Algebra(1, 3)
+        np.random.seed(seed + 900)
+        data = np.random.randn(sta.dim)
+        mv = Multivector(sta, data)
+        M = to_matrix(mv, mode="quaternion")
+        mv2 = from_matrix(M)
+        assert np.allclose(mv.data, mv2.data, atol=1e-10)
+
+    def test_quat_product_matches_gp(self):
+        """Matrix product matches geometric product for all basis vectors."""
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        for i in range(4):
+            for j in range(4):
+                Mi = to_matrix(g[i], mode="quaternion")
+                Mj = to_matrix(g[j], mode="quaternion")
+                Mij = Mi @ Mj
+                gp_ij = g[i] * g[j]
+                M_expected = to_matrix(gp_ij, mode="quaternion")
+                assert np.allclose(Mij.mat, M_expected.mat, atol=1e-10), f"γ{i}γ{j} mismatch"
+
+    def test_quat_anticommutation(self):
+        """Quaternion gamma matrices satisfy Clifford relations."""
+        sta = Algebra(1, 3)
+        g = sta.basis_vectors()
+        gammas = [to_matrix(gi, mode="quaternion") for gi in g]
+        I4 = np.eye(4, dtype=complex)
+        for i in range(4):
+            for j in range(4):
+                anticomm = (gammas[i] @ gammas[j] + gammas[j] @ gammas[i]).mat
+                expected = 2 * sta.signature[i] * I4 if i == j else np.zeros((4, 4))
+                assert np.allclose(anticomm, expected, atol=1e-10), f"{{γ{i},γ{j}}} failed"
+
+    def test_quat_from_list_backward_compat(self):
+        """MatrixRepr([[Quat(...)...]]) still works (backward compat)."""
+        qm = [[Quat(1, 0, 0, 0), Quat(0, 1, 0, 0)], [Quat(0, 1, 0, 0), Quat(-1, 0, 0, 0)]]
+        M = MatrixRepr(qm)
+        assert M.mat is not None
+        assert M.mode == "quaternion"
+        assert M.mat.shape == (4, 4)
+        # Verify the Quat grid can be extracted back
+        qm2 = M.quat
+        assert qm2[0][0].a == pytest.approx(1)
+        assert qm2[0][1].b == pytest.approx(1)
+
+    def test_quat_latex_renders_quaternion(self):
+        """LaTeX rendering shows quaternion entries."""
+        sta = Algebra(1, 3)
+        g1 = sta.basis_vectors()[1]
+        M = to_matrix(g1, mode="quaternion")
+        latex = M.latex()
+        assert r"\begin{pmatrix}" in latex
+        # Should contain quaternion unit 'i' (from Quat.latex())
+        assert "i" in latex
+
+    def test_quat_repr_shows_quaternion(self):
+        """repr shows quaternion dimensions."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        assert "2×2" in repr(M)
+        assert "quaternion" in repr(M)
+
+    def test_quat_np_array_works(self):
+        """np.array(M) works for quaternion mode (returns complex backing)."""
+        sta = Algebra(1, 3)
+        g0 = sta.basis_vectors()[0]
+        M = to_matrix(g0, mode="quaternion")
+        arr = np.array(M)
+        assert arr.shape == (4, 4)
+        assert arr.dtype == complex
+
+    def test_quat_cl02_roundtrip(self):
+        """Cl(0,2) quaternion mode roundtrips."""
+        alg = Algebra(0, 2)
+        e1, e2 = alg.basis_vectors()
+        v = e1 + 0.5 * e2
+        M = to_matrix(v, mode="quaternion")
+        v2 = from_matrix(M)
+        assert np.allclose(v.data, v2.data, atol=1e-10)
+
+    def test_quat_cl02_is_1x1(self):
+        """Cl(0,2) quaternion matrix is 1×1 (2×2 complex backing)."""
+        alg = Algebra(0, 2)
+        e1 = alg.basis_vectors()[0]
+        M = to_matrix(e1, mode="quaternion")
+        assert M.mat.shape == (2, 2)
+        qm = M.quat
+        assert len(qm) == 1
+        assert len(qm[0]) == 1

@@ -53,6 +53,25 @@ def _unwrap(x) -> np.ndarray | Any:
     return x
 
 
+def _quat_grid_to_complex(qmat: list[list]) -> np.ndarray:
+    """Convert a list-of-lists of Quat to a complex numpy matrix.
+
+    Each Quat is embedded as a 2×2 complex block:
+        q = a + bi + cj + dk → [[a+bi, c+di], [-c+di, a-bi]]
+    """
+    rows = len(qmat)
+    cols = len(qmat[0]) if rows else 0
+    result = np.zeros((2 * rows, 2 * cols), dtype=complex)
+    for i in range(rows):
+        for j in range(cols):
+            q = qmat[i][j]
+            result[2 * i, 2 * j] = q.a + q.b * 1j
+            result[2 * i, 2 * j + 1] = q.c + q.d * 1j
+            result[2 * i + 1, 2 * j] = -q.c + q.d * 1j
+            result[2 * i + 1, 2 * j + 1] = q.a - q.b * 1j
+    return result
+
+
 class MatrixRepr:
     """A matrix with LaTeX rendering and transparent numpy proxy behavior.
 
@@ -86,10 +105,7 @@ class MatrixRepr:
     ):
         if isinstance(data, MatrixRepr):
             # Unwrap: copy the underlying matrix, inherit metadata if not overridden
-            self.mat = data.mat.copy() if data.mat is not None else None
-            self._qmat = [row[:] for row in data._qmat] if data._qmat is not None else None
-            if self._qmat is not None:
-                mode = "quaternion"
+            self.mat = data.mat.copy()
             self.label = label if label is not None else data.label
             self.algebra = algebra if algebra is not None else data.algebra
             self.mode = mode if mode != "left-regular" else data.mode
@@ -97,14 +113,12 @@ class MatrixRepr:
             self.kind = kind if kind != "operator" else data.kind
         elif isinstance(data, np.ndarray):
             self.mat = data
-            self._qmat = None
-        elif isinstance(data, list):
-            self.mat = None
-            self._qmat = data
+        elif isinstance(data, list) and data and isinstance(data[0], list):
+            # list-of-lists of Quat → convert to complex matrix
+            self.mat = _quat_grid_to_complex(data)
             mode = "quaternion"
         else:
             self.mat = np.asarray(data)
-            self._qmat = None
         if not isinstance(data, MatrixRepr):
             self.label = label
             self.algebra = algebra
@@ -117,10 +131,40 @@ class MatrixRepr:
         return MatrixRepr(result, label=label, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=self.kind)
 
     def _require_mat(self) -> np.ndarray:
-        """Get the numpy array or raise if quaternion."""
-        if self.mat is None:
-            raise TypeError("Operation not supported on quaternion matrix representations")
+        """Get the numpy array."""
         return self.mat
+
+    @property
+    def quat(self) -> list[list]:
+        """Read the matrix as a quaternion grid (k×k Quat entries).
+
+        Each 2×2 complex block is interpreted as one quaternion.
+        Only meaningful when mode='quaternion'.
+
+        Raises:
+            TypeError: If mode is not 'quaternion' or dimensions are odd.
+        """
+        from .matrix import Quat
+
+        if self.mode != "quaternion":
+            raise TypeError("`.quat` is only available for mode='quaternion' matrices.")
+        rows, cols = self.mat.shape
+        if rows % 2 != 0 or cols % 2 != 0:
+            raise TypeError(f"Cannot read {rows}×{cols} matrix as quaternion blocks (need even dimensions).")
+        qrows = rows // 2
+        qcols = cols // 2
+        result = []
+        for i in range(qrows):
+            row = []
+            for j in range(qcols):
+                block = self.mat[2 * i : 2 * i + 2, 2 * j : 2 * j + 2]
+                a = block[0, 0].real
+                b = block[0, 0].imag
+                c = block[0, 1].real
+                d = block[0, 1].imag
+                row.append(Quat(a, b, c, d))
+            result.append(row)
+        return result
 
     # ── Conversion ──
 
@@ -274,6 +318,12 @@ class MatrixRepr:
 
         mat = self._require_mat()
 
+        if self.mode == "quaternion":
+            raise TypeError(
+                "to_basis() is not supported for quaternion-mode matrices. "
+                "The quaternion-block basis is a separate representation, not a Dirac basis variant."
+            )
+
         if target not in DIRAC_BASES:
             raise ValueError(f"Unknown basis {target!r}; use 'dirac', 'weyl', or 'majorana'.")
 
@@ -330,8 +380,6 @@ class MatrixRepr:
     # ── Numpy interop ──
 
     def __array__(self, dtype=None, copy=None):
-        if self.mat is None:
-            raise TypeError("Quaternion matrix cannot be converted to numpy array")
         if dtype is not None:
             return np.array(self.mat, dtype=dtype)
         return self.mat
@@ -370,9 +418,10 @@ class MatrixRepr:
     # ── Rendering ──
 
     def _body_latex(self) -> str:
-        if self._qmat is not None:
+        if self.mode == "quaternion":
+            qm = self.quat
             lines = []
-            for row in self._qmat:
+            for row in qm:
                 cells = [q.latex() for q in row]
                 lines.append(" & ".join(cells))
             return " \\\\\n".join(lines)
@@ -403,14 +452,13 @@ class MatrixRepr:
         return f"${self.latex()}$"
 
     def __repr__(self) -> str:
-        if self._qmat is not None:
-            r = len(self._qmat)
-            c = len(self._qmat[0]) if r else 0
-            return f"MatrixRepr({r}×{c}, quaternion)"
+        if self.mode == "quaternion":
+            rows, cols = self.mat.shape
+            return f"MatrixRepr({rows // 2}×{cols // 2}, quaternion)"
         return repr(self.mat)
 
     def __str__(self) -> str:
-        if self._qmat is not None:
+        if self.mode == "quaternion":
             return repr(self)
         return str(self.mat)
 

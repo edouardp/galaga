@@ -90,12 +90,8 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     elif mode == "left-regular":
         mat = _to_left_regular(mv)
     elif mode == "quaternion":
-        qmat = to_quaternion_matrix(mv)
-        label = None
-        mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
-        if mv_name:
-            label = rf"\rho({mv_name})"
-        return MatrixRepr(qmat, label=label, algebra=mv.algebra, mode=mode)
+        _quaternion_block_basis(mv.algebra)  # validates algebra is quaternionic
+        mat = _to_quaternion_block_complex(mv)
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
@@ -154,12 +150,6 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
     mat_label = None
     mat_basis = None
     if isinstance(mat, MatrixRepr):
-        if mat.mode == "quaternion":
-            raise TypeError(
-                "Cannot convert quaternion MatrixRepr back to MV via from_matrix. "
-                "Use to_matrix(mv, mode='compact') instead, or pass mode='compact' "
-                "to to_matrix for a roundtrippable representation."
-            )
         if mat.mode:
             mode = mat.mode
         if mat.algebra is not None and alg is None:
@@ -179,8 +169,21 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         mv = _from_left_regular(alg, mat)
     elif mode in ("compact", "pauli", "dirac"):
         mv = _from_compact(alg, mat)
+    elif mode == "quaternion":
+        # Use quaternion-block blade matrices for the inverse
+        blade_mats = _build_quaternion_block_blade_matrices(alg)
+        dim = alg.dim
+        k = blade_mats.shape[1]
+        if mat.shape != (k, k):
+            raise ValueError(f"Expected ({k}, {k}) matrix for quaternion mode, got {mat.shape}")
+        flat_basis = blade_mats.reshape(dim, k * k)
+        A = np.vstack([flat_basis.real.T, flat_basis.imag.T])
+        flat_mat = mat.reshape(k * k)
+        b = np.concatenate([flat_mat.real, flat_mat.imag])
+        coeffs, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+        mv = Multivector(alg, coeffs)
     else:
-        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'pauli', or 'dirac'.")
+        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
     if mat_label:
         mv.name(latex=rf"\rho^{{-1}}({mat_label})")
