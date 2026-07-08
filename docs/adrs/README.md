@@ -80,6 +80,9 @@ helps future contributors understand why certain choices were made.
 | [065](065-operation-registry.md) | Operation Registry Breaks algebra↔expr Circular Dependency | Accepted |
 | [066](066-grade-propagation-and-float.md) | Grade Propagation via @ga_op and \_\_float\_\_ Conversion | Accepted |
 | [067](067-strip-whitespace-from-latex-names.md) | Strip Whitespace from LaTeX Names | Accepted |
+| [068](068-recognize-known-mvs.md) | Recognize Known Multivectors in Display | Accepted |
+| [069](069-quaternion-bivector-assignment.md) | Quaternion Bivector Assignment | Accepted |
+| [070](070-pedagogical-convention-explicit-scope.md) | Pedagogical and Convention-Explicit Scope | Accepted |
 
 ## Creating New ADRs
 

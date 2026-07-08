@@ -2,6 +2,20 @@
 
 High-level principles that guide the `galaga` geometric algebra library.
 
+## Project posture
+
+Galaga is primarily a pedagogical geometric algebra library. It is not trying
+to be the highest-performance GA implementation. Correctness, clarity,
+inspectability, and explicit mathematical choices matter more than minimizing
+the number of operations or choosing a single convention for speed.
+
+Its secondary goal is to make the range of differing opinions in the GA
+community usable from one codebase. When a convention is contested, Galaga
+chooses a documented default and exposes other coherent conventions under
+explicit names. Multiple named operations for similar-looking ideas are a
+feature, not a failure, when they help users see exactly which mathematics they
+are using.
+
 ## 1. Named functions are the contract
 
 Every operation has a stable, named function: `gp`, `op`, `grade`, `reverse`, `dual`, `inverse`, etc. These names never change meaning.
