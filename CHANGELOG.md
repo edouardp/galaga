@@ -1,5 +1,32 @@
 # Changelog
 
+## 1.7.4 (2026-07-08)
+
+### Changed
+
+- **Quaternion mode unified storage** — `to_matrix(mv, mode="quaternion")` now
+  stores the matrix as a numpy complex array internally (quaternion-block
+  embedding). All arithmetic operations (`@`, `+`, `.inv()`, `.trace()`, etc.)
+  now work on quaternion matrices. The `.quat` property extracts the
+  quaternion grid on demand for display. `from_matrix` roundtrips quaternion
+  mode. Backward compatible: constructing from `list[list[Quat]]` still works.
+
+### Added
+
+- **`.quat` property on MatrixRepr** — Returns the `list[list[Quat]]` view of
+  the underlying complex matrix. Only available when `mode="quaternion"`.
+
+- **Docs: Spinors — Pauli vs Dirac explainer** — Covers how spinor columns
+  relate to the "square root of a vector" picture, the rank-1 vs rank-2
+  idempotent difference, and the Weyl decomposition.
+
+- **ADR-070: Pedagogical and convention-explicit scope** — Documents that
+  galaga prioritises correctness, clarity, and exposing multiple conventions
+  over raw performance.
+
+- **Review: Terathon GA foundations posts** — Literature review of Eric
+  Lengyel's posts on GA foundations.
+
 ## 1.7.3 (2026-07-04)
 
 ### Added
