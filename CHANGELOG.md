@@ -1,5 +1,55 @@
 # Changelog
 
+## 1.7.5 (2026-07-10)
+
+### Added
+
+- **Shared symbolic naming core** — Adds a reusable `galaga.symbolic_core`
+  layer for name normalization, symbolic leaves, structural expression nodes,
+  domain dispatch, and generic rendering. This lets future pedagogical value
+  types share Galaga's naming and expression-tree behavior without duplicating
+  the `Multivector` implementation.
+
+- **Symbolic MatrixRepr expressions** — `MatrixRepr` values can now be named
+  with `.name()` and participate in symbolic expression trees while preserving
+  concrete matrix values. Matrix operations such as `@`, `+`, `-`, scalar
+  arithmetic, adjoints, and basis changes retain displayable provenance.
+
+- **Matrix representation expression nodes** — `to_matrix(named_mv)` and
+  `to_spinor_column(named_mv)` now produce symbolic representation-map
+  expressions such as `\rho(B)` and spinor-column expressions, rather than
+  render-only labels.
+
+- **SPEC-013 and ADR-010** — Documents the accepted design for decoupled
+  symbolic naming and records the decision to replace `MatrixRepr.label` with
+  `.name()`.
+
+### Changed
+
+- **`MatrixRepr.label` replaced by `.name()`** — `label=` is no longer accepted
+  as the public MatrixRepr naming API. Matrix naming now matches multivector
+  naming and creates a symbolic leaf rather than display-only metadata.
+
+- **Representation notation clarified** — Default compact/Dirac-family
+  representation maps render as plain `\rho(...)`; explicit Weyl and Majorana
+  basis views render as `\rho^{\mathrm{Weyl}}(...)` and
+  `\rho^{\mathrm{Majorana}}(...)`; quaternion mode renders as
+  `\rho_{\mathbb{H}}(...)`.
+
+- **Matrix examples updated** — Matrix, spinor-column, Dirac bilinear, and
+  Weyl/chiral notebooks now demonstrate `.name()`-based matrix displays and
+  symbolic matrix expression trees.
+
+### Fixed
+
+- **`galaga_matrix` package metadata** — Adds the package README, author,
+  classifiers, keywords, and project URLs so `twine check` passes without
+  missing long-description warnings.
+
+- **Release lint hygiene** — Removes unused imports from Chisolm reference tests
+  and formats the new symbolic-core and MatrixRepr test files so the configured
+  lint target passes cleanly.
+
 ## 1.7.4 (2026-07-08)
 
 ### Changed
