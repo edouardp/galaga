@@ -24,12 +24,10 @@ from galaga import (
     dual,
     gp,
     grade,
-    inverse,
     involute,
     left_contraction,
     lie_bracket,
     op,
-    right_contraction,
 )
 
 # ---------------------------------------------------------------------------
@@ -73,6 +71,7 @@ def _rblade(alg, rng, r):
 # After Eq. 2.56 — dual(AB) = A · dual(B)
 # ---------------------------------------------------------------------------
 
+
 class TestDualOfProduct:
     """After Eq. 2.56 (§5.5): dual(AB) = A · dual(B)."""
 
@@ -90,6 +89,7 @@ class TestDualOfProduct:
 # ---------------------------------------------------------------------------
 # Eq. 2.58, 1st (label:dualprods) — dual(A ∧ B) = A ⌋ dual(B)
 # ---------------------------------------------------------------------------
+
 
 class TestEq258DualOfWedge:
     """Eq. 2.58, 1st (§5.5, label:dualprods): dual(A∧B) = A⌋dual(B)."""
@@ -118,6 +118,7 @@ class TestEq258DualOfWedge:
 # ---------------------------------------------------------------------------
 # Eq. 2.58, 2nd (label:dualprods) — dual(A ⌋ B) = A ∧ dual(B)
 # ---------------------------------------------------------------------------
+
 
 class TestEq258DualOfContraction:
     """Eq. 2.58, 2nd (§5.5, label:dualprods): dual(A⌋B) = A∧dual(B)."""
@@ -149,6 +150,7 @@ class TestEq258DualOfContraction:
 # Eq. 2.54 (label:commuteI) — A·I = I·involute^{n-1}(A)
 # ---------------------------------------------------------------------------
 
+
 class TestEq254PseudoscalarCommutation:
     """Eq. 2.54 (§5.5, label:commuteI): A·I = I·involute^{n-1}(A)."""
 
@@ -168,6 +170,7 @@ class TestEq254PseudoscalarCommutation:
 # ---------------------------------------------------------------------------
 # Eq. 2.57 (label:AoutdualA) — A ∧ dual(A) ∝ I for invertible blades
 # ---------------------------------------------------------------------------
+
 
 class TestBladeWedgeDualProportionalToI:
     """Eq. 2.57 (§5.5, label:AoutdualA): A∧dual(A) = A²/I² · I for invertible blades."""
@@ -202,6 +205,7 @@ class TestBladeWedgeDualProportionalToI:
 # Uses lie_bracket = ½(AB−BA), matching Chisolm's [A,B].
 # ---------------------------------------------------------------------------
 
+
 class TestEq262CommutatorLeibniz:
     """Eq. 2.62 (§5.6, label:commident): [A,BC] = [A,B]C + B[A,C].
 
@@ -224,6 +228,7 @@ class TestEq262CommutatorLeibniz:
 # After Eq. 2.62 — Jacobi identity:
 # [A,[B,C]] + [B,[C,A]] + [C,[A,B]] = 0
 # ---------------------------------------------------------------------------
+
 
 class TestJacobiIdentity:
     """After Eq. 2.62 (§5.6): [A,[B,C]] + [B,[C,A]] + [C,[A,B]] = 0.
@@ -250,6 +255,7 @@ class TestJacobiIdentity:
 # (bivector commutator preserves grade)
 # ---------------------------------------------------------------------------
 
+
 class TestBivectorCommutatorPreservesGrade:
     """Theorem after Eq. 2.66 (§5.6): [A₂, B_r] = ⟨A₂ B_r⟩_r.
 
@@ -266,9 +272,7 @@ class TestBivectorCommutatorPreservesGrade:
             for k in range(alg.n + 1):
                 if k == r:
                     continue
-                assert np.allclose(grade(comm, k).data, 0, atol=1e-10), (
-                    f"[A₂, B_{r}] has nonzero grade-{k} component"
-                )
+                assert np.allclose(grade(comm, k).data, 0, atol=1e-10), f"[A₂, B_{r}] has nonzero grade-{k} component"
 
     def test_equals_grade_r_of_product(self, alg):
         """[A₂, B_r] = ½⟨A₂ B_r - B_r A₂⟩_r = ⟨A₂ B_r⟩_r (since other grades cancel)."""
@@ -288,6 +292,7 @@ class TestBivectorCommutatorPreservesGrade:
 # [a, A] = a⌋A₊ + a∧A₋  (vector commutator decomposition)
 # Uses lie_bracket = ½(aA−Aa), matching Chisolm's [a,A].
 # ---------------------------------------------------------------------------
+
 
 class TestEq265VectorCommutatorDecomposition:
     """Eq. 2.65 (§5.6, label:commutewithvec): [a,A] = a⌋A₊ + a∧A₋.
@@ -311,6 +316,7 @@ class TestEq265VectorCommutatorDecomposition:
 # ---------------------------------------------------------------------------
 # Bivectors closed under commutation (Lie algebra)
 # ---------------------------------------------------------------------------
+
 
 class TestBivectorsClosedUnderCommutation:
     """§5.6: The set of bivectors is closed under commutation.
@@ -340,6 +346,7 @@ class TestBivectorsClosedUnderCommutation:
 # ---------------------------------------------------------------------------
 # Theorem in §9.4 — F(a) = a⌋A₂ is skew: a·F(b) = -b·F(a)
 # ---------------------------------------------------------------------------
+
 
 class TestSkewSymmetricBivectorOperator:
     """Theorem in §9.4: F(a) = a⌋A₂ defines a skew-symmetric operator."""

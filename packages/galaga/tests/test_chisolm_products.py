@@ -15,10 +15,8 @@ from galaga import (
     gp,
     grade,
     involute,
-    is_scalar,
     left_contraction,
     op,
-    reverse,
     right_contraction,
 )
 
@@ -62,6 +60,7 @@ def _rblade(alg, rng, r):
 # Theorem 5 (§4.1, label:innerlowersgrade) — a⌋A_r is grade r-1.
 # ---------------------------------------------------------------------------
 
+
 class TestThm5InnerLowersGrade:
     """Theorem 5 (§4.1, label:innerlowersgrade): a⌋A_r is an (r-1)-vector."""
 
@@ -97,6 +96,7 @@ class TestThm5InnerLowersGrade:
 # Theorem 7 (§4.1, label:outerraisesgrade) — a∧A_r is grade r+1.
 # ---------------------------------------------------------------------------
 
+
 class TestThm7OuterRaisesGrade:
     """Theorem 7 (§4.1, label:outerraisesgrade): a∧A_r is an (r+1)-vector."""
 
@@ -117,6 +117,7 @@ class TestThm7OuterRaisesGrade:
 # Eq. 1.48 (label:vecrprod) — aA_r = a⌋A_r + a∧A_r
 # ---------------------------------------------------------------------------
 
+
 class TestEq148VectorTimesRVector:
     """Eq. 1.48 (§4.1, label:vecrprod): aA_r = a⌋A_r + a∧A_r."""
 
@@ -135,6 +136,7 @@ class TestEq148VectorTimesRVector:
 # Theorem 6 (§4.2, label:generalprod) — Grade structure of A_r B_s.
 # Grades are |r-s|, |r-s|+2, ..., r+s.
 # ---------------------------------------------------------------------------
+
 
 class TestThm6GradeStructure:
     """Theorem 6 (§4.2, label:generalprod): A_r B_s has grades |r-s|, |r-s|+2, ..., r+s."""
@@ -160,6 +162,7 @@ class TestThm6GradeStructure:
 # Theorem 10, 1st identity (§4.2, label:associdents) — Outer product associativity.
 # A ∧ (B ∧ C) = (A ∧ B) ∧ C
 # ---------------------------------------------------------------------------
+
 
 class TestThm10OuterAssociativity:
     """Theorem 10, 1st identity (§4.2, label:associdents): A∧(B∧C) = (A∧B)∧C."""
@@ -191,6 +194,7 @@ class TestThm10OuterAssociativity:
 # Theorem 10, 3rd identity (§4.2, label:associdents) — A⌋(B⌋C) = (A∧B)⌋C
 # ---------------------------------------------------------------------------
 
+
 class TestThm10ContractionWedge:
     """Theorem 10, 3rd identity (§4.2, label:associdents): A⌋(B⌋C) = (A∧B)⌋C."""
 
@@ -210,6 +214,7 @@ class TestThm10ContractionWedge:
 # ---------------------------------------------------------------------------
 # Theorem 10, 2nd identity (§4.2) — A⌋(B⌊C) = (A⌋B)⌊C
 # ---------------------------------------------------------------------------
+
 
 class TestThm10LeftRightAssoc:
     """Theorem 10, 2nd identity (§4.2, label:associdents): A⌋(B⌊C) = (A⌋B)⌊C."""
@@ -231,6 +236,7 @@ class TestThm10LeftRightAssoc:
 # Theorem 10, 4th identity (§4.2) — A⌊(B∧C) = (A⌊B)⌊C
 # ---------------------------------------------------------------------------
 
+
 class TestThm10RightContractionWedge:
     """Theorem 10, 4th identity (§4.2, label:associdents): A⌊(B∧C) = (A⌊B)⌊C."""
 
@@ -250,6 +256,7 @@ class TestThm10RightContractionWedge:
 # ---------------------------------------------------------------------------
 # Eq. 1.80 (label:wedgehighest) — a₁∧a₂∧…∧aᵣ = ⟨a₁a₂…aᵣ⟩_r
 # ---------------------------------------------------------------------------
+
 
 class TestEq180WedgeIsHighestGrade:
     """Eq. 1.80 (§4.2, label:wedgehighest): a₁∧…∧aᵣ = ⟨a₁…aᵣ⟩_r."""
@@ -274,6 +281,7 @@ class TestEq180WedgeIsHighestGrade:
 # ---------------------------------------------------------------------------
 # Eq. 2.38 (label:commuteouter) — A_r ∧ B_s = (-1)^{rs} B_s ∧ A_r
 # ---------------------------------------------------------------------------
+
 
 class TestEq238OuterCommutativity:
     """Eq. 2.38 (§5.2, label:commuteouter): A_r∧B_s = (-1)^{rs} B_s∧A_r."""
@@ -308,6 +316,7 @@ class TestEq238OuterCommutativity:
 # Eq. 2.36 (label:commuteinner) — A_r⌋B_s = (-1)^{r(s-1)} B_s⌊A_r
 # ---------------------------------------------------------------------------
 
+
 class TestEq236InnerCommutativity:
     """Eq. 2.36 (§5.2, label:commuteinner): A_r⌋B_s = (-1)^{r(s-1)} B_s⌊A_r."""
 
@@ -332,15 +341,14 @@ class TestEq236InnerCommutativity:
                 lhs = left_contraction(Ar, Bs)
                 sign = (-1) ** (r * (s - 1))
                 rhs = sign * right_contraction(Bs, Ar)
-                assert np.allclose(lhs.data, rhs.data, atol=1e-10), (
-                    f"Failed for r={r}, s={s}"
-                )
+                assert np.allclose(lhs.data, rhs.data, atol=1e-10), f"Failed for r={r}, s={s}"
 
 
 # ---------------------------------------------------------------------------
 # Eq. 1.72 / Theorem 9 (label:veclinoutid) —
 # a⌋(a₁∧…∧aᵣ) = Σ (-1)^{j-1} (a·aⱼ) a₁∧…∧ǎⱼ∧…∧aᵣ
 # ---------------------------------------------------------------------------
+
 
 class TestThm9ContractionExpansion:
     """Theorem 9 (§4.2, label:veclinoutid): expansion of a⌋(a₁∧…∧aᵣ)."""
@@ -373,6 +381,7 @@ class TestThm9ContractionExpansion:
 # Eqs. 1.62 (label:usefulids, 1st) — a⌋(A_r B_s) = (a⌋A_r)B_s + Â_r(a⌋B_s)
 # ---------------------------------------------------------------------------
 
+
 class TestEq162UsefulIdentity1:
     """Eq. 1.62, 1st identity (§4.2, label:usefulids): a⌋(A_r B_s) = (a⌋A_r)B_s + Â_r(a⌋B_s)."""
 
@@ -385,17 +394,14 @@ class TestEq162UsefulIdentity1:
                 Ar = _rblade(alg, rng, r)
                 Bs = _rblade(alg, rng, s)
                 lhs = left_contraction(a, gp(Ar, Bs))
-                rhs = gp(left_contraction(a, Ar), Bs) + gp(
-                    involute(Ar), left_contraction(a, Bs)
-                )
-                assert np.allclose(lhs.data, rhs.data, atol=1e-9), (
-                    f"Failed for r={r}, s={s}"
-                )
+                rhs = gp(left_contraction(a, Ar), Bs) + gp(involute(Ar), left_contraction(a, Bs))
+                assert np.allclose(lhs.data, rhs.data, atol=1e-9), f"Failed for r={r}, s={s}"
 
 
 # ---------------------------------------------------------------------------
 # Eq. 1.85, 1st (label:contwedgeids) — a⌋(A_r∧B_s) = (a⌋A_r)∧B_s + Â_r∧(a⌋B_s)
 # ---------------------------------------------------------------------------
+
 
 class TestEq185ContractionWedgeIdentity:
     """Eq. 1.85, 1st (§4.2, label:contwedgeids): a⌋(A_r∧B_s) = (a⌋A_r)∧B_s + Â_r∧(a⌋B_s)."""
@@ -409,7 +415,5 @@ class TestEq185ContractionWedgeIdentity:
         Ar = _rblade(alg, rng, 1)
         Bs = _rblade(alg, rng, 2)
         lhs = left_contraction(a, op(Ar, Bs))
-        rhs = op(left_contraction(a, Ar), Bs) + op(
-            involute(Ar), left_contraction(a, Bs)
-        )
+        rhs = op(left_contraction(a, Ar), Bs) + op(involute(Ar), left_contraction(a, Bs))
         assert np.allclose(lhs.data, rhs.data, atol=1e-10)

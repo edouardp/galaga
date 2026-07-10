@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -258,6 +258,7 @@ def _(Algebra, Notation, dual, gm, inverse, reverse):
             d_expr = fn(_default)
             h_expr = fn(_hestenes)
             d.line(f"| {label} | {d_expr} | {h_expr} |")
+    d.render()
     return
 
 

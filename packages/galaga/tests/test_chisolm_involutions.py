@@ -24,7 +24,6 @@ from galaga import (
     op,
     reverse,
     right_contraction,
-    scalar_product,
 )
 
 # ---------------------------------------------------------------------------
@@ -66,6 +65,7 @@ def _rblade(alg, rng, r):
 # Eq. 2.2 (label:grinvr) — Grade involution: (A_r)* = (-1)^r A_r
 # ---------------------------------------------------------------------------
 
+
 class TestEq202GradeInvolution:
     """Eq. 2.2 (§5.1, label:grinvr): involute(A_r) = (-1)^r A_r."""
 
@@ -84,6 +84,7 @@ class TestEq202GradeInvolution:
 # Double grade involution: A** = A
 # ---------------------------------------------------------------------------
 
+
 class TestDoubleGradeInvolution:
     """After Eq. 2.3 (§5.1): involute(involute(A)) = A."""
 
@@ -98,6 +99,7 @@ class TestDoubleGradeInvolution:
 # Eq. 2.4 (label:evenoddfromgrinv) — Even/odd extraction via involution.
 # ⟨A⟩₊ = ½(A + A*), ⟨A⟩₋ = ½(A - A*)
 # ---------------------------------------------------------------------------
+
 
 class TestEq204EvenOddExtraction:
     """Eq. 2.4 (§5.1, label:evenoddfromgrinv): ⟨A⟩± = ½(A ± Â)."""
@@ -117,6 +119,7 @@ class TestEq204EvenOddExtraction:
 # Grade involution of product: (AB)* = A* B*
 # ---------------------------------------------------------------------------
 
+
 class TestGradeInvolutionProduct:
     """Eq. 2.1, 3rd rule (§5.1, label:grinvrules): involute(AB) = involute(A) involute(B)."""
 
@@ -133,6 +136,7 @@ class TestGradeInvolutionProduct:
 # ---------------------------------------------------------------------------
 # Eq. 2.14 (label:revA) — Reversion: (A_r)† = (-1)^{r(r-1)/2} A_r
 # ---------------------------------------------------------------------------
+
 
 class TestEq214Reversion:
     """Eq. 2.14 (§5.2, label:revA): reverse(A_r) = (-1)^{r(r-1)/2} A_r."""
@@ -153,6 +157,7 @@ class TestEq214Reversion:
 # Double reversion: A†† = A
 # ---------------------------------------------------------------------------
 
+
 class TestDoubleReversion:
     """After Eq. 2.13 (§5.2, label:revrules): reverse(reverse(A)) = A."""
 
@@ -166,6 +171,7 @@ class TestDoubleReversion:
 # ---------------------------------------------------------------------------
 # Eq. 2.12, 3rd rule (label:revrules) — (AB)† = B†A†
 # ---------------------------------------------------------------------------
+
 
 class TestEq212ReversionOfProduct:
     """Eq. 2.12, 3rd rule (§5.2, label:revrules): reverse(AB) = reverse(B) reverse(A)."""
@@ -183,6 +189,7 @@ class TestEq212ReversionOfProduct:
 # ---------------------------------------------------------------------------
 # Eq. 2.42 (label:clifconjA) — Clifford conjugation: A‡ = (-1)^{r(r+1)/2} A_r
 # ---------------------------------------------------------------------------
+
 
 class TestEq242CliffordConjugation:
     """Eq. 2.42 (§5.3, label:clifconjA): conjugate(A_r) = (-1)^{r(r+1)/2} A_r."""
@@ -203,6 +210,7 @@ class TestEq242CliffordConjugation:
 # Clifford conjugation = involute(reverse(A))
 # ---------------------------------------------------------------------------
 
+
 class TestCliffordConjIsInvoluteReverse:
     """§5.3: conjugate(A) = involute(reverse(A))."""
 
@@ -216,6 +224,7 @@ class TestCliffordConjIsInvoluteReverse:
 # ---------------------------------------------------------------------------
 # Eq. 2.25 (label:inv) — ⟨AB⟩₀ = ⟨BA⟩₀
 # ---------------------------------------------------------------------------
+
 
 class TestEq225ScalarPartCommutes:
     """Eq. 2.25 (§5.2, label:inv): ⟨AB⟩₀ = ⟨BA⟩₀."""
@@ -233,6 +242,7 @@ class TestEq225ScalarPartCommutes:
 # ---------------------------------------------------------------------------
 # Eq. 2.26 (label:cyclic) — ⟨AB…CD⟩₀ = ⟨DAB…C⟩₀
 # ---------------------------------------------------------------------------
+
 
 class TestEq226CyclicScalarPart:
     """Eq. 2.26 (§5.2, label:cyclic): scalar part of product is cyclic."""
@@ -256,6 +266,7 @@ class TestEq226CyclicScalarPart:
 # We test the paper's definition: ⟨A†B⟩₀ = ⟨B†A⟩₀.
 # ---------------------------------------------------------------------------
 
+
 class TestEq230ScalarProductSymmetry:
     """Eq. 2.30 (§5.4, label:revscprod): ⟨A†B⟩₀ = ⟨B†A⟩₀."""
 
@@ -272,6 +283,7 @@ class TestEq230ScalarProductSymmetry:
 # ---------------------------------------------------------------------------
 # Eq. 2.29 (label:grinvscprod) — ⟨Â†B̂⟩₀ = ⟨A†B⟩₀
 # ---------------------------------------------------------------------------
+
 
 class TestEq229ScalarProductGradeInvolution:
     """Eq. 2.29 (§5.4, label:grinvscprod): ⟨Â†B̂⟩₀ = ⟨A†B⟩₀."""
@@ -290,6 +302,7 @@ class TestEq229ScalarProductGradeInvolution:
 # ⟨A_r B_s⟩₀ = 0 if r ≠ s (before Eq. 2.28, label:scalarproddecomp)
 # ---------------------------------------------------------------------------
 
+
 class TestScalarPartVanishesDifferentGrades:
     """Before Eq. 2.28 (§5.4, label:scalarproddecomp): ⟨A_r B_s⟩₀ = 0 if r ≠ s."""
 
@@ -303,14 +316,13 @@ class TestScalarPartVanishesDifferentGrades:
                 Ar = _rblade(alg, rng, r)
                 Bs = _rblade(alg, rng, s)
                 sp = grade(gp(Ar, Bs), 0).scalar_part
-                assert sp == pytest.approx(0.0, abs=1e-10), (
-                    f"⟨A_{r} B_{s}⟩₀ ≠ 0"
-                )
+                assert sp == pytest.approx(0.0, abs=1e-10), f"⟨A_{r} B_{s}⟩₀ ≠ 0"
 
 
 # ---------------------------------------------------------------------------
 # Eq. 2.22 (label:revex) — ⟨A_r B_s⟩_{r+s-2j} = (-1)^{rs-j} ⟨B_s A_r⟩_{r+s-2j}
 # ---------------------------------------------------------------------------
+
 
 class TestEq222ReversionExchange:
     """Eq. 2.22 (§5.2, label:revex): ⟨A_r B_s⟩_{r+s-2j} = (-1)^{rs-j} ⟨B_s A_r⟩_{r+s-2j}."""
@@ -331,15 +343,14 @@ class TestEq222ReversionExchange:
                     sign = (-1) ** (r * s - j)
                     lhs = grade(AB, k)
                     rhs = sign * grade(BA, k)
-                    assert np.allclose(lhs.data, rhs.data, atol=1e-10), (
-                        f"Failed for r={r}, s={s}, j={j}"
-                    )
+                    assert np.allclose(lhs.data, rhs.data, atol=1e-10), f"Failed for r={r}, s={s}, j={j}"
 
 
 # ---------------------------------------------------------------------------
 # Eq. 2.20 (label:revprods) — Reversion of inner/outer products.
 # (A⌋B)† = B†⌊A†,  (A∧B)† = B†∧A†
 # ---------------------------------------------------------------------------
+
 
 class TestEq220ReversionOfProducts:
     """Eq. 2.20 (§5.2, label:revprods): reversion distributes over inner/outer products."""
@@ -366,6 +377,7 @@ class TestEq220ReversionOfProducts:
 # ---------------------------------------------------------------------------
 # Theorem 14 / Eq. 2.35 (label:versorinv) — Versor inverse: A⁻¹ = A†/|A|²
 # ---------------------------------------------------------------------------
+
 
 class TestThm14VersorInverse:
     """Theorem 14 (§5.4, label:versorinv): A⁻¹ = A†/|A|² for versors."""
@@ -404,6 +416,7 @@ class TestThm14VersorInverse:
 # After Theorem 14 (label:bladeinv) — Blade squared is scalar.
 # ---------------------------------------------------------------------------
 
+
 class TestBladeSquaredIsScalar:
     """After Theorem 14 (§5.4, label:bladeinv): A_r² is a scalar for any r-blade."""
 
@@ -415,14 +428,13 @@ class TestBladeSquaredIsScalar:
                 # All non-scalar components should vanish
                 non_scalar = B2.data.copy()
                 non_scalar[0] = 0
-                assert np.allclose(non_scalar, 0, atol=1e-12), (
-                    f"Grade-{k} basis blade squared is not scalar"
-                )
+                assert np.allclose(non_scalar, 0, atol=1e-12), f"Grade-{k} basis blade squared is not scalar"
 
 
 # ---------------------------------------------------------------------------
 # Theorem 13 (label:facversorfromscprod) — |AB|² = |A|²|B|² for versors.
 # ---------------------------------------------------------------------------
+
 
 class TestThm13VersorNormProduct:
     """Theorem 13 (§5.4, label:facversorfromscprod): |AB|² = |A|²|B|² for versors."""

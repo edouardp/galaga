@@ -21,26 +21,26 @@ and spinors can be real) currently have no way to convert within galaga_matrix.
 Transforms the matrix to a named basis via similarity: M' = S M S†.
 Returns a new `MatrixRepr` with the transformed data.
 
-| Source basis | Target | Transform S |
-|---|---|---|
-| `"dirac"` | `"weyl"` | (1/√2) [[I₂, −I₂], [I₂, I₂]] |
-| `"dirac"` | `"majorana"` | (1/√2) [[I₂, σ₂], [σ₂, −I₂]] |
-| `"weyl"` | `"dirac"` | S_weyl† |
-| `"weyl"` | `"majorana"` | S_maj · S_weyl† |
-| `"majorana"` | `"dirac"` | S_maj† (= S_maj, self-adjoint) |
-| `"majorana"` | `"weyl"` | S_weyl · S_maj† |
+| Source basis | Target       | Transform S                    |
+| ------------ | ------------ | ------------------------------ |
+| `"dirac"`    | `"weyl"`     | (1/√2) [[I₂, −I₂], [I₂, I₂]]   |
+| `"dirac"`    | `"majorana"` | (1/√2) [[I₂, σ₂], [σ₂, −I₂]]   |
+| `"weyl"`     | `"dirac"`    | S_weyl†                        |
+| `"weyl"`     | `"majorana"` | S_maj · S_weyl†                |
+| `"majorana"` | `"dirac"`    | S_maj† (= S_maj, self-adjoint) |
+| `"majorana"` | `"weyl"`     | S_weyl · S_maj†                |
 
 ### Rule 2: `.basis` attribute
 
 `MatrixRepr` gains a `basis` attribute:
 
-| Value | Meaning |
-|---|---|
-| `None` | Unspecified (default for all current code) |
-| `"dirac"` | Dirac/standard basis |
-| `"weyl"` | Weyl/chiral basis |
-| `"majorana"` | Majorana basis |
-| `"pauli"` | Standard Pauli (Cl(3,0), no-op) |
+| Value        | Meaning                                    |
+| ------------ | ------------------------------------------ |
+| `None`       | Unspecified (default for all current code) |
+| `"dirac"`    | Dirac/standard basis                       |
+| `"weyl"`     | Weyl/chiral basis                          |
+| `"majorana"` | Majorana basis                             |
+| `"pauli"`    | Standard Pauli (Cl(3,0), no-op)            |
 
 `to_matrix(mv, mode="dirac")` sets `basis="dirac"`.
 `to_matrix(mv, mode="compact")` for Cl(1,3)/Cl(3,1) sets `basis="dirac"`.
@@ -58,11 +58,11 @@ Cl(1,3)/Cl(3,1), and `"pauli"` for 2×2 matrices from Cl(3,0)/Cl(0,3).
 
 ### Rule 5: Validation
 
-| Condition | Error |
-|---|---|
-| Matrix not 4×4 | `TypeError("requires 4×4 Dirac matrix")` |
-| Algebra not Cl(1,3) or Cl(3,1) | `TypeError("requires Cl(1,3) or Cl(3,1)")` |
-| Unknown basis name | `ValueError("Unknown basis; use 'dirac', 'weyl', or 'majorana'")` |
+| Condition                      | Error                                                             |
+| ------------------------------ | ----------------------------------------------------------------- |
+| Matrix not 4×4                 | `TypeError("requires 4×4 Dirac matrix")`                          |
+| Algebra not Cl(1,3) or Cl(3,1) | `TypeError("requires Cl(1,3) or Cl(3,1)")`                        |
+| Unknown basis name             | `ValueError("Unknown basis; use 'dirac', 'weyl', or 'majorana'")` |
 
 ### Rule 6: `from_matrix` with non-default basis
 
@@ -74,20 +74,20 @@ inverse. This ensures roundtrip correctness:
 from_matrix(to_matrix(v, mode="dirac").to_basis("weyl"))  # == v
 ```
 
-### Rule 7: Label propagation
+### Rule 7: Symbolic expression propagation
 
-If the source has a label, the result label is updated:
+If the source is symbolic, the result carries a `MatrixBasisChange` expression.
+Display names are not copied blindly; callers can name the derived matrix
+explicitly when useful:
 
-| Source label | Result label |
-|---|---|
-| `\rho(ψ)` | `\rho_{\text{weyl}}(ψ)` |
-| `\sigma_1` | `\sigma_1^{(\text{weyl})}` |
-| `None` | `None` |
+```python
+W = M.to_basis("weyl").name(latex=r"\rho^{\mathrm{Weyl}}(v)")
+```
 
 ### Rule 8: Metadata propagation
 
-`algebra` and `mode` are inherited. `basis` is set to target. `label` is
-updated per Rule 7.
+`algebra` and `mode` are inherited. `basis` is set to target. `kind` is
+preserved.
 
 ## Examples
 

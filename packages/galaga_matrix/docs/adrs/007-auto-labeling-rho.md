@@ -1,10 +1,15 @@
 ---
-status: accepted
+status: superseded
 date: 2026-07-04
 deciders: edouard
+superseded_by: 010-replace-labels-with-names
 ---
 
 # ADR-007: Auto-labeling Between MV and Matrix Representations
+
+> Superseded by [ADR-010](010-replace-labels-with-names.md): MatrixRepr
+> provenance now uses `.name()` and symbolic representation-map expressions,
+> not render-only `.label` metadata.
 
 ## Context and Problem Statement
 

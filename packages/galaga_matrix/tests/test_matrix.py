@@ -288,11 +288,17 @@ class TestMatrixRepr:
         assert r"\begin{pmatrix}" in latex
         assert r"\end{pmatrix}" in latex
 
-    def test_latex_with_label(self):
+    def test_latex_with_name(self):
         mat = np.eye(2, dtype=complex)
-        mr = MatrixRepr(mat, label=r"\sigma_1")
+        mr = MatrixRepr(mat).name(latex=r"\sigma_1")
         latex = mr.latex()
-        assert r"\sigma_1 = " in latex
+        assert r"\sigma_1 \quad = \quad" in latex
+        assert r"\sigma_1 = " not in latex
+
+    def test_label_keyword_rejected(self):
+        mat = np.eye(2, dtype=complex)
+        with pytest.raises(TypeError):
+            MatrixRepr(mat, label=r"\sigma_1")
 
     def test_latex_inline_wrap(self):
         mat = np.eye(2, dtype=complex)
@@ -1114,7 +1120,7 @@ class TestQuatMatrixRepr:
         from galaga_matrix import QuatMatrixRepr
 
         qm = [[Quat(1, 0, 0, 0), Quat(0, 0, 1, 0)], [Quat(0, 0, -1, 0), Quat(-1, 0, 0, 0)]]
-        qr = QuatMatrixRepr(qm, label=r"\gamma_1")
+        qr = QuatMatrixRepr(qm).name(latex=r"\gamma_1")
         latex = qr.latex()
         assert r"\begin{pmatrix}" in latex
         assert r"\gamma_1" in latex
@@ -1424,12 +1430,13 @@ class TestMatrixReprMetadata:
         C = A + B
         assert C.mode == "compact"
 
-    def test_label_not_propagated(self):
-        """Labels are specific to a named matrix and shouldn't propagate."""
-        A = MatrixRepr(np.eye(2, dtype=complex), label=r"\sigma_1")
+    def test_name_not_blindly_propagated(self):
+        """Derived matrices carry expression trees, not copied display names."""
+        A = MatrixRepr(np.eye(2, dtype=complex)).name(latex=r"\sigma_1")
         B = MatrixRepr(np.eye(2, dtype=complex))
         C = A @ B
-        assert C.label is None
+        assert C._name_latex is None
+        assert type(C.expr).__name__ == "MatMul"
 
     def test_algebra_propagates_through_inv(self):
         alg = Algebra(3)
@@ -1448,9 +1455,9 @@ class TestMatrixReprPauliAlgebra:
     """Integration: Pauli matrices as MatrixRepr obey the Clifford relations."""
 
     def _pauli(self):
-        s1 = MatrixRepr(np.array([[0, 1], [1, 0]], dtype=complex), label=r"\sigma_1")
-        s2 = MatrixRepr(np.array([[0, -1j], [1j, 0]], dtype=complex), label=r"\sigma_2")
-        s3 = MatrixRepr(np.array([[1, 0], [0, -1]], dtype=complex), label=r"\sigma_3")
+        s1 = MatrixRepr(np.array([[0, 1], [1, 0]], dtype=complex)).name(latex=r"\sigma_1")
+        s2 = MatrixRepr(np.array([[0, -1j], [1j, 0]], dtype=complex)).name(latex=r"\sigma_2")
+        s3 = MatrixRepr(np.array([[1, 0], [0, -1]], dtype=complex)).name(latex=r"\sigma_3")
         I2 = MatrixRepr.identity(2)
         return s1, s2, s3, I2
 
@@ -1534,33 +1541,30 @@ class TestMatrixReprQuaternionReject:
 
 
 class TestMatrixReprNaming:
-    """Label propagation: MV name → ρ(name), MatrixRepr label → ρ⁻¹(label)."""
+    """Name propagation: MV name → ρ(name), MatrixRepr name → ρ⁻¹(name)."""
 
-    def test_to_matrix_named_mv_gets_rho_label(self):
-        """Named MV produces MatrixRepr with ρ(name) label."""
+    def test_to_matrix_named_mv_gets_rho_name(self):
+        """Named MV produces MatrixRepr with ρ(name) name."""
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         R = (e1 * e2).name(latex=r"\hat{B}")
         M = to_matrix(R, mode="compact")
-        assert M.label == r"\rho(\hat{B})"
+        assert M._name_latex == r"\rho(\hat{B})"
+        assert type(M.expr).__name__ == "MatrixRepresentation"
 
-    def test_to_matrix_unnamed_mv_no_label(self):
-        """Unnamed MV produces MatrixRepr with no label."""
+    def test_to_matrix_unnamed_mv_no_name(self):
+        """Unnamed MV produces MatrixRepr with no name."""
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         v = 2 * e1 + 3 * e2
         M = to_matrix(v, mode="compact")
-        assert M.label is None
+        assert M._name_latex is None
+        assert M.expr is None
 
-    def test_from_matrix_labeled_gives_rho_inv_name(self):
-        """Labeled MatrixRepr produces MV named ρ⁻¹(label)."""
+    def test_from_matrix_named_gives_rho_inv_name(self):
+        """Named MatrixRepr produces MV named ρ⁻¹(name)."""
         alg = Algebra(3)
-        M = MatrixRepr(
-            np.array([[0, 1], [1, 0]], dtype=complex),
-            label=r"\sigma_1",
-            algebra=alg,
-            mode="compact",
-        )
+        M = MatrixRepr(np.array([[0, 1], [1, 0]], dtype=complex), algebra=alg, mode="compact").name(latex=r"\sigma_1")
         mv = from_matrix(alg, M)
         assert mv._name_latex == r"\rho^{-1}(\sigma_1)"
 
@@ -1588,18 +1592,18 @@ class TestMatrixReprNaming:
         e1, e2, e3 = alg.basis_vectors()
         R = (0.5 * (e1 * e2)).name(latex="B")
         M = to_matrix(R, mode="compact")
-        assert M.label == r"\rho(B)"
+        assert M._name_latex == r"\rho(B)"
         mv2 = from_matrix(alg, M)
         assert np.allclose(R.data, mv2.data)
         assert mv2._name_latex == r"\rho^{-1}(\rho(B))"
 
     def test_to_matrix_ascii_name_fallback(self):
-        """MV with only ASCII name (no latex) still gets labeled."""
+        """MV with only ASCII name (no latex) still gets named."""
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         R = (e1 * e2).name("B12")
         M = to_matrix(R, mode="compact")
-        assert M.label == r"\rho(B12)"
+        assert M._name_latex == r"\rho(B12)"
 
 
 class TestMatrixReprCopyConstruction:
@@ -1615,16 +1619,17 @@ class TestMatrixReprCopyConstruction:
 
     def test_wrap_inherits_metadata(self):
         alg = Algebra(3)
-        A = MatrixRepr(np.eye(2, dtype=complex), label=r"\sigma_1", algebra=alg, mode="compact")
+        A = MatrixRepr(np.eye(2, dtype=complex), algebra=alg, mode="compact").name(latex=r"\sigma_1")
         B = MatrixRepr(A)
-        assert B.label == r"\sigma_1"
+        assert B._name_latex == r"\sigma_1"
         assert B.algebra is alg
         assert B.mode == "compact"
 
-    def test_wrap_override_label(self):
-        A = MatrixRepr(np.eye(2, dtype=complex), label="old")
-        B = MatrixRepr(A, label="new")
-        assert B.label == "new"
+    def test_wrap_then_copy_as_new_name(self):
+        A = MatrixRepr(np.eye(2, dtype=complex)).name("old")
+        B = MatrixRepr(A).copy_as("new")
+        assert B._name_latex == "new"
+        assert A._name_latex == "old"
 
     def test_wrap_override_algebra(self):
         alg1 = Algebra(3)
@@ -1979,8 +1984,8 @@ class TestSpinorKetBra:
         ket = to_spinor_column(s)
         assert ket.algebra is alg
 
-    def test_ket_label_from_named_mv(self):
-        """Named MV gets ket label."""
+    def test_ket_name_from_named_mv(self):
+        """Named MV gets ket name."""
         from galaga_matrix import to_spinor_column
 
         from galaga import exp
@@ -1989,9 +1994,10 @@ class TestSpinorKetBra:
         e1, e2, e3 = alg.basis_vectors()
         R = exp(-0.3 * (e1 * e2)).name(latex=r"\psi")
         ket = to_spinor_column(R)
-        assert r"\left|" in ket.label
-        assert r"\psi" in ket.label
-        assert r"\right\rangle" in ket.label
+        assert r"\left|" in ket._name_latex
+        assert r"\psi" in ket._name_latex
+        assert r"\right\rangle" in ket._name_latex
+        assert type(ket.expr).__name__ == "SpinorColumnRepresentation"
 
     def test_ket_H_gives_bra(self):
         """Conjugate transpose of ket gives bra."""

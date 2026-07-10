@@ -221,7 +221,7 @@ $$
 and maps an even STA multivector by
 
 $$
-\psi_D = \rho_D(\Psi)u_D.
+\psi_D = \rho(\Psi)u_D.
 $$
 
 That convention is valid and roundtrips because the selected reference-column

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich
+    from galaga import Algebra, exp, sandwich, b_sta
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, sandwich
+    return Algebra, b_sta, exp, gm, mo, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -52,8 +52,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
+def _(Algebra, b_sta):
+    sta = Algebra((1, -1, -1, -1), blades=b_sta(), repr_unicode=True)
     g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
     return g0, g1
 

@@ -19,6 +19,8 @@ tables and examples that map directly to tests.
 | [SPEC-009](SPEC-009-expression-tree-rendering.md) | Draft | Expression tree rendering (SlashFrac, Frac, Sup interactions) |
 | [SPEC-010](SPEC-010-blade-naming-display.md) | Accepted | Blade naming and display system |
 | [SPEC-011](SPEC-011-display-ordering.md) | Accepted | Custom basis blade display ordering |
+| [SPEC-012](SPEC-012-algebra-symbolic-split.md) | Complete | Algebraic/symbolic split via operation registry |
+| [SPEC-013](SPEC-013-decoupled-symbolic-naming.md) | Accepted | Decoupled symbolic naming and expression trees |
 
 ## Format
 

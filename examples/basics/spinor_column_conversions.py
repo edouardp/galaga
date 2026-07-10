@@ -139,9 +139,9 @@ def _(mo):
 @app.cell
 def _(MatrixRepr, cl3, compact_basis, gm):
     _pauli_gammas = compact_basis(cl3)
-    _sigma1 = MatrixRepr(_pauli_gammas[0], label=r"\sigma_1")
-    _sigma2 = MatrixRepr(_pauli_gammas[1], label=r"\sigma_2")
-    _sigma3 = MatrixRepr(_pauli_gammas[2], label=r"\sigma_3")
+    _sigma1 = MatrixRepr(_pauli_gammas[0]).name(latex=r"\sigma_1")
+    _sigma2 = MatrixRepr(_pauli_gammas[1]).name(latex=r"\sigma_2")
+    _sigma3 = MatrixRepr(_pauli_gammas[2]).name(latex=r"\sigma_3")
 
     gm.md(t"""
     The compact representation sends the basis vectors of $Cl(3,0)$ to the
@@ -197,10 +197,10 @@ def _(mo):
 
 @app.cell
 def _(MatrixRepr, cl3, cl3_e1, cl3_e2, cl3_e3, gm, to_spinor_column):
-    _basis_scalar_col = MatrixRepr(to_spinor_column(cl3.scalar(1.0)), label=r"\operatorname{col}(1)")
-    _basis_e12_col = MatrixRepr(to_spinor_column(cl3_e1 * cl3_e2), label=r"\operatorname{col}(e_{12})")
-    _basis_e13_col = MatrixRepr(to_spinor_column(cl3_e1 * cl3_e3), label=r"\operatorname{col}(e_{13})")
-    _basis_e23_col = MatrixRepr(to_spinor_column(cl3_e2 * cl3_e3), label=r"\operatorname{col}(e_{23})")
+    _basis_scalar_col = MatrixRepr(to_spinor_column(cl3.scalar(1.0))).name(latex=r"\operatorname{col}(1)")
+    _basis_e12_col = MatrixRepr(to_spinor_column(cl3_e1 * cl3_e2)).name(latex=r"\operatorname{col}(e_{12})")
+    _basis_e13_col = MatrixRepr(to_spinor_column(cl3_e1 * cl3_e3)).name(latex=r"\operatorname{col}(e_{13})")
+    _basis_e23_col = MatrixRepr(to_spinor_column(cl3_e2 * cl3_e3)).name(latex=r"\operatorname{col}(e_{23})")
 
     gm.md(t"""
     Computed from the actual algebra:
@@ -299,11 +299,11 @@ def _(
 
     Column from `to_spinor_column`:
 
-    {MatrixRepr(_pauli_column, label=r"\operatorname{col}(R)"):block}
+    {MatrixRepr(_pauli_column).name(latex=r"\operatorname{col}(R)"):block}
 
     QM expected column:
 
-    {MatrixRepr(_pauli_column_expected, label=r"\psi_{\mathrm{QM}}"):block}
+    {MatrixRepr(_pauli_column_expected).name(latex=r"\psi_{\mathrm{QM}}"):block}
 
     Roundtrip through the column:
 
@@ -402,17 +402,17 @@ def _(
     gm.md(t"""
     With $\\alpha = {_alpha:.3f}$:
 
-    {MatrixRepr(_pauli_u, label=_u_label):block}
+    {MatrixRepr(_pauli_u).name(latex=_u_label):block}
 
     Spin expectation before and after applying $U_z(\\alpha)$:
 
-    {MatrixRepr(_pauli_expect, label=_expect_label):block}
+    {MatrixRepr(_pauli_expect).name(latex=_expect_label):block}
 
-    {MatrixRepr(_pauli_expect_after, label=_expect_after_label):block}
+    {MatrixRepr(_pauli_expect_after).name(latex=_expect_after_label):block}
 
     Expected ordinary-vector rotation:
 
-    {MatrixRepr(_pauli_expect_expected, label=_expect_expected_label):block}
+    {MatrixRepr(_pauli_expect_expected).name(latex=_expect_expected_label):block}
 
     | QM spinor check | Result |
     |---|---|
@@ -512,8 +512,8 @@ def _(mo):
 @app.cell
 def _(MatrixRepr, compact_basis, gm, sta):
     _sta_gammas = compact_basis(sta)
-    _gamma0 = MatrixRepr(_sta_gammas[0], label=r"\Gamma^0")
-    _gamma1 = MatrixRepr(_sta_gammas[1], label=r"\Gamma^1")
+    _gamma0 = MatrixRepr(_sta_gammas[0]).name(latex=r"\Gamma^0")
+    _gamma1 = MatrixRepr(_sta_gammas[1]).name(latex=r"\Gamma^1")
 
     gm.md(t"""
     The compact $Cl(1,3)$ representation starts with:
@@ -585,11 +585,11 @@ def _(
 
     Compact operator matrix $\\rho(S)$:
 
-    {MatrixRepr(_sta_matrix, label=r"\rho(S)"):block}
+    {MatrixRepr(_sta_matrix).name(latex=r"\rho(S)"):block}
 
     Dirac column from `to_spinor_column`:
 
-    {MatrixRepr(_sta_column, label=r"\operatorname{col}(S)"):block}
+    {MatrixRepr(_sta_column).name(latex=r"\operatorname{col}(S)"):block}
 
     Recovered even multivector:
 
@@ -692,13 +692,13 @@ def _(
 
     {_spin_action.display()}
 
-    {MatrixRepr(_spin_matrix, label=_spin_matrix_label):block}
+    {MatrixRepr(_spin_matrix).name(latex=_spin_matrix_label):block}
 
     Source and transformed Dirac columns:
 
-    {MatrixRepr(_dirac_spinor, label=_spinor_label):block}
+    {MatrixRepr(_dirac_spinor).name(latex=_spinor_label):block}
 
-    {MatrixRepr(_dirac_spinor_after, label=_spinor_after_label):block}
+    {MatrixRepr(_dirac_spinor_after).name(latex=_spinor_after_label):block}
 
     | Dirac spinor check | Result |
     |---|---|
@@ -782,7 +782,7 @@ def _(
 
     Its Dirac column:
 
-    {MatrixRepr(_general_column, label=r"\operatorname{col}(\Psi)"):block}
+    {MatrixRepr(_general_column).name(latex=r"\operatorname{col}(\Psi)"):block}
 
     Recovered even multivector:
 
@@ -792,7 +792,7 @@ def _(
 
     {_multi_rotor.display()}
 
-    {MatrixRepr(_multi_column, label=r"\operatorname{col}(M)"):block}
+    {MatrixRepr(_multi_column).name(latex=r"\operatorname{col}(M)"):block}
 
     | Check | Result |
     |---|---|
@@ -895,10 +895,10 @@ def _(
     {_pss_phase_rotor.display()}
 
     Dirac column:<br/>
-    {MatrixRepr(_pss_phase_column, label=_pss_column_label):block}
+    {MatrixRepr(_pss_phase_column).name(latex=_pss_column_label):block}
 
     Expected column phase:<br/>
-    {MatrixRepr(_pss_expected_column, label=_pss_expected_column_label):block}
+    {MatrixRepr(_pss_expected_column).name(latex=_pss_expected_column_label):block}
 
     | Check | Result |
     |---|---|
@@ -993,11 +993,11 @@ def _(
     gm.md(t"""
     Quaternion block matrix for $\\gamma^1$:
 
-    {QuatMatrixRepr(_gamma1_quat_matrix, label=r"\gamma^1_{\mathbb{H}}"):block}
+    {QuatMatrixRepr(_gamma1_quat_matrix).name(latex=r"\gamma^1_{\mathbb{H}}"):block}
 
     Quaternion spinor column:
 
-    {QuatMatrixRepr(_quat_column_matrix, label=r"\operatorname{qcol}(Q)"):block}
+    {QuatMatrixRepr(_quat_column_matrix).name(latex=r"\operatorname{qcol}(Q)"):block}
 
     Recovered even multivector:
 

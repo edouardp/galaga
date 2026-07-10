@@ -29,19 +29,19 @@ cl3 = Algebra(3)
 e1, e2, e3 = cl3.basis_vectors()
 
 mat = to_matrix(e1, mode="compact")   # returns MatrixRepr (2×2 Pauli σ₁)
-mat.label                              # None (e1 is unnamed)
 mat @ mat                              # MatrixRepr: σ₁² = I
 mat.inv()                              # MatrixRepr: σ₁⁻¹ = σ₁
 mat.trace()                            # 0 (traceless)
 mat.mv                                 # back to Multivector
 
-# Named MV gets automatic ρ(name) label
+# Named MV gets automatic ρ(name) symbolic name
 R = (e1 * e2).name(latex=r"\hat{B}")
-M = to_matrix(R, mode="compact")      # M.label = "\\rho(\\hat{B})"
+M = to_matrix(R, mode="compact")
 M.latex()                              # "\\rho(\\hat{B}) = \\begin{pmatrix}..."
+M.expr.latex()                         # "\\rho(\\hat{B})"
 
-# from_matrix accepts MatrixRepr or raw ndarray
-from_matrix(cl3, M)                    # MV named ρ⁻¹(ρ(B̂))
+# from_matrix can infer algebra and mode from MatrixRepr
+from_matrix(M)                         # MV named ρ⁻¹(ρ(B̂))
 from_matrix(cl3, M.mat, mode="compact")  # unnamed MV (raw array)
 
 # Dirac matrices from Cl(1,3)
@@ -62,23 +62,28 @@ to_matrix(v)  # 8×8 real matrix
 - **All arithmetic operations** — `@`, `+`, `-`, `*`, `/`, `**` return `MatrixRepr`
 - **Linear algebra** — `.T`, `.H`, `.conj()`, `.trace()`, `.det()`, `.inv()`
 - **Numpy interop** — `np.add(M, N)`, `np.conj(M)` etc. return `MatrixRepr` via `__array_ufunc__`
-- **Metadata propagation** — `algebra` and `mode` pass through operations; `label` does not
+- **Symbolic naming** — `.name()` gives matrices the same naming and expression-tree behavior as multivectors
+- **Metadata propagation** — `algebra`, `mode`, `basis`, and `kind` pass through operations
 - **Indexing** — `M[i,j]` for elements, `M[0:2, 0:2]` for submatrices
 - **Rendering** — `.latex()`, `._repr_latex_()` for notebooks
 - **Escape hatch** — `.mat` gives the raw numpy array
 - **Roundtrip** — `.mv` converts back to a `Multivector` (requires `algebra=`)
 - **Factories** — `MatrixRepr.identity(k)`, `MatrixRepr.zeros((m,n))`, `.kron(other)`
 
-### Auto-labeling
+### Auto-naming
 
-`to_matrix(named_mv)` labels the result as `ρ(name)`. `from_matrix(alg, labeled_matrix)`
-names the recovered MV as `ρ⁻¹(label)`. Unnamed inputs pass through without labeling.
+`to_matrix(named_mv)` names the result as `ρ(name)` and gives it a symbolic
+representation-map expression. `from_matrix(named_matrix)` can infer the
+algebra and mode from `MatrixRepr` and names the recovered MV as
+`ρ⁻¹(name-or-expression)`. Raw arrays still need
+`from_matrix(alg, array, mode=...)`. Unnamed inputs pass through without new
+names. Quaternion-block mode uses `ρ_{\mathbb{H}}(name)`.
 
 Works in galaga_marimo t-strings:
 
 ```python
 gm.md(t"""
-The Pauli matrix: {e1.pauli:block}
+The Pauli matrix: {to_matrix(e1, mode="compact"):block}
 """)
 ```
 

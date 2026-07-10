@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -22,11 +22,11 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
-
-    from galaga import Algebra, b_sta, exp
-    import galaga_marimo as gm
     from galaga_matrix import MatrixRepr, from_spinor_column, to_matrix, to_spinor_column
     from galaga_matrix.matrix import compact_basis
+
+    import galaga_marimo as gm
+    from galaga import Algebra, b_sta, exp
 
     return (
         Algebra,
@@ -244,7 +244,7 @@ def _(
     gm.md(t"""
     The basis-change matrix is:
 
-    {MatrixRepr(weyl_from_dirac, label=r"U_{W\leftarrow D}"):block}
+    {MatrixRepr(weyl_from_dirac).name(latex=r"U_{W\leftarrow D}"):block}
 
     It transforms gamma matrices by similarity:
 
@@ -255,15 +255,15 @@ def _(
 
     Dirac-basis $\\Gamma^0_D$ and $\\Gamma^5_D$:
 
-    {MatrixRepr(dirac_gamma0, label=r"\Gamma^0_D"):block}
+    {MatrixRepr(dirac_gamma0).name(latex=r"\Gamma^0_D"):block}
 
-    {MatrixRepr(dirac_gamma5, label=r"\Gamma^5_D"):block}
+    {MatrixRepr(dirac_gamma5).name(latex=r"\Gamma^5_D"):block}
 
     Weyl-basis $\\Gamma^0_W$ and $\\Gamma^5_W$:
 
-    {MatrixRepr(weyl_gamma0, label=r"\Gamma^0_W"):block}
+    {MatrixRepr(weyl_gamma0).name(latex=r"\Gamma^0_W"):block}
 
-    {MatrixRepr(weyl_gamma5, label=r"\Gamma^5_W"):block}
+    {MatrixRepr(weyl_gamma5).name(latex=r"\Gamma^5_W"):block}
 
     | Check | Result |
     |---|---:|
@@ -363,27 +363,27 @@ def _(
     gm.md(t"""
     The Majorana basis-change matrix is:
 
-    {MatrixRepr(majorana_from_dirac, label=r"U_{M\leftarrow D}"):block}
+    {MatrixRepr(majorana_from_dirac).name(latex=r"U_{M\leftarrow D}"):block}
 
     Dirac-basis charge-conjugation matrix:
 
-    {MatrixRepr(charge_conjugation_B_dirac, label=r"B_D=i_{\mathbb C}\Gamma^2_D"):block}
+    {MatrixRepr(charge_conjugation_B_dirac).name(latex=r"B_D=i_{\mathbb C}\Gamma^2_D"):block}
 
     Majorana-basis charge-conjugation matrix:
 
-    {MatrixRepr(charge_conjugation_B_majorana, label=r"B_M"):block}
+    {MatrixRepr(charge_conjugation_B_majorana).name(latex=r"B_M"):block}
 
     Dirac-basis $\\Gamma^0_D$ and $\\Gamma^5_D$:
 
-    {MatrixRepr(dirac_gamma0, label=r"\Gamma^0_D"):block}
+    {MatrixRepr(dirac_gamma0).name(latex=r"\Gamma^0_D"):block}
 
-    {MatrixRepr(dirac_gamma5, label=r"\Gamma^5_D"):block}
+    {MatrixRepr(dirac_gamma5).name(latex=r"\Gamma^5_D"):block}
 
     Majorana-basis $\\Gamma^0_M$ and $\\Gamma^5_M$:
 
-    {MatrixRepr(majorana_gamma0, label=r"\Gamma^0_M"):block}
+    {MatrixRepr(majorana_gamma0).name(latex=r"\Gamma^0_M"):block}
 
-    {MatrixRepr(majorana_gamma5, label=r"\Gamma^5_M"):block}
+    {MatrixRepr(majorana_gamma5).name(latex=r"\Gamma^5_M"):block}
 
     | Check | Result |
     |---|---:|
@@ -461,7 +461,6 @@ def _(
         dirac_to_weyl_column,
         dirac_to_weyl_matrix,
         majorana_to_dirac_column,
-        majorana_to_dirac_matrix,
         weyl_to_dirac_column,
     )
 
@@ -472,19 +471,19 @@ def _(mo):
     ## Vectors: Same Operator, New Coordinates
 
     A spacetime vector $v$ becomes a $4\times4$ Dirac-basis matrix
-    $\rho_D(v)$. To view the same operator in another basis:
+    $\rho(v)$. To view the same operator in another basis:
 
     $$
-    \rho_X(v)
+    \rho^{X}(v)
     =
-    U_{X\leftarrow D}\rho_D(v)U_{X\leftarrow D}^\dagger.
+    U_{X\leftarrow D}\rho(v)U_{X\leftarrow D}^\dagger.
     $$
 
     This changes matrix coordinates, not the underlying vector. The Clifford
     square is preserved:
 
     $$
-    \rho_X(v)^2 = v^2 I_4.
+    \rho^{X}(v)^2 = v^2 I_4.
     $$
     """)
     return
@@ -538,7 +537,7 @@ def _(
         atol=1e-10,
     )
     _majorana_vector_pure_imaginary_ok = np.allclose(
-        _majorana_vector_matrix.real,
+        _majorana_vector_matrix.mat.real,
         0,
         atol=1e-10,
     )
@@ -550,22 +549,22 @@ def _(
 
     Dirac-basis matrix:
 
-    {MatrixRepr(_dirac_vector_matrix, label=r"\rho_D(v)"):block}
+    {MatrixRepr(_dirac_vector_matrix).name(latex=r"\rho(v)"):block}
 
     Weyl-basis matrix:
 
-    {MatrixRepr(_weyl_vector_matrix, label=r"\rho_W(v)"):block}
+    {MatrixRepr(_weyl_vector_matrix).name(latex=r"\rho^{\mathrm{Weyl}}(v)"):block}
 
     Majorana-basis matrix:
 
-    {MatrixRepr(_majorana_vector_matrix, label=r"\rho_M(v)"):block}
+    {MatrixRepr(_majorana_vector_matrix).name(latex=r"\rho^{\mathrm{Majorana}}(v)"):block}
 
     | Check | Result |
     |---|---:|
     | $v^2$ from GA | {_v_square:.6f} |
-    | $\\rho_W(v)^2 = v^2I_4$ | {_weyl_square_ok} |
-    | $\\rho_M(v)^2 = v^2I_4$ | {_majorana_square_ok} |
-    | $\\rho_M(v)$ is pure imaginary | {_majorana_vector_pure_imaginary_ok} |
+    | $\\rho^{{\\mathrm{{Weyl}}}}(v)^2 = v^2I_4$ | {_weyl_square_ok} |
+    | $\\rho^{{\\mathrm{{Majorana}}}}(v)^2 = v^2I_4$ | {_majorana_square_ok} |
+    | $\\rho^{{\\mathrm{{Majorana}}}}(v)$ is pure imaginary | {_majorana_vector_pure_imaginary_ok} |
     """)
 
     mo.vstack([vector_t, vector_x, vector_y, vector_z, _md])
@@ -723,21 +722,21 @@ def _(
 
     Dirac-basis column:
 
-    {MatrixRepr(_dirac_column, label=r"\psi_D"):block}
+    {MatrixRepr(_dirac_column).name(latex=r"\psi_D"):block}
 
     Weyl-basis column:
 
-    {MatrixRepr(_weyl_column, label=r"\psi_W"):block}
+    {MatrixRepr(_weyl_column).name(latex=r"\psi_W"):block}
 
     Majorana-basis column:
 
-    {MatrixRepr(_majorana_column, label=r"\psi_M"):block}
+    {MatrixRepr(_majorana_column).name(latex=r"\psi_M"):block}
 
     Left and right Weyl components:
 
-    {MatrixRepr(_left_column, label=r"\psi_L"):block}
+    {MatrixRepr(_left_column).name(latex=r"\psi_L"):block}
 
-    {MatrixRepr(_right_column, label=r"\psi_R"):block}
+    {MatrixRepr(_right_column).name(latex=r"\psi_R"):block}
 
     Recovered STA spinor:
 
@@ -745,7 +744,7 @@ def _(
 
     Real Majorana-column example:
 
-    {MatrixRepr(_real_majorana_column, label=r"\chi_M"):block}
+    {MatrixRepr(_real_majorana_column).name(latex=r"\chi_M"):block}
 
     Same spinor recovered as an STA even multivector:
 
@@ -778,17 +777,17 @@ def _(mo):
     The same similarity transform applies to spinor-action matrices. If
 
     $$
-    \psi'_D = \rho_D(L)\psi_D,
+    \psi'_D = \rho(L)\psi_D,
     $$
 
     then in any transformed basis:
 
     $$
     \psi'_X =
-    \rho_X(L)\psi_X,
+    \rho^{X}(L)\psi_X,
     \qquad
-    \rho_X(L) =
-    U_{X\leftarrow D}\rho_D(L)U_{X\leftarrow D}^\dagger.
+    \rho^{X}(L) =
+    U_{X\leftarrow D}\rho(L)U_{X\leftarrow D}^\dagger.
     $$
 
     The Dirac bilinears should agree in all bases when the gamma matrices and
@@ -876,7 +875,7 @@ def _(
         atol=1e-10,
     )
     _majorana_action_real_ok = np.allclose(
-        _majorana_action_matrix.imag,
+        _majorana_action_matrix.mat.imag,
         0,
         atol=1e-10,
     )
@@ -922,19 +921,19 @@ def _(
 
     Weyl-basis action matrix:
 
-    {MatrixRepr(_weyl_action_matrix, label=r"\rho_W(L)"):block}
+    {MatrixRepr(_weyl_action_matrix).name(latex=r"\rho^{\mathrm{Weyl}}(L)"):block}
 
     Majorana-basis action matrix:
 
-    {MatrixRepr(_majorana_action_matrix, label=r"\rho_M(L)"):block}
+    {MatrixRepr(_majorana_action_matrix).name(latex=r"\rho^{\mathrm{Majorana}}(L)"):block}
 
     Transformed Weyl column:
 
-    {MatrixRepr(_weyl_after_direct, label=r"\psi'_W"):block}
+    {MatrixRepr(_weyl_after_direct).name(latex=r"\psi'_W"):block}
 
     Transformed Majorana column:
 
-    {MatrixRepr(_majorana_after_direct, label=r"\psi'_M"):block}
+    {MatrixRepr(_majorana_after_direct).name(latex=r"\psi'_M"):block}
 
     Recovered GA spinor:
 
@@ -942,9 +941,9 @@ def _(
 
     | Compatibility check | Result |
     |---|---:|
-    | $U(\\rho_D(L)\\psi_D)=\\rho_W(L)(U\\psi_D)$ | {_action_commutes_with_basis_change} |
-    | $U(\\rho_D(L)\\psi_D)=\\rho_M(L)(U\\psi_D)$ | {_majorana_action_commutes_with_basis_change} |
-    | $\\rho_M(L)$ is real | {_majorana_action_real_ok} |
+    | $U(\\rho(L)\\psi_D)=\\rho^{{\\mathrm{{Weyl}}}}(L)(U\\psi_D)$ | {_action_commutes_with_basis_change} |
+    | $U(\\rho(L)\\psi_D)=\\rho^{{\\mathrm{{Majorana}}}}(L)(U\\psi_D)$ | {_majorana_action_commutes_with_basis_change} |
+    | $\\rho^{{\\mathrm{{Majorana}}}}(L)$ is real | {_majorana_action_real_ok} |
     | recovered GA spinor equals $L\\Psi$ | {_ga_action_ok} |
     | scalar bilinear agrees in all bases | {_scalar_basis_ok} |
     | pseudoscalar bilinear agrees in all bases | {_pseudoscalar_basis_ok} |

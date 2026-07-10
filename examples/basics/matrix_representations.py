@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,7 +26,7 @@ def _():
     from galaga import b_sta
 
     import galaga_marimo as gm
-    from galaga_matrix import to_matrix, from_matrix, MatrixRepr, QuatMatrixRepr
+    from galaga_matrix import to_matrix, from_matrix, MatrixRepr
     from galaga_matrix.matrix import compact_basis
 
     return (
@@ -37,7 +37,6 @@ def _():
         exp,
         from_matrix,
         gm,
-        gp,
         mo,
         np,
         sandwich,
@@ -45,20 +44,7 @@ def _():
     )
 
 
-@app.cell
-def _(MatrixRepr, to_matrix):
-    # Monkey patch, oook oook
-    from galaga.algebra import Multivector
-    #from galaga_matrix import to_matrix, MatrixRepr
-
-    Multivector.matrix = property(lambda self: MatrixRepr(to_matrix(self), algebra=self.algebra, mode="left-regular"))
-    Multivector.pauli = property(lambda self: MatrixRepr(to_matrix(self, mode="compact"), algebra=self.algebra, mode="compact"))
-    Multivector.dirac = property(lambda self: MatrixRepr(to_matrix(self, mode="compact"), algebra=self.algebra, mode="compact"))
-    Multivector.quat = property(lambda self: MatrixRepr(to_matrix(self)), mode="quaternion")
-    return
-
-
-@app.cell
+@app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
     # Matrix Representations of Clifford Algebras
@@ -72,7 +58,7 @@ def _(gm):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
     ## Pauli Matrices — $\\mathrm{{Cl}}(3,0)$
@@ -83,28 +69,21 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, compact_basis, gm):
+def _(Algebra, gm, to_matrix):
     _cl3 = Algebra(3)
     _e1, _e2, _e3 = _cl3.basis_vectors(symbolic=True)
 
-    _gammas = compact_basis(_cl3)
-    _s1 = MatrixRepr(_gammas[0], label=r"\sigma_1")
-    _s2 = MatrixRepr(_gammas[1], label=r"\sigma_2")
-    _s3 = MatrixRepr(_gammas[2], label=r"\sigma_3")
-
     gm.md(t"""
-    {_s1:block}
+    {to_matrix(_e1).name(latex=r"\sigma_1")}
 
-    {_s2:block}
+    {to_matrix(_e2).name(latex=r"\sigma_2")}
 
-    {_s3:block}
-
-    Verify: $\\sigma_1^2 = \\sigma_2^2 = \\sigma_3^2 = I$ and $\\sigma_i \\sigma_j = -\\sigma_j \\sigma_i$ for $i \\neq j$.
+    {to_matrix(_e3).name(latex=r"\sigma_3")}
     """)
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
     ### Vector → Matrix → Vector roundtrip
@@ -113,14 +92,13 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
+def _(Algebra, from_matrix, gm, np, to_matrix):
     _cl3 = Algebra(3)
     _e1, _e2, _e3 = _cl3.basis_vectors(symbolic=True)
-    _v = (3 * _e1 + 2 * _e2 - _e3).name(latex=r"\mathbf{v}")
 
-    _mat = to_matrix(_v, mode="compact")
-    _v_back = from_matrix(_cl3, _mat, mode="compact")
-    _v_back.name(latex=r"\mathbf{v}'")
+    _v = (3 * _e1 + 2 * _e2 - _e3).name(latex=r"\mathbf{v}")
+    _mat = to_matrix(_v)
+    _v_back = from_matrix(_mat)
 
     gm.md(t"""
     Start with {_v}:
@@ -129,7 +107,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
 
     Its compact matrix representation:
 
-    {MatrixRepr(_mat, label=r"M(\mathbf{v})"):block}
+    {_mat}
 
     Recover the multivector from the matrix:
 
@@ -140,7 +118,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
     return
 
 
-@app.cell
+@app.cell(hide_code=True)
 def _(gm):
     gm.md(t"""
     ## Dirac Matrices — $\\mathrm{{Cl}}(1,3)$
@@ -157,7 +135,7 @@ def _(Algebra, MatrixRepr, compact_basis, gm, np):
     _gammas = compact_basis(_sta)
 
     _labels = [r"\gamma^0", r"\gamma^1", r"\gamma^2", r"\gamma^3"]
-    _mats = [MatrixRepr(g, label=l) for g, l in zip(_gammas, _labels)]
+    _mats = [MatrixRepr(g).name(latex=l) for g, l in zip(_gammas, _labels)]
 
     _I4 = np.eye(4)
     _sq = [g @ g for g in _gammas]
@@ -191,13 +169,13 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, gm, gp, np, to_matrix):
+def _(Algebra, gm, np, to_matrix):
     _sta = Algebra(1, 3, display_repr=True)
     _g0, _g1, _g2, _g3 = _sta.basis_vectors(symbolic=True)
 
     _a = (2 * _g0 + _g1).name(latex="a")
     _b = (_g2 - 3 * _g3).name(latex="b")
-    _ab = gp(_a, _b)
+    _ab = _a*_b
 
     _Ma = to_matrix(_a, mode="compact")
     _Mb = to_matrix(_b, mode="compact")
@@ -211,9 +189,9 @@ def _(Algebra, MatrixRepr, gm, gp, np, to_matrix):
 
     {_ab}
 
-    {MatrixRepr(_Mab, label="M(ab)"):block}
+    {_Mab}
 
-    {MatrixRepr(_product, label="M(a) M(b)"):block}
+    {_product}
 
     $M(ab) = M(a)\\,M(b)$: {np.allclose(_Mab, _product)}
     """)
@@ -233,13 +211,13 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
+def _(Algebra, from_matrix, gm, np, to_matrix):
     _cl2 = Algebra(2)
     _e1, _e2 = _cl2.basis_vectors(symbolic=True)
     _v = (2 * _e1 + 3 * _e2).name(latex=r"\mathbf{v}")
 
     _mat = to_matrix(_v, mode="left-regular")
-    _v_back = from_matrix(_cl2, _mat, mode="left-regular")
+    _v_back = from_matrix(_mat)
     _v_back.name(latex=r"\mathbf{v}'")
 
     gm.md(t"""
@@ -247,7 +225,7 @@ def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
 
     {_v.display()}
 
-    {MatrixRepr(_mat.astype(complex), label=r"L(\mathbf{v})"):block}
+    {_mat}
 
     Roundtrip: {_v_back.display()} — exact: {np.allclose(_v.data, _v_back.data)}
     """)
@@ -266,20 +244,20 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, from_matrix, gm, np, to_matrix):
+def _(Algebra, from_matrix, gm, np, to_matrix):
     _pga = Algebra(2, 0, 1)
     _e = _pga.basis_vectors(symbolic=True)
     _v = (2 * _e[0] + _e[1] + 3 * _e[2]).name(latex=r"\mathbf{p}")
 
     _mat = to_matrix(_v, mode="left-regular")
-    _v_back = from_matrix(_pga, _mat, mode="left-regular")
+    _v_back = from_matrix(_mat)
 
     gm.md(t"""
     $\\mathrm{{Cl}}(2,0,1)$ — Projective Geometric Algebra with one null dimension.
 
     {_v.display()}
 
-    {MatrixRepr(_mat.astype(complex), label=r"L(\mathbf{p})"):block}
+    {_mat}
 
     Roundtrip exact: {np.allclose(_v.data, _v_back.data)}
     """)
@@ -298,7 +276,7 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, MatrixRepr, exp, from_matrix, gm, np, sandwich, to_matrix):
+def _(Algebra, exp, from_matrix, gm, np, sandwich, to_matrix):
     _cl3 = Algebra(3)
     _e1, _e2, _e3 = _cl3.basis_vectors(symbolic=True)
 
@@ -312,7 +290,7 @@ def _(Algebra, MatrixRepr, exp, from_matrix, gm, np, sandwich, to_matrix):
     # Sandwich in matrix form: M(RvR†) = MR @ Mv @ MR†
     _MR_dag = _MR.conj().T
     _rotated_mat = _MR @ _Mv @ _MR_dag
-    _rotated = from_matrix(_cl3, _rotated_mat, mode="compact")
+    _rotated = from_matrix(_rotated_mat)
     _rotated.name(latex=r"\mathbf{v}'")
 
     # Compare with GA sandwich
@@ -323,13 +301,13 @@ def _(Algebra, MatrixRepr, exp, from_matrix, gm, np, sandwich, to_matrix):
 
     {_R.display()}
 
-    {MatrixRepr(_MR, label="M(R)"):block}
+    {_MR}
 
-    $M(R)$ is unitary: $M(R)^\\dagger M(R) = \\mathbb{{I}}$: {np.allclose(_MR_dag @ _MR, np.eye(2))}
+    $\\rho(R)$ is unitary: $\\rho(R)^\\dagger \\rho(R) = \\mathbb{{I}}$: {np.allclose(_MR_dag @ _MR, np.eye(2))}
 
-    $M(R)$ is special, aka determinant = 1: $det(M(R)) = 1$: {np.allclose(np.linalg.det(_MR), 1)}
+    $\\rho(R)$ is special, aka determinant = 1: $det(\\rho(R)) = 1$: {np.allclose(np.linalg.det(_MR), 1)}
 
-    Rotate {_v} via matrix sandwich $M(R) \\, M(\\mathbf{{v}}) \\, M(R)^\\dagger$:
+    Rotate {_v} via matrix sandwich $\\rho(R) \\, \\rho(\\mathbf{{v}}) \\, \\rho(R)^\\dagger$:
 
     {_rotated.display()}
 
@@ -364,7 +342,7 @@ def _(Algebra, gm, to_matrix):
     | | Left-regular | Compact |
     |---|---|---|
     | **Size** | ${_lr.shape[0]} \\times {_lr.shape[1]}$ real | ${_cp.shape[0]} \\times {_cp.shape[1]}$ complex |
-    | **Entries** | {_lr.size} | {_cp.size} |
+    | **Entries** | {_lr.mat.size} | {_cp.mat.size} |
     | **dtype** | `{_lr.dtype}` | `{_cp.dtype}` |
     """)
     return
@@ -432,6 +410,7 @@ def _(
     mo,
     pss_slider,
     scalar_slider,
+    to_matrix,
     y0,
     y012_slider,
     y013_slider,
@@ -467,19 +446,23 @@ def _(
           y023_slider.value * (y0^y2^y3) +
           y123_slider.value * (y1^y2^y3) +
           pss_slider.value * (y0^y1^y2^y3)).eval().name("mv")
+    _dirac = to_matrix(mv, mode="compact")
+    _quat = to_matrix(mv, mode="quaternion")
 
     mo.vstack([
         scalar_slider, y0_slider, y1_slider, y2_slider, y3_slider, y01_slider, y02_slider, y03_slider, y12_slider, y13_slider, y23_slider, y012_slider, y013_slider, y023_slider, y123_slider, pss_slider,
     gm.md(t"""
-    {mv} $\\quad=\\quad$ {mv.dirac} $\\quad=\\quad$ {mv.quat}
+    {mv}<br/>
+    {_dirac}<br/>
+    {_quat}
     """)
     ])
     return
 
 
 @app.cell
-def _(I, y1, y2):
-    m = (1 + 2*(y1^y2) + 3*I).dirac
+def _(I, to_matrix, y1, y2):
+    m = to_matrix(1 + 2*(y1^y2) + 3*I, mode="compact")
     return (m,)
 
 
@@ -492,6 +475,12 @@ def _(m):
 @app.cell
 def _(m, np):
     np.trace(m)
+    return
+
+
+@app.cell
+def _(m):
+    m.trace()
     return
 
 
@@ -513,8 +502,8 @@ def _():
 
 
 @app.cell
-def _(I, y1, y3):
-    (1 + 2*(y1^y3) + 3*I).quat
+def _(I, to_matrix, y1, y3):
+    to_matrix(1 + 2*(y1^y3) + 3*I, mode="quaternion")
     return
 
 

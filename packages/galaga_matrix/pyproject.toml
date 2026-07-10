@@ -6,12 +6,33 @@ build-backend = "hatchling.build"
 name = "galaga-matrix"
 version = "1.7.4"
 description = "Matrix representations for galaga Clifford algebras"
+readme = "README.md"
 requires-python = ">=3.11"
 license = "MIT"
+authors = [{ name = "Edouard Poor" }]
+keywords = ["geometric-algebra", "clifford-algebra", "matrix", "spinor"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+]
 dependencies = [
     "galaga>=1.7.4",
     "numpy>=1.24.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/edouardp/galaga"
+Repository = "https://github.com/edouardp/galaga"
+Issues = "https://github.com/edouardp/galaga/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["galaga_matrix"]

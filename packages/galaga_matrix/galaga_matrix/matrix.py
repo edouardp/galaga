@@ -67,7 +67,11 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
 
     Returns:
         A MatrixRepr wrapping the matrix, with algebra and mode metadata set.
-        If the multivector has a name, the label is set to ``\\rho(name)``.
+        If the multivector has a name, the matrix is named with the appropriate
+        representation map, such as ``\\rho(name)`` or
+        ``\\rho_{\\mathbb{H}}(name)``, and carries a symbolic representation-map
+        expression. If the multivector is symbolic but unnamed, the matrix
+        remains unnamed but still carries the representation-map expression.
     """
     from .repr import MatrixRepr
 
@@ -95,11 +99,6 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
-    label = None
-    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
-    if mv_name:
-        label = rf"\rho({mv_name})"
-
     # Set basis for modes that correspond to a named basis
     basis = None
     if mode in ("dirac", "pauli"):
@@ -109,7 +108,19 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     elif mode == "compact" and (p, q) in ((3, 0), (0, 3)):
         basis = "pauli"
 
-    return MatrixRepr(mat, label=label, algebra=mv.algebra, mode=mode, basis=basis)
+    result = MatrixRepr(mat, algebra=mv.algebra, mode=mode, basis=basis)
+    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    mv_expr = getattr(mv, "_expr", None)
+    if mv_name or (getattr(mv, "_is_symbolic", False) and mv_expr is not None):
+        from .expr import MatrixRepresentation
+
+        expr = MatrixRepresentation(mv._to_expr(), mode=mode, basis=basis, value=result.eval())
+        if mv_name:
+            result.name(latex=expr.latex())
+        else:
+            result._is_symbolic = True
+        result._expr = expr
+    return result
 
 
 def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector:
@@ -125,8 +136,8 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         mode: ``"left-regular"`` or ``"compact"``. Overridden by MatrixRepr.mode if present.
 
     Returns:
-        The corresponding multivector. If the input MatrixRepr has a label,
-        the multivector is named ``\\rho^{-1}(label)``.
+        The corresponding multivector. If the input MatrixRepr has a symbolic
+        name or expression, the multivector is named ``\\rho^{-1}(... )``.
     """
     from .repr import MatrixRepr
 
@@ -147,14 +158,17 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         # Two-argument call: from_matrix(alg, mat)
         alg = alg_or_mat
 
-    mat_label = None
+    mat_name = None
     mat_basis = None
     if isinstance(mat, MatrixRepr):
         if mat.mode:
             mode = mat.mode
         if mat.algebra is not None and alg is None:
             alg = mat.algebra
-        mat_label = mat.label
+        if mat._name_latex is not None:
+            mat_name = mat._name_latex
+        elif mat._expr is not None:
+            mat_name = mat._expr.latex()
         mat_basis = mat.basis
         mat = mat.mat
 
@@ -185,8 +199,8 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
-    if mat_label:
-        mv.name(latex=rf"\rho^{{-1}}({mat_label})")
+    if mat_name:
+        mv.name(latex=rf"\rho^{{-1}}({mat_name})")
 
     return mv
 
@@ -839,13 +853,16 @@ def to_spinor_column(mv: Multivector) -> np.ndarray:
     elif (p, q) in ((3, 0), (0, 3)):
         basis = "pauli"
 
-    # Label with ket notation if MV is named
-    label = None
+    result = MatrixRepr(spinor, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
+
     mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
     if mv_name:
-        label = rf"\left|\rho({mv_name})\right\rangle"
+        from .expr import SpinorColumnRepresentation
 
-    return MatrixRepr(spinor, label=label, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
+        result.name(latex=rf"\left|\rho({mv_name})\right\rangle")
+        result._expr = SpinorColumnRepresentation(mv._to_expr(), basis=basis, value=result.eval())
+
+    return result
 
 
 def to_spinor_matrix(mv: Multivector) -> np.ndarray:

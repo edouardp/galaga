@@ -17,11 +17,11 @@ consistent.
 
 `MatrixRepr` gains a `kind` attribute:
 
-| Value | Shape | Meaning |
-|---|---|---|
+| Value        | Shape  | Meaning                   |
+| ------------ | ------ | ------------------------- |
 | `"operator"` | (k, k) | Matrix operator (default) |
-| `"ket"` | (k, 1) | Spinor column (ket) |
-| `"bra"` | (1, k) | Spinor row (bra) |
+| `"ket"`      | (k, 1) | Spinor column (ket)       |
+| `"bra"`      | (1, k) | Spinor row (bra)          |
 
 Default: `"operator"` for k×k, `"ket"` for k×1 from spinor functions.
 
@@ -32,7 +32,8 @@ to_spinor_column(R)  # returns MatrixRepr with kind="ket"
 ```
 
 Metadata set: algebra, mode="compact", basis (from algebra), kind="ket".
-If MV is named, label uses ket notation: `\left|\rho(\psi)\right\rangle`.
+If MV is named, MatrixRepr `.name()` uses ket notation:
+`\left|\rho(\psi)\right\rangle`.
 
 ### Rule 3: `from_spinor_column` accepts MatrixRepr
 
@@ -56,31 +57,32 @@ ket = to_spinor_column(R)    # kind="ket", shape (k,1)
 bra = ket.H                  # kind="bra", shape (1,k), conjugate transpose
 ```
 
-Label transforms: `|ψ⟩` → `⟨ψ|`.
+The symbolic adjoint expression renders ket notation as a bra:
+`|ψ⟩` → `⟨ψ|`.
 
 ### Rule 6: Type propagation under @
 
-| Left | Right | Result kind |
-|---|---|---|
-| operator | operator | operator |
-| operator | ket | ket |
-| bra | operator | bra |
-| bra | ket | scalar (numpy, not MatrixRepr) |
-| ket | bra | operator (outer product) |
+| Left     | Right    | Result kind                    |
+| -------- | -------- | ------------------------------ |
+| operator | operator | operator                       |
+| operator | ket      | ket                            |
+| bra      | operator | bra                            |
+| bra      | ket      | scalar (numpy, not MatrixRepr) |
+| ket      | bra      | operator (outer product)       |
 
-### Rule 7: Labeling
+### Rule 7: Naming
 
-| kind | Named MV "ψ" | Label format |
-|---|---|---|
-| ket | yes | `\left\|\rho(\psi)\right\rangle` |
-| ket | no | None |
-| bra (from .H) | yes | `\left\langle\rho(\psi)\right\|` |
-| operator | yes | `\rho(\psi)` (existing) |
+| kind          | Named MV "ψ" | Name/expression format           |
+| ------------- | ------------ | -------------------------------- |
+| ket           | yes          | `\left\|\rho(\psi)\right\rangle` |
+| ket           | no           | unnamed                          |
+| bra (from .H) | yes          | `\left\langle\rho(\psi)\right\|` |
+| operator      | yes          | `\rho(\psi)` (existing)          |
 
 ### Rule 8: LaTeX rendering
 
-Kets render as a column pmatrix (existing), optionally with ket decoration
-in the label. Bras render as a row pmatrix.
+Kets render as a column pmatrix (existing), optionally with ket decoration in
+the symbolic name. Bras render as a row pmatrix.
 
 ### Rule 9: Backward compatibility
 
@@ -100,7 +102,7 @@ ket = to_spinor_column(R)
 ket.kind          # "ket"
 ket.shape         # (4, 1)
 ket.basis         # "dirac"
-ket.label         # r"\left|\rho(\psi)\right\rangle"
+ket.latex()       # r"\left|\rho(\psi)\right\rangle = \begin{pmatrix}..."
 
 # Basis change (single-sided)
 ket_weyl = ket.to_basis("weyl")

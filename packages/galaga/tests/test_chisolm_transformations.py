@@ -13,12 +13,10 @@ import pytest
 
 from galaga import (
     Algebra,
-    dual,
     exp,
     gp,
     grade,
     inverse,
-    involute,
     is_vector,
     left_contraction,
     norm2,
@@ -80,6 +78,7 @@ def _rblade(alg, rng, r):
 # Theorem 15 (§7.1, label:vectorprojrej) — P_A(a) + R_A(a) = a
 # ---------------------------------------------------------------------------
 
+
 class TestThm15ProjPlusRejEqualsOriginal:
     """Theorem 15 (§7.1, label:vectorprojrej): P_A(a) + R_A(a) = a."""
 
@@ -100,6 +99,7 @@ class TestThm15ProjPlusRejEqualsOriginal:
 # After Theorem 15 — P_A(a) ∧ A = 0 (projection lies in subspace).
 # ---------------------------------------------------------------------------
 
+
 class TestProjectionLiesInSubspace:
     """After Theorem 15 (§7.1): P_A(a) ∧ A = 0."""
 
@@ -118,6 +118,7 @@ class TestProjectionLiesInSubspace:
 # ---------------------------------------------------------------------------
 # After Theorem 15 — R_A(a) ⌋ A = 0 (rejection is orthogonal).
 # ---------------------------------------------------------------------------
+
 
 class TestRejectionIsOrthogonal:
     """After Theorem 15 (§7.1): R_A(a) ⌋ A = 0."""
@@ -142,6 +143,7 @@ class TestRejectionIsOrthogonal:
 # Eq. 3.22 (label:refinnerprod) — Reflection preserves inner product.
 # ---------------------------------------------------------------------------
 
+
 class TestEq322ReflectionPreservesInnerProduct:
     """Eq. 3.22 (§7.2, label:refinnerprod): a'·b' = a·b under reflection."""
 
@@ -164,6 +166,7 @@ class TestEq322ReflectionPreservesInnerProduct:
 # ---------------------------------------------------------------------------
 # Eq. 1.28 (label:refdef) — Reflection formula: v' = -nvn⁻¹
 # ---------------------------------------------------------------------------
+
 
 class TestEq128ReflectionFormula:
     """Eq. 1.28 (§1.1, label:refdef): v' = -nvn⁻¹."""
@@ -194,6 +197,7 @@ class TestEq128ReflectionFormula:
 # Eq. 3.24 (label:refainAr) — Reflection in subspace: v' = (-1)^r A_r v A_r⁻¹
 # ---------------------------------------------------------------------------
 
+
 class TestEq324ReflectionInSubspace:
     """Eq. 3.24 (§7.2.1, label:refainAr): v' = (-1)^r A_r v A_r⁻¹."""
 
@@ -218,6 +222,7 @@ class TestEq324ReflectionInSubspace:
 # ---------------------------------------------------------------------------
 # Eq. 3.28 (label:reflectI) — Reflection of I: I' = (-1)^r I
 # ---------------------------------------------------------------------------
+
 
 class TestEq328ReflectionOfPseudoscalar:
     """Eq. 3.28 (§7.2.2, label:reflectI): reflection of I in A_r gives (-1)^r I."""
@@ -247,6 +252,7 @@ class TestEq328ReflectionOfPseudoscalar:
 # Eq. 3.30 (label:generalrot) — Rotation: A' = R A R⁻¹
 # ---------------------------------------------------------------------------
 
+
 class TestEq330RotationFormula:
     """Eq. 3.30 (§7.3, label:generalrot): A' = R A R⁻¹."""
 
@@ -262,9 +268,7 @@ class TestEq330RotationFormula:
         b = _rvec(eucl, rng)
         a_rot = sandwich(R, a)
         b_rot = sandwich(R, b)
-        assert gp(a, b).scalar_part == pytest.approx(
-            gp(a_rot, b_rot).scalar_part, abs=1e-10
-        )
+        assert gp(a, b).scalar_part == pytest.approx(gp(a_rot, b_rot).scalar_part, abs=1e-10)
 
     def test_rotation_preserves_grade(self, eucl):
         """Rotation of a vector is a vector."""
@@ -294,6 +298,7 @@ class TestEq330RotationFormula:
 # After Eq. 3.30 — R I R⁻¹ = I (rotation leaves pseudoscalar alone).
 # ---------------------------------------------------------------------------
 
+
 class TestRotationLeavesIAlone:
     """After Eq. 3.30 (§7.3): R I R⁻¹ = I."""
 
@@ -311,6 +316,7 @@ class TestRotationLeavesIAlone:
 # ---------------------------------------------------------------------------
 # Eq. 1.30 (§1.1) — Rotor: R = exp(-Bθ/2), R R† = 1 for unit rotor.
 # ---------------------------------------------------------------------------
+
 
 class TestRotorProperties:
     """Eq. 1.30 (§1.1): R = exp(-Bθ/2), and R~R = 1 for unit bivector B."""
@@ -356,6 +362,7 @@ class TestRotorProperties:
 # §6.1 — Complex number structure in Cl(2,0): (e₁e₂)² = -1
 # ---------------------------------------------------------------------------
 
+
 class TestCl2ComplexStructure:
     """§6.1: The bivector e₁₂ in Cl(2,0) satisfies e₁₂² = -1."""
 
@@ -371,6 +378,7 @@ class TestCl2ComplexStructure:
 # ---------------------------------------------------------------------------
 # §6.2 — Quaternion structure in Cl(3,0).
 # ---------------------------------------------------------------------------
+
 
 class TestCl3QuaternionStructure:
     """§6.2: Bivectors in Cl(3,0) satisfy quaternion relations."""
@@ -397,6 +405,7 @@ class TestCl3QuaternionStructure:
 # ---------------------------------------------------------------------------
 # §6.2 — Cross product via duality: a×b = -(a∧b)I⁻¹ in 3D.
 # ---------------------------------------------------------------------------
+
 
 class TestCl3CrossProductDuality:
     """§6.2 (label:crossprod): a×b = dual(a∧b) = (a∧b)I⁻¹ in Cl(3,0).

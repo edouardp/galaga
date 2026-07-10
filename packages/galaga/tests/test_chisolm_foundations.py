@@ -13,14 +13,10 @@ import pytest
 from galaga import (
     Algebra,
     gp,
-    grade,
     inverse,
     is_scalar,
-    is_vector,
     left_contraction,
     op,
-    right_contraction,
-    scalar_product,
 )
 
 # ---------------------------------------------------------------------------
@@ -28,10 +24,10 @@ from galaga import (
 # ---------------------------------------------------------------------------
 
 SIGNATURES = [
-    (1, 1),          # Cl(2,0)
-    (1, 1, 1),       # Cl(3,0)
-    (1, -1, -1, -1), # Cl(1,3) — STA
-    (0, 1, 1, 1),    # Cl(3,0,1) — PGA
+    (1, 1),  # Cl(2,0)
+    (1, 1, 1),  # Cl(3,0)
+    (1, -1, -1, -1),  # Cl(1,3) — STA
+    (0, 1, 1, 1),  # Cl(3,0,1) — PGA
 ]
 
 
@@ -55,6 +51,7 @@ def _random_multivector(alg, rng):
 # Axiom 4 (§2, label:sqvec) — The square of every vector is a scalar.
 # ---------------------------------------------------------------------------
 
+
 class TestAxiom4VectorSquareIsScalar:
     """Axiom 4 (§2, label:sqvec): v² ∈ G₀ for every vector v."""
 
@@ -62,7 +59,7 @@ class TestAxiom4VectorSquareIsScalar:
         """Axiom 4: each basis vector squares to its signature entry."""
         for i, e in enumerate(alg.basis_vectors()):
             v2 = gp(e, e)
-            assert is_scalar(v2), f"e{i+1}² is not scalar"
+            assert is_scalar(v2), f"e{i + 1}² is not scalar"
             assert v2.scalar_part == pytest.approx(alg.signature[i])
 
     def test_random_vectors(self, alg):
@@ -77,6 +74,7 @@ class TestAxiom4VectorSquareIsScalar:
 # Eq. after Axiom 4 — Symmetrized product equals inner product.
 # ½(uv + vu) = u · v  (a scalar)
 # ---------------------------------------------------------------------------
+
 
 class TestSymmetrizedProduct:
     """Eq. after Axiom 4 (§2): ½(uv + vu) = u · v."""
@@ -105,6 +103,7 @@ class TestSymmetrizedProduct:
 # Eq. 1.6 (label:prodsum / label:def) — GP decomposition: uv = u·v + u∧v
 # ---------------------------------------------------------------------------
 
+
 class TestGPDecomposition:
     """Eq. 1.6 (§1.1, label:def): uv = u·v + u∧v for vectors u, v."""
 
@@ -122,6 +121,7 @@ class TestGPDecomposition:
 # ---------------------------------------------------------------------------
 # Theorem 2 (§3, label:zeroifffindep) — Outer product vanishes iff dependent.
 # ---------------------------------------------------------------------------
+
 
 class TestThm2OuterProductDependence:
     """Theorem 2 (§3, label:zeroifffindep): a₁∧…∧aᵣ = 0 iff dependent."""
@@ -153,6 +153,7 @@ class TestThm2OuterProductDependence:
 # ---------------------------------------------------------------------------
 # Theorem 3 (§3, label:Aissubspace) — a ∧ A_r = 0 iff a in span(A_r).
 # ---------------------------------------------------------------------------
+
 
 class TestThm3BladeSubspace:
     """Theorem 3 (§3, label:Aissubspace): a∧A_r = 0 iff a ∈ subspace(A_r)."""
@@ -188,6 +189,7 @@ class TestThm3BladeSubspace:
 # Theorem 4 (§3, label:AmultofBifsamespace) — Same subspace iff scalar multiple.
 # ---------------------------------------------------------------------------
 
+
 class TestThm4SameSubspaceScalarMultiple:
     """Theorem 4 (§3, label:AmultofBifsamespace): same subspace ↔ scalar multiple."""
 
@@ -216,6 +218,7 @@ class TestThm4SameSubspaceScalarMultiple:
 # Proof of Theorem 1 (§3, label:outerisblade) — Orthogonal wedge = GP.
 # ---------------------------------------------------------------------------
 
+
 class TestThm1OrthogonalWedgeEqualsGP:
     """Theorem 1 proof (§3, label:outerisblade): e_i ∧ e_j = e_i e_j when orthogonal."""
 
@@ -232,6 +235,7 @@ class TestThm1OrthogonalWedgeEqualsGP:
 # ---------------------------------------------------------------------------
 # Theorem 5 (§3, label:vecorthtoA) — a ⌋ A_r = 0 iff a ⊥ subspace(A_r).
 # ---------------------------------------------------------------------------
+
 
 class TestThm5OrthogonalityViaContraction:
     """Theorem 5 (§3, label:vecorthtoA): a⌋A_r = 0 iff a ⊥ A_r."""
@@ -262,6 +266,7 @@ class TestThm5OrthogonalityViaContraction:
 # ---------------------------------------------------------------------------
 # Eq. 1.4 — Vector inverse: v⁻¹ = v / v² for non-null v.
 # ---------------------------------------------------------------------------
+
 
 class TestVectorInverse:
     """Eq. 1.4 (§1.1): v⁻¹ = v / v² for non-null vectors."""

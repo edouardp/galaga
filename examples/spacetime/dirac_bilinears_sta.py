@@ -141,9 +141,9 @@ def _(np):
 
 @app.cell
 def _(MatrixRepr, gamma0_matrix, gamma5_matrix, gamma_matrices, gm):
-    _gamma0 = MatrixRepr(gamma0_matrix, label=r"\Gamma^0")
-    _gamma1 = MatrixRepr(gamma_matrices[1], label=r"\Gamma^1")
-    _gamma5 = MatrixRepr(gamma5_matrix, label=r"\Gamma^5")
+    _gamma0 = MatrixRepr(gamma0_matrix).name(latex=r"\Gamma^0")
+    _gamma1 = MatrixRepr(gamma_matrices[1]).name(latex=r"\Gamma^1")
+    _gamma5 = MatrixRepr(gamma5_matrix).name(latex=r"\Gamma^5")
 
     gm.md(t"""
     The compact matrix representation supplies the gamma matrices:
@@ -282,7 +282,7 @@ def _(
 
     Its Dirac column:
 
-    {MatrixRepr(_column, label=r"\psi"):block}
+    {MatrixRepr(_column).name(latex=r"\psi"):block}
 
     Roundtrip through the column map:
 
@@ -448,11 +448,11 @@ def _(
 
     Matrix representative:
 
-    {MatrixRepr(_L_matrix, label=r"\rho(L)"):block}
+    {MatrixRepr(_L_matrix).name(latex=r"\rho(L)"):block}
 
     Transformed column:
 
-    {MatrixRepr(_column_after, label=r"\psi'"):block}
+    {MatrixRepr(_column_after).name(latex=r"\psi'"):block}
 
     Transformed GA spinor:
 
