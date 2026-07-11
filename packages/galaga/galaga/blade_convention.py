@@ -32,6 +32,11 @@ class BladeConvention:
         vector_names: Per-vector names. Each entry is a string (all formats)
             or a 3-tuple (ascii, unicode, latex). If None, generated from
             prefix and index_base.
+        subscripts: Per-vector subscript labels (new API). Each entry is a bare
+            string that gets combined with prefix to form the full name.
+            E.g. subscripts=["x","y","z"] with prefix="e" → e_x, e_y, e_z
+            and bivectors e_{xy}, e_{xz}, e_{yz}. Takes priority over
+            vector_names if both are set.
         style: How multi-vector blades are derived: "compact", "juxtapose", "wedge".
         overrides: Per-blade name overrides using metric-role keys.
         index_base: Starting index for auto-generated names (0 or 1).
@@ -39,6 +44,7 @@ class BladeConvention:
     """
 
     vector_names: tuple | list | None = None
+    subscripts: tuple | list | None = None
     style: str = "compact"
     overrides: dict | None = None
     index_base: int = 1
@@ -106,6 +112,20 @@ _PREFIX_MAP = {
 
 def _gen_vector_names(conv: BladeConvention, n: int) -> list[tuple[str, str, str]]:
     """Generate (ascii, unicode, latex) for each basis vector."""
+    if conv.subscripts is not None:
+        # New API: subscripts are bare labels combined with prefix.
+        # subscripts=["x", "y", "z"] with prefix="e" → e_x, e_y, e_z
+        a_pre, u_pre, l_pre = _PREFIX_MAP.get(conv.prefix, (conv.prefix, conv.prefix, conv.prefix))
+        result = []
+        for sub in conv.subscripts:
+            a = f"{a_pre}{sub}"
+            u = f"{u_pre}{sub}"
+            lx = f"{l_pre}_{{{sub}}}"
+            result.append((a, u, lx))
+        if len(result) < n:
+            raise ValueError(f"subscripts has {len(result)} entries, need at least {n}")
+        return result[:n]
+
     if conv.vector_names is not None:
         result = []
         for v in conv.vector_names:
