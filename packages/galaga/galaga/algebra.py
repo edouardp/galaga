@@ -141,16 +141,24 @@ def _compact_local_name(parts: list[str]) -> str:
 
     Display styles such as wedge or juxtapose should not leak into notebook
     variables. `v1 ∧ v2` therefore becomes local name `v12`, not `v1^v2`.
+    Also handles letter subscripts: `ex`, `ey` → `exy`.
     """
     safe_parts = [_sanitize_python_local_name(part) for part in parts]
     if len(safe_parts) == 1:
         return safe_parts[0]
 
+    # Try digit-suffix approach: e1, e2 → e12
     split_parts = [_split_trailing_digits(part) for part in safe_parts]
     prefixes = {prefix for prefix, suffix in split_parts if suffix}
     if len(prefixes) == 1 and all(suffix for _, suffix in split_parts):
         prefix = split_parts[0][0]
         return _sanitize_python_local_name(f"{prefix}{''.join(suffix for _, suffix in split_parts)}")
+
+    # Try common-prefix approach: ex, ey → exy
+    prefix = _common_prefix(safe_parts)
+    if prefix and all(len(part) > len(prefix) for part in safe_parts):
+        suffixes = [part[len(prefix) :] for part in safe_parts]
+        return _sanitize_python_local_name(f"{prefix}{''.join(suffixes)}")
 
     return _sanitize_python_local_name("".join(safe_parts))
 
