@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "galaga-matrix"
-version = "1.7.5"
+version = "1.7.6"
 description = "Matrix representations for galaga Clifford algebras"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -25,7 +25,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Physics",
 ]
 dependencies = [
-    "galaga>=1.7.5",
+    "galaga>=1.7.6",
     "numpy>=1.24.0",
 ]
 

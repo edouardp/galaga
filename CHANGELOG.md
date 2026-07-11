@@ -1,5 +1,27 @@
 # Changelog
 
+## 1.7.6 (2026-07-11)
+
+### Added
+
+- **`BladeConvention(subscripts=)` parameter** — New clean API for named-subscript
+  basis vectors. Bare label strings are combined structurally with the prefix:
+  `subscripts=["x","y","z"]` with `prefix="e"` produces `e_{x}`, `e_{xy}`, etc.
+  No regex parsing, no pre-formatted LaTeX needed.
+
+- **`b_default(subscripts='xyz')`** — String shorthand accepted: each character
+  becomes a subscript label. Makes the common case trivial:
+  `Algebra(3, blades=b_default(subscripts='xyz', pss='i'))`.
+
+### Fixed
+
+- **Compact style LaTeX for single-char subscripts** — `vector_names` with
+  pre-formatted LaTeX like `e_x` now correctly produce `e_{xy}` for bivectors
+  (was producing `e_{e_xe_y}`).
+
+- **`Algebra.locals()` keys are Python-safe** — Keys generated from blade names
+  with non-identifier characters are now sanitized.
+
 ## 1.7.5 (2026-07-10)
 
 ### Added
