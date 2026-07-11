@@ -276,7 +276,14 @@ def _product_sign(indices: list[int], signature: tuple) -> tuple[int, int]:
     """
     sign = 1
     bitmask = 0
+    n = len(signature)
     for idx in indices:
+        if idx >= n:
+            raise ValueError(
+                f"Blade convention references vector index {idx}, but the algebra "
+                f"only has {n} basis vectors (indices 0..{n - 1}). "
+                f"Check that the blade convention matches the algebra dimension."
+            )
         bit = 1 << idx
         if bitmask & bit:
             # Repeated index: contract via metric
