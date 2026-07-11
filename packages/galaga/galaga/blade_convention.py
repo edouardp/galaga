@@ -180,13 +180,17 @@ def build_blades(
                 a = f"{a_prefix}{a_subs}"
                 u = f"{u_prefix}{u_subs}"
                 # LaTeX: extract subscript content from each latex name
-                # e.g. "e_{1}" → "1", "\gamma_{0}" → "0"
+                # e.g. "e_{1}" → "1", "\gamma_{0}" → "0", "e_x" → "x"
                 l_subs = []
                 for lp in l_parts:
                     m = re.search(r"_\{([^}]*)\}", lp)
-                    l_subs.append(m.group(1) if m else lp)
-                # Find latex prefix (everything before _{...})
-                m = re.match(r"^(.*?)_\{", l_parts[0])
+                    if m:
+                        l_subs.append(m.group(1))
+                    else:
+                        m2 = re.search(r"_(.)", lp)
+                        l_subs.append(m2.group(1) if m2 else lp)
+                # Find latex prefix (everything before _{ or _x)
+                m = re.match(r"^(.*?)_[\{a-zA-Z]", l_parts[0])
                 l_prefix = m.group(1) if m else a_prefix
                 lx = f"{l_prefix}_{{{(''.join(l_subs))}}}"
             else:
