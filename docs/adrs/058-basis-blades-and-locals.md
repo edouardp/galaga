@@ -31,9 +31,9 @@ Add two methods to `Algebra`:
    arbitrary grades.
 
 2. **`locals(*, grades=None, symbolic=False)`** — returns a `dict[str, Multivector]`
-   of all non-scalar basis blades, keyed by ASCII name from the blade
-   convention. Designed for `locals().update(alg.locals())` in notebook
-   cells and top-level scripts.
+   of all non-scalar basis blades, keyed by compact Python-safe local names.
+   Designed for `locals().update(alg.locals())` in notebook cells and
+   top-level scripts.
 
 Both methods apply `BasisBlade.sign` so that signed conventions (e.g.
 `b_sta(sigmas=True)` where σ₁ = γ₁γ₀ has sign −1 at the canonical
@@ -47,7 +47,12 @@ functions. This is acceptable because GA notebook code lives in cells.
 
 - Notebook boilerplate drops from N lines to one:
   `locals().update(alg.locals(grades=[1, 2], symbolic=True))`
-- Dict keys follow the blade convention: `e1`, `e12`, `y0y1`, `s1`, etc.
-  Renaming a blade changes the key in subsequent `locals()` calls.
+- Dict keys are valid local variable names derived from the blade convention's
+  basis-vector names, but they do not follow display style. For example,
+  `blades=b_default(prefix="v", style="wedge")` renders `v₁∧v₂` while
+  `locals()` exposes it as `v12`.
+- Explicit safe aliases such as `I`, `B`, or `s1` remain local keys. Generated
+  display names containing separators such as `^` are compacted, and unsafe
+  aliases are sanitized.
 - `basis_blades(k)` parameter is named `k` to match the standard GA
   variable for grade and the existing `grade(x, k)` function.

@@ -38,6 +38,8 @@ Representation choices
 
 from __future__ import annotations
 
+import keyword
+
 import numpy as np
 
 
@@ -85,6 +87,72 @@ def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
     if lazy is not None:
         return lazy
     return False
+
+
+def _is_python_local_name(name: str) -> bool:
+    """Return True if name is a safe ASCII Python local variable name."""
+    return name.isascii() and name.isidentifier() and not keyword.iskeyword(name)
+
+
+def _sanitize_python_local_name(name: str) -> str:
+    """Sanitize display-oriented ASCII names into Python local variable names."""
+    chars = [ch if ch.isascii() and (ch.isalnum() or ch == "_") else "_" for ch in name]
+    sanitized = "".join(chars).strip("_")
+    if not sanitized:
+        sanitized = "blade"
+    if sanitized[0].isdigit():
+        sanitized = f"_{sanitized}"
+    if keyword.iskeyword(sanitized):
+        sanitized = f"_{sanitized}"
+    return sanitized
+
+
+def _common_prefix(strings: list[str]) -> str:
+    if not strings:
+        return ""
+    prefix = strings[0]
+    for s in strings[1:]:
+        while not s.startswith(prefix):
+            prefix = prefix[:-1]
+            if not prefix:
+                return ""
+    return prefix
+
+
+def _raw_compact_name(parts: list[str]) -> str:
+    """Match BladeConvention compact ASCII derivation for generated names."""
+    if len(parts) == 1:
+        return parts[0]
+    prefix = _common_prefix(parts)
+    if prefix:
+        return f"{prefix}{''.join(part[len(prefix) :] for part in parts)}"
+    return "".join(parts)
+
+
+def _split_trailing_digits(name: str) -> tuple[str, str]:
+    split = len(name)
+    while split > 0 and name[split - 1].isdigit():
+        split -= 1
+    return name[:split], name[split:]
+
+
+def _compact_local_name(parts: list[str]) -> str:
+    """Derive a compact Python local name from vector local names.
+
+    Display styles such as wedge or juxtapose should not leak into notebook
+    variables. `v1 ∧ v2` therefore becomes local name `v12`, not `v1^v2`.
+    """
+    safe_parts = [_sanitize_python_local_name(part) for part in parts]
+    if len(safe_parts) == 1:
+        return safe_parts[0]
+
+    split_parts = [_split_trailing_digits(part) for part in safe_parts]
+    prefixes = {prefix for prefix, suffix in split_parts if suffix}
+    if len(prefixes) == 1 and all(suffix for _, suffix in split_parts):
+        prefix = split_parts[0][0]
+        return _sanitize_python_local_name(f"{prefix}{''.join(suffix for _, suffix in split_parts)}")
+
+    return _sanitize_python_local_name("".join(safe_parts))
 
 
 class Algebra:
@@ -329,11 +397,13 @@ class Algebra:
     def locals(
         self, *, grades: list[int] | None = None, lazy: bool | None = None, symbolic: bool | None = None
     ) -> dict[str, Multivector]:
-        """Return a dict of all basis blades keyed by ASCII name.
+        """Return a dict of all basis blades keyed by Python-safe local name.
 
         Designed for ``locals().update(alg.locals())`` in notebooks and
-        top-level scripts. Keys are valid Python identifiers derived from
-        the blade convention (e.g. ``e1``, ``e12``, ``y0y1``, ``s1``).
+        top-level scripts. Keys are compact Python identifiers derived from
+        the basis-vector names and are independent of display style. For
+        example, wedge-rendered ``v1 ^ v2`` is exposed as local ``v12``.
+        Explicit safe aliases such as ``I``, ``B``, or ``s1`` are preserved.
 
         Args:
             grades: If given, only include these grades. E.g. ``[1, 2]``.
@@ -358,8 +428,25 @@ class Algebra:
             mv._is_symbolic = is_symbolic
             mv._grade = bin(idx).count("1")
             mv._is_basis = True
-            result[bb.ascii_name] = mv
+            result[self._local_name_for_blade(idx)] = mv
         return result
+
+    def _local_name_for_blade(self, idx: int) -> str:
+        bb = self._blades[idx]
+        bits = [k for k in range(self._n) if idx & (1 << k)]
+        vector_parts = [self._blades[1 << bit].ascii_name for bit in bits]
+        generated_names = {
+            _raw_compact_name(vector_parts),
+            "".join(vector_parts),
+            "^".join(vector_parts),
+        }
+
+        if bb.ascii_name not in generated_names:
+            if _is_python_local_name(bb.ascii_name):
+                return bb.ascii_name
+            return _sanitize_python_local_name(bb.ascii_name)
+
+        return _compact_local_name(vector_parts)
 
     def pseudoscalar(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""

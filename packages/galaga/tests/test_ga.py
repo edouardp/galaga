@@ -6,6 +6,7 @@ import pytest
 from galaga import (
     Algebra,
     Multivector,
+    b_default,
     b_gamma,
     b_sta,
     conjugate,
@@ -235,7 +236,7 @@ class TestAlgebra:
         assert e12._is_symbolic
 
     def test_locals_all(self, cl3):
-        """locals() returns all non-scalar blades keyed by ASCII name."""
+        """locals() returns all non-scalar blades keyed by Python local name."""
         d = cl3.locals()
         assert set(d.keys()) == {"e1", "e2", "e3", "e12", "e13", "e23", "e123"}
         assert d["e12"].data[3] == 1.0
@@ -251,10 +252,45 @@ class TestAlgebra:
         assert d["e1"]._is_symbolic
 
     def test_locals_gamma_convention(self):
-        """locals() uses ASCII names from the blade convention."""
+        """locals() uses compact Python names derived from the blade convention."""
         alg = Algebra(1, 3, blades=b_gamma())
         d = alg.locals(grades=[1])
         assert set(d.keys()) == {"y0", "y1", "y2", "y3"}
+
+    def test_locals_wedge_display_uses_compact_python_keys(self):
+        """locals() keys are Python names, not blade-rendering names."""
+        alg = Algebra(3, blades=b_default(prefix="v", style="wedge", overrides={"pss": "I"}))
+        d = alg.locals()
+
+        assert list(d.keys()) == ["v1", "v2", "v12", "v3", "v13", "v23", "I"]
+        assert all(name.isidentifier() for name in d)
+        assert str(d["v12"]) == "v₁∧v₂"
+        assert str(d["I"]) == "I"
+
+    def test_locals_juxtapose_display_uses_compact_python_keys(self):
+        """Juxtapose rendering should not produce local names like e1e2."""
+        alg = Algebra(3, blades=b_default(style="juxtapose"))
+        d = alg.locals()
+
+        assert "e12" in d
+        assert "e1e2" not in d
+        assert str(d["e12"]) == "e₁e₂"
+
+    def test_locals_preserves_safe_explicit_aliases(self):
+        """Safe explicit blade aliases are still useful local names."""
+        alg = Algebra(3, blades=b_default(overrides={"+1+2": "B", "pss": "I"}))
+        d = alg.locals()
+
+        assert "B" in d
+        assert "I" in d
+
+    def test_locals_sanitizes_keyword_aliases(self):
+        """Explicit aliases that are Python keywords are made importable."""
+        alg = Algebra(3, blades=b_default(overrides={"+1+2": "class"}))
+        d = alg.locals()
+
+        assert "_class" in d
+        assert "class" not in d
 
     def test_locals_respects_blade_sign(self):
         """locals() applies BasisBlade.sign so σ₁ = γ₁γ₀ has correct coefficient."""

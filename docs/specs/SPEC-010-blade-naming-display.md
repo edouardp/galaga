@@ -85,6 +85,12 @@ If an override references a vector that doesn't exist (e.g. `"+3"` in a 2D algeb
 
 LaTeX rendering reads from `BasisBlade.latex_name` as before — no changes to `latex_build.py`.
 
+`Algebra.locals()` is intentionally not a direct rendering surface. It returns
+compact Python-safe variable names for notebook injection. Display choices such
+as `"wedge"` still render blades as `v₁∧v₂`, but `locals()` exposes the same
+blade as `v12` so `locals().update(alg.locals())` produces usable Python
+variables. Explicit safe aliases such as `I`, `B`, or `s1` are preserved.
+
 ## Blade Styles
 
 ```python
