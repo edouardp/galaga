@@ -1011,3 +1011,73 @@ class TestSignConsistency:
                 f"sig={sig}, blade={bb.unicode_name}, bitmask={bitmask:04b}: "
                 f"product coeff={result.data[bitmask]}, stored sign={bb.sign}"
             )
+
+
+class TestSubscriptsParameter:
+    """BladeConvention(subscripts=) generates proper blade names."""
+
+    def test_compact_latex(self):
+        """Compact style: subscripts produce e_{xy}, e_{xz}, e_{yz}."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"]))
+        assert alg._blades[0b001].latex_name == "e_{x}"
+        assert alg._blades[0b010].latex_name == "e_{y}"
+        assert alg._blades[0b011].latex_name == "e_{xy}"
+        assert alg._blades[0b101].latex_name == "e_{xz}"
+        assert alg._blades[0b110].latex_name == "e_{yz}"
+        assert alg._blades[0b111].latex_name == "e_{xyz}"
+
+    def test_compact_ascii(self):
+        """Compact style: ASCII names are prefix+subscripts concatenated."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"]))
+        assert alg._blades[0b001].ascii_name == "ex"
+        assert alg._blades[0b011].ascii_name == "exy"
+        assert alg._blades[0b111].ascii_name == "exyz"
+
+    def test_wedge_latex(self):
+        """Wedge style: bivectors use \\wedge between full vector names."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"], style="wedge"))
+        assert alg._blades[0b011].latex_name == r"e_{x} \wedge e_{y}"
+        assert alg._blades[0b101].latex_name == r"e_{x} \wedge e_{z}"
+
+    def test_juxtapose_latex(self):
+        """Juxtapose style: bivectors are space-separated vector names."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"], style="juxtapose"))
+        assert alg._blades[0b011].latex_name == "e_{x} e_{y}"
+
+    def test_gamma_prefix(self):
+        """Works with gamma prefix."""
+        alg = Algebra(4, blades=BladeConvention(prefix="γ", subscripts=["t", "x", "y", "z"]))
+        assert alg._blades[0b0001].latex_name == r"\gamma_{t}"
+        assert alg._blades[0b0011].latex_name == r"\gamma_{tx}"
+
+    def test_pss_override(self):
+        """PSS override works with subscripts."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"], overrides={"pss": "I"}))
+        assert alg._blades[0b111].ascii_name == "I"
+        assert alg._blades[0b111].latex_name == "I"
+
+    def test_subscripts_priority_over_vector_names(self):
+        """subscripts takes priority if both are set."""
+        alg = Algebra(
+            3,
+            blades=BladeConvention(
+                prefix="e",
+                subscripts=["x", "y", "z"],
+                vector_names=["a", "b", "c"],  # ignored
+            ),
+        )
+        assert alg._blades[0b001].latex_name == "e_{x}"
+
+    def test_too_few_subscripts_raises(self):
+        """Too few subscripts raises ValueError."""
+        with pytest.raises(ValueError, match="subscripts"):
+            Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y"]))
+
+    def test_computation_unaffected(self):
+        """Naming doesn't affect algebra computation."""
+        alg = Algebra(3, blades=BladeConvention(prefix="e", subscripts=["x", "y", "z"]))
+        e = alg.basis_vectors()
+        # e_x * e_x = 1 (Euclidean)
+        assert np.isclose((e[0] * e[0]).scalar_part, 1.0)
+        # e_x * e_y = -e_y * e_x
+        assert np.allclose((e[0] * e[1]).data, -(e[1] * e[0]).data)
