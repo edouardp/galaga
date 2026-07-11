@@ -303,19 +303,28 @@ def _product_sign(indices: list[int], signature: tuple) -> tuple[int, int]:
 def b_default(
     *,
     prefix: str = "e",
+    subscripts: str | list | tuple | None = None,
     start: int = 1,
     style: str = "compact",
     pss: str | tuple | None = None,
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """Default: e₁, e₂, … (1-based, compact)."""
+    """Default: e₁, e₂, … (1-based, compact).
+
+    With subscripts="xyz", produces e_x, e_y, e_z and
+    bivectors e_{xy}, e_{xz}, e_{yz} in compact style.
+    """
     merged = {}
     if pss is not None:
         merged["pss"] = pss
     if overrides:
         merged.update(overrides)
+    # Accept a string as shorthand: "xyz" → ["x", "y", "z"]
+    if isinstance(subscripts, str):
+        subscripts = list(subscripts)
     return BladeConvention(
         prefix=prefix,
+        subscripts=subscripts,
         index_base=start,
         style=style,
         overrides=merged or None,
