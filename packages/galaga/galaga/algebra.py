@@ -1840,6 +1840,35 @@ def antidot_product(a: Multivector, b: Multivector) -> Multivector:
     return Multivector(a.algebra, out)
 
 
+def right_hodge_dual(x: Multivector) -> Multivector:
+    """Right Hodge dual: complement of the metric-applied multivector.
+
+    Defined as: right_hodge_dual(A) = right_complement(metric_apply(A))
+
+    In non-degenerate algebras, this equals gp(reverse(A), I).
+    In degenerate algebras (PGA), this still works where dual() would raise.
+
+    Satisfies the Hodge identity for same-grade blades A, B:
+        op(A, right_hodge_dual(B)) == metric_inner_product(A, B) * I
+
+    This is the Lengyel/RGA "bulk dual" (black star superscript).
+    """
+    return complement(metric_apply(x))
+
+
+def left_hodge_dual(x: Multivector) -> Multivector:
+    """Left Hodge dual: left complement of the metric-applied multivector.
+
+    Defined as: left_hodge_dual(A) = left_complement(metric_apply(A))
+
+    Satisfies the left-sided Hodge identity for same-grade blades A, B:
+        op(left_hodge_dual(A), B) == metric_inner_product(A, B) * I
+
+    This is the Lengyel/RGA left bulk dual (black star subscript).
+    """
+    return uncomplement(metric_apply(x))
+
+
 @ga_op("commutator", arity=2)
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""

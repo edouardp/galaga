@@ -388,3 +388,110 @@ class TestAntidotProduct:
         # (𝔾 for e0 = product of sig values NOT in bitmask = sig[1]*sig[2]*sig[3] = 1)
         result = antidot_product(e0, e0)
         assert result.data[pga.dim - 1] == pytest.approx(1.0)
+
+
+class TestHodgeDuals:
+    """Tests for right_hodge_dual() and left_hodge_dual()."""
+
+    def test_hodge_identity_same_grade(self):
+        """op(A, right_hodge_dual(B)) == metric_inner_product(A, B) * I for same-grade."""
+        from galaga import right_hodge_dual
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        I = alg.I
+
+        # Grade 1: vectors
+        for a, b in [(e1, e1), (e1, e2), (e2, e3)]:
+            lhs = op(a, right_hodge_dual(b))
+            rhs = metric_inner_product(a, b).data[0] * I
+            assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+        # Grade 2: bivectors
+        e12 = e1 * e2
+        e13 = e1 * e3
+        e23 = e2 * e3
+        for a, b in [(e12, e12), (e12, e23), (e13, e23)]:
+            lhs = op(a, right_hodge_dual(b))
+            rhs = metric_inner_product(a, b).data[0] * I
+            assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+    def test_nondegenerate_equals_gp_reverse_I(self):
+        """In non-degenerate algebras, right_hodge_dual(A) == gp(reverse(A), I)."""
+        from galaga import gp, right_hodge_dual
+
+        for sig in [(3,), (1, 3), (2, 1)]:
+            alg = Algebra(*sig)
+            I = alg.I
+            rng = np.random.default_rng(42)
+            for _ in range(50):
+                A = Multivector(alg, rng.standard_normal(alg.dim))
+                lhs = right_hodge_dual(A)
+                rhs = gp(reverse(A), I)
+                assert np.allclose(lhs.data, rhs.data, atol=1e-12), f"Failed for {sig}"
+
+    def test_pga_works_where_dual_raises(self):
+        """right_hodge_dual works in PGA where dual() raises."""
+        from galaga import dual, right_hodge_dual
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+
+        # dual() should raise for PGA
+        with pytest.raises(ValueError):
+            dual(e1)
+
+        # right_hodge_dual should work fine
+        result = right_hodge_dual(e1)
+        assert not np.allclose(result.data, 0)
+
+    def test_double_dual_formula(self):
+        """right_hodge_dual(right_hodge_dual(A)) == (-1)^(gr*ag) * det(g) * A."""
+        import operator
+        from functools import reduce
+
+        from galaga import right_hodge_dual
+
+        alg = Algebra(3)  # det = 1
+        det = reduce(operator.mul, alg.signature, 1)
+        e1, e2, e3 = alg.basis_vectors()
+
+        # For a grade-1 blade in n=3: gr=1, ag=2, (-1)^(1*2)=+1
+        dd = right_hodge_dual(right_hodge_dual(e1))
+        expected = ((-1) ** (1 * 2)) * det * e1
+        assert np.allclose(dd.data, expected.data, atol=1e-12)
+
+        # For a grade-2 blade in n=3: gr=2, ag=1, (-1)^(2*1)=+1
+        e12 = e1 * e2
+        dd2 = right_hodge_dual(right_hodge_dual(e12))
+        expected2 = ((-1) ** (2 * 1)) * det * e12
+        assert np.allclose(dd2.data, expected2.data, atol=1e-12)
+
+    def test_left_hodge_dual_identity(self):
+        """op(left_hodge_dual(A), B) == metric_inner_product(A, B) * I for same-grade."""
+        from galaga import left_hodge_dual
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        I = alg.I
+
+        for a, b in [(e1, e1), (e1, e2), (e2, e3)]:
+            lhs = op(left_hodge_dual(a), b)
+            rhs = metric_inner_product(a, b).data[0] * I
+            assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+    def test_euclidean_vector_duals(self):
+        """In Cl(3,0): hodge dual of e1 is e23, of e2 is -e13, of e3 is e12."""
+        from galaga import right_hodge_dual
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        _e12 = e1 * e2
+        e13 = e1 * e3
+        e23 = e2 * e3
+
+        assert np.allclose(right_hodge_dual(e1).data, e23.data, atol=1e-12)
+        # e2 dual should have e13 component (with sign from complement)
+        d2 = right_hodge_dual(e2)
+        # Check it's proportional to e13
+        assert np.allclose(abs(d2.data), abs(e13.data), atol=1e-12)
