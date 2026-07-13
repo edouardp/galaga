@@ -83,6 +83,7 @@ helps future contributors understand why certain choices were made.
 | [068](068-recognize-known-mvs.md) | Recognize Known Multivectors in Display | Accepted |
 | [069](069-quaternion-bivector-assignment.md) | Quaternion Bivector Assignment | Accepted |
 | [070](070-pedagogical-convention-explicit-scope.md) | Pedagogical and Convention-Explicit Scope | Accepted |
+| [071](071-exterior-algebra-convention-layer.md) | Terathon/RGA Exterior-Algebra Convention Layer | Accepted |
 
 ## Creating New ADRs
 

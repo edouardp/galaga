@@ -37,8 +37,8 @@ is zero.
 ### Left and Right Complement
 
 Galaga's existing `complement()` is the **right complement** — defined by
-`e_S ∧ complement(e_S) = ε · I`. The **left complement** is defined by
-`left_complement(e_S) ∧ e_S = ε' · I`.
+`e_S ∧ complement(e_S) = I`. The **left complement** is defined by
+`left_complement(e_S) ∧ e_S = I`.
 
 The relationship: `left_complement = uncomplement`. This is because
 `complement(complement(x)) = (-1)^(k(n-k)) · x` (i.e., the right complement
@@ -68,7 +68,8 @@ where the right side produces a grade-n result via complement of a scalar.
 
 - Right Hodge dual: `right_hodge_dual(u) = complement(G · u)`
 - Left Hodge dual: `left_hodge_dual(u) = left_complement(G · u)`
-- Non-degenerate identity: `right_hodge_dual(u) = gp(reverse(u), I)`
+- Geometric-product identity for supported diagonal metrics, including PGA:
+  `right_hodge_dual(u) = gp(reverse(u), I)`
 - Hodge identity: `a ∧ right_hodge_dual(b) = metric_inner_product(a, b) · I`
   for same-grade a, b
 - Double-dual: `right_hodge_dual(right_hodge_dual(u)) = (-1)^(gr·ag) · det(metric) · u`
@@ -87,6 +88,8 @@ the antiwedge sign audit.
 
 ### Task 0: Write ADR-071 (Exterior-Algebra Convention Layer)
 
+Status: **DONE**
+
 Write `docs/adrs/071-exterior-algebra-convention-layer.md` documenting:
 
 - Decision to add Terathon/RGA operations as a parallel convention layer
@@ -94,17 +97,22 @@ Write `docs/adrs/071-exterior-algebra-convention-layer.md` documenting:
   existing operations
 - Complement semantics: `left_complement = uncomplement`
 - Antidot returns antiscalar (grade-n), not scalar
-- Notation.lengyel() renders conjugation as A^‡, not overline
-- Each new operation must register via `@ga_op` with grade propagation
+- Notation.lengyel() renders conjugation functionally, never as overline
+- Each implementation must register via `@ga_op` with grade propagation;
+  aliases reuse their underlying registered operation
 
 ### Task 1: `extended_metric_matrix()` and `metric_inner_product()`
 
-**Status: DONE**
+Status: **DONE**
 
 Added `Algebra.extended_metric_matrix()` and `metric_inner_product(A, B)`.
 Verified identity with `scalar_product(A, reverse(B))`.
+The returned cached matrix is read-only, and `metric_inner_product` participates
+in symbolic dispatch through `@ga_op`.
 
 ### Task 2: `left_complement()` and `right_complement()` alias
+
+Status: **DONE**
 
 **Objective:** Both complement directions explicitly named.
 
@@ -115,17 +123,20 @@ Verified identity with `scalar_product(A, reverse(B))`.
   Verify: `complement(complement(x)) = (-1)^(k(n-k)) · x`, so the left
   complement undoes this sign.
 - `right_complement = complement` (alias)
-- Register with `@ga_op` for symbolic support and grade propagation
+- Both aliases reuse the existing registered complement operations, including
+  their symbolic support and grade propagation
 
 **Tests:**
 
 - `left_complement(complement(A)) == A` for all A (this IS the defining identity)
 - `complement(left_complement(A)) == A` for all A
-- `left_complement(e_S) ∧ e_S == ε · I` with correct sign per blade
+- `left_complement(e_S) ∧ e_S == I` for every basis blade
 - For mixed multivectors: apply grade-by-grade and verify linearity
 - Random MVs in Cl(3,0), Cl(1,3), Cl(3,0,1)
 
 ### Task 3: Antimetric operations
+
+Status: **DONE**
 
 **Objective:** The antimetric and operations derived from it.
 
@@ -147,6 +158,8 @@ Verified identity with `scalar_product(A, reverse(B))`.
 
 ### Task 4: `right_hodge_dual()` and `left_hodge_dual()`
 
+Status: **DONE**
+
 **Objective:** Metric-aware duals composing metric application with complement.
 
 **Implementation:**
@@ -159,12 +172,15 @@ Verified identity with `scalar_product(A, reverse(B))`.
 
 - Hodge identity: `op(A, right_hodge_dual(B)) == metric_inner_product(A,B) * I`
   for same-grade A, B
-- Non-degenerate: `right_hodge_dual(A) == gp(reverse(A), alg.I)`
+- All supported diagonal metrics, including PGA:
+  `right_hodge_dual(A) == gp(reverse(A), alg.I)`
 - PGA: works where `dual()` raises
 - Double-dual: `right_hodge_dual(right_hodge_dual(A)) == (-1)^(gr*ag) * det(g) * A`
   (note: uses right_hodge_dual, NOT the existing dual())
 
 ### Task 5: Audit `antiwedge` vs `regressive_product` sign convention
+
+Status: **DONE** — the operations are identical, so `antiwedge` is an alias.
 
 **Objective:** Determine if signs match and add `antiwedge()`.
 
@@ -174,10 +190,9 @@ Verified identity with `scalar_product(A, reverse(B))`.
   (i.e., uses left_complement as the outer operation, right complement on operands)
 - RGA antiwedge: `antiwedge(A,B) = complement(op(left_complement(A), left_complement(B)))`
   (i.e., uses right complement as outer, left complement on operands)
-- These are De Morgan duals of each other — compare exhaustively on all basis
-  blade pairs in Cl(3,0) and Cl(3,0,1)
-- If signs match: `antiwedge = regressive_product` (alias)
-- If signs differ: implement separately with explicit sign documentation
+- The two formulas are algebraically equivalent with Galaga's inverse
+  left/right complements; exhaustive basis tests confirm the signs
+- `antiwedge = regressive_product` (alias)
 
 **Tests:**
 
@@ -186,6 +201,8 @@ Verified identity with `scalar_product(A, reverse(B))`.
 - Document any sign differences in a table
 
 ### Task 6: `antireverse()` and `geometric_antiproduct()`
+
+Status: **DONE**
 
 **Objective:** Anti operations.
 
@@ -201,7 +218,9 @@ Verified identity with `scalar_product(A, reverse(B))`.
 - De Morgan relationship with GP
 - PGA sandwich formula: `Q ⟇ x ⟇ antireverse(Q)`
 
-### Task 7: `transwedge(A, B, k)` and deferred operations
+### Task 7: Transwedge and RGA interior-product families
+
+Status: **DONE**
 
 **Objective:** Product family decomposing GP.
 
@@ -212,24 +231,26 @@ Verified identity with `scalar_product(A, reverse(B))`.
 - Mark as experimental
 - Register via `@ga_op` (requires parameterized grade propagation:
   result grade = gr(A) + gr(B) - 2k)
-
-**Deferred to a later iteration:**
-
-- `transwedge_antiproduct(A, B, k)` — requires parameterized expression nodes
-- `left_interior_product(A, B)` — built from Hodge duals + antiwedge
-- `right_interior_product(A, B)` — built from Hodge duals + antiwedge
-
-These are explicitly deferred, not dropped. They require parameterized infix
-expression nodes which are a rendering infrastructure change.
+- `transwedge_antiproduct(A, B, k)` is the De Morgan dual of `transwedge`
+- `left_interior_product(A, B) = left_hodge_dual(A) ∨ B`
+- `right_interior_product(A, B) = A ∨ right_hodge_dual(B)`
+- Parameterized expression nodes preserve `k` through symbolic evaluation and
+  render as `⩓ₖ` and `⩔ₖ` in Lengyel notation
 
 **Tests:**
 
 - `transwedge(A, B, 0) == op(A, B)`
-- Signed sum reconstructs `gp(A, B)` for random MVs
+- Signed sum reconstructs `gp(A, B)` exhaustively on basis-blade pairs across
+  Euclidean, indefinite, and degenerate signatures
 - For vectors: `transwedge(a, b, 1) == metric_inner_product(a, b)`
 - Zero when k > gr(A) or k > gr(B)
+- Signed transwedge-antiproduct sum reconstructs `geometric_antiproduct`
+- Same-grade left/right interior products equal `metric_inner_product`
+- Vector geometric-product decompositions verify left/right operand order
 
 ### Task 8: Bulk/weight parts and weight duals
+
+Status: **DONE**
 
 **Objective:** PGA decomposition.
 
@@ -249,6 +270,8 @@ expression nodes which are a rendering infrastructure change.
 
 ### Task 9: `Notation.lengyel()` and `b_rga()` blade convention
 
+Status: **DONE**
+
 **Objective:** Rendering preset.
 
 **Implementation for Notation.lengyel():**
@@ -256,15 +279,16 @@ expression nodes which are a rendering infrastructure change.
 - GP → ⟑, antiproduct → ⟇
 - Right complement → overline, left complement → underline
 - Hodge dual → A^★, weight dual → A^☆
-- Clifford conjugation → A^‡ (double dagger) — NOT overline
+- Clifford conjugation → explicit `conjugate(A)` — the reviewed RGA sources do
+  not assign it a compact symbol, and overline belongs to right complement
 - Reverse → tilde, antireverse → tilde-below
 
 **Implementation for b_rga():**
 
-- Algebra(3, 0, 1) stores null vector first (bit 0). The RGA convention wants
-  e₄ to be null. Therefore b_rga() must:
-  - Use `vector_names` to explicitly map: bit 0 → e₄, bits 1,2,3 → e₁,e₂,e₃
-  - Or equivalently, use subscripts with reordering
+- Use `Algebra((1, 1, 1, 0), blades=b_rga())`. The explicit signature preserves
+  both RGA's e₁,e₂,e₃,e₄ order and the e₁∧e₂∧e₃∧e₄ antiscalar orientation.
+  `Algebra(3,0,1)` remains intentionally null-first and is not remapped by a
+  display-only blade convention.
 - Cyclic bivector order via `display_order`: e₂₃, e₃₁, e₁₂, e₄₁, e₄₂, e₄₃
 - Trivector order: e₄₂₃, e₄₃₁, e₄₁₂, e₃₂₁
 - Antiscalar displayed as 𝟙
@@ -273,50 +297,51 @@ expression nodes which are a rendering infrastructure change.
 
 **Tests:**
 
-- `b_rga()` applied to Algebra(3,0,1): verify e₄² = 0 (null)
+- `b_rga()` applied to `Algebra((1,1,1,0))`: verify e₄² = 0 (null)
 - All displayed blades derivable from wedge products with correct signs
 - Display order matches Lengyel's basis table
 - Rendering snapshot tests
 
 ### Task 10: Documentation — conventions comparison
 
+Status: **DONE** — see `docs/rga-convention-layer.md`.
+
 **Objective:** A docs page explaining the relationship between GA and RGA
 operations: where they agree, where they disagree, when to use which.
 
 ## Dependency Graph
 
-```
-Task 0 (ADR-071)
+    Task 0 (ADR-071)
 
-Task 1 (metric G, metric_inner_product) [DONE]
-  ├── Task 3 (antimetric, antidot, metric_apply)
-  │     ├── Task 8 (bulk/weight parts and weight duals)
-  │     └── Task 4 (Hodge duals) ← also needs Task 2
-  ├── Task 7 (transwedge) ← also needs Tasks 2, 4, 5
-  └── Task 4 (Hodge duals)
+    Task 1 (metric G, metric_inner_product) [DONE]
+      ├── Task 3 (antimetric, antidot, metric_apply)
+      │     ├── Task 8 (bulk/weight parts and weight duals)
+      │     └── Task 4 (Hodge duals) ← also needs Task 2
+      ├── Task 7 (transwedge) ← also needs Tasks 2, 4, 5
+      └── Task 4 (Hodge duals)
 
-Task 2 (left_complement = uncomplement alias)
-  ├── Task 3 (antidot De Morgan test)
-  ├── Task 5 (antiwedge audit)
-  ├── Task 6 (antiproduct)
-  └── Task 7 (transwedge)
+    Task 2 (left_complement = uncomplement alias)
+      ├── Task 3 (antidot De Morgan test)
+      ├── Task 5 (antiwedge audit)
+      ├── Task 6 (antiproduct)
+      └── Task 7 (transwedge)
 
-Task 5 (antiwedge)
-  └── Task 7 (transwedge uses ∨)
+    Task 5 (antiwedge)
+      └── Task 7 (transwedge uses ∨)
 
-Task 6 (antireverse, antiproduct)
-  └── Task 8 (weight dual identity test)
+    Task 6 (antireverse, antiproduct)
+      └── Task 8 (weight dual identity test)
 
-Tasks 1–8 → Task 9 (notation preset)
-Tasks 1–9 → Task 10 (documentation)
-```
+    Tasks 1–8 → Task 9 (notation preset)
+    Tasks 1–9 → Task 10 (documentation)
 
 ## Symbolic Operation Contract
 
 Every new operation MUST follow Galaga's operation registry contract
 (ADR-065):
 
-1. Register with `@ga_op(name, arity, grade=...)` for grade propagation
+1. Register with `@ga_op(name, arity, grade=...)` for grade propagation, or be
+   a true alias of an operation that already does
 2. Export from `galaga/__init__.py` and add to `__all__`
 3. Handle symbolic inputs: if any operand is symbolic, build an expression
    tree node rather than computing eagerly
@@ -324,10 +349,8 @@ Every new operation MUST follow Galaga's operation registry contract
    notation fallback)
 5. Add symbolic round-trip tests (symbolic → eval → compare with numeric)
 
-For Task 1 (already done), `metric_inner_product` is a plain function without
-`@ga_op` because it always returns a scalar. This is acceptable — scalar-valued
-functions don't need expression trees. But operations that return multivectors
-of non-trivial grade (Tasks 2–8) must use `@ga_op`.
+Scalar-valued functions are included in this contract too: a symbolic dot
+product must remain symbolic even though its evaluated result has grade zero.
 
 ## Actions to Avoid
 

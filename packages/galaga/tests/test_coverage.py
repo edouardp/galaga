@@ -307,7 +307,7 @@ class TestArchitecturalInvariants:
         """GA_OPS has the expected number of operations."""
         from galaga.ops import GA_OPS
 
-        assert len(GA_OPS) == 29, f"Expected 29 GA ops, got {len(GA_OPS)}: {sorted(GA_OPS.keys())}"
+        assert len(GA_OPS) == 45, f"Expected 45 GA ops, got {len(GA_OPS)}: {sorted(GA_OPS.keys())}"
 
     def test_handler_map_covers_ga_ops(self):
         """Every GA op is in the handler map (subset check)."""

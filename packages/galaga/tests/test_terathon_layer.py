@@ -71,6 +71,12 @@ class TestExtendedMetricMatrix:
         G2 = alg.extended_metric_matrix()
         assert G1 is G2
 
+    def test_cached_matrix_is_read_only(self):
+        """Callers cannot mutate the cached algebra-level metric."""
+        G = Algebra(3).extended_metric_matrix()
+        with pytest.raises(ValueError, match="read-only"):
+            G[0, 0] = 2
+
 
 class TestMetricInnerProduct:
     """Tests for metric_inner_product()."""
@@ -289,6 +295,12 @@ class TestMetricAntiexomorphismMatrix:
         G2 = alg.metric_antiexomorphism_matrix()
         assert G1 is G2
 
+    def test_cached_matrix_is_read_only(self):
+        """Callers cannot mutate the cached algebra-level antimetric."""
+        Gbar = Algebra(3).metric_antiexomorphism_matrix()
+        with pytest.raises(ValueError, match="read-only"):
+            Gbar[0, 0] = 2
+
 
 class TestMetricApplyAntimetricApply:
     """Tests for metric_apply() and antimetric_apply()."""
@@ -491,10 +503,7 @@ class TestHodgeDuals:
         e23 = e2 * e3
 
         assert np.allclose(right_hodge_dual(e1).data, e23.data, atol=1e-12)
-        # e2 dual should have e13 component (with sign from complement)
-        d2 = right_hodge_dual(e2)
-        # Check it's proportional to e13
-        assert np.allclose(abs(d2.data), abs(e13.data), atol=1e-12)
+        assert np.allclose(right_hodge_dual(e2).data, -e13.data, atol=1e-12)
 
 
 class TestAntiwedge:
@@ -702,14 +711,14 @@ class TestTranswedge:
         tw = transwedge(e1, e2, 2)
         assert np.allclose(tw.data, 0, atol=1e-12)
 
-    def test_negative_k_is_zero(self):
-        """transwedge(A, B, k) == 0 for negative k."""
+    def test_negative_k_raises(self):
+        """A transwedge order is a non-negative integer."""
         from galaga import transwedge
 
         alg = Algebra(3)
         e1, _, _ = alg.basis_vectors()
-        tw = transwedge(e1, e1, -1)
-        assert np.allclose(tw.data, 0)
+        with pytest.raises(ValueError, match="non-negative"):
+            transwedge(e1, e1, -1)
 
     def test_pga_signed_sum(self):
         """Signed sum reconstructs GP even in degenerate PGA."""

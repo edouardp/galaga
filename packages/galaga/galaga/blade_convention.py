@@ -430,6 +430,81 @@ def b_pga(
     )
 
 
+def b_rga(*, overrides: dict | None = None) -> BladeConvention:
+    """Lengyel's 4D rigid-geometric-algebra basis convention.
+
+    Use with ``Algebra((1, 1, 1, 0), blades=b_rga())``. The explicit signature
+    is intentional: RGA orders the positive vectors as e₁,e₂,e₃ and the null
+    projective vector as e₄, while Galaga's ``Algebra(3, 0, 1)`` convenience
+    constructor places null vectors first.
+
+    Noncanonical names such as e₃₁ and e₄₁ carry the signs of their displayed
+    wedge factorizations. The display order follows the RGA basis table.
+    """
+    names = [
+        ("e1", "e₁", r"\mathbf{e}_{1}"),
+        ("e2", "e₂", r"\mathbf{e}_{2}"),
+        ("e3", "e₃", r"\mathbf{e}_{3}"),
+        ("e4", "e₄", r"\mathbf{e}_{4}"),
+    ]
+    named = {
+        (1, 2): _named_blade(("e23", "e₂₃", r"\mathbf{e}_{23}"), [1, 2]),
+        (0, 2): _named_blade(("e31", "e₃₁", r"\mathbf{e}_{31}"), [2, 0]),
+        (0, 1): _named_blade(("e12", "e₁₂", r"\mathbf{e}_{12}"), [0, 1]),
+        (0, 3): _named_blade(("e41", "e₄₁", r"\mathbf{e}_{41}"), [3, 0]),
+        (1, 3): _named_blade(("e42", "e₄₂", r"\mathbf{e}_{42}"), [3, 1]),
+        (2, 3): _named_blade(("e43", "e₄₃", r"\mathbf{e}_{43}"), [3, 2]),
+        (1, 2, 3): _named_blade(("e423", "e₄₂₃", r"\mathbf{e}_{423}"), [3, 1, 2]),
+        (0, 2, 3): _named_blade(("e431", "e₄₃₁", r"\mathbf{e}_{431}"), [3, 2, 0]),
+        (0, 1, 3): _named_blade(("e412", "e₄₁₂", r"\mathbf{e}_{412}"), [3, 0, 1]),
+        (0, 1, 2): _named_blade(("e321", "e₃₂₁", r"\mathbf{e}_{321}"), [2, 1, 0]),
+        "pss": _named_blade(("I", "𝟙", r"\unicode{x1D7D9}"), [0, 1, 2, 3]),
+    }
+    if overrides:
+        named.update(overrides)
+    hints = {
+        0b0001: "e1",
+        0b0010: "e2",
+        0b0100: "e3",
+        0b1000: "e4",
+        0b0110: "e23",
+        0b0101: "e31",
+        0b0011: "e12",
+        0b1001: "e41",
+        0b1010: "e42",
+        0b1100: "e43",
+        0b1110: "e423",
+        0b1101: "e431",
+        0b1011: "e412",
+        0b0111: "e321",
+        0b1111: "I",
+    }
+    return BladeConvention(
+        vector_names=names,
+        style="compact",
+        overrides=named,
+        display_order=(
+            0b0000,
+            0b0001,
+            0b0010,
+            0b0100,
+            0b1000,
+            0b0110,
+            0b0101,
+            0b0011,
+            0b1001,
+            0b1010,
+            0b1100,
+            0b1110,
+            0b1101,
+            0b1011,
+            0b0111,
+            0b1111,
+        ),
+        variable_hints=hints,
+    )
+
+
 def b_sta(
     *,
     style: str = "juxtapose",

@@ -22,7 +22,7 @@ class OpInfo:
 
     name: str
     func: Callable  # the raw numeric implementation
-    arity: int  # 1 or 2
+    arity: int  # Number of positional arguments, including scalar parameters
     grade_rule: Callable | None = None
 
 
@@ -83,9 +83,12 @@ def ga_op(name: str, arity: int, grade: Callable | None = None):
 
     Args:
         name: Registry key (should match the function name).
-        arity: 1 (unary) or 2 (binary).
-        grade: Grade propagation rule (optional). For unary: f(grade, n) -> grade|None.
-               For binary: f(grade_a, grade_b, n) -> grade|None.
+        arity: Number of positional arguments. Most operations are unary or
+               binary; parameterized products such as ``transwedge(a, b, k)``
+               have arity 3.
+        grade: Grade propagation rule (optional). The wrapper passes the known
+               grades of all multivector arguments, followed by any non-MV
+               parameters, followed by the algebra dimension ``n``.
     """
 
     def decorator(func):
@@ -113,8 +116,8 @@ def ga_op(name: str, arity: int, grade: Callable | None = None):
                 handler = _SYMBOLIC_HANDLERS.get(name)
                 if handler:
                     first_mv = next(a for a in args if isinstance(a, Multivector))
-                    exprs = [a._to_expr() for a in args if isinstance(a, Multivector)]
-                    result = first_mv._symbolic_result(result.data, handler(*exprs))
+                    expr_args = [a._to_expr() if isinstance(a, Multivector) else a for a in args]
+                    result = first_mv._symbolic_result(result.data, handler(*expr_args))
             else:
                 result = func(*args)
 
@@ -124,10 +127,8 @@ def ga_op(name: str, arity: int, grade: Callable | None = None):
                 grades = [a._grade for a in mv_args]
                 if all(g is not None for g in grades):
                     n = mv_args[0].algebra.n
-                    if arity == 1:
-                        result._grade = grade(grades[0], n)
-                    elif arity == 2 and len(grades) == 2:
-                        result._grade = grade(grades[0], grades[1], n)
+                    params = [a for a in args if not isinstance(a, Multivector)]
+                    result._grade = grade(*grades, *params, n)
 
             return result
 
