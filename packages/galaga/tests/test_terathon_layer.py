@@ -495,3 +495,55 @@ class TestHodgeDuals:
         d2 = right_hodge_dual(e2)
         # Check it's proportional to e13
         assert np.allclose(abs(d2.data), abs(e13.data), atol=1e-12)
+
+
+class TestAntiwedge:
+    """Tests for antiwedge() sign convention audit."""
+
+    def test_antiwedge_is_regressive_product(self):
+        """antiwedge is an alias for regressive_product."""
+        from galaga import antiwedge, regressive_product
+
+        assert antiwedge is regressive_product
+
+    def test_antiwedge_matches_rga_definition(self):
+        """antiwedge(A,B) == complement(op(left_complement(A), left_complement(B)))."""
+        from galaga import antiwedge, complement, left_complement
+
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            rng = np.random.default_rng(42)
+            for _ in range(50):
+                a = Multivector(alg, rng.standard_normal(alg.dim))
+                b = Multivector(alg, rng.standard_normal(alg.dim))
+                lhs = antiwedge(a, b)
+                rhs = complement(op(left_complement(a), left_complement(b)))
+                assert np.allclose(lhs.data, rhs.data, atol=1e-12), f"Failed for {sig}"
+
+    def test_antiwedge_exhaustive_basis_cl3(self):
+        """Exhaustive check on all basis blade pairs in Cl(3,0)."""
+        from galaga import antiwedge, complement, left_complement
+
+        alg = Algebra(3)
+        for i in range(1, alg.dim):
+            for j in range(1, alg.dim):
+                a = Multivector(alg, np.eye(alg.dim)[i])
+                b = Multivector(alg, np.eye(alg.dim)[j])
+                lhs = antiwedge(a, b)
+                rhs = complement(op(left_complement(a), left_complement(b)))
+                assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+    def test_antiwedge_pga_meet(self):
+        """In PGA, antiwedge of two points (trivectors) gives a line (bivector)."""
+        from galaga import antiwedge
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        # Points in PGA are grade-3 (trivectors): p = e_i ^ e_j ^ e_k
+        # Point at origin: e1^e2^e3
+        p1 = e1 * e2 * e3  # point at origin
+        p2 = e0 * e1 * e2  # a different point
+        # Regressive of two grade-3 in n=4: result grade = 3+3-4 = 2 (a line)
+        line = antiwedge(p1, p2)
+        # Should be a grade-2 (bivector = line in PGA), non-zero
+        assert not np.allclose(line.data, 0)

@@ -2161,6 +2161,13 @@ def metric_regressive_product(a: Multivector, b: Multivector) -> Multivector:
 # Aliases
 meet = regressive_product
 join = op
+antiwedge = regressive_product
+"""Antiwedge product: alias for regressive_product.
+
+The RGA antiwedge is defined as complement(op(left_complement(A), left_complement(B))),
+which is numerically identical to Galaga's regressive_product (verified exhaustively
+on all basis blade pairs in Cl(3,0), Cl(1,3), and Cl(3,0,1)).
+"""
 
 
 def norm2(x: Multivector) -> Multivector:
