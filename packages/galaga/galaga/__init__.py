@@ -60,6 +60,7 @@ from .algebra import (
     antimetric_apply,
     antireverse,
     antiwedge,
+    bulk_part,
     commutator,
     complement,
     conjugate,
@@ -93,6 +94,7 @@ from .algebra import (
     left_complement,
     left_contraction,
     left_hodge_dual,
+    left_weight_dual,
     lie_bracket,
     log,
     mag2,
@@ -123,6 +125,7 @@ from .algebra import (
     right_complement,
     right_contraction,
     right_hodge_dual,
+    right_weight_dual,
     sandwich,
     scalar_product,
     scalar_sqrt,
@@ -134,6 +137,7 @@ from .algebra import (
     undual,
     unit,
     wedge,
+    weight_part,
 )
 from .basis_blade import BasisBlade
 from .blade_convention import (
@@ -186,6 +190,10 @@ __all__ = [
     "transwedge",
     "right_hodge_dual",
     "left_hodge_dual",
+    "bulk_part",
+    "weight_part",
+    "right_weight_dual",
+    "left_weight_dual",
     "commutator",
     "anticommutator",
     "lie_bracket",

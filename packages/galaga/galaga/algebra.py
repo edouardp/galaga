@@ -1869,6 +1869,50 @@ def left_hodge_dual(x: Multivector) -> Multivector:
     return uncomplement(metric_apply(x))
 
 
+def bulk_part(x: Multivector) -> Multivector:
+    """Bulk part of a multivector: the metric projection.
+
+    Computes G·x where G is the metric exomorphism matrix. In PGA, this
+    zeroes blades containing the null vector, extracting the "bulk"
+    (Euclidean/metric) content.
+
+    Alias for metric_apply(). This is the Lengyel/RGA bulk (●) notation.
+    """
+    return metric_apply(x)
+
+
+def weight_part(x: Multivector) -> Multivector:
+    """Weight part of a multivector: the antimetric projection.
+
+    Computes 𝔾·x where 𝔾 is the metric antiexomorphism matrix. In PGA, this
+    zeroes blades NOT containing the null vector, extracting the "weight"
+    (projective/ideal) content.
+
+    Alias for antimetric_apply(). This is the Lengyel/RGA weight (○) notation.
+    """
+    return antimetric_apply(x)
+
+
+def right_weight_dual(x: Multivector) -> Multivector:
+    """Right weight dual: complement of the antimetric-applied multivector.
+
+    Defined as: right_weight_dual(A) = right_complement(antimetric_apply(A))
+
+    This is the Lengyel/RGA "weight dual" or "antidual" (white star superscript ☆).
+    """
+    return complement(antimetric_apply(x))
+
+
+def left_weight_dual(x: Multivector) -> Multivector:
+    """Left weight dual: left complement of the antimetric-applied multivector.
+
+    Defined as: left_weight_dual(A) = left_complement(antimetric_apply(A))
+
+    This is the Lengyel/RGA left weight dual (white star subscript ☆).
+    """
+    return uncomplement(antimetric_apply(x))
+
+
 @ga_op("commutator", arity=2)
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""

@@ -728,3 +728,85 @@ class TestTranswedge:
                 total += sign * tw.data
             expected = gp(a, b)
             assert np.allclose(total, expected.data, atol=1e-10), "PGA signed sum != gp"
+
+
+class TestBulkWeightDuals:
+    """Tests for bulk_part, weight_part, right_weight_dual, left_weight_dual."""
+
+    def test_bulk_part_is_metric_apply(self):
+        """bulk_part is an alias for metric_apply."""
+        from galaga import bulk_part, metric_apply
+
+        alg = Algebra(3, 0, 1)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(bulk_part(A).data, metric_apply(A).data)
+
+    def test_weight_part_is_antimetric_apply(self):
+        """weight_part is an alias for antimetric_apply."""
+        from galaga import antimetric_apply, weight_part
+
+        alg = Algebra(3, 0, 1)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(weight_part(A).data, antimetric_apply(A).data)
+
+    def test_pga_bulk_zeroes_null_blades(self):
+        """In PGA, bulk_part zeroes blades containing the null vector."""
+        from galaga import bulk_part
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        assert np.allclose(bulk_part(e0).data, 0)
+        assert np.allclose(bulk_part(e1).data, e1.data)
+
+    def test_pga_weight_zeroes_non_null_blades(self):
+        """In PGA, weight_part zeroes blades NOT containing the null vector."""
+        from galaga import weight_part
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        assert not np.allclose(weight_part(e0).data, 0)
+        assert np.allclose(weight_part(e1).data, 0)
+
+    def test_right_weight_dual_definition(self):
+        """right_weight_dual(A) == complement(antimetric_apply(A))."""
+        from galaga import antimetric_apply, complement, right_weight_dual
+
+        alg = Algebra(3, 0, 1)
+        rng = np.random.default_rng(42)
+        for _ in range(20):
+            A = Multivector(alg, rng.standard_normal(alg.dim))
+            lhs = right_weight_dual(A)
+            rhs = complement(antimetric_apply(A))
+            assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+    def test_left_weight_dual_definition(self):
+        """left_weight_dual(A) == left_complement(antimetric_apply(A))."""
+        from galaga import antimetric_apply, left_complement, left_weight_dual
+
+        alg = Algebra(3, 0, 1)
+        rng = np.random.default_rng(42)
+        for _ in range(20):
+            A = Multivector(alg, rng.standard_normal(alg.dim))
+            lhs = left_weight_dual(A)
+            rhs = left_complement(antimetric_apply(A))
+            assert np.allclose(lhs.data, rhs.data, atol=1e-12)
+
+    def test_euclidean_bulk_is_identity(self):
+        """In Euclidean Cl(3,0), bulk_part is the identity (all G entries are 1)."""
+        from galaga import bulk_part
+
+        alg = Algebra(3)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(bulk_part(A).data, A.data)
+
+    def test_euclidean_weight_is_identity(self):
+        """In Euclidean Cl(3,0), weight_part is also identity (all G-bar entries are 1)."""
+        from galaga import weight_part
+
+        alg = Algebra(3)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(weight_part(A).data, A.data)
