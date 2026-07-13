@@ -89,7 +89,13 @@ LaTeX rendering reads from `BasisBlade.latex_name` as before — no changes to `
 compact Python-safe variable names for notebook injection. Display choices such
 as `"wedge"` still render blades as `v₁∧v₂`, but `locals()` exposes the same
 blade as `v12` so `locals().update(alg.locals())` produces usable Python
-variables. Explicit safe aliases such as `I`, `B`, or `s1` are preserved.
+variables. Display overrides (e.g. σ₁ for STA bivectors) do not affect
+`locals()` keys — only `variable_hints` on the convention provide idiomatic
+names for specific blades (e.g. pseudoscalar → `"I"`).
+For gamma conventions, the default local names are `g0`, `g1`, etc. (γ → `g`);
+users who prefer the visual resemblance of `y` to γ can call
+`locals(prefix="y")`. The `pss=` parameter names the pseudoscalar at call
+time: `locals(pss="I")` gives the pseudoscalar the key `"I"`.
 
 ## Blade Styles
 
@@ -407,12 +413,12 @@ Each factory generates three name variants (ascii, unicode, latex) per basis vec
 | `b_default(prefix="e", start=1)` | `e1, e2, e3` | `e₁, e₂, e₃` | `e_{1}, e_{2}, e_{3}` |
 | `b_default(start=0)` | `e0, e1, e2` | `e₀, e₁, e₂` | `e_{0}, e_{1}, e_{2}` |
 | `b_default(prefix="v")` | `v1, v2, v3` | `v₁, v₂, v₃` | `v_{1}, v_{2}, v_{3}` |
-| `b_gamma(start=0)` | `y0, y1, y2, y3` | `γ₀, γ₁, γ₂, γ₃` | `\gamma_{0}, \gamma_{1}, …` |
-| `b_gamma(start=1)` | `y1, y2, y3, y4` | `γ₁, γ₂, γ₃, γ₄` | `\gamma_{1}, \gamma_{2}, …` |
+| `b_gamma(start=0)` | `g0, g1, g2, g3` | `γ₀, γ₁, γ₂, γ₃` | `\gamma_{0}, \gamma_{1}, …` |
+| `b_gamma(start=1)` | `g1, g2, g3, g4` | `γ₁, γ₂, γ₃, γ₄` | `\gamma_{1}, \gamma_{2}, …` |
 | `b_sigma(start=1)` | `s1, s2, s3` | `σ₁, σ₂, σ₃` | `\sigma_{1}, \sigma_{2}, …` |
 | `b_sigma_xyz()` | `x, y, z` | `σₓ, σᵧ, σ_z` | `\sigma_x, \sigma_y, \sigma_z` |
 | `b_pga()` | `e0, e1, e2, …` | `e₀, e₁, e₂, …` | `e_{0}, e_{1}, e_{2}, …` |
-| `b_sta()` | `y0, y1, y2, y3` | `γ₀, γ₁, γ₂, γ₃` | `\gamma_{0}, …, \gamma_{3}` |
+| `b_sta()` | `g0, g1, g2, g3` | `γ₀, γ₁, γ₂, γ₃` | `\gamma_{0}, …, \gamma_{3}` |
 | `b_cga(euclidean=3)` | `e1, e2, e3, eo, ei` | `e₁, e₂, e₃, eₒ, e∞` | `e_{1}, …, e_{o}, e_{\infty}` |
 | `b_cga(null_basis="plus_minus")` | `e1, e2, e3, ep, em` | `e₁, e₂, e₃, e₊, e₋` | `e_{1}, …, e_{+}, e_{-}` |
 

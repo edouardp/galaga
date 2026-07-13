@@ -30,10 +30,11 @@ Add two methods to `Algebra`:
    basis blades in canonical bitmask order. Mirrors `basis_vectors()` for
    arbitrary grades.
 
-2. **`locals(*, grades=None, symbolic=False)`** — returns a `dict[str, Multivector]`
-   of all non-scalar basis blades, keyed by compact Python-safe local names.
-   Designed for `locals().update(alg.locals())` in notebook cells and
-   top-level scripts.
+2. **`locals(*, grades=None, symbolic=False, prefix=None)`** — returns a
+   `dict[str, Multivector]` of all non-scalar basis blades, keyed by compact
+   Python-safe local names. Designed for `locals().update(alg.locals())` in
+   notebook cells and top-level scripts. `prefix` optionally overrides the
+   generated Python-local prefix without changing blade rendering.
 
 Both methods apply `BasisBlade.sign` so that signed conventions (e.g.
 `b_sta(sigmas=True)` where σ₁ = γ₁γ₀ has sign −1 at the canonical
@@ -51,8 +52,15 @@ functions. This is acceptable because GA notebook code lives in cells.
   basis-vector names, but they do not follow display style. For example,
   `blades=b_default(prefix="v", style="wedge")` renders `v₁∧v₂` while
   `locals()` exposes it as `v12`.
-- Explicit safe aliases such as `I`, `B`, or `s1` remain local keys. Generated
-  display names containing separators such as `^` are compacted, and unsafe
-  aliases are sanitized.
+- Gamma conventions render as `γ₀`, `γ₁`, etc. and default to Python keys
+  `g0`, `g1`, etc. (the ASCII mapping γ → `g`). Users who prefer the visual
+  resemblance of `y` to γ can call `locals(prefix="y")`.
+- Display overrides (e.g. σ₁ for STA bivectors) do NOT affect `locals()` keys.
+  All blades without a `variable_hint` use `prefix` + canonical subscript.
+- `variable_hints` on the convention declare idiomatic names for specific
+  blades (e.g. pseudoscalar → `"I"`, quaternion bivectors → `"i"`, `"j"`,
+  `"k"`). These are respected by `locals()` and override the prefix pattern.
+- `locals(pss="I")` is syntactic sugar for the most common variable hint
+  override — naming the pseudoscalar at call time.
 - `basis_blades(k)` parameter is named `k` to match the standard GA
   variable for grade and the existing `grade(x, k)` function.
