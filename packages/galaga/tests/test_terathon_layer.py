@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from galaga import Algebra, metric_inner_product, reverse, scalar_product
+from galaga import Algebra, metric_inner_product, op, reverse, scalar_product
 from galaga.algebra import Multivector
 
 
@@ -158,3 +158,76 @@ class TestMetricInnerProduct:
         b = Multivector(alg2, np.ones(alg2.dim))
         with pytest.raises((ValueError, TypeError)):
             metric_inner_product(a, b)
+
+
+class TestLeftComplement:
+    """Tests for left_complement() and right_complement() aliases."""
+
+    def test_left_complement_is_uncomplement(self):
+        """left_complement is numerically identical to uncomplement."""
+        from galaga import left_complement, uncomplement
+
+        alg = Algebra(3)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(left_complement(A).data, uncomplement(A).data)
+
+    def test_right_complement_is_complement(self):
+        """right_complement is the same as complement."""
+        from galaga import complement, right_complement
+
+        alg = Algebra(1, 3)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        assert np.allclose(right_complement(A).data, complement(A).data)
+
+    def test_round_trip_left_right(self):
+        """left_complement(right_complement(A)) == A."""
+        from galaga import left_complement, right_complement
+
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            rng = np.random.default_rng(77)
+            A = Multivector(alg, rng.standard_normal(alg.dim))
+            rt = left_complement(right_complement(A))
+            assert np.allclose(rt.data, A.data), f"Failed for {sig}"
+
+    def test_round_trip_right_left(self):
+        """right_complement(left_complement(A)) == A."""
+        from galaga import left_complement, right_complement
+
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            rng = np.random.default_rng(88)
+            A = Multivector(alg, rng.standard_normal(alg.dim))
+            rt = right_complement(left_complement(A))
+            assert np.allclose(rt.data, A.data), f"Failed for {sig}"
+
+    def test_left_complement_wedge_identity(self):
+        """left_complement(e_S) ∧ e_S = +I for all basis blades."""
+        from galaga import left_complement
+
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            for blade_idx in range(1, alg.dim):
+                data = np.zeros(alg.dim)
+                data[blade_idx] = 1.0
+                blade = Multivector(alg, data)
+                lc = left_complement(blade)
+                product = op(lc, blade)
+                # Should equal +1 * I
+                assert product.data[alg.dim - 1] == pytest.approx(1.0), (
+                    f"Failed for sig={sig}, bitmask={blade_idx:0{alg.n}b}"
+                )
+
+    def test_left_complement_random_mvs(self):
+        """Round-trip works for random multivectors in multiple algebras."""
+        from galaga import complement, left_complement
+
+        rng = np.random.default_rng(123)
+        for sig in [(2,), (3,), (1, 3), (3, 0, 1), (4, 1)]:
+            alg = Algebra(*sig)
+            for _ in range(50):
+                A = Multivector(alg, rng.standard_normal(alg.dim))
+                rt = left_complement(complement(A))
+                assert np.allclose(rt.data, A.data, atol=1e-12), f"Failed for {sig}"

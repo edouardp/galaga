@@ -2010,6 +2010,21 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+# Explicit left/right complement aliases (Lengyel/RGA convention layer)
+left_complement = uncomplement
+"""Left complement: the inverse of the right complement.
+
+Defined by ``left_complement(e_S) ∧ e_S = I`` for every basis blade e_S.
+Numerically identical to ``uncomplement()``.
+"""
+
+right_complement = complement
+"""Right complement: alias for ``complement()``.
+
+Defined by ``e_S ∧ right_complement(e_S) = ε · I`` for every basis blade e_S.
+"""
+
+
 @ga_op("regressive_product", arity=2, grade=lambda r, s, n: r + s - n if r + s >= n else None)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
