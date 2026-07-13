@@ -132,7 +132,7 @@ class TestNamingPresets:
     def test_blade_lookup_custom_names(self):
         """blade() works with gamma convention via display name."""
         sta = Algebra((1, -1, -1, -1), blades=b_gamma())
-        b = sta.blade("y0y1")  # ascii name match
+        b = sta.blade("g0g1")  # ascii name match
         e0, e1, _, _ = sta.basis_vectors()
         assert b == e0 ^ e1
 

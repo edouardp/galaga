@@ -255,11 +255,59 @@ class TestAlgebra:
         """locals() uses compact Python names derived from the blade convention."""
         alg = Algebra(1, 3, blades=b_gamma())
         d = alg.locals(grades=[1])
-        assert set(d.keys()) == {"y0", "y1", "y2", "y3"}
+        assert set(d.keys()) == {"g0", "g1", "g2", "g3"}
+
+    def test_locals_gamma_prefix_override(self):
+        """locals(prefix=...) overrides generated Python names, not rendering."""
+        alg = Algebra(1, 3, blades=b_gamma())
+        d = alg.locals(grades=[1, 2], prefix="g")
+
+        assert {"g0", "g1", "g2", "g3"}.issubset(d)
+        assert "g01" in d
+        assert "y0" not in d
+        assert str(d["g0"]) == "γ₀"
+        assert str(d["g01"]) == "γ₀γ₁"
+
+    def test_locals_prefix_override_applies_uniformly(self):
+        """prefix= applies to all blades without variable hints, including those with display overrides."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True))
+        d = alg.locals(prefix="g")
+
+        # All blades use the g prefix uniformly (display overrides like σ don't affect locals)
+        assert {"g0", "g1", "g2", "g3"}.issubset(d)
+        assert "g01" in d  # was σ₁ in display, but local is g01
+        assert "s1" not in d  # display override does NOT leak into locals
+        assert "y0" not in d
+        # PSS comes from variable_hint on b_sta()
+        assert "i" in d
+
+    def test_locals_empty_prefix_override_uses_suffixes(self):
+        """An empty prefix is valid for named-axis notebook variables."""
+        alg = Algebra(3, blades=b_default(subscripts="xyz"))
+        d = alg.locals(prefix="")
+
+        assert list(d.keys()) == ["x", "y", "xy", "z", "xz", "yz", "xyz"]
+
+    def test_locals_prefix_must_be_string(self):
+        """locals(prefix=...) is a Python-local prefix, not an arbitrary label."""
+        alg = Algebra(1, 3, blades=b_sta(sigmas=True))
+
+        with pytest.raises(TypeError, match="prefix must be a string or None"):
+            alg.locals(grades=[2], prefix=123)
 
     def test_locals_wedge_display_uses_compact_python_keys(self):
         """locals() keys are Python names, not blade-rendering names."""
-        alg = Algebra(3, blades=b_default(prefix="v", style="wedge", overrides={"pss": "I"}))
+        from galaga.blade_convention import BladeConvention
+
+        alg = Algebra(
+            3,
+            blades=BladeConvention(
+                prefix="v",
+                style="wedge",
+                overrides={"pss": "I"},
+                variable_hints={"pss": "I"},
+            ),
+        )
         d = alg.locals()
 
         assert list(d.keys()) == ["v1", "v2", "v12", "v3", "v13", "v23", "I"]
@@ -277,29 +325,41 @@ class TestAlgebra:
         assert str(d["e12"]) == "e₁e₂"
 
     def test_locals_preserves_safe_explicit_aliases(self):
-        """Safe explicit blade aliases are still useful local names."""
-        alg = Algebra(3, blades=b_default(overrides={"+1+2": "B", "pss": "I"}))
+        """Variable hints provide idiomatic local names independent of display."""
+        from galaga.blade_convention import BladeConvention
+
+        alg = Algebra(
+            3,
+            blades=BladeConvention(
+                overrides={"+1+2": "B", "pss": "I"},
+                variable_hints={"+1+2": "B", "pss": "I"},
+            ),
+        )
         d = alg.locals()
 
         assert "B" in d
         assert "I" in d
 
-    def test_locals_sanitizes_keyword_aliases(self):
-        """Explicit aliases that are Python keywords are made importable."""
+    def test_locals_display_overrides_dont_affect_keys(self):
+        """Display overrides no longer leak into locals() keys."""
         alg = Algebra(3, blades=b_default(overrides={"+1+2": "class"}))
         d = alg.locals()
 
-        assert "_class" in d
+        # Display override "class" does NOT become a local key
+        assert "_class" not in d
         assert "class" not in d
+        # Instead the blade gets its prefix+subscript name
+        assert "e12" in d
 
     def test_locals_respects_blade_sign(self):
         """locals() applies BasisBlade.sign so σ₁ = γ₁γ₀ has correct coefficient."""
         alg = Algebra(1, 3, blades=b_sta(sigmas=True))
         g0, g1, g2, g3 = alg.basis_vectors()
         d = alg.locals(grades=[2])
-        assert d["s1"] == g1 * g0  # σ₁ = γ₁γ₀
-        assert d["s2"] == g2 * g0
-        assert d["s3"] == g3 * g0
+        # Blade at bitmask 0b0011 (γ₀∧γ₁) has sign from σ₁ = γ₁γ₀ convention
+        assert d["g01"] == g1 * g0  # σ₁ = γ₁γ₀
+        assert d["g02"] == g2 * g0
+        assert d["g03"] == g3 * g0
 
     def test_basis_blades_respects_blade_sign(self):
         """basis_blades() applies BasisBlade.sign for signed conventions."""

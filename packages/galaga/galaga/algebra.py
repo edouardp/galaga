@@ -107,6 +107,15 @@ def _sanitize_python_local_name(name: str) -> str:
     return sanitized
 
 
+def _sanitize_python_local_prefix(prefix: str) -> str:
+    """Sanitize a user-provided local-name prefix without forcing non-empty."""
+    chars = [ch if ch.isascii() and (ch.isalnum() or ch == "_") else "_" for ch in prefix]
+    sanitized = "".join(chars).strip("_")
+    if sanitized and sanitized[0].isdigit():
+        sanitized = f"_{sanitized}"
+    return sanitized
+
+
 def _common_prefix(strings: list[str]) -> str:
     if not strings:
         return ""
@@ -161,6 +170,25 @@ def _compact_local_name(parts: list[str]) -> str:
         return _sanitize_python_local_name(f"{prefix}{''.join(suffixes)}")
 
     return _sanitize_python_local_name("".join(safe_parts))
+
+
+def _apply_local_prefix(vector_parts: list[str], prefix: str | None) -> list[str]:
+    """Replace the generated vector-name prefix used by locals().
+
+    `γ0`, `γ1` are represented internally as ASCII `y0`, `y1`; passing
+    `prefix="g"` should therefore produce `g0`, `g1`, not `gy0`, `gy1`.
+    """
+    if prefix is None:
+        return vector_parts
+
+    safe_prefix = _sanitize_python_local_prefix(prefix)
+    safe_parts = [_sanitize_python_local_name(part) for part in vector_parts]
+    common = _common_prefix(safe_parts)
+    if common and all(len(part) > len(common) for part in safe_parts):
+        suffixes = [part[len(common) :] for part in safe_parts]
+    else:
+        suffixes = safe_parts
+    return [f"{safe_prefix}{suffix}" for suffix in suffixes]
 
 
 class Algebra:
@@ -403,7 +431,13 @@ class Algebra:
         return tuple(blades)
 
     def locals(
-        self, *, grades: list[int] | None = None, lazy: bool | None = None, symbolic: bool | None = None
+        self,
+        *,
+        grades: list[int] | None = None,
+        lazy: bool | None = None,
+        symbolic: bool | None = None,
+        prefix: str | None = None,
+        pss: str | None = None,
     ) -> dict[str, Multivector]:
         """Return a dict of all basis blades keyed by Python-safe local name.
 
@@ -411,19 +445,37 @@ class Algebra:
         top-level scripts. Keys are compact Python identifiers derived from
         the basis-vector names and are independent of display style. For
         example, wedge-rendered ``v1 ^ v2`` is exposed as local ``v12``.
-        Explicit safe aliases such as ``I``, ``B``, or ``s1`` are preserved.
+
+        Variable hints (from the convention's ``variable_hints`` or the
+        ``pss`` parameter) provide idiomatic names for specific blades
+        (e.g. pseudoscalar → ``"I"``). All other blades get ``prefix`` +
+        canonical subscript.
 
         Args:
             grades: If given, only include these grades. E.g. ``[1, 2]``.
             lazy: Deprecated alias for symbolic.
             symbolic: If True, blades are symbolic (build expression trees).
+            prefix: Optional Python-local prefix for generated names. Applied
+                uniformly to all blades that don't have a variable hint.
+                When not specified, the convention's display prefix is mapped
+                to ASCII (e.g. γ → g, σ → s, e → e).
+            pss: Optional name for the pseudoscalar blade. Syntactic sugar
+                for the most common variable hint. Overrides the convention's
+                variable_hints for the pseudoscalar if both are present.
 
         Example::
 
             locals().update(alg.locals())          # all blades
             locals().update(alg.locals(grades=[1, 2]))  # vectors + bivectors
+            locals().update(alg.locals(pss="I"))   # name the pseudoscalar "I"
         """
         is_symbolic = _resolve_symbolic(lazy, symbolic)
+        if prefix is not None and not isinstance(prefix, str):
+            raise TypeError(f"prefix must be a string or None, got {type(prefix).__name__}")
+
+        # Resolve variable hints: convention hints + call-site pss override
+        resolved_hints = self._resolve_variable_hints(pss=pss)
+
         result = {}
         for idx, bb in self._blades.items():
             if idx == 0:
@@ -436,25 +488,45 @@ class Algebra:
             mv._is_symbolic = is_symbolic
             mv._grade = bin(idx).count("1")
             mv._is_basis = True
-            result[self._local_name_for_blade(idx)] = mv
+            result[self._local_name_for_blade(idx, prefix=prefix, hints=resolved_hints)] = mv
         return result
 
-    def _local_name_for_blade(self, idx: int) -> str:
-        bb = self._blades[idx]
+    def _resolve_variable_hints(self, *, pss: str | None = None) -> dict[int, str]:
+        """Resolve variable_hints from convention to a bitmask→name dict.
+
+        Also applies the call-site pss= override.
+        """
+        resolved = {}
+        conv = self._blades_convention
+        if conv.variable_hints:
+            for key, name in conv.variable_hints.items():
+                if isinstance(key, int):
+                    resolved[key] = name
+                elif isinstance(key, tuple):
+                    bitmask = 0
+                    for bit_idx in key:
+                        bitmask |= 1 << bit_idx
+                    resolved[bitmask] = name
+                else:
+                    bitmask = _resolve_metric_role_key(key, self._sig)
+                    resolved[bitmask] = name
+        # pss= at call site overrides convention hint for the pseudoscalar
+        if pss is not None:
+            pss_bitmask = self._dim - 1
+            resolved[pss_bitmask] = pss
+        return resolved
+
+    def _local_name_for_blade(self, idx: int, *, prefix: str | None = None, hints: dict[int, str] | None = None) -> str:
+        # Check variable hints first — they always win
+        if hints and idx in hints:
+            return hints[idx]
+
+        # Fall back to prefix + compact subscript for all blades
         bits = [k for k in range(self._n) if idx & (1 << k)]
-        vector_parts = [self._blades[1 << bit].ascii_name for bit in bits]
-        generated_names = {
-            _raw_compact_name(vector_parts),
-            "".join(vector_parts),
-            "^".join(vector_parts),
-        }
+        all_vector_parts = [self._blades[1 << bit].ascii_name for bit in range(self._n)]
 
-        if bb.ascii_name not in generated_names:
-            if _is_python_local_name(bb.ascii_name):
-                return bb.ascii_name
-            return _sanitize_python_local_name(bb.ascii_name)
-
-        return _compact_local_name(vector_parts)
+        local_vector_parts = _apply_local_prefix(all_vector_parts, prefix)
+        return _compact_local_name([local_vector_parts[bit] for bit in bits])
 
     def pseudoscalar(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> Multivector:
         """Return the unit pseudoscalar I (𝑰)."""

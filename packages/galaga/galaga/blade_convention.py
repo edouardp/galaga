@@ -38,9 +38,15 @@ class BladeConvention:
             and bivectors e_{xy}, e_{xz}, e_{yz}. Takes priority over
             vector_names if both are set.
         style: How multi-vector blades are derived: "compact", "juxtapose", "wedge".
-        overrides: Per-blade name overrides using metric-role keys.
+        overrides: Per-blade name overrides using metric-role keys (display).
         index_base: Starting index for auto-generated names (0 or 1).
         prefix: Basis vector prefix for auto-generated names.
+        variable_hints: Per-blade preferred Python variable names for locals().
+            Maps blade keys (metric-role strings like "pss", "+1+2", or
+            bitmask tuples) to Python-safe variable name strings.
+            These are independent of display overrides — a blade can render
+            as σ₁ but have no variable hint (gets prefix+subscript), or
+            render as e₁₂₃ but have a variable hint of "I".
     """
 
     vector_names: tuple | list | None = None
@@ -50,6 +56,7 @@ class BladeConvention:
     index_base: int = 1
     prefix: str = "e"
     display_order: tuple | None = None
+    variable_hints: dict | None = None
 
 
 def _parse_name_value(val):
@@ -105,7 +112,7 @@ def _resolve_metric_role_key(key: str, signature: tuple) -> int:
 
 
 _PREFIX_MAP = {
-    "γ": ("y", "γ", r"\gamma"),
+    "γ": ("g", "γ", r"\gamma"),
     "σ": ("s", "σ", r"\sigma"),
 }
 
@@ -419,6 +426,7 @@ def b_pga(
         index_base=0,
         style=style,
         overrides=merged or None,
+        variable_hints={"pss": "I"},
     )
 
 
@@ -470,6 +478,7 @@ def b_sta(
         index_base=0,
         style=style,
         overrides=merged,
+        variable_hints={"pss": "i"},
     )
 
 
@@ -504,10 +513,20 @@ def b_cga(
     if overrides:
         merged.update(overrides)
 
+    # Variable hints for null basis vectors and PSS
+    hints = {"pss": "I"}
+    if null_basis == "origin_infinity":
+        hints[f"+{euclidean + 1}"] = "eo"
+        hints["-1"] = "ei"
+    elif null_basis == "plus_minus":
+        hints[f"+{euclidean + 1}"] = "ep"
+        hints["-1"] = "em"
+
     return BladeConvention(
         vector_names=names,
         style=style,
         overrides=merged,
+        variable_hints=hints,
     )
 
 
@@ -525,6 +544,7 @@ def b_complex(
         merged.update(overrides)
     return BladeConvention(
         overrides=merged,
+        variable_hints={"+1+2": "i"},
     )
 
 
@@ -559,4 +579,5 @@ def b_quaternion(
         vector_names=vector_names,
         overrides=merged,
         display_order=(0b000, 0b110, 0b101, 0b011, 0b001, 0b010, 0b100, 0b111),
+        variable_hints={"+2+3": "i", "+1+3": "j", "+1+2": "k"},
     )
