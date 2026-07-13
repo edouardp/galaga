@@ -231,3 +231,160 @@ class TestLeftComplement:
                 A = Multivector(alg, rng.standard_normal(alg.dim))
                 rt = left_complement(complement(A))
                 assert np.allclose(rt.data, A.data, atol=1e-12), f"Failed for {sig}"
+
+
+class TestMetricAntiexomorphismMatrix:
+    """Tests for Algebra.metric_antiexomorphism_matrix()."""
+
+    def test_g_times_gbar_equals_det_identity_nondegenerate(self):
+        """G · 𝔾 = det(metric) · I for non-degenerate algebras."""
+        import operator
+        from functools import reduce
+
+        for sig in [(3,), (1, 3), (2, 1)]:
+            alg = Algebra(*sig)
+            G = alg.extended_metric_matrix()
+            Gbar = alg.metric_antiexomorphism_matrix()
+            det = reduce(operator.mul, alg.signature, 1)
+            expected = det * np.eye(alg.dim)
+            assert np.allclose(G @ Gbar, expected), f"Failed for {sig}"
+
+    def test_g_times_gbar_zero_pga(self):
+        """G · 𝔾 = 0 for degenerate algebras (det=0)."""
+        pga = Algebra(3, 0, 1)
+        G = pga.extended_metric_matrix()
+        Gbar = pga.metric_antiexomorphism_matrix()
+        assert np.allclose(G @ Gbar, 0)
+
+    def test_pga_antimetric_nonzero(self):
+        """In PGA, 𝔾 is still individually meaningful even though G·𝔾=0."""
+        pga = Algebra(3, 0, 1)
+        Gbar = pga.metric_antiexomorphism_matrix()
+        # The pseudoscalar entry should be 1 (empty product over absent vectors)
+        assert Gbar[pga.dim - 1, pga.dim - 1] == 1.0
+        # Non-zero entries exist
+        assert np.any(np.diag(Gbar) != 0)
+
+    def test_scalar_entry_is_determinant(self):
+        """𝔾[0,0] = det(metric) = product of all signature values."""
+        import operator
+        from functools import reduce
+
+        alg = Algebra(1, 3)
+        det = reduce(operator.mul, alg.signature, 1)
+        Gbar = alg.metric_antiexomorphism_matrix()
+        assert Gbar[0, 0] == det
+
+    def test_pseudoscalar_entry_is_one(self):
+        """𝔾[full, full] = 1 (empty product over no absent vectors)."""
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            Gbar = alg.metric_antiexomorphism_matrix()
+            assert Gbar[alg.dim - 1, alg.dim - 1] == 1.0
+
+    def test_caching(self):
+        """Antimetric matrix is computed once and cached."""
+        alg = Algebra(3)
+        G1 = alg.metric_antiexomorphism_matrix()
+        G2 = alg.metric_antiexomorphism_matrix()
+        assert G1 is G2
+
+
+class TestMetricApplyAntimetricApply:
+    """Tests for metric_apply() and antimetric_apply()."""
+
+    def test_metric_apply_euclidean_identity(self):
+        """In Euclidean Cl(3,0), metric_apply is the identity (all G entries are 1)."""
+        from galaga import metric_apply
+
+        alg = Algebra(3)
+        rng = np.random.default_rng(42)
+        A = Multivector(alg, rng.standard_normal(alg.dim))
+        result = metric_apply(A)
+        assert np.allclose(result.data, A.data)
+
+    def test_metric_apply_pga_zeroes_null_blades(self):
+        """In PGA, metric_apply zeroes blades containing the null vector."""
+        from galaga import metric_apply
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        # e0 is null — metric_apply should zero it
+        assert np.allclose(metric_apply(e0).data, 0)
+        # e1 is not null — should be preserved
+        assert np.allclose(metric_apply(e1).data, e1.data)
+
+    def test_antimetric_apply_pga_zeroes_non_null_blades(self):
+        """In PGA, antimetric_apply zeroes blades NOT containing the null vector."""
+        from galaga import antimetric_apply
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        # e0 contains null vector — antimetric preserves
+        result = antimetric_apply(e0)
+        assert not np.allclose(result.data, 0)
+        # e1 does NOT contain null vector — zeroed
+        assert np.allclose(antimetric_apply(e1).data, 0)
+
+    def test_metric_apply_indefinite(self):
+        """In Cl(1,3), metric_apply scales by signature products."""
+        from galaga import metric_apply
+
+        sta = Algebra(1, 3)
+        g0, g1, g2, g3 = sta.basis_vectors()
+        # g0 has sig +1, g1 has sig -1
+        assert metric_apply(g0).data[1] == pytest.approx(1.0)  # bit 0
+        assert metric_apply(g1).data[2] == pytest.approx(-1.0)  # bit 1
+
+
+class TestAntidotProduct:
+    """Tests for antidot_product()."""
+
+    def test_returns_antiscalar(self):
+        """antidot_product returns a grade-n multivector."""
+        from galaga import antidot_product
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        result = antidot_product(e1, e1)
+        # Only the pseudoscalar component should be nonzero
+        assert result.data[alg.dim - 1] != 0 or np.allclose(result.data, 0)
+        # All non-PSS components must be zero
+        assert np.allclose(result.data[: alg.dim - 1], 0)
+
+    def test_de_morgan_identity(self):
+        """antidot(a, b) == complement(metric_inner_product(left_complement(a), left_complement(b)))."""
+        from galaga import antidot_product, complement, left_complement, metric_inner_product
+
+        for sig in [(3,), (1, 3)]:
+            alg = Algebra(*sig)
+            rng = np.random.default_rng(42)
+            for _ in range(50):
+                a = Multivector(alg, rng.standard_normal(alg.dim))
+                b = Multivector(alg, rng.standard_normal(alg.dim))
+                lhs = antidot_product(a, b)
+                rhs = complement(metric_inner_product(left_complement(a), left_complement(b)))
+                assert np.allclose(lhs.data, rhs.data, atol=1e-12), f"Failed for {sig}"
+
+    def test_euclidean_vectors(self):
+        """In Euclidean Cl(3,0), antidot of orthogonal vectors is 0."""
+        from galaga import antidot_product
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        # Orthogonal: antidot should be 0
+        assert np.allclose(antidot_product(e1, e2).data, 0)
+        # Self: should be nonzero antiscalar
+        result = antidot_product(e1, e1)
+        assert result.data[alg.dim - 1] != 0
+
+    def test_pga_weight_pairing(self):
+        """In PGA, antidot product pairs weight components."""
+        from galaga import antidot_product
+
+        pga = Algebra(3, 0, 1)
+        e0, e1, e2, e3 = pga.basis_vectors()
+        # e0 is null — its antimetric entry should be nonzero
+        # (𝔾 for e0 = product of sig values NOT in bitmask = sig[1]*sig[2]*sig[3] = 1)
+        result = antidot_product(e0, e0)
+        assert result.data[pga.dim - 1] == pytest.approx(1.0)

@@ -249,6 +249,7 @@ class Algebra:
         "_notation",
         "_display_mode",
         "_extended_metric",
+        "_antimetric",
     )
 
     def __init__(
@@ -287,6 +288,7 @@ class Algebra:
         self._repr_unicode = repr_unicode
         self._display_mode = display_repr
         self._extended_metric = None
+        self._antimetric = None
 
         # Resolve blade convention
         if blades is None:
@@ -407,6 +409,33 @@ class Algebra:
                 diag[idx] = val
             self._extended_metric = np.diag(diag)
         return self._extended_metric
+
+    def metric_antiexomorphism_matrix(self) -> np.ndarray:
+        """Return the 2ⁿ × 2ⁿ metric antiexomorphism matrix 𝔾.
+
+        𝔾 is a diagonal matrix where ``𝔾[bitmask, bitmask]`` is the product
+        of the metric signature values for each basis vector NOT present in
+        the blade. For example, in Cl(3,0,1) with signature (0,1,1,1):
+        ``𝔾[0b0011] = sig[2] * sig[3] = 1``.
+
+        The scalar entry 𝔾[0,0] = det(metric) (product of all signature values).
+        The pseudoscalar entry 𝔾[full, full] = 1 (empty product over absent vectors).
+
+        Satisfies: G · 𝔾 = det(metric) · I
+
+        For degenerate metrics (det=0), both G and 𝔾 are individually
+        meaningful even though their product is zero.
+        """
+        if self._antimetric is None:
+            diag = np.ones(self._dim)
+            for idx in range(self._dim):
+                val = 1.0
+                for k in range(self._n):
+                    if not (idx & (1 << k)):
+                        val *= self._sig[k]
+                diag[idx] = val
+            self._antimetric = np.diag(diag)
+        return self._antimetric
 
     def basis_vectors(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return the n basis 1-vectors (named + numeric by default).
@@ -1756,6 +1785,59 @@ def metric_inner_product(a: Multivector, b: Multivector) -> Multivector:
     G = a.algebra.extended_metric_matrix()
     val = a.data @ G @ b.data
     return a.algebra.scalar(float(val))
+
+
+def metric_apply(x: Multivector) -> Multivector:
+    """Apply the extended metric matrix G to a multivector.
+
+    Computes G·x where G is the metric exomorphism matrix. This scales each
+    blade by its metric factor (product of signature values for present vectors).
+
+    In non-degenerate algebras, metric_apply is invertible. In PGA, blades
+    containing the null vector are projected to zero — this extracts the
+    "bulk" part of a multivector.
+
+    This is the Lengyel/RGA bulk projection.
+    """
+    G = x.algebra.extended_metric_matrix()
+    return Multivector(x.algebra, G @ x.data)
+
+
+def antimetric_apply(x: Multivector) -> Multivector:
+    """Apply the metric antiexomorphism matrix 𝔾 to a multivector.
+
+    Computes 𝔾·x where 𝔾 is the antimetric matrix. This scales each blade
+    by the metric factor of its ABSENT vectors (product of signature values
+    for vectors NOT present in the blade).
+
+    In PGA, blades NOT containing the null vector are projected to zero —
+    this extracts the "weight" part of a multivector.
+
+    This is the Lengyel/RGA weight projection.
+    """
+    Gbar = x.algebra.metric_antiexomorphism_matrix()
+    return Multivector(x.algebra, Gbar @ x.data)
+
+
+def antidot_product(a: Multivector, b: Multivector) -> Multivector:
+    """Antidot product: the antimetric-induced pairing returning an antiscalar.
+
+    Computes (a^T 𝔾 b) · I where 𝔾 is the metric antiexomorphism matrix
+    and I is the pseudoscalar. The result is a grade-n multivector (antiscalar),
+    not a scalar.
+
+    Satisfies the De Morgan identity:
+        antidot_product(a, b) == complement(metric_inner_product(left_complement(a), left_complement(b)))
+
+    This is the Lengyel/RGA "antidot product" (circle operator).
+    """
+    a._check_same(b)
+    Gbar = a.algebra.metric_antiexomorphism_matrix()
+    val = a.data @ Gbar @ b.data
+    # Return as antiscalar (grade-n): coefficient * pseudoscalar
+    out = np.zeros(a.algebra.dim)
+    out[a.algebra.dim - 1] = val
+    return Multivector(a.algebra, out)
 
 
 @ga_op("commutator", arity=2)
