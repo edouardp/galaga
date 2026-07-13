@@ -248,6 +248,7 @@ class Algebra:
         "_display_order",
         "_notation",
         "_display_mode",
+        "_extended_metric",
     )
 
     def __init__(
@@ -285,6 +286,7 @@ class Algebra:
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode
         self._display_mode = display_repr
+        self._extended_metric = None
 
         # Resolve blade convention
         if blades is None:
@@ -381,6 +383,30 @@ class Algebra:
     def notation(self):
         """The Notation object controlling symbolic rendering."""
         return self._notation
+
+    def extended_metric_matrix(self) -> np.ndarray:
+        """Return the 2ⁿ × 2ⁿ metric exomorphism matrix G.
+
+        G is a diagonal matrix where ``G[bitmask, bitmask]`` is the product
+        of the metric signature values for each basis vector present in the
+        blade. For example, in Cl(3,0) with signature (1,1,1):
+        ``G[0b011] = sig[0] * sig[1] = 1``.
+
+        The scalar entry G[0,0] = 1 (empty product).
+
+        This is used for the metric-induced inner product on the full
+        exterior algebra (Lengyel/RGA convention).
+        """
+        if self._extended_metric is None:
+            diag = np.ones(self._dim)
+            for idx in range(1, self._dim):
+                val = 1.0
+                for k in range(self._n):
+                    if idx & (1 << k):
+                        val *= self._sig[k]
+                diag[idx] = val
+            self._extended_metric = np.diag(diag)
+        return self._extended_metric
 
     def basis_vectors(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return the n basis 1-vectors (named + numeric by default).
@@ -1710,6 +1736,26 @@ dorst_inner = doran_lasenby_inner
 def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     """Scalar product: grade-0 part of the geometric product."""
     return grade(gp(a, b), 0)
+
+
+def metric_inner_product(a: Multivector, b: Multivector) -> Multivector:
+    """Metric-induced inner product on the full exterior algebra.
+
+    Computes ``a^T G b`` where G is the extended metric exomorphism matrix.
+    This equals ``scalar_product(a, reverse(b))`` for diagonal metrics.
+
+    The metric inner product differs from ``scalar_product`` in that it uses
+    the reverse of b: for a bivector B in Euclidean space,
+    ``metric_inner_product(B, B) = +1`` while ``scalar_product(B, B) = -1``.
+
+    Only same-grade components contribute (G is block-diagonal by grade).
+
+    This is the Lengyel/RGA "dot product" (bullet operator).
+    """
+    a._check_same(b)
+    G = a.algebra.extended_metric_matrix()
+    val = a.data @ G @ b.data
+    return a.algebra.scalar(float(val))
 
 
 @ga_op("commutator", arity=2)
