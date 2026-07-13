@@ -58,6 +58,7 @@ from .algebra import (
     anticommutator,
     antidot_product,
     antimetric_apply,
+    antireverse,
     antiwedge,
     commutator,
     complement,
@@ -67,6 +68,7 @@ from .algebra import (
     dual,
     even_grades,
     exp,
+    geometric_antiproduct,
     # Aliases
     geometric_product,
     # Core operations
@@ -178,6 +180,8 @@ __all__ = [
     "metric_apply",
     "antimetric_apply",
     "antidot_product",
+    "antireverse",
+    "geometric_antiproduct",
     "right_hodge_dual",
     "left_hodge_dual",
     "commutator",

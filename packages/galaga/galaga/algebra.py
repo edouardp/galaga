@@ -2136,6 +2136,39 @@ Defined by ``e_S ∧ right_complement(e_S) = ε · I`` for every basis blade e_S
 """
 
 
+def antireverse(x: Multivector) -> Multivector:
+    """Antireverse: the antigrade analogue of reverse.
+
+    For a homogeneous grade-k multivector in an n-dimensional algebra:
+        antireverse(A) = (-1)^(ag*(ag-1)/2) * A
+
+    where ag = n - k is the antigrade.
+
+    This is the Lengyel/RGA antireverse (tilde-below notation).
+    """
+    alg = x.algebra
+    n = alg.n
+    out = np.zeros(alg.dim)
+    for i in range(alg.dim):
+        if x.data[i] != 0:
+            k = bin(i).count("1")
+            ag = n - k
+            sign = (-1) ** (ag * (ag - 1) // 2)
+            out[i] = sign * x.data[i]
+    return Multivector(alg, out)
+
+
+def geometric_antiproduct(a: Multivector, b: Multivector) -> Multivector:
+    """Geometric antiproduct: the De Morgan dual of the geometric product.
+
+    Defined as: geometric_antiproduct(A, B) = complement(gp(left_complement(A), left_complement(B)))
+
+    This is the Lengyel/RGA geometric antiproduct (⟇ operator).
+    """
+    a._check_same(b)
+    return complement(gp(uncomplement(a), uncomplement(b)))
+
+
 @ga_op("regressive_product", arity=2, grade=lambda r, s, n: r + s - n if r + s >= n else None)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.

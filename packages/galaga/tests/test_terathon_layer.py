@@ -547,3 +547,98 @@ class TestAntiwedge:
         line = antiwedge(p1, p2)
         # Should be a grade-2 (bivector = line in PGA), non-zero
         assert not np.allclose(line.data, 0)
+
+
+class TestAntireverse:
+    """Tests for antireverse()."""
+
+    def test_sign_pattern(self):
+        """Antireverse sign follows (-1)^(ag*(ag-1)/2) where ag = n - grade."""
+        from galaga import antireverse
+
+        alg = Algebra(4, 1)  # n=5 for interesting antigrade pattern
+        n = alg.n
+        for k in range(n + 1):
+            ag = n - k
+            expected_sign = (-1) ** (ag * (ag - 1) // 2)
+            # Create a pure grade-k blade
+            # Find first bitmask with popcount k
+            for idx in range(alg.dim):
+                if bin(idx).count("1") == k:
+                    data = np.zeros(alg.dim)
+                    data[idx] = 1.0
+                    blade = Multivector(alg, data)
+                    result = antireverse(blade)
+                    assert result.data[idx] == pytest.approx(expected_sign), (
+                        f"grade={k}, ag={ag}, expected sign={expected_sign}"
+                    )
+                    break
+
+    def test_antireverse_vs_reverse_complementary(self):
+        """Antireverse and reverse have complementary sign patterns."""
+        from galaga import antireverse
+
+        alg = Algebra(3)
+        # In n=3: reverse sign for grade k is (-1)^(k(k-1)/2)
+        # antireverse sign for grade k is (-1)^((3-k)(3-k-1)/2)
+        # These are NOT the same in general
+        e1, e2, e3 = alg.basis_vectors()
+        e12 = e1 * e2
+        e123 = e1 * e2 * e3
+
+        # grade 1: ag=2, sign = (-1)^(2*1/2) = -1
+        assert antireverse(e1).data[1] == pytest.approx(-1.0)
+        # grade 2: ag=1, sign = (-1)^(1*0/2) = +1
+        assert antireverse(e12).data[3] == pytest.approx(1.0)
+        # grade 3: ag=0, sign = (-1)^(0) = +1
+        assert antireverse(e123).data[7] == pytest.approx(1.0)
+
+    def test_antireverse_scalar(self):
+        """Antireverse of scalar: ag = n, sign = (-1)^(n(n-1)/2)."""
+        from galaga import antireverse
+
+        alg = Algebra(3)  # n=3, ag=3, sign = (-1)^(3*2/2) = (-1)^3 = -1
+        s = alg.scalar(5.0)
+        result = antireverse(s)
+        assert result.data[0] == pytest.approx(-5.0)
+
+
+class TestGeometricAntiproduct:
+    """Tests for geometric_antiproduct()."""
+
+    def test_de_morgan_with_gp(self):
+        """geometric_antiproduct(A,B) == complement(gp(left_complement(A), left_complement(B)))."""
+        from galaga import complement, geometric_antiproduct, gp, left_complement
+
+        for sig in [(3,), (1, 3), (3, 0, 1)]:
+            alg = Algebra(*sig)
+            rng = np.random.default_rng(42)
+            for _ in range(50):
+                a = Multivector(alg, rng.standard_normal(alg.dim))
+                b = Multivector(alg, rng.standard_normal(alg.dim))
+                lhs = geometric_antiproduct(a, b)
+                rhs = complement(gp(left_complement(a), left_complement(b)))
+                assert np.allclose(lhs.data, rhs.data, atol=1e-12), f"Failed for {sig}"
+
+    def test_antiproduct_of_pseudoscalars(self):
+        """The antiproduct of two pseudoscalars should relate to the scalar."""
+        from galaga import geometric_antiproduct
+
+        alg = Algebra(3)
+        I = alg.I
+        # gap(I, I) should be a scalar (complement of gp(lc(I), lc(I)))
+        result = geometric_antiproduct(I, I)
+        # I is grade-n, left_complement(I) is grade-0 (scalar)
+        # gp(scalar, scalar) = scalar, complement(scalar) = grade-n
+        # Actually: lc(I) = uncomplement(I), which for the PSS gives +/-1 scalar
+        assert not np.allclose(result.data, 0)
+
+    def test_antiproduct_vectors_cl3(self):
+        """Geometric antiproduct of vectors in Cl(3,0)."""
+        from galaga import geometric_antiproduct
+
+        alg = Algebra(3)
+        e1, e2, _ = alg.basis_vectors()
+        result = geometric_antiproduct(e1, e2)
+        # Should be nonzero
+        assert not np.allclose(result.data, 0)
