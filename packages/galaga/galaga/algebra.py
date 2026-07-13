@@ -2169,6 +2169,59 @@ def geometric_antiproduct(a: Multivector, b: Multivector) -> Multivector:
     return complement(gp(uncomplement(a), uncomplement(b)))
 
 
+def transwedge(a: Multivector, b: Multivector, k: int) -> Multivector:
+    """Transwedge product of order k (experimental).
+
+    The transwedge product generalizes both the exterior product (k=0)
+    and the interior product (k=gr(a) for same-grade operands). It decomposes
+    the geometric product:
+
+        gp(a, b) = sum_k (-1)^(k(k-1)/2) * transwedge(a, b, k)
+
+    Definition:
+        transwedge(a, b, k) = sum over grade-k basis blades c of:
+            (left_complement(c) ∨ a) ∧ (b ∨ right_hodge_dual(c))
+
+    For operands of grade g and h, the result has grade g + h - 2k.
+    Returns zero if k > gr(a) or k > gr(b).
+
+    This is the Lengyel/RGA transwedge product (⩓ₖ operator).
+    """
+    a._check_same(b)
+    alg = a.algebra
+
+    if k < 0:
+        return Multivector(alg, np.zeros(alg.dim))
+
+    # Collect all bitmasks with popcount == k (grade-k basis blades)
+    grade_k_masks = [idx for idx in range(alg.dim) if bin(idx).count("1") == k]
+
+    if not grade_k_masks:
+        return Multivector(alg, np.zeros(alg.dim))
+
+    result = np.zeros(alg.dim)
+
+    for c_mask in grade_k_masks:
+        # Create basis blade c
+        c_data = np.zeros(alg.dim)
+        c_data[c_mask] = 1.0
+        c = Multivector(alg, c_data)
+
+        # left_complement(c) ∨ a
+        lc_c = uncomplement(c)
+        term_left = regressive_product(lc_c, a)
+
+        # b ∨ right_hodge_dual(c)
+        rhd_c = right_hodge_dual(c)
+        term_right = regressive_product(b, rhd_c)
+
+        # wedge the two
+        contribution = op(term_left, term_right)
+        result += contribution.data
+
+    return Multivector(alg, result)
+
+
 @ga_op("regressive_product", arity=2, grade=lambda r, s, n: r + s - n if r + s >= n else None)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.

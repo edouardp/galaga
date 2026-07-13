@@ -642,3 +642,89 @@ class TestGeometricAntiproduct:
         result = geometric_antiproduct(e1, e2)
         # Should be nonzero
         assert not np.allclose(result.data, 0)
+
+
+class TestTranswedge:
+    """Tests for transwedge(A, B, k) — experimental."""
+
+    def test_order_zero_is_wedge(self):
+        """transwedge(A, B, 0) == op(A, B)."""
+        from galaga import transwedge
+
+        alg = Algebra(3)
+        rng = np.random.default_rng(42)
+        for _ in range(50):
+            a = Multivector(alg, rng.standard_normal(alg.dim))
+            b = Multivector(alg, rng.standard_normal(alg.dim))
+            lhs = transwedge(a, b, 0)
+            rhs = op(a, b)
+            assert np.allclose(lhs.data, rhs.data, atol=1e-11), "Order 0 != wedge"
+
+    def test_signed_sum_is_gp(self):
+        """sum_k (-1)^(k(k-1)/2) * transwedge(a, b, k) == gp(a, b)."""
+        from galaga import gp, transwedge
+
+        for sig in [(3,), (1, 3)]:
+            alg = Algebra(*sig)
+            n = alg.n
+            rng = np.random.default_rng(77)
+            for _ in range(20):
+                a = Multivector(alg, rng.standard_normal(alg.dim))
+                b = Multivector(alg, rng.standard_normal(alg.dim))
+                total = np.zeros(alg.dim)
+                for k in range(n + 1):
+                    sign = (-1) ** (k * (k - 1) // 2)
+                    tw = transwedge(a, b, k)
+                    total += sign * tw.data
+                expected = gp(a, b)
+                assert np.allclose(total, expected.data, atol=1e-10), f"Signed sum != gp for {sig}"
+
+    def test_vectors_order_one_is_inner_product(self):
+        """For vectors a, b: transwedge(a, b, 1) == metric_inner_product(a, b)."""
+        from galaga import transwedge
+
+        alg = Algebra(3)
+        e1, e2, e3 = alg.basis_vectors()
+        # e1 dot e1 = 1
+        tw = transwedge(e1, e1, 1)
+        assert tw.data[0] == pytest.approx(1.0)
+        # e1 dot e2 = 0
+        tw2 = transwedge(e1, e2, 1)
+        assert np.allclose(tw2.data, 0, atol=1e-12)
+
+    def test_zero_when_k_exceeds_grade(self):
+        """transwedge(A, B, k) == 0 when k > gr(A) or k > gr(B)."""
+        from galaga import transwedge
+
+        alg = Algebra(3)
+        e1, e2, _ = alg.basis_vectors()
+        # e1 is grade 1, so k=2 should give zero
+        tw = transwedge(e1, e2, 2)
+        assert np.allclose(tw.data, 0, atol=1e-12)
+
+    def test_negative_k_is_zero(self):
+        """transwedge(A, B, k) == 0 for negative k."""
+        from galaga import transwedge
+
+        alg = Algebra(3)
+        e1, _, _ = alg.basis_vectors()
+        tw = transwedge(e1, e1, -1)
+        assert np.allclose(tw.data, 0)
+
+    def test_pga_signed_sum(self):
+        """Signed sum reconstructs GP even in degenerate PGA."""
+        from galaga import gp, transwedge
+
+        pga = Algebra(3, 0, 1)
+        n = pga.n
+        rng = np.random.default_rng(99)
+        for _ in range(10):
+            a = Multivector(pga, rng.standard_normal(pga.dim))
+            b = Multivector(pga, rng.standard_normal(pga.dim))
+            total = np.zeros(pga.dim)
+            for k in range(n + 1):
+                sign = (-1) ** (k * (k - 1) // 2)
+                tw = transwedge(a, b, k)
+                total += sign * tw.data
+            expected = gp(a, b)
+            assert np.allclose(total, expected.data, atol=1e-10), "PGA signed sum != gp"
