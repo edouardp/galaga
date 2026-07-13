@@ -43,6 +43,7 @@ from galaga import (
     weight_part,
 )
 from galaga.algebra import Multivector
+from galaga.notation import NotationRule
 from galaga.ops import GA_OPS
 from galaga.simplify import simplify
 
@@ -352,6 +353,19 @@ def test_antiproduct_sandwich_is_de_morgan_dual_of_rotor_sandwich():
     assert np.allclose(actual.data, expected.data)
 
 
+def test_antireversed_meet_is_complement_of_reversed_join():
+    """The notebook's reverse and antireverse example compares dual results."""
+    alg = Algebra((1, 1, 1, 0), blades=b_rga())
+    e1, e2, e3, e4 = alg.basis_vectors()
+    u = e1 + 2 * e2 + e4
+    v = e1 - e2 + e3
+    join = op(u, v)
+    meet = antiwedge(right_complement(u), right_complement(v))
+
+    assert meet == right_complement(join)
+    assert antireverse(meet) == right_complement(reverse(join))
+
+
 def test_rga_operations_preserve_symbolic_trees_values_and_grades():
     """Every convention-layer operation follows Galaga's symbolic contract."""
     alg = Algebra((1, 1, 1, 0), blades=b_rga(), notation=Notation.lengyel())
@@ -399,7 +413,7 @@ def test_rga_operations_preserve_symbolic_trees_values_and_grades():
 
 
 def test_lengyel_notation_rendering_snapshot():
-    """The preset renders RGA symbols without changing existing semantics."""
+    """The preset renders KaTeX-safe RGA symbols without changing semantics."""
     alg = Algebra((1, 1, 1, 0), blades=b_rga(), notation=Notation.lengyel())
     e1, e2, _, _ = alg.basis_vectors(symbolic=True)
 
@@ -415,10 +429,39 @@ def test_lengyel_notation_rendering_snapshot():
     assert str(left_complement(e1)) == "e₁̲"
     assert str(reverse(e1)) == "e₁̃"
     assert str(conjugate(e1)) == "conjugate(e₁)"
-    assert "unicode{x27D1}" in gp(e1, e2).latex()
+    assert gp(e1, e2).latex() == r"\mathbf{e}_{1} \mathbin{\text{⟑}} \mathbf{e}_{2}"
     assert r"\overline" in complement(e1).latex()
-    assert right_hodge_dual(e1).latex() == r"\mathbf{e}_{1}^{\unicode{x2605}}"
-    assert r"\underset{\Large\unicode{x7E}}" in antireverse(e1).latex()
+    assert right_hodge_dual(e1).latex() == r"\mathbf{e}_{1}^{\text{★}}"
+    assert antireverse(e1).latex() == r"\utilde{\mathbf{e}_{1}}"
+    assert antireverse(antiwedge(complement(e1), complement(e2))).latex() == (
+        r"\utilde{\overline{\mathbf{e}_{1}} \vee \overline{\mathbf{e}_{2}}}"
+    )
+    assert alg.I.latex() == r"\text{𝟙}"
+
+    fallback_notation = Notation.lengyel()
+    fallback_notation.set("Antireverse", "latex", NotationRule(kind="underaccent", symbol=r"\sim"))
+    fallback_alg = Algebra((1, 1, 1, 0), blades=b_rga(), notation=fallback_notation)
+    fallback_e1, _, _, _ = fallback_alg.basis_vectors(symbolic=True)
+    assert antireverse(fallback_e1).latex() == r"\underset{\sim}{\mathbf{e}_{1}}"
+
+    katex_rendered = (
+        gp(e1, e2),
+        geometric_antiproduct(e1, e2),
+        metric_inner_product(e1, e2),
+        antidot_product(e1, e2),
+        left_interior_product(e1, e2),
+        right_interior_product(e1, e2),
+        transwedge(e1, e2, 1),
+        transwedge_antiproduct(e1, e2, 1),
+        right_hodge_dual(e1),
+        left_hodge_dual(e1),
+        right_weight_dual(e1),
+        left_weight_dual(e1),
+        bulk_part(e1),
+        weight_part(e1),
+        antireverse(e1),
+    )
+    assert all(r"\unicode{" not in value.latex() for value in katex_rendered)
 
     default_alg = Algebra((1, 1, 1, 0), blades=b_rga())
     d1, d2, _, _ = default_alg.basis_vectors(symbolic=True)

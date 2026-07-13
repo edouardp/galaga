@@ -807,11 +807,11 @@ $$
 \widetilde A,
 $$
 
-and also uses an antireverse, written as a tilde below the symbol. In LaTeX, a
-reasonable explicit rendering is:
+and also uses an antireverse, written as a tilde below the symbol. In
+KaTeX-compatible LaTeX, a native under-accent rendering is:
 
 $$
-\underset{\Large\unicode{x7E}}{A}.
+\utilde{A}.
 $$
 
 These two operations are grade/antigrade analogues:
@@ -825,7 +825,7 @@ $$
 for homogeneous $A$, and
 
 $$
-\underset{\Large\unicode{x7E}}{A}
+\utilde{A}
 =
 (-1)^{\operatorname{ag}(A)(\operatorname{ag}(A)-1)/2}A.
 $$
@@ -847,7 +847,7 @@ x'
 =
 Q \mathbin{\unicode{x27C7}} x
 \mathbin{\unicode{x27C7}}
-\underset{\Large\unicode{x7E}}{Q}.
+\utilde{Q}.
 $$
 
 For Galaga, Clifford conjugation should therefore be rendered either
@@ -907,7 +907,7 @@ Suggested rendering table:
 | Operation | Lengyel/RGA-compatible rendering | Notes |
 |---|---|---|
 | Reverse | $\widetilde A$ | Existing Galaga reverse can keep this |
-| Antireverse | $\underset{\Large\unicode{x7E}}{A}$ | New operation if antiproduct support is added |
+| Antireverse | $\utilde{A}$ | New operation if antiproduct support is added |
 | Grade involution | $\widehat A$ | Existing Galaga notation is acceptable |
 | Clifford conjugation | $\widehat{\widetilde A}$ | Preferred explicit rendering |
 | Clifford conjugation, compact | $A^\ddagger$ | Optional Galaga-specific shorthand |
@@ -937,7 +937,7 @@ auditable:
 \newcommand{\lwdual}[1]{{#1}_{\unicode{x2606}}}
 \newcommand{\bulk}[1]{{#1}_{\unicode{x25CF}}}
 \newcommand{\weight}[1]{{#1}_{\unicode{x25CB}}}
-\newcommand{\antirev}[1]{\underset{\Large\unicode{x7E}}{#1}}
+\newcommand{\antirev}[1]{\utilde{#1}}
 \newcommand{\clconj}[1]{\widehat{\widetilde{#1}}}
 \newcommand{\clconjc}[1]{{#1}^{\ddagger}}
 \newcommand{\antiscalar}{\unicode{x1D7D9}}
@@ -976,7 +976,7 @@ Inline examples:
 - Bulk part: $A_{\unicode{x25CF}}$
 - Weight part: $A_{\unicode{x25CB}}$
 - Reverse: $\widetilde A$
-- Antireverse: $\underset{\Large\unicode{x7E}}{A}$
+- Antireverse: $\utilde{A}$
 - Clifford conjugation, explicit: $\widehat{\widetilde A}$
 - Clifford conjugation, compact optional: $A^\ddagger$
 - Unit antiscalar / volume element: $\unicode{x1D7D9}$

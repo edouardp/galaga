@@ -279,9 +279,11 @@ Status: **DONE**
 - GP → ⟑, antiproduct → ⟇
 - Right complement → overline, left complement → underline
 - Hodge dual → A^★, weight dual → A^☆
+- LaTeX uses KaTeX-compatible commands and `\text{…}` glyphs rather than the
+  unsupported `\unicode{…}` macro
 - Clifford conjugation → explicit `conjugate(A)` — the reviewed RGA sources do
   not assign it a compact symbol, and overline belongs to right complement
-- Reverse → tilde, antireverse → tilde-below
+- Reverse → tilde, antireverse → `\utilde{…}` (tilde-below)
 
 **Implementation for b_rga():**
 
@@ -291,7 +293,7 @@ Status: **DONE**
   display-only blade convention.
 - Cyclic bivector order via `display_order`: e₂₃, e₃₁, e₁₂, e₄₁, e₄₂, e₄₃
 - Trivector order: e₄₂₃, e₄₃₁, e₄₁₂, e₃₂₁
-- Antiscalar displayed as 𝟙
+- Antiscalar displayed as 𝟙 in Unicode and `\text{𝟙}` in LaTeX
 - Non-canonical subscript ordering (e₃₁ not e₁₃) requires signed NamedBlade
   overrides to track that e₃₁ = -e₁₃
 

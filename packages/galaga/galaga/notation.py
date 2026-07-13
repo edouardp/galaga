@@ -14,7 +14,7 @@ Rule kinds:
     superscript:   "x^{dagger}"         — symbol placed in a superscript
     subscript:     "x_★" / "x_{★}"      — symbol placed below the operand
     accent:        "x̃" / "~(a+b)"       — combining char for atoms, prefix fallback for compounds
-    underaccent:   "x̰" / "\\underset{~}{x}" — accent below the operand
+    underaccent:   "x̰" / "\\utilde{x}"      — accent below the operand
     infix:         "a∧b", "a·b"         — symbol between two operands
     parameterized_infix: "a⩓ₖb"         — infix carrying an integer parameter
     function:      "rev(x)", "wedge(a,b)" — function call style
@@ -43,7 +43,7 @@ class NotationRule:
 
     kind: str  # "prefix", "postfix", "superscript", "accent", "infix", "wrap", "juxtaposition"
     symbol: str = ""
-    # accent-specific
+    # accent/underaccent-specific
     combining: str = ""
     fallback_prefix: str = ""
     latex_cmd: str = ""
@@ -308,14 +308,14 @@ class Notation:
             "Gp",
             NotationRule(kind="function", symbol="gp"),
             NotationRule(kind="infix", separator=" ⟑ "),
-            NotationRule(kind="infix", separator=r" \mathbin{\unicode{x27D1}} "),
+            NotationRule(kind="infix", separator=r" \mathbin{\text{⟑}} "),
         )
         for node, func, unicode_symbol, latex_symbol in (
-            ("GeometricAntiproduct", "geometric_antiproduct", "⟇", r"\unicode{x27C7}"),
-            ("MetricInnerProduct", "metric_inner_product", "•", r"\unicode{x2022}"),
+            ("GeometricAntiproduct", "geometric_antiproduct", "⟇", r"\text{⟇}"),
+            ("MetricInnerProduct", "metric_inner_product", "•", r"\bullet"),
             ("AntidotProduct", "antidot_product", "∘", r"\circ"),
-            ("LeftInteriorProduct", "left_interior_product", "⌋", r"\unicode{x230B}"),
-            ("RightInteriorProduct", "right_interior_product", "⌊", r"\unicode{x230A}"),
+            ("LeftInteriorProduct", "left_interior_product", "⌋", r"\rfloor"),
+            ("RightInteriorProduct", "right_interior_product", "⌊", r"\lfloor"),
         ):
             set_all(
                 node,
@@ -328,12 +328,11 @@ class Notation:
             ("Transwedge", "transwedge", "⩓"),
             ("TranswedgeAntiproduct", "transwedge_antiproduct", "⩔"),
         ):
-            codepoint = "x2A53" if node == "Transwedge" else "x2A54"
             set_all(
                 node,
                 NotationRule(kind="function", symbol=func),
                 NotationRule(kind="parameterized_infix", symbol=symbol),
-                NotationRule(kind="parameterized_infix", symbol=rf"\unicode{{{codepoint}}}"),
+                NotationRule(kind="parameterized_infix", symbol=rf"\text{{{symbol}}}"),
             )
 
         set_all(
@@ -350,12 +349,12 @@ class Notation:
         )
 
         for node, func, kind, unicode_symbol, latex_symbol in (
-            ("RightHodgeDual", "right_hodge_dual", "superscript", "★", r"\unicode{x2605}"),
-            ("LeftHodgeDual", "left_hodge_dual", "subscript", "★", r"\unicode{x2605}"),
-            ("RightWeightDual", "right_weight_dual", "superscript", "☆", r"\unicode{x2606}"),
-            ("LeftWeightDual", "left_weight_dual", "subscript", "☆", r"\unicode{x2606}"),
-            ("BulkPart", "bulk_part", "subscript", "●", r"\unicode{x25CF}"),
-            ("WeightPart", "weight_part", "subscript", "○", r"\unicode{x25CB}"),
+            ("RightHodgeDual", "right_hodge_dual", "superscript", "★", r"\text{★}"),
+            ("LeftHodgeDual", "left_hodge_dual", "subscript", "★", r"\text{★}"),
+            ("RightWeightDual", "right_weight_dual", "superscript", "☆", r"\text{☆}"),
+            ("LeftWeightDual", "left_weight_dual", "subscript", "☆", r"\text{☆}"),
+            ("BulkPart", "bulk_part", "subscript", "●", r"\text{●}"),
+            ("WeightPart", "weight_part", "subscript", "○", r"\text{○}"),
         ):
             set_all(
                 node,
@@ -380,7 +379,7 @@ class Notation:
             "Antireverse",
             NotationRule(kind="function", symbol="antireverse"),
             NotationRule(kind="underaccent", combining="\u0330", fallback_prefix="antireverse", symbol="~"),
-            NotationRule(kind="underaccent", symbol=r"\Large\unicode{x7E}"),
+            NotationRule(kind="underaccent", symbol=r"\sim", latex_cmd=r"\utilde"),
         )
 
         # These existing operations are not the RGA operations that own the

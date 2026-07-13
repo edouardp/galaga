@@ -56,6 +56,7 @@ NOTEBOOKS = [
     "algebra/sandwich_products.py",
     "algebra/meets_joins_pga.py",
     "algebra/rotations_from_bivectors.py",
+    "rga/rga_demo.py",
 ]
 
 
@@ -71,10 +72,17 @@ def test_new_example_notebooks_compile():
 
 
 def test_new_example_notebooks_use_symbolic_teaching_pattern():
-    """Check notebooks use symbolic basis vectors, galaga_marimo import, eval(), and gm.md."""
+    """Check notebooks use symbolic blades, galaga_marimo, eval(), and gm.md."""
     for notebook in NOTEBOOKS:
         source = (EXAMPLES / notebook).read_text()
-        assert "basis_vectors(lazy=True)" in source or "basis_vectors(symbolic=True)" in source
+        assert any(
+            pattern in source
+            for pattern in (
+                "basis_vectors(lazy=True)",
+                "basis_vectors(symbolic=True)",
+                "locals(symbolic=True)",
+            )
+        )
         assert "import galaga_marimo as gm" in source
         assert ".eval()" in source
         assert 'gm.md(t"""' in source or "gm.md(t'''" in source

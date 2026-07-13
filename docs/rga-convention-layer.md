@@ -30,6 +30,9 @@ e423, e431, e412, e321
 The nonascending subscripts are algebraic factorizations, not cosmetic aliases:
 for example, `e31 == e3 ^ e1 == -(e1 ^ e3)`.
 
+The Lengyel preset emits KaTeX-compatible LaTeX without `\unicode{...}`
+extensions. In particular, the Unicode antiscalar `𝟙` renders as `\text{𝟙}`.
+
 ## Operation Correspondence
 
 | RGA concept | Galaga function | Result |

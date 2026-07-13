@@ -458,7 +458,7 @@ def b_rga(*, overrides: dict | None = None) -> BladeConvention:
         (0, 2, 3): _named_blade(("e431", "e₄₃₁", r"\mathbf{e}_{431}"), [3, 2, 0]),
         (0, 1, 3): _named_blade(("e412", "e₄₁₂", r"\mathbf{e}_{412}"), [3, 0, 1]),
         (0, 1, 2): _named_blade(("e321", "e₃₂₁", r"\mathbf{e}_{321}"), [2, 1, 0]),
-        "pss": _named_blade(("I", "𝟙", r"\unicode{x1D7D9}"), [0, 1, 2, 3]),
+        "pss": _named_blade(("I", "𝟙", r"\text{𝟙}"), [0, 1, 2, 3]),
     }
     if overrides:
         named.update(overrides)

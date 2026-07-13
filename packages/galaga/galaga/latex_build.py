@@ -233,6 +233,8 @@ def _build(node: Expr, n: Notation) -> LNode:
 
     if rule.kind == "underaccent" and hasattr(node, "x"):
         inner = _build(node.x, n)
+        if rule.latex_cmd:
+            return Seq([Text(f"{rule.latex_cmd}{{"), inner, Text("}")])
         return Seq([Text(rf"\underset{{{rule.symbol}}}{{"), inner, Text("}")])
 
     # Wrap (delimiters around content)

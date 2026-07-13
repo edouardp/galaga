@@ -45,6 +45,14 @@ conjugation also renders functionally: the reviewed RGA sources do not assign it
 the optional double-dagger notation, and overline is reserved for right
 complement.
 
+Lengyel Unicode output uses the source glyphs directly. LaTeX output uses
+KaTeX-compatible commands and `\text{…}` glyphs instead of the unsupported
+`\unicode{…}` macro. The RGA antiscalar keeps its Unicode name `𝟙` and renders
+as `\text{𝟙}` in LaTeX. Antireverse uses KaTeX's native `\utilde{…}`
+under-accent so the mark stretches with compound expressions; the notation
+renderer retains `\underset` as the fallback for custom under-accent rules
+without a `latex_cmd`.
+
 `b_rga()` is used with the explicit signature `Algebra((1, 1, 1, 0), ...)`.
 This preserves the RGA vector order e1,e2,e3,e4, makes e4 null, and preserves
 the orientation of the antiscalar e1^e2^e3^e4. `Algebra(3, 0, 1)` deliberately

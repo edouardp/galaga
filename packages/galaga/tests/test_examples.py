@@ -66,3 +66,65 @@ def test_rotations_from_bivectors_notebook_uses_gm_md_only_for_interpolated_mark
     assert "## GA Formulation" in source
     assert "## Minimal Math" in source
     assert "## Domain Check" in source
+
+
+def test_rga_demo_uses_the_rga_symbolic_display_convention():
+    """Keep the RGA demo on the public symbolic and rich-display APIs."""
+    source = (ROOT / "examples" / "rga" / "rga_demo.py").read_text()
+
+    assert "blades=b_rga()" in source
+    assert "notation=Notation.lengyel()" in source
+    assert "display_repr=True" in source
+    assert "locals().update(rga.locals(symbolic=True))" in source
+    assert "rga_blades" not in source
+    assert "display_repl" not in source
+    assert r"A^{\text{☆}}" in source
+    assert r"A_{\text{☆}}" in source
+    assert r"\unicode{" not in source
+    assert r"\mathbf{1}" not in source
+    assert r"\mathbb{1}" not in source
+    assert r"\text{𝟙}" in source
+    assert r"\circledast" not in source
+    assert r"\curlywedge" not in source
+    assert r"\text{⩓}" in source
+    assert r"\text{⩔}" in source
+    assert ".eval()}" not in source
+
+
+def test_rga_demo_covers_the_rga_operation_families():
+    """Ensure the demo remains a broad, executable introduction to RGA."""
+    source = (ROOT / "examples" / "rga" / "rga_demo.py").read_text()
+
+    for section in (
+        "# Rigid Geometric Algebra (RGA)",
+        "## Join and meet",
+        "## Complements",
+        "## Metric, antimetric, bulk, and weight",
+        "## Dot and antidot products",
+        "## Bulk and weight duals",
+        "## Geometric product and antiproduct",
+        "## Interior products",
+        "## Transwedge products",
+        "## Degenerate duality: an important distinction",
+    ):
+        assert section in source
+
+    for operation in (
+        "antiwedge(",
+        "left_complement(",
+        "right_complement(",
+        "metric_apply(",
+        "antimetric_apply(",
+        "metric_inner_product(",
+        "antidot_product(",
+        "left_hodge_dual(",
+        "right_hodge_dual(",
+        "left_weight_dual(",
+        "right_weight_dual(",
+        "geometric_antiproduct(",
+        "left_interior_product(",
+        "right_interior_product(",
+        "transwedge(",
+        "transwedge_antiproduct(",
+    ):
+        assert operation in source
