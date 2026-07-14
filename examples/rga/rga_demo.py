@@ -512,8 +512,8 @@ def _(mo):
     Operand order matters. For vector $a$ and bivector $B$:
 
     $$
-    aB=a\wedge B+B\mathbin{\lfloor}a, \qquad
-    Ba=B\wedge a+a\mathbin{\rfloor}B.
+    a\mathbin{\text{⟑}}B=a\wedge B+B\mathbin{\lfloor}a, \qquad
+    B\mathbin{\text{⟑}}a=B\wedge a+a\mathbin{\rfloor}B.
     $$
     """)
     return
