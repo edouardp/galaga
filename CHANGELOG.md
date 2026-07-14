@@ -1,5 +1,73 @@
 # Changelog
 
+## 1.8.0 (2026-07-14)
+
+### Added
+
+- **Terathon/Lengyel RGA convention layer** — Adds the Rigid Geometric
+  Algebra basis convention `b_rga()` and the rendering preset
+  `Notation.lengyel()`. The basis preserves Lengyel's ordering, orientation,
+  and signed names such as `e31`, `e41`, and the antiscalar `𝟙`.
+
+- **Exterior metric and antimetric operations** — Adds
+  `extended_metric_matrix()`, `metric_antiexomorphism_matrix()`,
+  `metric_apply()`, `antimetric_apply()`, `metric_inner_product()`, and the
+  antiscalar-valued `antidot_product()`. The cached public metric matrices are
+  read-only, and the operations remain meaningful for degenerate PGA metrics.
+
+- **RGA complements, projections, duals, and products** — Adds explicit
+  `left_complement()` and `right_complement()` names; bulk and weight parts;
+  left and right bulk and weight duals; `antiwedge()`;
+  `geometric_antiproduct()`; `antireverse()`; and the RGA left and right
+  interior products.
+
+- **Experimental transwedge products** — Adds `transwedge(a, b, k)` and
+  `transwedge_antiproduct(a, b, k)`, including grade propagation, symbolic
+  expression nodes, evaluation, simplification, and parameterized rendering.
+
+- **Convention-aware local variable hints** — `BladeConvention` now accepts
+  `variable_hints` independently of display overrides. `Algebra.locals()`
+  gains `prefix=` for generated blade names and `pss=` as a convenient
+  pseudoscalar-name override. Standard PGA, RGA, STA, CGA, complex, and
+  quaternion conventions provide their idiomatic hints.
+
+- **RGA documentation and executable Marimo demo** — Adds a convention guide,
+  design ADR, reviewed implementation plan, expanded Terathon foundations
+  review, and `examples/rga/rga_demo.py`. The demo introduces the RGA basis and
+  exercises complements, metric operations, duals, interior products,
+  antiwedge, geometric products and antiproducts, and transwedge products.
+
+- **Matrix representation product fuzz coverage** — Adds randomized checks
+  that left-regular and compact matrix representations preserve geometric
+  products and round-trip across Euclidean, spacetime, and projective
+  algebras.
+
+### Changed
+
+- **`Algebra.locals()` naming is separated from display naming** — Display
+  overrides such as STA sigma names no longer become Python dictionary keys.
+  Non-hinted blades consistently use the convention's ASCII prefix, or the
+  call-site `prefix=` override, plus compact subscripts. Code relying on the
+  previous generated keys may need updating.
+
+- **Gamma locals now use `g`** — The default ASCII local prefix for `γ` is now
+  `g` instead of `y`, matching common STA source-code conventions.
+
+- **Lengyel rendering is KaTeX-compatible** — RGA glyphs are emitted with
+  supported LaTeX constructs, including `\text{𝟙}` for the antiscalar and
+  `\utilde{...}` for antireverse. RGA operations render with Lengyel's product,
+  complement, dual, interior-product, and bulk/weight notation while existing
+  Galaga operations with different semantics retain explicit names.
+
+### Fixed
+
+- **Compact letter-subscript local names** — Named axes such as `ex` and `ey`
+  now combine as `exy`, rather than `exey`.
+
+- **Blade-convention dimension errors** — A convention that references a
+  vector outside the algebra dimension now raises a descriptive `ValueError`
+  instead of an opaque `IndexError`.
+
 ## 1.7.6 (2026-07-11)
 
 ### Added
