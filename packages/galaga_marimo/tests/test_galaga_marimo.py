@@ -414,6 +414,59 @@ class TestRenderTemplate:
         assert "&lt;b&gt;" in result
 
 
+class TestRgaIntegration:
+    def test_symbolic_rga_multivectors_render_their_generated_latex(self):
+        """Exercise the same ``{mv}`` path used by the RGA notebook."""
+        from galaga import (
+            Algebra,
+            Notation,
+            antidot_product,
+            antireverse,
+            antiwedge,
+            b_rga,
+            bulk_part,
+            complement,
+            geometric_antiproduct,
+            gp,
+            right_hodge_dual,
+            right_weight_dual,
+            transwedge,
+            weight_part,
+        )
+
+        algebra = Algebra(
+            (1, 1, 1, 0),
+            blades=b_rga(),
+            notation=Notation.lengyel(),
+            display_repr=True,
+        )
+        e1, e2, e3, e4 = algebra.basis_vectors(symbolic=True)
+        a = e1 + 2 * e4
+        b = e2 + e3
+        expressions = (
+            (algebra.I, r"\text{𝟙}"),
+            (gp(a, b), r"\mathbin{\text{⟑}}"),
+            (geometric_antiproduct(a, b), r"\mathbin{\text{⟇}}"),
+            (antidot_product(a, b), r"\mathbin{\circ}"),
+            (bulk_part(a), r"_{\text{●}}"),
+            (weight_part(a), r"_{\text{○}}"),
+            (right_hodge_dual(a), r"^{\text{★}}"),
+            (right_weight_dual(a), r"^{\text{☆}}"),
+            (transwedge(a, b, 1), r"\underset{1}{\text{⩓}}"),
+            (antireverse(antiwedge(complement(e1), complement(e2))), r"\utilde{"),
+        )
+
+        for mv, operation_latex in expressions:
+            generated_latex = mv.latex()
+            rendered = render_value(mv, None, "")
+            markdown = render_template(FakeTemplate(FakeInterpolation(mv)))
+
+            assert operation_latex in generated_latex
+            assert r"\unicode{" not in generated_latex
+            assert rendered == Rendered(RenderKind.INLINE_LATEX, generated_latex)
+            assert markdown == f"${generated_latex}$"
+
+
 # ---------------------------------------------------------------------------
 # Wrapper tests
 # ---------------------------------------------------------------------------

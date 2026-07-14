@@ -13,6 +13,7 @@ from __future__ import annotations
 
 from .expr import (
     Add,
+    Complement,
     Conjugate,
     Div,
     Exp,
@@ -29,6 +30,7 @@ from .expr import (
     Sqrt,
     Sub,
     Sym,
+    Uncomplement,
     Unit,
 )
 from .latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text, fmt_coeff, sci_lnode
@@ -125,6 +127,16 @@ def _build(node: Expr, n: Notation) -> LNode:
         escaped = rule.symbol.replace("_", r"\_")
         op_text = rf"\operatorname{{{escaped}}}"
         if hasattr(node, "a"):
+            if hasattr(node, "k"):
+                return Seq(
+                    [
+                        Text(f"{op_text}("),
+                        _build(node.a, n),
+                        Text(r",\, "),
+                        _build(node.b, n),
+                        Text(rf",\, {node.k})"),
+                    ]
+                )
             return Seq(
                 [
                     Text(f"{op_text}("),
@@ -163,6 +175,13 @@ def _build(node: Expr, n: Notation) -> LNode:
         lb = _wp(_build(node.b, n), node.b, mp, t)
         return Seq([la, Text(rule.separator), lb])
 
+    if rule.kind == "parameterized_infix" and hasattr(node, "k"):
+        mp = _CHILD_MIN.get(t, 71)
+        la = _wp(_build(node.a, n), node.a, mp, t)
+        lb = _wp(_build(node.b, n), node.b, mp, t)
+        separator = rf" \mathbin{{\underset{{{node.k}}}{{{rule.symbol}}}}} "
+        return Seq([la, Text(separator), lb])
+
     # Prefix unary
     if rule.kind == "prefix" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 95)
@@ -182,7 +201,7 @@ def _build(node: Expr, n: Notation) -> LNode:
         # Use narrow accent (\tilde) for single-glyph names, wide (\widetilde) otherwise.
         # LaTeX commands like \theta, \mathbf{F} render as single glyphs.
         is_single_glyph = isinstance(node.x, Sym) and _is_single_latex_glyph(node.x._name_latex or node.x._name)
-        if t in (Reverse, Conjugate):
+        if t in (Reverse, Conjugate, Complement, Uncomplement):
             inner = _build(node.x, n)
         else:
             inner = _wp(_build(node.x, n), node.x, 95)
@@ -207,6 +226,16 @@ def _build(node: Expr, n: Notation) -> LNode:
     if rule.kind == "superscript" and hasattr(node, "x"):
         inner = _wp(_build(node.x, n), node.x, 96)
         return Sup(inner, Text(rule.symbol))
+
+    if rule.kind == "subscript" and hasattr(node, "x"):
+        inner = _wp(_build(node.x, n), node.x, 96)
+        return Seq([Text("{"), inner, Text(rf"}}_{{{rule.symbol}}}")])
+
+    if rule.kind == "underaccent" and hasattr(node, "x"):
+        inner = _build(node.x, n)
+        if rule.latex_cmd:
+            return Seq([Text(f"{rule.latex_cmd}{{"), inner, Text("}")])
+        return Seq([Text(rf"\underset{{{rule.symbol}}}{{"), inner, Text("}")])
 
     # Wrap (delimiters around content)
     if rule.kind == "wrap":

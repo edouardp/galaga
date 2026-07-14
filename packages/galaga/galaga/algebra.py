@@ -248,6 +248,8 @@ class Algebra:
         "_display_order",
         "_notation",
         "_display_mode",
+        "_extended_metric",
+        "_antimetric",
     )
 
     def __init__(
@@ -285,6 +287,8 @@ class Algebra:
         self._dim = 1 << self._n
         self._repr_unicode = repr_unicode
         self._display_mode = display_repr
+        self._extended_metric = None
+        self._antimetric = None
 
         # Resolve blade convention
         if blades is None:
@@ -381,6 +385,59 @@ class Algebra:
     def notation(self):
         """The Notation object controlling symbolic rendering."""
         return self._notation
+
+    def extended_metric_matrix(self) -> np.ndarray:
+        """Return the 2ⁿ × 2ⁿ metric exomorphism matrix G.
+
+        G is a diagonal matrix where ``G[bitmask, bitmask]`` is the product
+        of the metric signature values for each basis vector present in the
+        blade. For example, in Cl(3,0) with signature (1,1,1):
+        ``G[0b011] = sig[0] * sig[1] = 1``.
+
+        The scalar entry G[0,0] = 1 (empty product).
+
+        This is used for the metric-induced inner product on the full
+        exterior algebra (Lengyel/RGA convention).
+        """
+        if self._extended_metric is None:
+            diag = np.ones(self._dim)
+            for idx in range(1, self._dim):
+                val = 1.0
+                for k in range(self._n):
+                    if idx & (1 << k):
+                        val *= self._sig[k]
+                diag[idx] = val
+            self._extended_metric = np.diag(diag)
+            self._extended_metric.setflags(write=False)
+        return self._extended_metric
+
+    def metric_antiexomorphism_matrix(self) -> np.ndarray:
+        """Return the 2ⁿ × 2ⁿ metric antiexomorphism matrix 𝔾.
+
+        𝔾 is a diagonal matrix where ``𝔾[bitmask, bitmask]`` is the product
+        of the metric signature values for each basis vector NOT present in
+        the blade. For example, in Cl(3,0,1) with signature (0,1,1,1):
+        ``𝔾[0b0011] = sig[2] * sig[3] = 1``.
+
+        The scalar entry 𝔾[0,0] = det(metric) (product of all signature values).
+        The pseudoscalar entry 𝔾[full, full] = 1 (empty product over absent vectors).
+
+        Satisfies: G · 𝔾 = det(metric) · I
+
+        For degenerate metrics (det=0), both G and 𝔾 are individually
+        meaningful even though their product is zero.
+        """
+        if self._antimetric is None:
+            diag = np.ones(self._dim)
+            for idx in range(self._dim):
+                val = 1.0
+                for k in range(self._n):
+                    if not (idx & (1 << k)):
+                        val *= self._sig[k]
+                diag[idx] = val
+            self._antimetric = np.diag(diag)
+            self._antimetric.setflags(write=False)
+        return self._antimetric
 
     def basis_vectors(self, lazy: bool | None = None, *, symbolic: bool | None = None) -> tuple[Multivector, ...]:
         """Return the n basis 1-vectors (named + numeric by default).
@@ -1712,6 +1769,165 @@ def scalar_product(a: Multivector, b: Multivector) -> Multivector:
     return grade(gp(a, b), 0)
 
 
+@ga_op("metric_inner_product", arity=2, grade=lambda r, s, n: 0)
+def metric_inner_product(a: Multivector, b: Multivector) -> Multivector:
+    """Metric-induced inner product on the full exterior algebra.
+
+    Computes ``a^T G b`` where G is the extended metric exomorphism matrix.
+    This equals ``scalar_product(a, reverse(b))`` for diagonal metrics.
+
+    The metric inner product differs from ``scalar_product`` in that it uses
+    the reverse of b: for a bivector B in Euclidean space,
+    ``metric_inner_product(B, B) = +1`` while ``scalar_product(B, B) = -1``.
+
+    Only same-grade components contribute (G is block-diagonal by grade).
+
+    This is the Lengyel/RGA "dot product" (bullet operator).
+    """
+    a._check_same(b)
+    G = a.algebra.extended_metric_matrix()
+    val = a.data @ G @ b.data
+    return a.algebra.scalar(float(val))
+
+
+@ga_op("metric_apply", arity=1, grade=lambda k, n: k)
+def metric_apply(x: Multivector) -> Multivector:
+    """Apply the extended metric matrix G to a multivector.
+
+    Computes G·x where G is the metric exomorphism matrix. This scales each
+    blade by its metric factor (product of signature values for present vectors).
+
+    In non-degenerate algebras, metric_apply is invertible. In PGA, blades
+    containing the null vector are projected to zero — this extracts the
+    "bulk" part of a multivector.
+
+    This is the Lengyel/RGA bulk projection.
+    """
+    G = x.algebra.extended_metric_matrix()
+    return Multivector(x.algebra, G @ x.data)
+
+
+@ga_op("antimetric_apply", arity=1, grade=lambda k, n: k)
+def antimetric_apply(x: Multivector) -> Multivector:
+    """Apply the metric antiexomorphism matrix 𝔾 to a multivector.
+
+    Computes 𝔾·x where 𝔾 is the antimetric matrix. This scales each blade
+    by the metric factor of its ABSENT vectors (product of signature values
+    for vectors NOT present in the blade).
+
+    In PGA, blades NOT containing the null vector are projected to zero —
+    this extracts the "weight" part of a multivector.
+
+    This is the Lengyel/RGA weight projection.
+    """
+    Gbar = x.algebra.metric_antiexomorphism_matrix()
+    return Multivector(x.algebra, Gbar @ x.data)
+
+
+@ga_op("antidot_product", arity=2, grade=lambda r, s, n: n)
+def antidot_product(a: Multivector, b: Multivector) -> Multivector:
+    """Antidot product: the antimetric-induced pairing returning an antiscalar.
+
+    Computes (a^T 𝔾 b) · I where 𝔾 is the metric antiexomorphism matrix
+    and I is the pseudoscalar. The result is a grade-n multivector (antiscalar),
+    not a scalar.
+
+    Satisfies the De Morgan identity:
+        antidot_product(a, b) == complement(metric_inner_product(left_complement(a), left_complement(b)))
+
+    This is the Lengyel/RGA "antidot product" (circle operator).
+    """
+    a._check_same(b)
+    Gbar = a.algebra.metric_antiexomorphism_matrix()
+    val = a.data @ Gbar @ b.data
+    # Return as antiscalar (grade-n): coefficient * pseudoscalar
+    out = np.zeros(a.algebra.dim)
+    out[a.algebra.dim - 1] = val
+    return Multivector(a.algebra, out)
+
+
+@ga_op("right_hodge_dual", arity=1, grade=lambda k, n: n - k)
+def right_hodge_dual(x: Multivector) -> Multivector:
+    """Right Hodge dual: complement of the metric-applied multivector.
+
+    Defined as: right_hodge_dual(A) = right_complement(metric_apply(A))
+
+    This equals ``gp(reverse(A), I)`` for Galaga's diagonal metrics, including
+    degenerate PGA metrics where ``dual()`` raises.
+
+    Satisfies the Hodge identity for same-grade blades A, B:
+        op(A, right_hodge_dual(B)) == metric_inner_product(A, B) * I
+
+    This is the Lengyel/RGA "bulk dual" (black star superscript).
+    """
+    return complement(metric_apply(x))
+
+
+@ga_op("left_hodge_dual", arity=1, grade=lambda k, n: n - k)
+def left_hodge_dual(x: Multivector) -> Multivector:
+    """Left Hodge dual: left complement of the metric-applied multivector.
+
+    Defined as: left_hodge_dual(A) = left_complement(metric_apply(A))
+
+    Satisfies the left-sided Hodge identity for same-grade blades A, B:
+        op(left_hodge_dual(A), B) == metric_inner_product(A, B) * I
+
+    This is the Lengyel/RGA left bulk dual (black star subscript).
+    """
+    return uncomplement(metric_apply(x))
+
+
+@ga_op("bulk_part", arity=1, grade=lambda k, n: k)
+def bulk_part(x: Multivector) -> Multivector:
+    """Bulk part of a multivector: the metric projection.
+
+    Computes G·x where G is the metric exomorphism matrix. In PGA, this
+    zeroes blades containing the null vector, extracting the "bulk"
+    (Euclidean/metric) content.
+
+    Alias for metric_apply(). This is the Lengyel/RGA bulk (●) notation.
+    """
+    return metric_apply(x)
+
+
+@ga_op("weight_part", arity=1, grade=lambda k, n: k)
+def weight_part(x: Multivector) -> Multivector:
+    """Weight part of a multivector: the antimetric projection.
+
+    Computes 𝔾·x where 𝔾 is the metric antiexomorphism matrix. In PGA, this
+    zeroes blades NOT containing the null vector, extracting the "weight"
+    (projective/ideal) content.
+
+    Alias for antimetric_apply(). This is the Lengyel/RGA weight (○) notation.
+    """
+    return antimetric_apply(x)
+
+
+@ga_op("right_weight_dual", arity=1, grade=lambda k, n: n - k)
+def right_weight_dual(x: Multivector) -> Multivector:
+    """Right weight dual: complement of the antimetric-applied multivector.
+
+    Defined as: right_weight_dual(A) = right_complement(antimetric_apply(A))
+
+    It also satisfies ``right_weight_dual(A) =
+    geometric_antiproduct(antireverse(A), 1)``.
+
+    This is the Lengyel/RGA "weight dual" or "antidual" (white star superscript ☆).
+    """
+    return complement(antimetric_apply(x))
+
+
+@ga_op("left_weight_dual", arity=1, grade=lambda k, n: n - k)
+def left_weight_dual(x: Multivector) -> Multivector:
+    """Left weight dual: left complement of the antimetric-applied multivector.
+
+    Defined as: left_weight_dual(A) = left_complement(antimetric_apply(A))
+
+    This is the Lengyel/RGA left weight dual (white star subscript ☆).
+    """
+    return uncomplement(antimetric_apply(x))
+
+
 @ga_op("commutator", arity=2)
 def commutator(a: Multivector, b: Multivector) -> Multivector:
     """Commutator: ab - ba."""
@@ -1935,8 +2151,8 @@ def complement(x: Multivector) -> Multivector:
     """Right complement: metric-independent duality.
 
     Maps grade-k to grade-(n-k) by replacing each basis blade's index set
-    with its complement, with a sign chosen so that
-    ``x * complement(x)`` is proportional to the pseudoscalar.
+    with its complement, with a sign chosen so that, for every basis blade
+    ``x``, ``x ∧ complement(x)`` is the pseudoscalar.
 
     Unlike ``dual()``, this works in **all** signatures including degenerate
     algebras (PGA). It is purely combinatorial — no metric is used.
@@ -1964,6 +2180,135 @@ def uncomplement(x: Multivector) -> Multivector:
     return Multivector(alg, out)
 
 
+# Explicit left/right complement aliases (Lengyel/RGA convention layer)
+left_complement = uncomplement
+"""Left complement: the inverse of the right complement.
+
+Defined by ``left_complement(e_S) ∧ e_S = I`` for every basis blade e_S.
+Numerically identical to ``uncomplement()``.
+"""
+
+right_complement = complement
+"""Right complement: alias for ``complement()``.
+
+Defined by ``e_S ∧ right_complement(e_S) = I`` for every basis blade e_S.
+"""
+
+
+@ga_op("antireverse", arity=1, grade=lambda k, n: k)
+def antireverse(x: Multivector) -> Multivector:
+    """Antireverse: the antigrade analogue of reverse.
+
+    For a homogeneous grade-k multivector in an n-dimensional algebra:
+        antireverse(A) = (-1)^(ag*(ag-1)/2) * A
+
+    where ag = n - k is the antigrade.
+
+    This is the Lengyel/RGA antireverse (tilde-below notation).
+    """
+    alg = x.algebra
+    n = alg.n
+    out = np.zeros(alg.dim)
+    for i in range(alg.dim):
+        if x.data[i] != 0:
+            k = bin(i).count("1")
+            ag = n - k
+            sign = (-1) ** (ag * (ag - 1) // 2)
+            out[i] = sign * x.data[i]
+    return Multivector(alg, out)
+
+
+@ga_op("geometric_antiproduct", arity=2)
+def geometric_antiproduct(a: Multivector, b: Multivector) -> Multivector:
+    """Geometric antiproduct: the De Morgan dual of the geometric product.
+
+    Defined as: geometric_antiproduct(A, B) = complement(gp(left_complement(A), left_complement(B)))
+
+    This is the Lengyel/RGA geometric antiproduct (⟇ operator).
+    """
+    a._check_same(b)
+    return complement(gp(uncomplement(a), uncomplement(b)))
+
+
+@ga_op(
+    "transwedge",
+    arity=3,
+    grade=lambda r, s, k, n: r + s - 2 * k if 0 <= k <= min(r, s) and 0 <= r + s - 2 * k <= n else None,
+)
+def transwedge(a: Multivector, b: Multivector, k: int) -> Multivector:
+    """Transwedge product of order k (experimental).
+
+    The transwedge product generalizes both the exterior product (k=0)
+    and the interior product (k=gr(a) for same-grade operands). It decomposes
+    the geometric product:
+
+        gp(a, b) = sum_k (-1)^(k(k-1)/2) * transwedge(a, b, k)
+
+    Definition:
+        transwedge(a, b, k) = sum over grade-k basis blades c of:
+            (left_complement(c) ∨ a) ∧ (b ∨ right_hodge_dual(c))
+
+    For operands of grade g and h, the result has grade g + h - 2k.
+    Returns zero if k > gr(a) or k > gr(b).
+
+    This is the Lengyel/RGA transwedge product (⩓ₖ operator).
+    """
+    a._check_same(b)
+    alg = a.algebra
+
+    if not isinstance(k, (int, np.integer)) or isinstance(k, bool):
+        raise TypeError(f"k must be an integer, got {type(k).__name__}")
+    if k < 0:
+        raise ValueError("k must be non-negative")
+
+    # Collect all bitmasks with popcount == k (grade-k basis blades)
+    grade_k_masks = [idx for idx in range(alg.dim) if bin(idx).count("1") == k]
+
+    if not grade_k_masks:
+        return Multivector(alg, np.zeros(alg.dim))
+
+    result = np.zeros(alg.dim)
+
+    for c_mask in grade_k_masks:
+        # Create basis blade c
+        c_data = np.zeros(alg.dim)
+        c_data[c_mask] = 1.0
+        c = Multivector(alg, c_data)
+
+        # left_complement(c) ∨ a
+        lc_c = uncomplement(c)
+        term_left = regressive_product(lc_c, a)
+
+        # b ∨ right_hodge_dual(c)
+        rhd_c = right_hodge_dual(c)
+        term_right = regressive_product(b, rhd_c)
+
+        # wedge the two
+        contribution = op(term_left, term_right)
+        result += contribution.data
+
+    return Multivector(alg, result)
+
+
+@ga_op(
+    "transwedge_antiproduct",
+    arity=3,
+    grade=lambda r, s, k, n: r + s - n + 2 * k if 0 <= k <= min(n - r, n - s) and 0 <= r + s - n + 2 * k <= n else None,
+)
+def transwedge_antiproduct(a: Multivector, b: Multivector, k: int) -> Multivector:
+    """Transwedge antiproduct of order k (experimental).
+
+    This is the De Morgan dual of :func:`transwedge`:
+
+        transwedge_antiproduct(a, b, k) =
+            complement(transwedge(left_complement(a), left_complement(b), k))
+
+    The signed sum over all orders reconstructs the geometric antiproduct.
+    """
+    a._check_same(b)
+    return complement(transwedge(uncomplement(a), uncomplement(b), k))
+
+
 @ga_op("regressive_product", arity=2, grade=lambda r, s, n: r + s - n if r + s >= n else None)
 def regressive_product(a: Multivector, b: Multivector) -> Multivector:
     """Regressive product (meet): complement-based, works in all signatures.
@@ -1989,6 +2334,49 @@ def metric_regressive_product(a: Multivector, b: Multivector) -> Multivector:
 # Aliases
 meet = regressive_product
 join = op
+antiwedge = regressive_product
+"""Antiwedge product: alias for regressive_product.
+
+The RGA antiwedge is defined as complement(op(left_complement(A), left_complement(B))),
+which is numerically identical to Galaga's regressive_product (verified exhaustively
+on all basis blade pairs in Cl(3,0), Cl(1,3), and Cl(3,0,1)).
+"""
+
+
+@ga_op(
+    "left_interior_product",
+    arity=2,
+    grade=lambda r, s, n: s - r if s >= r else None,
+)
+def left_interior_product(a: Multivector, b: Multivector) -> Multivector:
+    """RGA left bulk contraction ``a ⌋ b``.
+
+    Defined from the left Hodge/bulk dual and the antiwedge product:
+
+        left_interior_product(a, b) = left_hodge_dual(a) ∨ b
+
+    For equal-grade operands, this reduces to :func:`metric_inner_product`.
+    """
+    a._check_same(b)
+    return antiwedge(left_hodge_dual(a), b)
+
+
+@ga_op(
+    "right_interior_product",
+    arity=2,
+    grade=lambda r, s, n: r - s if r >= s else None,
+)
+def right_interior_product(a: Multivector, b: Multivector) -> Multivector:
+    """RGA right bulk contraction ``a ⌊ b``.
+
+    Defined from the right Hodge/bulk dual and the antiwedge product:
+
+        right_interior_product(a, b) = a ∨ right_hodge_dual(b)
+
+    For equal-grade operands, this reduces to :func:`metric_inner_product`.
+    """
+    a._check_same(b)
+    return antiwedge(a, right_hodge_dual(b))
 
 
 def norm2(x: Multivector) -> Multivector:

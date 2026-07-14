@@ -15,6 +15,10 @@ from . import algebra as _alg
 from .expr import (
     Add,
     Anticommutator,
+    AntidotProduct,
+    AntimetricApply,
+    Antireverse,
+    BulkPart,
     Commutator,
     Conjugate,
     Div,
@@ -23,6 +27,7 @@ from .expr import (
     Even,
     Exp,
     Expr,
+    GeometricAntiproduct,
     Gp,
     Grade,
     Hi,
@@ -30,13 +35,21 @@ from .expr import (
     Involute,
     JordanProduct,
     Lc,
+    LeftHodgeDual,
+    LeftInteriorProduct,
+    LeftWeightDual,
     LieBracket,
+    MetricApply,
+    MetricInnerProduct,
     Neg,
     Norm,
     Odd,
     Op,
     Rc,
     Reverse,
+    RightHodgeDual,
+    RightInteriorProduct,
+    RightWeightDual,
     Scalar,
     ScalarDiv,
     ScalarMul,
@@ -44,10 +57,33 @@ from .expr import (
     Squared,
     Sub,
     Sym,
+    Transwedge,
+    TranswedgeAntiproduct,
     Undual,
     Unit,
+    WeightPart,
     _ensure_expr,
 )
+
+_RGA_UNARY = (
+    MetricApply,
+    AntimetricApply,
+    BulkPart,
+    WeightPart,
+    RightHodgeDual,
+    LeftHodgeDual,
+    RightWeightDual,
+    LeftWeightDual,
+    Antireverse,
+)
+_RGA_BINARY = (
+    MetricInnerProduct,
+    AntidotProduct,
+    GeometricAntiproduct,
+    LeftInteriorProduct,
+    RightInteriorProduct,
+)
+_RGA_PARAMETERIZED = (Transwedge, TranswedgeAntiproduct)
 
 
 def _eq(a: Expr, b: Expr) -> bool:
@@ -74,12 +110,18 @@ def _eq(a: Expr, b: Expr) -> bool:
         return a.k == b.k and _eq(a.x, b.x)
     if isinstance(a, Neg):
         return _eq(a.x, b.x)
-    if isinstance(a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp)):
+    if isinstance(
+        a, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp) + _RGA_UNARY
+    ):
         return _eq(a.x, b.x)
     if isinstance(
-        a, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+        a,
+        (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+        + _RGA_BINARY,
     ):
         return _eq(a.a, b.a) and _eq(a.b, b.b)
+    if isinstance(a, _RGA_PARAMETERIZED):
+        return a.k == b.k and _eq(a.a, b.a) and _eq(a.b, b.b)
     if isinstance(a, Grade):
         return _eq(a.x, b.x) and a.k == b.k
     return False
@@ -160,14 +202,21 @@ def _simplify(e: Expr) -> Expr:
     """Single-pass rewrite of an expression tree (called repeatedly by simplify)."""
     # --- Phase 1: recurse into children first (bottom-up rewriting) ---
     if isinstance(
-        e, (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+        e,
+        (Gp, Op, Lc, Rc, Hi, Dli, Sp, Commutator, Anticommutator, LieBracket, JordanProduct, Add, Sub, Div)
+        + _RGA_BINARY,
     ):
         e = type(e)(_simplify(e.a), _simplify(e.b))
+    elif isinstance(e, _RGA_PARAMETERIZED):
+        e = type(e)(_simplify(e.a), _simplify(e.b), e.k)
     elif isinstance(e, ScalarMul):
         e = ScalarMul(e.k, _simplify(e.x))
     elif isinstance(e, ScalarDiv):
         e = ScalarDiv(_simplify(e.x), e.k)
-    elif isinstance(e, (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp)):
+    elif isinstance(
+        e,
+        (Reverse, Involute, Conjugate, Dual, Undual, Norm, Unit, Inverse, Squared, Even, Odd, Exp) + _RGA_UNARY,
+    ):
         e = type(e)(_simplify(e.x))
     elif isinstance(e, Neg):
         e = Neg(_simplify(e.x))

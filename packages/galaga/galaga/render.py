@@ -34,6 +34,10 @@ from enum import Enum
 from .expr import (
     Add,
     Anticommutator,
+    AntidotProduct,
+    AntimetricApply,
+    Antireverse,
+    BulkPart,
     Commutator,
     Complement,
     Conjugate,
@@ -43,6 +47,7 @@ from .expr import (
     Even,
     Exp,
     Expr,
+    GeometricAntiproduct,
     Gp,
     Grade,
     Hi,
@@ -50,8 +55,13 @@ from .expr import (
     Involute,
     JordanProduct,
     Lc,
+    LeftHodgeDual,
+    LeftInteriorProduct,
+    LeftWeightDual,
     LieBracket,
     Log,
+    MetricApply,
+    MetricInnerProduct,
     Neg,
     Norm,
     Norm2,
@@ -60,6 +70,9 @@ from .expr import (
     Rc,
     Regressive,
     Reverse,
+    RightHodgeDual,
+    RightInteriorProduct,
+    RightWeightDual,
     Scalar,
     ScalarDiv,
     ScalarMul,
@@ -68,9 +81,12 @@ from .expr import (
     Squared,
     Sub,
     Sym,
+    Transwedge,
+    TranswedgeAntiproduct,
     Uncomplement,
     Undual,
     Unit,
+    WeightPart,
 )
 from .notation import Notation
 
@@ -112,18 +128,34 @@ INFO: dict[type, OpInfo] = {
     Undual: OpInfo(95),
     Complement: OpInfo(95),
     Uncomplement: OpInfo(95),
+    MetricApply: OpInfo(95),
+    AntimetricApply: OpInfo(95),
+    BulkPart: OpInfo(95),
+    WeightPart: OpInfo(95),
+    RightHodgeDual: OpInfo(95),
+    LeftHodgeDual: OpInfo(95),
+    RightWeightDual: OpInfo(95),
+    LeftWeightDual: OpInfo(95),
+    Antireverse: OpInfo(95),
     Inverse: OpInfo(95),
     Squared: OpInfo(95),
     Neg: OpInfo(90),
     ScalarMul: OpInfo(80),
     ScalarDiv: OpInfo(80),
     Gp: OpInfo(80, Assoc.LEFT, flat=True),
+    GeometricAntiproduct: OpInfo(80, Assoc.LEFT, flat=True),
     Op: OpInfo(70, Assoc.LEFT, flat=True),
     Lc: OpInfo(70, Assoc.LEFT),
     Rc: OpInfo(70, Assoc.LEFT),
     Hi: OpInfo(70, Assoc.LEFT),
     Dli: OpInfo(70, Assoc.LEFT),
     Sp: OpInfo(70, Assoc.LEFT),
+    MetricInnerProduct: OpInfo(70, Assoc.LEFT),
+    AntidotProduct: OpInfo(70, Assoc.LEFT),
+    LeftInteriorProduct: OpInfo(70, Assoc.LEFT),
+    RightInteriorProduct: OpInfo(70, Assoc.LEFT),
+    Transwedge: OpInfo(70, Assoc.LEFT),
+    TranswedgeAntiproduct: OpInfo(70, Assoc.LEFT),
     Div: OpInfo(70, Assoc.LEFT),
     Regressive: OpInfo(70, Assoc.LEFT, flat=True),
     Add: OpInfo(60, Assoc.LEFT, flat=True),
@@ -144,7 +176,22 @@ INFO: dict[type, OpInfo] = {
 }
 
 # Child wrapping thresholds for binary ops
-_CHILD_MIN = {Gp: 80, Op: 81, Lc: 71, Rc: 71, Hi: 71, Dli: 71, Sp: 71}
+_CHILD_MIN = {
+    Gp: 80,
+    GeometricAntiproduct: 80,
+    Op: 81,
+    Lc: 71,
+    Rc: 71,
+    Hi: 71,
+    Dli: 71,
+    Sp: 71,
+    MetricInnerProduct: 71,
+    AntidotProduct: 71,
+    LeftInteriorProduct: 71,
+    RightInteriorProduct: 71,
+    Transwedge: 71,
+    TranswedgeAntiproduct: 71,
+}
 
 # Map node type to its string name for notation lookup
 _NAME = {cls: cls.__name__ for cls in INFO}
@@ -238,6 +285,8 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     # Function call — generic for all node types
     if rule.kind == "function":
         if hasattr(node, "a"):
+            if hasattr(node, "k"):
+                return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)}, {node.k})"
             return f"{rule.symbol}({render(node.a, n)}, {render(node.b, n)})"
         if t is Grade:
             return f"{rule.symbol}({render(node.x, n)}, {node.k})"
@@ -253,6 +302,12 @@ def render(node: Expr, notation: Notation | None = None) -> str:
     if rule.kind == "infix" and hasattr(node, "a"):
         mp = _CHILD_MIN.get(t, 71)
         return f"{_w(render(node.a, n), node.a, mp, t)}{rule.separator}{_w(render(node.b, n), node.b, mp, t)}"
+
+    # Parameterized infix binary, e.g. a⩓₁b.
+    if rule.kind == "parameterized_infix" and hasattr(node, "k"):
+        mp = _CHILD_MIN.get(t, 71)
+        subscript = str(node.k).translate(_SUBSCRIPTS)
+        return f"{_w(render(node.a, n), node.a, mp, t)} {rule.symbol}{subscript} {_w(render(node.b, n), node.b, mp, t)}"
 
     # Prefix unary
     if rule.kind == "prefix" and hasattr(node, "x"):
@@ -285,6 +340,22 @@ def render(node: Expr, notation: Notation | None = None) -> str:
         if isinstance(node.x, Sym) and node.x.is_compound:
             inner = f"({render(node.x, n)})"
         return f"{inner}{rule.symbol}"
+
+    if rule.kind == "superscript" and hasattr(node, "x"):
+        inner = _w(render(node.x, n), node.x, 96)
+        return f"{inner}^{rule.symbol}"
+
+    if rule.kind == "subscript" and hasattr(node, "x"):
+        inner = _w(render(node.x, n), node.x, 96)
+        return f"{inner}_{rule.symbol}"
+
+    if rule.kind == "underaccent" and hasattr(node, "x"):
+        inner = render(node.x, n)
+        if isinstance(node.x, (Sym, Scalar)) and rule.combining:
+            return f"{inner}{rule.combining}"
+        if rule.fallback_prefix:
+            return f"{rule.fallback_prefix}({inner})"
+        return f"{inner}_{rule.symbol}"
 
     # Wrap — delimiters around content
     if rule.kind == "wrap":

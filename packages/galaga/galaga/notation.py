@@ -11,9 +11,12 @@ The renderer (ga.render) queries the Notation object instead of hardcoded tables
 Rule kinds:
     prefix:        "-x", "*v"           — symbol prepended to operand
     postfix:       "x†", "x⁻¹", "x²"    — symbol appended to operand
-    superscript:   "x^{dagger}"         — symbol placed in LaTeX superscript (auto-braced)
+    superscript:   "x^{dagger}"         — symbol placed in a superscript
+    subscript:     "x_★" / "x_{★}"      — symbol placed below the operand
     accent:        "x̃" / "~(a+b)"       — combining char for atoms, prefix fallback for compounds
+    underaccent:   "x̰" / "\\utilde{x}"      — accent below the operand
     infix:         "a∧b", "a·b"         — symbol between two operands
+    parameterized_infix: "a⩓ₖb"         — infix carrying an integer parameter
     function:      "rev(x)", "wedge(a,b)" — function call style
     wrap:          "⟨x⟩₁", "‖x‖"        — open/close delimiters around content
     juxtaposition: "ab"                 — no symbol, smart spacing for multi-char names
@@ -40,7 +43,7 @@ class NotationRule:
 
     kind: str  # "prefix", "postfix", "superscript", "accent", "infix", "wrap", "juxtaposition"
     symbol: str = ""
-    # accent-specific
+    # accent/underaccent-specific
     combining: str = ""
     fallback_prefix: str = ""
     latex_cmd: str = ""
@@ -84,6 +87,10 @@ def _wrap(
         "unicode": NotationRule(kind="wrap", open=uni_open, close=uni_close),
         "latex": NotationRule(kind="wrap", open=latex_open, close=latex_close),
     }
+
+
+def _function(name: str) -> dict[str, NotationRule]:
+    return {fmt: NotationRule(kind="function", symbol=name) for fmt in ("ascii", "unicode", "latex")}
 
 
 # Default rendering rules for every Expr node type.
@@ -132,6 +139,13 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Hi": _infix("·", r" \cdot ", "."),
     "Dli": _infix("·", r" \cdot ", "."),
     "Sp": _infix("∗", r" * ", "*"),
+    "MetricInnerProduct": _function("metric_inner_product"),
+    "AntidotProduct": _function("antidot_product"),
+    "GeometricAntiproduct": _function("geometric_antiproduct"),
+    "LeftInteriorProduct": _function("left_interior_product"),
+    "RightInteriorProduct": _function("right_interior_product"),
+    "Transwedge": _function("transwedge"),
+    "TranswedgeAntiproduct": _function("transwedge_antiproduct"),
     "Div": _infix("/", "/", "/"),
     "Regressive": _infix("∨", r" \vee ", "v"),
     "Add": _infix(" + ", " + ", " + "),
@@ -154,6 +168,15 @@ _DEFAULTS: dict[str, dict[str, NotationRule]] = {
     "Anticommutator": _wrap("{", "}", r"\{", r"\}"),
     "LieBracket": _wrap("½[", "]", r"\tfrac{1}{2}[", "]"),
     "JordanProduct": _wrap("½{", "}", r"\tfrac{1}{2}\{", r"\}"),
+    "MetricApply": _function("metric_apply"),
+    "AntimetricApply": _function("antimetric_apply"),
+    "BulkPart": _function("bulk_part"),
+    "WeightPart": _function("weight_part"),
+    "RightHodgeDual": _function("right_hodge_dual"),
+    "LeftHodgeDual": _function("left_hodge_dual"),
+    "RightWeightDual": _function("right_weight_dual"),
+    "LeftWeightDual": _function("left_weight_dual"),
+    "Antireverse": _function("antireverse"),
 }
 
 
@@ -167,6 +190,9 @@ _VALID_KINDS = {
     "wrap",
     "function",
     "superscript",
+    "subscript",
+    "underaccent",
+    "parameterized_infix",
     "unit_fraction",
 }
 
@@ -262,6 +288,112 @@ class Notation:
         n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         n.set("Reverse", "ascii", NotationRule(kind="postfix", symbol="dag"))
         n.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
+        return n
+
+    @staticmethod
+    def lengyel() -> Notation:
+        """Eric Lengyel / Rigid Geometric Algebra rendering conventions.
+
+        The preset changes rendering only. Existing Galaga operations whose
+        semantics differ from RGA operations remain explicitly named.
+        """
+        n = Notation()
+
+        def set_all(node, ascii_rule, unicode_rule, latex_rule):
+            n.set(node, "ascii", ascii_rule)
+            n.set(node, "unicode", unicode_rule)
+            n.set(node, "latex", latex_rule)
+
+        set_all(
+            "Gp",
+            NotationRule(kind="function", symbol="gp"),
+            NotationRule(kind="infix", separator=" ⟑ "),
+            NotationRule(kind="infix", separator=r" \mathbin{\text{⟑}} "),
+        )
+        for node, func, unicode_symbol, latex_symbol in (
+            ("GeometricAntiproduct", "geometric_antiproduct", "⟇", r"\text{⟇}"),
+            ("MetricInnerProduct", "metric_inner_product", "•", r"\bullet"),
+            ("AntidotProduct", "antidot_product", "∘", r"\circ"),
+            ("LeftInteriorProduct", "left_interior_product", "⌋", r"\rfloor"),
+            ("RightInteriorProduct", "right_interior_product", "⌊", r"\lfloor"),
+        ):
+            set_all(
+                node,
+                NotationRule(kind="function", symbol=func),
+                NotationRule(kind="infix", separator=f" {unicode_symbol} "),
+                NotationRule(kind="infix", separator=rf" \mathbin{{{latex_symbol}}} "),
+            )
+
+        for node, func, symbol in (
+            ("Transwedge", "transwedge", "⩓"),
+            ("TranswedgeAntiproduct", "transwedge_antiproduct", "⩔"),
+        ):
+            set_all(
+                node,
+                NotationRule(kind="function", symbol=func),
+                NotationRule(kind="parameterized_infix", symbol=symbol),
+                NotationRule(kind="parameterized_infix", symbol=rf"\text{{{symbol}}}"),
+            )
+
+        set_all(
+            "Complement",
+            NotationRule(kind="function", symbol="right_complement"),
+            NotationRule(kind="accent", combining="\u0305", fallback_prefix="overline"),
+            NotationRule(kind="accent", latex_cmd=r"\overline", latex_wide_cmd=r"\overline"),
+        )
+        set_all(
+            "Uncomplement",
+            NotationRule(kind="function", symbol="left_complement"),
+            NotationRule(kind="accent", combining="\u0332", fallback_prefix="underline"),
+            NotationRule(kind="accent", latex_cmd=r"\underline", latex_wide_cmd=r"\underline"),
+        )
+
+        for node, func, kind, unicode_symbol, latex_symbol in (
+            ("RightHodgeDual", "right_hodge_dual", "superscript", "★", r"\text{★}"),
+            ("LeftHodgeDual", "left_hodge_dual", "subscript", "★", r"\text{★}"),
+            ("RightWeightDual", "right_weight_dual", "superscript", "☆", r"\text{☆}"),
+            ("LeftWeightDual", "left_weight_dual", "subscript", "☆", r"\text{☆}"),
+            ("BulkPart", "bulk_part", "subscript", "●", r"\text{●}"),
+            ("WeightPart", "weight_part", "subscript", "○", r"\text{○}"),
+        ):
+            set_all(
+                node,
+                NotationRule(kind="function", symbol=func),
+                NotationRule(kind=kind, symbol=unicode_symbol),
+                NotationRule(kind=kind, symbol=latex_symbol),
+            )
+
+        set_all(
+            "MetricApply",
+            NotationRule(kind="function", symbol="metric_apply"),
+            NotationRule(kind="prefix", symbol="G"),
+            NotationRule(kind="prefix", symbol=r"\mathbf{G}"),
+        )
+        set_all(
+            "AntimetricApply",
+            NotationRule(kind="function", symbol="antimetric_apply"),
+            NotationRule(kind="prefix", symbol="𝔾"),
+            NotationRule(kind="prefix", symbol=r"\mathbb{G}"),
+        )
+        set_all(
+            "Antireverse",
+            NotationRule(kind="function", symbol="antireverse"),
+            NotationRule(kind="underaccent", combining="\u0330", fallback_prefix="antireverse", symbol="~"),
+            NotationRule(kind="underaccent", symbol=r"\sim", latex_cmd=r"\utilde"),
+        )
+
+        # These existing operations are not the RGA operations that own the
+        # star and contraction symbols. Clifford conjugation likewise has no
+        # dedicated compact symbol in the cited RGA sources.
+        for node, func in {
+            "Dual": "dual",
+            "Undual": "undual",
+            "Lc": "left_contraction",
+            "Rc": "right_contraction",
+            "Conjugate": "conjugate",
+        }.items():
+            for fmt in ("ascii", "unicode", "latex"):
+                n.set(node, fmt, NotationRule(kind="function", symbol=func))
         return n
 
     @staticmethod

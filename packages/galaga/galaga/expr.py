@@ -7,10 +7,12 @@ ga.algebra (resolved lazily via the _alg module reference).
 Node categories:
     Leaf:   Sym (named MV), Scalar (numeric constant)
     Binary: Gp, Op, Add, Sub, Div, Lc, Rc, Hi, Dli, Sp, Regressive,
-            Commutator, Anticommutator, LieBracket, JordanProduct
+            Commutator, Anticommutator, LieBracket, JordanProduct, and the
+            RGA metric/interior/antiproduct operations
     Unary:  Reverse, Involute, Conjugate, Dual, Undual, Complement,
             Uncomplement, Norm, Unit, Inverse, Exp, Log, Even, Odd
-    Other:  Neg, ScalarMul, ScalarDiv, Grade, Squared
+    Other:  Neg, ScalarMul, ScalarDiv, Grade, Squared, and parameterized
+            transwedge products
 """
 
 from __future__ import annotations
@@ -234,6 +236,16 @@ def _make_unary_expr(name, alg_func_name):
     return type(name, (Expr,), {"__init__": __init__, "eval": eval})
 
 
+def _make_parameterized_binary_expr(name, alg_func_name):
+    def __init__(self, a, b, k):
+        self.a, self.b, self.k = _coerce(a), _coerce(b), k
+
+    def eval(self):
+        return getattr(_alg, alg_func_name)(self.a.eval(), self.b.eval(), self.k)
+
+    return type(name, (Expr,), {"__init__": __init__, "eval": eval})
+
+
 # op_name → (class_name, arity)
 _NODE_NAMES = {
     # Binary
@@ -244,11 +256,18 @@ _NODE_NAMES = {
     "hestenes_inner": ("Hi", 2),
     "doran_lasenby_inner": ("Dli", 2),
     "scalar_product": ("Sp", 2),
+    "metric_inner_product": ("MetricInnerProduct", 2),
+    "antidot_product": ("AntidotProduct", 2),
     "commutator": ("Commutator", 2),
     "anticommutator": ("Anticommutator", 2),
     "lie_bracket": ("LieBracket", 2),
     "jordan_product": ("JordanProduct", 2),
     "regressive_product": ("Regressive", 2),
+    "geometric_antiproduct": ("GeometricAntiproduct", 2),
+    "left_interior_product": ("LeftInteriorProduct", 2),
+    "right_interior_product": ("RightInteriorProduct", 2),
+    "transwedge": ("Transwedge", 3),
+    "transwedge_antiproduct": ("TranswedgeAntiproduct", 3),
     # Unary
     "reverse": ("Reverse", 1),
     "involute": ("Involute", 1),
@@ -257,6 +276,15 @@ _NODE_NAMES = {
     "undual": ("Undual", 1),
     "complement": ("Complement", 1),
     "uncomplement": ("Uncomplement", 1),
+    "metric_apply": ("MetricApply", 1),
+    "antimetric_apply": ("AntimetricApply", 1),
+    "bulk_part": ("BulkPart", 1),
+    "weight_part": ("WeightPart", 1),
+    "right_hodge_dual": ("RightHodgeDual", 1),
+    "left_hodge_dual": ("LeftHodgeDual", 1),
+    "right_weight_dual": ("RightWeightDual", 1),
+    "left_weight_dual": ("LeftWeightDual", 1),
+    "antireverse": ("Antireverse", 1),
     "unit": ("Unit", 1),
     "inverse": ("Inverse", 1),
     "even_grades": ("Even", 1),
@@ -279,7 +307,9 @@ _EXTRA_UNARY = {
 _this = _sys.modules[__name__]
 
 for _op_name, (_class_name, _arity) in _NODE_NAMES.items():
-    if _arity == 2:
+    if _arity == 3:
+        _cls = _make_parameterized_binary_expr(_class_name, _op_name)
+    elif _arity == 2:
         _cls = _make_binary_expr(_class_name, _op_name)
     else:
         _cls = _make_unary_expr(_class_name, _op_name)
@@ -300,11 +330,18 @@ Rc = Rc  # noqa: F821, PLW0127
 Hi = Hi  # noqa: F821, PLW0127
 Dli = Dli  # noqa: F821, PLW0127
 Sp = Sp  # noqa: F821, PLW0127
+MetricInnerProduct = MetricInnerProduct  # noqa: F821, PLW0127
+AntidotProduct = AntidotProduct  # noqa: F821, PLW0127
 Commutator = Commutator  # noqa: F821, PLW0127
 Anticommutator = Anticommutator  # noqa: F821, PLW0127
 LieBracket = LieBracket  # noqa: F821, PLW0127
 JordanProduct = JordanProduct  # noqa: F821, PLW0127
 Regressive = Regressive  # noqa: F821, PLW0127
+GeometricAntiproduct = GeometricAntiproduct  # noqa: F821, PLW0127
+LeftInteriorProduct = LeftInteriorProduct  # noqa: F821, PLW0127
+RightInteriorProduct = RightInteriorProduct  # noqa: F821, PLW0127
+Transwedge = Transwedge  # noqa: F821, PLW0127
+TranswedgeAntiproduct = TranswedgeAntiproduct  # noqa: F821, PLW0127
 Reverse = Reverse  # noqa: F821, PLW0127
 Involute = Involute  # noqa: F821, PLW0127
 Conjugate = Conjugate  # noqa: F821, PLW0127
@@ -312,6 +349,15 @@ Dual = Dual  # noqa: F821, PLW0127
 Undual = Undual  # noqa: F821, PLW0127
 Complement = Complement  # noqa: F821, PLW0127
 Uncomplement = Uncomplement  # noqa: F821, PLW0127
+MetricApply = MetricApply  # noqa: F821, PLW0127
+AntimetricApply = AntimetricApply  # noqa: F821, PLW0127
+BulkPart = BulkPart  # noqa: F821, PLW0127
+WeightPart = WeightPart  # noqa: F821, PLW0127
+RightHodgeDual = RightHodgeDual  # noqa: F821, PLW0127
+LeftHodgeDual = LeftHodgeDual  # noqa: F821, PLW0127
+RightWeightDual = RightWeightDual  # noqa: F821, PLW0127
+LeftWeightDual = LeftWeightDual  # noqa: F821, PLW0127
+Antireverse = Antireverse  # noqa: F821, PLW0127
 Norm = Norm  # noqa: F821, PLW0127
 Norm2 = Norm2  # noqa: F821, PLW0127
 Unit = Unit  # noqa: F821, PLW0127
@@ -450,10 +496,17 @@ _HANDLER_MAP = {
     "hestenes_inner": Hi,
     "doran_lasenby_inner": Dli,
     "scalar_product": Sp,
+    "metric_inner_product": MetricInnerProduct,
+    "antidot_product": AntidotProduct,
     "commutator": Commutator,
     "anticommutator": Anticommutator,
     "lie_bracket": LieBracket,
     "jordan_product": JordanProduct,
+    "geometric_antiproduct": GeometricAntiproduct,
+    "left_interior_product": LeftInteriorProduct,
+    "right_interior_product": RightInteriorProduct,
+    "transwedge": Transwedge,
+    "transwedge_antiproduct": TranswedgeAntiproduct,
     "reverse": Reverse,
     "involute": Involute,
     "conjugate": Conjugate,
@@ -462,6 +515,15 @@ _HANDLER_MAP = {
     "complement": Complement,
     "uncomplement": Uncomplement,
     "regressive_product": Regressive,
+    "metric_apply": MetricApply,
+    "antimetric_apply": AntimetricApply,
+    "bulk_part": BulkPart,
+    "weight_part": WeightPart,
+    "right_hodge_dual": RightHodgeDual,
+    "left_hodge_dual": LeftHodgeDual,
+    "right_weight_dual": RightWeightDual,
+    "left_weight_dual": LeftWeightDual,
+    "antireverse": Antireverse,
     "unit": Unit,
     "inverse": Inverse,
     "even_grades": Even,
