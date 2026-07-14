@@ -140,25 +140,19 @@ def _(rga):
 
 @app.cell
 def _(e1, e2, e3, e4, gm, rga):
-    _e1_square = e1**2
-    _e4_square = e4**2
     gm.md(t"""
     The metric is derived from the signature **{rga.signature}**.
 
-    {e1}
-
-    {e2}
-
-    {e3}
-
+    {e1} <br/>
+    {e2} <br/>
+    {e3} <br/>
     {e4}
 
     Their computed squares distinguish a Euclidean direction from the null
     projective direction:
 
-    {_e1_square}
-
-    {_e4_square}
+    {e1**2} <br/>
+    {e4**2}
     """)
     return
 
@@ -203,13 +197,12 @@ def _(mo):
 
 
 @app.cell
-def _(antiwedge, e1, e2, e3, e4, e423, e431, gm, op):
+def _(antiwedge, e1, e2, e3, e4, e423, e431, gm):
     point_p = (e1 + 2 * e2 + e4).name(latex="P")
     point_q = (-e1 + e3 + e4).name(latex="Q")
-    joined_line = op(point_p, point_q)
+
     plane_x = e423.name(latex=r"\pi_x")
     plane_y = e431.name(latex=r"\pi_y")
-    met_line = antiwedge(plane_x, plane_y)
 
     gm.md(t"""
     Two homogeneous points join to a line:
@@ -218,7 +211,7 @@ def _(antiwedge, e1, e2, e3, e4, e423, e431, gm, op):
 
     {point_q}
 
-    {joined_line}
+    {point_p ^ point_q}
 
     The coordinate planes meet in their common line:
 
@@ -226,7 +219,7 @@ def _(antiwedge, e1, e2, e3, e4, e423, e431, gm, op):
 
     {plane_y}
 
-    {met_line}
+    {antiwedge(plane_x, plane_y)}
     """)
     return
 
@@ -252,21 +245,18 @@ def _(mo):
 
 @app.cell
 def _(e1, gm, left_complement, right_complement):
-    right_e1_complement = right_complement(e1)
-    left_e1_complement = left_complement(e1)
-
     gm.md(t"""
     Computing the signs gives the two complementary trivectors:
 
-    {right_e1_complement}
+    {right_complement(e1)}
 
-    {left_e1_complement}
+    {left_complement(e1)}
 
     Both defining wedge identities evaluate to the oriented antiscalar:
 
-    {e1 ^ right_e1_complement}
+    {e1 ^ right_complement(e1)}
 
-    {left_e1_complement ^ e1}
+    {left_complement(e1) ^ e1}
     """)
     return
 
@@ -301,33 +291,28 @@ def _(
     metric_apply,
     weight_part,
 ):
-    mixed_line = (2 * e23 - e31 + 3 * e41 - e42).name(latex="L")
-    metric_line = metric_apply(mixed_line)
-    antimetric_line = antimetric_apply(mixed_line)
-    bulk_line = bulk_part(mixed_line)
-    weight_line = weight_part(mixed_line)
-    split_line = bulk_line + weight_line
+    _line = (2 * e23 - e31 + 3 * e41 - e42).name(latex="L")
 
     gm.md(t"""
     Start with a line containing Euclidean and weighted terms:
 
-    {mixed_line}
+    { _line }
 
     The metric and antimetric maps compute complementary projections:
 
-    {metric_line}
+    { metric_apply(_line) }
 
-    {antimetric_line}
+    { antimetric_apply(_line) }
 
     The named bulk and weight parts agree with those maps:
 
-    {bulk_line}
+    { bulk_part(_line) }
 
-    {weight_line}
+    { weight_part(_line) }
 
     Their sum reconstructs the input:
 
-    {split_line}
+    { bulk_part(_line) + weight_part(_line) }
     """)
     return
 
@@ -356,22 +341,19 @@ def _(mo):
 def _(antidot_product, e23, e41, gm, metric_inner_product):
     euclidean_bivector = e23.name(latex="B")
     weighted_bivector = e41.name(latex="W")
-    bivector_dot = metric_inner_product(euclidean_bivector, euclidean_bivector)
-    weighted_dot = metric_inner_product(weighted_bivector, weighted_bivector)
-    bivector_antidot = antidot_product(weighted_bivector, weighted_bivector)
 
     gm.md(t"""
     The metric and antimetric select complementary information:
 
     {euclidean_bivector}
 
-    {bivector_dot}
+    {metric_inner_product(euclidean_bivector, euclidean_bivector)}
 
     {weighted_bivector}
 
-    {weighted_dot}
+    {metric_inner_product(weighted_bivector, weighted_bivector)}
 
-    {bivector_antidot}
+    {antidot_product(weighted_bivector, weighted_bivector)}
 
     The last result has grade four: it is a multiple of the antiscalar.
     """)
@@ -408,35 +390,29 @@ def _(
     gm,
     left_hodge_dual,
     left_weight_dual,
-    op,
     right_hodge_dual,
     right_weight_dual,
 ):
-    right_bulk_dual_e1 = right_hodge_dual(e1)
-    left_bulk_dual_e1 = left_hodge_dual(e1)
     weight_blade = e41.name(latex="W")
-    right_weight_dual_w = right_weight_dual(weight_blade)
-    left_weight_dual_w = left_weight_dual(weight_blade)
-    hodge_pairing = op(e1, right_bulk_dual_e1)
 
     gm.md(t"""
     For a Euclidean vector, the bulk dual is nonzero:
 
-    {right_bulk_dual_e1}
+    {right_hodge_dual(e1)}
 
-    {left_bulk_dual_e1}
+    {left_hodge_dual(e1)}
 
     The computed right-dual wedge pairing is:
 
-    {hodge_pairing}
+    {e1 ^ right_hodge_dual(e1)}
 
     A weighted bivector instead has nonzero weight duals:
 
     {weight_blade}
 
-    {right_weight_dual_w}
+    {right_weight_dual(weight_blade)}
 
-    {left_weight_dual_w}
+    {left_weight_dual(weight_blade)}
     """)
     return
 
@@ -529,51 +505,43 @@ def _(mo):
     RGA interior products are defined from bulk duals and the antiwedge:
 
     $$
-    a\mathbin{\lrcorner}B=a_{\text{★}}\vee B, \qquad
-    B\mathbin{\llcorner}a=B\vee a^{\text{★}}.
+    a\mathbin{\rfloor}B=a_{\text{★}}\vee B, \qquad
+    B\mathbin{\lfloor}a=B\vee a^{\text{★}}.
     $$
 
     Operand order matters. For vector $a$ and bivector $B$:
 
     $$
-    aB=a\wedge B+B\mathbin{\llcorner}a, \qquad
-    Ba=B\wedge a+a\mathbin{\lrcorner}B.
+    aB=a\wedge B+B\mathbin{\lfloor}a, \qquad
+    Ba=B\wedge a+a\mathbin{\rfloor}B.
     $$
     """)
     return
 
 
 @app.cell
-def _(e1, e2, e3, gm, gp, left_interior_product, op, right_interior_product):
-    interior_vector = (e1 + e2).name(latex="a")
-    interior_bivector = op(e1 + 2 * e3, e2 - e3).name(latex="B")
-    vector_bivector_gp = gp(interior_vector, interior_bivector)
-    vector_bivector_parts = op(interior_vector, interior_bivector) + (
-        right_interior_product(interior_bivector, interior_vector)
-    )
-    bivector_vector_gp = gp(interior_bivector, interior_vector)
-    bivector_vector_parts = op(interior_bivector, interior_vector) + (
-        left_interior_product(interior_vector, interior_bivector)
-    )
+def _(e1, e2, e3, gm, left_interior_product, op, right_interior_product):
+    _a = (e1 + e2).name(latex="a")
+    _B = op(e1 + 2 * e3, e2 - e3).name(latex="B")
 
     gm.md(t"""
     Choose:
 
-    {interior_vector}
+    {_a}
 
-    {interior_bivector}
+    {_B}
 
     The vector-bivector decomposition computes:
 
-    {vector_bivector_gp}
+    {_a * _B}
 
-    {vector_bivector_parts}
+    {(_a ^ _B) + right_interior_product(_B, _a)}
 
     Reversing the operand order computes:
 
-    {bivector_vector_gp}
+    {_B * _a}
 
-    {bivector_vector_parts}
+    {(_B ^ _a) + left_interior_product(_a, _B)}
     """)
     return
 
@@ -616,58 +584,46 @@ def _(
     e42,
     geometric_antiproduct,
     gm,
-    gp,
     transwedge,
     transwedge_antiproduct,
 ):
-    trans_a = (e23 + 2 * e31 + e41).name(latex="A")
-    trans_b = (e12 - e31 + 3 * e42).name(latex="B")
-    trans_0 = transwedge(trans_a, trans_b, 0)
-    trans_1 = transwedge(trans_a, trans_b, 1)
-    trans_2 = transwedge(trans_a, trans_b, 2)
-    trans_sum = trans_0 + trans_1 - trans_2
-    trans_gp = gp(trans_a, trans_b)
-
-    antitrans_0 = transwedge_antiproduct(trans_a, trans_b, 0)
-    antitrans_1 = transwedge_antiproduct(trans_a, trans_b, 1)
-    antitrans_2 = transwedge_antiproduct(trans_a, trans_b, 2)
-    antitrans_sum = antitrans_0 + antitrans_1 - antitrans_2
-    trans_gap = geometric_antiproduct(trans_a, trans_b)
+    _a = (e23 + 2 * e31 + e41).name(latex="A")
+    _b = (e12 - e31 + 3 * e42).name(latex="B")
 
     gm.md(t"""
     Use two bivectors containing Euclidean and weighted terms:
 
-    {trans_a}
+    {_a}
 
-    {trans_b}
+    {_b}
 
     Their transwedge orders are:
 
-    {trans_0}
+    {transwedge(_a, _b, 0)}
 
-    {trans_1}
+    {transwedge(_a, _b, 1)}
 
-    {trans_2}
+    {transwedge(_a, _b, 2)}
 
     The signed sum matches the independently computed geometric product:
 
-    {trans_sum}
+    {transwedge(_a, _b, 0) + transwedge(_a, _b, 1) - transwedge(_a, _b, 2)}
 
-    {trans_gp}
+    {_a * _b}
 
     The three transwedge-antiproduct orders are:
 
-    {antitrans_0}
+    {transwedge_antiproduct(_a, _b, 0)}
 
-    {antitrans_1}
+    {transwedge_antiproduct(_a, _b, 1)}
 
-    {antitrans_2}
+    {transwedge_antiproduct(_a, _b, 2)}
 
     Their signed sum matches the geometric antiproduct:
 
-    {antitrans_sum}
+    {transwedge_antiproduct(_a, _b, 0) + transwedge_antiproduct(_a, _b, 1) - transwedge_antiproduct(_a, _b, 2)}
 
-    {trans_gap}
+    {geometric_antiproduct(_a, _b)}
     """)
     return
 

@@ -88,6 +88,12 @@ def test_rga_demo_uses_the_rga_symbolic_display_convention():
     assert r"\curlywedge" not in source
     assert r"\text{⩓}" in source
     assert r"\text{⩔}" in source
+    assert r"a\mathbin{\rfloor}B=a_{\text{★}}\vee B" in source
+    assert r"B\mathbin{\lfloor}a=B\vee a^{\text{★}}" in source
+    assert "transwedge(_a, _b, 0) + transwedge(_a, _b, 1) - transwedge(_a, _b, 2)" in source
+    assert (
+        "transwedge_antiproduct(_a, _b, 0) + transwedge_antiproduct(_a, _b, 1) - transwedge_antiproduct(_a, _b, 2)"
+    ) in source
     assert ".eval()}" not in source
 
 
