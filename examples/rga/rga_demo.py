@@ -369,15 +369,15 @@ def _(mo):
     (Hodge) duals apply the metric before taking a complement:
 
     $$
-    A^{\text{★}}=\overline{G(A)}, \qquad
-    A_{\text{★}}=\underline{G(A)}.
+    A^{\text{★}}=\overline{\mathbf{G}A}, \qquad
+    A_{\text{★}}=\underline{\mathbf{G}A}.
     $$
 
     Weight duals use the antimetric:
 
     $$
-    A^{\text{☆}}=\overline{\mathbb{G}(A)}, \qquad
-    A_{\text{☆}}=\underline{\mathbb{G}(A)}.
+    A^{\text{☆}}=\overline{\mathbb{G}A}, \qquad
+    A_{\text{☆}}=\underline{\mathbb{G}A}.
     $$
     """)
     return

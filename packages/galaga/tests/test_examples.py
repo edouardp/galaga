@@ -80,6 +80,8 @@ def test_rga_demo_uses_the_rga_symbolic_display_convention():
     assert "display_repl" not in source
     assert r"A^{\text{☆}}" in source
     assert r"A_{\text{☆}}" in source
+    assert r"A^{\text{★}}=\overline{\mathbf{G}A}" in source
+    assert r"A_{\text{★}}=\underline{\mathbf{G}A}" in source
     assert r"\unicode{" not in source
     assert r"\mathbf{1}" not in source
     assert r"\mathbb{1}" not in source
