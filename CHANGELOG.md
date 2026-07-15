@@ -1,5 +1,19 @@
 # Changelog
 
+## 1.8.1 (2026-07-15)
+
+### Changed
+
+- **RGA demo cell scoping** — Uses private cell-local bindings for temporary
+  bivectors so instructional symbols can be reused safely across Marimo cells.
+
+### Fixed
+
+- **Consistent Lengyel complement accents** — Right and left complements now
+  include fixed-height LaTeX struts that account for superscripts and
+  subscripts. Overlines and underlines therefore remain aligned across an
+  equation even when operand glyphs have different ascenders or descenders.
+
 ## 1.8.0 (2026-07-14)
 
 ### Added
