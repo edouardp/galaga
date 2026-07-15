@@ -52,9 +52,11 @@ as `\text{𝟙}` in LaTeX. Antireverse uses KaTeX's native `\utilde{…}`
 under-accent so the mark stretches with compound expressions; the notation
 renderer retains `\underset` as the fallback for custom under-accent rules
 without a `latex_cmd`. Lengyel right and left complements include respective
-`\vphantom{Aft}` and `\vphantom{gy}` struts inside their overline and underline.
-This keeps each kind of complement mark at a consistent height across an
-equation while leaving other notation presets' accents unchanged.
+`\vphantom{Aft^6}` and `\vphantom{gy_7}` struts inside their overline and
+underline. The superscript and subscript extend the struts to accommodate
+decorated operands. This keeps each kind of complement mark at a consistent
+height across an equation while leaving other notation presets' accents
+unchanged.
 
 `b_rga()` is used with the explicit signature `Algebra((1, 1, 1, 0), ...)`.
 This preserves the RGA vector order e1,e2,e3,e4, makes e4 null, and preserves

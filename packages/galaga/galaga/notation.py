@@ -345,7 +345,7 @@ class Notation:
                 kind="accent",
                 latex_cmd=r"\overline",
                 latex_wide_cmd=r"\overline",
-                latex_phantom="Aft",
+                latex_phantom="Aft^6",
             ),
         )
         set_all(
@@ -356,7 +356,7 @@ class Notation:
                 kind="accent",
                 latex_cmd=r"\underline",
                 latex_wide_cmd=r"\underline",
-                latex_phantom="gy",
+                latex_phantom="gy_7",
             ),
         )
 
