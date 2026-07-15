@@ -53,6 +53,8 @@ class NotationRule:
     close: str = ""
     # infix/juxtaposition-specific
     separator: str = ""
+    # Optional fixed-height strut inside a LaTeX accent
+    latex_phantom: str = ""
 
 
 def _accent(combining: str, fallback: str, latex_cmd: str, latex_wide: str) -> dict[str, NotationRule]:
@@ -339,13 +341,23 @@ class Notation:
             "Complement",
             NotationRule(kind="function", symbol="right_complement"),
             NotationRule(kind="accent", combining="\u0305", fallback_prefix="overline"),
-            NotationRule(kind="accent", latex_cmd=r"\overline", latex_wide_cmd=r"\overline"),
+            NotationRule(
+                kind="accent",
+                latex_cmd=r"\overline",
+                latex_wide_cmd=r"\overline",
+                latex_phantom="Aft",
+            ),
         )
         set_all(
             "Uncomplement",
             NotationRule(kind="function", symbol="left_complement"),
             NotationRule(kind="accent", combining="\u0332", fallback_prefix="underline"),
-            NotationRule(kind="accent", latex_cmd=r"\underline", latex_wide_cmd=r"\underline"),
+            NotationRule(
+                kind="accent",
+                latex_cmd=r"\underline",
+                latex_wide_cmd=r"\underline",
+                latex_phantom="gy",
+            ),
         )
 
         for node, func, kind, unicode_symbol, latex_symbol in (

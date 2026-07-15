@@ -206,6 +206,8 @@ def _build(node: Expr, n: Notation) -> LNode:
         else:
             inner = _wp(_build(node.x, n), node.x, 95)
         cmd = rule.latex_cmd if is_single_glyph else rule.latex_wide_cmd
+        if rule.latex_phantom:
+            inner = Seq([Command(r"\vphantom", Text(rule.latex_phantom)), inner])
         return Command(cmd, inner)
 
     # Postfix

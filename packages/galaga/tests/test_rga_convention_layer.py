@@ -430,11 +430,13 @@ def test_lengyel_notation_rendering_snapshot():
     assert str(reverse(e1)) == "e₁̃"
     assert str(conjugate(e1)) == "conjugate(e₁)"
     assert gp(e1, e2).latex() == r"\mathbf{e}_{1} \mathbin{\text{⟑}} \mathbf{e}_{2}"
-    assert r"\overline" in complement(e1).latex()
+    assert complement(e1).latex() == r"\overline{\vphantom{Aft}\mathbf{e}_{1}}"
+    assert left_complement(e1).latex() == r"\underline{\vphantom{gy}\mathbf{e}_{1}}"
     assert right_hodge_dual(e1).latex() == r"\mathbf{e}_{1}^{\text{★}}"
     assert antireverse(e1).latex() == r"\utilde{\mathbf{e}_{1}}"
     assert antireverse(antiwedge(complement(e1), complement(e2))).latex() == (
-        r"\utilde{\overline{\mathbf{e}_{1}} \vee \overline{\mathbf{e}_{2}}}"
+        r"\utilde{\overline{\vphantom{Aft}\mathbf{e}_{1}} \vee "
+        r"\overline{\vphantom{Aft}\mathbf{e}_{2}}}"
     )
     assert alg.I.latex() == r"\text{𝟙}"
 
