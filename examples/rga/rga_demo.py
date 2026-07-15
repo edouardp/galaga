@@ -339,21 +339,21 @@ def _(mo):
 
 @app.cell
 def _(antidot_product, e23, e41, gm, metric_inner_product):
-    euclidean_bivector = e23.name(latex="B")
-    weighted_bivector = e41.name(latex="W")
+    _B = e23.name(latex="B")
+    _W = e41.name(latex="W")
 
     gm.md(t"""
     The metric and antimetric select complementary information:
 
-    {euclidean_bivector}
+    {_B}
 
-    {metric_inner_product(euclidean_bivector, euclidean_bivector)}
+    {metric_inner_product(_B, _B)}
 
-    {weighted_bivector}
+    {_W}
 
-    {metric_inner_product(weighted_bivector, weighted_bivector)}
+    {metric_inner_product(_W, _W)}
 
-    {antidot_product(weighted_bivector, weighted_bivector)}
+    {antidot_product(_W, _W)}
 
     The last result has grade four: it is a multiple of the antiscalar.
     """)
