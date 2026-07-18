@@ -2,7 +2,7 @@
 
 import unittest
 
-from galaga import Algebra, b_gamma, b_pga, b_sta
+from galaga import Algebra, b_gamma, b_sta
 
 
 class TestBladeLazyPaths(unittest.TestCase):
@@ -79,34 +79,6 @@ class TestDisplayResultEdgeCases(unittest.TestCase):
         v = (e1 + e2).name("v")
         d = v.display()
         assert isinstance(repr(d), str)
-
-
-class TestDualErrorMessage(unittest.TestCase):
-    """Cover the improved dual() error path."""
-
-    def test_dual_degenerate_error(self):
-        """dual() in PGA gives helpful error mentioning complement()."""
-        from galaga import dual
-
-        pga = Algebra(3, 0, 1, blades=b_pga())
-        e0, e1, e2, e3 = pga.basis_vectors()
-        with self.assertRaises(ValueError) as ctx:
-            dual(e1)
-        assert "complement()" in str(ctx.exception)
-
-
-class TestRtruedivNotImplemented(unittest.TestCase):
-    """Cover __rtruediv__ NotImplemented path."""
-
-    def test_non_scalar_rtruediv(self):
-        """MV / MV where left is not scalar returns NotImplemented internally."""
-        alg = Algebra(3)
-        e1, e2, _ = alg.basis_vectors()
-        # This goes through __truediv__, not __rtruediv__
-        # __rtruediv__ is hit when a non-int/float is on the left
-        # In practice this returns NotImplemented and Python raises TypeError
-        result = e1.__rtruediv__("not_a_number")
-        assert result is NotImplemented
 
 
 class TestGammaFactoryPss(unittest.TestCase):

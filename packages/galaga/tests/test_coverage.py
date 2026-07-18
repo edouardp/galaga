@@ -6,27 +6,22 @@ import pytest
 from galaga import (
     Algebra,
     BladeConvention,
-    anticommutator,
     b_gamma,
     b_sigma,
     b_sigma_xyz,
-    commutator,
     complement,
     conjugate,
     doran_lasenby_inner,
     dual,
     even_grades,
     gp,
-    grade,
     hestenes_inner,
     inverse,
     involute,
     ip,
     is_even,
     is_rotor,
-    jordan_product,
     left_contraction,
-    lie_bracket,
     odd_grades,
     op,
     regressive_product,
@@ -34,9 +29,6 @@ from galaga import (
     right_contraction,
     sandwich,
     scalar_product,
-    squared,
-    sw,
-    uncomplement,
     undual,
     unit,
 )
@@ -155,115 +147,6 @@ class TestNamingPresets:
         assert str(a * b * c) == "𝐚𝐛𝐜"
 
 
-class TestAlgebraProperties:
-    def test_I_property(self, cl3):
-        """alg.I returns the pseudoscalar."""
-        assert cl3.I == cl3.pseudoscalar()
-
-    def test_identity_property(self, cl3):
-        """alg.identity returns scalar 1."""
-        assert cl3.identity == cl3.scalar(1.0)
-
-    def test_degenerate_metric(self):
-        """Algebra with zero in signature (PGA-like)."""
-        pga = Algebra((1, 1, 1, 0))
-        e1, e2, e3, e0 = pga.basis_vectors()
-        # e0^2 = 0
-        assert np.isclose((e0 * e0).scalar_part, 0.0)
-
-    def test_blade_lookup_empty(self, cl3):
-        """blade('') returns scalar 1."""
-        s = cl3.blade("")
-        assert s == cl3.scalar(1.0)
-
-    def test_blade_lookup_one(self, cl3):
-        """blade('e1') returns first basis vector."""
-        s = cl3.blade("1")
-        assert s == cl3.scalar(1.0)
-
-    def test_blade_lookup_out_of_range(self, cl3):
-        """blade() with invalid name raises."""
-        with pytest.raises(ValueError, match="out of range"):
-            cl3.blade("e5")
-
-    def test_repr_degenerate(self):
-        """Repr includes degenerate count."""
-        pga = Algebra((1, 1, 1, 0))
-        assert repr(pga) == "Cl(3,0,1)"
-
-
-class TestMultivectorConvenience:
-    def test_inv_property(self, cl3):
-        """.inv returns inverse."""
-        e1, _, _ = cl3.basis_vectors()
-        v = 2 * e1
-        assert v * v.inv == cl3.scalar(1.0)
-
-    def test_dag_property(self, cl3):
-        """.dag returns reverse."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = e1 ^ e2
-        assert B.dag == reverse(B)
-
-    def test_sq_property(self, cl3):
-        """.sq returns gp(x, x)."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = e1 ^ e2
-        assert B.sq == gp(B, B)
-
-    def test_rsub_scalar(self, cl3):
-        """scalar - Expr works."""
-        e1, _, _ = cl3.basis_vectors()
-        r = 5 - e1
-        assert r.data[0] == 5.0
-        assert r.data[1] == -1.0
-
-    def test_rsub_notimplemented(self, cl3):
-        """MV - non-scalar returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__rsub__("bad") is NotImplemented
-
-    def test_truediv_notimplemented(self, cl3):
-        """Expr / non-scalar raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__truediv__("bad") is NotImplemented
-
-    def test_eq_notimplemented(self, cl3):
-        """MV == non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__eq__("bad") is NotImplemented
-
-    def test_rmul_notimplemented(self, cl3):
-        """non-scalar * MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__rmul__("bad") is NotImplemented
-
-    def test_add_notimplemented(self, cl3):
-        """MV + non-scalar/non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__add__("bad") is NotImplemented
-
-    def test_sub_notimplemented(self, cl3):
-        """MV - non-scalar/non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__sub__("bad") is NotImplemented
-
-    def test_mul_notimplemented(self, cl3):
-        """MV * non-scalar/non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__mul__("bad") is NotImplemented
-
-    def test_xor_notimplemented(self, cl3):
-        """MV ^ non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__xor__("bad") is NotImplemented
-
-    def test_or_notimplemented(self, cl3):
-        """MV | non-MV returns NotImplemented."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__or__("bad") is NotImplemented
-
-
 class TestArchitecturalInvariants:
     """Enforce the dependency and registry invariants from SPEC-012."""
 
@@ -371,71 +254,6 @@ class TestIpFunction:
         e1, _, _ = cl3.basis_vectors()
         with pytest.raises(ValueError, match="Unknown inner product mode"):
             ip(e1, e1, mode="bogus")
-
-
-class TestCommutatorAnticommutator:
-    def test_commutator(self, cl3):
-        """commutator(a,b) = ab - ba."""
-        e1, e2, _ = cl3.basis_vectors()
-        c = commutator(e1, e2)
-        expected = gp(e1, e2) - gp(e2, e1)
-        assert c == expected
-
-    def test_anticommutator(self, cl3):
-        """anticommutator(a,b) = ab + ba."""
-        e1, e2, _ = cl3.basis_vectors()
-        ac = anticommutator(e1, e2)
-        expected = gp(e1, e2) + gp(e2, e1)
-        assert ac == expected
-
-    def test_lie_bracket(self, cl3):
-        """lie_bracket = ½(ab - ba)."""
-        e1, e2, _ = cl3.basis_vectors()
-        lb = lie_bracket(e1, e2)
-        expected = (gp(e1, e2) - gp(e2, e1)) * 0.5
-        assert lb == expected
-
-    def test_jordan_product(self, cl3):
-        """jordan_product = ½(ab + ba)."""
-        e1, e2, _ = cl3.basis_vectors()
-        jp = jordan_product(e1, e2)
-        expected = (gp(e1, e2) + gp(e2, e1)) * 0.5
-        assert jp == expected
-
-    def test_commutator_antisymmetric(self, cl3):
-        """commutator is antisymmetric."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert commutator(e1, e2) == -commutator(e2, e1)
-
-    def test_anticommutator_symmetric(self, cl3):
-        """anticommutator is symmetric."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert anticommutator(e1, e2) == anticommutator(e2, e1)
-
-    def test_lie_bracket_bivector_structure(self, cl3):
-        """Bivectors form a Lie algebra under lie_bracket with clean structure constants."""
-        e1, e2, e3 = cl3.basis_vectors()
-        B12, B23, B31 = e1 ^ e2, e2 ^ e3, e3 ^ e1
-        # [B12, B23] = -B31 (structure constant ε₁₂₃ with sign from ordering)
-        assert lie_bracket(B12, B23) == -B31
-
-    def test_jordan_product_vectors_is_inner(self, cl3):
-        """For vectors, jordan_product(a, b) = a · b."""
-        e1, e2, e3 = cl3.basis_vectors()
-        a = 3 * e1 + 2 * e2
-        b = e1 - e3
-        jp = jordan_product(a, b)
-        ip_val = hestenes_inner(a, b)
-        assert jp == ip_val
-
-    def test_gp_decomposition(self, cl3):
-        """ab = ½[a,b] + ½{a,b} — commutator + anticommutator decompose the GP."""
-        e1, e2, e3 = cl3.basis_vectors()
-        a = 2 * e1 + e3
-        b = e2 - 3 * e3
-        ab = gp(a, b)
-        recomposed = lie_bracket(a, b) + jordan_product(a, b)
-        assert ab == recomposed
 
 
 # ============================================================
@@ -714,34 +532,6 @@ class TestUnitLongName:
         assert str(sunit(v)) == "velocity/‖velocity‖"
 
 
-class TestRemainingAlgebraGaps:
-    def test_mv_sub_scalar(self, cl3):
-        """MV - scalar works."""
-        e1, _, _ = cl3.basis_vectors()
-        r = (3 + e1) - 1
-        assert r.data[0] == 2.0
-        assert r.data[1] == 1.0
-
-    def test_mv_eq_scalar(self, cl3):
-        """MV == scalar compares grade-0."""
-        s = cl3.scalar(5.0)
-        assert s == 5.0
-        assert not (s == 3.0)
-
-    def test_grade_out_of_range(self, cl3):
-        """grade(mv, k) with k > n returns zero."""
-        e1, _, _ = cl3.basis_vectors()
-        r = grade(e1, -1)
-        assert np.allclose(r.data, 0)
-        r = grade(e1, 99)
-        assert np.allclose(r.data, 0)
-
-    def test_unit_zero_raises(self, cl3):
-        """unit(zero) raises ValueError."""
-        with pytest.raises(ValueError, match="Cannot normalize"):
-            unit(cl3.scalar(0))
-
-
 class TestRemainingSymbolicGaps:
     def test_sym_repr(self, cl3):
         """Sym repr uses ascii name."""
@@ -800,46 +590,6 @@ class TestRemainingSymbolicGaps:
         assert not isinstance(sdual(e1), Expr)
         assert not isinstance(sundual(e1), Expr)
         assert not isinstance(sinverse(e1), Expr)
-
-
-class TestEvenOddSquared:
-    """Tests for even_grades(), odd_grades(), squared() numeric functions."""
-
-    def test_even(self, cl3):
-        """Even LaTeX renders with \text{even}."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        r = even_grades(mv)
-        assert np.isclose(r.data[0], 1.0)  # scalar
-        assert np.isclose(r.data[1], 0.0)  # e1 (odd)
-        assert np.isclose(r.data[3], 3.0)  # e12
-
-    def test_odd(self, cl3):
-        """Odd LaTeX renders with \text{odd}."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        r = odd_grades(mv)
-        assert np.isclose(r.data[0], 0.0)
-        assert np.isclose(r.data[1], 2.0)
-        assert np.isclose(r.data[3], 0.0)
-
-    def test_even_odd_sum(self, cl3):
-        """even + odd = original."""
-        e1, e2, e3 = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2) + 4 * (e1 ^ e2 ^ e3)
-        assert even_grades(mv) + odd_grades(mv) == mv
-
-    def test_squared(self, cl3):
-        """Squared LaTeX renders with ^2."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = e1 + e2
-        assert squared(v) == gp(v, v)
-
-    def test_squared_bivector(self, cl3):
-        """squared(bivector) gives negative scalar."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = e1 ^ e2
-        assert squared(B) == cl3.scalar(-1.0)
 
 
 class TestSymbolicEvenOddSquared:
@@ -906,22 +656,6 @@ class TestSymbolicEvenOddSquared:
         assert not isinstance(result, Expr)
 
 
-class TestGetitem:
-    def test_grade_projection_getitem(self, cl3):
-        """mv[k] is shorthand for grade(mv, k)."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 3 + 2 * e1 + (e1 ^ e2)
-        assert mv[0] == grade(mv, 0)
-        assert mv[1] == grade(mv, 1)
-        assert mv[2] == grade(mv, 2)
-
-    def test_getitem_out_of_range(self, cl3):
-        """mv[k] with k > n returns zero."""
-        e1, _, _ = cl3.basis_vectors()
-        r = e1[5]
-        assert np.allclose(r.data, 0)
-
-
 class TestRotorFromPlaneAngle:
     def test_90_degree_rotation(self, cl3):
         """90° rotor rotates e1 to e2."""
@@ -953,23 +687,6 @@ class TestRotorFromPlaneAngle:
         B = e1 ^ e2
         R = cl3.rotor_from_plane_angle(B, radians=1.23)
         assert is_rotor(R)
-
-
-class TestIsRotor:
-    def test_unit_rotor(self, cl3):
-        """Unit rotor passes is_rotor()."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)
-        assert is_rotor(R)
-
-    def test_identity_is_rotor(self, cl3):
-        """Scalar 1 is a rotor."""
-        assert is_rotor(cl3.identity)
-
-    def test_vector_not_rotor(self, cl3):
-        """Vector is not a rotor."""
-        e1, _, _ = cl3.basis_vectors()
-        assert not is_rotor(e1)
 
 
 class TestRotorValidation:
@@ -1017,32 +734,6 @@ class TestRotorValidation:
         assert not is_rotor(2 * R)
 
 
-class TestEvenOddGradesRenamed:
-    def test_even_grades(self, cl3):
-        """even_grades keeps grades 0, 2, ..."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        assert even_grades(mv) == even_grades(mv)
-
-    def test_odd_grades(self, cl3):
-        """odd_grades keeps grades 1, 3, ..."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        assert odd_grades(mv) == odd_grades(mv)
-
-    def test_grade_even_string(self, cl3):
-        """grade(mv, 'even') works."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        assert grade(mv, "even") == even_grades(mv)
-
-    def test_grade_odd_string(self, cl3):
-        """grade(mv, 'odd') works."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = 1 + 2 * e1 + 3 * (e1 ^ e2)
-        assert grade(mv, "odd") == odd_grades(mv)
-
-
 class TestSymbolicGradeEvenOdd:
     def test_sym_grade_even(self, cl3):
         """Symbolic grade('even') builds Even node."""
@@ -1071,140 +762,6 @@ class TestSymbolicGradeEvenOdd:
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
         assert str(sodd_grades(v)) == "⟨v⟩₋"
-
-
-class TestFloatConversion:
-    """__float__ and __abs__ on Multivector."""
-
-    # --- Should succeed ---
-
-    def test_float_scalar(self, cl3):
-        """float() works on grade-0 MVs."""
-        s = cl3.scalar(3.5)
-        assert float(s) == 3.5
-
-    def test_float_scalar_product(self, cl3):
-        """float() works on result of scalar_product."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert float(scalar_product(e1, e1)) == 1.0
-
-    def test_float_grade_projection(self, cl3):
-        """float() works on grade-0 projection."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = e1 + 2 * e2
-        assert float(grade(gp(v, v), 0)) == 5.0
-
-    def test_float_zero(self, cl3):
-        """float() on zero MV returns 0.0."""
-        z = cl3.scalar(0.0)
-        assert float(z) == 0.0
-
-    def test_float_hestenes_inner_vectors(self, cl3):
-        """float() on hestenes_inner of same-grade vectors."""
-        e1, _, _ = cl3.basis_vectors()
-        assert float(hestenes_inner(e1, e1)) == 1.0
-
-    def test_float_doran_lasenby_inner_vectors(self, cl3):
-        """float() on doran_lasenby_inner of same-grade vectors."""
-        e1, _, _ = cl3.basis_vectors()
-        assert float(doran_lasenby_inner(e1, e1)) == 1.0
-
-    def test_float_left_contraction_same_grade(self, cl3):
-        """float() on left_contraction of same-grade blades."""
-        e1, _, _ = cl3.basis_vectors()
-        assert float(left_contraction(e1, e1)) == 1.0
-
-    def test_float_scalar_arithmetic(self, cl3):
-        """float() on scalar arithmetic results."""
-        a = cl3.scalar(3.0)
-        b = cl3.scalar(2.0)
-        assert float(a + b) == 5.0
-        assert float(a * 2) == 6.0
-        assert float(a / 2) == 1.5
-
-    def test_float_norm2(self, cl3):
-        """norm2 returns a scalar Multivector convertible to float."""
-        from galaga import Multivector, norm2
-
-        e1, _, _ = cl3.basis_vectors()
-        result = norm2(e1)
-        assert isinstance(result, Multivector)
-        assert result._grade == 0
-        assert float(result) == 1.0
-
-    def test_norm2_symbolic_rendering(self, cl3):
-        """norm2 renders as ‖v‖² symbolically."""
-        from galaga import norm2
-
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(norm2(v)) == "‖v‖²"
-        assert norm2(v).latex() == r"\lVert v \rVert^{2}"
-
-    def test_float_symbolic_scalar(self, cl3):
-        """float() works on symbolic grade-0 result."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        sp = scalar_product(v, v)
-        assert float(sp) == 1.0
-
-    def test_abs_scalar(self, cl3):
-        """abs() works on scalar MVs."""
-        s = cl3.scalar(-3.5)
-        assert abs(s) == 3.5
-
-    # --- Should throw ---
-
-    def test_float_vector_raises(self, cl3):
-        """float() on a vector raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        with pytest.raises(TypeError, match="grade-1"):
-            float(e1)
-
-    def test_float_bivector_raises(self, cl3):
-        """float() on a bivector raises TypeError."""
-        e1, e2, _ = cl3.basis_vectors()
-        with pytest.raises(TypeError, match="grade-2"):
-            float(e1 ^ e2)
-
-    def test_float_pseudoscalar_raises(self, cl3):
-        """float() on pseudoscalar raises TypeError."""
-        with pytest.raises(TypeError, match=f"grade-{cl3.n}"):
-            float(cl3.pseudoscalar())
-
-    def test_float_mixed_raises(self, cl3):
-        """float() on a mixed-grade MV raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        mv = cl3.scalar(1.0) + e1
-        with pytest.raises(TypeError, match="mixed-grade"):
-            float(mv)
-
-    def test_float_rotor_raises(self, cl3):
-        """float() on a rotor (grade 0+2) raises TypeError."""
-        import math
-
-        e1, e2, _ = cl3.basis_vectors()
-        rotor = cl3.scalar(math.cos(0.5)) + math.sin(0.5) * (e1 ^ e2)
-        with pytest.raises(TypeError, match="mixed-grade"):
-            float(rotor)
-
-    def test_float_op_result_raises(self, cl3):
-        """float() on outer product result raises TypeError."""
-        e1, e2, _ = cl3.basis_vectors()
-        with pytest.raises(TypeError, match="grade-2"):
-            float(e1 ^ e2)
-
-    def test_float_reverse_bivector_raises(self, cl3):
-        """float() on reverse of bivector raises TypeError."""
-        e1, e2, _ = cl3.basis_vectors()
-        with pytest.raises(TypeError, match="grade-2"):
-            float(reverse(e1 ^ e2))
-
-    def test_float_dual_vector_raises(self, cl3):
-        """float() on dual of vector raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        with pytest.raises(TypeError, match="grade-2"):
-            float(dual(e1))
 
 
 class TestGradePropagation:
@@ -1489,34 +1046,6 @@ class TestLatex:
 class TestSandwich:
     """Tests for sandwich(r, x) / sw(r, x)."""
 
-    def test_sandwich_rotation(self, cl3):
-        """sandwich(R, v) rotates v."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)
-        result = sandwich(R, e1)
-        assert np.allclose(result.data, e2.data, atol=1e-12)
-
-    def test_sw_alias(self, cl3):
-        """sw() is an alias for sandwich()."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 4)
-        assert np.allclose(sandwich(R, e1).data, sw(R, e1).data)
-
-    def test_sandwich_identity(self, cl3):
-        """sandwich(1, v) = v."""
-        e1, _, _ = cl3.basis_vectors()
-        one = cl3.scalar(1.0)
-        assert np.allclose(sandwich(one, e1).data, e1.data)
-
-    def test_sandwich_bivector(self, cl3):
-        """sandwich works on bivectors."""
-        e1, e2, e3 = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)
-        B = e1 ^ e3
-        result = sandwich(R, B)
-        expected = e2 ^ e3
-        assert np.allclose(result.data, expected.data, atol=1e-12)
-
     def test_symbolic_sandwich(self, cl3):
         """Symbolic sandwich builds Gp tree."""
         e1, e2, _ = cl3.basis_vectors()
@@ -1540,34 +1069,6 @@ class TestSandwich:
         R = sym(e1 * e2, "R")
         v = sym(e1, "v")
         assert str(ssw_alias(R, v)) == "RvR̃"
-
-
-class TestScalarVectorPart:
-    """Tests for .scalar_part and .vector_part properties."""
-
-    def test_vector_part(self, cl3):
-        """vector_part extracts grade-1 coefficients."""
-        e1, e2, e3 = cl3.basis_vectors()
-        v = 3 * e1 + 4 * e2 + 5 * e3
-        assert np.allclose(v.vector_part, [3, 4, 5])
-
-    def test_scalar_part(self, cl3):
-        """scalar_part extracts grade-0 coefficient."""
-        mv = cl3.scalar(7.0)
-        assert mv.scalar_part == 7.0
-
-    def test_mixed_grade(self, cl3):
-        """vector_part/scalar_part on mixed MV."""
-        e1, e2, e3 = cl3.basis_vectors()
-        mv = cl3.scalar(7.0) + 3 * e1 + 4 * e2 + (e1 ^ e2)
-        assert mv.scalar_part == 7.0
-        assert np.allclose(mv.vector_part, [3, 4, 0])
-
-    def test_zero(self, cl3):
-        """vector_part/scalar_part of zero MV."""
-        z = cl3.scalar(0.0)
-        assert z.scalar_part == 0.0
-        assert np.allclose(z.vector_part, [0, 0, 0])
 
 
 class TestSimplify:
@@ -1819,16 +1320,6 @@ class TestCoverageGaps:
         latex = mv.latex()
         assert "𝐚" in latex and "𝐛" in latex
 
-    # algebra.py: __hash__ (line 464)
-    def test_multivector_hash(self):
-        """MV is hashable."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, _ = alg.basis_vectors()
-        s = {e1, e2, e1}
-        assert len(s) == 2
-        d = {e1: "x"}
-        assert d[e1] == "x"
-
     # symbolic.py: Expr.latex(wrap='$') and wrap='$$' (lines 138, 140)
     def test_expr_latex_wrap(self, cl3):
         """Expr.latex(wrap='$') wraps in $."""
@@ -1986,25 +1477,6 @@ class TestCoverageGaps:
         assert _eq(Involute(a), Involute(a))
         assert not _eq(Involute(a), Involute(sym(e1, "b")))
 
-    # symbolic.py: norm() passthrough for Multivector (line 938)
-    def test_norm_passthrough(self, cl3):
-        """norm() on eager MV returns float."""
-        from galaga import norm as snorm
-
-        e1, e2, _ = cl3.basis_vectors()
-        v = 3 * e1 + 4 * e2
-        assert snorm(v) == 5.0
-
-    # symbolic.py: sandwich() passthrough for Multivector (line 985)
-    def test_sandwich_passthrough(self, cl3):
-        """sandwich() on eager MVs returns MV."""
-        from galaga import sandwich as ssandwich
-
-        e1, e2, _ = cl3.basis_vectors()
-        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)
-        result = ssandwich(R, e1)
-        assert np.allclose(result.data, e2.data, atol=1e-12)
-
     # algebra.py: rotor_from_plane_angle degrees= and error
     def test_rotor_from_plane_degrees(self, cl3):
         """rotor(degrees=) works."""
@@ -2050,67 +1522,3 @@ class TestCoverageGaps:
         R1 = cl3.rotor(e1 ^ e2, radians=1.0)
         R2 = cl3.rotor_from_bivector(e1 ^ e2, radians=1.0)
         assert np.allclose(R1.data, R2.data)
-
-
-class TestComplement:
-    """Tests for complement() and uncomplement()."""
-
-    def test_complement_grade_mapping(self):
-        """complement maps grade-k to grade-(n-k)."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, e3 = alg.basis_vectors()
-        # grade 1 -> grade 2
-        assert complement(e1) == e2 ^ e3
-        # grade 2 -> grade 1
-        assert complement(e1 ^ e2) == e3
-        # grade 0 -> grade 3
-        assert complement(alg.identity) == alg.I
-        # grade 3 -> grade 0
-        assert complement(alg.I) == alg.identity
-
-    def test_complement_product_is_pseudoscalar(self):
-        """x * complement(x) = I for all basis blades."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, e3 = alg.basis_vectors()
-        I = alg.I
-        for x in [alg.identity, e1, e2, e3, e1 ^ e2, e1 ^ e3, e2 ^ e3, I]:
-            assert x * complement(x) == I
-
-    def test_complement_roundtrip(self):
-        """uncomplement(complement(x)) = x."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, e3 = alg.basis_vectors()
-        for x in [e1, e1 ^ e2, alg.I, 3 * e1 + 2 * e2, alg.identity]:
-            assert np.allclose(uncomplement(complement(x)).data, x.data)
-
-    def test_complement_pga(self):
-        """complement works in degenerate PGA algebra Cl(3,0,1)."""
-        alg = Algebra((1, 1, 1, 0))
-        e1, e2, e3, e0 = alg.basis_vectors()
-        I = alg.I
-        # x * complement(x) = I for basis blades
-        for x in [e1, e0, e1 ^ e2, e1 ^ e2 ^ e3, e0 ^ e1, I]:
-            assert x * complement(x) == I
-
-    def test_complement_pga_roundtrip(self):
-        """Roundtrip in PGA."""
-        alg = Algebra((1, 1, 1, 0))
-        e1, e2, e3, e0 = alg.basis_vectors()
-        for x in [e1, e0, e1 ^ e2 ^ e3, 2 * e1 + 3 * e0]:
-            assert np.allclose(uncomplement(complement(x)).data, x.data)
-
-    def test_complement_linearity(self):
-        """complement is linear."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, _ = alg.basis_vectors()
-        x = 3 * e1 + 2 * e2
-        assert np.allclose(complement(x).data, (3 * complement(e1) + 2 * complement(e2)).data)
-
-    def test_complement_sta(self):
-        """complement works in Cl(1,3) spacetime algebra."""
-        alg = Algebra((1, -1, -1, -1))
-        g0, g1, g2, g3 = alg.basis_vectors()
-        I = alg.I
-        for x in [g0, g1, g0 ^ g1, g0 ^ g1 ^ g2]:
-            assert x * complement(x) == I
-            assert np.allclose(uncomplement(complement(x)).data, x.data)

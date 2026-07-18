@@ -26,6 +26,24 @@ from galaga.gram_bridge import (
 )
 
 
+@pytest.fixture(autouse=True)
+def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Make every direct facade test fail if it falls back to the v1 engine."""
+    import galaga.algebra as legacy
+
+    def reject(*args: object, **kwargs: object) -> None:
+        raise AssertionError("Gram facade test constructed galaga.algebra.Algebra")
+
+    monkeypatch.setattr(legacy.Algebra, "__init__", reject)
+
+
+def test_legacy_numeric_constructor_guard_is_active() -> None:
+    import galaga.algebra as legacy
+
+    with pytest.raises(AssertionError, match="Gram facade test constructed"):
+        legacy.Algebra(2)
+
+
 def native_cga_gram() -> np.ndarray:
     metric = np.eye(5)
     metric[3:, 3:] = np.array([[0.0, -1.0], [-1.0, 0.0]])

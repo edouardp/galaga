@@ -10,10 +10,9 @@ Cl(3,0). The correct mapping is:
 All BasisBlade signs are +1 because the defining products e_a∧e_b with
 a < b match the canonical bitmask ordering.
 
-Hamilton's identities:
-    i² = j² = k² = ijk = -1
-    ij = k,  jk = i,  ki = j
-    ji = -k, kj = -i, ik = -j
+Hamilton's numeric identities are tested independently of these names in
+``core/test_quaternion.py``. This suite owns the quaternion and complex blade
+conventions, lookup, and rendering.
 """
 
 import unittest
@@ -56,38 +55,6 @@ class TestQuaternionSigns(unittest.TestCase):
             0b110: "i",
             0b111: "e₁₂₃",
         }
-
-
-class TestQuaternionIdentities(unittest.TestCase):
-    """Verify Hamilton's identities hold numerically."""
-
-    def setUp(self):
-        self.alg, (self.e1, self.e2, self.e3) = _make_quaternion_algebra()
-        self.i = self.e2 ^ self.e3  # e23
-        self.j = self.e1 ^ self.e3  # e13
-        self.k = self.e1 ^ self.e2  # e12
-
-    def test_squares(self):
-        """i² = j² = k² = -1."""
-        assert (self.i * self.i).scalar_part == -1.0
-        assert (self.j * self.j).scalar_part == -1.0
-        assert (self.k * self.k).scalar_part == -1.0
-
-    def test_ijk(self):
-        """ijk = -1."""
-        assert (self.i * self.j * self.k).scalar_part == -1.0
-
-    def test_cyclic_products(self):
-        """ij = k, jk = i, ki = j."""
-        assert self.i * self.j == self.k
-        assert self.j * self.k == self.i
-        assert self.k * self.i == self.j
-
-    def test_anticyclic_products(self):
-        """ji = -k, kj = -i, ik = -j."""
-        assert self.j * self.i == -self.k
-        assert self.k * self.j == -self.i
-        assert self.i * self.k == -self.j
 
 
 class TestQuaternionDisplay(unittest.TestCase):
@@ -199,19 +166,14 @@ class TestComplexFactory(unittest.TestCase):
         e1, e2 = self.alg.basis_vectors()
         self.i = e1 ^ e2
 
-    def test_i_squared(self):
-        """i² = -1."""
-        assert (self.i * self.i).scalar_part == -1.0
-
     def test_display(self):
         """Bivector e12 displays as i."""
         assert str(self.i) == "i"
 
-    def test_complex_arithmetic(self):
-        """(3 + 4i)² = -7 + 24i."""
+    def test_complex_number_display(self):
+        """A scalar plus named bivector uses conventional complex notation."""
         z = self.alg.scalar(3) + 4 * self.i
-        z2 = z * z
-        assert z2.scalar_part == -7.0
+
         assert str(z) == "3 + 4i"
 
     def test_complex_conjugate_via_reverse(self):

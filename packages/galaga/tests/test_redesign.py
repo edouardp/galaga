@@ -1226,49 +1226,6 @@ class TestSmallValueDisplay:
         assert r"\times 10^{-13}" in result
 
 
-class TestMVDivision:
-    """Tests for multivector / multivector division."""
-
-    def test_scalar_div_scalar(self, cl3):
-        """Scalar / scalar gives scalar."""
-        a = cl3.scalar(10.0)
-        b = cl3.scalar(2.0)
-        assert (a / b).scalar_part == 5.0
-
-    def test_named_scalar_div(self, cl3):
-        """Named scalar division preserves laziness."""
-        a = cl3.scalar(6.0).name("a")
-        b = cl3.scalar(3.0).name("b")
-        result = a / b
-        assert result.eval().scalar_part == 2.0
-
-    def test_vector_div_vector(self, cl3):
-        """Vector / vector gives scalar."""
-        e1, _, _ = cl3.basis_vectors()
-        result = (3 * e1) / e1
-        assert result == 3
-
-    def test_div_zero_raises(self, cl3):
-        """Division by zero raises."""
-        e1, _, _ = cl3.basis_vectors()
-        with pytest.raises(ZeroDivisionError):
-            e1 / cl3.scalar(0.0)
-
-    def test_rdiv_scalar_over_mv(self, cl3):
-        """scalar / MV works."""
-        e1, _, _ = cl3.basis_vectors()
-        result = 1 / e1
-        assert result == e1  # e1⁻¹ = e1 in Euclidean
-
-    def test_div_non_invertible_raises(self, cl3):
-        """Division by non-invertible raises."""
-        e1, e2, _ = cl3.basis_vectors()
-        # e1 + e2 is invertible, so this should work
-        # This should work (e1+e2 is invertible)
-        result = e1 / (e1 + e2)
-        assert result is not None
-
-
 class TestDivExprNode:
     """Tests for the Div expression node and symbolic MV/MV division."""
 
@@ -1879,68 +1836,6 @@ class TestSymNoName:
         assert abs(n.eval().scalar_part - 5.0) < 1e-10
 
 
-class TestIsBlade:
-    def test_basis_vector(self, cl3):
-        """Basis vector is a blade."""
-        from galaga import is_basis_blade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert is_basis_blade(e1)
-
-    def test_scaled_blade(self, cl3):
-        """Scaled basis vector is a blade."""
-        from galaga import is_basis_blade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert is_basis_blade(3 * e1)
-
-    def test_bivector_blade(self, cl3):
-        """Basis bivector is a blade."""
-        from galaga import is_basis_blade
-
-        e1, e2, _ = cl3.basis_vectors()
-        assert is_basis_blade(e1 ^ e2)
-
-    def test_scaled_bivector(self, cl3):
-        """Scaled bivector is a blade."""
-        from galaga import is_basis_blade
-
-        e1, e2, _ = cl3.basis_vectors()
-        assert is_basis_blade(5 * (e1 ^ e2))
-
-    def test_pseudoscalar(self, cl3):
-        """Pseudoscalar is a blade."""
-        from galaga import is_basis_blade
-
-        assert is_basis_blade(cl3.pseudoscalar())
-
-    def test_scalar(self, cl3):
-        """Scalar is a blade."""
-        from galaga import is_basis_blade
-
-        assert is_basis_blade(cl3.scalar(7.0))
-
-    def test_sum_not_blade(self, cl3):
-        """Sum of independent vectors is not a blade."""
-        from galaga import is_basis_blade
-
-        e1, e2, _ = cl3.basis_vectors()
-        assert not is_basis_blade(e1 + e2)
-
-    def test_mixed_grade_not_blade(self, cl3):
-        """Mixed-grade MV is not a blade."""
-        from galaga import is_basis_blade
-
-        e1, e2, _ = cl3.basis_vectors()
-        assert not is_basis_blade(e1 + (e1 ^ e2))
-
-    def test_zero(self, cl3):
-        """Zero is a blade."""
-        from galaga import is_basis_blade
-
-        assert not is_basis_blade(cl3.scalar(0.0))
-
-
 class TestBasisBladeRename:
     """Tests for BasisBlade class and get_basis_blade() renaming."""
 
@@ -2023,56 +1918,6 @@ class TestBasisBladeRename:
 class TestRegressiveProduct:
     """Tests for the regressive product (meet)."""
 
-    def test_bivector_meet_3d(self, cl3):
-        """Two bivectors in 3D meet at a vector."""
-        from galaga import meet
-
-        e1, e2, e3 = cl3.basis_vectors()
-        result = meet(e1 ^ e2, e2 ^ e3)
-        # Should be proportional to e2
-        assert abs(result.data[2]) > 1e-12  # e2 component
-        assert sum(abs(c) > 1e-12 for c in result.data) == 1
-
-    def test_meet_is_alias(self, cl3):
-        """meet() is an alias for regressive_product()."""
-        from galaga import meet, regressive_product
-
-        assert meet is regressive_product
-
-    def test_join_is_alias(self, cl3):
-        """join() is an alias for op()."""
-        from galaga import join, op
-
-        assert join is op
-
-    def test_meet_grade_rule(self, cl3):
-        """grade(A ∨ B) = grade(A) + grade(B) - n."""
-        from galaga import grade, meet
-
-        e1, e2, e3 = cl3.basis_vectors()
-        # bivector ∨ bivector in 3D: 2+2-3 = 1 (vector)
-        result = meet(e1 ^ e2, e2 ^ e3)
-        assert result == grade(result, 1)
-
-    def test_meet_zero_when_grades_too_low(self, cl3):
-        """vector ∨ vector in 3D: 1+1-3 = -1 → zero."""
-        from galaga import meet
-
-        e1, e2, _ = cl3.basis_vectors()
-        result = meet(e1, e2)
-        assert result == 0
-
-    def test_pga_line_meet(self):
-        """Two lines in PGA meet at a point."""
-        from galaga import Algebra, meet
-
-        pga = Algebra((1, 1, 1, 0))
-        e1, e2, e3, e0 = pga.basis_vectors()
-        L1 = e1 ^ e2 ^ e0
-        L2 = e1 ^ e3 ^ e0
-        pt = meet(L1, L2)
-        assert any(abs(c) > 1e-12 for c in pt.data)
-
     def test_symbolic_rendering(self, cl3):
         """Regressive product renders with ∨."""
         from galaga import regressive_product
@@ -2095,17 +1940,6 @@ class TestRegressiveProduct:
         concrete = result.eval()
         assert abs(concrete.data[2]) > 1e-12  # e2
 
-    def test_metric_regressive_euclidean(self, cl3):
-        """Metric regressive agrees with complement-based in Euclidean."""
-        import numpy as np
-
-        from galaga import meet, metric_regressive_product
-
-        e1, e2, e3 = cl3.basis_vectors()
-        a = meet(e1 ^ e2, e2 ^ e3)
-        b = metric_regressive_product(e1 ^ e2, e2 ^ e3)
-        assert np.allclose(a.data, b.data) or np.allclose(a.data, -b.data)
-
 
 class TestCoverageGaps:
     """Fill remaining coverage gaps."""
@@ -2114,11 +1948,6 @@ class TestCoverageGaps:
         """get_basis_blade with bad type raises."""
         with pytest.raises(TypeError):
             cl3.get_basis_blade(3.14)
-
-    def test_pow_non_int(self, cl3):
-        """Non-int power raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1.__pow__(1.5) is NotImplemented
 
     def test_basis_blade_setters(self):
         """BasisBlade name setters work."""
@@ -2141,19 +1970,6 @@ class TestCoverageGaps:
         v = e1.name("v")
         assert "even" not in str(grade(v, "even"))
         assert "odd" not in str(grade(v, "odd"))
-
-    def test_hyperbolic_log(self):
-        """Cover the hyperbolic branch of log()."""
-
-        from galaga import Algebra, exp, log
-
-        sta = Algebra((1, -1))
-        e0, e1 = sta.basis_vectors()
-        B = e0 * e1  # timelike bivector, B² > 0
-        R = exp(B * 0.3)
-        B_back = log(R)
-        R_back = exp(B_back)
-        assert R == R_back
 
     def test_scalar_div_eval(self, cl3):
         """ScalarDiv eval divides correctly."""

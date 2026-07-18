@@ -679,6 +679,8 @@ guard and removal of redundant legacy numeric tests remain T5 work.
 
 ### T5 Remove legacy-only numeric tests
 
+Status: **complete (2026-07-18)**.
+
 Delete legacy-only duplicates only after T1 through T4 pass and the facade-only
 shadow suite can fail on any legacy constructor call.
 
@@ -689,3 +691,44 @@ Validation:
 - coverage is measured against `galaga.core` and the facade separately; and
 - repository searches find no numeric test importing the private legacy
   implementation.
+
+Completion evidence:
+
+- the wholly numeric legacy Chisholm foundations, products, involutions, and
+  dual/commutator files, plus the Cohoe and Terathon files, were deleted after
+  their direct-core destinations passed;
+- mixed Chisholm transformations, low-dimensional, quaternion, and RGA files
+  now retain only helper, naming, presentation, expression, or facade-wrapping
+  contracts. Their mathematical kernels remain in behaviorally named core
+  files with their source references and theorem citations;
+- the monolithic `test_ga.py` was replaced by focused local-name, numeric
+  formatting, and numeric-function expression-provenance tests. Compatibility
+  aliases, including the exact v1 `meet`, `join`, and `antiwedge` identities,
+  now have an explicit `tests/compatibility` owner;
+- the numeric-only classes and methods in `test_coverage.py`,
+  `test_coverage_gaps.py`, and `test_redesign.py` were removed. Blade lookup,
+  degenerate-signature rendering, and symbolic `norm2` rendering were first
+  retained in focused outer-layer files; rotor constructors and all symbolic,
+  notation, rendering, and mutable-v1 presentation contracts remain above
+  core;
+- all 96 tests in `test_gram_bridge.py` monkeypatch the private legacy
+  constructor to fail immediately. The same guard is installed for every
+  `gram-facade-v2` invocation of the implementation-neutral shared contract,
+  and an explicit self-test proves that the guard trips, so a facade fallback
+  to v1 cannot pass the shadow suite unnoticed;
+- the only remaining test imports from `galaga.algebra` are deliberately
+  classified: the differential contract imports the v1 oracle explicitly,
+  the facade guard imports it only to disable construction, and the other
+  imports inspect legacy expression or rendering implementation details. No
+  direct-core numeric specification imports the private legacy engine; and
+- Python 3.11 validation passed with 697 direct-core tests and 19 skips at 98%
+  branch coverage, and 118 facade/boundary tests at 98% branch coverage. The
+  complete Galaga suite passed with 2,327 tests and 19 skips; all non-marimo
+  packages passed with 2,701 tests and 19 skips (one existing complex-cast
+  warning); and the Python 3.14 marimo suite passed all 91 tests.
+
+The lower aggregate test count is intentional: it reflects removal of
+duplicate executions of the retired v1 numeric engine, not removal of the
+mathematical contracts. Those contracts are now owned once by direct-core
+tests, exercised through the guarded facade contract, and supplemented by
+explicit v1/v2 differential and correction-ledger cases.

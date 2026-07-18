@@ -477,6 +477,8 @@ Phase 2 exit gate:
 
 ## Phase 3: run the legacy numeric contract against the facade
 
+Status: **complete (2026-07-18)**.
+
 This is the phase that turns the historical Galaga suite into evidence for the
 new implementation. It is distinct from running all tests while top-level
 Galaga still points at the old implementation.
@@ -562,6 +564,15 @@ Phase 3 exit gate:
 - remaining legacy-only tests are mapped to later presentation, expression,
   compatibility, or integration work; and
 - the correction ledger explains every intended numeric difference.
+
+Completion evidence is recorded in
+[Numeric test migration inventory](numeric-test-migration-inventory.md#t5-remove-legacy-only-numeric-tests).
+The shared contract reports separate `legacy-v1` and `gram-facade-v2` cases,
+the direct facade suite and every facade-only shared case install a constructor
+guard against `galaga.algebra.Algebra`, and the redundant v1 numeric suites
+have been deleted or split by ownership. The remaining legacy tests specify
+presentation, expression provenance, compatibility, or integration behavior;
+they are not being used as hidden numeric-core oracles.
 
 ## Phase 4: rebuild presentation configuration and presets
 
