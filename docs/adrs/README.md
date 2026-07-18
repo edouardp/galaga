@@ -89,6 +89,7 @@ helps future contributors understand why certain choices were made.
 | [074](074-long-operation-names-are-canonical.md) | Long Operation Names Are Canonical in Galaga 2 | Accepted |
 | [075](075-promote-the-core-backed-facade.md) | Promote the Core-Backed Facade Namespace | Accepted |
 | [076](076-immutable-presentation-configuration.md) | Immutable Presentation Configuration and Context-Local Overrides | Accepted |
+| [077](077-optional-expression-provenance.md) | Optional Expression Provenance over Eager Facade Values | Accepted |
 
 ## Creating New ADRs
 

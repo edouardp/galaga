@@ -150,11 +150,13 @@ standalone helper is equivalent to `float(grade(value, 0))`; plain
 All 59 public v1 expression classes are listed in the executable manifest.
 `Expr` remains the base concept; scalar and symbol leaves are redesigned; and
 operation-specific constructor classes become compatibility adapters over one
-operation-identified expression node in Phases 5 and 9.
+operation-identified expression node. The durable Galaga 2 model is now
+implemented in `galaga.expression`; the 59 legacy adapters remain Phase 9
+compatibility work.
 
 The supported import inventory covers every non-private top-level module:
 `algebra`, `basis_blade`, `blade_convention`, `blades`, `core`, `expr`,
-`facade`, `gram_bridge`, the five `latex_*` modules, `lazy`, `names`,
+`expression`, `facade`, `gram_bridge`, the five `latex_*` modules, `lazy`, `names`,
 `notation`, `ops`, `presentation`, `presets`, `render`, `simplify`, `symbolic`,
 and `symbolic_core`. It also records
 `facade.catalog`, both bridge submodules, and the four `symbolic_core`
@@ -162,8 +164,8 @@ submodules used by current tests or companion packages.
 
 `galaga.facade`, `galaga.core`, `galaga.blades`, `galaga.names`,
 `galaga.presentation`, and `galaga.presets` are permanent. Rendering modules,
-`galaga.ops`, simplification, and symbolic modules have explicit owners in
-Phases 5 through 7 rather than being treated as incidental implementation
+the facade catalog, simplification, and symbolic modules have explicit owners
+in Phases 5 through 7 rather than being treated as incidental implementation
 files. Old modules remain compatibility entry points according to their
 recorded milestones.
 

@@ -747,6 +747,19 @@ for `galaga.presets`, and 98% for `galaga.facade._numeric`.
 Expressions describe how an eager result was obtained. They do not replace
 numeric evaluation.
 
+Status: complete on `galaga_v2`. The implementation is decomposed in the
+[expression provenance overview](expression-provenance.md), and ADR-077 records
+the optional eager-provenance, catalog-schema, generic-node, left-fold, and
+structural-simplification decisions. The dedicated expression suite covers
+every catalog operation and the orthogonal, degenerate, oblique, and
+native-null round-trip matrix. The untracked-path test replaces every
+expression constructor with a failing spy, making zero expression-node
+construction an executable contract. The dedicated suite contains 154 tests;
+the combined expression, facade, presentation, and namespace run contains 354
+tests. Branch coverage is 100% for every `galaga.expression` implementation
+module and 95% for both `galaga.facade._numeric` and
+`galaga.facade.catalog` in that focused run.
+
 ### W5.1 Define the immutable expression model
 
 Deliverables:

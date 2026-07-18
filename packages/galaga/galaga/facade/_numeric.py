@@ -1,8 +1,9 @@
 """Composition facade over :mod:`galaga.core`.
 
 Facade values remain eager numeric wrappers. Facade algebras additionally own
-immutable presentation configuration and context-local selection; expression
-provenance and rendering remain deliberately absent.
+immutable presentation configuration and context-local selection. Optional
+expression provenance records how an eager value was obtained without changing
+numeric evaluation.
 """
 
 from __future__ import annotations
@@ -18,6 +19,8 @@ import numpy as np
 
 from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
+from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
+from ..names import Name
 from ..presentation import (
     AlgebraConfig,
     AlgebraDefinition,
@@ -264,37 +267,87 @@ class Algebra:
     def I(self) -> Multivector:  # noqa: E743 - conventional pseudoscalar name
         return self.pseudoscalar()
 
-    def _wrap(self, value: core.Multivector) -> Multivector:
+    def _wrap(
+        self,
+        value: core.Multivector,
+        *,
+        name: Name | None = None,
+        expr: Expr | None = None,
+    ) -> Multivector:
         if not isinstance(value, core.Multivector):
             raise TypeError("facade can only wrap a core.Multivector")
         if value.algebra is not self._numeric:
             raise ValueError("numeric multivector belongs to a different algebra")
-        return Multivector(self, value)
+        return Multivector(self, value, name=name, expr=expr)
 
-    def multivector(self, data: Any) -> Multivector:
-        return self._wrap(self._numeric.multivector(data))
+    def multivector(
+        self,
+        data: Any,
+        *,
+        name: Name | str | None = None,
+        expr: bool | Expr = False,
+    ) -> Multivector:
+        return self._factory_wrap(self._numeric.multivector(data), name=name, expr=expr)
 
-    def scalar(self, value: Real) -> Multivector:
-        return self._wrap(self._numeric.scalar(value))
+    def scalar(
+        self,
+        value: Real,
+        *,
+        name: Name | str | None = None,
+        expr: bool | Expr = False,
+    ) -> Multivector:
+        return self._factory_wrap(self._numeric.scalar(value), name=name, expr=expr)
 
-    def vector(self, values: Any) -> Multivector:
-        return self._wrap(self._numeric.vector(values))
+    def vector(
+        self,
+        values: Any,
+        *,
+        name: Name | str | None = None,
+        expr: bool | Expr = False,
+    ) -> Multivector:
+        return self._factory_wrap(self._numeric.vector(values), name=name, expr=expr)
 
-    def blade(self, blade: int | str | BladeRef) -> Multivector:
+    def blade(
+        self,
+        blade: int | str | BladeRef,
+        *,
+        name: Name | str | None = None,
+        expr: bool | Expr = False,
+    ) -> Multivector:
         """Construct a blade by native mask, signed reference, label, alias, or role."""
         ref = self._resolve_blade_ref(blade)
         numeric = self._numeric.blade(ref.mask)
         if ref.orientation == -1:
             numeric = self._numeric.multivector(-numeric.data)
-        return self._wrap(numeric)
+        return self._factory_wrap(numeric, name=name, expr=expr)
+
+    def _factory_wrap(
+        self,
+        value: core.Multivector,
+        *,
+        name: Name | str | None,
+        expr: bool | Expr,
+    ) -> Multivector:
+        normalized_name = _normalize_name(name)
+        result = self._wrap(value, name=normalized_name)
+        if expr is False:
+            return result
+        if expr is True:
+            return result.with_expr()
+        if isinstance(expr, Expr):
+            return result.with_expr(expr)
+        raise TypeError("expr must be a boolean or Expr")
 
     def blade_label(self, bitmask: int) -> BladeLabel:
         """Return the active convention's canonical label for a native mask."""
         return self.presentation.blades.label(bitmask)
 
-    def locals(self) -> MappingProxyType[str, Multivector]:
+    def locals(self, *, expr: bool = False) -> MappingProxyType[str, Multivector]:
         """Return a read-only mapping of configured Python names to values."""
-        return MappingProxyType({name: self.blade(ref) for name, ref in self.presentation.local_names.entries})
+        _require_expr_flag(expr)
+        return MappingProxyType(
+            {name: self.blade(ref, name=name, expr=expr) for name, ref in self.presentation.local_names.entries}
+        )
 
     @property
     def display_order(self) -> tuple[int, ...]:
@@ -314,16 +367,25 @@ class Algebra:
             raise ValueError(f"blade mask must be in [0, {self.dim})")
         return ref
 
-    def basis_vectors(self) -> tuple[Multivector, ...]:
+    def basis_vectors(self, *, expr: bool = False) -> tuple[Multivector, ...]:
+        _require_expr_flag(expr)
         if self._basis_vectors is None:
             self._basis_vectors = tuple(self._wrap(value) for value in self._numeric.basis_vectors())
-        return self._basis_vectors
+        if not expr:
+            return self._basis_vectors
+        return tuple(value.with_expr() for value in self._basis_vectors)
 
-    def basis_blades(self, value: int) -> tuple[Multivector, ...]:
-        return tuple(self._wrap(blade) for blade in self._numeric.basis_blades(value))
+    def basis_blades(self, value: int, *, expr: bool = False) -> tuple[Multivector, ...]:
+        _require_expr_flag(expr)
+        result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(value))
+        if not expr:
+            return result
+        return tuple(blade.with_expr() for blade in result)
 
-    def pseudoscalar(self) -> Multivector:
-        return self._wrap(self._numeric.pseudoscalar())
+    def pseudoscalar(self, *, expr: bool = False) -> Multivector:
+        _require_expr_flag(expr)
+        result = self._wrap(self._numeric.pseudoscalar())
+        return result.with_expr() if expr else result
 
     def left_action(self, value: Multivector) -> np.ndarray:
         self._check_value(value)
@@ -373,6 +435,19 @@ def _require_presentation(value: Any) -> PresentationConfig:
     return value
 
 
+def _normalize_name(value: Name | str | None) -> Name | None:
+    if value is None or isinstance(value, Name):
+        return value
+    if isinstance(value, str):
+        return Name(value)
+    raise TypeError("name must be a Name, string, or None")
+
+
+def _require_expr_flag(value: Any) -> None:
+    if not isinstance(value, bool):
+        raise TypeError("expr must be a boolean")
+
+
 def _override_presentation(
     base: PresentationConfig,
     *,
@@ -409,17 +484,30 @@ def _override_presentation(
 class Multivector:
     """An immutable facade value containing one concrete core multivector."""
 
-    __slots__ = ("_algebra", "_numeric")
+    __slots__ = ("_algebra", "_expr", "_name", "_numeric")
 
-    def __init__(self, algebra: Algebra, numeric: core.Multivector) -> None:
+    def __init__(
+        self,
+        algebra: Algebra,
+        numeric: core.Multivector,
+        *,
+        name: Name | None = None,
+        expr: Expr | None = None,
+    ) -> None:
         if not isinstance(algebra, Algebra):
             raise TypeError("algebra must be a core facade Algebra")
         if not isinstance(numeric, core.Multivector):
             raise TypeError("numeric must be a core.Multivector")
         if numeric.algebra is not algebra.numeric:
             raise ValueError("numeric multivector belongs to a different algebra")
+        if name is not None and not isinstance(name, Name):
+            raise TypeError("name must be a Name or None")
+        if expr is not None and not isinstance(expr, Expr):
+            raise TypeError("expr must be an Expr or None")
         self._algebra = algebra
         self._numeric = numeric
+        self._name = name
+        self._expr = expr
 
     @property
     def algebra(self) -> Algebra:
@@ -428,6 +516,53 @@ class Multivector:
     @property
     def numeric(self) -> core.Multivector:
         return self._numeric
+
+    @property
+    def name(self) -> Name | None:
+        """Optional semantic name, independent of expression tracking."""
+        return self._name
+
+    @property
+    def expr(self) -> Expr | None:
+        """Optional immutable expression provenance."""
+        return self._expr
+
+    def named(
+        self,
+        name: Name | str,
+        *,
+        unicode: str | None = None,
+        latex: str | None = None,
+    ) -> Multivector:
+        """Return a new wrapper with a semantic name and unchanged provenance."""
+        if isinstance(name, Name):
+            if unicode is not None or latex is not None:
+                raise TypeError("unicode= and latex= cannot override an existing Name")
+            selected = name
+        elif isinstance(name, str):
+            selected = Name(name, unicode=unicode, latex=latex)
+        else:
+            raise TypeError("name must be a Name or string")
+        return Multivector(self._algebra, self._numeric, name=selected, expr=self._expr)
+
+    def unnamed(self) -> Multivector:
+        """Return a new wrapper without a name and with unchanged provenance."""
+        return Multivector(self._algebra, self._numeric, expr=self._expr)
+
+    def with_expr(self, expression: Expr | None = None) -> Multivector:
+        """Return a new wrapper with explicit or inferred provenance."""
+        selected = _expression_operand(self) if expression is None else expression
+        if not isinstance(selected, Expr):  # pragma: no cover - defensive narrowing
+            raise TypeError("expression must be an Expr")
+        return Multivector(self._algebra, self._numeric, name=self._name, expr=selected)
+
+    def without_expr(self) -> Multivector:
+        """Return a new wrapper without provenance and with its name unchanged."""
+        return Multivector(self._algebra, self._numeric, name=self._name)
+
+    def same_expression(self, other: object) -> bool:
+        """Whether two facade values carry structurally equal provenance."""
+        return isinstance(other, Multivector) and self._expr == other._expr
 
     @property
     def data(self) -> np.ndarray:
@@ -572,16 +707,43 @@ class Multivector:
         return hash(self._numeric)
 
     def __repr__(self) -> str:
-        return f"Multivector(numeric={self._numeric!r})"
+        metadata = ""
+        if self._name is not None:
+            metadata += f", name={self._name!r}"
+        if self._expr is not None:
+            metadata += f", expr={self._expr!r}"
+        return f"Multivector(numeric={self._numeric!r}{metadata})"
+
+
+def _literal_expression(value: Multivector) -> Expr:
+    data = value.data
+    nonzero = np.flatnonzero(data)
+    if len(nonzero) == 0:
+        return ScalarLiteral(0)
+    if len(nonzero) == 1:
+        mask = int(nonzero[0])
+        coefficient = float(data[mask])
+        if mask == 0:
+            return ScalarLiteral(coefficient)
+        if coefficient in {-1.0, 1.0}:
+            return BladeLiteral(mask, int(coefficient))
+    return MultivectorLiteral(data)
+
+
+def _expression_operand(value: Multivector) -> Expr:
+    if value.name is not None:
+        return Symbol(value.name)
+    if value.expr is not None:
+        return value.expr
+    return _literal_expression(value)
 
 
 def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
     operation = get_operation(operation_id)
-    if isinstance(operation.call_policy, LeftFoldCall) and len(args) == 1 and isinstance(args[0], Multivector):
-        return args[0]
 
     owner: Algebra | None = None
     numeric_args: list[Any] = []
+    tracking = False
     for argument in args:
         if isinstance(argument, Multivector):
             if owner is None:
@@ -589,14 +751,49 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
             elif argument.numeric.algebra is not owner.numeric:
                 raise ValueError("cannot mix multivectors from different algebras")
             numeric_args.append(argument.numeric)
+            tracking = tracking or argument.expr is not None
         else:
             numeric_args.append(argument)
 
-    result = operation.invoke(*numeric_args, **kwargs)
+    if isinstance(operation.call_policy, LeftFoldCall):
+        if kwargs:
+            names = ", ".join(sorted(kwargs))
+            raise TypeError(f"{operation.id} does not accept fold keywords: {names}")
+        if len(args) < operation.call_policy.min_args:
+            raise TypeError(
+                f"{operation.id} expects at least {operation.call_policy.min_args} positional argument, got {len(args)}"
+            )
+        if len(args) == 1 and isinstance(args[0], Multivector):
+            return args[0]
+        result = numeric_args[0]
+        expression: Expr | None = _expression_operand(args[0]) if tracking else None
+        for argument, numeric in zip(args[1:], numeric_args[1:], strict=True):
+            result = operation.evaluate(result, numeric)
+            if expression is not None:
+                if not isinstance(argument, Multivector):
+                    raise TypeError(f"{operation.id} expression operands must be multivectors")
+                expression = Call(operation.id, (expression, _expression_operand(argument)))
+    else:
+        expression = None
+        if tracking:
+            expression_values, parameters = operation.bind_expression_call(tuple(args), kwargs)
+            if any(not isinstance(value, Multivector) for value in expression_values):
+                raise TypeError(f"{operation.id} expression operands must be multivectors")
+            expression_arity = operation.expression_arity
+            if expression_arity is None:  # pragma: no cover - normalized by OperationSpec
+                raise RuntimeError("expression arity was not normalized")
+            result = operation.invoke_expression(tuple(numeric_args[:expression_arity]), parameters)
+            expression = Call(
+                operation.id,
+                tuple(_expression_operand(value) for value in expression_values),
+                parameters,
+            )
+        else:
+            result = operation.invoke(*numeric_args, **kwargs)
     if isinstance(result, core.Multivector):
         if owner is None:
             raise RuntimeError(f"{operation_id} produced a value without an owner")
-        return owner._wrap(result)
+        return owner._wrap(result, expr=expression)
     return result
 
 

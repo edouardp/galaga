@@ -388,9 +388,9 @@ OPERATION_CALL_FORMS = {
 
 
 EXPRESSION_NODE_CLASSES = {
-    "Expr": SurfaceDisposition("expression", "retain-base", "galaga.expr.Expr", "phase-5"),
-    "Scalar": SurfaceDisposition("expression", "replace", "galaga.expr.ScalarLiteral", "phase-5"),
-    "Sym": SurfaceDisposition("expression", "replace", "galaga.expr.Symbol", "phase-5"),
+    "Expr": SurfaceDisposition("expression", "retain-base", "galaga.expression.Expr", "phase-5"),
+    "Scalar": SurfaceDisposition("expression", "replace", "galaga.expression.ScalarLiteral", "phase-5"),
+    "Sym": SurfaceDisposition("expression", "replace", "galaga.expression.Symbol", "phase-5"),
 }
 
 for _node_name in {
@@ -454,7 +454,7 @@ for _node_name in {
     EXPRESSION_NODE_CLASSES[_node_name] = SurfaceDisposition(
         "compatibility",
         "deprecated-constructor-adapter",
-        "galaga.expr.Call(operation_id, operands)",
+        "galaga.expression.Call(operation_id, operands)",
         "phase-9",
         f"galaga.expr.{_node_name} is deprecated; construct expressions through facade operations",
     )
@@ -466,7 +466,8 @@ SUPPORTED_SUBMODULES = {
     "galaga.blade_convention": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.blades", "phase-7"),
     "galaga.blades": SurfaceDisposition("presentation", "retain", "galaga.blades", "permanent"),
     "galaga.core": SurfaceDisposition("core", "retain", "galaga.core", "permanent"),
-    "galaga.expr": SurfaceDisposition("expression", "compatibility-reexport", "galaga.expr", "phase-7"),
+    "galaga.expr": SurfaceDisposition("expression", "compatibility-reexport", "galaga.expression", "phase-7"),
+    "galaga.expression": SurfaceDisposition("expression", "retain", "galaga.expression", "permanent"),
     "galaga.facade": SurfaceDisposition("facade", "retain", "galaga.facade", "permanent"),
     "galaga.facade.catalog": SurfaceDisposition("facade", "retain", "galaga.facade.catalog", "permanent"),
     "galaga.gram_bridge": SurfaceDisposition(
@@ -534,6 +535,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.blades",
         "galaga.core",
         "galaga.expr",
+        "galaga.expression",
         "galaga.facade",
         "galaga.gram_bridge",
         "galaga.latex_build",

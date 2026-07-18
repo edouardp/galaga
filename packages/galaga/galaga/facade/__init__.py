@@ -1,7 +1,7 @@
 """Core-backed numeric and presentation facade for Galaga 2.
 
 Importing top-level :mod:`galaga` continues to expose the v1 implementation
-until the presentation and expression layers are ready for cutover.  This
+until the rendering and integration layers are ready for cutover. This
 namespace is the stable implementation owner; :mod:`galaga.gram_bridge` is a
 temporary compatibility re-export of these same objects.
 """
@@ -27,6 +27,17 @@ from ..blades import (
     rga_blade_convention,
     rga_display_order,
     spacetime_blade_convention,
+)
+from ..expression import (
+    BladeLiteral,
+    Call,
+    Expr,
+    Expression,
+    MultivectorLiteral,
+    ScalarLiteral,
+    Symbol,
+    evaluate,
+    simplify,
 )
 from ..names import Name
 from ..presentation import (
@@ -134,6 +145,7 @@ from .catalog import (
     FixedCall,
     LeftFoldCall,
     OperationSpec,
+    ParameterSpec,
     get_operation,
 )
 
@@ -167,13 +179,17 @@ __all__ = [
     "AlgebraDefinition",
     "BladeConvention",
     "BladeLabel",
+    "BladeLiteral",
     "BladeRef",
+    "Call",
     "CGAPreset",
     "ComplexPreset",
     "DisplayOrder",
     "DisplayPolicy",
     "EXCLUDED_PUBLIC_NAMES",
     "EuclideanPreset",
+    "Expr",
+    "Expression",
     "ExteriorPreset",
     "FixedCall",
     "LengyelRGAPreset",
@@ -181,16 +197,20 @@ __all__ = [
     "LocalNamePolicy",
     "ModelConfig",
     "Multivector",
+    "MultivectorLiteral",
     "Name",
     "Notation",
     "OPERATION_ALIASES",
     "OPERATIONS",
     "OperationSpec",
+    "ParameterSpec",
     "PGAPreset",
     "PresentationConfig",
     "Preset",
     "QuaternionPreset",
+    "ScalarLiteral",
     "SpacetimePreset",
+    "Symbol",
     "anticommutator",
     "antidot_product",
     "antimetric_apply",
@@ -209,6 +229,7 @@ __all__ = [
     "euclidean_blade_convention",
     "exterior_blade_convention",
     "even_grades",
+    "evaluate",
     "exp",
     "geometric_antiproduct",
     "geometric_product",
@@ -279,6 +300,7 @@ __all__ = [
     "scalar_product",
     "scalar_sqrt",
     "sqrt",
+    "simplify",
     "spacetime_blade_convention",
     "squared",
     "sw",

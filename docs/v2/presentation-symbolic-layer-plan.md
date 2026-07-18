@@ -220,11 +220,11 @@ and repository.
 
 | Module | Responsibility |
 |---|---|
-| `galaga.ops` | Stable operation identifiers, arity and parameter schemas, grade rules, Python operator bindings, and adapters to named core functions |
+| `galaga.facade.catalog` | Stable operation identifiers, evaluator/expression arity, parameter schemas, call policies, result kinds, and named core evaluators |
 | `galaga.facade` | Composition-based `Algebra` and `Multivector`, numeric delegation, context checks, and expression propagation |
 | `galaga.blades` | `BladeConvention`, signed blade references, role aliases, display order, local-name policy, and validated presets |
 | `galaga.names` | Immutable ASCII/Unicode/LaTeX names and normalization |
-| `galaga.expr` | Immutable expression leaves and calls; evaluation through the operation catalog |
+| `galaga.expression` | Immutable expression leaves and calls; evaluation and structural simplification through the operation catalog |
 | `galaga.notation` | Immutable notation rules and presets keyed by operation identifier |
 | `galaga.rendering.tree` | Format-neutral semantic layout nodes and precedence handling |
 | `galaga.rendering.ascii` | Plain-text emitter |
@@ -250,6 +250,7 @@ class OperationSpec:
     id: str
     arity: int
     evaluate: Callable[..., galaga.core.Multivector]
+    expression_arity: int | None = None
     parameters: tuple[ParameterSpec, ...] = ()
     grade_rule: GradeRule | None = None
     operator: OperatorBinding | None = None
@@ -261,10 +262,11 @@ addition, subtraction, negation, scalar multiplication, and scalar division.
 Parameterized calls such as `grade(x, k)`, powers, and transwedge products
 store their parameters explicitly in the expression node.
 
-`arity` is the evaluator and expression-node arity, not necessarily the public
-function's accepted argument count. Geometric and exterior product remain
-binary operations with binary grade rules. Their specs use a
-`LeftFoldCall(min_args=1)` policy to expose one-or-more-operand facade
+`arity` is the evaluator arity, while `expression_arity` counts only expression
+operands; remaining evaluator inputs are normalized parameters. Neither is
+necessarily the public function's accepted argument count. Geometric and
+exterior product remain binary operations with binary grade rules. Their specs
+use a `LeftFoldCall(min_args=1)` policy to expose one-or-more-operand facade
 functions without declaring separate variadic operations:
 
 ```python
@@ -704,7 +706,7 @@ Exit condition: every canonical and signed alias round-trips through lookup
 to independently checked core coefficients, with collision and dimension
 errors reported at construction.
 
-### Phase 3: expression provenance
+### Phase 3: expression provenance — complete
 
 - Add immutable expression leaves and `Call`.
 - Add `.name` and `.expr` properties, `.named()`, `.unnamed()`, `expr=True`,
@@ -718,6 +720,10 @@ errors reported at construction.
 
 Exit condition: evaluating a generated expression reproduces its stored core
 value, and purely numeric facade operations build no nodes.
+
+Implemented in Galaga 2 cutover Phase 5. See
+[Expression provenance implementation](expression-provenance.md) and
+[ADR-077](../adrs/077-optional-expression-provenance.md).
 
 ### Phase 4: numeric, notation, and expression rendering
 

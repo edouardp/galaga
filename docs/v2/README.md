@@ -19,12 +19,15 @@
 - [Presentation configuration implementation](presentation-configuration.md)
   decomposes the implemented immutable components, presets, signed blade
   lookup, facade factories, and context-local override behavior.
+- [Expression provenance implementation](expression-provenance.md) explains
+  the immutable nodes, independent value state, catalog-driven propagation and
+  evaluation, variadic lowering, and conservative simplifier.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
   remaining numeric capabilities and companion-package work.
 
 ## Current status
 
-Phases 0 through 4 of the core cutover plan are complete on `galaga_v2`. The
+Phases 0 through 5 of the core cutover plan are complete on `galaga_v2`. The
 proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
 replacement contract is checked in and executable; `galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
@@ -32,10 +35,13 @@ been migrated to or rerun against that facade. `galaga.gram_bridge` is now
 only a compatibility re-export of the same facade objects. The facade now
 also owns immutable presentation configuration, signed blade lookup, complete
 inspectable presets, fine-grained presentation views, and thread- and
-async-safe scoped overrides.
+async-safe scoped overrides. Optional immutable expression provenance now
+records eager operation history through the same catalog, supports independent
+name/tracking state, replays across every supported metric family, and
+constructs no expression object on the disabled path.
 
-Phase 5 is next: optional immutable expression provenance over eagerly
-computed facade values.
+Phase 6 is next: a shared semantic render tree and ASCII, Unicode, and LaTeX
+renderers for numeric values and expressions.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.
@@ -46,6 +52,7 @@ phases make the final shadow cutover safe.
 - [ADR-073: Move the numeric core into Galaga](../adrs/073-move-the-numeric-core-into-galaga.md)
 - [ADR-075: Promote the core-backed facade](../adrs/075-promote-the-core-backed-facade.md)
 - [ADR-076: Immutable presentation configuration](../adrs/076-immutable-presentation-configuration.md)
+- [ADR-077: Optional expression provenance](../adrs/077-optional-expression-provenance.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful
