@@ -18,7 +18,7 @@ The manifest currently classifies:
 - all six legacy multivector formatting and display hooks, including
   `_repr_latex_`;
 - all 59 public legacy expression classes;
-- all 24 non-private top-level package modules and seven relied-upon nested
+- all 26 non-private top-level package modules and seven relied-upon nested
   entry points;
 - four companion-package or example touch points; and
 - four known dependencies on private legacy structures.
@@ -70,11 +70,15 @@ entries or implementations:
 `galaga.facade.OPERATION_ALIASES` is the executable facade alias manifest.
 
 The v1 spellings `mag2`, `magnitude_squared`, `norm_squared`, `normalise`, and
-`normalize` are temporary Phase 9 aliases. The ambiguous `inner_product` and
-`ip` names become deprecation adapters that direct users to an explicitly
-named convention; they are not facade catalog operations. Their warning text
-is fixed in the executable matrix and will be emitted when the Galaga 2
-top-level compatibility shims are installed.
+`normalize`, together with `involute`, are temporary Phase 9 adapters in
+`galaga.facade`. They emit the ledgered `GalagaDeprecationWarning` at the
+callsite and dispatch through the canonical operation, so expression
+provenance retains the canonical ID. The ambiguous `inner_product` and `ip`
+names are absent and attribute access explains the explicit inner-product
+choices; they are not facade catalog operations.
+
+The exact policy and replacements are documented in
+[Compatibility shims](compatibility-shims.md).
 
 ### Later-layer ownership
 
@@ -82,8 +86,11 @@ top-level compatibility shims are installed.
   migrate through the immutable presentation and blade configuration built in
   Phase 4. Legacy constructors remain compatibility work for Phase 7.
 - `sym` and `simplify` belong to expression provenance in Phase 5.
-- `project`, `reject`, and `reflect` remain compositional helpers for Phase 7;
-  they do not become core primitives.
+- `project`, `reject`, and `reflect` are scheduled for removal rather than
+  becoming generic facade helpers. Their meaning depends on the chosen
+  subspace or geometry model, while their arithmetic is already an explicit
+  composition of primitives. A future model-specific API may provide them
+  together with the metadata and validation that make the operation precise.
 
 ## `Algebra` contract
 

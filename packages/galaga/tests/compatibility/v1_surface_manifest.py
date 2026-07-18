@@ -184,13 +184,17 @@ TOP_LEVEL_EXPORTS = _merge(
         )
         for alias, canonical in TEMPORARY_OPERATION_ALIASES.items()
     },
-    _rows(
-        {"project", "reflect", "reject"},
-        owner="helper",
-        action="composition",
-        milestone="phase-7",
-        target_prefix="galaga.helpers.",
-    ),
+    {
+        name: SurfaceDisposition(
+            "compatibility",
+            "remove-redundant-helper",
+            "explicit primitive composition or a model-specific geometry API",
+            "phase-9",
+            f"{name} is not part of the Galaga 2 numeric facade; "
+            "compose explicit operations or use a model-specific geometry helper",
+        )
+        for name in ("project", "reflect", "reject")
+    },
     {
         name: SurfaceDisposition(
             "compatibility",

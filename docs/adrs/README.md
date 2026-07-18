@@ -91,6 +91,7 @@ helps future contributors understand why certain choices were made.
 | [076](076-immutable-presentation-configuration.md) | Immutable Presentation Configuration and Context-Local Overrides | Accepted |
 | [077](077-optional-expression-provenance.md) | Optional Expression Provenance over Eager Facade Values | Accepted |
 | [078](078-shared-semantic-rendering-pipeline.md) | Shared Semantic Rendering Pipeline | Accepted |
+| [079](079-curated-compatibility-without-redundant-helpers.md) | Curated Compatibility without Redundant Generic Helpers | Accepted |
 
 ## Creating New ADRs
 

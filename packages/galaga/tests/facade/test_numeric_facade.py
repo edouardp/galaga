@@ -19,8 +19,6 @@ from galaga.facade import (
     geometric_product,
     get_operation,
     grade,
-    grade_involution,
-    involute,
     outer_product,
     scalar_part,
 )
@@ -575,7 +573,6 @@ class TestCatalogAndParity:
     def test_grade_involution_is_the_canonical_catalog_operation(self) -> None:
         assert get_operation("grade_involution").evaluate is core.grade_involution
         assert "involute" not in OPERATIONS
-        assert involute is grade_involution
 
     def test_every_core_public_name_is_cataloged_or_deliberately_excluded(
         self,

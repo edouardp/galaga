@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import re
 from pathlib import Path
 
 import pytest
@@ -116,8 +117,14 @@ def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> N
 
 
 def test_supported_package_entry_points_import() -> None:
-    for module_name in SUPPORTED_SUBMODULES:
-        assert importlib.import_module(module_name).__name__ == module_name
+    for module_name, disposition in SUPPORTED_SUBMODULES.items():
+        if module_name.startswith("galaga.gram_bridge"):
+            assert disposition.warning is not None
+            with pytest.warns(facade.GalagaDeprecationWarning, match=re.escape(disposition.warning)):
+                module = importlib.reload(importlib.import_module(module_name))
+        else:
+            module = importlib.import_module(module_name)
+        assert module.__name__ == module_name
 
 
 def test_every_nonprivate_top_level_package_module_is_classified() -> None:
@@ -197,13 +204,17 @@ def test_operation_call_shapes_are_explicit() -> None:
 
 
 def test_facade_alias_manifest_has_one_object_per_operation() -> None:
-    expected = {**CURATED_OPERATION_ALIASES, "involute": "grade_involution"}
-
-    assert dict(facade.OPERATION_ALIASES) == expected
+    assert dict(facade.OPERATION_ALIASES) == CURATED_OPERATION_ALIASES
+    assert dict(facade.DEPRECATED_OPERATION_ALIASES) == TEMPORARY_OPERATION_ALIASES
     with pytest.raises(TypeError):
         facade.OPERATION_ALIASES["product"] = "geometric_product"  # type: ignore[index]
-    for alias, canonical in expected.items():
+    with pytest.raises(TypeError):
+        facade.DEPRECATED_OPERATION_ALIASES["product"] = "geometric_product"  # type: ignore[index]
+    for alias, canonical in CURATED_OPERATION_ALIASES.items():
         assert getattr(facade, alias) is getattr(facade, canonical)
+        assert alias not in facade.OPERATIONS
+    for alias, canonical in TEMPORARY_OPERATION_ALIASES.items():
+        assert getattr(facade, alias) is not getattr(facade, canonical)
         assert alias not in facade.OPERATIONS
 
 

@@ -71,6 +71,16 @@ from ..presets import (
     p_rga,
     p_sta,
 )
+from ._compat import (
+    DEPRECATED_OPERATION_ALIASES,
+    GalagaDeprecationWarning,
+    involute,
+    mag2,
+    magnitude_squared,
+    norm_squared,
+    normalise,
+    normalize,
+)
 from ._numeric import (
     Algebra,
     Multivector,
@@ -96,7 +106,6 @@ from ._numeric import (
     half_commutator,
     hestenes_inner,
     inverse,
-    involute,
     is_basis_blade,
     is_bivector,
     is_even,
@@ -165,7 +174,6 @@ OPERATION_ALIASES = MappingProxyType(
     {
         "dorst_inner": "doran_lasenby_inner",
         "gp": "geometric_product",
-        "involute": "grade_involution",
         "join": "outer_product",
         "meet": "regressive_product",
         "op": "outer_product",
@@ -175,6 +183,17 @@ OPERATION_ALIASES = MappingProxyType(
     }
 )
 """Compatibility operation names mapped to canonical facade identifiers."""
+
+
+def __getattr__(name: str) -> object:
+    if name in {"inner_product", "ip"}:
+        raise AttributeError(
+            f"galaga.facade has no {name!r}: Galaga 2 does not select an ambiguous inner product; "
+            "import doran_lasenby_inner, hestenes_inner, metric_inner_product, scalar_product, "
+            "left_contraction, or right_contraction explicitly"
+        )
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "Algebra",
@@ -189,12 +208,14 @@ __all__ = [
     "ComplexPreset",
     "DisplayOrder",
     "DisplayPolicy",
+    "DEPRECATED_OPERATION_ALIASES",
     "EXCLUDED_PUBLIC_NAMES",
     "EuclideanPreset",
     "Expr",
     "Expression",
     "ExteriorPreset",
     "FixedCall",
+    "GalagaDeprecationWarning",
     "LengyelRGAPreset",
     "LeftFoldCall",
     "LocalNamePolicy",
@@ -264,12 +285,17 @@ __all__ = [
     "left_weight_dual",
     "lie_bracket",
     "log",
+    "mag2",
+    "magnitude_squared",
     "meet",
     "metric_apply",
     "metric_inner_product",
     "metric_regressive_product",
     "norm",
     "norm2",
+    "norm_squared",
+    "normalise",
+    "normalize",
     "null_cga_blade_convention",
     "odd_grades",
     "op",

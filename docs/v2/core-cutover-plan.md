@@ -969,6 +969,8 @@ Phase 6 exit evidence recorded on 2026-07-19:
 
 ### W7.1 Add audited compatibility aliases
 
+Status: **complete (2026-07-19)**.
+
 Deliverables:
 
 - preserve only migration-critical short operation names and old import paths;
@@ -982,7 +984,32 @@ Required tests:
 - documentation contains a replacement for every deprecated public name; and
 - removed ambiguous products fail with guidance toward explicit variants.
 
+Completion evidence:
+
+- the eight permanent concise aliases are exact canonical function objects and
+  remain outside the operation catalog;
+- six temporary v1 spellings are warning adapters recorded by the immutable
+  `DEPRECATED_OPERATION_ALIASES` manifest;
+- warning category, ledgered message, and user-callsite stack level are tested,
+  and tracked calls retain the canonical operation ID;
+- `ip` and `inner_product` remain absent and raise guidance listing the
+  explicit inner-product and contraction families;
+- all three `galaga.gram_bridge` import paths warn with their ledgered
+  replacements while preserving imports; and
+- [Compatibility shims](compatibility-shims.md) is executable documentation:
+  tests require it to name every temporary alias and bridge replacement.
+
 ### W7.2 Reimplement helpers by composition
+
+Status: **complete by classification (2026-07-19); no new helpers added**.
+
+The user-directed Galaga 2 constraint is stronger than the original candidate
+list: do not add a helper merely because it is a short expression of existing
+operations. An explicit rotor constructor duplicates `exp`; generic project,
+reject, and reflect functions likewise add no numeric capability without a
+model-specific domain contract. They remain legacy compatibility inputs rather
+than being copied into the facade. A future helper is justified only when it
+materially clarifies a geometry model or validates metadata.
 
 Candidates include projection, rejection, reflection, rotor conveniences, and
 domain-specific geometry constructors. Add only helpers that materially improve
@@ -994,6 +1021,11 @@ Required tests:
 - helpers work for all advertised metric classes;
 - degenerate or noninvertible domains fail clearly; and
 - no duplicate numeric algorithm or multiplication table appears in a helper.
+
+No facade helper was introduced, so the applicable gate is the executable
+surface ledger plus a repository check that no duplicate implementation was
+added. Phase 8 removal guidance will point users to explicit compositions or a
+future model-specific API rather than a generic numeric-core primitive.
 
 ### W7.3 Migrate `galaga_matrix`
 

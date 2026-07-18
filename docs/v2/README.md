@@ -25,6 +25,9 @@
 - [Semantic rendering implementation](rendering-implementation.md) decomposes
   the shared render tree, precedence model, immutable notation rules, emitters,
   content policy, rich hooks, and scoped teaching presentations.
+- [Compatibility shims](compatibility-shims.md) records permanent same-object
+  aliases, temporary warning adapters, ambiguous-name guidance, and bridge
+  retirement policy.
 - [Migration engineering techniques](migration-engineering-techniques.md)
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
@@ -52,7 +55,12 @@ Unicode, and LaTeX emitters. Content and target are independently selectable,
 and facade string, format, and rich-display hooks use the same context-safe
 pipeline.
 
-Phase 7 is next: compatibility adapters and companion-package migrations.
+Phase 7 is in progress. Its compatibility policy is implemented: permanent
+concise aliases are exact canonical objects, temporary v1 spellings and the
+`gram_bridge` paths warn with executable replacement guidance, ambiguous inner
+products remain absent, and redundant generic geometry helpers are classified
+for removal. The next work unit migrates `galaga_matrix` to public core-backed
+linear actions without private multiplication tables.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.

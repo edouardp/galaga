@@ -2,9 +2,12 @@
 
 from __future__ import annotations
 
+import importlib
+
+import pytest
+
 import galaga
 import galaga.facade as facade
-import galaga.gram_bridge as bridge
 
 
 def test_v1_numeric_aliases_remain_the_same_function_objects() -> None:
@@ -28,7 +31,11 @@ def test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value() -> 
 
 def test_gram_bridge_reexports_the_facade_objects_without_a_fork() -> None:
     import galaga.facade.catalog as facade_catalog
-    import galaga.gram_bridge.catalog as bridge_catalog
+
+    with pytest.warns(facade.GalagaDeprecationWarning, match="gram_bridge is deprecated"):
+        bridge = importlib.reload(importlib.import_module("galaga.gram_bridge"))
+    with pytest.warns(facade.GalagaDeprecationWarning, match="gram_bridge.catalog is deprecated"):
+        bridge_catalog = importlib.reload(importlib.import_module("galaga.gram_bridge.catalog"))
 
     assert bridge.Algebra is facade.Algebra
     assert bridge.Multivector is facade.Multivector

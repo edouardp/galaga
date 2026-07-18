@@ -97,15 +97,15 @@ core, `lie_bracket` and `commutator` are unscaled, `jordan_product` and
 `anticommutator` are unscaled, and only the two `half_...` functions divide by
 two.
 
-Thin geometry conveniences should also remain in this facade or a dedicated
-helper layer. `Algebra.rotor` is `exp` applied to a normalized plane-angle
-generator; `project`, `reject`, and `reflect` are short compositions of
-contractions, products, and `inverse`. Compatibility aliases such as `wedge`,
+Thin geometry conveniences are not recreated merely because they are short
+compositions. `Algebra.rotor` is `exp` applied to a normalized plane-angle
+generator; `project`, `reject`, and `reflect` compose contractions, products,
+and `inverse`. They belong only in a future model-specific API that supplies
+useful domain meaning or validation. Compatibility aliases such as `wedge`,
 `rev`, and `normalize` likewise add vocabulary rather than numeric capability.
-They should be audited rather than recreated mechanically: users can select
-their own concise local names with ordinary import aliases, and only
-migration-critical spellings need temporary facade shims. The numeric core does
-not need to duplicate them.
+They are audited rather than recreated mechanically: users can select concise
+local names with ordinary import aliases, and only migration-critical spellings
+receive temporary facade shims. The numeric core does not duplicate them.
 
 An unqualified `ip` or `inner_product` should not become a permanent facade
 choice. If needed for migration, it should be a deprecated adapter. Users who
@@ -155,10 +155,11 @@ flowchart LR
     X --> H[Performance hardening]
 ```
 
-Numeric function, facade parity, and presentation configuration are complete. Outermorphisms remain the next
-numeric capability because matrix and CGA work share them. Presentation and
-expression work now proceeds above the configured facade; the two tracks meet
-when companion packages cut over.
+Numeric function and facade parity, presentation configuration, expression
+provenance, and semantic rendering are complete. The public outermorphism and
+linear-action API is also complete. Compatibility policy is now executable;
+the next step is migrating `galaga_matrix` away from private multiplication
+tables and onto those public representations.
 
 ## Explicit non-goals for the numeric core
 
