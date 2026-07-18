@@ -557,6 +557,13 @@ oracle for nonsimple, mixed-grade, oblique, and random geometric
 exponentials, and two-sided inverse checks from dimension zero through six.
 Trivial coefficient duplicates were not copied.
 
+The direct-core exponential suite also owns the full acceptance matrix for
+[GitHub issue 11](https://github.com/edouardp/galaga/issues/11): the explicit
+grade-four cross term, commuting-plane factorization, Cl(4,1), STA and Cl(2,2)
+compound rotors, a three-plane bivector, five deterministic random Cl(4,1)
+bivectors, Taylor parity, and $R\widetilde{R}=1$. None of those regressions now
+depends solely on the retained legacy `TestExpNonSimpleBivector` class.
+
 No numeric test creates operands through a blade-name preset. RGA source
 tables are derived from ordered wedges of unnamed basis vectors, quaternion
 units are explicit Euclidean bivectors, and rotors are constructed with

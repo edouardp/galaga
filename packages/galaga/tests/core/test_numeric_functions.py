@@ -15,6 +15,7 @@ from galaga.core import (
     outerexp,
     outersin,
     outertan,
+    reverse,
     scalar_sqrt,
     sqrt,
 )
@@ -192,6 +193,118 @@ class TestGeometricExponential:
             exp(value).data,
             taylor_exponential(value).data,
             rtol=0.0,
+            atol=2e-11,
+        )
+
+    def test_compound_plane_exponential_has_issue_11_cross_term(self) -> None:
+        """GitHub #11: commuting planes must produce the grade-four term."""
+        algebra = Algebra(4)
+        e1, e2, e3, e4 = algebra.basis_vectors()
+        first = 0.3 * (e1 ^ e2)
+        second = 0.5 * (e3 ^ e4)
+        generator = first + second
+        actual = exp(generator)
+
+        assert geometric_product(first, second) == geometric_product(
+            second,
+            first,
+        )
+        np.testing.assert_allclose(
+            actual.data,
+            taylor_exponential(generator).data,
+            rtol=0.0,
+            atol=1e-12,
+        )
+        np.testing.assert_allclose(
+            actual.data,
+            geometric_product(exp(first), exp(second)).data,
+            rtol=0.0,
+            atol=1e-12,
+        )
+        assert actual.coefficient(0b1111) == pytest.approx(
+            np.sin(0.3) * np.sin(0.5),
+            abs=1e-12,
+        )
+        assert geometric_product(actual, reverse(actual)).almost_equal(algebra.identity)
+
+    @pytest.mark.parametrize(
+        ("algebra", "first_scale", "second_scale"),
+        (
+            (Algebra(4, 1, id="Cl41"), 0.3, 0.5),
+            (Algebra(1, 3, id="STA"), 0.5, 0.3),
+            (Algebra(2, 2, id="Cl22"), 0.3, 0.5),
+        ),
+        ids=lambda value: value.id if isinstance(value, Algebra) else None,
+    )
+    def test_issue_11_compound_rotors_across_signatures(
+        self,
+        algebra: Algebra,
+        first_scale: float,
+        second_scale: float,
+    ) -> None:
+        """GitHub #11: double rotations and boost-rotations use the general path."""
+        e1, e2, e3, e4, *_ = algebra.basis_vectors()
+        first = first_scale * (e1 ^ e2)
+        second = second_scale * (e3 ^ e4)
+        generator = first + second
+        actual = exp(generator)
+
+        np.testing.assert_allclose(
+            actual.data,
+            taylor_exponential(generator).data,
+            rtol=0.0,
+            atol=2e-11,
+        )
+        np.testing.assert_allclose(
+            actual.data,
+            geometric_product(exp(first), exp(second)).data,
+            rtol=0.0,
+            atol=2e-11,
+        )
+        assert geometric_product(actual, reverse(actual)).almost_equal(
+            algebra.identity,
+            atol=2e-11,
+        )
+
+    def test_issue_11_three_plane_bivector_is_a_unit_rotor(self) -> None:
+        algebra = Algebra(4, 1)
+        e1, e2, e3, e4, e5 = algebra.basis_vectors()
+        generator = 0.3 * (e1 ^ e2) + 0.5 * (e3 ^ e4) + 0.1 * (e1 ^ e5)
+        actual = exp(generator)
+
+        np.testing.assert_allclose(
+            actual.data,
+            taylor_exponential(generator).data,
+            rtol=0.0,
+            atol=2e-11,
+        )
+        assert geometric_product(actual, reverse(actual)).almost_equal(
+            algebra.identity,
+            atol=2e-11,
+        )
+
+    @pytest.mark.parametrize("seed", range(5))
+    def test_issue_11_random_cl41_bivectors_match_taylor_and_are_rotors(
+        self,
+        seed: int,
+    ) -> None:
+        algebra = Algebra(4, 1)
+        vectors = algebra.basis_vectors()
+        rng = np.random.default_rng(seed)
+        generator = algebra.scalar(0)
+        for left_index in range(algebra.n):
+            for right_index in range(left_index + 1, algebra.n):
+                generator += rng.uniform(-0.5, 0.5) * (vectors[left_index] ^ vectors[right_index])
+        actual = exp(generator)
+
+        np.testing.assert_allclose(
+            actual.data,
+            taylor_exponential(generator).data,
+            rtol=0.0,
+            atol=2e-11,
+        )
+        assert geometric_product(actual, reverse(actual)).almost_equal(
+            algebra.identity,
             atol=2e-11,
         )
 
