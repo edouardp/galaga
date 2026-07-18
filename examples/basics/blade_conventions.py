@@ -357,7 +357,7 @@ def _(Algebra, Display, b_sta):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## CGA — origin/infinity basis
+    ## CGA — orthogonal plus/minus frame (default)
     """)
     return
 
@@ -365,11 +365,12 @@ def _(mo):
 @app.cell
 def _(Algebra, Display, b_cga):
     _alg = Algebra(4, 1, blades=b_cga())
-    _e1, _e2, _e3, _eo, _ei = _alg.basis_vectors()
+    _e1, _e2, _e3, _ep, _em = _alg.basis_vectors()
     _d = Display()
     _d("Euclidean:", _e1, _e2, _e3)
-    _d("Null pair:", _eo, _ei)
-    _d("E₀ (eₒ∧e∞):", _eo ^ _ei)
+    _d("Minkowski frame:", _ep, _em)
+    _d("Metric squares:", _ep * _ep, _em * _em)
+    _d("E₀ (e₊∧e₋):", _ep ^ _em)
     _d("Pseudoscalar:", _alg.pseudoscalar())
     _d
     return
@@ -378,19 +379,22 @@ def _(Algebra, Display, b_cga):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md("""
-    ## CGA — plus/minus basis
+    ## CGA — derived null vectors
     """)
     return
 
 
 @app.cell
 def _(Algebra, Display, b_cga):
-    _alg = Algebra(4, 1, blades=b_cga(null_basis="plus_minus"))
+    _alg = Algebra(4, 1, blades=b_cga())
     _e1, _e2, _e3, _ep, _em = _alg.basis_vectors()
+    _e4 = (_em - _ep) / 2
+    _e5 = _em + _ep
     _d = Display()
-    _d("Euclidean:", _e1, _e2, _e3)
-    _d("Null pair:", _ep, _em)
-    _d("Null bivector:", _ep ^ _em)
+    _d("e₄ = (e₋ − e₊)/2:", _e4)
+    _d("e₅ = e₋ + e₊:", _e5)
+    _d("Null squares:", _e4 * _e4, _e5 * _e5)
+    _d("Pairing e₄·e₅:", _e4 | _e5)
     _d
     return
 

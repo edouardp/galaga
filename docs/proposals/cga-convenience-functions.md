@@ -30,7 +30,7 @@ everything they need:
 from galaga.cga import up, down, homo
 
 cga = Algebra(4, 1, blades=b_cga())
-e1, e2, e3, eo, ei = cga.basis_vectors()
+e1, e2, e3, ep, em = cga.basis_vectors()
 
 p = up(e1 + 2*e2 + 3*e3)     # CGA point
 x = down(p)                    # back to Euclidean vector
@@ -46,30 +46,30 @@ Three options were considered:
 
 **Option A: Metadata on BladeConvention** (recommended)
 
-`b_cga()` already knows which vectors are null and which are Euclidean. Add
-fields to `BladeConvention`:
+`b_cga()` knows which orthogonal e₊,e₋ vectors span the Minkowski plane
+and which vectors are Euclidean. Add fields to `BladeConvention`:
 
 ```python
 @dataclass
 class BladeConvention:
     ...
-    euclidean_dim: int | None = None     # number of Euclidean basis vectors
-    null_pair: tuple[int, int] | None = None  # (origin_index, infinity_index)
+    euclidean_dim: int | None = None
+    minkowski_pair: tuple[int, int] | None = None  # (plus_index, minus_index)
 ```
 
-`b_cga(euclidean=3)` sets `euclidean_dim=3` and `null_pair=(3, 4)` (0-indexed
-positions of eo and e∞ in the basis vector list).
+`b_cga(euclidean=3)` sets `euclidean_dim=3` and `minkowski_pair=(3, 4)`
+(0-indexed positions of e₊ and e₋ in the basis vector list).
 
 The functions read this:
 
 ```python
 def _null_pair(alg):
     bc = alg._blades_config  # or however the convention is stored
-    if bc.null_pair is None:
-        raise TypeError("Algebra has no CGA null pair. Use blades=b_cga().")
-    eo = alg.basis_vectors()[bc.null_pair[0]]
-    ei = alg.basis_vectors()[bc.null_pair[1]]
-    return eo, ei
+    if bc.minkowski_pair is None:
+        raise TypeError("Algebra has no CGA Minkowski pair. Use blades=b_cga().")
+    ep = alg.basis_vectors()[bc.minkowski_pair[0]]
+    em = alg.basis_vectors()[bc.minkowski_pair[1]]
+    return (em - ep) / 2, em + ep
 
 def _euclidean_vectors(alg):
     bc = alg._blades_config
@@ -82,17 +82,16 @@ Cons: requires `b_cga()` — won't work on a bare `Algebra(4,1)`.
 
 **Option B: Detect from metric**
 
-Find the null pair by scanning for vectors with `e²=0` and `eo·ei=-1`. The
+Find an orthogonal +1/-1 pair from the metric, then derive eₒ and e∞. The
 Euclidean vectors are the rest.
 
 Pros: works without `b_cga()`.
-Cons: fragile if the user hasn't done the null-basis change of variables
-(raw `e+, e-` basis has no null vectors). Also ambiguous if there are
-multiple null pairs.
+Cons: ambiguous whenever the algebra contains multiple positive or negative
+directions and no metadata identifies the CGA Minkowski plane.
 
 **Option C: Detect from blade names**
 
-Look for blades named `eo`/`e∞` in the convention.
+Look for blades named `ep`/`em` in the convention and derive the null pair.
 
 Pros: simple.
 Cons: breaks if the user chose different names.
@@ -102,10 +101,11 @@ Cons: breaks if the user chose different names.
 ```python
 def _null_pair(alg):
     # Try metadata first
-    if hasattr(alg, '_cga_null_pair') and alg._cga_null_pair is not None:
-        i, j = alg._cga_null_pair
+    if hasattr(alg, '_cga_minkowski_pair') and alg._cga_minkowski_pair is not None:
+        i, j = alg._cga_minkowski_pair
         vecs = alg.basis_vectors()
-        return vecs[i], vecs[j]
+        ep, em = vecs[i], vecs[j]
+        return (em - ep) / 2, em + ep
     # Fallback: detect from metric
     return _detect_null_pair(alg)
 ```
@@ -204,7 +204,7 @@ extra dependencies, and CGA is one of the primary use cases for GA libraries.
 
 ## Changes required
 
-1. Add `euclidean_dim` and `null_pair` fields to `BladeConvention`
+1. Add `euclidean_dim` and `minkowski_pair` fields to `BladeConvention`
 2. Have `b_cga()` populate them
 3. Store them on `Algebra` (or read from the stored `BladeConvention`)
 4. Implement `up`, `down`, `homo` in `galaga/cga.py`

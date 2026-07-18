@@ -281,7 +281,8 @@ galaga is the only library that exposes all four variants as named functions. cl
 - `BladeConvention` system with 7 factories: `b_default`, `b_gamma`, `b_sigma`, `b_sigma_xyz`, `b_pga`, `b_sta`, `b_cga`
 - 3 blade styles: `"compact"` (`e₁₂`), `"juxtapose"` (`e₁e₂`), `"wedge"` (`e₁∧e₂`)
 - `b_sta(sigmas=True, pseudovectors=True)` for σₖ/iσₖ/iγₖ aliases
-- `b_cga(null_basis="origin_infinity"|"plus_minus")` for CGA conventions
+- `b_cga()` defaults to the metric-consistent e₊/e₋ CGA frame; the explicit
+  `null_basis="origin_infinity"` option provides legacy display labels only
 - Per-blade overrides via metric-role keys (`"+1-1"`, `"_1"`, `"pss"`)
 - Named constants: `alg.pi`, `.tau`, `.e`, `.h`, `.hbar`, `.c`, `.sqrt2`
 - `fraction()`/`frac()` for symbolic fractions

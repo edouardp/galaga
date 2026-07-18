@@ -560,13 +560,20 @@ def b_sta(
 def b_cga(
     *,
     euclidean: int = 3,
-    null_basis: str = "origin_infinity",
+    null_basis: str = "plus_minus",
     style: str = "compact",
     pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """CGA: e₁…eₙ, eₒ, e∞ (compact, PSS → I)."""
-    # Euclidean vectors + two special vectors
+    """CGA orthogonal frame: e₁…eₙ, e₊, e₋ (compact, PSS → I).
+
+    Use with ``Algebra(euclidean + 1, 1)``. The default names the final
+    positive and negative basis vectors e₊ and e₋, matching their actual
+    metric squares. ``null_basis="origin_infinity"`` is a legacy display-only
+    option: a blade convention cannot transform the orthogonal frame into the
+    null vectors eₒ and e∞.
+    """
+    # Euclidean vectors + the two orthogonal Minkowski-plane vectors
     names = []
     for i in range(1, euclidean + 1):
         s = str(i)
@@ -583,12 +590,12 @@ def b_cga(
     merged = {}
     if pss is not None:
         merged["pss"] = pss
-    # Null pair override: last positive ∧ the negative
+    # Minkowski-plane bivector: e₊ ∧ e₋ = e∞ ∧ eₒ
     merged[f"+{euclidean + 1}-1"] = ("E0", "E₀", "E_{0}")
     if overrides:
         merged.update(overrides)
 
-    # Variable hints for null basis vectors and PSS
+    # Variable hints for the Minkowski-plane vectors and PSS
     hints = {"pss": "I"}
     if null_basis == "origin_infinity":
         hints[f"+{euclidean + 1}"] = "eo"

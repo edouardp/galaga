@@ -185,13 +185,13 @@ b_pga(overrides={
 ```python
 b_cga()  # internally uses:
 overrides = {
-    "+4-1":  ("E0", "E₀", "E_0"),   # null pair
+    "+4-1":  ("E0", "E₀", "E_0"),   # e₊ ∧ e₋ Minkowski plane
     "pss":   "I",
 }
 
-# With plus/minus basis instead of origin/infinity:
-b_cga(null_basis="plus_minus")
-# vectors named e₁, e₂, e₃, e₊, e₋ instead of e₁, e₂, e₃, eₒ, e∞
+# Legacy origin/infinity display labels are explicit and do not transform
+# the orthogonal vectors into a null basis:
+b_cga(null_basis="origin_infinity")
 ```
 
 ### VGA — Cl(3,0): simple overrides
@@ -320,7 +320,7 @@ Factories configure *what* blades are called. The `style=` parameter controls *h
 | `b_sigma_xyz()` | σₓ, σᵧ, σ_z | juxtapose | — | 1 | Pauli (xyz) |
 | `b_pga()` | e₀, e₁, … | compact | PSS → `I` | 0 | Standard PGA |
 | `b_sta()` | γ₀, γ₁, … | juxtapose | PSS → `i` | 0 | Spacetime algebra (Cl(1,3) or Cl(3,1)) |
-| `b_cga()` | e₁…e₃, eₒ, e∞ | compact | null pair → `E₀`, PSS → `I` | 1 | Conformal GA |
+| `b_cga()` | e₁…e₃, e₊, e₋ | compact | Minkowski plane → `E₀`, PSS → `I` | 1 | Conformal GA |
 
 ### Factory Signatures
 
@@ -387,21 +387,24 @@ def b_sta(
 def b_cga(
     *,
     euclidean: int = 3,
-    null_basis: str = "origin_infinity",  # or "plus_minus"
+    null_basis: str = "plus_minus",  # or legacy "origin_infinity" labels
     style: str = "compact",
     pss: str | tuple | None = "I",
     overrides: dict[str, str | tuple] | None = None,
 ) -> BladeConvention:
-    """CGA: e₁…eₙ, eₒ, e∞ (compact, PSS → I).
+    """CGA orthogonal frame: e₁…eₙ, e₊, e₋ (compact, PSS → I).
     Expects Cl(euclidean+1, 1). First `euclidean` positive vectors are
     Euclidean (e₁…eₙ). The remaining positive vector and the negative
-    vector form the null pair: eₒ/e∞ or e₊/e₋ depending on null_basis."""
+    vector are e₊ and e₋. The legacy origin_infinity option changes labels
+    only and does not construct null vectors."""
 ```
 
 Notes:
 - `pss=` and `overrides=` are on every factory — `pss=` names the pseudoscalar, `overrides=` tweaks any blade.
 - When a factory has built-in overrides (e.g. `b_pga` has `{"pss": "I"}`), user-supplied `overrides` are merged with the factory's defaults. User entries win on conflict (last one wins).
-- `b_cga` has `euclidean=` (3 or 4) and `null_basis=` to switch between `eₒ/e∞` and `e₊/e₋`.
+- `b_cga` has `euclidean=` (3 or 4) and defaults to the metric-consistent
+  `e₊/e₋` frame. `null_basis="origin_infinity"` is a legacy display-only
+  option; a `BladeConvention` cannot perform the null-basis transformation.
 - `b_sigma_xyz` has no `start=` since the subscripts are letters, not numbers.
 
 ### Factory Name Generation
@@ -419,8 +422,8 @@ Each factory generates three name variants (ascii, unicode, latex) per basis vec
 | `b_sigma_xyz()` | `x, y, z` | `σₓ, σᵧ, σ_z` | `\sigma_x, \sigma_y, \sigma_z` |
 | `b_pga()` | `e0, e1, e2, …` | `e₀, e₁, e₂, …` | `e_{0}, e_{1}, e_{2}, …` |
 | `b_sta()` | `g0, g1, g2, g3` | `γ₀, γ₁, γ₂, γ₃` | `\gamma_{0}, …, \gamma_{3}` |
-| `b_cga(euclidean=3)` | `e1, e2, e3, eo, ei` | `e₁, e₂, e₃, eₒ, e∞` | `e_{1}, …, e_{o}, e_{\infty}` |
-| `b_cga(null_basis="plus_minus")` | `e1, e2, e3, ep, em` | `e₁, e₂, e₃, e₊, e₋` | `e_{1}, …, e_{+}, e_{-}` |
+| `b_cga(euclidean=3)` | `e1, e2, e3, ep, em` | `e₁, e₂, e₃, e₊, e₋` | `e_{1}, …, e_{+}, e_{-}` |
+| `b_cga(null_basis="origin_infinity")` | `e1, e2, e3, eo, ei` | `e₁, e₂, e₃, eₒ, e∞` | `e_{1}, …, e_{o}, e_{\infty}` |
 
 ### Usage Examples
 
@@ -433,7 +436,8 @@ b_default(prefix="v")            # v₁, v₂, … instead of e₁, e₂, …
 b_default(start=0)               # e₀, e₁, … (0-based)
 b_gamma(start=1)                 # γ₁, γ₂, γ₃, γ₄ (1-based)
 b_pga(pss="𝐈")                   # custom pseudoscalar name
-b_cga(null_basis="plus_minus")   # e₊, e₋ instead of eₒ, e∞
+b_cga()                           # e₊, e₋ orthogonal frame
+b_cga(null_basis="origin_infinity")  # legacy display labels only
 ```
 
 ## Post-hoc Modification
@@ -532,7 +536,7 @@ Every major library's convention is reproducible:
 | Grassmann.jl (`v₁₂`) | `blades=b_default(prefix="v", style="compact")` |
 | STA (γ₀γ₁, σ₁) | `blades=b_sta()` |
 | PGA (e₀₁, I) | `blades=b_pga()` |
-| CGA (e₁₂, eₒ∞, I) | `blades=b_cga()` |
+| CGA (e₁₂, E₀, I) | `blades=b_cga()` |
 
 ## Open Questions
 
@@ -687,8 +691,8 @@ alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))
 # verify trivector names contain "iγ"
 
 # b_sigma, b_sigma_xyz: correct prefixes
-# b_cga: eₒ, e∞ names, E₀ for null pair
-# b_cga(null_basis="plus_minus"): e₊, e₋ names
+# b_cga: e₊, e₋ names, E₀ for their Minkowski-plane bivector
+# b_cga(null_basis="origin_infinity"): legacy display labels only
 ```
 
 ### 2. Style variations — each style renders correctly in ascii, unicode, and latex

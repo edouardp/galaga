@@ -226,19 +226,24 @@ Zero-indexed because e₀ is special (the null direction).
 
 ### Case 6: CGA — Conformal Geometric Algebra
 
-Dorst uses e₁, e₂, e₃, eₒ (origin), e∞ (infinity) or e₊, e₋.
+CGA uses an orthogonal Minkowski frame e₊, e₋ with squares +1 and -1.
+The null origin/infinity vectors are derived from that frame.
 
 ```python
 cga = Algebra(4, 1, blades=b_cga())
-e1, e2, e3, eo, ei = cga.basis_vectors()
-locals().update(cga.locals())  # e1, e2, e3, eo, ei, e12, ..., I
+e1, e2, e3, ep, em = cga.basis_vectors()
+e4 = (em - ep) / 2
+e5 = em + ep
+locals().update(cga.locals())  # e1, e2, e3, ep, em, e12, ..., I
 ```
 
-Here `b_cga()` uses `variable_hints` for the null basis vectors (`eo`, `ei`)
-and the pseudoscalar (`I`).
+Here `b_cga()` uses `variable_hints` for the orthogonal Minkowski vectors
+(`ep`, `em`) and the pseudoscalar (`I`). The explicit legacy option
+`null_basis="origin_infinity"` changes display labels only; it does not turn
+the diagonal-metric basis vectors into a null pair.
 
 **Justification**: Dorst "GA for Computer Science", Hitzer, Hildenbrand.
-The null basis names (eo, ei) are standard in the literature.
+The plus/minus frame is the honest native basis for the diagonal metric.
 
 ### Case 7: Quaternions
 
@@ -324,7 +329,7 @@ This separation means:
 |--------|----------------|----------------|--------|
 | `b_default()` | None | `"e"` | All blades are e + subscript |
 | `b_pga()` | `{"pss": "I"}` | `"e"` | PSS is `I` |
-| `b_cga()` | `{"pss": "I", "eo": "eo", "ei": "ei"}` | `"e"` | Null vectors + PSS |
+| `b_cga()` | `{"pss": "I", "ep": "ep", "em": "em"}` | `"e"` | Minkowski vectors + PSS |
 | `b_quaternion()` | `{"e12": "i", "e13": "j", "e23": "k"}` | `"e"` | Bivectors are i, j, k |
 | `b_complex()` | `{"pss": "i"}` | `"e"` | PSS is `i` |
 | `b_sta()` | `{"pss": "i"}` | `"g"` | γ→g; only PSS hinted |

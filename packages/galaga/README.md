@@ -353,7 +353,7 @@ pauli = Algebra(3, blades=b_sigma_xyz())
 # PGA: 0-based, compact, pseudoscalar → I
 pga = Algebra(3, 0, 1, blades=b_pga())
 
-# CGA: e₁…e₃, eₒ, e∞
+# CGA: orthogonal e₁…e₃, e₊, e₋ frame
 cga = Algebra(4, 1, blades=b_cga())
 
 # Complex numbers: Cl(2,0) with i = e₁₂

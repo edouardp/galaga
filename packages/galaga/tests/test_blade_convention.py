@@ -265,19 +265,37 @@ class TestFactoryDefaults:
         assert str(g1 * g2 * g3) == "-iγ₀"
 
     def test_b_cga(self):
-        """b_cga: eₒ, e∞ names, E₀ for null pair, PSS → I."""
+        """b_cga defaults to metric-consistent e₊, e₋ names."""
         alg = Algebra(4, 1, blades=b_cga())
+        _, _, _, ep, em = alg.basis_vectors()
+        assert str(ep) == "e₊"
+        assert str(em) == "e₋"
+        assert gp(ep, ep) == alg.scalar(alg.signature[3])
+        assert gp(em, em) == alg.scalar(alg.signature[4])
+        cga_locals = alg.locals()
+        assert cga_locals["ep"] == ep
+        assert cga_locals["em"] == em
+        assert str(alg.pseudoscalar()) == "I"
+
+    def test_b_cga_origin_infinity_is_explicit_display_only(self):
+        """The legacy eₒ, e∞ labels remain an explicit display option."""
+        alg = Algebra(4, 1, blades=b_cga(null_basis="origin_infinity"))
         es = alg.basis_vectors()
         assert str(es[3]) == "eₒ"
         assert str(es[4]) == "e∞"
-        assert str(alg.pseudoscalar()) == "I"
+        assert gp(es[3], es[3]) == alg.scalar(alg.signature[3])
+        assert gp(es[4], es[4]) == alg.scalar(alg.signature[4])
 
-    def test_b_cga_plus_minus(self):
-        """b_cga(null_basis='plus_minus'): e₊, e₋."""
-        alg = Algebra(4, 1, blades=b_cga(null_basis="plus_minus"))
-        es = alg.basis_vectors()
-        assert str(es[3]) == "e₊"
-        assert str(es[4]) == "e₋"
+    def test_b_cga_null_vectors_are_derived_from_default_frame(self):
+        """The documented e₄,e₅ construction is null under the metric."""
+        alg = Algebra(4, 1, blades=b_cga())
+        _, _, _, ep, em = alg.basis_vectors()
+        e4 = (em - ep) / 2
+        e5 = em + ep
+        assert gp(e4, e4) == alg.scalar(0)
+        assert gp(e5, e5) == alg.scalar(0)
+        expected_pairing = (alg.signature[4] - alg.signature[3]) / 2
+        assert e4 | e5 == alg.scalar(expected_pairing)
 
     def test_b_sta31_basic(self):
         """b_sta for Cl(3,1): gamma vectors, PSS → i."""

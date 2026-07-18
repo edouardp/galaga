@@ -12,6 +12,12 @@ The `names=` parameter on `Algebra` mixed three concerns: basis vector naming, b
 
 Replace `names=` with a single `blades=` parameter accepting a `BladeConvention` object. Convention factories (`b_default`, `b_gamma`, `b_pga`, `b_sta`, etc.) provide one-call setup for common conventions. Override keys use metric-role notation (`"+1-1"`, `"pss"`) that is independent of internal index ordering.
 
+`b_cga()` defaults to the orthogonal e₊,e₋ frame because a
+`BladeConvention` controls display only and cannot transform the diagonal
+metric into the non-orthogonal null eₒ,e∞ frame. The legacy
+`null_basis="origin_infinity"` option is explicit and display-only; a future
+CGA layout is responsible for constructing and naming the actual null vectors.
+
 See SPEC-010 for the full specification.
 
 ## Consequences
