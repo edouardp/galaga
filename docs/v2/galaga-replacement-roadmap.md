@@ -33,6 +33,8 @@ product-table internals.
 | Core numeric API | Arithmetic, checked scalar conversion, involutions, grades, powers, norm, unit, inverse, predicates, sandwich |
 | Numeric functions | Scalar and Study square roots, general exponential, Study-rotor logarithm, and outer transcendental functions |
 | Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
+| Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
+| Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
 
 ## Remaining work
 
@@ -64,26 +66,29 @@ represent a nonorthogonal blade product. It must instead:
 
 This is the principal companion-package blocker.
 
-### 3. Galaga compatibility facade
+### 3. Galaga outer-layer cutover
 
 The architecture and phased implementation are specified in the
 [presentation and expression layer plan](presentation-symbolic-layer-plan.md).
-The proposed boundary is a composition facade: Galaga values wrap core values,
-and expression provenance is an optional outer-layer concern.
+The numeric composition facade is complete: `galaga.facade` values wrap core
+values, and expression provenance remains an optional outer-layer concern.
+The remaining cutover work is presentation, expressions, rendering, helpers,
+companion packages, and the final top-level shadow.
 
-The cutover needs an explicit policy for API elements that are numeric-adjacent
-but not part of the core metric engine:
+The completed Phase 1 matrix records the policy for API elements that are
+numeric-adjacent but not part of the core metric engine:
 
-- positional signature tuples versus keyword-only `signature=`;
+- positional signature tuples and explicit `signature=`, `sig=`, and `gram=`;
 - string blade lookup and `locals()`;
 - blade conventions and display order;
 - scalar constants and named fractions;
-- exact equality plus `almost_equal` versus legacy approximate `__eq__`;
+- exact equality plus explicit `almost_equal` rather than legacy approximate
+  `__eq__`;
 - checked `__float__` compatibility versus any future NumPy array/ufunc
   protocol surface;
 - migration of the current `.scalar_part` member to, at most, an optional
   standalone helper equivalent to `float(grade(value, 0))`;
-- legacy aliases and deprecation warnings.
+- same-object aliases and their deprecation milestones.
 
 The corrected bracket family must also migrate into Galaga. In the current
 core, `lie_bracket` and `commutator` are unscaled, `jordan_product` and
@@ -130,7 +135,6 @@ metadata rather than guessing from display names.
 - Add memory guards or operator forms for dense compound metric matrices.
 - Measure dense-multivector workloads on the lazy backend and tune caching or
   packed selection from evidence.
-- Run Galaga's non-symbolic reference suites against the new core.
 - Establish diagonal-backend performance baselines.
 - Add serialization only after the final facade boundary is settled.
 
@@ -149,10 +153,10 @@ flowchart LR
     X --> H[Performance hardening]
 ```
 
-Numeric function parity is complete. Outermorphisms remain the next numeric
-capability because matrix and CGA work share them. The facade catalog and
-wrapper shell can proceed as an independent presentation track; the two tracks
-meet when companion packages cut over.
+Numeric function and facade parity are complete. Outermorphisms remain the next
+numeric capability because matrix and CGA work share them. Presentation and
+expression work now proceeds above the completed facade; the two tracks meet
+when companion packages cut over.
 
 ## Explicit non-goals for the numeric core
 

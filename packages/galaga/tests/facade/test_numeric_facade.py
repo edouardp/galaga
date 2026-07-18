@@ -1,4 +1,4 @@
-"""Numeric parity tests for the opt-in core-backed facade."""
+"""Numeric parity tests for the Galaga 2 core-backed facade."""
 
 from __future__ import annotations
 
@@ -7,9 +7,9 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 
-import galaga.gram_bridge as bridge
+import galaga.facade as facade
 from galaga import core
-from galaga.gram_bridge import (
+from galaga.facade import (
     EXCLUDED_PUBLIC_NAMES,
     OPERATIONS,
     Algebra,
@@ -32,7 +32,7 @@ def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:
     import galaga.algebra as legacy
 
     def reject(*args: object, **kwargs: object) -> None:
-        raise AssertionError("Gram facade test constructed galaga.algebra.Algebra")
+        raise AssertionError("core-backed facade test constructed galaga.algebra.Algebra")
 
     monkeypatch.setattr(legacy.Algebra, "__init__", reject)
 
@@ -40,7 +40,7 @@ def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:
 def test_legacy_numeric_constructor_guard_is_active() -> None:
     import galaga.algebra as legacy
 
-    with pytest.raises(AssertionError, match="Gram facade test constructed"):
+    with pytest.raises(AssertionError, match="core-backed facade test constructed"):
         legacy.Algebra(2)
 
 
@@ -51,14 +51,81 @@ def native_cga_gram() -> np.ndarray:
 
 
 class TestConstructionAndValues:
+    @pytest.mark.parametrize("signature", ((1, -1, 0), [1, -1, 0]))
+    def test_accepts_the_legacy_positional_signature_form(self, signature) -> None:
+        algebra = Algebra(signature)
+
+        assert algebra.basis_squares.tolist() == [1.0, -1.0, 0.0]
+        assert algebra.inertia == (1, 1, 1)
+
+    @pytest.mark.parametrize("signature", ((), []), ids=("tuple", "list"))
+    def test_accepts_the_legacy_empty_positional_signature(self, signature) -> None:
+        algebra = Algebra(signature)
+
+        assert algebra.signature == ()
+        assert algebra.n == 0
+        assert algebra.dim == 1
+        assert algebra.identity == 1
+
+        with pytest.raises(TypeError, match="combined with q or r"):
+            Algebra(signature, q=1)
+
+    def test_positional_signature_rejects_conflicting_metric_forms(self) -> None:
+        with pytest.raises(TypeError, match="combined with q or r"):
+            Algebra((1, -1), 1)
+        with pytest.raises(TypeError, match="combined with signature, sig, or gram"):
+            Algebra((1, -1), signature=(1, -1))
+
     def test_wraps_native_gram_algebra_without_copying_public_metadata(self) -> None:
-        algebra = Algebra(gram=native_cga_gram())
+        source = native_cga_gram()
+        algebra = Algebra(gram=source)
+        source[0, 0] = 99.0
 
         assert isinstance(algebra.numeric, core.Algebra)
         assert np.array_equal(algebra.gram, native_cga_gram())
         assert algebra.inertia == (4, 1, 0)
         assert not algebra.is_orthogonal_basis
         assert not algebra.gram.flags.writeable
+
+    @pytest.mark.parametrize(
+        ("factory", "error", "message"),
+        (
+            (lambda: Algebra(signature=(1, 2)), ValueError, "signature values"),
+            (lambda: Algebra(gram=[1, 2]), TypeError, "two-dimensional"),
+            (lambda: Algebra(gram=[[1, 0, 0], [0, 1, 0]]), ValueError, "square"),
+            (
+                lambda: Algebra(gram=[[1, np.nan], [np.nan, 1]]),
+                ValueError,
+                "finite",
+            ),
+            (
+                lambda: Algebra(signature=(1, -1), sig=(1, -1)),
+                TypeError,
+                "provide only one",
+            ),
+            (
+                lambda: Algebra(2, gram=[[1, 0], [0, 1]]),
+                TypeError,
+                "cannot be combined",
+            ),
+        ),
+        ids=(
+            "invalid-signature",
+            "gram-rank",
+            "gram-shape",
+            "gram-finiteness",
+            "signature-alias-conflict",
+            "metric-form-conflict",
+        ),
+    )
+    def test_constructor_validation_crosses_the_facade_unchanged(
+        self,
+        factory: Callable[[], Algebra],
+        error: type[Exception],
+        message: str,
+    ) -> None:
+        with pytest.raises(error, match=message):
+            factory()
 
     def test_factories_return_cached_immutable_facade_values(self) -> None:
         algebra = Algebra(3)
@@ -69,6 +136,8 @@ class TestConstructionAndValues:
         assert all(isinstance(value, Multivector) for value in first)
         assert all(value.algebra is algebra for value in first)
         assert not first[0].data.flags.writeable
+        with pytest.raises(ValueError, match="read-only"):
+            first[0].data[0] = 1
         assert algebra.blade(3) == first[0] ^ first[1]
 
     def test_scalar_extraction_is_a_standalone_composition(self) -> None:
@@ -103,6 +172,7 @@ class TestConstructionAndValues:
         algebra = Algebra(2, 1, id="cl21")
 
         assert algebra.id == "cl21"
+        assert algebra.signature == (1, 1, -1)
         assert algebra.basis_squares.tolist() == [1.0, 1.0, -1.0]
         assert algebra.metric_rank == 3
         assert algebra.metric_determinant == -1.0
@@ -114,6 +184,9 @@ class TestConstructionAndValues:
         assert algebra.extended_metric_matrix().shape == (algebra.dim, algebra.dim)
         assert algebra.metric_antiexomorphism_matrix().shape == (algebra.dim, algebra.dim)
         assert "Algebra(numeric=" in repr(algebra)
+
+        with pytest.raises(ValueError, match="only defined for normalized diagonal metrics"):
+            _ = Algebra(gram=[[1.0, 0.25], [0.25, 1.0]]).signature
 
     def test_from_numeric_defines_equivalent_and_distinct_ownership(self) -> None:
         numeric = core.Algebra(2)
@@ -151,6 +224,23 @@ class TestConstructionAndValues:
             algebra.left_action(np.ones(algebra.dim))  # type: ignore[arg-type]
         with pytest.raises(ValueError, match="different numeric algebra"):
             algebra.left_action(other.identity)
+
+    @pytest.mark.parametrize(
+        ("data", "error", "message"),
+        (
+            ([1 + 2j, 0, 0, 0], TypeError, "real values"),
+            ([1, np.nan, 0, 0], ValueError, "finite values"),
+        ),
+        ids=("complex-coefficients", "nonfinite-coefficients"),
+    )
+    def test_multivector_validation_crosses_the_facade_unchanged(
+        self,
+        data: list[complex | float],
+        error: type[Exception],
+        message: str,
+    ) -> None:
+        with pytest.raises(error, match=message):
+            Algebra(2).multivector(data)
 
     def test_value_inspection_equality_hashing_and_repr(self) -> None:
         numeric = core.Algebra(2)
@@ -235,6 +325,27 @@ class TestPythonProtocolBoundary:
         with pytest.raises(TypeError):
             expression(Algebra(2).identity, object())
 
+    def test_unsupported_dunder_operands_return_not_implemented(self) -> None:
+        value = Algebra(2).identity
+        unsupported = object()
+        handlers = (
+            value.__add__,
+            value.__radd__,
+            value.__sub__,
+            value.__rsub__,
+            value.__mul__,
+            value.__rmul__,
+            value.__truediv__,
+            value.__rtruediv__,
+            value.__pow__,
+            value.__xor__,
+            value.__rxor__,
+            value.__or__,
+            value.__ror__,
+        )
+
+        assert all(handler(unsupported) is NotImplemented for handler in handlers)
+
     def test_scalar_and_multivector_zero_division_remain_distinct(self) -> None:
         algebra = Algebra(2)
 
@@ -306,7 +417,7 @@ class TestCatalogAndParity:
         left = algebra.multivector(np.arange(algebra.dim) - 3)
         right = algebra.multivector(np.arange(algebra.dim)[::-1] - 2)
 
-        result = getattr(bridge, operation_name)(left, right)
+        result = getattr(facade, operation_name)(left, right)
         expected = getattr(core, operation_name)(left.numeric, right.numeric)
 
         assert result.numeric.algebra is algebra.numeric
@@ -372,7 +483,7 @@ class TestCatalogAndParity:
         coefficients[0] += 1.0
         value = algebra.multivector(coefficients)
 
-        result = getattr(bridge, operation_name)(value)
+        result = getattr(facade, operation_name)(value)
         expected = getattr(core, operation_name)(value.numeric)
 
         if isinstance(result, Multivector):
@@ -387,9 +498,9 @@ class TestCatalogAndParity:
     def test_study_number_operation_matches_direct_oblique_gram_evaluation(self, operation_name: str) -> None:
         algebra = Algebra(gram=np.array([[2.0, 0.5], [0.5, 1.0]]))
         e1, e2 = algebra.basis_vectors()
-        value = bridge.exp(0.2 * (e1 ^ e2))
+        value = facade.exp(0.2 * (e1 ^ e2))
 
-        result = getattr(bridge, operation_name)(value)
+        result = getattr(facade, operation_name)(value)
         expected = getattr(core, operation_name)(value.numeric)
 
         assert isinstance(result, Multivector)
@@ -399,8 +510,8 @@ class TestCatalogAndParity:
     def test_scalar_sqrt_matches_direct_core_for_plain_and_owned_values(self) -> None:
         algebra = Algebra(gram=np.array([[2.0, 0.5], [0.5, 1.0]]))
 
-        assert bridge.scalar_sqrt(9.0) == core.scalar_sqrt(9.0)
-        result = bridge.scalar_sqrt(algebra.scalar(9))
+        assert facade.scalar_sqrt(9.0) == core.scalar_sqrt(9.0)
+        result = facade.scalar_sqrt(algebra.scalar(9))
         expected = core.scalar_sqrt(algebra.scalar(9).numeric)
 
         assert isinstance(result, Multivector)
@@ -415,7 +526,7 @@ class TestCatalogAndParity:
         facade_value = algebra.scalar(value)
 
         with pytest.raises(ValueError) as facade_error:
-            getattr(bridge, operation_name)(facade_value)
+            getattr(facade, operation_name)(facade_value)
         with pytest.raises(ValueError) as core_error:
             getattr(core, operation_name)(facade_value.numeric)
 
@@ -427,11 +538,11 @@ class TestCatalogAndParity:
         right = algebra.multivector(np.arange(algebra.dim)[::-1] - 2)
 
         cases = (
-            (bridge.grade(left, 2), core.grade(left.numeric, 2)),
-            (bridge.grades(left, [0, 2]), core.grades(left.numeric, [0, 2])),
-            (bridge.transwedge(left, right, 1), core.transwedge(left.numeric, right.numeric, 1)),
+            (facade.grade(left, 2), core.grade(left.numeric, 2)),
+            (facade.grades(left, [0, 2]), core.grades(left.numeric, [0, 2])),
+            (facade.transwedge(left, right, 1), core.transwedge(left.numeric, right.numeric, 1)),
             (
-                bridge.transwedge_antiproduct(left, right, 1),
+                facade.transwedge_antiproduct(left, right, 1),
                 core.transwedge_antiproduct(left.numeric, right.numeric, 1),
             ),
         )
@@ -443,6 +554,23 @@ class TestCatalogAndParity:
             operation = OPERATIONS[name]
             assert operation.arity == 2
             assert isinstance(operation.call_policy, LeftFoldCall)
+
+    def test_left_fold_invokes_the_binary_evaluator_once_per_edge(self) -> None:
+        calls: list[tuple[int, int]] = []
+
+        def add(left: int, right: int) -> int:
+            calls.append((left, right))
+            return left + right
+
+        operation = OperationSpec("test_add", 2, add, call_policy=LeftFoldCall())
+
+        assert operation.invoke(1) == 1
+        assert calls == []
+        assert operation.invoke(1, 2) == 3
+        assert calls == [(1, 2)]
+        calls.clear()
+        assert operation.invoke(1, 2, 3) == 6
+        assert calls == [(1, 2), (3, 3)]
 
     def test_grade_involution_is_the_canonical_catalog_operation(self) -> None:
         assert get_operation("grade_involution").evaluate is core.grade_involution
@@ -470,6 +598,7 @@ class TestCatalogAndParity:
     def test_variadic_products_lower_to_deterministic_left_folds(self) -> None:
         algebra = Algebra(3)
         e1, e2, e3 = algebra.basis_vectors()
+        foreign = Algebra(3).basis_vectors()[0]
 
         assert geometric_product(e1) is e1
         assert outer_product(e1) is e1
@@ -480,3 +609,7 @@ class TestCatalogAndParity:
             geometric_product()
         with pytest.raises(TypeError, match="at least 1"):
             outer_product()
+        with pytest.raises(ValueError, match="different algebras"):
+            geometric_product(e1, foreign, e2)
+        with pytest.raises(ValueError, match="different algebras"):
+            geometric_product(e1, e2, foreign)

@@ -87,6 +87,7 @@ helps future contributors understand why certain choices were made.
 | [072](072-build-galaga-v2-over-gram.md) | Build Galaga 2.0 over the Gram Numeric Core | Superseded by 073 |
 | [073](073-move-the-numeric-core-into-galaga.md) | Move the Numeric Core into the Galaga Package | Accepted |
 | [074](074-long-operation-names-are-canonical.md) | Long Operation Names Are Canonical in Galaga 2 | Accepted |
+| [075](075-promote-the-core-backed-facade.md) | Promote the Core-Backed Facade Namespace | Accepted |
 
 ## Creating New ADRs
 

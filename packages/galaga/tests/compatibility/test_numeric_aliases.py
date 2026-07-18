@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 import galaga
-import galaga.gram_bridge as facade
+import galaga.facade as facade
+import galaga.gram_bridge as bridge
 
 
 def test_v1_numeric_aliases_remain_the_same_function_objects() -> None:
@@ -23,3 +24,14 @@ def test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value() -> 
 
     assert facade.antiwedge is not facade.regressive_product
     assert facade.antiwedge(left, right) == facade.regressive_product(left, right)
+
+
+def test_gram_bridge_reexports_the_facade_objects_without_a_fork() -> None:
+    import galaga.facade.catalog as facade_catalog
+    import galaga.gram_bridge.catalog as bridge_catalog
+
+    assert bridge.Algebra is facade.Algebra
+    assert bridge.Multivector is facade.Multivector
+    assert bridge.OPERATIONS is facade.OPERATIONS
+    assert bridge.geometric_product is facade.geometric_product
+    assert bridge_catalog.OperationSpec is facade_catalog.OperationSpec

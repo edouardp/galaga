@@ -12,23 +12,28 @@ explains the target architecture. The
 remaining numeric capabilities. This document turns both into ordered,
 testable work units with explicit exit gates.
 
-The initial core-consolidation phase is complete on the `galaga_v2` branch.
-Later phases are not complete merely because the legacy Galaga test suite still
-passes against the legacy implementation.
+The core consolidation, replacement contract, eager numeric facade, and
+numeric test migration are complete on the `galaga_v2` branch. Later phases
+are not complete merely because the remaining legacy Galaga suite still passes
+against the legacy implementation.
 
 ## Current position
 
-The repository currently has three relevant layers:
+The repository currently has four relevant numeric paths:
 
 ```mermaid
 flowchart TD
     T[galaga.Algebra and galaga.Multivector] --> L[legacy algebra.py engine]
-    B[opt-in galaga.gram_bridge facade] --> C[galaga.core]
+    B[galaga.gram_bridge compatibility alias] --> F[galaga.facade]
+    F --> C[galaga.core]
     C --> G[Gram-matrix numeric implementation]
 ```
 
 - `galaga.core` contains the proven Gram-matrix numeric engine and its tests.
-- `galaga.gram_bridge` is the first composition facade and operation catalog.
+- `galaga.facade` owns the complete eager numeric composition facade and
+  operation catalog.
+- `galaga.gram_bridge` re-exports those exact objects as a temporary migration
+  alias; it contains no implementation fork.
 - top-level `galaga.Algebra` and `galaga.Multivector` still resolve to the
   legacy implementation.
 - the existing Galaga tests therefore remain regression evidence for Galaga
@@ -160,10 +165,10 @@ The replacement suite must visibly distinguish:
 | Phase | Outcome | Status | Exit gate |
 |---|---|---|---|
 | 0 | Core lives inside Galaga | Complete | Core, bridge, full regression, and wheel checks pass |
-| 1 | Replacement contract is exhaustive | Next | Every legacy public behavior is classified |
-| 2 | Numeric facade is complete | Planned | Facade results match direct core results |
-| 3 | Legacy numeric suite runs on facade | Planned | All applicable numeric tests pass the facade |
-| 4 | Presentation and presets are independent | Planned | Configuration and scope isolation tests pass |
+| 1 | Replacement contract is exhaustive | Complete | Every legacy public behavior is classified |
+| 2 | Numeric facade is complete | Complete | Facade results match direct core results |
+| 3 | Legacy numeric suite runs on facade | Complete | All applicable numeric tests pass the facade |
+| 4 | Presentation and presets are independent | Next | Configuration and scope isolation tests pass |
 | 5 | Expression provenance is rebuilt | Planned | Evaluation round trips and numeric-only isolation pass |
 | 6 | Rendering and notation are rebuilt | Planned | Semantic and golden rendering tests pass |
 | 7 | Companion packages and shims migrate | Planned | Integration and deprecation suites pass |
@@ -233,6 +238,8 @@ phases must increase the facade-specific evidence.
 
 ## Phase 1: define the replacement contract
 
+Status: **complete (2026-07-19)**.
+
 The purpose of this phase is to make the migration finite and auditable.
 
 ### W1.1 Inventory the public v1 surface
@@ -275,7 +282,9 @@ Required tests:
 
 - a completeness test compares the live export set with the checked-in
   migration matrix;
-- every temporary alias has a deprecation-warning assertion; and
+- every temporary alias has reserved deprecation-warning text and an
+  activation/removal milestone; the phase that installs each runtime shim adds
+  the corresponding warning assertion; and
 - every removed or corrected behavior has a direct negative or replacement
   test.
 
@@ -352,7 +361,28 @@ Phase 1 exit gate:
 - every intentional incompatibility is listed in the correction ledger; and
 - no later phase depends on an unrecorded private legacy structure.
 
+Phase 1 exit evidence recorded on 2026-07-19:
+
+- the checked-in
+  [public API migration matrix](public-api-migration-matrix.md) and its
+  executable manifest classify all 99 top-level exports, 28 `Algebra`
+  members, 20 `Multivector` members, 22 declared multivector special methods,
+  59 public expression classes, supported modules, companion touch points, and
+  known private dependencies;
+- completeness tests compare the manifest with the live v1 objects and fail
+  on an unclassified addition or removal;
+- constructor and operation-call manifests cover retained positional forms,
+  new explicit metric forms, invalid conflicts, variadic products, and binary
+  explicit inner products;
+- the correction ledger has direct core, facade, and compatibility tests for
+  bracket scaling, strict scalar conversion, exact equality and hashing,
+  immutable data, standalone scalar extraction, and deterministic folds; and
+- `galaga_matrix`, `galaga_mermaid`, and example dependencies on private v1
+  state have explicit Phase 7 replacement targets.
+
 ## Phase 2: complete the numeric facade
+
+Status: **complete (2026-07-19)**.
 
 This phase produces a full eager numeric replacement before names,
 expressions, or rendering are attached.
@@ -475,6 +505,32 @@ Phase 2 exit gate:
   and
 - no facade operation reads a private core product table.
 
+Phase 2 exit evidence recorded on 2026-07-19:
+
+- `galaga.facade` owns the eager wrappers and immutable operation catalog;
+  ADR-075 records the boundary and `galaga.gram_bridge` is an exact-object
+  compatibility re-export;
+- import-order and source-boundary tests enforce bridge-to-facade-to-core
+  dependency direction and prevent core dependencies on outer Galaga layers;
+- construction covers the v1 positional signature and `p, q, r` forms plus
+  `signature=`, `sig=`, and `gram=`, with immutable metric metadata and public
+  linear actions;
+- the facade catalog classifies every public core name, exposes every canonical
+  numeric operation once, and keeps its same-object aliases outside the
+  catalog;
+- direct-core parity covers binary, unary, parameterized, scalar, and domain
+  operations on oblique metrics, with native-null construction and metadata
+  coverage;
+- geometric and outer products are tested as one-or-more-operand deterministic
+  left folds, including evaluator call counts and mismatch behavior; and
+- the Phase 1, facade, and namespace compatibility suites pass 152 focused
+  tests at 98% facade branch coverage, while the broader Phase 3 evidence
+  remains independently guarded against legacy construction;
+- the full Galaga suite passes 2,359 tests with 19 skips, and the Python 3.11
+  Galaga, matrix, and Mermaid run passes 2,733 tests with 19 skips; and
+- the built Galaga 2.0 wheel contains `galaga.facade`, `galaga.core`, and the
+  thin bridge shims, and imports them with the required object identity.
+
 ## Phase 3: run the legacy numeric contract against the facade
 
 Status: **complete (2026-07-18)**.
@@ -567,7 +623,7 @@ Phase 3 exit gate:
 
 Completion evidence is recorded in
 [Numeric test migration inventory](numeric-test-migration-inventory.md#t5-remove-legacy-only-numeric-tests).
-The shared contract reports separate `legacy-v1` and `gram-facade-v2` cases,
+The shared contract reports separate `legacy-v1` and `core-facade-v2` cases,
 the direct facade suite and every facade-only shared case install a constructor
 guard against `galaga.algebra.Algebra`, and the redundant v1 numeric suites
 have been deleted or split by ownership. The remaining legacy tests specify
@@ -1069,9 +1125,10 @@ packages/galaga/tests/
 └── integration/             # installed package and companion boundaries
 ```
 
-The current bridge tests should be split by responsibility as the facade
-grows. A single large bridge test file is acceptable only for the initial
-slice, not for the final replacement contract.
+The promoted facade currently has focused numeric-contract and direct-core
+parity files. Split those further by algebra, multivector, operation, and
+parity responsibility when Phase 4 growth would otherwise recreate a
+monolithic facade suite.
 
 ## Standard validation commands
 
@@ -1093,12 +1150,6 @@ installed wheels explicitly:
 ```bash
 PYTHONPATH=.:packages/galaga_matrix uv run --python 3.11 pytest packages/galaga_matrix/tests -q
 PYTHONPATH=.:packages/galaga_marimo uv run --python 3.14 pytest packages/galaga_marimo/tests -q
-```
-
-Until `tests/facade` exists, the opt-in facade command is:
-
-```bash
-uv run --python 3.11 pytest packages/galaga/tests/test_gram_bridge.py -q
 ```
 
 The release gate must run from clean built artifacts as well as from the source

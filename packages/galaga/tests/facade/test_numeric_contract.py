@@ -16,7 +16,7 @@ import numpy as np
 import pytest
 
 import galaga.algebra as legacy
-import galaga.gram_bridge as facade
+import galaga.facade as facade
 
 
 @dataclass(frozen=True, slots=True)
@@ -43,7 +43,7 @@ class NumericImplementation:
 
 IMPLEMENTATIONS = (
     NumericImplementation("legacy-v1", legacy, False),
-    NumericImplementation("gram-facade-v2", facade, True),
+    NumericImplementation("core-facade-v2", facade, True),
 )
 
 
@@ -251,7 +251,7 @@ SEEDED_DIAGONAL_CASES = (
 def test_seeded_diagonal_differential_contract(signature: tuple[int, ...], seed: int) -> None:
     """The facade retains v1 diagonal results outside ledgered corrections."""
     legacy_api = NumericImplementation("legacy-v1", legacy, False)
-    facade_api = NumericImplementation("gram-facade-v2", facade, True)
+    facade_api = NumericImplementation("core-facade-v2", facade, True)
     legacy_algebra = legacy_api.signature_algebra(signature)
     facade_algebra = facade_api.signature_algebra(signature)
     generator = np.random.default_rng(seed)

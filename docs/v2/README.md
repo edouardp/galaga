@@ -10,6 +10,9 @@
   identifies, by existing file and test class, which Galaga tests move to
   `galaga.core`, which become facade contracts, and which remain in outer
   layers.
+- [Public API migration matrix](public-api-migration-matrix.md) is the
+  human-readable Phase 1 contract for every v1 export, type member, expression
+  constructor, protocol, supported module, and known private dependency.
 - [Presentation and expression layer plan](presentation-symbolic-layer-plan.md)
   explains the composition-facade, operation-catalog, configuration,
   expression-provenance, and rendering architecture.
@@ -18,19 +21,23 @@
 
 ## Current status
 
-Phase 0 of the core cutover plan is complete on `galaga_v2`: the proven
-Gram-matrix implementation and its tests live in `galaga.core`, the opt-in
-facade delegates to it, and the built Galaga package no longer depends on a
-standalone `gram` distribution.
+Phases 0 through 3 of the core cutover plan are complete on `galaga_v2`. The
+proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
+replacement contract is checked in and executable; `galaga.facade` owns the
+complete eager numeric facade; and the applicable legacy numeric contract has
+been migrated to or rerun against that facade. `galaga.gram_bridge` is now
+only a compatibility re-export of the same facade objects.
 
-Phase 1 is next. Top-level `galaga.Algebra` and `galaga.Multivector` still use
-the legacy engine until the replacement contract and facade-specific numeric
-suite pass their gates.
+Phase 4 is next: presentation configuration, blade conventions, and presets.
+Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
+legacy engine until the presentation, expression, rendering, and integration
+phases make the final shadow cutover safe.
 
 ## Supporting documents
 
 - [Numeric core documentation](../core/README.md)
 - [ADR-073: Move the numeric core into Galaga](../adrs/073-move-the-numeric-core-into-galaga.md)
+- [ADR-075: Promote the core-backed facade](../adrs/075-promote-the-core-backed-facade.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

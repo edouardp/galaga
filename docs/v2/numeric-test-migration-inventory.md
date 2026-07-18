@@ -421,7 +421,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 | `test_display_order.py` | presentation and rendering |
 | `test_example_notebooks.py` | examples and integration |
 | `test_examples.py` | example source policy |
-| `test_gram_bridge.py` | facade catalog, wrapping, and direct-core parity |
+| `facade/test_numeric_facade.py` | facade catalog, wrapping, and direct-core parity |
 | `test_latex_build.py` | semantic LaTeX pipeline |
 | `test_latex_symbols.py` | symbol rendering |
 | `test_latex_tree.py` | LaTeX tree and rewrites |
@@ -640,8 +640,8 @@ Completion evidence:
 
 - `facade/test_numeric_contract.py` defines one construction adapter and runs
   the same public contracts with collected IDs ending in `[legacy-v1]` and
-  `[gram-facade-v2]`; facade cases always construct
-  `galaga.gram_bridge.Algebra`, never a legacy value hidden behind a fixture;
+  `[core-facade-v2]`; facade cases always construct
+  `galaga.facade.Algebra`, never a legacy value hidden behind a fixture;
 - the shared contract covers algebra construction, factories, Python
   operators, checked scalar conversion, grade families, named products,
   involutions, dualities, inverse, predicates, norms, exponential,
@@ -659,7 +659,7 @@ Completion evidence:
   operation. A completeness assertion compares those callables with the
   immutable operation catalog, so adding a catalog entry without exposing it
   fails the suite; and
-- `test_gram_bridge.py` reserves `.numeric` for its stated direct-core parity
+- `facade/test_numeric_facade.py` reserves `.numeric` for its stated direct-core parity
   purpose. It checks every operation family on an oblique Gram matrix and
   verifies that inverse, unit, logarithm, and square-root domain errors retain
   the direct core exception and message; and
@@ -668,8 +668,8 @@ Completion evidence:
   instead of falling through general inverse and raising `ValueError`.
 
 The Python 3.11 T4 run collected 22 implementation-neutral contract tests and
-95 direct bridge and boundary tests; all 117 passed. Separate branch coverage
-is 98% for both the `galaga.gram_bridge` package and `facade.py`. The remaining
+95 direct facade and boundary tests; all 117 passed. Separate branch coverage
+was 98% for both the transitional facade package and its implementation. The remaining
 lines are defensive guards for a misconfigured fold policy, duplicate catalog
 construction, invalid private wrapping, unreachable reflected multivector
 dispatch, or a core value returned without any facade owner; no test was added
@@ -711,9 +711,9 @@ Completion evidence:
   retained in focused outer-layer files; rotor constructors and all symbolic,
   notation, rendering, and mutable-v1 presentation contracts remain above
   core;
-- all 96 tests in `test_gram_bridge.py` monkeypatch the private legacy
+- all direct facade tests in `facade/test_numeric_facade.py` monkeypatch the private legacy
   constructor to fail immediately. The same guard is installed for every
-  `gram-facade-v2` invocation of the implementation-neutral shared contract,
+  `core-facade-v2` invocation of the implementation-neutral shared contract,
   and an explicit self-test proves that the guard trips, so a facade fallback
   to v1 cannot pass the shadow suite unnoticed;
 - the only remaining test imports from `galaga.algebra` are deliberately

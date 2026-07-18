@@ -51,9 +51,10 @@ project.
 
 ## Implementation status
 
-Phase 1 began on 2026-07-18 as an opt-in `galaga.gram_bridge` subpackage. The
-historically named bridge now delegates to the in-package `galaga.core`
-namespace. The first slice provides:
+The numeric foundation was completed and promoted on 2026-07-19.
+`galaga.facade` now owns the composition layer over the in-package
+`galaga.core`; the historical `galaga.gram_bridge` namespace is only an
+exact-object compatibility re-export. The completed foundation provides:
 
 - an immutable operation catalog whose evaluator/node arity is distinct from
   its public call policy;
@@ -68,11 +69,11 @@ namespace. The first slice provides:
 - numeric parity tests covering native Gram matrices, operators, products,
   algebra mismatch, scalar conversion, and fold behavior.
 
-The bridge remains deliberately absent from `galaga.__init__` during migration
-and does not touch Galaga's existing expression-aware value. The complete
-numeric implementation and its tests now live in `galaga.core`; Galaga has no
-external Gram package dependency. Galaga targets Python 3.11+, while only the
-optional `galaga_marimo` package requires Python 3.14 for t-strings.
+The new facade types remain deliberately absent from `galaga.__init__` during
+migration and do not touch Galaga's existing expression-aware value. The
+complete numeric implementation and its tests live in `galaga.core`; Galaga
+has no external Gram package dependency. Galaga targets Python 3.11+, while
+only the optional `galaga_marimo` package requires Python 3.14 for t-strings.
 
 ## Inputs to this plan
 
@@ -294,9 +295,9 @@ and convention is specified and tested. Inner products, contractions,
 commutators, and anticommutators remain fixed binary calls.
 
 Notation is keyed by `OperationSpec.id` but does not live in the spec. This
-keeps mathematical operation identity separate from its spelling. The first
-bridge should live in Galaga; it should be promoted to a public core registry
-only if more than one independent consumer needs it.
+keeps mathematical operation identity separate from its spelling. The catalog
+belongs to the Galaga facade; only a narrower shared protocol should move into
+the core if more than one independent consumer needs it.
 
 ### Facade algebra and value
 
@@ -645,6 +646,9 @@ These rules should be enforced by import tests:
 
 ### Phase 0: characterize and freeze the boundary
 
+Status: **complete (2026-07-19)**. See the
+[public API migration matrix](public-api-migration-matrix.md).
+
 - Inventory Galaga's public algebra methods, named operations, aliases,
   expression nodes, blade presets, notation presets, and display protocols.
 - Turn the open items in `V2-PLANNING.md` into accepted, deferred, or rejected
@@ -661,6 +665,9 @@ has one destination.
 
 ### Phase 1: operation catalog and numeric facade shell
 
+Status: **complete (2026-07-19)**. The implementation owner is
+`galaga.facade`; ADR-075 records the promotion.
+
 - Add the facade-side operation catalog and adapters to public core functions.
 - Implement wrapper construction, unwrapping, scalar coercion, algebra/context
   validation, operators, `.numeric`, `.data`, and checked `float`.
@@ -676,6 +683,8 @@ Exit condition: unwrapping any facade result gives the same core value as
 calling the named core operation directly.
 
 ### Phase 2: blade conventions, presets, and numeric rendering
+
+Status: **next**.
 
 - Implement `Name`, `BladeRef`, `BladeConvention`, `LocalNamePolicy`,
   `PresentationConfig`, `AlgebraConfig`, preset classes, and immutable

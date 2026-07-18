@@ -63,6 +63,11 @@ A later cutover will make the composition facade the top-level Galaga API and
 remove the legacy multiplication engine. That cutover is a separate phase and
 is not implied by moving the core.
 
+ADR-075 subsequently promotes the implementation from the transitional
+`galaga.gram_bridge` name to `galaga.facade`. The bridge now re-exports the
+facade objects; this follow-up does not change the `galaga.core` boundary or
+perform the eventual top-level cutover.
+
 ## Consequences
 
 - Good, because Galaga 2.0 has one essential package and one coordinated
