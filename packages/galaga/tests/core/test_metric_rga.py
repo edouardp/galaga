@@ -1,4 +1,8 @@
-"""General-Gram metric extensions and RGA convention-layer identities."""
+"""General-Gram metric extensions and RGA convention-layer identities.
+
+Includes the independent mathematical oracles formerly exercised through the
+legacy Terathon convention layer.
+"""
 
 from __future__ import annotations
 
@@ -19,6 +23,7 @@ from galaga.core import (
     complement,
     dual,
     geometric_antiproduct,
+    geometric_product,
     left_complement,
     left_hodge_dual,
     left_interior_product,
@@ -29,6 +34,7 @@ from galaga.core import (
     metric_regressive_product,
     outer_product,
     regressive_product,
+    reverse,
     right_complement,
     right_hodge_dual,
     right_interior_product,
@@ -141,7 +147,7 @@ class TestExteriorMetricMatrices:
         right = algebra.multivector(rng.standard_normal(algebra.dim))
         expected = float(left.data @ algebra.extended_metric_matrix() @ right.data)
 
-        assert metric_inner_product(left, right).scalar_part == pytest.approx(
+        assert float(metric_inner_product(left, right)) == pytest.approx(
             expected,
             abs=2e-12,
         )
@@ -186,6 +192,10 @@ def test_hodge_and_antidot_identities_exhaustively(algebra: Algebra) -> None:
             left_hodge_dual(left_hodge_dual(left)),
             square_factor * left,
         )
+        assert_mv_close(
+            right_hodge_dual(left),
+            geometric_product(reverse(left), algebra.I),
+        )
 
         for right_mask, right in enumerate(blades):
             expected_antidot = complement(
@@ -214,8 +224,19 @@ def test_weight_dual_and_antiproduct_identities_exhaustively(
     determinant = algebra.metric_determinant
     for mask, blade in enumerate(basis_blades(algebra)):
         blade_grade = mask.bit_count()
+        antigrade = algebra.n - blade_grade
         square_factor = (-1) ** (blade_grade * (algebra.n - blade_grade)) * determinant
+        antireverse_sign = (-1) ** (antigrade * (antigrade - 1) // 2)
 
+        assert_mv_close(antireverse(blade), antireverse_sign * blade)
+        assert_mv_close(
+            right_weight_dual(blade),
+            complement(antimetric_apply(blade)),
+        )
+        assert_mv_close(
+            left_weight_dual(blade),
+            left_complement(antimetric_apply(blade)),
+        )
         assert_mv_close(
             right_weight_dual(blade),
             geometric_antiproduct(antireverse(blade), algebra.identity),
@@ -261,6 +282,15 @@ def test_regressive_and_interior_identities_exhaustively(algebra: Algebra) -> No
         assert regressive_product(left, right) == expected_regressive
         assert antiwedge(left, right) == expected_regressive
         assert meet(left, right) == expected_regressive
+        assert_mv_close(
+            geometric_antiproduct(left, right),
+            complement(
+                geometric_product(
+                    left_complement(left),
+                    left_complement(right),
+                )
+            ),
+        )
 
         if left.homogeneous_grade() == right.homogeneous_grade():
             pairing = metric_inner_product(left, right)

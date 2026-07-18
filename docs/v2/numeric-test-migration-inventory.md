@@ -460,6 +460,8 @@ dimensional identity already proved directly against the core.
 
 ### T1 Port source-derived identity suites
 
+Status: **complete (2026-07-18)**.
+
 Scope:
 
 - four Chisholm numeric files;
@@ -483,6 +485,34 @@ Exit condition:
 - no ported file imports top-level `galaga.Algebra` or legacy `Multivector`;
   and
 - overlaps have been merged without losing independent oracles.
+
+Completion evidence:
+
+- all four Chisolm suites and the Cohoe suite now run from their
+  source-oriented filenames under `packages/galaga/tests/core`;
+- executable uses of `gp`, `op`, and `involute` were converted with the
+  LibCST-based `tools.canonicalize_core_test_operations` codemod, whose tests
+  prove that comments, strings, local names, and convention-sensitive bracket
+  aliases are not rewritten;
+- Chisolm's half-scaled commutator equations explicitly call
+  `half_commutator`; Galaga's unscaled `commutator` and `lie_bracket` semantics
+  are not substituted into those source formulas;
+- source scalar parts are expressed as `scalar_product` when the theorem says
+  $a\mathbin{\cdot}b$, as checked `float(value)` when the result must itself be
+  scalar, and as `float(grade(value, 0))` only when extracting grade zero from
+  a potentially mixed-grade value;
+- the Chisolm product and Cohoe suites include an oblique positive-definite
+  Gram matrix, and Cohoe's vector pairing oracle is the independent
+  $a^T G b$ formula rather than a diagonal-signature sum; and
+- the nonduplicated Terathon oracles were merged into
+  `core/test_metric_rga.py`: Hodge dual via $\widetilde{A}I$, the antireverse
+  grade-sign formula, geometric-antiproduct De Morgan identity, and the direct
+  antimetric definitions of both weight duals. Existing exhaustive tests
+  already subsume the remaining mathematical cases across Euclidean,
+  indefinite, degenerate, and oblique metrics.
+
+The original facade suites remain in place until T1 through T4 and their
+facade-contract replacements pass, as required by the deletion gate below.
 
 ### T2 Split the large mixed suites
 
