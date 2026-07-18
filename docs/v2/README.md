@@ -22,6 +22,10 @@
 - [Expression provenance implementation](expression-provenance.md) explains
   the immutable nodes, independent value state, catalog-driven propagation and
   evaluation, variadic lowering, and conservative simplifier.
+- [Migration engineering techniques](migration-engineering-techniques.md)
+  records the reusable LibCST, executable-ledger, architecture-fitness,
+  guarded-facade, oracle-ownership, and staged-validation methods used by the
+  cutover.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
   remaining numeric capabilities and companion-package work.
 

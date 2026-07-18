@@ -18,7 +18,7 @@ The manifest currently classifies:
 - all six legacy multivector formatting and display hooks, including
   `_repr_latex_`;
 - all 59 public legacy expression classes;
-- all 23 non-private top-level package modules and seven relied-upon nested
+- all 24 non-private top-level package modules and seven relied-upon nested
   entry points;
 - four companion-package or example touch points; and
 - four known dependencies on private legacy structures.

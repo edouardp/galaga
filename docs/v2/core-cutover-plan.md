@@ -12,6 +12,11 @@ explains the target architecture. The
 remaining numeric capabilities. This document turns both into ordered,
 testable work units with explicit exit gates.
 
+The [migration engineering techniques](migration-engineering-techniques.md)
+guide explains how the executable surface ledger, LibCST codemods,
+architectural fitness tests, guarded facade contracts, and oracle-retirement
+process make those gates enforceable.
+
 The core consolidation, replacement contract, eager numeric facade, and
 numeric test migration are complete on the `galaga_v2` branch. Later phases
 are not complete merely because the remaining legacy Galaga suite still passes
