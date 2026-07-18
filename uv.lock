@@ -563,8 +563,24 @@ wheels = [
 
 [[package]]
 name = "galaga"
-version = "1.8.1"
+version = "2.0.0"
 source = { editable = "packages/galaga" }
+dependencies = [
+    { name = "gram" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "gram", editable = "../gram" },
+    { name = "numpy", specifier = ">=1.24" },
+]
+
+[[package]]
+name = "gram"
+version = "0.1.0"
+source = { editable = "../gram" }
 dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
@@ -572,6 +588,12 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [{ name = "numpy", specifier = ">=1.24" }]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "pytest", specifier = ">=9.1.1" },
+    { name = "pytest-cov", specifier = ">=7.1.0" },
+]
 
 [[package]]
 name = "h11"

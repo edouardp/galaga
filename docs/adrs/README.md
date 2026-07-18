@@ -84,6 +84,7 @@ helps future contributors understand why certain choices were made.
 | [069](069-quaternion-bivector-assignment.md) | Quaternion Bivector Assignment | Accepted |
 | [070](070-pedagogical-convention-explicit-scope.md) | Pedagogical and Convention-Explicit Scope | Accepted |
 | [071](071-exterior-algebra-convention-layer.md) | Terathon/RGA Exterior-Algebra Convention Layer | Accepted |
+| [072](072-build-galaga-v2-over-gram.md) | Build Galaga 2.0 over the Gram Numeric Core | Accepted |
 
 ## Creating New ADRs
 

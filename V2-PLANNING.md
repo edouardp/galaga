@@ -1,6 +1,16 @@
 # Galaga Version 2 Planning
 
-This is the planning document for the changes that should be incorporated into a future version 2 release of Galaga.
+> **Implementation status (2026-07-18):** The `galaga_v2` branch targets
+> Galaga 2.0 with Gram as its required numeric engine. The existing material
+> below predates the Gram core and remains an issue inventory, not the
+> normative architecture. ADR-072 records the replacement boundary. Migration
+> begins with the opt-in `galaga.gram_bridge` facade; the existing top-level
+> `galaga.Algebra` is not replaced until the numeric compatibility suite passes
+> against that facade.
+
+This document records changes considered for Galaga 2.0. Some questions have
+since been decided by the Gram-backed facade architecture; newer ADRs,
+executable behavior, and the implementation plan take precedence.
 
 ## Current issues to assess
 
