@@ -289,3 +289,6 @@ backend concerns. See the
 [Galaga v2 plan](../../V2-PLANNING.md),
 [ADR-072](../adrs/072-build-galaga-v2-over-gram.md), and
 [ADR-073](../adrs/073-move-the-numeric-core-into-galaga.md).
+The implemented outer presentation boundary is documented by
+[ADR-076](../adrs/076-immutable-presentation-configuration.md) and the
+[presentation configuration overview](../v2/presentation-configuration.md).

@@ -69,6 +69,13 @@ exact-object compatibility re-export. The completed foundation provides:
 - numeric parity tests covering native Gram matrices, operators, products,
   algebra mismatch, scalar conversion, and fold behavior.
 
+The presentation-configuration foundation was also completed on 2026-07-19.
+It provides immutable names, signed blade references and conventions,
+independent local-name and display-order policies, complete algebra configs,
+inspectable presets, presentation-aware facade factories, cheap persistent
+views, and context-local temporary overrides. See the
+[implementation overview](presentation-configuration.md) and ADR-076.
+
 The new facade types remain deliberately absent from `galaga.__init__` during
 migration and do not touch Galaga's existing expression-aware value. The
 complete numeric implementation and its tests live in `galaga.core`; Galaga
@@ -682,9 +689,9 @@ Status: **complete (2026-07-19)**. The implementation owner is
 Exit condition: unwrapping any facade result gives the same core value as
 calling the named core operation directly.
 
-### Phase 2: blade conventions, presets, and numeric rendering
+### Phase 2: blade conventions and presets
 
-Status: **next**.
+Status: **complete (2026-07-19)**.
 
 - Implement `Name`, `BladeRef`, `BladeConvention`, `LocalNamePolicy`,
   `PresentationConfig`, `AlgebraConfig`, preset classes, and immutable
@@ -692,11 +699,10 @@ Status: **next**.
 - Implement validated blade lookup, signed aliases, basis factories,
   `basis_blades()`, `locals()`, and display ordering.
 - Add preset conventions, including RGA/Lengyel.
-- Build the first semantic-tree path for numeric multivectors and the three
-  emitters.
 
 Exit condition: every canonical and signed alias round-trips through lookup
-and rendering, with collision and dimension errors reported at construction.
+to independently checked core coefficients, with collision and dimension
+errors reported at construction.
 
 ### Phase 3: expression provenance
 
@@ -713,9 +719,12 @@ and rendering, with collision and dimension errors reported at construction.
 Exit condition: evaluating a generated expression reproduces its stored core
 value, and purely numeric facade operations build no nodes.
 
-### Phase 4: notation and expression rendering
+### Phase 4: numeric, notation, and expression rendering
 
-- Implement immutable notation rules and initial presets.
+- Extend immutable notation rules from stable token metadata to semantic
+  rendering rules.
+- Build the first semantic-tree path for numeric multivectors and the ASCII,
+  Unicode, and LaTeX emitters.
 - Convert expressions to the shared semantic tree using catalog identifiers.
 - Add precedence, associativity, target rewrites, content/target format specs,
   default display selection, per-render overrides, and scoped teaching

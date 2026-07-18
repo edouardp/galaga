@@ -30,6 +30,19 @@ e423, e431, e412, e321
 The nonascending subscripts are algebraic factorizations, not cosmetic aliases:
 for example, `e31 == e3 ^ e1 == -(e1 ^ e3)`.
 
+The Galaga 2 facade expresses the same fact with immutable signed references:
+
+```python
+from galaga.facade import Algebra, p_rga
+
+rga = Algebra(config=p_rga())
+assert rga.blade("e31").coefficient(0b0101) == -1
+assert rga.blade("e13").coefficient(0b0101) == 1
+```
+
+The integer mask remains the native ascending exterior basis. The convention
+changes lookup and future rendering, not the Gram matrix or storage basis.
+
 The Lengyel preset emits KaTeX-compatible LaTeX without `\unicode{...}`
 extensions. In particular, the Unicode antiscalar `𝟙` renders as `\text{𝟙}`.
 

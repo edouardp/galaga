@@ -35,6 +35,7 @@ product-table internals.
 | Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
 | Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
 | Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
+| Presentation configuration | Immutable independent components, signed conventions, complete presets, facade lookup/factories, and context-local overrides |
 
 ## Remaining work
 
@@ -72,8 +73,9 @@ The architecture and phased implementation are specified in the
 [presentation and expression layer plan](presentation-symbolic-layer-plan.md).
 The numeric composition facade is complete: `galaga.facade` values wrap core
 values, and expression provenance remains an optional outer-layer concern.
-The remaining cutover work is presentation, expressions, rendering, helpers,
-companion packages, and the final top-level shadow.
+The presentation-configuration cut is complete. Remaining cutover work is
+expression provenance, semantic rendering, helpers, companion packages, and
+the final top-level shadow.
 
 The completed Phase 1 matrix records the policy for API elements that are
 numeric-adjacent but not part of the core metric engine:
@@ -153,9 +155,9 @@ flowchart LR
     X --> H[Performance hardening]
 ```
 
-Numeric function and facade parity are complete. Outermorphisms remain the next
+Numeric function, facade parity, and presentation configuration are complete. Outermorphisms remain the next
 numeric capability because matrix and CGA work share them. Presentation and
-expression work now proceeds above the completed facade; the two tracks meet
+expression work now proceeds above the configured facade; the two tracks meet
 when companion packages cut over.
 
 ## Explicit non-goals for the numeric core

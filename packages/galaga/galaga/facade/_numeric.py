@@ -1,59 +1,203 @@
-"""Composition-based numeric facade over :mod:`galaga.core`.
+"""Composition facade over :mod:`galaga.core`.
 
-This eager numeric migration layer contains only a concrete core value and an
-owning facade algebra; names, expression provenance, conventions, and
-rendering are intentionally absent.
+Facade values remain eager numeric wrappers. Facade algebras additionally own
+immutable presentation configuration and context-local selection; expression
+provenance and rendering remain deliberately absent.
 """
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Generator, Iterable
+from contextlib import contextmanager
+from contextvars import ContextVar
 from numbers import Integral, Real
-from types import NotImplementedType
-from typing import Any, cast
+from types import MappingProxyType, NotImplementedType
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
 from .. import core
+from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
+from ..presentation import (
+    AlgebraConfig,
+    AlgebraDefinition,
+    DisplayPolicy,
+    ModelConfig,
+    Notation,
+    PresentationConfig,
+    default_presentation,
+)
 from .catalog import LeftFoldCall, get_operation
+
+if TYPE_CHECKING:
+    from ..presets import Preset
 
 
 class Algebra:
-    """A lightweight owner of one immutable :class:`core.Algebra`."""
+    """An immutable numeric algebra with a cheap configurable presentation."""
 
-    __slots__ = ("_basis_vectors", "_numeric")
+    __slots__ = (
+        "_basis_vectors",
+        "_default_presentation",
+        "_model",
+        "_numeric",
+        "_presentation_override",
+    )
 
-    def __init__(self, *args: Any, **kwargs: Any) -> None:
-        if args and isinstance(args[0], (tuple, list)):
-            if len(args) != 1:
-                raise TypeError("a positional signature cannot be combined with q or r")
-            if "signature" in kwargs or "sig" in kwargs or "gram" in kwargs:
-                raise TypeError("a positional signature cannot be combined with signature, sig, or gram")
-            positional_signature = args[0]
-            if len(positional_signature) == 0:
-                if kwargs.get("q", 0) != 0 or kwargs.get("r", 0) != 0:
+    def __init__(
+        self,
+        *args: Any,
+        config: AlgebraConfig | Preset | None = None,
+        presentation: PresentationConfig | None = None,
+        blades: BladeConvention | None = None,
+        notation: Notation | None = None,
+        local_names: LocalNamePolicy | None = None,
+        display_order: DisplayOrder | None = None,
+        display: DisplayPolicy | None = None,
+        **kwargs: Any,
+    ) -> None:
+        if config is not None:
+            if args or kwargs:
+                conflicting = [repr(value) for value in args]
+                conflicting.extend(f"{name}=" for name in sorted(kwargs))
+                details = ", ".join(conflicting)
+                raise TypeError(f"config= defines the numeric algebra and cannot be combined with {details}")
+            expanded = _expand_config(config)
+            self._numeric = _numeric_from_definition(expanded.definition)
+            base_presentation = expanded.presentation
+            self._model = expanded.model
+        else:
+            if args and isinstance(args[0], (tuple, list)):
+                if len(args) != 1:
                     raise TypeError("a positional signature cannot be combined with q or r")
-                args = (0,)
-            else:
-                kwargs["signature"] = positional_signature
-                args = ()
-        self._numeric = core.Algebra(*args, **kwargs)
+                if "signature" in kwargs or "sig" in kwargs or "gram" in kwargs:
+                    raise TypeError("a positional signature cannot be combined with signature, sig, or gram")
+                positional_signature = args[0]
+                if len(positional_signature) == 0:
+                    if kwargs.get("q", 0) != 0 or kwargs.get("r", 0) != 0:
+                        raise TypeError("a positional signature cannot be combined with q or r")
+                    args = (0,)
+                else:
+                    kwargs["signature"] = positional_signature
+                    args = ()
+            self._numeric = core.Algebra(*args, **kwargs)
+            base_presentation = default_presentation(self._numeric.n)
+            self._model = None
+
+        if presentation is not None:
+            base_presentation = _require_presentation(presentation)
+        self._default_presentation = _override_presentation(
+            base_presentation,
+            blades=blades,
+            notation=notation,
+            local_names=local_names,
+            display_order=display_order,
+            display=display,
+        )
+        if self._default_presentation.dimension != self._numeric.n:
+            raise ValueError(
+                "presentation dimension "
+                f"{self._default_presentation.dimension} does not match numeric dimension {self._numeric.n}"
+            )
         self._basis_vectors: tuple[Multivector, ...] | None = None
+        self._presentation_override: ContextVar[PresentationConfig | None] = ContextVar(
+            f"galaga_presentation_{id(self)}",
+            default=None,
+        )
 
     @classmethod
-    def from_numeric(cls, numeric: core.Algebra) -> Algebra:
+    def from_numeric(
+        cls,
+        numeric: core.Algebra,
+        *,
+        presentation: PresentationConfig | None = None,
+        model: ModelConfig | None = None,
+    ) -> Algebra:
         """Create a facade over an existing numeric algebra."""
         if not isinstance(numeric, core.Algebra):
             raise TypeError("numeric must be a core.Algebra")
+        selected = default_presentation(numeric.n) if presentation is None else _require_presentation(presentation)
+        if selected.dimension != numeric.n:
+            raise ValueError(
+                f"presentation dimension {selected.dimension} does not match numeric dimension {numeric.n}"
+            )
+        if model is not None:
+            limit = 1 << numeric.n
+            for name, ref in model.roles:
+                if ref.mask >= limit:
+                    raise ValueError(f"model role {name!r} refers to mask {ref.mask} outside the algebra dimension")
         instance = cls.__new__(cls)
         instance._numeric = numeric
         instance._basis_vectors = None
+        instance._default_presentation = selected
+        instance._model = model
+        instance._presentation_override = ContextVar(
+            f"galaga_presentation_{id(instance)}",
+            default=None,
+        )
         return instance
 
     @property
     def numeric(self) -> core.Algebra:
         """The wrapped numeric algebra."""
         return self._numeric
+
+    @property
+    def default_presentation(self) -> PresentationConfig:
+        """The persistent presentation for this cheap algebra view."""
+        return self._default_presentation
+
+    @property
+    def presentation(self) -> PresentationConfig:
+        """The context-local presentation currently in effect."""
+        return self._presentation_override.get() or self._default_presentation
+
+    @property
+    def model(self) -> ModelConfig | None:
+        """Optional semantic model metadata supplied by a complete config."""
+        return self._model
+
+    def resolve_presentation(self, explicit: PresentationConfig | None = None) -> PresentationConfig:
+        """Resolve explicit, scoped, and persistent presentation precedence."""
+        if explicit is None:
+            return self.presentation
+        selected = _require_presentation(explicit)
+        if selected.dimension != self.n:
+            raise ValueError(f"presentation dimension {selected.dimension} does not match numeric dimension {self.n}")
+        return selected
+
+    def with_presentation(self, presentation: PresentationConfig) -> Algebra:
+        """Return a cheap view sharing numeric identity with a new presentation."""
+        return Algebra.from_numeric(
+            self._numeric,
+            presentation=self.resolve_presentation(presentation),
+            model=self._model,
+        )
+
+    def with_blades(self, blades: BladeConvention) -> Algebra:
+        return self.with_presentation(self.presentation.with_blades(blades))
+
+    def with_notation(self, notation: Notation) -> Algebra:
+        return self.with_presentation(self.presentation.with_notation(notation))
+
+    def with_local_names(self, local_names: LocalNamePolicy) -> Algebra:
+        return self.with_presentation(self.presentation.with_local_names(local_names))
+
+    def with_display_order(self, display_order: DisplayOrder) -> Algebra:
+        return self.with_presentation(self.presentation.with_display_order(display_order))
+
+    def with_display(self, display: DisplayPolicy) -> Algebra:
+        return self.with_presentation(self.presentation.with_display(display))
+
+    @contextmanager
+    def use_presentation(self, presentation: PresentationConfig) -> Generator[Algebra, None, None]:
+        """Temporarily override presentation in the current thread or async task."""
+        selected = self.resolve_presentation(presentation)
+        token = self._presentation_override.set(selected)
+        try:
+            yield self
+        finally:
+            self._presentation_override.reset(token)
 
     @property
     def gram(self) -> np.ndarray:
@@ -136,8 +280,39 @@ class Algebra:
     def vector(self, values: Any) -> Multivector:
         return self._wrap(self._numeric.vector(values))
 
-    def blade(self, bitmask: int) -> Multivector:
-        return self._wrap(self._numeric.blade(bitmask))
+    def blade(self, blade: int | str | BladeRef) -> Multivector:
+        """Construct a blade by native mask, signed reference, label, alias, or role."""
+        ref = self._resolve_blade_ref(blade)
+        numeric = self._numeric.blade(ref.mask)
+        if ref.orientation == -1:
+            numeric = self._numeric.multivector(-numeric.data)
+        return self._wrap(numeric)
+
+    def blade_label(self, bitmask: int) -> BladeLabel:
+        """Return the active convention's canonical label for a native mask."""
+        return self.presentation.blades.label(bitmask)
+
+    def locals(self) -> MappingProxyType[str, Multivector]:
+        """Return a read-only mapping of configured Python names to values."""
+        return MappingProxyType({name: self.blade(ref) for name, ref in self.presentation.local_names.entries})
+
+    @property
+    def display_order(self) -> tuple[int, ...]:
+        """Native bitmasks in the active presentation's display order."""
+        return self.presentation.display_order.masks
+
+    def _resolve_blade_ref(self, blade: int | str | BladeRef) -> BladeRef:
+        if isinstance(blade, str):
+            return self.presentation.blades.resolve(blade)
+        if isinstance(blade, BladeRef):
+            ref = blade
+        elif isinstance(blade, Integral) and not isinstance(blade, (bool, np.bool_)):
+            ref = BladeRef(int(blade))
+        else:
+            raise TypeError("blade must be an integer bitmask, BladeRef, or configured name")
+        if ref.mask >= self.dim:
+            raise ValueError(f"blade mask must be in [0, {self.dim})")
+        return ref
 
     def basis_vectors(self) -> tuple[Multivector, ...]:
         if self._basis_vectors is None:
@@ -168,6 +343,67 @@ class Algebra:
 
     def __repr__(self) -> str:
         return f"Algebra(numeric={self._numeric!r})"
+
+
+def _expand_config(value: Any) -> AlgebraConfig:
+    if isinstance(value, AlgebraConfig):
+        return value
+    build = getattr(value, "build", None)
+    if build is None or not callable(build):
+        raise TypeError("config must be an AlgebraConfig or an object with build()")
+    expanded = build()
+    if not isinstance(expanded, AlgebraConfig):
+        raise TypeError("config.build() must return an AlgebraConfig")
+    return expanded
+
+
+def _numeric_from_definition(definition: AlgebraDefinition) -> core.Algebra:
+    keywords = {
+        "id": definition.id,
+        "product_backend": definition.product_backend,
+    }
+    if definition.dimension == 0:
+        return core.Algebra(0, **keywords)
+    return core.Algebra(gram=definition.gram, **keywords)
+
+
+def _require_presentation(value: Any) -> PresentationConfig:
+    if not isinstance(value, PresentationConfig):
+        raise TypeError("presentation must be a PresentationConfig")
+    return value
+
+
+def _override_presentation(
+    base: PresentationConfig,
+    *,
+    blades: Any,
+    notation: Any,
+    local_names: Any,
+    display_order: Any,
+    display: Any,
+) -> PresentationConfig:
+    result = base
+    if blades is not None:
+        if not isinstance(blades, BladeConvention):
+            raise TypeError("blades must be a BladeConvention")
+        result = result.with_blades(blades)
+    if notation is not None:
+        if not isinstance(notation, Notation):
+            raise TypeError("notation must be a Notation")
+        result = result.with_notation(notation)
+    if local_names is not None:
+        if not isinstance(local_names, LocalNamePolicy):
+            raise TypeError("local_names must be a LocalNamePolicy")
+        result = result.with_local_names(local_names)
+    if display_order is not None:
+        if not isinstance(display_order, DisplayOrder):
+            raise TypeError("display_order must be a DisplayOrder")
+        result = result.with_display_order(display_order)
+    if display is not None:
+        if not isinstance(display, DisplayPolicy):
+            raise TypeError("display must be a DisplayPolicy")
+        result = result.with_display(display)
+    return result
 
 
 class Multivector:

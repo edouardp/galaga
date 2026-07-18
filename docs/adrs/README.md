@@ -40,7 +40,7 @@ helps future contributors understand why certain choices were made.
 | [025](025-standalone-renderer.md) | Standalone Precedence-Aware Renderer | Accepted |
 | [026](026-expression-nodes-exp-div.md) | Expression Nodes for Exp, Div, ScalarDiv | Accepted |
 | [027](027-gp-spacing.md) | Geometric Product Spacing for Multi-Character Names | Accepted |
-| [028](028-mutating-configuration-methods.md) | Mutating Symbolic Configuration Methods | Accepted |
+| [028](028-mutating-configuration-methods.md) | Mutating Symbolic Configuration Methods | Superseded by 076 for Galaga 2 |
 | [029](029-configurable-notation.md) | Configurable Notation System | Accepted |
 | [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks | Accepted |
 | [031](031-complement-based-regressive-product.md) | Complement-Based Regressive Product | Accepted |
@@ -88,6 +88,7 @@ helps future contributors understand why certain choices were made.
 | [073](073-move-the-numeric-core-into-galaga.md) | Move the Numeric Core into the Galaga Package | Accepted |
 | [074](074-long-operation-names-are-canonical.md) | Long Operation Names Are Canonical in Galaga 2 | Accepted |
 | [075](075-promote-the-core-backed-facade.md) | Promote the Core-Backed Facade Namespace | Accepted |
+| [076](076-immutable-presentation-configuration.md) | Immutable Presentation Configuration and Context-Local Overrides | Accepted |
 
 ## Creating New ADRs
 

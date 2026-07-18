@@ -61,9 +61,10 @@ flowchart LR
 ```
 
 `galaga.core` must not import the facade, bridge, legacy algebra, expression,
-presentation, notation, or rendering layers. The facade must not import
-expression, presentation, notation, or rendering modules until their planned
-composition points are implemented.
+presentation, notation, or rendering layers. The facade must not import an
+outer layer until its planned composition point is implemented. ADR-076 now
+records the presentation composition point; expression and rendering remain
+outside the facade until their later phases.
 
 ## Consequences
 
@@ -78,5 +79,5 @@ composition points are implemented.
 - Cost, because documentation and downstream migration code must stop treating
   `gram_bridge` as the primary name.
 - Risk, because users may mistake `galaga.facade` for the completed top-level
-  Galaga 2 API; documentation must state that Phases 4 through 8 are still
+  Galaga 2 API; documentation must state that Phases 5 through 8 are still
   required.

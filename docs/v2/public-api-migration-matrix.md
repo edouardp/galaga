@@ -18,7 +18,7 @@ The manifest currently classifies:
 - all six legacy multivector formatting and display hooks, including
   `_repr_latex_`;
 - all 59 public legacy expression classes;
-- all 19 non-private top-level package modules and seven relied-upon nested
+- all 23 non-private top-level package modules and seven relied-upon nested
   entry points;
 - four companion-package or example touch points; and
 - four known dependencies on private legacy structures.
@@ -79,7 +79,8 @@ top-level compatibility shims are installed.
 ### Later-layer ownership
 
 - `BasisBlade`, `BladeConvention`, `Notation`, and the ten `b_*` constructors
-  belong to presentation and blade configuration in Phase 4.
+  migrate through the immutable presentation and blade configuration built in
+  Phase 4. Legacy constructors remain compatibility work for Phase 7.
 - `sym` and `simplify` belong to expression provenance in Phase 5.
 - `project`, `reject`, and `reflect` remain compositional helpers for Phase 7;
   they do not become core primitives.
@@ -109,12 +110,14 @@ algebra. The keyword signature aliases and native Gram matrix are Galaga 2
 forms. Conflicting metric descriptions are rejected.
 
 The exact v1 constructor parameters are also classified. `p_or_signature`,
-`q`, and `r` belong to the numeric facade. `blades`, `repr_unicode`,
-`notation`, and `display_repr` are presentation or rendering configuration for
-Phase 4; their absence from the Phase 2 numeric constructor is deliberate.
+`q`, and `r` belong to the numeric facade. Phase 4 added `config=`,
+`presentation=`, `blades=`, `notation=`, `local_names=`, `display_order=`, and
+`display=` to the facade. `repr_unicode` and `display_repr` remain rendering
+compatibility decisions for Phase 6.
 
-`blade`, `get_basis_blade`, `locals`, and `notation` acquire presentation-aware
-behavior in Phase 4. Fraction and rotor constructors and the physical-constant
+`blade` and `locals` now have presentation-aware Phase 4 behavior; immutable
+configuration replaces a mutable `notation` member. `get_basis_blade` remains
+a compatibility spelling decision. Fraction and rotor constructors and the physical-constant
 conveniences are classified as Phase 7 helpers rather than responsibilities of
 the numeric kernel. The old `Algebra.c`, `.e`, `.h`, `.hbar`, `.pi`, `.sqrt2`,
 and `.tau` members are removed in Phase 9 with guidance to explicit domain
@@ -150,13 +153,15 @@ operation-specific constructor classes become compatibility adapters over one
 operation-identified expression node in Phases 5 and 9.
 
 The supported import inventory covers every non-private top-level module:
-`algebra`, `basis_blade`, `blade_convention`, `core`, `expr`, `facade`,
-`gram_bridge`, the five `latex_*` modules, `lazy`, `notation`, `ops`, `render`,
-`simplify`, `symbolic`, and `symbolic_core`. It also records
+`algebra`, `basis_blade`, `blade_convention`, `blades`, `core`, `expr`,
+`facade`, `gram_bridge`, the five `latex_*` modules, `lazy`, `names`,
+`notation`, `ops`, `presentation`, `presets`, `render`, `simplify`, `symbolic`,
+and `symbolic_core`. It also records
 `facade.catalog`, both bridge submodules, and the four `symbolic_core`
 submodules used by current tests or companion packages.
 
-`galaga.facade` and `galaga.core` are permanent. Rendering modules,
+`galaga.facade`, `galaga.core`, `galaga.blades`, `galaga.names`,
+`galaga.presentation`, and `galaga.presets` are permanent. Rendering modules,
 `galaga.ops`, simplification, and symbolic modules have explicit owners in
 Phases 5 through 7 rather than being treated as incidental implementation
 files. Old modules remain compatibility entry points according to their

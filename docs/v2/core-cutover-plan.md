@@ -731,6 +731,17 @@ Phase 4 exit gate:
 - presentation can change temporarily in thread- and async-safe scopes; and
 - all blade and preset examples unwrap to independently verified core values.
 
+Status: **complete (2026-07-19)**.
+
+Implementation is decomposed in the
+[presentation configuration overview](presentation-configuration.md), and
+ADR-076 records the immutable-component, signed-reference, preset-expansion,
+and context-local decisions. The dedicated presentation suite contains 62
+behavior and validation tests. The combined presentation, facade, and
+compatibility run passes 214 tests; measured branch coverage is 100% for
+`galaga.names`, 97% for `galaga.blades`, 100% for `galaga.presentation`, 97%
+for `galaga.presets`, and 98% for `galaga.facade._numeric`.
+
 ## Phase 5: rebuild optional expression provenance
 
 Expressions describe how an eager result was obtained. They do not replace
