@@ -623,6 +623,8 @@ add assertions whose only purpose is to raise that headline number.
 
 ### T4 Parameterize the public numeric contract over the facade
 
+Status: **complete (2026-07-18)**.
+
 After the core ports pass, run the implementation-neutral public numeric
 contract against the facade. This is the evidence required by Phase 3 of the
 cutover plan.
@@ -633,6 +635,47 @@ Validation:
 - all applicable public numeric behavior passes;
 - v2 corrections have explicit alternative expectations; and
 - no test claims facade coverage while still constructing a legacy value.
+
+Completion evidence:
+
+- `facade/test_numeric_contract.py` defines one construction adapter and runs
+  the same public contracts with collected IDs ending in `[legacy-v1]` and
+  `[gram-facade-v2]`; facade cases always construct
+  `galaga.gram_bridge.Algebra`, never a legacy value hidden behind a fixture;
+- the shared contract covers algebra construction, factories, Python
+  operators, checked scalar conversion, grade families, named products,
+  involutions, dualities, inverse, predicates, norms, exponential,
+  logarithm, square root, and outer functions without reaching through
+  `.numeric`;
+- separate correction-ledger assertions record full Galaga 2 Lie and Jordan
+  products versus the legacy half-scaled meanings, immutable versus mutable
+  coefficient storage, exact versus approximate equality, and the optional
+  standalone `scalar_part` helper instead of a facade member;
+- four deterministic mixed-grade differential cases cover Cl(2,0), Cl(1,2),
+  Cl(2,0,1), and Cl(4,0), comparing the facade with retained v1 diagonal
+  behavior for products, metric and antimetric operations, grade selection,
+  involutions, complements, and valid dualities;
+- the facade now exports a catalog-backed wrapper for every canonical numeric
+  operation. A completeness assertion compares those callables with the
+  immutable operation catalog, so adding a catalog entry without exposing it
+  fails the suite; and
+- `test_gram_bridge.py` reserves `.numeric` for its stated direct-core parity
+  purpose. It checks every operation family on an oblique Gram matrix and
+  verifies that inverse, unit, logarithm, and square-root domain errors retain
+  the direct core exception and message; and
+- the public-boundary pass exposed and fixed one facade defect: division by a
+  zero scalar multivector now preserves the core `ZeroDivisionError` contract
+  instead of falling through general inverse and raising `ValueError`.
+
+The Python 3.11 T4 run collected 22 implementation-neutral contract tests and
+95 direct bridge and boundary tests; all 117 passed. Separate branch coverage
+is 98% for both the `galaga.gram_bridge` package and `facade.py`. The remaining
+lines are defensive guards for a misconfigured fold policy, duplicate catalog
+construction, invalid private wrapping, unreachable reflected multivector
+dispatch, or a core value returned without any facade owner; no test was added
+merely to force those internal guards. This completes T4, but it does not by
+itself satisfy the Phase 3 deletion gate: the facade-only legacy-execution
+guard and removal of redundant legacy numeric tests remain T5 work.
 
 ### T5 Remove legacy-only numeric tests
 

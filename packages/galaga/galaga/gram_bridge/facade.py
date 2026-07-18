@@ -1,7 +1,7 @@
 """Composition-based numeric facade over :mod:`galaga.core`.
 
-This is the first migration slice. Values contain only a concrete core value
-and an owning facade algebra; names, expression provenance, conventions, and
+This eager numeric migration layer contains only a concrete core value and an
+owning facade algebra; names, expression provenance, conventions, and
 rendering are intentionally absent.
 """
 
@@ -51,6 +51,10 @@ class Algebra:
         return cast(np.ndarray, self._numeric.basis_squares)
 
     @property
+    def id(self) -> str | None:
+        return self._numeric.id
+
+    @property
     def n(self) -> int:
         return self._numeric.n
 
@@ -81,6 +85,14 @@ class Algebra:
     @property
     def product_backend(self) -> str:
         return self._numeric.product_backend
+
+    @property
+    def packed_product_byte_estimate(self) -> int:
+        return self._numeric.packed_product_byte_estimate
+
+    @property
+    def product_cache_info(self) -> tuple[int, int, int] | None:
+        return self._numeric.product_cache_info
 
     @property
     def identity(self) -> Multivector:
@@ -239,6 +251,13 @@ class Multivector:
         if isinstance(other, Real):
             return _invoke("scalar_divide", self, other)
         if isinstance(other, Multivector):
+            if other.numeric.algebra is not self._numeric.algebra:
+                raise ValueError("cannot mix multivectors from different algebras")
+            if is_scalar(other):
+                divisor = other.coefficient(0)
+                if divisor == 0:
+                    raise ZeroDivisionError("cannot divide by a zero scalar multivector")
+                return _invoke("scalar_divide", self, divisor)
             return geometric_product(self, inverse(other))
         return NotImplemented
 
@@ -343,6 +362,14 @@ def grades(value: Multivector, targets: Iterable[int]) -> Multivector:
     return _invoke("grades", value, targets)
 
 
+def even_grades(value: Multivector) -> Multivector:
+    return _invoke("even_grades", value)
+
+
+def odd_grades(value: Multivector) -> Multivector:
+    return _invoke("odd_grades", value)
+
+
 def scalar_part(value: Multivector) -> float:
     """Optional shorthand for ``float(grade(value, 0))``."""
     return float(grade(value, 0))
@@ -354,6 +381,42 @@ def scalar_product(left: Multivector, right: Multivector) -> Multivector:
 
 def metric_inner_product(left: Multivector, right: Multivector) -> Multivector:
     return _invoke("metric_inner_product", left, right)
+
+
+def metric_apply(value: Multivector) -> Multivector:
+    return _invoke("metric_apply", value)
+
+
+def antimetric_apply(value: Multivector) -> Multivector:
+    return _invoke("antimetric_apply", value)
+
+
+def antidot_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("antidot_product", left, right)
+
+
+def bulk_part(value: Multivector) -> Multivector:
+    return _invoke("bulk_part", value)
+
+
+def weight_part(value: Multivector) -> Multivector:
+    return _invoke("weight_part", value)
+
+
+def right_hodge_dual(value: Multivector) -> Multivector:
+    return _invoke("right_hodge_dual", value)
+
+
+def left_hodge_dual(value: Multivector) -> Multivector:
+    return _invoke("left_hodge_dual", value)
+
+
+def right_weight_dual(value: Multivector) -> Multivector:
+    return _invoke("right_weight_dual", value)
+
+
+def left_weight_dual(value: Multivector) -> Multivector:
+    return _invoke("left_weight_dual", value)
 
 
 def left_contraction(left: Multivector, right: Multivector) -> Multivector:
@@ -388,6 +451,14 @@ def half_anticommutator(left: Multivector, right: Multivector) -> Multivector:
     return _invoke("half_anticommutator", left, right)
 
 
+def lie_bracket(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("lie_bracket", left, right)
+
+
+def jordan_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("jordan_product", left, right)
+
+
 def reverse(value: Multivector) -> Multivector:
     return _invoke("reverse", value)
 
@@ -407,8 +478,60 @@ def complement(value: Multivector) -> Multivector:
     return _invoke("complement", value)
 
 
+def uncomplement(value: Multivector) -> Multivector:
+    return _invoke("uncomplement", value)
+
+
+def right_complement(value: Multivector) -> Multivector:
+    return _invoke("right_complement", value)
+
+
+def left_complement(value: Multivector) -> Multivector:
+    return _invoke("left_complement", value)
+
+
+def antireverse(value: Multivector) -> Multivector:
+    return _invoke("antireverse", value)
+
+
 def dual(value: Multivector) -> Multivector:
     return _invoke("dual", value)
+
+
+def undual(value: Multivector) -> Multivector:
+    return _invoke("undual", value)
+
+
+def regressive_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("regressive_product", left, right)
+
+
+def antiwedge(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("antiwedge", left, right)
+
+
+def metric_regressive_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("metric_regressive_product", left, right)
+
+
+def geometric_antiproduct(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("geometric_antiproduct", left, right)
+
+
+def left_interior_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("left_interior_product", left, right)
+
+
+def right_interior_product(left: Multivector, right: Multivector) -> Multivector:
+    return _invoke("right_interior_product", left, right)
+
+
+def transwedge(left: Multivector, right: Multivector, order: int) -> Multivector:
+    return _invoke("transwedge", left, right, order)
+
+
+def transwedge_antiproduct(left: Multivector, right: Multivector, order: int) -> Multivector:
+    return _invoke("transwedge_antiproduct", left, right, order)
 
 
 def inverse(
@@ -424,6 +547,14 @@ def squared(value: Multivector) -> Multivector:
     return _invoke("squared", value)
 
 
+def scalar_sqrt(value: Real | Multivector) -> float | Multivector:
+    return _invoke("scalar_sqrt", value)
+
+
+def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivector:
+    return _invoke("sqrt", value, atol=atol)
+
+
 def norm2(value: Multivector) -> Multivector:
     return _invoke("norm2", value)
 
@@ -436,6 +567,34 @@ def unit(value: Multivector, *, atol: float = 1e-15) -> Multivector:
     return _invoke("unit", value, atol=atol)
 
 
+def is_scalar(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_scalar", value, atol=atol)
+
+
+def is_vector(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_vector", value, atol=atol)
+
+
+def is_bivector(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_bivector", value, atol=atol)
+
+
+def is_even(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_even", value, atol=atol)
+
+
+def is_rotor(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_rotor", value, atol=atol)
+
+
+def is_basis_blade(value: Multivector, *, atol: float = 1e-12) -> bool:
+    return _invoke("is_basis_blade", value, atol=atol)
+
+
+def sandwich(rotor: Multivector, value: Multivector) -> Multivector:
+    return _invoke("sandwich", rotor, value)
+
+
 def exp(value: Multivector) -> Multivector:
     return _invoke("exp", value)
 
@@ -444,16 +603,39 @@ def log(value: Multivector, *, atol: float = 1e-12) -> Multivector:
     return _invoke("log", value, atol=atol)
 
 
+def outerexp(value: Multivector) -> Multivector:
+    return _invoke("outerexp", value)
+
+
+def outersin(value: Multivector) -> Multivector:
+    return _invoke("outersin", value)
+
+
+def outercos(value: Multivector) -> Multivector:
+    return _invoke("outercos", value)
+
+
+def outertan(value: Multivector) -> Multivector:
+    return _invoke("outertan", value)
+
+
 __all__ = [
     "Algebra",
     "Multivector",
     "anticommutator",
+    "antidot_product",
+    "antimetric_apply",
+    "antireverse",
+    "antiwedge",
+    "bulk_part",
     "commutator",
     "complement",
     "conjugate",
     "doran_lasenby_inner",
     "dual",
+    "even_grades",
     "exp",
+    "geometric_antiproduct",
     "geometric_product",
     "grade",
     "grade_involution",
@@ -463,16 +645,48 @@ __all__ = [
     "hestenes_inner",
     "inverse",
     "involute",
+    "is_basis_blade",
+    "is_bivector",
+    "is_even",
+    "is_rotor",
+    "is_scalar",
+    "is_vector",
+    "jordan_product",
+    "left_complement",
     "left_contraction",
+    "left_hodge_dual",
+    "left_interior_product",
+    "left_weight_dual",
+    "lie_bracket",
     "log",
+    "metric_apply",
     "metric_inner_product",
+    "metric_regressive_product",
     "norm",
     "norm2",
+    "odd_grades",
+    "outercos",
+    "outerexp",
     "outer_product",
+    "outersin",
+    "outertan",
+    "regressive_product",
     "reverse",
+    "right_complement",
     "right_contraction",
+    "right_hodge_dual",
+    "right_interior_product",
+    "right_weight_dual",
+    "sandwich",
     "scalar_part",
     "scalar_product",
+    "scalar_sqrt",
+    "sqrt",
     "squared",
+    "transwedge",
+    "transwedge_antiproduct",
+    "uncomplement",
+    "undual",
     "unit",
+    "weight_part",
 ]
