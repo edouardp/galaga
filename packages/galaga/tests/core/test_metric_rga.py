@@ -22,6 +22,7 @@ from galaga.core import (
     bulk_part,
     complement,
     dual,
+    exp,
     geometric_antiproduct,
     geometric_product,
     left_complement,
@@ -380,3 +381,88 @@ def test_diagonal_metric_and_antimetric_use_present_and_absent_squares() -> None
         absent = [signature[index] for index in range(algebra.n) if not bitmask & (1 << index)]
         assert metric[bitmask, bitmask] == prod(present)
         assert antimetric[bitmask, bitmask] == prod(absent)
+
+
+def test_rga_coordinate_meet_and_antivector_squares_match_source_tables() -> None:
+    algebra = Algebra(signature=[1, 1, 1, 0])
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    e43 = outer_product(e4, e3)
+    e423 = outer_product(outer_product(e4, e2), e3)
+    e431 = outer_product(outer_product(e4, e3), e1)
+
+    assert antiwedge(e423, e431) == -e43
+
+    antivectors = tuple(complement(vector) for vector in (e1, e2, e3, e4))
+    for left_index, right_index in product(range(algebra.n), repeat=2):
+        actual = geometric_antiproduct(
+            antivectors[left_index],
+            antivectors[right_index],
+        )
+        if left_index == right_index:
+            assert actual == algebra.gram[left_index, right_index] * algebra.I
+        else:
+            assert actual == antiwedge(
+                antivectors[left_index],
+                antivectors[right_index],
+            )
+
+
+def test_rga_bulk_weight_and_duals_match_source_table() -> None:
+    algebra = Algebra(signature=[1, 1, 1, 0])
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    e23 = outer_product(e2, e3)
+    e31 = outer_product(e3, e1)
+    e12 = outer_product(e1, e2)
+    e41 = outer_product(e4, e1)
+    e42 = outer_product(e4, e2)
+    e43 = outer_product(e4, e3)
+    e423 = outer_product(outer_product(e4, e2), e3)
+    e431 = outer_product(outer_product(e4, e3), e1)
+    e412 = outer_product(outer_product(e4, e1), e2)
+    e321 = outer_product(outer_product(e3, e2), e1)
+
+    bulk = 2 * e23 - 3 * e31 + 5 * e12
+    weight = 7 * e41 + 11 * e42 - 13 * e43
+    line = bulk + weight
+    assert bulk_part(line) == bulk
+    assert weight_part(line) == weight
+
+    point = 2 * e1 - 3 * e2 + 5 * e3 + 7 * e4
+    plane = 2 * e423 - 3 * e431 + 5 * e412 + 7 * e321
+    assert right_hodge_dual(point) == 2 * e423 - 3 * e431 + 5 * e412
+    assert right_weight_dual(point) == 7 * e321
+    assert right_hodge_dual(line) == -2 * e41 + 3 * e42 - 5 * e43
+    assert right_weight_dual(line) == -7 * e23 - 11 * e31 + 13 * e12
+    assert right_hodge_dual(plane) == -7 * e4
+    assert right_weight_dual(plane) == -2 * e1 + 3 * e2 - 5 * e3
+
+
+def test_rga_antiproduct_sandwich_and_reversed_join_source_examples() -> None:
+    algebra = Algebra(signature=[1, 1, 1, 0])
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    angle = np.deg2rad(40)
+    rotor = exp((-angle / 2) * outer_product(e1, e2))
+    complement_rotor = complement(rotor)
+    complement_point = complement(2 * e1 - 3 * e2 + e4)
+
+    actual = geometric_antiproduct(
+        geometric_antiproduct(complement_rotor, complement_point),
+        antireverse(complement_rotor),
+    )
+    expected = complement(
+        geometric_product(
+            geometric_product(
+                rotor,
+                left_complement(complement_point),
+            ),
+            reverse(rotor),
+        )
+    )
+    assert_mv_close(actual, expected)
+
+    left = e1 + 2 * e2 + e4
+    right = e1 - e2 + e3
+    joined = outer_product(left, right)
+    met = antiwedge(right_complement(left), right_complement(right))
+    assert met == right_complement(joined)
+    assert antireverse(met) == right_complement(reverse(joined))

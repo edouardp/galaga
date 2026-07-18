@@ -7,7 +7,9 @@ import pytest
 
 from galaga.core import (
     Algebra,
+    Multivector,
     exp,
+    geometric_product,
     log,
     outercos,
     outerexp,
@@ -16,6 +18,18 @@ from galaga.core import (
     scalar_sqrt,
     sqrt,
 )
+
+
+def taylor_exponential(value: Multivector, *, max_terms: int = 160) -> Multivector:
+    """Evaluate an independent, unscaled geometric Taylor series."""
+    result = value.algebra.identity
+    term = value.algebra.identity
+    for order in range(1, max_terms + 1):
+        term = geometric_product(term, value) / order
+        result = result + term
+        if np.max(np.abs(term.data)) <= 1e-16:
+            break
+    return result
 
 
 class TestSquareRoots:
@@ -129,12 +143,74 @@ class TestGeometricExponential:
         for result in results[1:]:
             assert np.allclose(result, results[0], rtol=0.0, atol=1e-13)
 
+    @pytest.mark.parametrize(
+        "case",
+        (
+            "nonsimple-euclidean-bivector",
+            "sta-boost-plus-rotation",
+            "nonsimple-trivector",
+            "random-cl3-multivector",
+            "random-sta-multivector",
+            "oblique-multivector",
+        ),
+    )
+    def test_general_exponential_matches_independent_taylor_series(
+        self,
+        case: str,
+    ) -> None:
+        if case == "nonsimple-euclidean-bivector":
+            algebra = Algebra(4)
+            e1, e2, e3, e4 = algebra.basis_vectors()
+            value = 0.3 * (e1 ^ e2) + 0.5 * (e3 ^ e4)
+        elif case == "sta-boost-plus-rotation":
+            algebra = Algebra(1, 3)
+            e0, e1, e2, e3 = algebra.basis_vectors()
+            value = 0.4 * (e0 ^ e1) + 0.25 * (e2 ^ e3)
+        elif case == "nonsimple-trivector":
+            algebra = Algebra(5)
+            e1, e2, e3, e4, e5 = algebra.basis_vectors()
+            value = 0.2 * (e1 ^ e2 ^ e3) + 0.15 * (e1 ^ e4 ^ e5)
+        elif case == "random-cl3-multivector":
+            algebra = Algebra(3)
+            value = algebra.multivector(0.3 * np.random.default_rng(500).standard_normal(algebra.dim))
+        elif case == "random-sta-multivector":
+            algebra = Algebra(1, 3)
+            value = algebra.multivector(0.2 * np.random.default_rng(600).standard_normal(algebra.dim))
+        else:
+            algebra = Algebra(
+                gram=np.array(
+                    [
+                        [2.0, 0.5, 0.0],
+                        [0.5, 1.0, 0.25],
+                        [0.0, 0.25, -1.5],
+                    ]
+                )
+            )
+            value = algebra.multivector(0.2 * np.random.default_rng(700).standard_normal(algebra.dim))
+
+        np.testing.assert_allclose(
+            exp(value).data,
+            taylor_exponential(value).data,
+            rtol=0.0,
+            atol=2e-11,
+        )
+
     def test_tiny_nonzero_generators_are_not_discarded(self) -> None:
         algebra = Algebra(2)
         e1, e2 = algebra.basis_vectors()
         generator = 1e-30 * (e1 ^ e2)
 
         assert exp(generator) == algebra.identity + generator
+
+        algebra4 = Algebra(4)
+        e1, e2, e3, e4 = algebra4.basis_vectors()
+        nonsimple = 1e-30 * ((e1 ^ e2) + (e3 ^ e4))
+        np.testing.assert_allclose(
+            exp(nonsimple).data,
+            (algebra4.identity + nonsimple).data,
+            rtol=0.0,
+            atol=1e-40,
+        )
 
     def test_exp_rejects_non_multivectors(self) -> None:
         with pytest.raises(TypeError, match="Multivector"):

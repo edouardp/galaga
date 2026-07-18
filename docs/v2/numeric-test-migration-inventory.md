@@ -516,6 +516,8 @@ facade-contract replacements pass, as required by the deletion gate below.
 
 ### T2 Split the large mixed suites
 
+Status: **complete (2026-07-18)**.
+
 Scope:
 
 - `test_ga.py`;
@@ -538,6 +540,28 @@ Exit condition:
 - no mathematical identity depends on names or rendering merely to create its
   operands; and
 - no helper has been added to core solely to make a legacy test fit.
+
+Completion crosswalk:
+
+| Legacy source | Direct-core owner | Retained outer-layer owner |
+|---|---|---|
+| `test_chisolm_transformations.py` | Primitive reflection, rotation, rotor-law, cross-product, and boost identities in `core/test_chisolm_transformations.py`; complex and quaternion subalgebras in `core/test_quaternion.py` | Projection, rejection, `reflect`, double-reflection, and rotor-constructor helper contracts remain in the source facade suite |
+| `test_low_dim.py` | Compact source-oriented boundary cases in `core/test_low_dim.py`, with stronger inverse and function coverage in `core/test_numeric_api.py` and `core/test_numeric_functions.py` | Rotor-constructor validation, projection/rejection/reflection helpers, and pseudoscalar expression provenance remain above core |
+| `test_quaternion.py` | Hamilton identities, complex multiplication, and reverse-as-conjugation in `core/test_quaternion.py` | Blade signs, semantic names, lookup, rendering, and custom vector-name contracts remain in preset/presentation tests |
+| `test_rga_convention_layer.py` | Exhaustive operations and unnamed source-table kernels in `core/test_metric_rga.py` | RGA semantic roles, notation snapshots, expression propagation, and facade mismatch wrapping remain above core |
+| `test_ga.py` | Construction in `core/test_algebra.py`; representation and laws in `core/test_multivector.py`; explicit products and protocols in `core/test_backends.py`, `core/test_numeric_api.py`, and `core/test_public_contracts.py`; functions in `core/test_numeric_functions.py`; golden low-dimensional cases in the new source-oriented files | `TestAliases`, helpers, symbolic square root, and near-unit rendering remain compatibility, helper, expression, and rendering concerns respectively |
+
+The `test_ga.py` comparison retained two independent regressions that were
+stronger than the existing destinations: a direct unscaled Taylor-series
+oracle for nonsimple, mixed-grade, oblique, and random geometric
+exponentials, and two-sided inverse checks from dimension zero through six.
+Trivial coefficient duplicates were not copied.
+
+No numeric test creates operands through a blade-name preset. RGA source
+tables are derived from ordered wedges of unnamed basis vectors, quaternion
+units are explicit Euclidean bivectors, and rotors are constructed with
+`exp`; core gained no `project`, `reject`, `reflect`, or rotor-constructor
+helper.
 
 ### T3 Consolidate coverage-driven regressions
 

@@ -223,6 +223,34 @@ class TestDerivedProducts:
         with pytest.raises(ValueError, match="not invertible"):
             inverse(null)
 
+    @pytest.mark.parametrize(
+        "signature",
+        (
+            (),
+            (1,),
+            (1, 1),
+            (1, 1, 1),
+            (1, -1, -1, -1),
+            (1, 1, 1, 1, 1),
+            (1, 1, 1, -1, -1, -1),
+        ),
+        ids=("Cl0", "Cl1", "Cl2", "Cl3", "STA", "Cl5", "Cl33"),
+    )
+    def test_general_inverse_is_two_sided_across_dimensions(
+        self,
+        signature: tuple[int, ...],
+    ) -> None:
+        algebra = Algebra(0) if not signature else Algebra(signature=signature)
+        rng = np.random.default_rng(900 + algebra.n)
+        data = 0.03 * rng.standard_normal(algebra.dim)
+        data[0] += 2.0
+        value = algebra.multivector(data)
+        candidate = inverse(value)
+
+        assert (value * candidate).almost_equal(algebra.identity)
+        assert (candidate * value).almost_equal(algebra.identity)
+        assert inverse(candidate).almost_equal(value)
+
     def test_grade_predicates(self) -> None:
         algebra = Algebra(3)
         e1, e2, _ = algebra.basis_vectors()
