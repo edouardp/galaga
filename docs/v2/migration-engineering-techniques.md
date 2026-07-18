@@ -655,6 +655,9 @@ The checks should evolve with the migration rather than remain frozen.
 
 ### Phase 6: rendering
 
+These checks are now implemented in `tests/rendering` and remain permanent
+architecture tests:
+
 - Extend catalog completeness to require a long functional fallback notation
   for every operation.
 - Add an architectural test that render-tree construction performs no numeric

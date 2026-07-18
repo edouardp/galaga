@@ -725,7 +725,7 @@ Implemented in Galaga 2 cutover Phase 5. See
 [Expression provenance implementation](expression-provenance.md) and
 [ADR-077](../adrs/077-optional-expression-provenance.md).
 
-### Phase 4: numeric, notation, and expression rendering
+### Phase 4: numeric, notation, and expression rendering — complete
 
 - Extend immutable notation rules from stable token metadata to semantic
   rendering rules.
@@ -741,6 +741,10 @@ Implemented in Galaga 2 cutover Phase 5. See
 Exit condition: all supported operations render in all three targets under
 functional and conventional presets, and nested expressions preserve meaning
 through parentheses.
+
+Implemented in Galaga 2 cutover Phase 6. See
+[Semantic rendering implementation](rendering-implementation.md) and
+[ADR-078](../adrs/078-shared-semantic-rendering-pipeline.md).
 
 ### Phase 5: compatibility helpers and integrations
 

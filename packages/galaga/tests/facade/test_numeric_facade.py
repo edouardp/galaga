@@ -262,7 +262,7 @@ class TestConstructionAndValues:
         assert first != object()
         assert first_algebra.scalar(2) == 2
         assert abs(first_algebra.scalar(-2)) == 2
-        assert "Multivector(numeric=" in repr(first)
+        assert repr(first) == "1 + 2e1"
 
 
 class TestPythonProtocolBoundary:

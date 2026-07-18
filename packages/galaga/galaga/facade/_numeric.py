@@ -706,13 +706,77 @@ class Multivector:
     def __hash__(self) -> int:
         return hash(self._numeric)
 
+    def display(
+        self,
+        format_spec: str = "",
+        *,
+        content: str | None = None,
+        target: str | None = None,
+        presentation: PresentationConfig | None = None,
+        notation: Notation | None = None,
+    ) -> str:
+        """Render through the Galaga 2 semantic-tree pipeline."""
+        from ..display import render
+
+        return render(
+            self,
+            format_spec,
+            content=content,
+            target=target,
+            presentation=presentation,
+            notation=notation,
+        )
+
+    def ascii(
+        self,
+        *,
+        content: str | None = None,
+        presentation: PresentationConfig | None = None,
+        notation: Notation | None = None,
+    ) -> str:
+        """Render as portable plain text."""
+        return self.display(content=content, target="ascii", presentation=presentation, notation=notation)
+
+    def unicode(
+        self,
+        *,
+        content: str | None = None,
+        presentation: PresentationConfig | None = None,
+        notation: Notation | None = None,
+    ) -> str:
+        """Render as Unicode mathematical text."""
+        return self.display(content=content, target="unicode", presentation=presentation, notation=notation)
+
+    def latex(
+        self,
+        wrap: str | None = None,
+        *,
+        content: str | None = None,
+        presentation: PresentationConfig | None = None,
+        notation: Notation | None = None,
+    ) -> str:
+        """Render as LaTeX, with optional inline or display delimiters."""
+        result = self.display(content=content, target="latex", presentation=presentation, notation=notation)
+        if wrap is None:
+            return result
+        if wrap == "$":
+            return f"${result}$"
+        if wrap == "$$":
+            return f"$$\n{result}\n$$"
+        raise ValueError("LaTeX wrap must be None, '$', or '$$'")
+
+    def __str__(self) -> str:
+        return self.display()
+
+    def __format__(self, format_spec: str) -> str:
+        return self.display(format_spec)
+
     def __repr__(self) -> str:
-        metadata = ""
-        if self._name is not None:
-            metadata += f", name={self._name!r}"
-        if self._expr is not None:
-            metadata += f", expr={self._expr!r}"
-        return f"Multivector(numeric={self._numeric!r}{metadata})"
+        return self.display(target="ascii")
+
+    def _repr_latex_(self) -> str:
+        """Jupyter and Marimo rich-display hook."""
+        return self.latex(wrap="$")
 
 
 def _literal_expression(value: Multivector) -> Expr:

@@ -6,9 +6,10 @@ obtained. It is not a second arithmetic engine, and it does not make
 multivector immediately. Provenance is immutable, optional metadata on the
 facade wrapper.
 
-This document describes the Phase 5 implementation. Rendering is deliberately
-absent: Phase 6 will translate the same expression nodes through the selected
-presentation without changing their identity or evaluation.
+This document describes the Phase 5 implementation. Phase 6 now translates the
+same expression nodes through the selected presentation without changing their
+identity or evaluation; see the
+[Semantic rendering implementation](rendering-implementation.md).
 
 ## Component decomposition
 
@@ -22,7 +23,8 @@ flowchart LR
     E --> W
     E --> X[expression.evaluate]
     X --> C
-    P[PresentationConfig] -. Phase 6 rendering only .-> E
+    P[PresentationConfig] --> R[Semantic rendering]
+    E --> R
 ```
 
 The implementation has five deliberately separate parts:
@@ -233,8 +235,10 @@ Phase 5 tests live under `packages/galaga/tests/expression`:
 - `test_simplify.py` owns the conservative structural rules.
 
 Rendering, precedence, notation selection, and final ASCII, Unicode, and LaTeX
-strings remain Phase 6 work. They must consume this tree without changing its
-numeric evaluation or stable operation identity.
+strings are now implemented as a consumer of this tree. They do not change its
+numeric evaluation or stable operation identity; the architecture and tests
+are documented in
+[Semantic rendering implementation](rendering-implementation.md).
 
 The dedicated Phase 5 suite contains 154 tests. In the combined expression,
 facade, presentation, and namespace coverage run, every implementation module

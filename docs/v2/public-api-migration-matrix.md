@@ -113,7 +113,10 @@ The exact v1 constructor parameters are also classified. `p_or_signature`,
 `q`, and `r` belong to the numeric facade. Phase 4 added `config=`,
 `presentation=`, `blades=`, `notation=`, `local_names=`, `display_order=`, and
 `display=` to the facade. `repr_unicode` and `display_repr` remain rendering
-compatibility decisions for Phase 6.
+compatibility-only legacy inputs: Galaga 2 uses `DisplayPolicy` and explicit
+content/target format specs, while `repr` selects the active content policy in
+ASCII. They are removed from the Galaga 2 constructor at the Phase 8 top-level
+cutover.
 
 `blade` and `locals` now have presentation-aware Phase 4 behavior; immutable
 configuration replaces a mutable `notation` member. `get_basis_blade` remains
@@ -138,8 +141,10 @@ behavior.
 
 Names, expression state, and old `lazy`/`symbolic` mutation-style methods move
 to the immutable expression-provenance design in Phase 5. `display` and
-`latex` move to rendering in Phase 6. `bar`, `dag`, `inv`, and `sq` remain
-possible Phase 7 conveniences over named operations.
+`latex`, together with `ascii`, `unicode`, `format`, `str`, `repr`, and the rich
+LaTeX hook, are implemented through the Phase 6 semantic renderer. `bar`,
+`dag`, `inv`, and `sq` remain possible Phase 7 conveniences over named
+operations.
 
 `scalar_part` is deliberately not a `Multivector` member. The optional
 standalone helper is equivalent to `float(grade(value, 0))`; plain

@@ -8,23 +8,134 @@ from dataclasses import dataclass, replace
 from typing import cast
 
 from .blades import BladeConvention, BladeRef, DisplayOrder, LocalNamePolicy
+from .names import Name
+
+_RULE_KINDS = {
+    "accent",
+    "fraction",
+    "function",
+    "infix",
+    "juxtaposition",
+    "postfix",
+    "prefix",
+    "subscript",
+    "superscript",
+    "underaccent",
+    "wrapper",
+}
+_RULE_ASSOCIATIVITY = {"none", "left", "right", "associative"}
+_RULE_TARGETS = {"ascii", "unicode", "latex"}
+_DEFAULT_PRECEDENCE = {
+    "function": 80,
+    "wrapper": 80,
+    "postfix": 60,
+    "accent": 60,
+    "underaccent": 60,
+    "subscript": 60,
+    "superscript": 50,
+    "prefix": 40,
+    "fraction": 30,
+    "infix": 30,
+    "juxtaposition": 30,
+}
+
+
+def _render_name(value: Name | str | None, *, field: str) -> Name | None:
+    if value is None or isinstance(value, Name):
+        return value
+    if isinstance(value, str):
+        return Name(value)
+    raise TypeError(f"{field} must be a Name, string, or None")
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class RenderRule:
+    """One immutable semantic layout choice for a stable operation ID.
+
+    A rule can be generic or installed for one output target.  Target-specific
+    rules are useful when a notation has no honest plain-text equivalent for a
+    compact mathematical glyph.  The rule still produces format-neutral tree
+    nodes; escaping and final glyph emission remain emitter concerns.
+    """
+
+    kind: str
+    symbol: Name | None
+    precedence: int
+    associativity: str
+    parameter: str | None
+    argument_order: tuple[int, ...] | None
+    opening: Name | None
+    closing: Name | None
+    flatten: bool
+
+    def __init__(
+        self,
+        kind: str,
+        *,
+        symbol: Name | str | None = None,
+        precedence: int | None = None,
+        associativity: str = "none",
+        parameter: str | None = None,
+        argument_order: Iterable[int] | None = None,
+        opening: Name | str | None = None,
+        closing: Name | str | None = None,
+        flatten: bool = False,
+    ) -> None:
+        if kind not in _RULE_KINDS:
+            expected = ", ".join(sorted(_RULE_KINDS))
+            raise ValueError(f"render-rule kind must be one of: {expected}")
+        selected_symbol = _render_name(symbol, field="render-rule symbol")
+        selected_opening = _render_name(opening, field="render-rule opening")
+        selected_closing = _render_name(closing, field="render-rule closing")
+        required_symbol = {"accent", "function", "infix", "postfix", "prefix", "underaccent"}
+        if kind in required_symbol and selected_symbol is None:
+            raise ValueError(f"{kind} render rules require a symbol")
+        if kind == "wrapper" and (selected_opening is None or selected_closing is None):
+            raise ValueError("wrapper render rules require opening and closing names")
+        selected_precedence = _DEFAULT_PRECEDENCE[kind] if precedence is None else precedence
+        if not isinstance(selected_precedence, int) or isinstance(selected_precedence, bool):
+            raise TypeError("render-rule precedence must be an integer")
+        if selected_precedence < 0:
+            raise ValueError("render-rule precedence must be non-negative")
+        if associativity not in _RULE_ASSOCIATIVITY:
+            raise ValueError("render-rule associativity must be 'none', 'left', 'right', or 'associative'")
+        if parameter is not None and (not isinstance(parameter, str) or not parameter):
+            raise ValueError("render-rule parameter must be a non-empty string or None")
+        selected_order = None if argument_order is None else tuple(argument_order)
+        if selected_order is not None:
+            if any(not isinstance(index, int) or isinstance(index, bool) or index < 0 for index in selected_order):
+                raise ValueError("render-rule argument order must contain non-negative integers")
+            if len(set(selected_order)) != len(selected_order):
+                raise ValueError("render-rule argument order must not repeat an index")
+        if not isinstance(flatten, bool):
+            raise TypeError("render-rule flatten flag must be a boolean")
+        object.__setattr__(self, "kind", kind)
+        object.__setattr__(self, "symbol", selected_symbol)
+        object.__setattr__(self, "precedence", selected_precedence)
+        object.__setattr__(self, "associativity", associativity)
+        object.__setattr__(self, "parameter", parameter)
+        object.__setattr__(self, "argument_order", selected_order)
+        object.__setattr__(self, "opening", selected_opening)
+        object.__setattr__(self, "closing", selected_closing)
+        object.__setattr__(self, "flatten", flatten)
 
 
 @dataclass(frozen=True, slots=True, init=False)
 class Notation:
-    """Immutable notation identity and operation-token overrides.
-
-    Phase 6 will attach semantic render rules to these stable operation IDs;
-    Phase 4 needs only an immutable, independently replaceable component.
-    """
+    """Immutable rendering rules keyed by stable operation ID and target."""
 
     id: str
     tokens: tuple[tuple[str, str], ...]
+    rules: tuple[tuple[str, str | None, RenderRule], ...]
 
     def __init__(
         self,
         id: str = "default",
         tokens: Mapping[str, str] | Iterable[tuple[str, str]] = (),
+        *,
+        rules: (
+            Mapping[str | tuple[str, str], RenderRule] | Iterable[tuple[str | tuple[str, str], RenderRule]] | None
+        ) = None,
     ) -> None:
         if not isinstance(id, str) or not id.strip():
             raise ValueError("notation id must be a non-empty string")
@@ -45,21 +156,286 @@ class Notation:
         object.__setattr__(self, "id", id)
         object.__setattr__(self, "tokens", tuple(normalized))
 
+        rule_items: Iterable[tuple[str | tuple[str, str], RenderRule]]
+        if rules is None:
+            rule_items = _conventional_rules().items()
+        elif isinstance(rules, Mapping):
+            rule_items = cast(Mapping[str | tuple[str, str], RenderRule], rules).items()
+        else:
+            rule_items = rules
+        normalized_rules: list[tuple[str, str | None, RenderRule]] = []
+        rule_keys: set[tuple[str, str | None]] = set()
+        for key, rule in rule_items:
+            if isinstance(key, tuple):
+                if len(key) != 2:
+                    raise ValueError("target-specific notation keys must be (operation_id, target) pairs")
+                operation_id, target = key
+            else:
+                operation_id, target = key, None
+            if not isinstance(operation_id, str) or not operation_id:
+                raise ValueError("notation rule operation ids must be non-empty strings")
+            if target is not None and target not in _RULE_TARGETS:
+                raise ValueError("notation rule target must be 'ascii', 'unicode', or 'latex'")
+            if not isinstance(rule, RenderRule):
+                raise TypeError("notation rules must be RenderRule values")
+            normalized_key = (operation_id, target)
+            if normalized_key in rule_keys:
+                raise ValueError(f"duplicate notation rule for {operation_id!r} and target {target!r}")
+            rule_keys.add(normalized_key)
+            normalized_rules.append((operation_id, target, rule))
+        object.__setattr__(self, "rules", tuple(normalized_rules))
+
     def token(self, operation_id: str, default: str | None = None) -> str | None:
-        """Return an operation token without selecting mathematical semantics."""
+        """Return legacy token metadata without selecting layout semantics."""
         return dict(self.tokens).get(operation_id, default)
+
+    def rule(self, operation_id: str, target: str | None = None) -> RenderRule | None:
+        """Resolve a target-specific rule, then its target-neutral fallback."""
+        if target is not None and target not in _RULE_TARGETS:
+            raise ValueError("notation target must be 'ascii', 'unicode', or 'latex'")
+        lookup = {(identifier, selected_target): rule for identifier, selected_target, rule in self.rules}
+        return lookup.get((operation_id, target)) or lookup.get((operation_id, None))
+
+    def with_rule(
+        self,
+        operation_id: str,
+        rule: RenderRule,
+        *,
+        target: str | None = None,
+    ) -> Notation:
+        """Return a notation with one generic or target-specific rule replaced."""
+        key: str | tuple[str, str]
+        if target is None:
+            key = operation_id
+        else:
+            if target not in _RULE_TARGETS:
+                raise ValueError("notation rule target must be 'ascii', 'unicode', or 'latex'")
+            key = (operation_id, target)
+        retained = {
+            (identifier if selected_target is None else (identifier, selected_target)): selected_rule
+            for identifier, selected_target, selected_rule in self.rules
+            if (identifier, selected_target) != (operation_id, target)
+        }
+        retained[key] = rule
+        return Notation(self.id, self.tokens, rules=retained)
+
+    @classmethod
+    def default(cls, *, id: str = "default") -> Notation:
+        """Conventional Galaga notation with explicit operation identities."""
+        return cls(id, rules=_conventional_rules())
+
+    @classmethod
+    def functional(cls, *, short: bool = False) -> Notation:
+        """Long canonical function calls, or an optional unambiguous short form."""
+        if not short:
+            return cls("functional-long", rules=())
+        rules: dict[str | tuple[str, str], RenderRule] = {
+            operation_id: RenderRule("function", symbol=short_name)
+            for operation_id, short_name in _SHORT_FUNCTION_NAMES.items()
+        }
+        return cls("functional-short", rules=rules)
+
+    @classmethod
+    def functional_short(cls) -> Notation:
+        """Compatibility spelling for :meth:`functional(short=True)`."""
+        return cls.functional(short=True)
+
+    @classmethod
+    def doran_lasenby(cls) -> Notation:
+        """Doran-Lasenby teaching notation; other inner products stay named."""
+        rules = _conventional_rules()
+        rules["doran_lasenby_inner"] = RenderRule(
+            "infix",
+            symbol=Name("|", "·", r"\cdot"),
+            precedence=30,
+            associativity="none",
+        )
+        return cls("doran-lasenby", rules=rules)
+
+    @classmethod
+    def hestenes(cls) -> Notation:
+        """Hestenes teaching notation; competing inner products stay named."""
+        rules = _conventional_rules()
+        rules["reverse"] = RenderRule("postfix", symbol=Name("dag", "†", r"^{\dagger}"))
+        rules["hestenes_inner"] = RenderRule(
+            "infix",
+            symbol=Name("dot", "·", r"\cdot"),
+            precedence=30,
+            associativity="none",
+        )
+        rules["doran_lasenby_inner"] = RenderRule("function", symbol="doran_lasenby_inner")
+        return cls("hestenes", rules=rules)
+
+    @classmethod
+    def lengyel(cls) -> Notation:
+        """Eric Lengyel/RGA notation, with an honest functional ASCII form."""
+        return cls("lengyel-rga", rules=_lengyel_rules())
+
+    @classmethod
+    def lengyel_rga(cls) -> Notation:
+        """Explicit alias for :meth:`lengyel`."""
+        return cls.lengyel()
+
+
+_SHORT_FUNCTION_NAMES = {
+    "antidot_product": "antidot",
+    "doran_lasenby_inner": "dl_inner",
+    "geometric_antiproduct": "gap",
+    "geometric_product": "gp",
+    "grade_involution": "invol",
+    "hestenes_inner": "h_inner",
+    "left_contraction": "lc",
+    "left_interior_product": "l_interior",
+    "metric_inner_product": "metric_inner",
+    "outer_product": "op",
+    "regressive_product": "meet",
+    "reverse": "rev",
+    "right_contraction": "rc",
+    "right_interior_product": "r_interior",
+    "scalar_product": "sp",
+    "sandwich": "sw",
+}
+
+
+def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
+    """Build a fresh conventional rule map so presets never share state."""
+    return {
+        "add": RenderRule("infix", symbol="+", precedence=20, associativity="associative", flatten=True),
+        "subtract": RenderRule("infix", symbol="-", precedence=20, associativity="left"),
+        "negate": RenderRule("prefix", symbol="-", precedence=40),
+        "scalar_multiply": RenderRule(
+            "juxtaposition",
+            precedence=30,
+            argument_order=(1, 0),
+        ),
+        "scalar_divide": RenderRule("fraction"),
+        "power": RenderRule("superscript", associativity="right"),
+        "geometric_product": RenderRule(
+            "juxtaposition",
+            precedence=30,
+            associativity="associative",
+            flatten=True,
+        ),
+        "outer_product": RenderRule(
+            "infix",
+            symbol=Name("^", "∧", r"\wedge"),
+            precedence=30,
+            associativity="associative",
+            flatten=True,
+        ),
+        "doran_lasenby_inner": RenderRule(
+            "infix",
+            symbol=Name("|", "·", r"\cdot"),
+            precedence=30,
+        ),
+        "grade": RenderRule("subscript"),
+        "reverse": RenderRule("accent", symbol=Name("~", "\u0303", r"\widetilde")),
+        "grade_involution": RenderRule("accent", symbol=Name("hat", "\u0302", r"\widehat")),
+        "conjugate": RenderRule("accent", symbol=Name("bar", "\u0305", r"\overline")),
+        "inverse": RenderRule("superscript", symbol=Name("-1", "⁻¹", "-1")),
+        "squared": RenderRule("superscript", symbol=Name("2", "²", "2")),
+        "dual": RenderRule("superscript", symbol=Name("*", "★", r"\star")),
+        "undual": RenderRule("superscript", symbol=Name("-*", "⁻★", r"-\star")),
+        "regressive_product": RenderRule(
+            "infix",
+            symbol=Name("vee", "∨", r"\vee"),
+            precedence=30,
+        ),
+    }
+
+
+def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
+    rules = _conventional_rules()
+
+    def target_rule(operation_id: str, target: str, rule: RenderRule) -> None:
+        rules[(operation_id, target)] = rule
+
+    rga_binary = {
+        "geometric_product": ("gp", Name("gp", "⟑", r"\mathbin{\text{⟑}}")),
+        "geometric_antiproduct": (
+            "geometric_antiproduct",
+            Name("geometric_antiproduct", "⟇", r"\mathbin{\text{⟇}}"),
+        ),
+        "metric_inner_product": ("metric_inner_product", Name("metric_inner_product", "•", r"\bullet")),
+        "antidot_product": ("antidot_product", Name("antidot_product", "∘", r"\circ")),
+        "left_interior_product": (
+            "left_interior_product",
+            Name("left_interior_product", "⌋", r"\rfloor"),
+        ),
+        "right_interior_product": (
+            "right_interior_product",
+            Name("right_interior_product", "⌊", r"\lfloor"),
+        ),
+    }
+    for operation_id, (ascii_name, symbol) in rga_binary.items():
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(operation_id, "unicode", RenderRule("infix", symbol=symbol, precedence=30))
+        target_rule(operation_id, "latex", RenderRule("infix", symbol=symbol, precedence=30))
+
+    for operation_id, ascii_name, symbol in (
+        ("transwedge", "transwedge", Name("transwedge", "⩓", r"\text{⩓}")),
+        (
+            "transwedge_antiproduct",
+            "transwedge_antiproduct",
+            Name("transwedge_antiproduct", "⩔", r"\text{⩔}"),
+        ),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(
+            operation_id,
+            "unicode",
+            RenderRule("infix", symbol=symbol, parameter="order", precedence=30),
+        )
+        target_rule(
+            operation_id,
+            "latex",
+            RenderRule("infix", symbol=symbol, parameter="order", precedence=30),
+        )
+
+    for operation_id, ascii_name, accent, kind in (
+        ("right_complement", "right_complement", Name("bar", "\u0305", r"\overline"), "accent"),
+        ("left_complement", "left_complement", Name("underline", "\u0332", r"\underline"), "underaccent"),
+        ("antireverse", "antireverse", Name("utilde", "\u0330", r"\utilde"), "underaccent"),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(operation_id, "unicode", RenderRule(kind, symbol=accent))
+        target_rule(operation_id, "latex", RenderRule(kind, symbol=accent))
+
+    for operation_id, ascii_name, symbol, kind in (
+        ("right_hodge_dual", "right_hodge_dual", Name("star", "★", r"\text{★}"), "superscript"),
+        ("left_hodge_dual", "left_hodge_dual", Name("star", "★", r"\text{★}"), "subscript"),
+        ("right_weight_dual", "right_weight_dual", Name("white_star", "☆", r"\text{☆}"), "superscript"),
+        ("left_weight_dual", "left_weight_dual", Name("white_star", "☆", r"\text{☆}"), "subscript"),
+        ("bulk_part", "bulk_part", Name("bulk", "●", r"\text{●}"), "subscript"),
+        ("weight_part", "weight_part", Name("weight", "○", r"\text{○}"), "subscript"),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(operation_id, "unicode", RenderRule(kind, symbol=symbol))
+        target_rule(operation_id, "latex", RenderRule(kind, symbol=symbol))
+
+    for operation_id, ascii_name, symbol in (
+        ("metric_apply", "metric_apply", Name("G", "G", r"\mathbf{G}")),
+        ("antimetric_apply", "antimetric_apply", Name("antiG", "𝔾", r"\mathbb{G}")),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(operation_id, "unicode", RenderRule("prefix", symbol=symbol))
+        target_rule(operation_id, "latex", RenderRule("prefix", symbol=symbol))
+
+    for target in _RULE_TARGETS:
+        target_rule("conjugate", target, RenderRule("function", symbol="conjugate"))
+    return rules
 
 
 @dataclass(frozen=True, slots=True)
 class DisplayPolicy:
     """Default rendering content and target, independent of notation."""
 
-    content: str = "value"
+    content: str = "auto"
     target: str = "unicode"
 
     def __post_init__(self) -> None:
-        if self.content not in {"name", "expr", "value", "full"}:
-            raise ValueError("display content must be 'name', 'expr', 'value', or 'full'")
+        if self.content not in {"auto", "name", "expr", "value", "full"}:
+            raise ValueError("display content must be 'auto', 'name', 'expr', 'value', or 'full'")
         if self.target not in {"ascii", "unicode", "latex"}:
             raise ValueError("display target must be 'ascii', 'unicode', or 'latex'")
 
@@ -268,5 +644,6 @@ __all__ = [
     "ModelConfig",
     "Notation",
     "PresentationConfig",
+    "RenderRule",
     "default_presentation",
 ]

@@ -90,6 +90,7 @@ helps future contributors understand why certain choices were made.
 | [075](075-promote-the-core-backed-facade.md) | Promote the Core-Backed Facade Namespace | Accepted |
 | [076](076-immutable-presentation-configuration.md) | Immutable Presentation Configuration and Context-Local Overrides | Accepted |
 | [077](077-optional-expression-provenance.md) | Optional Expression Provenance over Eager Facade Values | Accepted |
+| [078](078-shared-semantic-rendering-pipeline.md) | Shared Semantic Rendering Pipeline | Accepted |
 
 ## Creating New ADRs
 

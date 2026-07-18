@@ -250,13 +250,17 @@ run has 214 passing tests. Branch coverage for the implemented boundary is:
 | `galaga.presets` | 97% |
 | `galaga.facade._numeric` | 98% |
 
-## What remained deliberately absent in Phase 4
+## Later layers now built on this foundation
 
-Phase 4 did not add expression nodes or final string rendering. `Notation`
-provides immutable stable token metadata, and `DisplayPolicy` provides
-selection metadata. Phase 5 has now added optional expression provenance; see
-[Expression provenance implementation](expression-provenance.md).
-Phase 6 converts numeric values and expressions into a shared semantic render
-tree and emits ASCII, Unicode, and LaTeX using the presentation precedence
-defined here. Presentation remains independent: changing a persistent or
-context-local presentation does not change expression identity or evaluation.
+Phase 5 added optional expression provenance; see
+[Expression provenance implementation](expression-provenance.md). Phase 6 has
+now extended `Notation` from stable token metadata to immutable semantic
+`RenderRule` values and implemented the shared render tree, ASCII, Unicode,
+LaTeX, content policy, format protocol, and rich hooks. See
+[Semantic rendering implementation](rendering-implementation.md).
+
+The original presentation invariants remain intact: changing a persistent,
+context-local, or per-render presentation does not change expression identity,
+evaluation, equality, hashing, or numeric coefficients. `DisplayPolicy` now
+also supports `content="auto"`; a name opts into an explanatory equality while
+expression tracking alone continues to display the concrete value by default.

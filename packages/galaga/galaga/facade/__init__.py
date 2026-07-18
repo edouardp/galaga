@@ -28,6 +28,8 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
+from ..display import build_tree as build_render_tree
+from ..display import render
 from ..expression import (
     BladeLiteral,
     Call,
@@ -47,6 +49,7 @@ from ..presentation import (
     ModelConfig,
     Notation,
     PresentationConfig,
+    RenderRule,
     default_presentation,
 )
 from ..presets import (
@@ -206,6 +209,7 @@ __all__ = [
     "ParameterSpec",
     "PGAPreset",
     "PresentationConfig",
+    "RenderRule",
     "Preset",
     "QuaternionPreset",
     "ScalarLiteral",
@@ -217,6 +221,7 @@ __all__ = [
     "antireverse",
     "antiwedge",
     "bulk_part",
+    "build_render_tree",
     "commutator",
     "complex_blade_convention",
     "complement",
@@ -286,6 +291,7 @@ __all__ = [
     "quaternion_blade_convention",
     "quaternion_display_order",
     "regressive_product",
+    "render",
     "rga_blade_convention",
     "rga_display_order",
     "rev",

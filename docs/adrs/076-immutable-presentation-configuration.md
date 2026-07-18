@@ -95,8 +95,8 @@ with algebra.use_presentation(teaching):
 
 The resolution order is explicit per-render presentation, current scoped
 presentation, then the facade view's persistent presentation. The explicit
-hook is implemented now through `resolve_presentation`; renderers will consume
-it in Phase 6.
+hook is implemented through `resolve_presentation`; the Phase 6 semantic
+renderer now consumes it for every facade display route.
 
 ## Consequences
 

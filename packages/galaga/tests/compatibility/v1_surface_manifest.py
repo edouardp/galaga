@@ -466,6 +466,7 @@ SUPPORTED_SUBMODULES = {
     "galaga.blade_convention": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.blades", "phase-7"),
     "galaga.blades": SurfaceDisposition("presentation", "retain", "galaga.blades", "permanent"),
     "galaga.core": SurfaceDisposition("core", "retain", "galaga.core", "permanent"),
+    "galaga.display": SurfaceDisposition("rendering", "retain", "galaga.display", "permanent"),
     "galaga.expr": SurfaceDisposition("expression", "compatibility-reexport", "galaga.expression", "phase-7"),
     "galaga.expression": SurfaceDisposition("expression", "retain", "galaga.expression", "permanent"),
     "galaga.facade": SurfaceDisposition("facade", "retain", "galaga.facade", "permanent"),
@@ -509,6 +510,7 @@ SUPPORTED_SUBMODULES = {
     "galaga.presentation": SurfaceDisposition("presentation", "retain", "galaga.presentation", "permanent"),
     "galaga.presets": SurfaceDisposition("presentation", "retain", "galaga.presets", "permanent"),
     "galaga.render": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
+    "galaga.rendering": SurfaceDisposition("rendering", "retain", "galaga.rendering", "permanent"),
     "galaga.simplify": SurfaceDisposition(
         "expression", "compatibility-reexport", "galaga.expression.simplify", "phase-7"
     ),
@@ -534,6 +536,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.blade_convention",
         "galaga.blades",
         "galaga.core",
+        "galaga.display",
         "galaga.expr",
         "galaga.expression",
         "galaga.facade",
@@ -550,6 +553,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.presentation",
         "galaga.presets",
         "galaga.render",
+        "galaga.rendering",
         "galaga.simplify",
         "galaga.symbolic",
         "galaga.symbolic_core",

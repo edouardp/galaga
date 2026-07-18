@@ -858,6 +858,8 @@ Phase 5 exit gate:
 
 ## Phase 6: rebuild notation and rendering
 
+Status: **complete (2026-07-19)**.
+
 Rendering consumes values or expression trees and a presentation. It never
 performs geometric-algebra computation.
 
@@ -935,6 +937,33 @@ Phase 6 exit gate:
 - the precedence suite proves unambiguous output; and
 - changing notation or target cannot change expression evaluation or numeric
   coefficients.
+
+Phase 6 exit evidence recorded on 2026-07-19:
+
+- `galaga.rendering.tree` owns one immutable semantic model and one
+  precedence/associativity algorithm for values and expressions;
+- expression calls validate stable catalog IDs without invoking numeric
+  evaluators, while concrete values honor signed blade labels and display
+  order;
+- immutable generic and target-specific `RenderRule` values provide complete
+  long functional fallback, optional short functions, and conventional,
+  Doran-Lasenby, Hestenes, and Lengyel/RGA presets;
+- competing inner products are distinct in every preset and output target;
+- ASCII, Unicode, and LaTeX emitters cover every node family and import no
+  legacy numeric or rendering implementation;
+- `galaga.display` independently resolves content and target with explicit,
+  scoped, and persistent precedence, and every facade display hook delegates
+  to it;
+- signed RGA blades, ambiguous precedence cases, target escaping, and async
+  presentation isolation have dedicated structural and golden tests;
+- the full Python 3.11 Galaga suite passes 2,738 tests with 19 skips; focused
+  rendering/presentation coverage records 91% branch coverage for emission,
+  87% for the semantic tree, 80% for display policy, and 76% for the builder;
+  and
+- focused Ruff and Pyrefly validation passes. The architecture and ownership
+  are recorded in
+  [Semantic rendering implementation](rendering-implementation.md) and
+  [ADR-078](../adrs/078-shared-semantic-rendering-pipeline.md).
 
 ## Phase 7: migrate compatibility and companion packages
 

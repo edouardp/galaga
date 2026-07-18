@@ -22,6 +22,9 @@
 - [Expression provenance implementation](expression-provenance.md) explains
   the immutable nodes, independent value state, catalog-driven propagation and
   evaluation, variadic lowering, and conservative simplifier.
+- [Semantic rendering implementation](rendering-implementation.md) decomposes
+  the shared render tree, precedence model, immutable notation rules, emitters,
+  content policy, rich hooks, and scoped teaching presentations.
 - [Migration engineering techniques](migration-engineering-techniques.md)
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
@@ -31,7 +34,7 @@
 
 ## Current status
 
-Phases 0 through 5 of the core cutover plan are complete on `galaga_v2`. The
+Phases 0 through 6 of the core cutover plan are complete on `galaga_v2`. The
 proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
 replacement contract is checked in and executable; `galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
@@ -43,9 +46,13 @@ async-safe scoped overrides. Optional immutable expression provenance now
 records eager operation history through the same catalog, supports independent
 name/tracking state, replays across every supported metric family, and
 constructs no expression object on the disabled path.
+Numeric values and expressions now pass through one format-neutral semantic
+tree, one precedence model, immutable operation-ID notation, and shared ASCII,
+Unicode, and LaTeX emitters. Content and target are independently selectable,
+and facade string, format, and rich-display hooks use the same context-safe
+pipeline.
 
-Phase 6 is next: a shared semantic render tree and ASCII, Unicode, and LaTeX
-renderers for numeric values and expressions.
+Phase 7 is next: compatibility adapters and companion-package migrations.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.
@@ -57,6 +64,7 @@ phases make the final shadow cutover safe.
 - [ADR-075: Promote the core-backed facade](../adrs/075-promote-the-core-backed-facade.md)
 - [ADR-076: Immutable presentation configuration](../adrs/076-immutable-presentation-configuration.md)
 - [ADR-077: Optional expression provenance](../adrs/077-optional-expression-provenance.md)
+- [ADR-078: Shared semantic rendering pipeline](../adrs/078-shared-semantic-rendering-pipeline.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

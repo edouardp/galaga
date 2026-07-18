@@ -156,7 +156,7 @@ class LengyelRGAPreset:
             definition=AlgebraDefinition.from_signature((1, 1, 1, 0), id="lengyel-rga-3d"),
             presentation=_presentation(
                 blades,
-                notation=Notation("lengyel-rga"),
+                notation=Notation.lengyel(),
                 display_order=rga_display_order(),
             ),
             model=_model("lengyel-rga", blades),
