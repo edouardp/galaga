@@ -19,7 +19,6 @@ dev = [
 
 [tool.uv.sources]
 galaga = { workspace = true }
-gram = { path = "../gram", editable = true }
 
 [tool.ruff]
 target-version = "py311"

@@ -1,6 +1,6 @@
-"""Composition-based numeric facade over :mod:`gram`.
+"""Composition-based numeric facade over :mod:`galaga.core`.
 
-This is the first migration slice.  Values contain only a concrete Gram value
+This is the first migration slice. Values contain only a concrete core value
 and an owning facade algebra; names, expression provenance, conventions, and
 rendering are intentionally absent.
 """
@@ -12,33 +12,33 @@ from numbers import Integral, Real
 from types import NotImplementedType
 from typing import Any, cast
 
-import gram
 import numpy as np
 
+from .. import core
 from .catalog import LeftFoldCall, get_operation
 
 
 class Algebra:
-    """A lightweight owner of one immutable :class:`gram.Algebra`."""
+    """A lightweight owner of one immutable :class:`core.Algebra`."""
 
     __slots__ = ("_basis_vectors", "_numeric")
 
     def __init__(self, *args: Any, **kwargs: Any) -> None:
-        self._numeric = gram.Algebra(*args, **kwargs)
+        self._numeric = core.Algebra(*args, **kwargs)
         self._basis_vectors: tuple[Multivector, ...] | None = None
 
     @classmethod
-    def from_numeric(cls, numeric: gram.Algebra) -> Algebra:
+    def from_numeric(cls, numeric: core.Algebra) -> Algebra:
         """Create a facade over an existing numeric algebra."""
-        if not isinstance(numeric, gram.Algebra):
-            raise TypeError("numeric must be a gram.Algebra")
+        if not isinstance(numeric, core.Algebra):
+            raise TypeError("numeric must be a core.Algebra")
         instance = cls.__new__(cls)
         instance._numeric = numeric
         instance._basis_vectors = None
         return instance
 
     @property
-    def numeric(self) -> gram.Algebra:
+    def numeric(self) -> core.Algebra:
         """The wrapped numeric algebra."""
         return self._numeric
 
@@ -90,9 +90,9 @@ class Algebra:
     def I(self) -> Multivector:  # noqa: E743 - conventional pseudoscalar name
         return self.pseudoscalar()
 
-    def _wrap(self, value: gram.Multivector) -> Multivector:
-        if not isinstance(value, gram.Multivector):
-            raise TypeError("facade can only wrap a gram.Multivector")
+    def _wrap(self, value: core.Multivector) -> Multivector:
+        if not isinstance(value, core.Multivector):
+            raise TypeError("facade can only wrap a core.Multivector")
         if value.algebra is not self._numeric:
             raise ValueError("numeric multivector belongs to a different algebra")
         return Multivector(self, value)
@@ -132,7 +132,7 @@ class Algebra:
 
     def _check_value(self, value: Multivector) -> None:
         if not isinstance(value, Multivector):
-            raise TypeError("expected a Gram facade Multivector")
+            raise TypeError("expected a core facade Multivector")
         if value.numeric.algebra is not self._numeric:
             raise ValueError("multivector belongs to a different numeric algebra")
 
@@ -141,15 +141,15 @@ class Algebra:
 
 
 class Multivector:
-    """An immutable facade value containing one concrete Gram multivector."""
+    """An immutable facade value containing one concrete core multivector."""
 
     __slots__ = ("_algebra", "_numeric")
 
-    def __init__(self, algebra: Algebra, numeric: gram.Multivector) -> None:
+    def __init__(self, algebra: Algebra, numeric: core.Multivector) -> None:
         if not isinstance(algebra, Algebra):
-            raise TypeError("algebra must be a Gram facade Algebra")
-        if not isinstance(numeric, gram.Multivector):
-            raise TypeError("numeric must be a gram.Multivector")
+            raise TypeError("algebra must be a core facade Algebra")
+        if not isinstance(numeric, core.Multivector):
+            raise TypeError("numeric must be a core.Multivector")
         if numeric.algebra is not algebra.numeric:
             raise ValueError("numeric multivector belongs to a different algebra")
         self._algebra = algebra
@@ -160,7 +160,7 @@ class Multivector:
         return self._algebra
 
     @property
-    def numeric(self) -> gram.Multivector:
+    def numeric(self) -> core.Multivector:
         return self._numeric
 
     @property
@@ -320,7 +320,7 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
             numeric_args.append(argument)
 
     result = operation.invoke(*numeric_args, **kwargs)
-    if isinstance(result, gram.Multivector):
+    if isinstance(result, core.Multivector):
         if owner is None:
             raise RuntimeError(f"{operation_id} produced a value without an owner")
         return owner._wrap(result)

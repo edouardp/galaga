@@ -1,13 +1,13 @@
-"""Numeric parity tests for the opt-in Gram-backed facade."""
+"""Numeric parity tests for the opt-in core-backed facade."""
 
 from __future__ import annotations
 
 from collections.abc import Callable
 
-import gram
 import numpy as np
 import pytest
 
+from galaga import core
 from galaga.gram_bridge import (
     EXCLUDED_PUBLIC_NAMES,
     OPERATIONS,
@@ -40,7 +40,7 @@ class TestConstructionAndValues:
     def test_wraps_native_gram_algebra_without_copying_public_metadata(self) -> None:
         algebra = Algebra(gram=native_cga_gram())
 
-        assert isinstance(algebra.numeric, gram.Algebra)
+        assert isinstance(algebra.numeric, core.Algebra)
         assert np.array_equal(algebra.gram, native_cga_gram())
         assert algebra.inertia == (4, 1, 0)
         assert not algebra.is_orthogonal_basis
@@ -89,22 +89,22 @@ class TestCatalogAndParity:
     @pytest.mark.parametrize(
         ("facade_operation", "numeric_operation"),
         (
-            (outer_product, gram.outer_product),
-            (scalar_product, gram.scalar_product),
-            (metric_inner_product, gram.metric_inner_product),
-            (left_contraction, gram.left_contraction),
-            (right_contraction, gram.right_contraction),
-            (hestenes_inner, gram.hestenes_inner),
-            (doran_lasenby_inner, gram.doran_lasenby_inner),
-            (commutator, gram.commutator),
-            (anticommutator, gram.anticommutator),
+            (outer_product, core.outer_product),
+            (scalar_product, core.scalar_product),
+            (metric_inner_product, core.metric_inner_product),
+            (left_contraction, core.left_contraction),
+            (right_contraction, core.right_contraction),
+            (hestenes_inner, core.hestenes_inner),
+            (doran_lasenby_inner, core.doran_lasenby_inner),
+            (commutator, core.commutator),
+            (anticommutator, core.anticommutator),
         ),
         ids=lambda operation: getattr(operation, "__name__", str(operation)),
     )
     def test_binary_operation_matches_direct_gram_evaluation(
         self,
         facade_operation: Callable[[Multivector, Multivector], Multivector],
-        numeric_operation: Callable[[gram.Multivector, gram.Multivector], gram.Multivector],
+        numeric_operation: Callable[[core.Multivector, core.Multivector], core.Multivector],
     ) -> None:
         algebra = Algebra(
             gram=np.array(
@@ -132,7 +132,7 @@ class TestCatalogAndParity:
         algebra = Algebra(3)
         value = algebra.multivector(np.arange(algebra.dim) - 2)
 
-        assert reverse(value).numeric == gram.reverse(value.numeric)
+        assert reverse(value).numeric == core.reverse(value.numeric)
 
     def test_catalog_separates_binary_arity_from_variadic_call_policy(self) -> None:
         for name in ("geometric_product", "outer_product"):
@@ -140,16 +140,16 @@ class TestCatalogAndParity:
             assert operation.arity == 2
             assert isinstance(operation.call_policy, LeftFoldCall)
 
-    def test_every_gram_public_name_is_cataloged_or_deliberately_excluded(
+    def test_every_core_public_name_is_cataloged_or_deliberately_excluded(
         self,
     ) -> None:
-        gram_public = set(gram.__all__)
-        classified_public = (set(OPERATIONS) & gram_public) | set(EXCLUDED_PUBLIC_NAMES)
+        core_public = set(core.__all__)
+        classified_public = (set(OPERATIONS) & core_public) | set(EXCLUDED_PUBLIC_NAMES)
 
-        assert gram_public == classified_public
+        assert core_public == classified_public
         assert set(OPERATIONS).isdisjoint(EXCLUDED_PUBLIC_NAMES)
         assert all(EXCLUDED_PUBLIC_NAMES.values())
-        assert set(OPERATIONS) - gram_public == {
+        assert set(OPERATIONS) - core_public == {
             "add",
             "negate",
             "power",

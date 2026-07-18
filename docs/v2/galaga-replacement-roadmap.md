@@ -1,0 +1,166 @@
+# Galaga Numeric-Algebra Replacement Roadmap
+
+> **Planning role:** This is a capability roadmap. The normative replacement
+> sequence, work units, required tests, and exit gates are in the
+> [Galaga 2 core cutover plan](core-cutover-plan.md). Existing numeric tests are
+> classified in the
+> [numeric test migration inventory](numeric-test-migration-inventory.md).
+
+## Goal
+
+Replace Galaga's diagonal-only numeric `Algebra` with `galaga.core`
+while leaving naming, notation, rendering, and expression trees as consumers
+above the numeric boundary.
+
+The goal is not merely API resemblance. A replacement must preserve diagonal
+behavior, add native nonorthogonal metrics, keep degenerate algebras useful,
+and give companion packages a public integration surface that does not expose
+product-table internals.
+
+## What is complete
+
+| Area | Current state |
+|---|---|
+| Metric model | Immutable real symmetric Gram matrix; `p,q,r` and signature constructors normalize to it |
+| Exterior representation | Dense immutable `float64` coefficients in bitmask exterior order |
+| Metric metadata | Basis squares, inertia, rank, determinant, degeneracy, orthogonality |
+| Geometric product | Diagonal, packed general-Gram, bounded lazy, and dense-reference backends |
+| Exterior product | Direct metric-independent bitmask implementation |
+| Grade-selected products | Left/right contractions, Hestenes, Doran–Lasenby, scalar product |
+| Metric pairing | Compound-matrix metric inner product and antimetric pairing |
+| Duality | Complements, metric duals, Hodge and weight duals, regressive products |
+| RGA layer | Antiproduct, antidot, bulk/weight, interiors, transwedge families |
+| Core numeric API | Arithmetic, checked scalar conversion, involutions, grades, powers, norm, unit, inverse, predicates, sandwich |
+| Numeric functions | Scalar and Study square roots, general exponential, Study-rotor logarithm, and outer transcendental functions |
+| Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
+
+## Remaining work
+
+### 1. Linear maps and basis changes
+
+Promote the test-only outermorphism helper into a validated public facility:
+
+- extend a vector map to every exterior grade;
+- support source and target algebras with different native bases;
+- materialize exterior-map matrices when requested;
+- validate metric-preserving maps;
+- provide inverse basis changes and, later, adjoints and reciprocal frames.
+
+This removes duplicated change-of-basis code and gives native Gram metrics a
+first-class interoperability story.
+
+### 2. Matrix-package migration
+
+`galaga_matrix` currently reads `_mul_index` and `_mul_sign`, which cannot
+represent a nonorthogonal blade product. It must instead:
+
+1. use `Algebra.left_action()` for left-regular representations;
+2. classify abstract algebras with `inertia` rather than `signature`;
+3. round-trip general-Gram values in left-regular mode;
+4. reject nonorthogonal compact mode clearly until basis transformation is
+   implemented;
+5. eventually transform canonical compact generators so their
+   anticommutators reproduce the supplied Gram matrix.
+
+This is the principal companion-package blocker.
+
+### 3. Galaga compatibility facade
+
+The architecture and phased implementation are specified in the
+[presentation and expression layer plan](presentation-symbolic-layer-plan.md).
+The proposed boundary is a composition facade: Galaga values wrap core values,
+and expression provenance is an optional outer-layer concern.
+
+The cutover needs an explicit policy for API elements that are numeric-adjacent
+but not part of the core metric engine:
+
+- positional signature tuples versus keyword-only `signature=`;
+- string blade lookup and `locals()`;
+- blade conventions and display order;
+- scalar constants and named fractions;
+- exact equality plus `almost_equal` versus legacy approximate `__eq__`;
+- checked `__float__` compatibility versus any future NumPy array/ufunc
+  protocol surface;
+- migration of the current `.scalar_part` member to, at most, an optional
+  standalone helper equivalent to `float(grade(value, 0))`;
+- legacy aliases and deprecation warnings.
+
+The corrected bracket family must also migrate into Galaga. In the current
+core, `lie_bracket` and `commutator` are unscaled, `jordan_product` and
+`anticommutator` are unscaled, and only the two `half_...` functions divide by
+two.
+
+Thin geometry conveniences should also remain in this facade or a dedicated
+helper layer. `Algebra.rotor` is `exp` applied to a normalized plane-angle
+generator; `project`, `reject`, and `reflect` are short compositions of
+contractions, products, and `inverse`. Compatibility aliases such as `wedge`,
+`rev`, and `normalize` likewise add vocabulary rather than numeric capability.
+They should be audited rather than recreated mechanically: users can select
+their own concise local names with ordinary import aliases, and only
+migration-critical spellings need temporary facade shims. The numeric core does
+not need to duplicate them.
+
+An unqualified `ip` or `inner_product` should not become a permanent facade
+choice. If needed for migration, it should be a deprecated adapter. Users who
+want a short local spelling can write, for example,
+`from galaga import doran_lasenby_inner as ip`. The library contract should
+keep competing conventions explicit.
+
+### 4. Native CGA surface
+
+Once linear maps and facade metadata exist, add:
+
+- metric-aware origin/infinity conventions;
+- `up`, `down`, and `homo`;
+- point, line, plane, circle, sphere, and point-pair constructors;
+- examples comparing orthogonal and native-null frames.
+
+These functions should consume explicit null-pair and Euclidean-subspace
+metadata rather than guessing from display names.
+
+### 5. Production hardening
+
+- Add a versor fast path and Hitzer/Shirokov paths to `inverse`, retaining the
+  left-regular solve as a verification fallback.
+- Replace the dense left-action norm used to scale general exponentials with a
+  cheaper certified bound before targeting large dimensions.
+- Add a general non-Study rotor logarithm or multivector square-root algorithm
+  only with a documented real branch and an independent oracle; the current
+  functions deliberately reject those domains.
+- Add memory guards or operator forms for dense compound metric matrices.
+- Measure dense-multivector workloads on the lazy backend and tune caching or
+  packed selection from evidence.
+- Run Galaga's non-symbolic reference suites against the new core.
+- Establish diagonal-backend performance baselines.
+- Add serialization only after the final facade boundary is settled.
+
+## Recommended sequence
+
+```mermaid
+flowchart LR
+    O[Public outermorphisms] --> M[galaga_matrix left-regular migration]
+    C[Operation catalog] --> F[Numeric facade]
+    F --> B[Blade conventions and presets]
+    B --> S[Expression tracking and rendering]
+    M --> X[Integration cutover]
+    S --> X
+    O --> G[Native CGA conveniences]
+    G --> X
+    X --> H[Performance hardening]
+```
+
+Numeric function parity is complete. Outermorphisms remain the next numeric
+capability because matrix and CGA work share them. The facade catalog and
+wrapper shell can proceed as an independent presentation track; the two tracks
+meet when companion packages cut over.
+
+## Explicit non-goals for the numeric core
+
+- Expression-tree construction or simplification
+- Notation and LaTeX rendering
+- Symbolic Gram entries or coefficients
+- Complexified Clifford algebras
+- Nonsymmetric bilinear forms
+- Hidden diagonalization of the user's native basis
+- Implicit NumPy array or ufunc reinterpretation of a multivector
+- Sparse multivector coefficient storage in the initial replacement

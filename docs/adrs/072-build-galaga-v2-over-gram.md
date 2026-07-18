@@ -1,10 +1,15 @@
 ---
-status: accepted
+status: superseded
 date: 2026-07-18
 deciders: edouard
+superseded-by: ADR-073
 ---
 
 # ADR-072: Build Galaga 2.0 over the Gram Numeric Core
+
+> **Superseded by [ADR-073](073-move-the-numeric-core-into-galaga.md).** The
+> composition boundary remains accepted, but the numeric core now lives in the
+> `galaga.core` namespace instead of a separately distributed `gram` package.
 
 ## Context and problem statement
 

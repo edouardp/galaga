@@ -2,6 +2,13 @@
 
 High-level principles that guide the `galaga` geometric algebra library.
 
+> **Galaga 2 migration:** [`galaga.core`](core/README.md) is now the numeric
+> engine of record. It coexists with the legacy `galaga.algebra` implementation
+> until the composition facade passes the compatibility suite and becomes the
+> top-level API. ADR-073 records this additive migration boundary. Sections
+> describing `galaga.algebra` and its expression behavior document the legacy
+> implementation during that transition.
+
 ## Project posture
 
 Galaga is primarily a pedagogical geometric algebra library. It is not trying
@@ -36,20 +43,38 @@ uses the geometric algebra approach to inner products while naming each
 competing GA convention explicitly.
 
 - Inner products: `left_contraction`, `right_contraction`, `hestenes_inner`, `doran_lasenby_inner`, `scalar_product` — all available, all named.
-- Commutator family: `commutator` (ab − ba), `lie_bracket` (½(ab − ba)), `anticommutator` (ab + ba), `jordan_product` (½(ab + ba)) — four functions, no boolean flags.
+- Commutator family: `commutator` and `lie_bracket` are $ab-ba$;
+  `anticommutator` and `jordan_product` are $ab+ba$. The explicitly named
+  `half_commutator` and `half_anticommutator` introduce the factor of one half.
 - The `|` operator maps to Doran–Lasenby inner, but that's documented sugar, not a hidden choice.
 
 ## 3. Explicit over implicit
 
-Two named functions beat one function with a mode flag. `lie_bracket(a, b)` is self-documenting; `commutator(a, b, half=True)` is not.
+Two named functions beat one function with a mode flag. `half_commutator(a,
+b)` is self-documenting; `commutator(a, b, half=True)` is not.
 
-The ½ in `lie_bracket` vs `commutator` is not a formatting choice — it changes the algebraic convention. That distinction deserves its own name.
+The factor in `half_commutator` versus `commutator` is not a formatting choice;
+it changes the algebraic convention. That distinction deserves its own name.
 
 ## 4. Aliases exist for convenience, not as separate implementations
 
 `wedge` is literally `op`. `rev` is literally `reverse`. `normalize` is literally `unit`. They share the same function object — no divergence, no maintenance burden.
 
-## 5. Three-layer architecture
+## 5. Layered architecture
+
+The Galaga 2 target separates the layers as follows:
+
+- **`galaga.core`** — Immutable numeric algebras and multivectors, product
+  backends, metric extensions, and named numeric functions. It imports no
+  presentation or expression code.
+- **Galaga facade and operation catalog** — Composition wrappers that delegate
+  numeric work to `galaga.core` while coordinating conventions, names, and
+  optional expression provenance.
+- **Presentation and integrations** — Blade conventions, notation, semantic
+  rendering, and optional notebook or companion packages.
+
+The following modules describe the legacy implementation retained during the
+additive migration:
 
 - **`galaga.ops`** — The operation registry. A leaf module with no internal dependencies. Every GA operation is registered here via `@ga_op` with algebraic metadata (name, arity, grade rule). The symbolic layer registers handlers against operation names. This breaks the circular dependency between algebra and expr.
 - **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays. Never imports `expr`.

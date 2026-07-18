@@ -22,7 +22,6 @@ classifiers = [
     "Typing :: Typed",
 ]
 dependencies = [
-    "gram>=0.1.0",
     "numpy>=1.24",
 ]
 

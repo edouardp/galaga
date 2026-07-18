@@ -2,9 +2,8 @@
 
 ## Status
 
-Superseded as an in-Galaga implementation by ADR-072. The mathematical
-requirements are implemented by the separate Gram numeric core and consumed
-through Galaga's composition facade.
+Implemented by `galaga.core` under ADR-073. This proposal remains as the
+original problem statement and design analysis for native Gram matrices.
 
 ## Summary
 

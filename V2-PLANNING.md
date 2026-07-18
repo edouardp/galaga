@@ -1,15 +1,22 @@
 # Galaga Version 2 Planning
 
 > **Implementation status (2026-07-18):** The `galaga_v2` branch targets
-> Galaga 2.0 with Gram as its required numeric engine. The existing material
-> below predates the Gram core and remains an issue inventory, not the
-> normative architecture. ADR-072 records the replacement boundary. Migration
-> begins with the opt-in `galaga.gram_bridge` facade; the existing top-level
-> `galaga.Algebra` is not replaced until the numeric compatibility suite passes
-> against that facade.
+> Galaga 2.0 with `galaga.core` as its required numeric engine. The core was
+> proved in the standalone Gram repository and now lives inside the Galaga
+> package; ADR-073 records that consolidation. The existing material below
+> predates the core and remains an issue inventory, not the normative
+> architecture. The current sequence is in the
+> [Galaga 2 core cutover plan](docs/v2/core-cutover-plan.md); the
+> [presentation and expression layer plan](docs/v2/presentation-symbolic-layer-plan.md)
+> explains the target architecture, and the
+> [numeric test migration inventory](docs/v2/numeric-test-migration-inventory.md)
+> identifies the legacy tests that must move to core or run against the facade.
+> Migration continues through the opt-in `galaga.gram_bridge`
+> facade; the existing top-level `galaga.Algebra` is not replaced until the
+> numeric compatibility suite passes against that facade.
 
 This document records changes considered for Galaga 2.0. Some questions have
-since been decided by the Gram-backed facade architecture; newer ADRs,
+since been decided by the core-backed facade architecture; newer ADRs,
 executable behavior, and the implementation plan take precedence.
 
 ## Current issues to assess

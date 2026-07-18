@@ -2,6 +2,14 @@
 
 A numeric geometric algebra library with a stable, programmer-first API.
 
+> **Galaga 2 development:** The `galaga_v2` branch now contains the proven
+> Gram-matrix numeric engine in
+> [`galaga.core`](https://github.com/edouardp/galaga/blob/galaga_v2/docs/core/README.md).
+> This first migration phase is additive: the documented top-level
+> `galaga.Algebra` below still resolves to the existing implementation while
+> compatibility and facade tests are ported. See
+> [ADR-073](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/073-move-the-numeric-core-into-galaga.md).
+
 - **Single dependency** — only NumPy. No framework lock-in, installs in seconds
 - **Named functions are the contract** — `gp`, `op`, `grade`, `reverse`, `dual`, `inverse` never change meaning
 - **Operators are sugar** — `*`, `^`, `|`, `~` are convenience only

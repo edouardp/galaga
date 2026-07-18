@@ -1,6 +1,7 @@
-"""Experimental numeric Galaga facade backed by :mod:`gram`.
+"""Experimental numeric Galaga facade backed by :mod:`galaga.core`.
 
-The bridge is deliberately opt-in during migration.  Importing ``galaga``
+The historically named bridge is deliberately opt-in during migration.
+Importing ``galaga``
 continues to expose the current implementation until the compatibility and
 presentation layers are ready for cutover.
 """

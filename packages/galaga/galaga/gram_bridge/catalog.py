@@ -1,4 +1,4 @@
-"""Operation metadata for the experimental Gram-backed Galaga facade.
+"""Operation metadata for the experimental core-backed Galaga facade.
 
 This module owns call-shape policy but no expression or rendering state.  A
 numeric evaluator and an expression node remain binary even when the public
@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from types import MappingProxyType
 from typing import Any, Protocol
 
-import gram
+from .. import core
 
 
 class CallPolicy(Protocol):
@@ -89,7 +89,7 @@ class OperationSpec:
         return self.call_policy.invoke(self, args, kwargs)
 
 
-def _gram_operation(
+def _core_operation(
     name: str,
     arity: int,
     *,
@@ -99,7 +99,7 @@ def _gram_operation(
     return OperationSpec(
         id=name,
         arity=arity,
-        evaluate=getattr(gram, name),
+        evaluate=getattr(core, name),
         call_policy=call_policy or FixedCall(),
         operator=operator,
     )
@@ -124,7 +124,7 @@ def _structural_operations() -> tuple[OperationSpec, ...]:
     )
 
 
-def _gram_operations() -> tuple[OperationSpec, ...]:
+def _core_operations() -> tuple[OperationSpec, ...]:
     unary = (
         "antimetric_apply",
         "antireverse",
@@ -167,9 +167,9 @@ def _gram_operations() -> tuple[OperationSpec, ...]:
         "weight_part",
     )
 
-    specs = [_gram_operation(name, 1) for name in unary]
+    specs = [_core_operation(name, 1) for name in unary]
     specs.extend(
-        _gram_operation(name, 2)
+        _core_operation(name, 2)
         for name in (
             "antidot_product",
             "anticommutator",
@@ -195,31 +195,31 @@ def _gram_operations() -> tuple[OperationSpec, ...]:
     )
     specs.extend(
         (
-            _gram_operation(
+            _core_operation(
                 "geometric_product",
                 2,
                 call_policy=LeftFoldCall(),
                 operator="*",
             ),
-            _gram_operation(
+            _core_operation(
                 "outer_product",
                 2,
                 call_policy=LeftFoldCall(),
                 operator="^",
             ),
-            _gram_operation("grade", 2, operator="[]"),
-            _gram_operation("grades", 2),
-            _gram_operation("transwedge", 3),
-            _gram_operation("transwedge_antiproduct", 3),
+            _core_operation("grade", 2, operator="[]"),
+            _core_operation("grades", 2),
+            _core_operation("transwedge", 3),
+            _core_operation("transwedge_antiproduct", 3),
         )
     )
     return tuple(specs)
 
 
-_operation_items = (*_structural_operations(), *_gram_operations())
+_operation_items = (*_structural_operations(), *_core_operations())
 _operation_dict = {operation.id: operation for operation in _operation_items}
 if len(_operation_dict) != len(_operation_items):
-    raise RuntimeError("duplicate operation id in Gram facade catalog")
+    raise RuntimeError("duplicate operation id in core facade catalog")
 
 OPERATIONS: Mapping[str, OperationSpec] = MappingProxyType(_operation_dict)
 
@@ -242,7 +242,7 @@ def get_operation(operation_id: str) -> OperationSpec:
     try:
         return OPERATIONS[operation_id]
     except KeyError as error:
-        raise KeyError(f"unknown Gram facade operation {operation_id!r}") from error
+        raise KeyError(f"unknown core facade operation {operation_id!r}") from error
 
 
 __all__ = [
