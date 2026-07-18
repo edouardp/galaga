@@ -28,6 +28,9 @@
 - [Compatibility shims](compatibility-shims.md) records permanent same-object
   aliases, temporary warning adapters, ambiguous-name guidance, and bridge
   retirement policy.
+- [Matrix migration](matrix-migration.md) explains how left-regular
+  representations now consume public facade linear actions and general Gram
+  metadata.
 - [Migration engineering techniques](migration-engineering-techniques.md)
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
@@ -59,8 +62,10 @@ Phase 7 is in progress. Its compatibility policy is implemented: permanent
 concise aliases are exact canonical objects, temporary v1 spellings and the
 `gram_bridge` paths warn with executable replacement guidance, ambiguous inner
 products remain absent, and redundant generic geometry helpers are classified
-for removal. The next work unit migrates `galaga_matrix` to public core-backed
-linear actions without private multiplication tables.
+for removal. `galaga_matrix` now uses public core-backed linear actions,
+basis-independent inertia, and general-Gram-safe mode selection without private
+multiplication tables. The next work unit migrates examples and the optional
+Marimo and Mermaid integrations.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.

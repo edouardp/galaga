@@ -232,11 +232,13 @@ def test_deliberate_v2_scalar_and_inner_product_corrections_are_visible() -> Non
     assert V2_ADDITIONS <= set(facade.__all__)
 
 
-def test_accidental_private_dependencies_remain_visible_until_phase_7() -> None:
+def test_accidental_private_dependencies_are_removed_as_phase_7_advances() -> None:
     repository = Path(__file__).parents[4]
     matrix_source = (repository / "packages/galaga_matrix/galaga_matrix/matrix.py").read_text()
     mermaid_source = (repository / "packages/galaga_mermaid/galaga_mermaid/mermaid.py").read_text()
 
-    assert "alg._mul_index" in matrix_source
-    assert "alg._mul_sign" in matrix_source
+    assert "_mul_index" not in matrix_source
+    assert "_mul_sign" not in matrix_source
+    assert "from galaga.facade import Algebra, Multivector" in matrix_source
+    assert "left_action" in matrix_source
     assert "mv._to_expr()" in mermaid_source

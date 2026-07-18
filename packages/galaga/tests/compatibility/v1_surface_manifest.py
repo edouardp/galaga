@@ -576,9 +576,9 @@ COMPANION_TOUCHPOINTS = {
 ACCIDENTAL_PRIVATE_DEPENDENCIES = {
     "galaga_matrix:Algebra._mul_index/_mul_sign": SurfaceDisposition(
         "integration",
-        "replace-private-table-access",
+        "replaced-private-table-access",
         "galaga.core.Algebra.left_action and public linear-action APIs",
-        "phase-7",
+        "phase-7-complete",
     ),
     "galaga_matrix:Multivector._to_expr/_expr/_is_symbolic": SurfaceDisposition(
         "expression",

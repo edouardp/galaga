@@ -1029,6 +1029,8 @@ future model-specific API rather than a generic numeric-core primitive.
 
 ### W7.3 Migrate `galaga_matrix`
 
+Status: **complete (2026-07-19)**.
+
 Deliverables:
 
 - use public left-action or representation APIs;
@@ -1046,6 +1048,29 @@ Required tests:
   the supplied Gram matrix;
 - round trips preserve coefficients where supported; and
 - repository searches and import tests find no private-table dependency.
+
+Completion evidence:
+
+- `galaga_matrix` imports the Galaga 2 facade types and materializes native
+  left-regular matrices through public `Algebra.left_action`;
+- a temporary v1 path builds representation columns through public geometric
+  products and contains no multiplication-table access;
+- mode selection uses inertia and the stored Gram matrix, so general and
+  degenerate metrics select left-regular mode without asking for a lossy
+  signature tuple;
+- oblique and native-null generator matrices satisfy
+  `L(e_i)L(e_j) + L(e_j)L(e_i) = 2 G_ij I`;
+- general-Gram facade values round-trip their coefficients and normalized
+  diagonal compact products retain existing behavior;
+- compact mode rejects nonorthogonal and scaled metrics with a direct
+  `left-regular` replacement; and
+- source-level architecture tests forbid `_mul_index`, `_mul_sign`, and legacy
+  numeric type imports;
+- all 347 matrix tests pass, and the combined Python 3.11 Galaga, matrix, and
+  Mermaid gate passes 3,147 tests with 19 skips; and
+- the `galaga-matrix` 2.0 wheel and sdist build with a `galaga>=2.0.0`
+  dependency. See [Matrix migration](matrix-migration.md) and
+  [ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md).
 
 ### W7.4 Migrate examples and optional integrations
 

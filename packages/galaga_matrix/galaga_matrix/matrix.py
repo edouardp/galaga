@@ -22,12 +22,11 @@ Provides two representation modes:
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
 
-from galaga import Algebra
-from galaga.algebra import Multivector
+from galaga.facade import Algebra, Multivector
 
 if TYPE_CHECKING:
     from .repr import MatrixRepr
@@ -35,20 +34,93 @@ if TYPE_CHECKING:
 # ── Left-regular representation ──
 
 
+def _metric_inertia(alg: Algebra) -> tuple[int, int, int]:
+    """Return basis-independent metric inertia, with a v1 compatibility path."""
+    inertia = getattr(alg, "inertia", None)
+    if inertia is not None:
+        positive, negative, null = inertia
+        return int(positive), int(negative), int(null)
+    signature = alg.signature
+    return (
+        sum(1 for square in signature if square > 0),
+        sum(1 for square in signature if square < 0),
+        sum(1 for square in signature if square == 0),
+    )
+
+
+def _compact_metric_supported(alg: Algebra) -> bool:
+    """Whether compact gamma construction matches the stored exterior basis."""
+    if _metric_inertia(alg)[2] != 0:
+        return False
+    gram = getattr(alg, "gram", None)
+    if gram is None:  # Galaga 1 compatibility: its signature is normalized.
+        return True
+    matrix = np.asarray(gram, dtype=float)
+    diagonal = np.diag(matrix)
+    return bool(np.array_equal(matrix, np.diag(diagonal)) and np.all(np.isin(diagonal, (-1.0, 1.0))))
+
+
+def _require_compact_metric(alg: Algebra) -> tuple[int, int]:
+    p, q, r = _metric_inertia(alg)
+    if r:
+        raise NotImplementedError(f"Compact representation not supported for degenerate algebras (r={r})")
+    if not _compact_metric_supported(alg):
+        raise NotImplementedError(
+            "Compact representation requires a normalized orthogonal basis; "
+            "use mode='left-regular' for general Gram matrices."
+        )
+    return p, q
+
+
+def _new_multivector(alg: Algebra, data: np.ndarray) -> Multivector:
+    """Construct through the public algebra factory, retaining a v1 fallback."""
+    factory = getattr(alg, "multivector", None)
+    if callable(factory):
+        return cast(Multivector, factory(data))
+    legacy_algebra = cast(Any, alg)
+    legacy_type = type(legacy_algebra.scalar(0.0))
+    return cast(Multivector, legacy_type(alg, data))
+
+
+def _multivector_latex_name(mv: Multivector) -> str | None:
+    """Read a public facade name or a Galaga 1 compatibility name."""
+    name = getattr(mv, "name", None)
+    if name is not None and not callable(name):
+        latex = getattr(name, "latex", None)
+        return str(name) if latex is None else str(latex)
+    return getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+
+
+def _left_action(mv: Multivector) -> np.ndarray:
+    """Materialize left multiplication without reading multiplication tables."""
+    alg = mv.algebra
+    action = getattr(alg, "left_action", None)
+    if callable(action):
+        return np.asarray(action(mv))
+
+    # Galaga 1 compatibility while top-level users are still on the legacy
+    # engine: construct columns through its public geometric-product operator.
+    result = np.zeros((alg.dim, alg.dim), dtype=float)
+    for column in range(alg.dim):
+        data = np.zeros(alg.dim, dtype=float)
+        data[column] = 1.0
+        result[:, column] = (mv * _new_multivector(alg, data)).data
+    return result
+
+
 def _left_regular_matrix(alg: Algebra) -> np.ndarray:
     """Build the full left-regular representation matrices for all basis blades.
 
     Returns shape (2^n, 2^n, 2^n): L[k] is the matrix for basis blade k.
-    L[k][i,j] = sign when e_k * e_j produces a component on e_i.
+    ``L[k][:, j]`` contains the coefficients of ``e_k * e_j``. General Gram
+    matrices may produce more than one output component.
     """
-    dim = alg.dim
-    L = np.zeros((dim, dim, dim))
-    for j in range(dim):
-        for k in range(dim):
-            idx = alg._mul_index[k, j]
-            sgn = alg._mul_sign[k, j]
-            L[k, idx, j] = sgn
-    return L
+    actions = []
+    for bitmask in range(alg.dim):
+        data = np.zeros(alg.dim, dtype=float)
+        data[bitmask] = 1.0
+        actions.append(_left_action(_new_multivector(alg, data)))
+    return np.stack(actions)
 
 
 def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
@@ -57,9 +129,11 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     Args:
         mv: The multivector to convert.
         mode: One of:
-            - ``None`` (default): auto-select ``"compact"`` for non-degenerate,
-              ``"left-regular"`` for degenerate algebras.
-            - ``"compact"``: minimal complex matrix (works for any non-degenerate Cl(p,q)).
+            - ``None`` (default): select ``"compact"`` for normalized
+              orthogonal metrics and ``"left-regular"`` otherwise.
+            - ``"compact"``: minimal complex matrix for normalized orthogonal
+              Cl(p,q). General Gram matrices require ``"left-regular"`` until
+              a validated basis transform is available.
             - ``"left-regular"``: 2ⁿ×2ⁿ real matrix (works for all algebras).
             - ``"quaternion"``: quaternion-entry matrix (requires quaternionic algebra).
             - ``"pauli"``: alias for compact, requires Cl(3,0) or Cl(0,3).
@@ -76,8 +150,7 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     from .repr import MatrixRepr
 
     if mode is None:
-        r = sum(1 for s in mv.algebra.signature if s == 0)
-        mode = "compact" if r == 0 else "left-regular"
+        mode = "compact" if _compact_metric_supported(mv.algebra) else "left-regular"
 
     p, q = _signature_pq(mv.algebra)
 
@@ -109,17 +182,21 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
         basis = "pauli"
 
     result = MatrixRepr(mat, algebra=mv.algebra, mode=mode, basis=basis)
-    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    mv_name = _multivector_latex_name(mv)
     mv_expr = getattr(mv, "_expr", None)
-    if mv_name or (getattr(mv, "_is_symbolic", False) and mv_expr is not None):
+    to_expr = getattr(mv, "_to_expr", None)
+    if callable(to_expr) and (mv_name or (getattr(mv, "_is_symbolic", False) and mv_expr is not None)):
         from .expr import MatrixRepresentation
 
-        expr = MatrixRepresentation(mv._to_expr(), mode=mode, basis=basis, value=result.eval())
+        expr = MatrixRepresentation(to_expr(), mode=mode, basis=basis, value=result.eval())
         if mv_name:
             result.name(latex=expr.latex())
         else:
             result._is_symbolic = True
         result._expr = expr
+    elif mv_name:
+        rho = r"\rho_{\mathbb{H}}" if mode == "quaternion" else r"\rho"
+        result.name(latex=rf"{rho}({mv_name})")
     return result
 
 
@@ -168,7 +245,7 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         if mat._name_latex is not None:
             mat_name = mat._name_latex
         elif mat._expr is not None:
-            mat_name = mat._expr.latex()
+            mat_name = cast(Any, mat._expr).latex()
         mat_basis = mat.basis
         mat = mat.mat
 
@@ -195,12 +272,16 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         flat_mat = mat.reshape(k * k)
         b = np.concatenate([flat_mat.real, flat_mat.imag])
         coeffs, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
-        mv = Multivector(alg, coeffs)
+        mv = _new_multivector(alg, coeffs)
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
     if mat_name:
-        mv.name(latex=rf"\rho^{{-1}}({mat_name})")
+        legacy_name = getattr(mv, "name", None)
+        if callable(legacy_name):
+            mv = cast(Multivector, legacy_name(latex=rf"\rho^{{-1}}({mat_name})"))
+        else:
+            mv = mv.named(f"rho^-1({mat_name})", latex=rf"\rho^{{-1}}({mat_name})")
 
     return mv
 
@@ -209,16 +290,7 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
 
 
 def _to_left_regular(mv: Multivector) -> np.ndarray:
-    alg = mv.algebra
-    dim = alg.dim
-    mat = np.zeros((dim, dim))
-    for k in np.nonzero(mv.data)[0]:
-        coeff = mv.data[k]
-        for j in range(dim):
-            idx = alg._mul_index[k, j]
-            sgn = alg._mul_sign[k, j]
-            mat[idx, j] += coeff * sgn
-    return mat
+    return _left_action(mv)
 
 
 def _from_left_regular(alg: Algebra, mat: np.ndarray) -> Multivector:
@@ -227,7 +299,7 @@ def _from_left_regular(alg: Algebra, mat: np.ndarray) -> Multivector:
         raise ValueError(f"Expected ({dim}, {dim}) matrix, got {mat.shape}")
     # The first column of L(M) is M * e_0 = M * 1 = M's coefficients
     data = mat[:, 0].copy()
-    return Multivector(alg, data)
+    return _new_multivector(alg, data)
 
 
 # ── Compact representation ──
@@ -487,11 +559,7 @@ def compact_basis(alg: Algebra) -> list[np.ndarray]:
     may not be faithful on the full algebra. Strict inverse APIs check rank
     before reconstructing coefficients.
     """
-    p = sum(1 for s in alg.signature if s > 0)
-    q = sum(1 for s in alg.signature if s < 0)
-    r = sum(1 for s in alg.signature if s == 0)
-    if r > 0:
-        raise NotImplementedError(f"Compact representation not supported for degenerate algebras (r={r})")
+    p, q = _require_compact_metric(alg)
     return _general_compact_basis(p, q)
 
 
@@ -577,7 +645,7 @@ def _from_compact(alg: Algebra, mat: np.ndarray) -> Multivector:
     if err > 1e-9:
         raise ValueError("Matrix is not in the image of this Clifford representation.")
 
-    return Multivector(alg, coeffs)
+    return _new_multivector(alg, coeffs)
 
 
 # ── Quaternion matrix form ──
@@ -650,10 +718,8 @@ def _extract_quat(block: np.ndarray) -> Quat:
 
 
 def _signature_pq(alg: Algebra) -> tuple[int, int]:
-    return (
-        sum(1 for s in alg.signature if s > 0),
-        sum(1 for s in alg.signature if s < 0),
-    )
+    p, q, _ = _metric_inertia(alg)
+    return p, q
 
 
 def _quaternion_block_basis(alg: Algebra) -> list[np.ndarray]:
@@ -662,7 +728,7 @@ def _quaternion_block_basis(alg: Algebra) -> list[np.ndarray]:
     This is intentionally separate from compact_basis: the standard Dirac
     matrices used there for Cl(1,3) are not in this block convention.
     """
-    p, q = _signature_pq(alg)
+    p, q = _require_compact_metric(alg)
     etype, _ = _classify(p, q)
     if etype != "quaternion":
         if "quaternion" in etype:
@@ -810,7 +876,7 @@ def _spinor_roundtrip_possible(alg: Algebra) -> bool:
     return _spinor_system_is_full_rank(A, even_indices)
 
 
-def to_spinor_column(mv: Multivector) -> np.ndarray:
+def to_spinor_column(mv: Multivector) -> MatrixRepr:
     """Convert an even-grade multivector to its spinor column vector.
 
     For Cl(3,0): returns a 2×1 complex column (Pauli spinor).
@@ -830,9 +896,7 @@ def to_spinor_column(mv: Multivector) -> np.ndarray:
         ValueError: If the multivector has odd-grade components.
         TypeError: If the algebra does not support faithful spinor roundtrip.
     """
-    from galaga import is_even
-
-    if not is_even(mv):
+    if any(bitmask.bit_count() % 2 for bitmask in np.flatnonzero(mv.data)):
         raise ValueError(
             "to_spinor_column requires an even-grade multivector. "
             "Use galaga.even_grades(mv) to project to the even part first."
@@ -855,17 +919,19 @@ def to_spinor_column(mv: Multivector) -> np.ndarray:
 
     result = MatrixRepr(spinor, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
 
-    mv_name = getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    mv_name = _multivector_latex_name(mv)
     if mv_name:
-        from .expr import SpinorColumnRepresentation
-
         result.name(latex=rf"\left|\rho({mv_name})\right\rangle")
-        result._expr = SpinorColumnRepresentation(mv._to_expr(), basis=basis, value=result.eval())
+        to_expr = getattr(mv, "_to_expr", None)
+        if callable(to_expr):
+            from .expr import SpinorColumnRepresentation
+
+            result._expr = SpinorColumnRepresentation(to_expr(), basis=basis, value=result.eval())
 
     return result
 
 
-def to_spinor_matrix(mv: Multivector) -> np.ndarray:
+def to_spinor_matrix(mv: Multivector) -> MatrixRepr:
     """Compatibility alias for to_spinor_column."""
     return to_spinor_column(mv)
 
@@ -897,7 +963,7 @@ def _solve_spinor_system(
 
     data = np.zeros(alg.dim)
     data[even_indices] = coeffs_even
-    return Multivector(alg, data)
+    return _new_multivector(alg, data)
 
 
 def from_spinor_column(alg_or_spinor, spinor=None) -> Multivector:
@@ -1015,9 +1081,7 @@ def to_spinor_quaternion(mv: Multivector) -> list[Quat]:
         TypeError: If the algebra is not supported as a simple quaternionic
             block representation.
     """
-    from galaga import is_even
-
-    if not is_even(mv):
+    if any(bitmask.bit_count() % 2 for bitmask in np.flatnonzero(mv.data)):
         raise ValueError(
             "to_spinor_quaternion requires an even-grade multivector. "
             "Use galaga.even_grades(mv) to project to the even part first."

@@ -52,20 +52,18 @@ Promote the test-only outermorphism helper into a validated public facility:
 This removes duplicated change-of-basis code and gives native Gram metrics a
 first-class interoperability story.
 
-### 2. Matrix-package migration
+### 2. Matrix-package migration: complete
 
-`galaga_matrix` currently reads `_mul_index` and `_mul_sign`, which cannot
-represent a nonorthogonal blade product. It must instead:
+`galaga_matrix` now uses `Algebra.left_action()` rather than `_mul_index` and
+`_mul_sign`, classifies algebras through basis-independent inertia, and
+round-trips general-Gram values in the native exterior basis. Auto mode chooses
+the left-regular representation for degenerate, nonorthogonal, and scaled
+metrics. Compact mode retains normalized diagonal behavior and clearly rejects
+general Gram matrices until a validated basis transform exists.
 
-1. use `Algebra.left_action()` for left-regular representations;
-2. classify abstract algebras with `inertia` rather than `signature`;
-3. round-trip general-Gram values in left-regular mode;
-4. reject nonorthogonal compact mode clearly until basis transformation is
-   implemented;
-5. eventually transform canonical compact generators so their
-   anticommutators reproduce the supplied Gram matrix.
-
-This is the principal companion-package blocker.
+The remaining matrix work is expression/rendering integration: `MatrixRepr`
+still uses the Galaga 1 symbolic tree internally. Numeric representation is no
+longer a companion-package blocker.
 
 ### 3. Galaga outer-layer cutover
 

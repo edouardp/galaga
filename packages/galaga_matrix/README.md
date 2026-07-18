@@ -6,7 +6,11 @@ Matrix representations for [galaga](../../packages/galaga) Clifford algebras.
 
 ## What it does
 
-Every multivector in a Clifford algebra can be represented as a matrix. This package provides `to_matrix` / `from_matrix` conversions, spinor-column conversions for supported even subalgebras, quaternion-block output for selected quaternionic signatures, and a `MatrixRepr` wrapper with LaTeX rendering for use in marimo notebooks and Jupyter.
+Every multivector in a Clifford algebra can be represented as a matrix. This
+package provides `to_matrix` / `from_matrix` conversions, spinor-column
+conversions for supported even subalgebras, quaternion-block output for
+selected quaternionic signatures, and a `MatrixRepr` wrapper with LaTeX
+rendering for use in marimo notebooks and Jupyter.
 
 The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
 `to_spinor_matrix` / `from_spinor_matrix` are compatibility aliases.
@@ -15,13 +19,13 @@ The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
 
 | Mode | Matrix size | Entries | Works for | Roundtrips |
 |---|---|---|---|---|
-| `left-regular` | 2ⁿ × 2ⁿ | real | any Cl(p,q,r) | always |
-| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | non-degenerate Cl(p,q) | only when the selected representation is injective |
+| `left-regular` | 2ⁿ × 2ⁿ | real | any symmetric Gram matrix | always |
+| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | normalized orthogonal Cl(p,q) | only when the selected representation is injective |
 
 ## Quick start
 
 ```python
-from galaga import Algebra
+from galaga.facade import Algebra
 from galaga_matrix import to_matrix, from_matrix, MatrixRepr
 
 # Pauli matrices from Cl(3,0)
@@ -35,7 +39,7 @@ mat.trace()                            # 0 (traceless)
 mat.mv                                 # back to Multivector
 
 # Named MV gets automatic ρ(name) symbolic name
-R = (e1 * e2).name(latex=r"\hat{B}")
+R = (e1 * e2).named("B", latex=r"\hat{B}")
 M = to_matrix(R, mode="compact")
 M.latex()                              # "\\rho(\\hat{B}) = \\begin{pmatrix}..."
 M.expr.latex()                         # "\\rho(\\hat{B})"
@@ -53,6 +57,11 @@ to_matrix(g0, mode="compact")  # 4×4 Dirac γ⁰
 pga = Algebra(2, 0, 1)
 v = pga.basis_vectors()[0]
 to_matrix(v)  # 8×8 real matrix
+
+# It also works directly in a nonorthogonal basis
+oblique = Algebra(gram=[[2.0, 0.5], [0.5, -1.0]])
+x = oblique.multivector([1.0, 2.0, 3.0, 4.0])
+from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 ```
 
 ## MatrixRepr
@@ -96,12 +105,19 @@ The compact representation produces the standard textbook matrices:
 - **Cl(1,3)**: 4×4 Dirac matrices (γ⁰, γ¹, γ², γ³) in the Dirac representation
 - **Cl(3,1)**: 4×4 Dirac matrices in the mostly-plus convention
 
-All other non-degenerate signatures are handled by the general periodicity recursion.
+All other normalized, non-degenerate orthogonal signatures are handled by the
+general periodicity recursion.
 
 ## Limitations
 
 - **Degenerate algebras** (r > 0): only `left-regular` mode works. `compact` raises `NotImplementedError`.
-- **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix` compact works, but `from_matrix` compact raises if the selected compact representation is not injective. Use `left-regular` for exact inverse conversion. See [Double Clifford Algebras](docs/double-algebras.md).
+- **General Gram matrices**: `left-regular` works in the stored basis and is
+  selected automatically. Compact mode currently rejects nonorthogonal and
+  non-normalized metrics until a validated basis transform is implemented.
+- **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix`
+  compact works, but `from_matrix` compact raises if the selected compact
+  representation is not injective. Use `left-regular` for exact inverse
+  conversion. See [Double Clifford Algebras](docs/double-algebras.md).
 - **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
 - **Spinor roundtrip**: spinor conversions are rank-checked for the actual reference-column map. Signatures whose even subalgebra is not injective under that map raise `TypeError`.
 - **No caching**: blade matrices are rebuilt on every call. Fine for interactive use, not for hot loops.
