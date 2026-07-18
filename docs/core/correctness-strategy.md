@@ -138,14 +138,20 @@ git diff --check
 The reproducible statement-and-branch coverage pass is:
 
 ```sh
-uv run pytest packages/galaga/tests/core --cov=galaga.core --cov-report=term-missing -q
+uv run --python 3.11 coverage erase
+uv run --python 3.11 coverage run --branch \
+  --source=packages/galaga/galaga/core \
+  -m pytest packages/galaga/tests/core -q
+uv run --python 3.11 coverage report -m
 ```
 
-Coverage configuration lives in `pyproject.toml`. `pytest-cov` is a development
-dependency, while generated data, XML, and HTML reports are ignored. The
-project currently reports coverage but does not impose a `fail_under`
-threshold; adopting one should be based on risk and meaningful branch tests,
-not preserving a headline percentage with low-value assertions.
+`pytest-cov` remains available for ordinary environments, but direct
+`coverage run` avoids a macOS plugin interaction that can attempt to load the
+NumPy extension module twice during pytest collection. Generated data, XML,
+and HTML reports are ignored. The project currently reports coverage but does
+not impose a `fail_under` threshold; adopting one should be based on risk and
+meaningful branch tests, not preserving a headline percentage with low-value
+assertions.
 
 The product benchmark smoke test should record constructor backend, packed-byte
 estimate, construction time, representative multiplication time, and cache

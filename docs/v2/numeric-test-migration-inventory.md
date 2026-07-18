@@ -572,6 +572,8 @@ helper.
 
 ### T3 Consolidate coverage-driven regressions
 
+Status: **complete (2026-07-18)**.
+
 Scope:
 
 - `test_coverage.py`;
@@ -589,6 +591,35 @@ Exit condition:
 - no generic “coverage gap” file is treated as a permanent numeric-core
   specification; and
 - unique historical regressions have not been lost.
+
+Completion evidence:
+
+- `test_coverage.py` numeric contracts are already owned by
+  `core/test_algebra.py`, `core/test_public_contracts.py`,
+  `core/test_numeric_api.py`, and `core/test_metric_rga.py`; this includes
+  unsupported Python operands, checked float conversion, full and half
+  brackets, grade families, sandwiches, scalar/vector inspection, and
+  complement laws;
+- `test_coverage_gaps.py` adds no unique core mathematics: its dual-domain and
+  reflected-division boundaries are already direct public-contract tests,
+  while its remaining cases concern blade lookup, display, or symbolic
+  aliases;
+- `test_redesign.py` division and predicate kernels are covered in
+  `core/test_numeric_api.py`, regressive identities in
+  `core/test_metric_rga.py`, and the hyperbolic logarithm domain in
+  `core/test_numeric_functions.py`; its other cases describe the outer
+  expression, naming, rendering, and mutable legacy design; and
+- no generic coverage-named test was copied. Each retained numeric regression
+  has a behavioral owner, while duplicate branch-execution tests remain in
+  the legacy suite only until the deletion gate.
+
+The Python 3.11 direct-core coverage baseline after T1 through T3 is 98% with
+branch measurement: 697 tests passed and 19 were skipped; `_backends.py`,
+`_metadata.py`, and `_metric.py` each report 100%, while the public core module
+reports 97%. The remaining uncovered paths are defensive numerical-failure
+guards, protocol fallbacks that are unreachable through normal reflected
+dispatch, or diagnostic representation branches. T3 deliberately does not
+add assertions whose only purpose is to raise that headline number.
 
 ### T4 Parameterize the public numeric contract over the facade
 
