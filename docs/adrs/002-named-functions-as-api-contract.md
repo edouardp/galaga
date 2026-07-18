@@ -1,10 +1,14 @@
 ---
-status: accepted
+status: partially superseded by 074
 date: 2026-03-25
 deciders: edouard
 ---
 
 # ADR-002: Named Functions as the Stable API Contract
+
+> ADR-074 retains named functions as the contract but makes long, explicit
+> names canonical in Galaga 2. The short canonical-name examples below are the
+> historical Galaga v1 decision.
 
 ## Context and Problem Statement
 

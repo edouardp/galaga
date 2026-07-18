@@ -15,8 +15,9 @@ For a detailed derivation and examples, see
 
 ### Geometric product
 
-`geometric_product(A, B)` and `gp(A, B)` implement the Clifford product for
-the algebra's native Gram matrix. Basis vectors must satisfy
+`geometric_product(A, B)` implements the Clifford product for the algebra's
+native Gram matrix. `gp` is a same-object compatibility alias. Basis vectors
+must satisfy
 
 $$
 e_i e_j+e_j e_i=2G_{ij}.
@@ -27,9 +28,9 @@ components from one basis-blade pair in a nonorthogonal basis.
 
 ### Exterior product
 
-`outer_product(A, B)` and `op(A, B)` implement the metric-independent exterior
-product. Repeated selected basis indices give zero; otherwise the output mask
-is XOR with the exterior permutation sign.
+`outer_product(A, B)` implements the metric-independent exterior product. `op`
+is a same-object compatibility alias. Repeated selected basis indices give
+zero; otherwise the output mask is XOR with the exterior permutation sign.
 
 ## Scalar and grade-selected products
 
@@ -76,12 +77,12 @@ For a homogeneous grade `k`:
 | Operation | Sign |
 |---|---|
 | `reverse` | `(-1)**(k*(k-1)/2)` |
-| `involute` | `(-1)**k` |
+| `grade_involution` (`involute` alias) | `(-1)**k` |
 | `conjugate` | `(-1)**(k*(k+1)/2)` |
 | `antireverse` | `(-1)**((n-k)*(n-k-1)/2)` |
 
-Reverse must be an anti-automorphism of the geometric product. Involute must
-be an automorphism. Clifford conjugation is their composition.
+Reverse must be an anti-automorphism of the geometric product. Grade
+involution must be an automorphism. Clifford conjugation is their composition.
 
 ## Complements and duals
 

@@ -134,7 +134,7 @@ def _core_operations() -> tuple[OperationSpec, ...]:
         "dual",
         "even_grades",
         "exp",
-        "involute",
+        "grade_involution",
         "inverse",
         "is_basis_blade",
         "is_bivector",
@@ -227,12 +227,8 @@ EXCLUDED_PUBLIC_NAMES: Mapping[str, str] = MappingProxyType(
     {
         "Algebra": "numeric type wrapped by the facade",
         "Multivector": "numeric type wrapped by the facade",
-        "dorst_inner": "alias of hestenes_inner",
-        "gp": "alias of geometric_product",
-        "join": "alias of outer_product",
-        "meet": "alias of regressive_product",
-        "op": "alias of outer_product",
-        "sw": "alias of sandwich",
+        "OPERATION_ALIASES": "operation alias metadata",
+        **{alias: f"alias of {canonical}" for alias, canonical in core.OPERATION_ALIASES.items()},
     }
 )
 

@@ -8,9 +8,9 @@ derived.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Mapping
 from numbers import Integral, Real
-from types import NotImplementedType
+from types import MappingProxyType, NotImplementedType
 from typing import Any
 
 import numpy as np
@@ -27,6 +27,7 @@ from ._metric import exterior_antimetric_matrix, exterior_metric_matrix
 __all__ = [
     "Algebra",
     "Multivector",
+    "OPERATION_ALIASES",
     "anticommutator",
     "antidot_product",
     "antimetric_apply",
@@ -45,6 +46,7 @@ __all__ = [
     "geometric_product",
     "gp",
     "grade",
+    "grade_involution",
     "grades",
     "half_anticommutator",
     "half_commutator",
@@ -102,6 +104,20 @@ __all__ = [
 
 _SYMMETRY_RTOL = 1e-12
 _SYMMETRY_ATOL = 1e-12
+
+
+OPERATION_ALIASES: Mapping[str, str] = MappingProxyType(
+    {
+        "dorst_inner": "doran_lasenby_inner",
+        "gp": "geometric_product",
+        "involute": "grade_involution",
+        "join": "outer_product",
+        "meet": "regressive_product",
+        "op": "outer_product",
+        "sw": "sandwich",
+    }
+)
+"""Compatibility operation name to canonical operation identifier."""
 
 
 class Multivector:
@@ -887,15 +903,18 @@ def reverse(value: Multivector) -> Multivector:
     return Multivector(value.algebra, value.data * value.algebra._reverse_sign)
 
 
-def involute(value: Multivector) -> Multivector:
+def grade_involution(value: Multivector) -> Multivector:
     """Apply grade involution, negating every odd grade."""
     if not isinstance(value, Multivector):
-        raise TypeError("involute expects a Multivector")
+        raise TypeError("grade_involution expects a Multivector")
     return Multivector(value.algebra, value.data * value.algebra._involute_sign)
 
 
+involute = grade_involution
+
+
 def conjugate(value: Multivector) -> Multivector:
-    """Apply Clifford conjugation, the composition of reverse and involute."""
+    """Apply Clifford conjugation, the composition of reverse and grade involution."""
     if not isinstance(value, Multivector):
         raise TypeError("conjugate expects a Multivector")
     return Multivector(value.algebra, value.data * value.algebra._conjugate_sign)

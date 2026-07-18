@@ -322,6 +322,30 @@ Required tests:
 - formatting characterizations distinguish semantic content from incidental
   whitespace that the new renderer is expected to change.
 
+### W1.5 Canonicalize operation names before test migration
+
+Deliverables:
+
+- make long, explicit functions the implementations and stable catalog IDs;
+- retain selected short spellings only as same-object compatibility aliases;
+- maintain one executable alias-to-canonical manifest;
+- keep mathematical convention remaps out of the lexical rename process; and
+- migrate source-derived tests in two stages so the original legacy file
+  remains an unchanged oracle.
+
+Required tests:
+
+- every manifest alias is the same function object as its canonical target;
+- every catalog entry uses a canonical identifier and no alias has a second
+  entry;
+- migrated core tests contain canonical names except in dedicated alias
+  compatibility assertions; and
+- original and migrated source suites pass together after each file moves.
+
+ADR-074 defines the initial mappings: `gp` to `geometric_product`, `op` to
+`outer_product`, and `involute` to `grade_involution`. Chisholm's half-scaled
+bracket is a semantic mapping to `half_commutator`, not a rename.
+
 Phase 1 exit gate:
 
 - every v1 public item has an owner and disposition;

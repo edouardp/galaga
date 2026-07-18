@@ -32,6 +32,11 @@ Moving a test does not mean copying it blindly:
 6. delete the redundant legacy-only version only after the corresponding
    facade contract is covered.
 
+Canonical naming follows ADR-074. A first port may bind a canonical import to
+the source file's old local name to isolate numeric migration. Canonicalizing
+the destination is a separate syntax-aware change. Brackets, inner products,
+scalar extraction, and facade helpers always require manual semantic review.
+
 The core and facade need different evidence:
 
 - a core test asks whether the mathematics and numeric protocol are correct;

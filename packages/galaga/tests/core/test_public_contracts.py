@@ -7,7 +7,9 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 
+import galaga.core as core
 from galaga.core import (
+    OPERATION_ALIASES,
     Algebra,
     Multivector,
     antidot_product,
@@ -21,9 +23,9 @@ from galaga.core import (
     geometric_antiproduct,
     geometric_product,
     grade,
+    grade_involution,
     grades,
     inverse,
-    involute,
     is_basis_blade,
     is_bivector,
     is_even,
@@ -112,6 +114,11 @@ class TestConstructionAndInspectionBoundaries:
 
 
 class TestPythonProtocolAndConvenienceSurface:
+    def test_operation_alias_manifest_resolves_to_identical_functions(self) -> None:
+        """Aliases cannot acquire separate implementations or operation identities."""
+        for alias, canonical in OPERATION_ALIASES.items():
+            assert getattr(core, alias) is getattr(core, canonical)
+
     def test_methods_and_named_functions_share_the_same_semantics(self) -> None:
         """Method spellings are conveniences, never separate implementations."""
         algebra = Algebra(3)
@@ -194,7 +201,7 @@ UNARY_MULTIVECTOR_OPERATIONS = (
     metric_apply,
     antimetric_apply,
     reverse,
-    involute,
+    grade_involution,
     conjugate,
     complement,
     uncomplement,

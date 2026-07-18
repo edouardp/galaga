@@ -14,14 +14,14 @@ helps future contributors understand why certain choices were made.
 | ADR | Title | Status |
 |-----|-------|--------|
 | [001](001-use-architectural-decision-records.md) | Use Architectural Decision Records | Accepted |
-| [002](002-named-functions-as-api-contract.md) | Named Functions as the Stable API Contract | Accepted |
+| [002](002-named-functions-as-api-contract.md) | Named Functions as the Stable API Contract | Partially superseded by 074 |
 | [003](003-explicit-inner-product-variants.md) | Explicit Inner Product Variants | Accepted |
 | [004](004-two-layer-architecture.md) | Two-Layer Architecture (Numeric + Symbolic) | Superseded by 018 |
 | [005](005-separate-marimo-helper-package.md) | Separate Marimo Notebook Helper Package | Accepted |
 | [006](006-renderer-supports-repr-latex.md) | Renderer Supports Both .latex() and _repr_latex_() | Accepted |
 | [007](007-integer-only-pow.md) | Integer-Only Multivector Exponentiation | Accepted |
 | [008](008-commutator-family.md) | Commutator Family — Four Named Functions, No Flags | Accepted |
-| [009](009-aliases-are-convenience.md) | Aliases Are Convenience, Not Separate Implementations | Accepted |
+| [009](009-aliases-are-convenience.md) | Aliases Are Convenience, Not Separate Implementations | Partially superseded by 074 |
 | [010](010-complement-vs-dual.md) | Complement vs Dual — Metric-Independent Duality | Accepted |
 | [011](011-precomputed-multiplication-tables.md) | Precomputed Multiplication Tables | Accepted |
 | [012](012-unicode-repr-opt-in.md) | Unicode Repr with Opt-In Flag | Superseded by 033 |
@@ -86,6 +86,7 @@ helps future contributors understand why certain choices were made.
 | [071](071-exterior-algebra-convention-layer.md) | Terathon/RGA Exterior-Algebra Convention Layer | Accepted |
 | [072](072-build-galaga-v2-over-gram.md) | Build Galaga 2.0 over the Gram Numeric Core | Superseded by 073 |
 | [073](073-move-the-numeric-core-into-galaga.md) | Move the Numeric Core into the Galaga Package | Accepted |
+| [074](074-long-operation-names-are-canonical.md) | Long Operation Names Are Canonical in Galaga 2 | Accepted |
 
 ## Creating New ADRs
 

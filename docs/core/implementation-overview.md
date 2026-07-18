@@ -173,7 +173,7 @@ the wrong architectural boundary.
 
 - `outer_product`
 - grade projections and parity projections
-- reverse, involute, and conjugate
+- reverse, grade involution, and Clifford conjugate
 - complements and antireverse
 - predicates based on grade or blade support
 

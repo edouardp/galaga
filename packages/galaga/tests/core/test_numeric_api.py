@@ -12,11 +12,11 @@ from galaga.core import (
     conjugate,
     even_grades,
     grade,
+    grade_involution,
     grades,
     half_anticommutator,
     half_commutator,
     inverse,
-    involute,
     is_basis_blade,
     is_bivector,
     is_even,
@@ -80,7 +80,7 @@ class TestInvolutions:
             (pseudoscalar, 1, 1, 1),
         ):
             assert value.dag == reverse_sign * value
-            assert involute(value) == involute_sign * value
+            assert grade_involution(value) == involute_sign * value
             assert value.bar == conjugate_sign * value
 
     def test_automorphism_laws_hold_in_a_nonorthogonal_basis(self) -> None:
@@ -89,7 +89,7 @@ class TestInvolutions:
         left = 1 + 2 * e1 + (e1 ^ e2)
         right = -2 + e2 - 0.25 * (e1 ^ e2)
 
-        assert involute(left * right).almost_equal(involute(left) * involute(right))
+        assert grade_involution(left * right).almost_equal(grade_involution(left) * grade_involution(right))
         assert conjugate(left * right).almost_equal(conjugate(right) * conjugate(left))
 
 

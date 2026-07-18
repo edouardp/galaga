@@ -392,8 +392,11 @@ def reverse(value: Multivector) -> Multivector:
     return _invoke("reverse", value)
 
 
-def involute(value: Multivector) -> Multivector:
-    return _invoke("involute", value)
+def grade_involution(value: Multivector) -> Multivector:
+    return _invoke("grade_involution", value)
+
+
+involute = grade_involution
 
 
 def conjugate(value: Multivector) -> Multivector:
@@ -453,6 +456,7 @@ __all__ = [
     "exp",
     "geometric_product",
     "grade",
+    "grade_involution",
     "grades",
     "half_anticommutator",
     "half_commutator",
