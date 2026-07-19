@@ -6,9 +6,9 @@ tree, not three independent interpretations of an expression. Rendering never
 performs a geometric-algebra operation and never changes numeric coefficients
 or expression identity.
 
-This is the Phase 6 implementation over `galaga.facade`. It is additive during
-the migration: top-level Galaga still uses the legacy renderer until the
-compatibility and companion-package work in Phase 7 is complete.
+This is the Phase 6 implementation over `galaga.facade`. Phase 7 consumers now
+use it. Top-level Galaga deliberately keeps the legacy renderer until the
+Phase 8 type cutover.
 
 ## Component decomposition
 
@@ -202,10 +202,10 @@ The implemented presets are:
   antidot products, interiors, transwedge products, complements, Hodge and
   weight duals, metric maps, bulk/weight parts, and antireverse.
 
-During the migration, this immutable v2 `Notation` lives in
-`galaga.presentation`. The public `galaga.notation` module remains the mutable
-v1 compatibility implementation until Phase 7 can replace it without breaking
-top-level `galaga.Algebra`.
+The immutable v2 `Notation` lives in `galaga.presentation` and is exported by
+`galaga.facade`. The public `galaga.notation` module remains the mutable v1
+compatibility implementation only while top-level `galaga.Algebra` remains on
+the legacy engine through Phase 8.
 
 ## Emitters
 
@@ -311,11 +311,10 @@ pass for the implementation and tests.
 - The semantic tree is not an algebraic simplifier or expression evaluator.
 - Numeric formatting is display-oriented, not a serialization format.
 - Legacy top-level values still use the legacy rendering path until cutover.
-- Legacy mutable notation and operation-specific expression renderer adapters
-  remain Phase 7 compatibility work.
-- `galaga_matrix`, `galaga_marimo`, `galaga_mermaid`, examples, and notebooks
-  must migrate to the public facade/expression/display protocols before the
-  top-level type switch.
+- Legacy mutable notation and operation-specific renderer adapters remain only
+  on the top-level v1 compatibility path.
+- `galaga_matrix`, `galaga_marimo`, `galaga_mermaid`, and the maintained
+  notebooks now consume the public facade/expression/display protocols.
 
-Those boundaries make the next phase a consumer migration rather than another
-rendering redesign.
+Those boundaries make the next phase a top-level type cutover rather than
+another rendering redesign.

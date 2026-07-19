@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade
+    from galaga.facade import Algebra, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, grade, mo, np, plt
+    return Algebra, gm, grade, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -52,9 +52,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1, g2, g3
 
 
@@ -63,20 +63,20 @@ def _(g0, g1, g2, g3, gm):
     nabla = g0 + g1 + g2 + g3
     electric_piece = g1 * g0 + g2 * g0 + g3 * g0
     magnetic_piece = g2 * g3 + g3 * g1 + g1 * g2
-    gm.md(t"""
+    gm.md(rt"""
     ## Field Structure
 
     Spacetime vector derivative:
 
-    {nabla} = {nabla.eval()}
+    {nabla} = {nabla:value}
 
     Electric bivector slots:
 
-    {electric_piece} = {electric_piece.eval()}
+    {electric_piece} = {electric_piece:value}
 
     Magnetic bivector slots:
 
-    {magnetic_piece} = {magnetic_piece.eval()}
+    {magnetic_piece} = {magnetic_piece:value}
     """)
     return
 
@@ -114,20 +114,20 @@ def _(mo):
 def _(bz, ex, ey, g0, g1, g2, grade, gm):
     F = ex.value * (g1 * g0) + ey.value * (g2 * g0) + bz.value * (g1 * g2)
     F2 = F * F
-    gm.md(t"""
+    gm.md(rt"""
     ## A Concrete Field
 
-    {F} = {F.eval()}
+    {F} = {F:value}
 
-    {F2} = {F2.eval()}
+    {F2} = {F2:value}
 
     Scalar invariant:
 
-    {grade(F2, 0)} = {grade(F2, 0).eval()}
+    {grade(F2, 0)} = {grade(F2, 0):value}
 
     Pseudoscalar invariant:
 
-    {grade(F2, 4)} = {grade(F2, 4).eval()}
+    {grade(F2, 4)} = {grade(F2, 4):value}
     """)
     return F
 
@@ -159,25 +159,25 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(amplitude, g0, g1, g2, g3, gm, grade, np, phase):
-    _a = amplitude.value * np.cos(phase.value)
-    wave = _a * (g1 * g0) + _a * (g2 * g3)
+    wave_amplitude = amplitude.value * np.cos(phase.value)
+    wave = wave_amplitude * (g1 * g0) + wave_amplitude * (g2 * g3)
     wave2 = wave * wave
-    gm.md(t"""
-    {wave} = {wave.eval()}
+    gm.md(rt"""
+    {wave} = {wave:value}
 
-    {wave2} = {wave2.eval()}
+    {wave2} = {wave2:value}
 
-    {grade(wave2, 0)} = {grade(wave2, 0).eval()}
+    {grade(wave2, 0)} = {grade(wave2, 0):value}
 
-    {grade(wave2, 4)} = {grade(wave2, 4).eval()}
+    {grade(wave2, 4)} = {grade(wave2, 4):value}
     """)
-    return _a
+    return (wave_amplitude,)
 
 
 @app.cell
-def _(_a, np, phase, plt):
+def _(np, phase, plt, wave_amplitude):
     _x = np.linspace(0, 2 * np.pi, 300)
-    _y = _a * np.cos(_x - phase.value)
+    _y = wave_amplitude * np.cos(_x - phase.value)
     _fig, _ax = plt.subplots(figsize=(8, 4))
     _ax.plot(_x, _y, color="crimson", linewidth=2.5, label="E")
     _ax.plot(_x, _y, color="steelblue", linestyle="--", linewidth=2.0, label="B")

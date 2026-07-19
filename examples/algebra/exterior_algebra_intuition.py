@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, dual, norm
+    from galaga.facade import Algebra, dual, norm
     import galaga_marimo as gm
 
     return Algebra, dual, gm, mo, norm, np, plt
@@ -46,31 +46,31 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
-    _u = (2 * e1 + e2).name("u")
-    _v = (0.5 * e1 + 1.8 * e2).name("v")
-    _w = (e1 + 0.5 * e2 + 1.2 * e3).name("w")
+    _u = (2 * e1 + e2).named("u")
+    _v = (0.5 * e1 + 1.8 * e2).named("v")
+    _w = (e1 + 0.5 * e2 + 1.2 * e3).named("w")
     bivector = (_u ^ _v)
     trivector = (_u ^ _v ^ _w)
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Length, Area, Volume
 
-    {_u} = {_u.eval()}
+    {_u} = {_u:value}
 
-    {_v} = {_v.eval()}
+    {_v} = {_v:value}
 
-    {_w} = {_w.eval()}
+    {_w} = {_w:value}
 
-    {bivector} = {bivector.eval()}
+    {bivector} = {bivector:value}
 
-    {trivector} = {trivector.eval()}
+    {trivector} = {trivector:value}
     """)
     return
 
@@ -96,22 +96,22 @@ def _(mo):
 
 @app.cell
 def _(angle, dual, e1, e2, gm, length, norm, np):
-    u = e1.name("u")
-    v = (length.value * (np.cos(np.radians(angle.value)) * e1 + np.sin(np.radians(angle.value)) * e2)).name("v")
+    u = e1.named("u")
+    v = (length.value * (np.cos(np.radians(angle.value)) * e1 + np.sin(np.radians(angle.value)) * e2)).named("v")
     wedge = (u ^ v)
     area = norm(wedge)
     pseudo_cross = dual(wedge)
 
-    gm.md(t"""
-    {u} = {u.eval()}
+    gm.md(rt"""
+    {u} = {u:value}
 
-    {v} = {v.eval()}
+    {v} = {v:value}
 
-    {wedge} = {wedge.eval()}
+    {wedge} = {wedge:value}
 
     Area of the parallelogram = {area:.4f}
 
-    Dual vector {pseudo_cross} = {pseudo_cross.eval()}
+    Dual vector {pseudo_cross} = {pseudo_cross:value}
     """)
     return
 

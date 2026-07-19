@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga import Algebra, inverse, norm, squared, unit
+    from galaga.facade import Algebra, inverse, norm, squared, unit
     import galaga_marimo as gm
 
     return Algebra, gm, inverse, mo, norm, squared, unit
@@ -43,8 +43,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
@@ -52,26 +52,26 @@ def _(Algebra):
 def _(e1, e2, gm, inverse, norm, squared, unit):
     v = 3 * e1 + 4 * e2
     B = e1 ^ e2
-    gm.md(t"""
-    {v} = {v.eval()}
+    gm.md(rt"""
+    {v} = {v:value}
 
-    {squared(v)} = {squared(v).eval()}
+    {squared(v)} = {squared(v):value}
 
-    {norm(v)} = {norm(v).eval():.1f}
+    {norm(v)} = {norm(v):.1f}
 
-    {unit(v)} = {unit(v).eval()}
+    {unit(v)} = {unit(v):value}
 
-    {inverse(v)} = {inverse(v).eval()}
+    {inverse(v)} = {inverse(v):value}
 
-    {B} = {B.eval()}
+    {B} = {B:value}
 
-    {squared(B)} = {squared(B).eval()}
+    {squared(B)} = {squared(B):value}
 
-    {norm(B)} = {norm(B).eval():.1f}
+    {norm(B)} = {norm(B):.1f}
 
-    {unit(B)} = {unit(B).eval()}
+    {unit(B)} = {unit(B):value}
 
-    {inverse(B)} = {inverse(B).eval()}
+    {inverse(B)} = {inverse(B):value}
     """)
     return
 

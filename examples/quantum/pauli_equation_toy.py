@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -34,7 +34,7 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     # Pauli Equation Toy Model
 
     The Pauli equation is the nonrelativistic spin sector of Dirac theory in an
@@ -49,35 +49,35 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
-    I = alg.I.name("I")
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
+    I = alg.I.named("I")
     return I, e1, e2, e3
 
 
 @app.cell
 def _(I, e1, e2, e3, gm):
-    sigma_x = e1.name(latex=r"\sigma_1")
-    sigma_y = e2.name(latex=r"\sigma_2")
-    sigma_z = e3.name(latex=r"\sigma_3")
-    generator = (I * sigma_z).name(latex=r"I \sigma_3")
-    gm.md(t"""
+    sigma_x = e1.named(r"\sigma_1", latex=r"\sigma_1")
+    sigma_y = e2.named(r"\sigma_2", latex=r"\sigma_2")
+    sigma_z = e3.named(r"\sigma_3", latex=r"\sigma_3")
+    generator = (I * sigma_z).named(r"I \sigma_3", latex=r"I \sigma_3")
+    gm.md(rt"""
     ## Pauli Algebra
 
-    {sigma_x} = {sigma_x.eval()}
+    {sigma_x} = {sigma_x:value}
 
-    {sigma_y} = {sigma_y.eval()}
+    {sigma_y} = {sigma_y:value}
 
-    {sigma_z} = {sigma_z.eval()}
+    {sigma_z} = {sigma_z:value}
 
-    Field generator {generator} = {generator.eval()}
+    Field generator {generator} = {generator:value}
     """)
     return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Time Evolution Rotor
 
     For a magnetic field along `e₃`, the spinor evolves as
@@ -104,19 +104,19 @@ def _(mo):
 @app.cell
 def _(e1, e2, e3, exp, gm, np, omega, tilt, time):
     _theta = np.radians(tilt.value)
-    psi0 = exp((-_theta / 2) * (e3 * e1)).name(latex=r"\psi_0")
-    propagator = exp((-(omega.value * time.value) / 2) * (e1 * e2)).name("U", latex=r"U(t)")
-    psi_t = (propagator * psi0).name(latex=r"\psi(t)")
-    spin = (psi_t * e3 * ~psi_t).name("s", latex=r"\mathbf{s}(t)")
+    psi0 = exp((-_theta / 2) * (e3 * e1)).named(r"\psi_0", latex=r"\psi_0")
+    propagator = exp((-(omega.value * time.value) / 2) * (e1 * e2)).named("U", latex=r"U(t)")
+    psi_t = (propagator * psi0).named(r"\psi(t)", latex=r"\psi(t)")
+    spin = (psi_t * e3 * ~psi_t).named("s", latex=r"\mathbf{s}(t)")
 
-    gm.md(t"""
-    {psi0} = {psi0.eval()}
+    gm.md(rt"""
+    {psi0} = {psi0:value}
 
-    {propagator} = {propagator.eval()}
+    {propagator} = {propagator:value}
 
-    {psi_t} = {psi_t.eval()}
+    {psi_t} = {psi_t:value}
 
-    {spin} = {spin.eval()}
+    {spin} = {spin:value}
     """)
     return psi0, spin
 
@@ -134,7 +134,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(e1, e2, e3, exp, np, omega, plt, psi0, spin, time):
-    _s = spin.eval().vector_part
+    _s = spin.vector_part
     _fig = plt.figure(figsize=(6, 6))
     _ax = _fig.add_subplot(111, projection="3d")
 
@@ -147,10 +147,10 @@ def _(e1, e2, e3, exp, np, omega, plt, psi0, spin, time):
 
     _ts = np.linspace(0, max(4.0, time.value), 220)
     _track = []
-    _spin0 = (psi0 * e3 * ~psi0).eval().vector_part
+    _spin0 = (psi0 * e3 * ~psi0).vector_part
     for _t in _ts:
-        _propagator = exp((-(omega.value * _t) / 2) * (e1.eval() * e2.eval()))
-        _spin_t = (_propagator * (psi0.eval() * e3.eval() * ~psi0.eval()) * ~_propagator).vector_part
+        _propagator = exp((-(omega.value * _t) / 2) * (e1 * e2))
+        _spin_t = (_propagator * (psi0 * e3 * ~psi0) * ~_propagator).vector_part
         _track.append([
             _spin_t[0],
             _spin_t[1],

@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -54,21 +54,21 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Single-spin basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
 
     Teleportation will move an unknown Bloch vector from Alice's side to Bob's side.
     """)
@@ -109,7 +109,7 @@ def _(alice_bits, e1, e2, e3, exp, gm, np, phi, theta):
     _theta = np.radians(theta.value)
     _phi = np.radians(phi.value)
     psi = exp((-_phi / 2) * (e1 * e2)) * exp((-_theta / 2) * (e3 * e1))
-    source = (psi * e3 * ~psi).eval().vector_part
+    source = (psi * e3 * ~psi).vector_part
 
     if alice_bits.value == "00":
         correction = 1 + 0 * e1
@@ -122,21 +122,21 @@ def _(alice_bits, e1, e2, e3, exp, gm, np, phi, theta):
 
     received_before = (
         correction
-        * (source[0] * e1.eval() + source[1] * e2.eval() + source[2] * e3.eval())
+        * (source[0] * e1 + source[1] * e2 + source[2] * e3)
         * ~correction
     ).vector_part
 
     recovered = (
         ~correction
-        * (received_before[0] * e1.eval() + received_before[1] * e2.eval() + received_before[2] * e3.eval())
+        * (received_before[0] * e1 + received_before[1] * e2 + received_before[2] * e3)
         * correction
     ).vector_part
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Geometric Protocol
 
     Unknown rotor:
-    {psi} = {psi.eval()}
+    {psi} = {psi:value}
 
     Input Bloch vector:
     $({source[0]:.6f}, {source[1]:.6f}, {source[2]:.6f})$
@@ -145,7 +145,7 @@ def _(alice_bits, e1, e2, e3, exp, gm, np, phi, theta):
     $({received_before[0]:.6f}, {received_before[1]:.6f}, {received_before[2]:.6f})$
 
     Correction rotor:
-    {correction} = {correction.eval()}
+    {correction} = {correction:value}
 
     Recovered state after correction:
     $({recovered[0]:.6f}, {recovered[1]:.6f}, {recovered[2]:.6f})$

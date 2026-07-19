@@ -83,9 +83,9 @@ architecture.
 
 Legacy `galaga.lazy`, `galaga.symbolic`, `galaga.expr`, `galaga.notation`, and
 legacy renderer paths are still active compatibility inputs for top-level v1
-objects. Their adapters and warnings are installed only as their consumers
-move in later Phase 7 work; warning before a replacement path executes would
-be noise rather than useful guidance.
+objects. Phase 7 consumers have moved to public v2 protocols; these remaining
+entry points are governed by the executable disposition ledger through the
+Phase 8 cutover and Phase 9 removal.
 
 ## Helpers are not aliases
 

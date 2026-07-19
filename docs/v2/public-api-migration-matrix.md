@@ -193,15 +193,14 @@ public APIs:
   name state. Phase 7 introduced a package-owned immutable matrix expression
   protocol and a one-way adapter over public facade `name`, `expr`, and
   presentation values.
-- `galaga_mermaid` traverses private expression and multivector fields; Phase 7
-  must use the public expression traversal protocol.
-- examples display `_is_lazy` and `_name`; they must move to immutable naming
-  and expression provenance.
+- `galaga_mermaid` now traverses the public immutable expression protocol and
+  reads no private multivector fields.
+- the maintained notebook ledger now uses immutable naming, eager values, and
+  optional expression provenance, with full headless execution as its gate.
 
-Both matrix rows are complete; the remaining rows stay executable migration
-requirements. This makes the Phase 1 guarantee precise: later work may depend
-on a recorded migration target, but not on an unrecorded private legacy
-structure.
+All recorded companion and example dependency rows are complete. This makes
+the Phase 1 guarantee precise: the Phase 8 cutover may depend on a recorded
+compatibility target, but not on unrecorded private legacy structure.
 
 ## Deliberate Galaga 2 corrections
 

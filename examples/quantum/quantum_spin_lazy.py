@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -34,36 +34,36 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
-    # Quantum Spin with Lazy Pauli Blades
+    mo.md(r"""
+    # Quantum Spin with Tracked Pauli Blades
 
     For a single spin-1/2 system, a normalized rotor in `Cl(3,0)` plays the role
     of a pure state. The observable spin direction is the rotated reference vector
     `ψ e₃ ψ̃`.
 
-    This notebook is deliberately explicit about the symbolic construction so that
-    the state-preparation pipeline is visible before evaluation.
+    This notebook records expression provenance so the state-preparation
+    pipeline and its eager numeric result are visible together.
     """)
     return
 
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
-    I = alg.I.name("I")
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
+    I = alg.I.named("I")
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
     _rows = [
-        f"- {e1}: {e1 * e1} = {(e1 * e1).eval()}",
-        f"- {e2}: {e2 * e2} = {(e2 * e2).eval()}",
-        f"- {e3}: {e3 * e3} = {(e3 * e3).eval()}",
-        f"- {(e1 ^ e2).name(latex=r'e_{12}')}: {((e1 ^ e2) * (e1 ^ e2)).eval()}",
+        f"- {e1}: {e1 * e1} = {(e1 * e1)}",
+        f"- {e2}: {e2 * e2} = {(e2 * e2)}",
+        f"- {e3}: {e3 * e3} = {(e3 * e3)}",
+        f"- {(e1 ^ e2).named(r'e_{12}', latex=r'e_{12}')}: {((e1 ^ e2) * (e1 ^ e2))}",
     ]
-    gm.md(t"""
+    gm.md(rt"""
     ## Spin Algebra
 
     {"\n".join(_rows):text}
@@ -94,33 +94,33 @@ def _(mo):
 def _(e1, e2, e3, exp, gm, np, phi, theta):
     _theta = np.radians(theta.value)
     _phi = np.radians(phi.value)
-    R_theta = exp((-_theta / 2) * (e3 * e1)).name(latex=r"R_\theta")
-    R_phi = exp((-_phi / 2) * (e1 * e2)).name(latex=r"R_\phi")
-    psi = (R_phi * R_theta).name("ψ", latex=r"\psi")
-    spin = (psi * e3 * ~psi).name("s", latex=r"\mathbf{s}")
+    R_theta = exp((-_theta / 2) * (e3 * e1)).named(r"R_\theta", latex=r"R_\theta")
+    R_phi = exp((-_phi / 2) * (e1 * e2)).named(r"R_\phi", latex=r"R_\phi")
+    psi = (R_phi * R_theta).named("ψ", latex=r"\psi")
+    spin = (psi * e3 * ~psi).named("s", latex=r"\mathbf{s}")
 
-    gm.md(t"""
-    {R_theta} = {R_theta.eval()}
+    gm.md(rt"""
+    {R_theta} = {R_theta:value}
 
-    {R_phi} = {R_phi.eval()}
+    {R_phi} = {R_phi:value}
 
-    {psi} = {psi.eval()}
+    {psi} = {psi:value}
 
-    {spin} = {spin.eval()}
+    {spin} = {spin:value}
     """)
     return (spin,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Stern-Gerlach Measurement
 
     Measuring along a unit axis `a` gives the probabilities
 
     $$
     P_\pm =
-    rac{1 \pm s \cdot a}{2}.
+    \frac{1 \pm s \cdot a}{2}.
     $$
 
     In GA the expectation value is the scalar part of the geometric product of
@@ -138,13 +138,13 @@ def _(mo):
 @app.cell
 def _(e1, e3, gm, meas, np, spin):
     _alpha = np.radians(meas.value)
-    axis = (np.sin(_alpha) * e1 + np.cos(_alpha) * e3).name("a", latex=r"\mathbf{a}")
-    overlap = ((spin * axis).eval()).scalar_part
+    axis = (np.sin(_alpha) * e1 + np.cos(_alpha) * e3).named("a", latex=r"\mathbf{a}")
+    overlap = (spin * axis).coefficient(0)
     p_plus = 0.5 * (1 + overlap)
     p_minus = 0.5 * (1 - overlap)
 
-    gm.md(t"""
-    {axis} = {axis.eval()}
+    gm.md(rt"""
+    {axis} = {axis:value}
 
     $\\langle s a \\rangle_0 = {overlap:.4f}$
 
@@ -155,8 +155,8 @@ def _(e1, e3, gm, meas, np, spin):
 
 @app.cell
 def _(axis, np, p_minus, p_plus, plt, spin):
-    _s = spin.eval().vector_part
-    _a = axis.eval().vector_part
+    _s = spin.vector_part
+    _a = axis.vector_part
     _fig = plt.figure(figsize=(6, 6))
     _ax = _fig.add_subplot(111, projection="3d")
     _u = np.linspace(0, 2 * np.pi, 32)

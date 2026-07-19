@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -54,8 +54,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     I = alg.I
     return I, e1, e2, e3
 
@@ -98,14 +98,14 @@ def _(mo):
 
 @app.cell
 def _(I, e1, e2, e3, gm, sigma_x, sigma_y, sigma_z):
-    gm.md(t"""
+    gm.md(rt"""
     | Object | Matrix side | GA side |
     |---|---|---|
-    | generator 1 | `{sigma_x}` | {e1} = {e1.eval()} |
-    | generator 2 | `{sigma_y}` | {e2} = {e2.eval()} |
-    | generator 3 | `{sigma_z}` | {e3} = {e3.eval()} |
-    | imaginary / oriented volume | $i$ | {I} = {I.eval()} |
-    | $\sigma_x \sigma_y$ / $e_1 e_2$ | `{sigma_x @ sigma_y}` | {e1 * e2} = {(e1 * e2).eval()} |
+    | generator 1 | `{sigma_x}` | {e1} = {e1:value} |
+    | generator 2 | `{sigma_y}` | {e2} = {e2:value} |
+    | generator 3 | `{sigma_z}` | {e3} = {e3:value} |
+    | imaginary / oriented volume | $i$ | {I} = {I:value} |
+    | $\sigma_x \sigma_y$ / $e_1 e_2$ | `{sigma_x @ sigma_y}` | {e1 * e2} = {(e1 * e2):value} |
     """)
     return
 
@@ -150,7 +150,7 @@ def _(e1, e2, e3, exp, gm, np, phi, sigma_x, sigma_y, sigma_z, theta):
     _theta = np.radians(theta.value)
     _phi = np.radians(phi.value)
 
-    _psi_matrix = np.array(
+    psi_matrix = np.array(
         [
             [np.cos(_theta / 2)],
             [np.exp(1j * _phi) * np.sin(_theta / 2)],
@@ -158,14 +158,14 @@ def _(e1, e2, e3, exp, gm, np, phi, sigma_x, sigma_y, sigma_z, theta):
         dtype=complex,
     )
 
-    _psi_ga = exp((-_phi / 2) * (e1 * e2)) * exp((-_theta / 2) * (e3 * e1))
-    _spin_ga = (_psi_ga * e3 * ~_psi_ga).eval().vector_part
+    psi_ga = exp((-_phi / 2) * (e1 * e2)) * exp((-_theta / 2) * (e3 * e1))
+    spin_ga = (psi_ga * e3 * ~psi_ga).vector_part
 
-    _expect_x = (_psi_matrix.conj().T @ sigma_x @ _psi_matrix)[0, 0].real
-    _expect_y = (_psi_matrix.conj().T @ sigma_y @ _psi_matrix)[0, 0].real
-    _expect_z = (_psi_matrix.conj().T @ sigma_z @ _psi_matrix)[0, 0].real
+    expect_x = (psi_matrix.conj().T @ sigma_x @ psi_matrix)[0, 0].real
+    expect_y = (psi_matrix.conj().T @ sigma_y @ psi_matrix)[0, 0].real
+    expect_z = (psi_matrix.conj().T @ sigma_z @ psi_matrix)[0, 0].real
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Same State, Two Representations
 
     Matrix spinor:
@@ -173,22 +173,22 @@ def _(e1, e2, e3, exp, gm, np, phi, sigma_x, sigma_y, sigma_z, theta):
     $$
     |\\psi\\rangle =
     \\begin{{pmatrix}}
-    {_psi_matrix[0,0].real:.6f} \\\\
-    {_psi_matrix[1,0].real:+.6f} { _psi_matrix[1,0].imag:+.6f} i
+    {psi_matrix[0,0].real:.6f} \\\\
+    {psi_matrix[1,0].real:+.6f} { psi_matrix[1,0].imag:+.6f} i
     \\end{{pmatrix}}
     $$
 
     GA rotor:
 
-    {_psi_ga} = {_psi_ga.eval()}
+    {psi_ga} = {psi_ga:value}
 
     Matrix Bloch vector:
-    $({ _expect_x:.6f}, { _expect_y:.6f}, { _expect_z:.6f})$
+    $({ expect_x:.6f}, { expect_y:.6f}, { expect_z:.6f})$
 
     GA Bloch vector:
-    $({ _spin_ga[0]:.6f}, { _spin_ga[1]:.6f}, { _spin_ga[2]:.6f})$
+    $({ spin_ga[0]:.6f}, { spin_ga[1]:.6f}, { spin_ga[2]:.6f})$
     """)
-    return
+    return expect_x, expect_y, expect_z, psi_ga, psi_matrix, spin_ga
 
 
 @app.cell(hide_code=True)
@@ -221,16 +221,16 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alpha, e1, e2, e3, exp, gm, np, sigma_z):
+def _(alpha, e1, e2, e3, expect_x, expect_y, expect_z, exp, gm, np, psi_matrix, sigma_z):
     _alpha = np.radians(alpha.value)
     _U = np.cos(_alpha / 2) * np.eye(2, dtype=complex) - 1j * np.sin(_alpha / 2) * sigma_z
-    _psi_rot = _U @ _psi_matrix
+    _psi_rot = _U @ psi_matrix
 
     _R = exp((-_alpha / 2) * (e1 * e2))
-    _v = _expect_x * e1.eval() + _expect_y * e2.eval() + _expect_z * e3.eval()
-    _v_rot = (_R * _v * ~_R).vector_part
+    _v = expect_x * e1 + expect_y * e2 + expect_z * e3
+    rotated_vector = (_R * _v * ~_R).vector_part
 
-    gm.md(t"""
+    gm.md(rt"""
     Rotated matrix spinor:
 
     $$
@@ -243,17 +243,17 @@ def _(alpha, e1, e2, e3, exp, gm, np, sigma_z):
 
     GA rotor:
 
-    {_R} = {_R.eval()}
+    {_R} = {_R:value}
 
     Rotated observable vector:
 
-    $({ _v_rot[0]:.6f}, { _v_rot[1]:.6f}, { _v_rot[2]:.6f})$
+    $({ rotated_vector[0]:.6f}, { rotated_vector[1]:.6f}, { rotated_vector[2]:.6f})$
     """)
-    return
+    return (rotated_vector,)
 
 
 @app.cell
-def _(np, plt):
+def _(expect_x, expect_y, expect_z, np, plt, rotated_vector, spin_ga):
     _fig = plt.figure(figsize=(6, 6))
     _ax = _fig.add_subplot(111, projection="3d")
     _u = np.linspace(0, 2 * np.pi, 32)
@@ -262,9 +262,9 @@ def _(np, plt):
     _y = np.outer(np.sin(_u), np.sin(_v))
     _z = np.outer(np.ones_like(_u), np.cos(_v))
     _ax.plot_wireframe(_x, _y, _z, color="gray", alpha=0.08)
-    _ax.quiver(0, 0, 0, _expect_x, _expect_y, _expect_z, color="steelblue", linewidth=2.5, arrow_length_ratio=0.1)
-    _ax.quiver(0, 0, 0, _spin_ga[0], _spin_ga[1], _spin_ga[2], color="darkorange", linewidth=2.0, arrow_length_ratio=0.1)
-    _ax.quiver(0, 0, 0, _v_rot[0], _v_rot[1], _v_rot[2], color="crimson", linewidth=2.5, arrow_length_ratio=0.1)
+    _ax.quiver(0, 0, 0, expect_x, expect_y, expect_z, color="steelblue", linewidth=2.5, arrow_length_ratio=0.1)
+    _ax.quiver(0, 0, 0, spin_ga[0], spin_ga[1], spin_ga[2], color="darkorange", linewidth=2.0, arrow_length_ratio=0.1)
+    _ax.quiver(0, 0, 0, rotated_vector[0], rotated_vector[1], rotated_vector[2], color="crimson", linewidth=2.5, arrow_length_ratio=0.1)
     _ax.set_xlim(-1, 1)
     _ax.set_ylim(-1, 1)
     _ax.set_zlim(-1, 1)

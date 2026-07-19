@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga import (
+    from galaga.facade import (
         Algebra,
         doran_lasenby_inner,
         hestenes_inner,
@@ -56,21 +56,21 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Basis vectors:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
     """)
     return
 
@@ -93,16 +93,16 @@ def _(
     B = e2 * e3
 
     with gm.doc() as d:
-        d.md(t"""
+        d.md(rt"""
         Input vector pair:
-        {a} = {a.eval()}
+        {a} = {a:value}
 
-        {b} = {b.eval()}
+        {b} = {b:value}
 
         Input bivector pair:
-        {A} = {A.eval()}
+        {A} = {A:value}
 
-        {B} = {B.eval()}
+        {B} = {B:value}
         """)
         d.text("| Operation | On vectors | On bivectors |")
         d.line("|---|---|---|")

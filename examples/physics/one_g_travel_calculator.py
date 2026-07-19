@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich
+    from galaga.facade import Algebra, exp, p_sta, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, sandwich
+    return Algebra, exp, gm, mo, np, p_sta, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -51,19 +51,19 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 
 
 @app.cell
 def _(g0, g1, gm):
-    _boost_plane = (g0 * g1).name("B", latex=r"\gamma_0 \gamma_1")
-    gm.md(t"""
+    _boost_plane = (g0 * g1).named("B", latex=r"\gamma_0 \gamma_1")
+    gm.md(rt"""
     ## STA Setup
 
-    Boost generator {_boost_plane} = {_boost_plane.eval()}
+    Boost generator {_boost_plane} = {_boost_plane:value}
 
     Constant proper acceleration builds rapidity linearly:
 
@@ -121,19 +121,19 @@ def _(exp, g0, g1, gm, np, sandwich, tau_acc_years, tau_coast_years):
     total_earth_time = 2.0 * t_acc + t_coast
     total_distance = 2.0 * x_acc + x_coast
 
-    boost_plane = (g0 * g1).name("B", latex=r"\gamma_0 \gamma_1")
-    rapidity = (phi + 0 * g0).name("φ", latex=r"\varphi")
-    Lambda = exp((phi / 2) * boost_plane).name("Λ", latex=r"\Lambda")
-    ship_time_axis = sandwich(Lambda, g0).name(latex=r"\gamma_0'")
+    boost_plane = (g0 * g1).named("B", latex=r"\gamma_0 \gamma_1")
+    rapidity = (phi + 0 * g0).named("φ", latex=r"\varphi")
+    Lambda = exp((phi / 2) * boost_plane).named("Λ", latex=r"\Lambda")
+    ship_time_axis = sandwich(Lambda, g0).named(r"\gamma_0'", latex=r"\gamma_0'")
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Journey Summary
 
     {rapidity} = {phi:.5f}
 
-    {Lambda} = {Lambda.eval()}
+    {Lambda} = {Lambda:value}
 
-    Boosted ship time axis {ship_time_axis} = {ship_time_axis.eval()}
+    Boosted ship time axis {ship_time_axis} = {ship_time_axis:value}
 
     Peak speed: $\\beta = v/c = {beta:.6f}$ and $\\gamma = {gamma:.6f}$
 
@@ -182,7 +182,7 @@ def _(beta, gamma, gm, tau_acc_years, tau_coast_years):
     _ship_acc = tau_acc_years.value
     _ship_coast = tau_coast_years.value
     _earth_coast = gamma * _ship_coast
-    gm.md(t"""
+    gm.md(rt"""
     With $\\tau_{{acc}} = {_ship_acc:.2f}$ years and $\\tau_{{coast}} = {_ship_coast:.2f}$ years:
 
     - Earth sees the coast phase last {_earth_coast:,.3f} years

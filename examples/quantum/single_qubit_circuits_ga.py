@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -53,8 +53,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -80,7 +80,7 @@ def _(e1, e2, e3, exp, np):
             return exp((-(np.pi) / 2) * (e1 * e2))
         if name == "S":
             return exp((-(np.pi / 2) / 2) * (e1 * e2))
-        axis = ((e1 + e3) / np.sqrt(2)).eval().vector_part
+        axis = ((e1 + e3) / np.sqrt(2)).vector_part
         return exp((-(np.pi) / 2) * (axis[0] * (e2 * e3) + axis[2] * (e1 * e2)))
 
     return (gate_rotor,)
@@ -94,31 +94,31 @@ def _(first, gate_rotor, gm, second, third):
     total = R3 * R2 * R1
     state_out = total * (1 + 0 * total)
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Circuit Rotor
 
-    {R1} = {R1.eval()}
+    {R1} = {R1:value}
 
-    {R2} = {R2.eval()}
+    {R2} = {R2:value}
 
-    {R3} = {R3.eval()}
+    {R3} = {R3:value}
 
     Total rotor:
-    {total} = {total.eval()}
+    {total} = {total:value}
 
     Output state representative:
-    {state_out} = {state_out.eval()}
+    {state_out} = {state_out:value}
     """)
     return state_out
 
 
 @app.cell(hide_code=True)
 def _(e3, gm, state_out):
-    bloch = (state_out * e3 * ~state_out).eval().vector_part
+    bloch = (state_out * e3 * ~state_out).vector_part
     p0 = 0.5 * (1 + bloch[2])
     p1 = 0.5 * (1 - bloch[2])
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Readout
 
     Bloch vector:

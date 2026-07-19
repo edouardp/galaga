@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga import Algebra, conjugate, even_grades, grade, involute, odd_grades, reverse
+    from galaga.facade import Algebra, conjugate, even_grades, grade, grade_involution, odd_grades, reverse
     import galaga_marimo as gm
 
     return (
@@ -29,7 +29,7 @@ def _():
         even_grades,
         gm,
         grade,
-        involute,
+        grade_involution,
         mo,
         odd_grades,
         reverse,
@@ -49,8 +49,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -63,31 +63,31 @@ def _(
     even_grades,
     gm,
     grade,
-    involute,
+    grade_involution,
     odd_grades,
     reverse,
 ):
     x = 3 + e1 + 2 * (e1 ^ e2) + (e1 ^ e2 ^ e3)
-    gm.md(t"""
-    {x} = {x.eval()}
+    gm.md(rt"""
+    {x} = {x:value}
 
-    {reverse(x)} = {reverse(x).eval()}
+    {reverse(x)} = {reverse(x):value}
 
-    {involute(x)} = {involute(x).eval()}
+    {grade_involution(x)} = {grade_involution(x):value}
 
-    {conjugate(x)} = {conjugate(x).eval()}
+    {conjugate(x)} = {conjugate(x):value}
 
-    {grade(x, 0)} = {grade(x, 0).eval()}
+    {grade(x, 0)} = {grade(x, 0):value}
 
-    {grade(x, 1)} = {grade(x, 1).eval()}
+    {grade(x, 1)} = {grade(x, 1):value}
 
-    {grade(x, 2)} = {grade(x, 2).eval()}
+    {grade(x, 2)} = {grade(x, 2):value}
 
-    {grade(x, 3)} = {grade(x, 3).eval()}
+    {grade(x, 3)} = {grade(x, 3):value}
 
-    {even_grades(x)} = {even_grades(x).eval()}
+    {even_grades(x)} = {even_grades(x):value}
 
-    {odd_grades(x)} = {odd_grades(x).eval()}
+    {odd_grades(x)} = {odd_grades(x):value}
     """)
     return
 

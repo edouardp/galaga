@@ -26,15 +26,15 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp, p_sta
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt
+    return Algebra, exp, gm, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     # Aharonov-Bohm Holonomy
 
     The Aharonov-Bohm effect is best understood as a holonomy problem. A charged
@@ -49,21 +49,21 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
-    I = sta.I.name("I")
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
+    I = sta.I.named("I")
     return (I,)
 
 
 @app.cell
 def _(I, gm):
-    gm.md(t"""
+    gm.md(rt"""
     ## Internal Phase Rotor
 
-    {I} = {I.eval()}
+    {I} = {I:value}
 
-    $I^2 = {((I * I).eval()).scalar_part:+.0f}$
+    $I^2 = {(I * I).coefficient(0):+.0f}$
 
     In STA the usual complex phase factor $e^{{i\\phi}}$ is replaced by an even
     multivector rotor $e^{{-I\\phi/2}}$.
@@ -73,13 +73,13 @@ def _(I, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Holonomy Around a Flux Tube
 
     For a loop encircling flux `Φ`, the total phase is
 
     $$
-    \Delta \phi =     rac{q}{\hbar} \oint A \cdot dl =     rac{q \Phi}{\hbar}.
+    \Delta \phi = \frac{q}{\hbar} \oint A \cdot dl = \frac{q \Phi}{\hbar}.
     $$
 
     The physics lives in the closed-loop quantity, not in any one segment by
@@ -101,17 +101,17 @@ def _(I, asymmetry, exp, flux, gm, np):
     delta_phi = flux.value * np.pi
     upper_phi = asymmetry.value * delta_phi
     lower_phi = -(1.0 - asymmetry.value) * delta_phi
-    upper_rotor = exp((-upper_phi / 2) * I).name(latex=r"R_{\mathrm{upper}}")
-    lower_rotor = exp((-lower_phi / 2) * I).name(latex=r"R_{\mathrm{lower}}")
-    holonomy = (upper_rotor * ~lower_rotor).name("H", latex=r"\mathcal{H}")
+    upper_rotor = exp((-upper_phi / 2) * I).named(r"R_{\mathrm{upper}}", latex=r"R_{\mathrm{upper}}")
+    lower_rotor = exp((-lower_phi / 2) * I).named(r"R_{\mathrm{lower}}", latex=r"R_{\mathrm{lower}}")
+    holonomy = (upper_rotor * ~lower_rotor).named("H", latex=r"\mathcal{H}")
     interference = 0.5 * (1 + np.cos(delta_phi))
 
-    gm.md(t"""
-    {upper_rotor} = {upper_rotor.eval()}
+    gm.md(rt"""
+    {upper_rotor} = {upper_rotor:value}
 
-    {lower_rotor} = {lower_rotor.eval()}
+    {lower_rotor} = {lower_rotor:value}
 
-    {holonomy} = {holonomy.eval()}
+    {holonomy} = {holonomy:value}
 
     The observable phase difference is $\\Delta \\phi = {delta_phi / np.pi:.3f}\\pi$.
 

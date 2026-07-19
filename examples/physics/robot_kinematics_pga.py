@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -45,8 +45,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = pga.basis_vectors(lazy=True)
+    pga = Algebra((1, 1, 1, 0), )
+    e1, e2, e3, e0 = pga.basis_vectors(expr=True)
     return e0, e1, e2, e3
 
 
@@ -66,22 +66,22 @@ def _(e0, e1, e2, exp, gm, l1, l2, np, theta1, theta2):
     _t2 = np.radians(theta2.value)
     _R1 = exp((-_t1 / 2) * (e1 * e2))
     _R2 = exp((-( _t1 + _t2) / 2) * (e1 * e2))
-    _T1 = 1 + 0.5 * l1.value * e0 * (_R1 * e1 * ~_R1).eval()
-    _T2 = 1 + 0.5 * l2.value * e0 * (_R2 * e1 * ~_R2).eval()
+    _T1 = 1 + 0.5 * l1.value * e0 * (_R1 * e1 * ~_R1)
+    _T2 = 1 + 0.5 * l2.value * e0 * (_R2 * e1 * ~_R2)
     _M = _T2 * _T1
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Motors and Links
 
-    {_R1} = {_R1.eval()}
+    {_R1} = {_R1:value}
 
-    {_R2} = {_R2.eval()}
+    {_R2} = {_R2:value}
 
-    {_T1} = {_T1.eval()}
+    {_T1} = {_T1:value}
 
-    {_T2} = {_T2.eval()}
+    {_T2} = {_T2:value}
 
-    Composite motor {_M} = {_M.eval()}
+    Composite motor {_M} = {_M:value}
     """)
     return
 

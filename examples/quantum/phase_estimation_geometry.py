@@ -11,9 +11,9 @@ def _():
 
     _root = str(Path(__file__).resolve().parent.parent.parent)
     _gamo = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_marimo")
-    for p in [_root, _gamo]:
-        if p not in sys.path:
-            sys.path.insert(0, p)
+    for _path in [_root, _gamo]:
+        if _path not in sys.path:
+            sys.path.insert(0, _path)
     return
 
 
@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -48,21 +48,21 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Phase-estimation rotor plane:
 
-    {e1 * e2} = {(e1 * e2).eval()}
+    {e1 * e2} = {(e1 * e2):value}
 
     Reference axis:
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
     """)
     return
 
@@ -82,23 +82,23 @@ def _(bits, e1, e2, e3, exp, gm, np, phase):
     powers = [2**k for k in range(bits.value)]
     phases = [(p * phase.value) % 1.0 for p in powers]
     binary = format(int(round(phase.value * (2**bits.value))) % (2**bits.value), f"0{bits.value}b")
-    state = (rotor * e3 * ~rotor).eval().vector_part
+    state = (rotor * e3 * ~rotor).vector_part
 
     with gm.doc() as d:
-        d.md(t"""
+        d.md(rt"""
         ## Repeated Powers
 
         Base rotor:
-        {rotor} = {rotor.eval()}
+        {rotor} = {rotor:value}
 
         Rotated axis:
         $({state[0]:.6f}, {state[1]:.6f}, {state[2]:.6f})$
         """)
         d.text("| control power | fractional phase |")
         d.line("|---|---|")
-        for p, frac in zip(powers, phases):
-            d.line(f"| $2^{{{int(np.log2(p))}}}$ | {frac:.6f} |")
-        d.md(t"""
+        for _power, frac in zip(powers, phases):
+            d.line(f"| $2^{{{int(np.log2(_power))}}}$ | {frac:.6f} |")
+        d.md(rt"""
         Approximate {bits.value}-bit readout:
 
         $$

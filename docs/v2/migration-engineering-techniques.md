@@ -398,6 +398,31 @@ Those transformations require mathematical judgment. The safe workflow is:
 General lesson: use the most semantic automation available, but keep its
 allowlist narrower than the set of changes a human intends to make.
 
+### Notebook migration adds an execution ledger
+
+The notebook migration applies the same method to a more semantic surface.
+`MIGRATED_NOTEBOOKS` is simultaneously the maintained-gallery ledger and the
+filesystem write guard. The LibCST transformer understands Python 3.14
+templated strings, rewrites display content structurally, and uses the
+round-trippable raw `rt` spelling so LaTeX is not interpreted as Python escape
+sequences.
+
+Negative-space tests preserve the independent `.name()` protocols owned by
+`MatrixRepr`, `QuatMatrixRepr`, and `to_matrix`. Idempotence proves that
+latex-only semantic names, eager values, and explicit `:expr`/`:value` content
+have reached a stable form.
+
+Compilation was not accepted as completion. Marimo's own checker found
+cross-cell multiple definitions and private names that Python compilation
+could not see. Headless export then found runtime-only v1 assumptions such as
+mutable notation, `.reveal()`, and latex-only names. The final test executes
+every ledgered notebook, so the migration claim and the runtime evidence cover
+the same set.
+
+General lesson: for generated or reactive programs, the executable ledger
+should drive the framework's structural validator and its real runtime, not
+only the host language compiler.
+
 ## 4. Architectural tests as fitness functions
 
 Unit tests check results. Architectural tests check that results are produced
@@ -597,7 +622,8 @@ Validation expands as confidence grows:
 3. run guarded facade contracts;
 4. run the complete Galaga suite on Python 3.11;
 5. run non-Marimo workspace packages together;
-6. run `galaga_marimo` separately on Python 3.14;
+6. run `galaga_marimo` and the complete maintained notebook ledger separately
+   on Python 3.14;
 7. run formatting, lint, type, security, and Markdown checks; and
 8. build the wheel and source distribution and inspect their contents.
 

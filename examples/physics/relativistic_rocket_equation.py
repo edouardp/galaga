@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich
+    from galaga.facade import Algebra, exp, p_sta, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, sandwich
+    return Algebra, exp, gm, mo, np, p_sta, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -50,16 +50,16 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 
 
 @app.cell
 def _(g0, g1, gm):
-    gm.md(t"""
-    Boost plane: {g0 * g1} = {(g0 * g1).eval()}
+    gm.md(rt"""
+    Boost plane: {g0 * g1} = {(g0 * g1):value}
 
     The burn changes rapidity; the coast holds rapidity fixed.
     """)
@@ -91,14 +91,14 @@ def _(coast_years, exhaust, exp, g0, g1, gm, mass_ratio, np, sandwich):
     coast_earth = gamma * coast_ship
     coast_distance = beta * c * coast_earth
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Burn Result
 
     $\\Delta\\varphi = {phi:.5f}$
 
-    {exp((phi / 2) * (g0 * g1))} = {exp((phi / 2) * (g0 * g1)).eval()}
+    {exp((phi / 2) * (g0 * g1))} = {exp((phi / 2) * (g0 * g1)):value}
 
-    {sandwich(exp((phi / 2) * (g0 * g1)), g0)} = {sandwich(exp((phi / 2) * (g0 * g1)), g0).eval()}
+    {sandwich(exp((phi / 2) * (g0 * g1)), g0)} = {sandwich(exp((phi / 2) * (g0 * g1)), g0):value}
 
     Peak speed after one burn: $\\beta = {beta:.6f}$, $\\gamma = {gamma:.6f}$
 

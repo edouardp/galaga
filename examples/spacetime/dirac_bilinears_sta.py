@@ -23,7 +23,7 @@ def _():
     import marimo as mo
     import numpy as np
 
-    from galaga import Algebra, b_sta, exp, reverse
+    from galaga.facade import Algebra, spacetime_blade_convention, exp, reverse
     import galaga_marimo as gm
     from galaga_matrix import MatrixRepr, from_spinor_column, to_matrix, to_spinor_column
     from galaga_matrix.matrix import compact_basis
@@ -31,7 +31,7 @@ def _():
     return (
         Algebra,
         MatrixRepr,
-        b_sta,
+        spacetime_blade_convention,
         compact_basis,
         exp,
         from_spinor_column,
@@ -99,9 +99,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, b_sta, compact_basis, np):
-    sta = Algebra((1, -1, -1, -1), blades=b_sta(), repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, spacetime_blade_convention, compact_basis, np):
+    sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention(), )
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     gamma_matrices = compact_basis(sta)
     gamma0_matrix = gamma_matrices[0]
     gamma5_matrix = 1j * gamma_matrices[0] @ gamma_matrices[1] @ gamma_matrices[2] @ gamma_matrices[3]
@@ -145,7 +145,7 @@ def _(MatrixRepr, gamma0_matrix, gamma5_matrix, gamma_matrices, gm):
     _gamma1 = MatrixRepr(gamma_matrices[1]).name(latex=r"\Gamma^1")
     _gamma5 = MatrixRepr(gamma5_matrix).name(latex=r"\Gamma^5")
 
-    gm.md(t"""
+    gm.md(rt"""
     The compact matrix representation supplies the gamma matrices:
 
     {_gamma0:block}
@@ -249,17 +249,17 @@ def _(
     _I = sta.pseudoscalar()
     _source = (
         sta.scalar(0.9)
-        + 0.20 * (g0 * g1).eval()
-        - 0.10 * (g0 * g2).eval()
-        + 0.30 * (g1 * g2).eval()
+        + 0.20 * (g0 * g1)
+        - 0.10 * (g0 * g2)
+        + 0.30 * (g1 * g2)
         + source_phase.value * _I
-    ).name(latex=r"\Psi")
+    ).named(r"\Psi", latex=r"\Psi")
 
     _column = to_spinor_column(_source)
-    _roundtrip = from_spinor_column(sta, _column).name(latex=r"\Psi'")
+    _roundtrip = from_spinor_column(sta, _column).named(r"\Psi'", latex=r"\Psi'")
     _roundtrip_ok = np.allclose(_roundtrip.data, _source.data, atol=1e-10)
 
-    _rho = (_source * reverse(_source)).eval().name(latex=r"\Psi\widetilde{\Psi}")
+    _rho = (_source * reverse(_source)).named(r"\Psi\widetilde{\Psi}", latex=r"\Psi\widetilde{\Psi}")
     _sigma_matrix = dirac_scalar(_column, gamma0_matrix)
     _pi_matrix = dirac_pseudoscalar(_column, gamma0_matrix, gamma5_matrix)
     _sigma_ga = float(_rho.data[0])
@@ -269,13 +269,13 @@ def _(
 
     _current_components = dirac_current_components(_column, gamma0_matrix, gamma_matrices)
     _lowered_current = lower_spatial_components(_current_components)
-    _current_ga = (_source * g0 * reverse(_source)).eval().name(latex=r"J")
+    _current_ga = (_source * g0 * reverse(_source)).named(r"J", latex=r"J")
     _current_ok = np.allclose(_current_ga.vector_part, _lowered_current, atol=1e-10)
-    _current_square = float((_current_ga * _current_ga).eval().data[0])
+    _current_square = float((_current_ga * _current_ga).data[0])
     _fierz_rhs = _sigma_matrix**2 + _pi_matrix**2
     _fierz_ok = np.isclose(_current_square, _fierz_rhs, atol=1e-10)
 
-    _md = gm.md(t"""
+    _md = gm.md(rt"""
     Source even multivector:
 
     {_source.display()}
@@ -403,23 +403,23 @@ def _(
     _I = sta.pseudoscalar()
     _source = (
         sta.scalar(0.9)
-        + 0.20 * (g0 * g1).eval()
-        - 0.10 * (g0 * g2).eval()
-        + 0.30 * (g1 * g2).eval()
+        + 0.20 * (g0 * g1)
+        - 0.10 * (g0 * g2)
+        + 0.30 * (g1 * g2)
         + source_phase.value * _I
-    ).name(latex=r"\Psi")
+    ).named(r"\Psi", latex=r"\Psi")
 
     _L = (
-        exp((boost_rapidity.value / 2) * (g0 * g1).eval())
-        * exp((-rotation_angle.value / 2) * (g2 * g3).eval())
-    ).name(latex=r"L")
+        exp((boost_rapidity.value / 2) * (g0 * g1))
+        * exp((-rotation_angle.value / 2) * (g2 * g3))
+    ).named(r"L", latex=r"L")
     _L_matrix = to_matrix(_L, mode="compact")
     _lorentz_metric_ok = np.allclose(_L_matrix.conj().T @ gamma0_matrix @ _L_matrix, gamma0_matrix, atol=1e-10)
 
     _column = to_spinor_column(_source)
     _column_after = _L_matrix @ _column
-    _source_after = from_spinor_column(sta, _column_after).name(latex=r"\Psi'")
-    _expected_source_after = (_L * _source).eval()
+    _source_after = from_spinor_column(sta, _column_after).named(r"\Psi'", latex=r"\Psi'")
+    _expected_source_after = (_L * _source)
     _left_action_ok = np.allclose(_source_after.data, _expected_source_after.data, atol=1e-10)
 
     _sigma_before = dirac_scalar(_column, gamma0_matrix)
@@ -432,16 +432,16 @@ def _(
     _norm_before = float(np.real((_column.conj().T @ _column)[0, 0]))
     _norm_after = float(np.real((_column_after.conj().T @ _column_after)[0, 0]))
 
-    _current_before = (_source * g0 * reverse(_source)).eval().name(latex=r"J")
-    _current_after = (_source_after * g0 * reverse(_source_after)).eval().name(latex=r"J'")
-    _expected_current_after = (_L * _current_before * reverse(_L)).eval()
+    _current_before = (_source * g0 * reverse(_source)).named(r"J", latex=r"J")
+    _current_after = (_source_after * g0 * reverse(_source_after)).named(r"J'", latex=r"J'")
+    _expected_current_after = (_L * _current_before * reverse(_L))
     _current_covariant_ok = np.allclose(_current_after.data, _expected_current_after.data, atol=1e-10)
 
     _matrix_current_after = dirac_current_components(_column_after, gamma0_matrix, gamma_matrices)
     _lowered_matrix_current_after = lower_spatial_components(_matrix_current_after)
     _matrix_current_ok = np.allclose(_current_after.vector_part, _lowered_matrix_current_after, atol=1e-10)
 
-    _md = gm.md(t"""
+    _md = gm.md(rt"""
     Lorentz spinor:
 
     {_L.display()}

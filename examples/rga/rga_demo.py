@@ -22,14 +22,12 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga import (
+    from galaga.facade import (
         Algebra,
-        Notation,
         antidot_product,
         antimetric_apply,
         antireverse,
         antiwedge,
-        b_rga,
         bulk_part,
         dual,
         geometric_antiproduct,
@@ -41,6 +39,7 @@ def _():
         metric_apply,
         metric_inner_product,
         op,
+        p_rga,
         reverse,
         right_complement,
         right_hodge_dual,
@@ -53,12 +52,10 @@ def _():
 
     return (
         Algebra,
-        Notation,
         antidot_product,
         antimetric_apply,
         antireverse,
         antiwedge,
-        b_rga,
         bulk_part,
         dual,
         geometric_antiproduct,
@@ -72,6 +69,7 @@ def _():
         metric_inner_product,
         mo,
         op,
+        p_rga,
         reverse,
         right_complement,
         right_hodge_dual,
@@ -95,7 +93,7 @@ def _(mo):
     describe bulk and weight.
 
     This notebook introduces Galaga's RGA convention layer and computes its
-    defining identities with symbolic multivectors. It uses the **primal
+    defining identities with expression-tracked multivectors. It uses the **primal
     convention**: points are vectors, lines are bivectors, and planes are
     trivectors.
     """)
@@ -111,36 +109,31 @@ def _(mo):
     The explicit signature matters: Galaga's `(p, q, r)` convenience form puts
     null vectors first, while the RGA convention puts the null vector last.
 
-    - `b_rga()` supplies Lengyel's factored blade labels, such as $e_{31}$ and
-      $e_{423}$, and renders the antiscalar as $\text{𝟙}$.
-    - `Notation.lengyel()` selects the matching operation symbols.
-    - `display_repr=True` renders a named multivector with its value.
-    - `symbolic=True` preserves the construction of expressions until `.eval()`
-      computes their coefficients.
+    - `p_rga()` supplies the signature, Lengyel's factored blade labels (such
+      as $e_{31}$ and $e_{423}$), and the matching operation notation.
+    - `expr=True` records immutable expression provenance while numeric
+      coefficients remain eagerly available.
+    - Marimo interpolation chooses `:expr`, `:value`, or `:full` at the point
+      where a lesson needs a particular view.
     """)
     return
 
 
 @app.cell
-def _(Algebra, Notation, b_rga):
-    rga = Algebra(
-        (1, 1, 1, 0),
-        blades=b_rga(),
-        notation=Notation.lengyel(),
-        display_repr=True,
-    )
+def _(Algebra, p_rga):
+    rga = Algebra(config=p_rga())
     return (rga,)
 
 
 @app.cell
 def _(rga):
-    locals().update(rga.locals(symbolic=True))
+    locals().update(rga.locals(expr=True))
     return
 
 
 @app.cell
 def _(e1, e2, e3, e4, gm, rga):
-    gm.md(t"""
+    gm.md(rt"""
     The metric is derived from the signature **{rga.signature}**.
 
     {e1} <br/>
@@ -198,13 +191,13 @@ def _(mo):
 
 @app.cell
 def _(antiwedge, e1, e2, e3, e4, e423, e431, gm):
-    point_p = (e1 + 2 * e2 + e4).name(latex="P")
-    point_q = (-e1 + e3 + e4).name(latex="Q")
+    point_p = (e1 + 2 * e2 + e4).named("P", latex="P")
+    point_q = (-e1 + e3 + e4).named("Q", latex="Q")
 
-    plane_x = e423.name(latex=r"\pi_x")
-    plane_y = e431.name(latex=r"\pi_y")
+    plane_x = e423.named(r"\pi_x", latex=r"\pi_x")
+    plane_y = e431.named(r"\pi_y", latex=r"\pi_y")
 
-    gm.md(t"""
+    gm.md(rt"""
     Two homogeneous points join to a line:
 
     {point_p}
@@ -245,14 +238,14 @@ def _(mo):
 
 @app.cell
 def _(e1, gm, left_complement, right_complement):
-    gm.md(t"""
+    gm.md(rt"""
     Computing the signs gives the two complementary trivectors:
 
     {right_complement(e1)}
 
     {left_complement(e1)}
 
-    Both defining wedge identities evaluate to the oriented antiscalar:
+    Both defining wedge identities produce the oriented antiscalar:
 
     {e1 ^ right_complement(e1)}
 
@@ -291,9 +284,9 @@ def _(
     metric_apply,
     weight_part,
 ):
-    _line = (2 * e23 - e31 + 3 * e41 - e42).name(latex="L")
+    _line = (2 * e23 - e31 + 3 * e41 - e42).named("L", latex="L")
 
-    gm.md(t"""
+    gm.md(rt"""
     Start with a line containing Euclidean and weighted terms:
 
     { _line }
@@ -339,10 +332,10 @@ def _(mo):
 
 @app.cell
 def _(antidot_product, e23, e41, gm, metric_inner_product):
-    _B = e23.name(latex="B")
-    _W = e41.name(latex="W")
+    _B = e23.named("B", latex="B")
+    _W = e41.named("W", latex="W")
 
-    gm.md(t"""
+    gm.md(rt"""
     The metric and antimetric select complementary information:
 
     {_B}
@@ -393,9 +386,9 @@ def _(
     right_hodge_dual,
     right_weight_dual,
 ):
-    weight_blade = e41.name(latex="W")
+    weight_blade = e41.named("W", latex="W")
 
-    gm.md(t"""
+    gm.md(rt"""
     For a Euclidean vector, the bulk dual is nonzero:
 
     {right_hodge_dual(e1)}
@@ -453,8 +446,8 @@ def _(
     reverse,
     right_complement,
 ):
-    vector_u = (e1 + 2 * e2 + e4).name(latex="u")
-    vector_v = (e1 - e2 + e3).name(latex="v")
+    vector_u = (e1 + 2 * e2 + e4).named("u", latex="u")
+    vector_v = (e1 - e2 + e3).named("v", latex="v")
     vector_gp = gp(vector_u, vector_v)
     vector_gp_parts = op(vector_u, vector_v) + metric_inner_product(vector_u, vector_v)
     antivector_u = right_complement(vector_u)
@@ -465,7 +458,7 @@ def _(
     complemented_reversed_join = right_complement(reversed_join)
     antireversed_meet = antireverse(antiwedge(antivector_u, antivector_v))
 
-    gm.md(t"""
+    gm.md(rt"""
     The vector product decomposition computes the same multivector both ways:
 
     {vector_gp}
@@ -521,10 +514,10 @@ def _(mo):
 
 @app.cell
 def _(e1, e2, e3, gm, left_interior_product, op, right_interior_product):
-    _a = (e1 + e2).name(latex="a")
-    _B = op(e1 + 2 * e3, e2 - e3).name(latex="B")
+    _a = (e1 + e2).named("a", latex="a")
+    _B = op(e1 + 2 * e3, e2 - e3).named("B", latex="B")
 
-    gm.md(t"""
+    gm.md(rt"""
     Choose:
 
     {_a}
@@ -587,10 +580,10 @@ def _(
     transwedge,
     transwedge_antiproduct,
 ):
-    _a = (e23 + 2 * e31 + e41).name(latex="A")
-    _b = (e12 - e31 + 3 * e42).name(latex="B")
+    _a = (e23 + 2 * e31 + e41).named("A", latex="A")
+    _b = (e12 - e31 + 3 * e42).named("B", latex="B")
 
-    gm.md(t"""
+    gm.md(rt"""
     Use two bivectors containing Euclidean and weighted terms:
 
     {_a}
@@ -644,7 +637,7 @@ def _(mo):
 @app.cell
 def _(dual, e1, right_hodge_dual):
     try:
-        _inverse_pseudoscalar_result = dual(e1).eval()
+        _inverse_pseudoscalar_result = dual(e1)
         inverse_dual_message = f"unexpected result: {_inverse_pseudoscalar_result}"
     except ValueError as _dual_error:
         inverse_dual_message = str(_dual_error)
@@ -655,7 +648,7 @@ def _(dual, e1, right_hodge_dual):
 
 @app.cell
 def _(e1, gm, inverse_dual_message, rga_bulk_dual):
-    gm.md(t"""
+    gm.md(rt"""
     For the same vector {e1}:
 
     - `dual(e1)` reports: **{inverse_dual_message}**

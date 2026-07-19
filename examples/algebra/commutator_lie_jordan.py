@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga import Algebra, anticommutator, commutator, jordan_product, lie_bracket
+    from galaga.facade import Algebra, anticommutator, commutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
     return (
@@ -47,8 +47,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -56,18 +56,18 @@ def _(Algebra):
 def _(anticommutator, commutator, e1, e2, e3, gm, jordan_product, lie_bracket):
     A = e1 ^ e2
     B = e2 ^ e3
-    gm.md(t"""
-    {A} = {A.eval()}
+    gm.md(rt"""
+    {A} = {A:value}
 
-    {B} = {B.eval()}
+    {B} = {B:value}
 
-    {commutator(A, B)} = {commutator(A, B).eval()}
+    {commutator(A, B)} = {commutator(A, B):value}
 
-    {anticommutator(A, B)} = {anticommutator(A, B).eval()}
+    {anticommutator(A, B)} = {anticommutator(A, B):value}
 
-    {lie_bracket(A, B)} = {lie_bracket(A, B).eval()}
+    {lie_bracket(A, B)} = {lie_bracket(A, B):value}
 
-    {jordan_product(A, B)} = {jordan_product(A, B).eval()}
+    {jordan_product(A, B)} = {jordan_product(A, B):value}
     """)
     return
 

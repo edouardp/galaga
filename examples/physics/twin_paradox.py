@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich, b_sta
+    from galaga.facade import Algebra, exp, sandwich, spacetime_blade_convention
     import galaga_marimo as gm
 
-    return Algebra, b_sta, exp, gm, mo, np, plt, sandwich
+    return Algebra, spacetime_blade_convention, exp, gm, mo, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -52,20 +52,20 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, b_sta):
-    sta = Algebra((1, -1, -1, -1), blades=b_sta(), repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, spacetime_blade_convention):
+    sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention(), )
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 
 
 @app.cell
 def _(g0, g1, gm):
-    boost_plane = (g0 * g1).name("B", latex=r"\gamma_0 \gamma_1")
-    gm.md(t"""
+    boost_plane = (g0 * g1).named("B", latex=r"\gamma_0 \gamma_1")
+    gm.md(rt"""
     ## STA Setup
 
     Outbound and inbound inertial legs are related to Earth by boost rotors in the
-    plane {boost_plane} = {boost_plane.eval()}.
+    plane {boost_plane} = {boost_plane:value}.
 
     Proper time is the Minkowski length of a timelike worldline segment, so the
     twin paradox is really a spacetime-geometry statement rather than a paradox.
@@ -113,21 +113,21 @@ def _(beta, earth_half, exp, g0, g1, gm, np, sandwich):
     reunion_ship = 2.0 * traveler_half
     turnaround_distance = _beta * T_half
 
-    outbound_rotor = exp((phi / 2) * (g0 * g1)).name(latex=r"\Lambda_{\mathrm{out}}")
-    inbound_rotor = exp((-phi / 2) * (g0 * g1)).name(latex=r"\Lambda_{\mathrm{in}}")
-    outbound_axis = sandwich(outbound_rotor, g0).name(latex=r"u_{\mathrm{out}}")
-    inbound_axis = sandwich(inbound_rotor, g0).name(latex=r"u_{\mathrm{in}}")
+    outbound_rotor = exp((phi / 2) * (g0 * g1)).named(r"\Lambda_{\mathrm{out}}", latex=r"\Lambda_{\mathrm{out}}")
+    inbound_rotor = exp((-phi / 2) * (g0 * g1)).named(r"\Lambda_{\mathrm{in}}", latex=r"\Lambda_{\mathrm{in}}")
+    outbound_axis = sandwich(outbound_rotor, g0).named(r"u_{\mathrm{out}}", latex=r"u_{\mathrm{out}}")
+    inbound_axis = sandwich(inbound_rotor, g0).named(r"u_{\mathrm{in}}", latex=r"u_{\mathrm{in}}")
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Proper-Time Comparison
 
-    {outbound_rotor} = {outbound_rotor.eval()}
+    {outbound_rotor} = {outbound_rotor:value}
 
-    {inbound_rotor} = {inbound_rotor.eval()}
+    {inbound_rotor} = {inbound_rotor:value}
 
-    {outbound_axis} = {outbound_axis.eval()}
+    {outbound_axis} = {outbound_axis:value}
 
-    {inbound_axis} = {inbound_axis.eval()}
+    {inbound_axis} = {inbound_axis:value}
 
     Rapidity: $\\varphi = {phi:.5f}$
 
@@ -158,7 +158,7 @@ def _(mo):
 
 @app.cell
 def _(T_half, beta, gamma, gm, reunion_earth, reunion_ship):
-    gm.md(t"""
+    gm.md(rt"""
     With $\\beta = {beta.value:.3f}$ and one Earth-frame leg lasting {T_half:.2f} years:
 
     - Earth twin proper time = {reunion_earth:.3f} years

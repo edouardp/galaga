@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, norm, unit
+    from galaga.facade import Algebra, grade, norm, unit
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt, unit
@@ -46,22 +46,22 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
 @app.cell
 def _(e1, e2, gm, unit):
-    symmetric = unit(e1 + e2).name("u₊", latex=r"u_+")
-    antisymmetric = unit(e1 - e2).name("u₋", latex=r"u_-")
+    symmetric = unit(e1 + e2).named("u₊", latex=r"u_+")
+    antisymmetric = unit(e1 - e2).named("u₋", latex=r"u_-")
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Mode Basis
 
-    {symmetric} = {symmetric.eval()}
+    {symmetric} = {symmetric:value}
 
-    {antisymmetric} = {antisymmetric.eval()}
+    {antisymmetric} = {antisymmetric:value}
 
     The in-phase and out-of-phase motions are just the rotated basis vectors of
     configuration space.
@@ -94,25 +94,25 @@ def _(mo):
 
 @app.cell
 def _(antisymmetric, e1, e2, gm, np, symmetric, time, w_minus, w_plus, x1, x2):
-    q0 = (x1.value * e1 + x2.value * e2).name(latex=r"q_0")
-    a_plus = ((q0 * symmetric).eval()).scalar_part
-    a_minus = ((q0 * antisymmetric).eval()).scalar_part
-    qp = (a_plus * np.cos(w_plus.value * time.value) * symmetric).name(latex=r"q_+(t)")
-    qm = (a_minus * np.cos(w_minus.value * time.value) * antisymmetric).name(latex=r"q_-(t)")
-    qt = (qp + qm).name(latex=r"q(t)")
+    q0 = (x1.value * e1 + x2.value * e2).named(r"q_0", latex=r"q_0")
+    a_plus = (q0 * symmetric).coefficient(0)
+    a_minus = (q0 * antisymmetric).coefficient(0)
+    qp = (a_plus * np.cos(w_plus.value * time.value) * symmetric).named(r"q_+(t)", latex=r"q_+(t)")
+    qm = (a_minus * np.cos(w_minus.value * time.value) * antisymmetric).named(r"q_-(t)", latex=r"q_-(t)")
+    qt = (qp + qm).named(r"q(t)", latex=r"q(t)")
 
-    gm.md(t"""
-    {q0} = {q0.eval()}
+    gm.md(rt"""
+    {q0} = {q0:value}
 
     Mode amplitude along {symmetric}: {a_plus:.4f}
 
     Mode amplitude along {antisymmetric}: {a_minus:.4f}
 
-    {qp} = {qp.eval()}
+    {qp} = {qp:value}
 
-    {qm} = {qm.eval()}
+    {qm} = {qm:value}
 
-    {qt} = {qt.eval()}
+    {qt} = {qt:value}
     """)
     return a_minus, a_plus
 
@@ -132,14 +132,14 @@ def _(
     _times = np.linspace(0, 20, 500)
     _q = np.array([
         (
-            a_plus * np.cos(w_plus.value * _t) * symmetric.eval().vector_part[:2]
-            + a_minus * np.cos(w_minus.value * _t) * antisymmetric.eval().vector_part[:2]
+            a_plus * np.cos(w_plus.value * _t) * symmetric.vector_part[:2]
+            + a_minus * np.cos(w_minus.value * _t) * antisymmetric.vector_part[:2]
         )
         for _t in _times
     ])
     _current = (
-        a_plus * np.cos(w_plus.value * time.value) * symmetric.eval().vector_part[:2]
-        + a_minus * np.cos(w_minus.value * time.value) * antisymmetric.eval().vector_part[:2]
+        a_plus * np.cos(w_plus.value * time.value) * symmetric.vector_part[:2]
+        + a_minus * np.cos(w_minus.value * time.value) * antisymmetric.vector_part[:2]
     )
 
     _fig, (_ax1, _ax2) = plt.subplots(1, 2, figsize=(11, 4))

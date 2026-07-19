@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -61,21 +61,21 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell(hide_code=True)
 def _(e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     ## Basis Algebra
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
 
     The bivectors {e2 * e3}, {e3 * e1}, and {e1 * e2} generate rotations of the Bloch sphere.
     """)
@@ -106,13 +106,13 @@ def _(e1, e3, exp, gm, np):
     ket_plus = exp((-(np.pi / 2) / 2) * (e3 * e1))
     ket_minus = exp(((np.pi / 2) / 2) * (e3 * e1))
 
-    gm.md(t"""
+    gm.md(rt"""
     | State | GA representative | Bloch vector |
     |---|---|---|
-    | $|0\\rangle$ | {ket_0} = {ket_0.eval()} | {(ket_0 * e3 * ~ket_0).eval()} |
-    | $|1\\rangle$ | {ket_1} = {ket_1.eval()} | {(ket_1 * e3 * ~ket_1).eval()} |
-    | $|+\\rangle$ | {ket_plus} = {ket_plus.eval()} | {(ket_plus * e3 * ~ket_plus).eval()} |
-    | $|-\\rangle$ | {ket_minus} = {ket_minus.eval()} | {(ket_minus * e3 * ~ket_minus).eval()} |
+    | $|0\\rangle$ | {ket_0} = {ket_0:value} | {(ket_0 * e3 * ~ket_0):value} |
+    | $|1\\rangle$ | {ket_1} = {ket_1:value} | {(ket_1 * e3 * ~ket_1):value} |
+    | $|+\\rangle$ | {ket_plus} = {ket_plus:value} | {(ket_plus * e3 * ~ket_plus):value} |
+    | $|-\\rangle$ | {ket_minus} = {ket_minus:value} | {(ket_minus * e3 * ~ket_minus):value} |
     """)
     return
 
@@ -154,17 +154,17 @@ def _(e1, e2, e3, exp, gm, np, phi, theta):
     _theta = np.radians(theta.value)
     _phi = np.radians(phi.value)
     psi = exp((-_phi / 2) * (e1 * e2)) * exp((-_theta / 2) * (e3 * e1))
-    s = (psi * e3 * ~psi).eval().vector_part
+    s = (psi * e3 * ~psi).vector_part
 
     alpha = np.cos(_theta / 2)
     beta = np.exp(1j * _phi) * np.sin(_theta / 2)
     p0 = 0.5 * (1 + s[2])
     p1 = 0.5 * (1 - s[2])
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Rotor View vs Amplitude View
 
-    {psi} = {psi.eval()}
+    {psi} = {psi:value}
 
     Bloch vector:
     $({s[0]:.6f}, {s[1]:.6f}, {s[2]:.6f})$

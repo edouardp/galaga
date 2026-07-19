@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra
+    from galaga.facade import Algebra, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, mo, np, plt
+    return Algebra, gm, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -48,9 +48,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1, g2, g3
 
 
@@ -67,12 +67,12 @@ def _(mo):
 def _(bx, bz, g1, g2, g3, gm, speed):
     F = bx.value * (g2 * g3) + bz.value * (g1 * g2)
     v = speed.value * g1
-    gm.md(t"""
+    gm.md(rt"""
     ## Field and Initial Velocity
 
-    {F} = {F.eval()}
+    {F} = {F:value}
 
-    {v} = {v.eval()}
+    {v} = {v:value}
 
     In a purely magnetic field the speed is constant while the spatial velocity
     direction rotates.

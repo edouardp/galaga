@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, reflect, sandwich
+    from galaga.facade import Algebra, exp, inverse, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, reflect, sandwich
+    return Algebra, exp, gm, inverse, mo, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -47,8 +47,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -60,24 +60,25 @@ def _(mo):
 
 
 @app.cell
-def _(angle, e1, e2, exp, gm, np, reflect, sandwich):
+def _(angle, e1, e2, exp, gm, inverse, np, sandwich):
     _theta = np.radians(angle.value)
     v = e1 + 0.5 * e2
     R = exp((-_theta / 2) * (e1 * e2))
-    gm.md(t"""
-    {v} = {v.eval()}
+    reflected = -e1 * v * inverse(e1)
+    gm.md(rt"""
+    {v} = {v:value}
 
-    {reflect(v, e1)} = {reflect(v, e1).eval()}
+    {-e1 * v * inverse(e1)} = {reflected:value}
 
-    {sandwich(R, v)} = {sandwich(R, v).eval()}
+    {sandwich(R, v)} = {sandwich(R, v):value}
     """)
     return R, v
 
 
 @app.cell
 def _(R, np, plt, v):
-    _v = v.eval().vector_part[:2]
-    _r = (R * v * ~R).eval().vector_part[:2]
+    _v = v.vector_part[:2]
+    _r = (R * v * ~R).vector_part[:2]
     _fig, _ax = plt.subplots(figsize=(6, 6))
     _ax.quiver(0, 0, _v[0], _v[1], angles="xy", scale_units="xy", scale=1, color="steelblue", width=0.012)
     _ax.quiver(0, 0, _r[0], _r[1], angles="xy", scale_units="xy", scale=1, color="crimson", width=0.012)

@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, complement
+    from galaga.facade import Algebra, complement
     import galaga_marimo as gm
 
     return Algebra, complement, gm, mo, np, plt
@@ -38,34 +38,34 @@ def _(mo):
     # PGA Geometry Constructions
 
     This notebook focuses on projective geometry rather than rigid-motion motors.
-    Points, lines, and joins are written with lazy blades first so the construction
-    is legible, then evaluated for coordinates and plotting.
+    Points, lines, and joins record expression provenance so the construction
+    stays legible while coordinates remain immediately available for plotting.
     """)
     return
 
 
 @app.cell
 def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = pga.basis_vectors(lazy=True)
-    e123 = (e1 ^ e2 ^ e3).name(latex=r"e_{123}")
-    E1 = (e2 ^ e3 ^ e0).name("E_1", latex=r"E_1")
-    E2 = (-(e1 ^ e3 ^ e0)).name("E_2", latex=r"E_2")
-    E3 = (e1 ^ e2 ^ e0).name("E_3", latex=r"E_3")
+    pga = Algebra((1, 1, 1, 0), )
+    e1, e2, e3, e0 = pga.basis_vectors(expr=True)
+    e123 = (e1 ^ e2 ^ e3).named(r"e_{123}", latex=r"e_{123}")
+    E1 = (e2 ^ e3 ^ e0).named("E_1", latex=r"E_1")
+    E2 = (-(e1 ^ e3 ^ e0)).named("E_2", latex=r"E_2")
+    E3 = (e1 ^ e2 ^ e0).named("E_3", latex=r"E_3")
     return E1, E2, E3, e0, e1, e123, e2
 
 
 @app.cell
 def _(E1, E2, E3, complement, e0, e1, e123, e2, np):
     def point(x, y, z=0.0):
-        return (e123 + x * E1 + y * E2 + z * E3).name(latex=rf"P({x:.1f},{y:.1f},{z:.1f})")
+        return (e123 + x * E1 + y * E2 + z * E3).named(rf"P({x:.1f},{y:.1f},{z:.1f})", latex=rf"P({x:.1f},{y:.1f},{z:.1f})")
 
     def opns_point(P):
         return complement(P)
 
     def blade_coefficient(mv, blade):
-        _mv = mv.eval()
-        _blade = blade.eval()
+        _mv = mv
+        _blade = blade
         _nz = np.flatnonzero(np.abs(_blade.data) > 1e-12)
         if len(_nz) != 1:
             raise ValueError("blade_coefficient expects a single basis blade")
@@ -73,7 +73,7 @@ def _(E1, E2, E3, complement, e0, e1, e123, e2, np):
         return _mv.data[_idx] / _blade.data[_idx]
 
     def join_line(P, Q):
-        return (opns_point(P) ^ opns_point(Q)).name("ℓ", latex=r"\ell")
+        return (opns_point(P) ^ opns_point(Q)).named("ℓ", latex=r"\ell")
 
     def line_equation(join):
         _c = blade_coefficient(join, e1 ^ e2)
@@ -82,13 +82,13 @@ def _(E1, E2, E3, complement, e0, e1, e123, e2, np):
         return _a, _b, -_c
 
     def join_triangle(P, Q, R):
-        return (opns_point(P) ^ opns_point(Q) ^ opns_point(R)).name("Π", latex=r"\Pi")
+        return (opns_point(P) ^ opns_point(Q) ^ opns_point(R)).named("Π", latex=r"\Pi")
 
     def triangle_area(join):
         return 0.5 * abs(blade_coefficient(join, e1 ^ e2 ^ e0))
 
     def coords(P):
-        _P = P.eval()
+        _P = P
         _w = _P.data[7]
         return np.array([_P.data[14] / _w, -_P.data[13] / _w, _P.data[11] / _w])
 
@@ -128,16 +128,16 @@ def _(mo):
 
 @app.cell
 def _(ax, ay, bx, by, gm, join_line, line_equation, point):
-    A = point(ax.value, ay.value).name("A")
-    B = point(bx.value, by.value).name("B")
+    A = point(ax.value, ay.value).named("A")
+    B = point(bx.value, by.value).named("B")
     line = join_line(A, B)
     _a, _b, _c = line_equation(line)
-    gm.md(t"""
-    {A} = {A.eval()}
+    gm.md(rt"""
+    {A} = {A:value}
 
-    {B} = {B.eval()}
+    {B} = {B:value}
 
-    {line} = {line.eval()}
+    {line} = {line:value}
 
     Plane coordinates of $\\ell$: {_a:.3f}x + {_b:.3f}y + {_c:.3f} = 0
     """)
@@ -157,14 +157,14 @@ def _(mo):
 
 @app.cell
 def _(A, B, gm, join_triangle, point, triangle_area):
-    C = point(0.3, 2.1).name("C")
+    C = point(0.3, 2.1).named("C")
     triangle = join_triangle(A, B, C)
     area = triangle_area(triangle)
 
-    gm.md(t"""
-    {C} = {C.eval()}
+    gm.md(rt"""
+    {C} = {C:value}
 
-    {triangle} = {triangle.eval()}
+    {triangle} = {triangle:value}
 
     Triangle area = {area:.3f}
     """)

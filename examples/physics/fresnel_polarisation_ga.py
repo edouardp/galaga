@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, unit
+    from galaga.facade import Algebra, unit
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt, unit
@@ -48,19 +48,19 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
 @app.cell
 def _(e1, e2, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Polarisation basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
     """)
     return
 
@@ -86,18 +86,18 @@ def _(e1, e2, gm, incidence, n1, n2, np, pol, unit):
 
     _alpha = np.radians(pol.value)
     _E = unit(np.cos(_alpha) * e1 + np.sin(_alpha) * e2)
-    _Er = rs * (_E.eval().vector_part[1] * e2.eval()) + rp * (_E.eval().vector_part[0] * e1.eval())
+    _Er = rs * (_E.vector_part[1] * e2) + rp * (_E.vector_part[0] * e1)
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Fresnel Coefficients
 
     Input polarisation:
-    {_E} = {_E.eval()}
+    {_E} = {_E:value}
 
     $r_s = {rs:.6f}$ and $r_p = {rp:.6f}$
 
     Reflected field:
-    {_Er} = {_Er.eval()}
+    {_Er} = {_Er:value}
     """)
     return rp, rs
 

@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -46,21 +46,21 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
 def _(e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Measurement-axis basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
 
     In the singlet, the correlation depends only on the geometric relationship
     between the two measurement axes.
@@ -79,13 +79,13 @@ def _(mo):
 def _(delta, e1, e2, exp, gm, np):
     _d = np.radians(delta.value)
     a = e1
-    R = exp((-_d / 2) * (e1 * e2)).name(latex=f"\\R_{{{delta.value}°}}")
+    R = exp((-_d / 2) * (e1 * e2)).named(f"\\R_{{{delta.value}°}}", latex=f"\\R_{{{delta.value}°}}")
     b = R * e1 * ~R
-    singlet_corr = -((a * b).eval()).scalar_part
+    singlet_corr = -(a * b).coefficient(0)
     same_prob = 0.5 * (1 - singlet_corr)
     diff_prob = 0.5 * (1 + singlet_corr)
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Singlet Correlation
 
     For the Bell singlet state
@@ -103,11 +103,11 @@ def _(delta, e1, e2, exp, gm, np):
 
     Choose
 
-    {a} = {a.eval()}
+    {a} = {a:value}
 
     and rotate it in the $e_1 e_2$ plane to get
 
-    {b} = {b.eval()}
+    {b} = {b:value}
 
     Then the GA scalar product gives
 
@@ -135,7 +135,7 @@ def _(b, delta, np, plt, singlet_corr):
     _ax1.grid(True, alpha=0.2)
 
     _ax2.quiver(0, 0, 1, 0, angles="xy", scale_units="xy", scale=1, color="steelblue", width=0.015)
-    _bv = b.eval().vector_part[:2]
+    _bv = b.vector_part[:2]
     _ax2.quiver(0, 0, _bv[0], _bv[1], angles="xy", scale_units="xy", scale=1, color="crimson", width=0.015)
     _ax2.set_aspect("equal")
     _ax2.set_xlim(-1.2, 1.2)

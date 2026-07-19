@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga import Algebra, complement, dual, project, reflect, reject, undual, uncomplement
+    from galaga.facade import Algebra, complement, dual, inverse, left_contraction, uncomplement, undual
     import galaga_marimo as gm
 
     return (
@@ -28,10 +28,9 @@ def _():
         complement,
         dual,
         gm,
+        inverse,
+        left_contraction,
         mo,
-        project,
-        reflect,
-        reject,
         uncomplement,
         undual,
     )
@@ -50,8 +49,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -63,30 +62,32 @@ def _(
     e2,
     e3,
     gm,
-    project,
-    reflect,
-    reject,
+    inverse,
+    left_contraction,
     uncomplement,
     undual,
 ):
-    B = (e1 ^ e2).name("B")
-    v = (e1 + e2 + e3).name("v")
-    gm.md(t"""
-    {B} = {B.eval()}
+    B = (e1 ^ e2).named("B")
+    v = (e1 + e2 + e3).named("v")
+    projection = left_contraction(v, B) * inverse(B)
+    rejection = v - projection
+    reflection = -e3 * v * inverse(e3)
+    gm.md(rt"""
+    {B} = {B:value}
 
-    Dual of {B}: $\\quad$  {dual(B)} = {dual(B).eval()}
+    Dual of {B}: $\\quad$  {dual(B)} = {dual(B):value}
 
-    Undual of Dual of {B}: $\\quad$ {undual(dual(B))} = {undual(dual(B)).eval()}
+    Undual of Dual of {B}: $\\quad$ {undual(dual(B))} = {undual(dual(B)):value}
 
-    Complement of {B}: $\\quad$  {complement(B)} = {complement(B).eval()}
+    Complement of {B}: $\\quad$  {complement(B)} = {complement(B):value}
 
-    Uncomplement of Complement of {B}: $\\quad$ {uncomplement(complement(B))} = {uncomplement(complement(B)).eval()}
+    Uncomplement of Complement of {B}: $\\quad$ {uncomplement(complement(B))} = {uncomplement(complement(B)):value}
 
-    Project {v} onto {B}: $\\quad$ {project(v, B)} = {project(v, B).eval()}
+    Project {v} onto {B}: $\\quad$ {projection} = {projection:value}
 
-    Reject {v} onto {B}: $\\quad$ {reject(v, B)} = {reject(v, B).eval()}
+    Reject {v} onto {B}: $\\quad$ {rejection} = {rejection:value}
 
-    Reflect {v} in {e3}: $\\quad$ {reflect(v, e3)} = {reflect(v, e3).eval()}
+    Reflect {v} in {e3}: $\\quad$ {reflection} = {reflection:value}
     """)
     return
 

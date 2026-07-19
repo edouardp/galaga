@@ -17,10 +17,11 @@ guide explains how the executable surface ledger, LibCST codemods,
 architectural fitness tests, guarded facade contracts, and oracle-retirement
 process make those gates enforceable.
 
-The core consolidation, replacement contract, eager numeric facade, and
-numeric test migration are complete on the `galaga_v2` branch. Later phases
-are not complete merely because the remaining legacy Galaga suite still passes
-against the legacy implementation.
+Phases 0 through 7 are complete on the `galaga_v2` branch: the core,
+replacement contract, facade, presentation, provenance, rendering,
+compatibility, companion packages, and maintained examples all have their
+replacement evidence. Phase 8 is not complete merely because the remaining
+legacy Galaga suite still passes against the legacy implementation.
 
 ## Current position
 
@@ -176,7 +177,7 @@ The replacement suite must visibly distinguish:
 | 4 | Presentation and presets are independent | Complete | Configuration and scope isolation tests pass |
 | 5 | Expression provenance is rebuilt | Complete | Evaluation round trips and numeric-only isolation pass |
 | 6 | Rendering and notation are rebuilt | Complete | Semantic and golden rendering tests pass |
-| 7 | Companion packages and shims migrate | In progress | Integration and deprecation suites pass |
+| 7 | Companion packages and shims migrate | Complete | Integration and deprecation suites pass |
 | 8 | Top-level API shadows the facade | Planned | Full suite reaches no legacy numeric path |
 | 9 | Legacy engine is removed | Planned | Clean wheel and release gates pass |
 
@@ -1074,7 +1075,7 @@ Completion evidence:
 
 ### W7.4 Migrate examples and optional integrations
 
-Status: **in progress (2026-07-19)**.
+Status: **complete (2026-07-19)**.
 
 Deliverables:
 
@@ -1116,24 +1117,40 @@ Completed so far:
 - all 392 `galaga_matrix` tests pass under Python 3.11, including expression
   immutability, evaluation, public facade conversion, and source-architecture
   gates; and
-- the combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,169 tests
-  with 19 skips, while all 93 Marimo tests pass under Python 3.14.
-
-Remaining before W7.4 is complete:
-
-- migrate or explicitly retire the older Marimo notebook gallery that still
-  demonstrates Galaga 1 mutation and evaluation vocabulary.
+- the final combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,174
+  tests with 21 skips, while the Python 3.14 Marimo and maintained-notebook
+  gate passes 110 tests;
+- the 51 maintained Marimo notebooks are an executable allowlist in
+  `tools.migrate_v2_notebooks`, and the codemod refuses to write any other
+  example path;
+- those notebooks now import `galaga.facade`, use eager values with optional
+  `expr=True` provenance, use immutable `.named()`, and select `:expr` or
+  `:value` at the display site rather than calling `.reveal()` or `.eval()`;
+- matrix and quaternion render objects retain their package-owned `.name()`
+  protocol, covered by codemod negative-space tests;
+- removed `project`, `reject`, and `reflect` helpers are written as explicit
+  contraction, inverse, subtraction, and sandwich compositions in teaching
+  notebooks rather than being reintroduced into the facade;
+- Python 3.14 compiles every ledgered notebook without LaTeX escape warnings,
+  Marimo validates every cell dependency graph, and all 51 notebooks execute
+  headlessly with zero failed cells; and
+- Python 3.11 runs the ledger and codemod architecture tests while explicitly
+  skipping only the t-string compile and runtime gates.
 
 See [Integration migration](integration-migration.md) and
 [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md). The
 matrix provenance boundary is recorded separately in
-[ADR-082](../adrs/082-matrix-provenance-is-package-owned.md).
+[ADR-082](../adrs/082-matrix-provenance-is-package-owned.md), and the notebook
+gallery gate in
+[ADR-083](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md).
 
 Phase 7 exit gate:
 
 - no supported companion package reads legacy numeric internals;
 - every compatibility shim is tested and has a removal policy; and
 - all maintained examples execute against the facade.
+
+All three conditions are satisfied. Phase 8 is the next implementation phase.
 
 ## Phase 8: shadow and perform the top-level cutover
 

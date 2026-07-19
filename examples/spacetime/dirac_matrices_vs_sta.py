@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich, b_sta
+    from galaga.facade import Algebra, exp, sandwich, spacetime_blade_convention
     import galaga_marimo as gm
 
-    return Algebra, b_sta, exp, gm, mo, np, plt, sandwich
+    return Algebra, spacetime_blade_convention, exp, gm, mo, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -51,9 +51,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, b_sta):
-    sta = Algebra((1, -1, -1, -1), blades=b_sta())
-    g0, g1, g2, g3 = sta.basis_vectors(symbolic=True)
+def _(Algebra, spacetime_blade_convention):
+    sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1, g2, g3
 
 
@@ -98,14 +98,14 @@ def _(mo):
 @app.cell
 def _(g0, g1, g2, g3, gamma0, gamma1, gamma2, gamma3, gm):
     _anticomm_01 = gamma0 @ gamma1 + gamma1 @ gamma0
-    gm.md(t"""
+    gm.md(rt"""
     | Object | Matrix side | STA side |
     |---|---|---|
-    | $\\Gamma_0$ / $\\gamma_0$ | `{gamma0}` | {g0} = {g0.eval()} |
-    | $\\Gamma_1$ / $\\gamma_1$ | `{gamma1}` | {g1} = {g1.eval()} |
-    | $\\Gamma_2$ / $\\gamma_2$ | `{gamma2}` | {g2} = {g2.eval()} |
-    | $\\Gamma_3$ / $\\gamma_3$ | `{gamma3}` | {g3} = {g3.eval()} |
-    | $\\{{\\Gamma_0,\\Gamma_1\\}}$ / $\\gamma_0\\gamma_1 + \\gamma_1\\gamma_0$ | `{_anticomm_01}` | {g0 * g1 + g1 * g0} = {(g0 * g1 + g1 * g0).eval()} |
+    | $\\Gamma_0$ / $\\gamma_0$ | `{gamma0}` | {g0} = {g0:value} |
+    | $\\Gamma_1$ / $\\gamma_1$ | `{gamma1}` | {g1} = {g1:value} |
+    | $\\Gamma_2$ / $\\gamma_2$ | `{gamma2}` | {g2} = {g2:value} |
+    | $\\Gamma_3$ / $\\gamma_3$ | `{gamma3}` | {g3} = {g3:value} |
+    | $\\{{\\Gamma_0,\\Gamma_1\\}}$ / $\\gamma_0\\gamma_1 + \\gamma_1\\gamma_0$ | `{_anticomm_01}` | {g0 * g1 + g1 * g0} = {(g0 * g1 + g1 * g0):value} |
     """)
     return
 
@@ -145,28 +145,28 @@ def _(mo):
 def _(exp, g0, g1, gamma0, gamma1, gm, np, rapidity, sandwich):
     _phi = rapidity.value
     _R = exp((_phi / 2) * (g0 * g1))
-    _boosted_time_axis = sandwich(_R, g0)
-    _boosted_x_axis = sandwich(_R, g1)
+    boosted_time_axis = sandwich(_R, g0)
+    boosted_x_axis = sandwich(_R, g1)
 
     _alpha1 = gamma0 @ gamma1
     _S = np.cosh(_phi / 2) * np.eye(4, dtype=complex) + np.sinh(_phi / 2) * _alpha1
     _u_rest = np.array([[1], [0], [0], [0]], dtype=complex)
     _u_boosted = _S @ _u_rest
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Boosted Observer
 
     STA rotor:
 
-    {_R} = {_R.eval()}
+    {_R} = {_R:value}
 
     Boosted time axis:
 
-    {_boosted_time_axis} = {_boosted_time_axis.eval()}
+    {boosted_time_axis} = {boosted_time_axis:value}
 
     Boosted space axis:
 
-    {_boosted_x_axis} = {_boosted_x_axis.eval()}
+    {boosted_x_axis} = {boosted_x_axis:value}
 
     Dirac boost matrix:
 
@@ -184,7 +184,7 @@ def _(exp, g0, g1, gamma0, gamma1, gm, np, rapidity, sandwich):
     \\end{{pmatrix}}
     $$
     """)
-    return
+    return boosted_time_axis, boosted_x_axis
 
 
 @app.cell(hide_code=True)
@@ -244,18 +244,18 @@ def _(
     _px = px.value
     _py = py.value
     _pz = pz.value
-    _E = np.sqrt(_m**2 + _px**2 + _py**2 + _pz**2)
+    on_shell_energy = np.sqrt(_m**2 + _px**2 + _py**2 + _pz**2)
 
-    _p = _E * g0 + _px * g1 + _py * g2 + _pz * g3
-    _slash = _E * gamma0 - _px * gamma1 - _py * gamma2 - _pz * gamma3
+    _p = on_shell_energy * g0 + _px * g1 + _py * g2 + _pz * g3
+    _slash = on_shell_energy * gamma0 - _px * gamma1 - _py * gamma2 - _pz * gamma3
     _dirac_op = _slash - _m * np.eye(4, dtype=complex)
 
-    gm.md(t"""
+    gm.md(rt"""
     Momentum vector in STA:
 
-    {_p} = {_p.eval()}
+    {_p} = {_p:value}
 
-    $p^2 = {(_p * _p).eval()}$
+    $p^2 = {(_p * _p):value}$
 
     Dirac operator matrix $(\\Gamma^\\mu p_\\mu - m)$:
 
@@ -263,13 +263,13 @@ def _(
 
     The matrix side packages the same on-shell momentum information in operator form.
     """)
-    return
+    return (on_shell_energy,)
 
 
 @app.cell
-def _(np, plt, rapidity):
-    _time = _boosted_time_axis.eval().vector_part[:2]
-    _space = _boosted_x_axis.eval().vector_part[:2]
+def _(boosted_time_axis, boosted_x_axis, np, on_shell_energy, plt, rapidity):
+    _time = boosted_time_axis.vector_part[:2]
+    _space = boosted_x_axis.vector_part[:2]
 
     _fig, _ax = plt.subplots(figsize=(6.5, 6.5))
     _cone = np.linspace(-2.2, 2.2, 200)
@@ -284,7 +284,7 @@ def _(np, plt, rapidity):
     _ax.set_ylim(-2.2, 2.2)
     _ax.set_xlabel("$x$")
     _ax.set_ylabel("$t$")
-    _ax.set_title(f"STA boost geometry at φ = {rapidity.value:.2f}, on-shell E = {_E:.3f}")
+    _ax.set_title(f"STA boost geometry at φ = {rapidity.value:.2f}, on-shell E = {on_shell_energy:.3f}")
     _ax.grid(True, alpha=0.2)
     _fig.tight_layout()
     _fig

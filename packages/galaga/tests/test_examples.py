@@ -59,7 +59,7 @@ def test_rotations_from_bivectors_notebook_uses_gm_md_only_for_interpolated_mark
     """Static explanatory sections should use marimo markdown rather than gm.md()."""
     source = (ROOT / "examples" / "algebra" / "rotations_from_bivectors.py").read_text()
 
-    assert source.count('gm.md(t"""') == 2
+    assert source.count('gm.md(rt"""') == 2
     assert 'mo.md(r"""' in source
     assert "# Rotations from Bivectors" in source
     assert "## Domain Grounding" in source
@@ -68,14 +68,17 @@ def test_rotations_from_bivectors_notebook_uses_gm_md_only_for_interpolated_mark
     assert "## Domain Check" in source
 
 
-def test_rga_demo_uses_the_rga_symbolic_display_convention():
-    """Keep the RGA demo on the public symbolic and rich-display APIs."""
+def test_rga_demo_uses_the_rga_preset_and_expression_provenance():
+    """Keep the RGA demo on the immutable facade presentation APIs."""
     source = (ROOT / "examples" / "rga" / "rga_demo.py").read_text()
 
-    assert "blades=b_rga()" in source
-    assert "notation=Notation.lengyel()" in source
-    assert "display_repr=True" in source
-    assert "locals().update(rga.locals(symbolic=True))" in source
+    assert "from galaga.facade import (" in source
+    assert "p_rga," in source
+    assert "rga = Algebra(config=p_rga())" in source
+    assert "locals().update(rga.locals(expr=True))" in source
+    assert "b_rga" not in source
+    assert "display_repr" not in source
+    assert "symbolic=True" not in source
     assert "rga_blades" not in source
     assert "display_repl" not in source
     assert r"A^{\text{☆}}" in source

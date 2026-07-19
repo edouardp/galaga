@@ -23,7 +23,7 @@ def _():
     import marimo as mo
     import numpy as np
 
-    from galaga import Algebra, b_sta, exp, reverse
+    from galaga.facade import Algebra, spacetime_blade_convention, exp, reverse
     import galaga_marimo as gm
     from galaga_matrix import (
         MatrixRepr,
@@ -42,7 +42,7 @@ def _():
         Algebra,
         MatrixRepr,
         QuatMatrixRepr,
-        b_sta,
+        spacetime_blade_convention,
         compact_basis,
         exp,
         from_spinor_column,
@@ -112,8 +112,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    cl3 = Algebra((1, 1, 1), repr_unicode=True)
-    cl3_e1, cl3_e2, cl3_e3 = cl3.basis_vectors(lazy=True)
+    cl3 = Algebra((1, 1, 1), )
+    cl3_e1, cl3_e2, cl3_e3 = cl3.basis_vectors(expr=True)
     return cl3, cl3_e1, cl3_e2, cl3_e3
 
 
@@ -143,7 +143,7 @@ def _(MatrixRepr, cl3, compact_basis, gm):
     _sigma2 = MatrixRepr(_pauli_gammas[1]).name(latex=r"\sigma_2")
     _sigma3 = MatrixRepr(_pauli_gammas[2]).name(latex=r"\sigma_3")
 
-    gm.md(t"""
+    gm.md(rt"""
     The compact representation sends the basis vectors of $Cl(3,0)$ to the
     Pauli matrices:
 
@@ -202,7 +202,7 @@ def _(MatrixRepr, cl3, cl3_e1, cl3_e2, cl3_e3, gm, to_spinor_column):
     _basis_e13_col = MatrixRepr(to_spinor_column(cl3_e1 * cl3_e3)).name(latex=r"\operatorname{col}(e_{13})")
     _basis_e23_col = MatrixRepr(to_spinor_column(cl3_e2 * cl3_e3)).name(latex=r"\operatorname{col}(e_{23})")
 
-    gm.md(t"""
+    gm.md(rt"""
     Computed from the actual algebra:
 
     {_basis_scalar_col:block}
@@ -270,11 +270,11 @@ def _(
 ):
     _theta = pauli_theta_slider.value
     _phi = pauli_phi_slider.value
-    _e12 = (cl3_e1 * cl3_e2).eval()
-    _e31 = (cl3_e3 * cl3_e1).eval()
+    _e12 = (cl3_e1 * cl3_e2)
+    _e31 = (cl3_e3 * cl3_e1)
     _pauli_rotor = (
         exp((-_phi / 2) * _e12) * exp((-_theta / 2) * _e31)
-    ).name(latex=r"R")
+    ).named(r"R", latex=r"R")
     _pauli_column = to_spinor_column(_pauli_rotor)
     _pauli_column_expected = np.array(
         [
@@ -283,14 +283,14 @@ def _(
         ],
         dtype=complex,
     )
-    _pauli_roundtrip = from_spinor_column(cl3, _pauli_column).name(latex=r"R'")
+    _pauli_roundtrip = from_spinor_column(cl3, _pauli_column).named(r"R'", latex=r"R'")
     _pauli_roundtrip_ok = np.allclose(_pauli_roundtrip.data, _pauli_rotor.data, atol=1e-10)
     _pauli_column_ok = np.allclose(_pauli_column, _pauli_column_expected, atol=1e-10)
     _pauli_rotor_norm = _pauli_rotor * reverse(_pauli_rotor)
 
     mo.vstack([
     mo.hstack([pauli_theta_slider, pauli_phi_slider]),
-    gm.md(t"""
+    gm.md(rt"""
     With $\\theta = {_theta:.3f}$ and $\\phi = {_phi:.3f}$:
 
     GA rotor:
@@ -365,8 +365,8 @@ def _(
     _theta = pauli_theta_slider.value
     _phi = pauli_phi_slider.value
     _alpha = 0.9
-    _e12 = (cl3_e1 * cl3_e2).eval()
-    _e31 = (cl3_e3 * cl3_e1).eval()
+    _e12 = (cl3_e1 * cl3_e2)
+    _e31 = (cl3_e3 * cl3_e1)
     _pauli_state_rotor = exp((-_phi / 2) * _e12) * exp((-_theta / 2) * _e31)
     _pauli_spinor = to_spinor_column(_pauli_state_rotor)
     _pauli_sigmas = compact_basis(cl3)
@@ -399,7 +399,7 @@ def _(
     _expect_after_label = r"\langle\sigma\rangle'"
     _expect_expected_label = r"R_z(\alpha)\langle\sigma\rangle"
 
-    gm.md(t"""
+    gm.md(rt"""
     With $\\alpha = {_alpha:.3f}$:
 
     {MatrixRepr(_pauli_u).name(latex=_u_label):block}
@@ -454,7 +454,7 @@ def _(
     to_spinor_column,
     to_spinor_matrix,
 ):
-    _alias_spinor = cl3.scalar(2.0) + 0.25 * (cl3_e1 * cl3_e2).eval()
+    _alias_spinor = cl3.scalar(2.0) + 0.25 * (cl3_e1 * cl3_e2)
     _column_new = to_spinor_column(_alias_spinor)
     _column_old = to_spinor_matrix(_alias_spinor)
     _from_new = from_spinor_column(cl3, _column_new)
@@ -462,7 +462,7 @@ def _(
     _alias_columns_equal = np.allclose(_column_new, _column_old)
     _alias_inverse_equal = np.allclose(_from_new.data, _from_old.data)
 
-    gm.md(t"""
+    gm.md(rt"""
     The old names are aliases:
 
     | Check | Result |
@@ -474,9 +474,9 @@ def _(
 
 
 @app.cell
-def _(Algebra, b_sta):
-    sta = Algebra((1, -1, -1, -1), blades=b_sta(), repr_unicode=True)
-    sta_g0, sta_g1, sta_g2, sta_g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, spacetime_blade_convention):
+    sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention(), )
+    sta_g0, sta_g1, sta_g2, sta_g3 = sta.basis_vectors(expr=True)
     return sta, sta_g0, sta_g1, sta_g2, sta_g3
 
 
@@ -515,7 +515,7 @@ def _(MatrixRepr, compact_basis, gm, sta):
     _gamma0 = MatrixRepr(_sta_gammas[0]).name(latex=r"\Gamma^0")
     _gamma1 = MatrixRepr(_sta_gammas[1]).name(latex=r"\Gamma^1")
 
-    gm.md(t"""
+    gm.md(rt"""
     The compact $Cl(1,3)$ representation starts with:
 
     {_gamma0:block}
@@ -557,14 +557,14 @@ def _(
 ):
     _rapidity = sta_rapidity_slider.value
     _rotation = sta_rotation_slider.value
-    _boost_bivector = (sta_g0 * sta_g1).eval()
-    _rotation_bivector = (sta_g2 * sta_g3).eval()
+    _boost_bivector = (sta_g0 * sta_g1)
+    _rotation_bivector = (sta_g2 * sta_g3)
     _sta_rotor = (
         exp((_rapidity / 2) * _boost_bivector)
         * exp((-_rotation / 2) * _rotation_bivector)
-    ).name(latex=r"S")
+    ).named(r"S", latex=r"S")
     _sta_column = to_spinor_column(_sta_rotor)
-    _sta_roundtrip = from_spinor_column(sta, _sta_column).name(latex=r"S'")
+    _sta_roundtrip = from_spinor_column(sta, _sta_column).named(r"S'", latex=r"S'")
     _sta_roundtrip_ok = np.allclose(_sta_roundtrip.data, _sta_rotor.data, atol=1e-10)
     _sta_matrix = to_matrix(_sta_rotor, mode="compact")
     _sta_reconstructs_column = np.allclose(_sta_matrix @ np.array([[1], [0], [0], [0]], dtype=complex), _sta_column)
@@ -575,7 +575,7 @@ def _(
 
     mo.vstack([
     mo.hstack([sta_rapidity_slider, sta_rotation_slider]),
-    gm.md(t"""
+    gm.md(rt"""
     With rapidity $\\xi = {_rapidity:.3f}$ and spatial rotation angle
     $\\varphi = {_rotation:.3f}$:
 
@@ -655,23 +655,23 @@ def _(
 ):
     _xi = 0.65
     _varphi = 0.45
-    _boost_generator = (sta_g0 * sta_g1).eval()
-    _rotation_generator = (sta_g2 * sta_g3).eval()
+    _boost_generator = (sta_g0 * sta_g1)
+    _rotation_generator = (sta_g2 * sta_g3)
     _spin_action = (
         exp((_xi / 2) * _boost_generator)
         * exp((-_varphi / 2) * _rotation_generator)
-    ).name(latex=r"S_{\mathrm{spin}}")
+    ).named(r"S_{\mathrm{spin}}", latex=r"S_{\mathrm{spin}}")
     _spin_matrix = to_matrix(_spin_action, mode="compact")
     _gamma0 = compact_basis(sta)[0]
     _dirac_metric_ok = np.allclose(_spin_matrix.conj().T @ _gamma0 @ _spin_matrix, _gamma0, atol=1e-10)
 
     _source_even = (
         sta.scalar(0.8)
-        + 0.2 * (sta_g0 * sta_g1).eval()
-        - 0.15 * (sta_g0 * sta_g2).eval()
-        + 0.25 * (sta_g1 * sta_g2).eval()
+        + 0.2 * (sta_g0 * sta_g1)
+        - 0.15 * (sta_g0 * sta_g2)
+        + 0.25 * (sta_g1 * sta_g2)
         + 0.3 * sta.pseudoscalar()
-    ).name(latex=r"\Psi")
+    ).named(r"\Psi", latex=r"\Psi")
     _dirac_spinor = to_spinor_column(_source_even)
     _dirac_spinor_after = _spin_matrix @ _dirac_spinor
     _dirac_bilinear_before = float(np.real((_dirac_spinor.conj().T @ _gamma0 @ _dirac_spinor)[0, 0]))
@@ -680,14 +680,14 @@ def _(
     _dirac_norm_after = float(np.real((_dirac_spinor_after.conj().T @ _dirac_spinor_after)[0, 0]))
     _dirac_bilinear_ok = np.allclose(_dirac_bilinear_before, _dirac_bilinear_after, atol=1e-10)
 
-    _dirac_roundtrip = from_spinor_column(sta, _dirac_spinor_after).name(latex=r"\Psi'")
-    _expected_left_action = (_spin_action * _source_even).eval()
+    _dirac_roundtrip = from_spinor_column(sta, _dirac_spinor_after).named(r"\Psi'", latex=r"\Psi'")
+    _expected_left_action = (_spin_action * _source_even)
     _dirac_left_action_ok = np.allclose(_dirac_roundtrip.data, _expected_left_action.data, atol=1e-10)
     _spin_matrix_label = r"S_{\mathrm{spin}}"
     _spinor_label = r"\psi"
     _spinor_after_label = r"S_{\mathrm{spin}}\psi"
 
-    gm.md(t"""
+    gm.md(rt"""
     Spin action:
 
     {_spin_action.display()}
@@ -752,30 +752,30 @@ def _(
 ):
     _general_even = (
         sta.scalar(1.25)
-        + 0.20 * (sta_g0 * sta_g1).eval()
-        - 0.35 * (sta_g0 * sta_g2).eval()
-        + 0.45 * (sta_g0 * sta_g3).eval()
-        - 0.50 * (sta_g1 * sta_g2).eval()
-        + 0.60 * (sta_g1 * sta_g3).eval()
-        - 0.70 * (sta_g2 * sta_g3).eval()
-        + 0.80 * (sta_g0 * sta_g1 * sta_g2 * sta_g3).eval()
-    ).name(latex=r"\Psi")
+        + 0.20 * (sta_g0 * sta_g1)
+        - 0.35 * (sta_g0 * sta_g2)
+        + 0.45 * (sta_g0 * sta_g3)
+        - 0.50 * (sta_g1 * sta_g2)
+        + 0.60 * (sta_g1 * sta_g3)
+        - 0.70 * (sta_g2 * sta_g3)
+        + 0.80 * (sta_g0 * sta_g1 * sta_g2 * sta_g3)
+    ).named(r"\Psi", latex=r"\Psi")
     _general_column = to_spinor_column(_general_even)
-    _general_roundtrip = from_spinor_column(sta, _general_column).name(latex=r"\Psi'")
+    _general_roundtrip = from_spinor_column(sta, _general_column).named(r"\Psi'", latex=r"\Psi'")
     _general_roundtrip_error = float(np.max(np.abs(_general_roundtrip.data - _general_even.data)))
 
     _multi_rotor = (
-        exp(0.18 * (sta_g0 * sta_g1).eval())
-        * exp(-0.11 * (sta_g0 * sta_g2).eval())
-        * exp(0.24 * (sta_g2 * sta_g3).eval())
-        * exp(-0.17 * (sta_g1 * sta_g3).eval())
-    ).name(latex=r"M")
+        exp(0.18 * (sta_g0 * sta_g1))
+        * exp(-0.11 * (sta_g0 * sta_g2))
+        * exp(0.24 * (sta_g2 * sta_g3))
+        * exp(-0.17 * (sta_g1 * sta_g3))
+    ).named(r"M", latex=r"M")
     _multi_column = to_spinor_column(_multi_rotor)
-    _multi_roundtrip = from_spinor_column(sta, _multi_column).name(latex=r"M'")
+    _multi_roundtrip = from_spinor_column(sta, _multi_column).named(r"M'", latex=r"M'")
     _multi_roundtrip_error = float(np.max(np.abs(_multi_roundtrip.data - _multi_rotor.data)))
     _multi_rotor_norm = _multi_rotor * reverse(_multi_rotor)
 
-    gm.md(t"""
+    gm.md(rt"""
     A fully populated even multivector:
 
     {_general_even.display()}
@@ -862,20 +862,20 @@ def _(
     to_spinor_column,
 ):
     _theta = sta_pss_phase_slider.value
-    _pss = sta.pseudoscalar().name(latex=r"i")
-    _sigma1 = (sta_g1 * sta_g0).eval().name(latex=r"\sigma_1")
-    _sigma2 = (sta_g2 * sta_g0).eval().name(latex=r"\sigma_2")
-    _sigma3 = (sta_g3 * sta_g0).eval().name(latex=r"\sigma_3")
-    _sigma123 = (_sigma1 * _sigma2 * _sigma3).eval().name(latex=r"\sigma_1\sigma_2\sigma_3")
-    _pss_phase_rotor = exp(_theta * _pss).name(latex=r"Q_{\mathrm{pss}}")
+    _pss = sta.pseudoscalar().named(r"i", latex=r"i")
+    _sigma1 = (sta_g1 * sta_g0).named(r"\sigma_1", latex=r"\sigma_1")
+    _sigma2 = (sta_g2 * sta_g0).named(r"\sigma_2", latex=r"\sigma_2")
+    _sigma3 = (sta_g3 * sta_g0).named(r"\sigma_3", latex=r"\sigma_3")
+    _sigma123 = (_sigma1 * _sigma2 * _sigma3).named(r"\sigma_1\sigma_2\sigma_3", latex=r"\sigma_1\sigma_2\sigma_3")
+    _pss_phase_rotor = exp(_theta * _pss).named(r"Q_{\mathrm{pss}}", latex=r"Q_{\mathrm{pss}}")
     _pss_phase_column = to_spinor_column(_pss_phase_rotor)
     _pss_expected_column = np.array(
         [[np.cos(_theta)], [0], [-1j * np.sin(_theta)], [0]],
         dtype=complex,
     )
-    _pss_roundtrip = from_spinor_column(sta, _pss_phase_column).name(latex=r"Q_{\mathrm{pss}}'")
+    _pss_roundtrip = from_spinor_column(sta, _pss_phase_column).named(r"Q_{\mathrm{pss}}'", latex=r"Q_{\mathrm{pss}}'")
     _pss_inverse = exp((-_theta) * _pss)
-    _pss_identity_check = (_pss_phase_rotor * _pss_inverse).eval()
+    _pss_identity_check = (_pss_phase_rotor * _pss_inverse)
     _pss_column_label = r"\operatorname{col}(Q_{\mathrm{pss}})"
     _pss_expected_column_label = r"(\cos\theta,0,-i\sin\theta,0)^T"
     _pss_column_ok = np.allclose(_pss_phase_column, _pss_expected_column, atol=1e-10)
@@ -883,7 +883,7 @@ def _(
 
     mo.vstack([
         sta_pss_phase_slider,
-        gm.md(t"""
+        gm.md(rt"""
     With $\\theta = {_theta:.3f}$:
 
     Pseudoscalar and relative-basis product:
@@ -981,16 +981,16 @@ def _(
     to_spinor_quaternion,
 ):
     _quat_rotor = (
-        exp(0.25 * (sta_g0 * sta_g1).eval())
-        * exp(-0.4 * (sta_g1 * sta_g2).eval())
-    ).name(latex=r"Q")
+        exp(0.25 * (sta_g0 * sta_g1))
+        * exp(-0.4 * (sta_g1 * sta_g2))
+    ).named(r"Q", latex=r"Q")
     _quat_column = to_spinor_quaternion(_quat_rotor)
-    _quat_roundtrip = from_spinor_quaternion(sta, _quat_column).name(latex=r"Q'")
+    _quat_roundtrip = from_spinor_quaternion(sta, _quat_column).named(r"Q'", latex=r"Q'")
     _quat_roundtrip_ok = np.allclose(_quat_roundtrip.data, _quat_rotor.data, atol=1e-10)
-    _gamma1_quat_matrix = to_matrix(sta_g1.eval(), mode="quaternion")
+    _gamma1_quat_matrix = to_matrix(sta_g1, mode="quaternion")
     _quat_column_matrix = [[_quat_column[0]], [_quat_column[1]]]
 
-    gm.md(t"""
+    gm.md(rt"""
     Quaternion block matrix for $\\gamma^1$:
 
     {QuatMatrixRepr(_gamma1_quat_matrix).name(latex=r"\gamma^1_{\mathbb{H}}"):block}
@@ -1037,7 +1037,7 @@ def _(Algebra, from_spinor_column, gm, np, to_spinor_column):
     except ValueError as _cl02_error:
         _cl02_message = str(_cl02_error)
 
-    gm.md(t"""
+    gm.md(rt"""
     | Failure mode | Message |
     |---|---|
     | $Cl(3,1)$ even element to spinor column | `{_cl31_message}` |

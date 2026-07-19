@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, grade, norm, unit
+    from galaga.facade import Algebra, exp, grade, norm, unit
     import galaga_marimo as gm
 
     return Algebra, exp, gm, grade, mo, norm, np, plt, unit
@@ -34,39 +34,39 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
-    # Polarisation Optics with Lazy 2D GA
+    mo.md(r"""
+    # Polarisation Optics with Expression-Provenance 2D GA
 
     A linear polariser is a projector. A wave plate is a rotor. Both fit naturally
     into the same algebra on the transverse plane.
 
     This notebook complements the existing polarisation demo by leaning harder on
-    lazy expressions and by treating retarders as explicit rotors.
+    recorded expressions and by treating retarders as explicit rotors.
     """)
     return
 
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
 @app.cell
 def _(e1, e2, exp, gm, np):
-    H = e1.name("H")
-    V = e2.name("V")
-    D = (exp((-np.pi / 8) * (e1 * e2)) * e1 * exp((np.pi / 8) * (e1 * e2))).name("D")
+    H = e1.named("H")
+    V = e2.named("V")
+    D = (exp((-np.pi / 8) * (e1 * e2)) * e1 * exp((np.pi / 8) * (e1 * e2))).named("D")
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Basis States
 
-    {H} = {H.eval()}
+    {H} = {H:value}
 
-    {V} = {V.eval()}
+    {V} = {V:value}
 
-    {D} = {D.eval()}
+    {D} = {D:value}
     """)
     return H, V
 
@@ -81,7 +81,7 @@ def _(grade):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Linear Polariser Chain
 
     The projector is
@@ -90,8 +90,8 @@ def _(mo):
     P_a(E) = (E \cdot a)a.
     $$
 
-    Because the axis is itself a blade, the symbolic expression makes the geometry
-    visible before evaluation.
+    Because the axis is itself a blade, the recorded expression makes the
+    geometry visible alongside its eager value.
     """)
     return
 
@@ -106,18 +106,18 @@ def _(mo):
 @app.cell
 def _(H, V, e1, e2, gm, middle, norm, np, polarise, unit):
     _theta = np.radians(middle.value)
-    M = unit(np.cos(_theta) * e1 + np.sin(_theta) * e2).name("M")
-    E0 = H.name(latex=r"E_0")
-    E1 = polarise(E0, M).name(latex=r"E_1")
-    E2 = polarise(E1, V).name(latex=r"E_2")
-    intensity = (norm(E2) ** 2).eval().scalar_part
+    M = unit(np.cos(_theta) * e1 + np.sin(_theta) * e2).named("M")
+    E0 = H.named(r"E_0", latex=r"E_0")
+    E1 = polarise(E0, M).named(r"E_1", latex=r"E_1")
+    E2 = polarise(E1, V).named(r"E_2", latex=r"E_2")
+    intensity = (norm(E2) ** 2)
 
-    gm.md(t"""
-    {M} = {M.eval()}
+    gm.md(rt"""
+    {M} = {M:value}
 
-    {E1} = {E1.eval()}
+    {E1} = {E1:value}
 
-    {E2} = {E2.eval()}
+    {E2} = {E2:value}
 
     Output intensity = {intensity:.4f}
     """)
@@ -145,16 +145,16 @@ def _(mo):
 @app.cell
 def _(H, e1, e2, exp, gm, np, plate):
     _alpha = np.radians(plate.value)
-    axis = (np.cos(_alpha) * e1 + np.sin(_alpha) * e2).name("a")
-    rotor = exp(-_alpha * (e1 * e2)).name("R")
-    output = (rotor * H * ~rotor).name(latex=r"E_{\mathrm{out}}")
+    axis = (np.cos(_alpha) * e1 + np.sin(_alpha) * e2).named("a")
+    rotor = exp(-_alpha * (e1 * e2)).named("R")
+    output = (rotor * H * ~rotor).named(r"E_{\mathrm{out}}", latex=r"E_{\mathrm{out}}")
 
-    gm.md(t"""
-    {axis} = {axis.eval()}
+    gm.md(rt"""
+    {axis} = {axis:value}
 
-    {rotor} = {rotor.eval()}
+    {rotor} = {rotor:value}
 
-    {output} = {output.eval()}
+    {output} = {output:value}
     """)
     return
 
@@ -166,13 +166,13 @@ def _(H, V, e1, e2, exp, norm, np, plt, polarise, unit):
     _plate_then_vertical = []
     for _deg in _angles:
         _rad = np.radians(_deg)
-        _mid = unit(np.cos(_rad) * e1.eval() + np.sin(_rad) * e2.eval())
-        _E2 = polarise(polarise(H.eval(), _mid), V.eval())
-        _three_pol.append((norm(_E2) ** 2).scalar_part)
+        _mid = unit(np.cos(_rad) * e1 + np.sin(_rad) * e2)
+        _E2 = polarise(polarise(H, _mid), V)
+        _three_pol.append((norm(_E2) ** 2))
 
-        _R = exp(-_rad * (e1.eval() * e2.eval()))
-        _after_plate = _R * H.eval() * ~_R
-        _plate_then_vertical.append((norm(polarise(_after_plate, V.eval())) ** 2).scalar_part)
+        _R = exp(-_rad * (e1 * e2))
+        _after_plate = _R * H * ~_R
+        _plate_then_vertical.append((norm(polarise(_after_plate, V)) ** 2))
 
     _fig, _ax = plt.subplots(figsize=(8, 4))
     _ax.plot(_angles, _three_pol, label="three polariser chain", color="steelblue")

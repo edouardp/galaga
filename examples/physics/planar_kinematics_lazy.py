@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -46,8 +46,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
@@ -73,19 +73,19 @@ def _(mo):
 @app.cell
 def _(angle, e1, e2, exp, gm, np):
     _theta = np.radians(angle.value)
-    B = (e1 * e2).name("B", latex=r"e_1 e_2")
-    R = exp((-_theta / 2) * B).name("R")
-    arm = (1.6 * e1 + 0.6 * e2).name("r")
-    rotated_arm = (R * arm * ~R).name(latex=r"r'")
+    B = (e1 * e2).named("B", latex=r"e_1 e_2")
+    R = exp((-_theta / 2) * B).named("R")
+    arm = (1.6 * e1 + 0.6 * e2).named("r")
+    rotated_arm = (R * arm * ~R).named(r"r'", latex=r"r'")
 
-    gm.md(t"""
-    {B} = {B.eval()}
+    gm.md(rt"""
+    {B} = {B:value}
 
-    {R} = {R.eval()}
+    {R} = {R:value}
 
-    {arm} = {arm.eval()}
+    {arm} = {arm:value}
 
-    {rotated_arm} = {rotated_arm.eval()}
+    {rotated_arm} = {rotated_arm:value}
     """)
     return arm, rotated_arm
 
@@ -96,7 +96,7 @@ def _(mo):
     ## Motion History
 
     Treat the body-fixed point `r` as attached to the rotor and sample across
-    time. This produces the trajectory as a family of evaluated sandwich products.
+    time. This produces the trajectory as a family of eager sandwich products.
     """)
     return
 
@@ -107,11 +107,11 @@ def _(arm, e1, e2, exp, np, omega, plt, rotated_arm):
     _times = np.linspace(0, 2 * np.pi / _w, 240)
     _pts = []
     for _t in _times:
-        _R = exp((-_w * _t / 2) * (e1.eval() * e2.eval()))
-        _v = (_R * arm.eval() * ~_R)
+        _R = exp((-_w * _t / 2) * (e1 * e2))
+        _v = (_R * arm * ~_R)
         _pts.append(_v.vector_part[:2])
     _pts = np.array(_pts)
-    _current = rotated_arm.eval().vector_part[:2]
+    _current = rotated_arm.vector_part[:2]
 
     _fig, _ax = plt.subplots(figsize=(6, 6))
     _ax.plot(_pts[:, 0], _pts[:, 1], color="steelblue", linewidth=2, label="tip trajectory")
@@ -140,9 +140,9 @@ def _(mo):
 
 @app.cell
 def _(e1, e2, gm, omega):
-    generator = (omega.value * (e1 * e2)).name(latex=r"\Omega")
-    gm.md(t"""
-    {generator} = {generator.eval()}
+    generator = (omega.value * (e1 * e2)).named(r"\Omega", latex=r"\Omega")
+    gm.md(rt"""
+    {generator} = {generator:value}
 
     This is the planar angular-velocity bivector driving the motion.
     """)

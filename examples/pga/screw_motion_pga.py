@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -49,23 +49,23 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = pga.basis_vectors(lazy=True)
+    pga = Algebra((1, 1, 1, 0), )
+    e1, e2, e3, e0 = pga.basis_vectors(expr=True)
     return e0, e1, e2, e3
 
 
 @app.cell
 def _(e0, e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     PGA basis for rigid motions:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
 
-    {e0} = {e0.eval()}
+    {e0} = {e0:value}
     """)
     return
 
@@ -86,17 +86,17 @@ def _(angle, e0, e1, e2, exp, gm, np, pitch):
     _T = 1 + 0.5 * pitch.value * e0 * e3
     _M = _T * _R
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Composite Motion
 
     Rotation part:
-    {_R} = {_R.eval()}
+    {_R} = {_R:value}
 
     Translation part:
-    {_T} = {_T.eval()}
+    {_T} = {_T:value}
 
     Composite motor-like element:
-    {_M} = {_M.eval()}
+    {_M} = {_M:value}
     """)
     return
 

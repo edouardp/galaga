@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, complement
+    from galaga.facade import Algebra, complement
     import galaga_marimo as gm
 
     return Algebra, complement, gm, mo, np, plt
@@ -48,8 +48,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = pga.basis_vectors(lazy=True)
+    pga = Algebra((1, 1, 1, 0), )
+    e1, e2, e3, e0 = pga.basis_vectors(expr=True)
     e123 = e1 ^ e2 ^ e3
     E1 = e2 ^ e3 ^ e0
     E2 = -(e1 ^ e3 ^ e0)
@@ -63,7 +63,7 @@ def _(E1, E2, E3, e123, np):
         return e123 + x * E1 + y * E2 + z * E3
 
     def coords(P):
-        _P = P.eval()
+        _P = P
         _w = _P.data[7]
         return np.array([_P.data[14] / _w, -_P.data[13] / _w, _P.data[11] / _w])
 
@@ -77,18 +77,18 @@ def _(complement, gm, point):
     C = point(-0.5, 1.5)
     line_ab = complement(A) ^ complement(B)
     line_bc = complement(B) ^ complement(C)
-    gm.md(t"""
-    {A} = {A.eval()}
+    gm.md(rt"""
+    {A} = {A:value}
 
-    {B} = {B.eval()}
+    {B} = {B:value}
 
-    {C} = {C.eval()}
+    {C} = {C:value}
 
     Join of A and B:
-    {line_ab} = {line_ab.eval()}
+    {line_ab} = {line_ab:value}
 
     Join of B and C:
-    {line_bc} = {line_bc.eval()}
+    {line_bc} = {line_bc:value}
     """)
     return A, B, C
 

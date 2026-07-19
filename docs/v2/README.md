@@ -61,7 +61,7 @@ Unicode, and LaTeX emitters. Content and target are independently selectable,
 and facade string, format, and rich-display hooks use the same context-safe
 pipeline.
 
-Phase 7 is in progress. Its compatibility policy is implemented: permanent
+Phase 7 is complete. Its compatibility policy is implemented: permanent
 concise aliases are exact canonical objects, temporary v1 spellings and the
 `gram_bridge` paths warn with executable replacement guidance, ambiguous inner
 products remain absent, and redundant generic geometry helpers are classified
@@ -71,10 +71,10 @@ multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
 executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
 only public facade names, expressions, and presentations. Installed-wheel
-integration gates pass. W7.4 remains open only for the legacy notebook gallery.
+integration gates pass. The 51 maintained Marimo notebooks now use the facade,
+pass Marimo dependency validation, and execute headlessly under Python 3.14.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
-legacy engine until the presentation, expression, rendering, and integration
-phases make the final shadow cutover safe.
+legacy engine until Phase 8 performs the shadow cutover.
 
 ## Supporting documents
 
@@ -85,6 +85,7 @@ phases make the final shadow cutover safe.
 - [ADR-077: Optional expression provenance](../adrs/077-optional-expression-provenance.md)
 - [ADR-078: Shared semantic rendering pipeline](../adrs/078-shared-semantic-rendering-pipeline.md)
 - [ADR-082: Matrix provenance is package-owned](../adrs/082-matrix-provenance-is-package-owned.md)
+- [ADR-083: Maintained notebooks are executable integration contracts](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

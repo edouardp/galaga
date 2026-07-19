@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade
+    from galaga.facade import Algebra, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, mo, np, plt
+    return Algebra, gm, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -45,9 +45,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 
 
@@ -55,16 +55,16 @@ def _(Algebra):
 def _(g0, g1, gm):
     k_plus = g0 + g1
     k_minus = g0 - g1
-    gm.md(t"""
+    gm.md(rt"""
     ## Basic Null Vectors
 
-    {k_plus} = {k_plus.eval()}
+    {k_plus} = {k_plus:value}
 
-    {k_minus} = {k_minus.eval()}
+    {k_minus} = {k_minus:value}
 
-    {(k_plus * k_plus)} = {(k_plus * k_plus).eval()}
+    {(k_plus * k_plus)} = {(k_plus * k_plus):value}
 
-    {(k_minus * k_minus)} = {(k_minus * k_minus).eval()}
+    {(k_minus * k_minus)} = {(k_minus * k_minus):value}
     """)
     return
 
@@ -80,7 +80,7 @@ def _(mo):
 def _(gm, np, rapidity):
     _phi = rapidity.value
     _future = np.array([np.cosh(_phi), np.sinh(_phi)])
-    gm.md(t"""
+    gm.md(rt"""
     ## Light Cone and Observers
 
     A boosted timelike observer has components

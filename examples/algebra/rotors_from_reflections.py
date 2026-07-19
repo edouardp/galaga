@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra
+    from galaga.facade import Algebra
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt
@@ -45,8 +45,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
@@ -71,18 +71,18 @@ def _(alpha, beta, e1, e2, gm, np, vector_angle):
     _x2 = -_n2 * _x1 * _n2
     _R = _n2 * _n1
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Reflection Composition
 
-    {_n1} = {_n1.eval()}
+    {_n1} = {_n1:value}
 
-    {_n2} = {_n2.eval()}
+    {_n2} = {_n2:value}
 
-    After first reflection: {_x1} = {_x1.eval()}
+    After first reflection: {_x1} = {_x1:value}
 
-    After second reflection: {_x2} = {_x2.eval()}
+    After second reflection: {_x2} = {_x2:value}
 
-    Rotor from the mirror pair: {_R} = {_R.eval()}
+    Rotor from the mirror pair: {_R} = {_R:value}
     """)
     return
 

@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra
+    from galaga.facade import Algebra
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt
@@ -48,25 +48,25 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = pga.basis_vectors(lazy=True)
+    pga = Algebra((1, 1, 1, 0), )
+    e1, e2, e3, e0 = pga.basis_vectors(expr=True)
     return e0, e1, e2, e3
 
 
 @app.cell
 def _(e0, e1, e2, e3, gm):
-    gm.md(t"""
+    gm.md(rt"""
     PGA basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
-    {e3} = {e3.eval()}
+    {e3} = {e3:value}
 
-    {e0} = {e0.eval()}
+    {e0} = {e0:value}
 
-    The degenerate direction {e0} = {e0.eval()} is what lets projective geometry
+    The degenerate direction {e0} = {e0:value} is what lets projective geometry
     distinguish location from pure direction.
     """)
     return
@@ -85,7 +85,7 @@ def _(mo):
 def _(focal, gm, x, y):
     ix = -focal.value
     iy = -focal.value * y.value / x.value
-    gm.md(t"""
+    gm.md(rt"""
     ## Perspective Projection
 
     World point:

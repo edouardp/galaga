@@ -21,7 +21,7 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
-    from galaga import Algebra, exp, log
+    from galaga.facade import Algebra, exp, log
     import galaga_marimo as gm
 
     return Algebra, exp, gm, log, mo, np
@@ -40,8 +40,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return alg, e1, e2
 
 
@@ -54,18 +54,18 @@ def _(mo):
 
 @app.cell
 def _(alg, angle, e1, e2, exp, gm, log, np):
-    _theta = alg.scalar(np.radians(angle.value)).name(latex=r"\theta")
-    B = (e1 * e2).name("B")
+    _theta = alg.scalar(np.radians(angle.value)).named(r"\theta", latex=r"\theta")
+    B = (e1 * e2).named("B")
     half_angle = (-_theta * B) / 2
     R = exp(half_angle)
-    gm.md(t"""
-    {B} = {B.eval()}
+    gm.md(rt"""
+    {B} = {B:value}
 
-    {R} = {R.eval()}
+    {R} = {R:value}
 
-    {log(R)} = {log(R).eval()}
+    {log(R)} = {log(R):value}
 
-    {half_angle} = {half_angle.eval()}
+    {half_angle} = {half_angle:value}
     """)
     return (R,)
 

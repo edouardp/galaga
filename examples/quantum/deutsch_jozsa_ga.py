@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra
+    from galaga.facade import Algebra
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt
@@ -48,19 +48,19 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
 @app.cell
 def _(e1, e2, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Effective two-state basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
     The oracle writes signs into a 2D superposition, and the final recombination
     reads those signs back out.
@@ -92,7 +92,7 @@ def _(gm, oracle):
     hadamard = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
     final = hadamard @ after_oracle
 
-    gm.md(t"""
+    gm.md(rt"""
     ## One-Bit Deutsch-Jozsa
 
     Start with the superposition

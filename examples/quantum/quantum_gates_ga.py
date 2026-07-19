@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -45,8 +45,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -64,7 +64,7 @@ def _(e1, e2, e3, exp, gate, gm, np, phi, theta):
     _theta = np.radians(theta.value)
     _phi = np.radians(phi.value)
     psi = exp((-_phi / 2) * (e1 * e2)) * exp((-_theta / 2) * (e3 * e1))
-    spin = (psi * e3 * ~psi).eval().vector_part
+    spin = (psi * e3 * ~psi).vector_part
 
     if gate.value == "X":
         rotor = exp((-(np.pi) / 2) * (e2 * e3))
@@ -75,21 +75,21 @@ def _(e1, e2, e3, exp, gate, gm, np, phi, theta):
     elif gate.value == "S":
         rotor = exp((-(np.pi / 2) / 2) * (e1 * e2))
     else:
-        axis = ((e1 + e3) / np.sqrt(2)).eval()
+        axis = ((e1 + e3) / np.sqrt(2))
         rotor = exp((-(np.pi) / 2) * (axis.dual() if False else (axis.vector_part[0] * (e2 * e3) + axis.vector_part[2] * (e1 * e2))))
 
-    spin_out = (rotor * (spin[0] * e1.eval() + spin[1] * e2.eval() + spin[2] * e3.eval()) * ~rotor).vector_part
+    spin_out = (rotor * (spin[0] * e1 + spin[1] * e2 + spin[2] * e3) * ~rotor).vector_part
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Gate Action
 
     Input rotor:
 
-    {psi} = {psi.eval()}
+    {psi} = {psi:value}
 
     Selected gate rotor:
 
-    {rotor} = {rotor.eval()}
+    {rotor} = {rotor:value}
 
     Input Bloch vector:
 

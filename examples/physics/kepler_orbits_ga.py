@@ -26,11 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, norm, sandwich
-    from galaga.notation import Notation, NotationRule
+    from galaga.facade import Algebra, Notation, exp, norm, sandwich
     import galaga_marimo as gm
 
-    return Algebra, NotationRule, exp, gm, mo, norm, np, plt, sandwich
+    return Algebra, Notation, exp, gm, mo, norm, np, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -46,10 +45,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, NotationRule):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
-    alg.notation.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
+def _(Algebra, Notation):
+    alg = Algebra((1, 1, 1), notation=Notation.hestenes())
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return alg, e1, e2
 
 
@@ -64,25 +62,25 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(alg, anomaly, e1, e2, eccentricity, exp, gm, np, sandwich, semilatus):
-    _theta = alg.scalar(np.radians(anomaly.value)).name(latex=r'\theta')
-    _plane = (e1 ^ e2).name(latex=r"B_{o}")
+    _theta = alg.scalar(np.radians(anomaly.value)).named(r'\theta', latex=r'\theta')
+    _plane = (e1 ^ e2).named(r"B_{o}", latex=r"B_{o}")
     _rotor = exp(-(_theta / 2) * _plane)
     _radial = sandwich(_rotor, e1)
     _tangent = sandwich(_rotor, e2)
-    _r = semilatus.value / (1 + eccentricity.value * np.cos(_theta.scalar_part))
+    _r = semilatus.value / (1 + eccentricity.value * np.cos(_theta.coefficient(0)))
     _position = _r * _radial
-    gm.md(t"""
+    gm.md(rt"""
     ## Orbital Plane
 
-    Rotor for the true anomaly: {_rotor} = {_rotor.eval()}
+    Rotor for the true anomaly: {_rotor} = {_rotor:value}
 
-    Orbital plane bivector: {_plane} = {_plane.eval()}
+    Orbital plane bivector: {_plane} = {_plane:value}
 
-    Radial unit vector: {_radial} = {_radial.eval()}
+    Radial unit vector: {_radial} = {_radial:value}
 
-    Tangential unit vector: {_tangent} = {_tangent.eval()}
+    Tangential unit vector: {_tangent} = {_tangent:value}
 
-    Current orbital position: {_position} = {_position.eval()}
+    Current orbital position: {_position} = {_position:value}
     """)
     return
 
@@ -91,23 +89,23 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, np, sandwich, semilatus):
 def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     _e = eccentricity.value
     _p = semilatus.value
-    _theta = alg.scalar(np.radians(anomaly.value)).name(latex=r"\theta")
-    _plane = (e1 * e2).name("B")
+    _theta = alg.scalar(np.radians(anomaly.value)).named(r"\theta", latex=r"\theta")
+    _plane = (e1 * e2).named("B")
     _R = exp(-(_theta / 2) * _plane)
-    _radial = (_R * e1 * ~_R).name(latex=r"\hat{v_{\theta}}")
+    _radial = (_R * e1 * ~_R).named(r"\hat{v_{\theta}}", latex=r"\hat{v_{\theta}}")
     _tangent = _R * e2 * ~_R
-    _r = alg.scalar(_p / (1 + _e * np.cos(_theta.scalar_part))).name("r")
-    _hodograph_center = ((_e / np.sqrt(_p)) * e2).name(latex=r"c_{hodograph}")
+    _r = alg.scalar(_p / (1 + _e * np.cos(_theta.coefficient(0)))).named("r")
+    _hodograph_center = ((_e / np.sqrt(_p)) * e2).named(r"c_{hodograph}", latex=r"c_{hodograph}")
     _position = _r * _radial
     _velocity = _hodograph_center + _tangent / np.sqrt(_p)
     _L = _position ^ _velocity
 
-    gm.md(t"""
-    Orbital Plane: {_plane} = {_plane.eval()}
+    gm.md(rt"""
+    Orbital Plane: {_plane} = {_plane:value}
 
-    {_radial} = {_radial.reveal()} = {_radial.eval()} <br/>
-    **Position vector**: {_position} = {_position.eval()} <br/>
-    **Velocity vector**: {_velocity} = {_velocity.eval()}
+    {_radial} = {_radial:expr} = {_radial:value} <br/>
+    **Position vector**: {_position} = {_position:value} <br/>
+    **Velocity vector**: {_velocity} = {_velocity:value}
 
     The hodograph is a circle because
 
@@ -116,11 +114,11 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     $$
 
     so the velocity tip is a unit rotor orbit translated by the fixed vector
-    {_hodograph_center} = {_hodograph_center.reveal()} = {_hodograph_center.eval()}.
+    {_hodograph_center} = {_hodograph_center:expr} = {_hodograph_center:value}.
 
-    Angular momentum bivector: {_L} = {_L.eval()}
+    Angular momentum bivector: {_L} = {_L:value}
 
-    Its magnitude is {norm(_L.eval()):.6f}.
+    Its magnitude is {norm(_L):.6f}.
     """)
     return
 
@@ -129,13 +127,13 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
 def _(anomaly, e1, e2, eccentricity, exp, np, plt, sandwich, semilatus):
     _e = eccentricity.value
     _p = semilatus.value
-    _e1 = e1.eval()
-    _e2 = e2.eval()
+    _e1 = e1
+    _e2 = e2
 
     def _sample(theta):
         _rotor = exp(-(theta / 2) * (_e1 * _e2))
-        _radial = sandwich(_rotor, _e1).eval()
-        _tangent = sandwich(_rotor, _e2).eval()
+        _radial = sandwich(_rotor, _e1)
+        _tangent = sandwich(_rotor, _e2)
         _radius = _p / (1 + _e * np.cos(theta))
         _position = _radius * _radial
         _velocity = (_e / np.sqrt(_p)) * _e2 + _tangent / np.sqrt(_p)

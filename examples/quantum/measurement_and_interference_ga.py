@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp
+    from galaga.facade import Algebra, exp
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, np, plt
@@ -55,8 +55,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -101,31 +101,31 @@ def _(e1, e2, e3, exp, gm, np, phase):
     after_h = hadamard * ket0
     after_phase = phase_rotor * after_h
     final_state = hadamard * after_phase
-    final_bloch = (final_state * e3 * ~final_state).eval().vector_part
+    final_bloch = (final_state * e3 * ~final_state).vector_part
 
     p0 = 0.5 * (1 + final_bloch[2])
     p1 = 0.5 * (1 - final_bloch[2])
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Rotor Description
 
     Initial state:
-    {ket0} = {ket0.eval()}
+    {ket0} = {ket0:value}
 
     Hadamard-like rotor:
-    {hadamard} = {hadamard.eval()}
+    {hadamard} = {hadamard:value}
 
     Phase rotor:
-    {phase_rotor} = {phase_rotor.eval()}
+    {phase_rotor} = {phase_rotor:value}
 
     After first H:
-    {after_h} = {after_h.eval()}
+    {after_h} = {after_h:value}
 
     After phase:
-    {after_phase} = {after_phase.eval()}
+    {after_phase} = {after_phase:value}
 
     After second H:
-    {final_state} = {final_state.eval()}
+    {final_state} = {final_state:value}
 
     Final measurement probabilities:
     $P(0) = {p0:.6f}, \qquad P(1) = {p1:.6f}$

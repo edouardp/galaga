@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade
+    from galaga.facade import Algebra, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, grade, mo, np, plt
+    return Algebra, gm, grade, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -45,9 +45,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     I = sta.I
     return I, g0, g1, g2, g3
 
@@ -62,36 +62,36 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(I, amplitude, g0, g1, g2, g3, gm, grade, np, phase):
-    _amp = amplitude.value * np.cos(phase.value)
-    E = _amp * (g1 * g0)
-    B = _amp * (g2 * g3)
+    field_amplitude = amplitude.value * np.cos(phase.value)
+    E = field_amplitude * (g1 * g0)
+    B = field_amplitude * (g2 * g3)
     F = E + B
     F2 = F * F
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Plane-Wave Field
 
-    {E} = {E.eval()}
+    {E} = {E:value}
 
-    {B} = {B.eval()}
+    {B} = {B:value}
 
-    {F} = {F.eval()}
+    {F} = {F:value}
 
-    {F2} = {F2.eval()}
+    {F2} = {F2:value}
 
-    Scalar invariant {grade(F2, 0)} = {grade(F2, 0).eval()}
+    Scalar invariant {grade(F2, 0)} = {grade(F2, 0):value}
 
-    Pseudoscalar invariant {grade(F2, 4)} = {grade(F2, 4).eval()}
+    Pseudoscalar invariant {grade(F2, 4)} = {grade(F2, 4):value}
 
     For this wave both invariants vanish, which is the STA signature of a null field.
     """)
-    return _amp
+    return (field_amplitude,)
 
 
 @app.cell
-def _(_amp, np, phase, plt):
+def _(field_amplitude, np, phase, plt):
     _xs = np.linspace(0, 2 * np.pi, 300)
-    _field = _amp * np.cos(_xs - phase.value)
+    _field = field_amplitude * np.cos(_xs - phase.value)
 
     _fig, _ax = plt.subplots(figsize=(8, 4))
     _ax.plot(_xs, _field, color="crimson", linewidth=2.5, label="E_x")

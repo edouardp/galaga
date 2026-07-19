@@ -26,16 +26,15 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich, unit
+    from galaga.facade import Algebra, Notation, exp, p_sta, sandwich, unit
     import galaga_marimo as gm
-    from galaga.notation import NotationRule
 
-    return Algebra, NotationRule, exp, gm, mo, np, plt, sandwich, unit
+    return Algebra, Notation, exp, gm, mo, np, p_sta, plt, sandwich, unit
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     # Thomas-Wigner Rotation and Thomas Precession
 
     Two non-collinear boosts do not compose to a pure boost. Their mismatch leaves
@@ -50,10 +49,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, NotationRule):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
-    sta.notation.set("Reverse", "latex", NotationRule(kind="superscript", symbol=r"\dagger"))
+def _(Algebra, Notation, p_sta):
+    sta = Algebra(config=p_sta(), notation=Notation.hestenes())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1, g2
 
 
@@ -67,26 +65,26 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(exp, g0, g1, g2, gm, phi_x, phi_y):
-    Bx = (g0 * g1).name(latex="B_x")
-    By = (g0 * g2).name(latex="B_y")
+    Bx = (g0 * g1).named("B_x", latex="B_x")
+    By = (g0 * g2).named("B_y", latex="B_y")
     Rx = exp((phi_x.value / 2) * Bx)
     Ry = exp((phi_y.value / 2) * By)
     Rxy = Ry * Rx
     Ryx = Rx * Ry
     mismatch = Rxy * ~Ryx
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Thomas-Wigner Rotation from Boost Composition
 
-    {Rx} = {Rx.eval()}
+    {Rx} = {Rx:value}
 
-    {Ry} = {Ry.eval()}
+    {Ry} = {Ry:value}
 
-    {Rxy} = {Rxy.eval()}
+    {Rxy} = {Rxy:value}
 
-    {Ryx} = {Ryx.eval()}
+    {Ryx} = {Ryx:value}
 
-    Mismatch rotor {mismatch} = {mismatch.eval()}
+    Mismatch rotor {mismatch} = {mismatch:value}
 
     This residual even multivector is the finite Thomas-Wigner rotation.
     """)
@@ -95,8 +93,8 @@ def _(exp, g0, g1, g2, gm, phi_x, phi_y):
 
 @app.cell(hide_code=True)
 def _(g1, g2, mismatch, plt, sandwich):
-    _e1 = sandwich(mismatch, g1).eval()
-    _e2 = sandwich(mismatch, g2).eval()
+    _e1 = sandwich(mismatch, g1)
+    _e2 = sandwich(mismatch, g2)
     _v1 = _e1.vector_part[:2]
     _v2 = _e2.vector_part[:2]
 
@@ -117,7 +115,7 @@ def _(g1, g2, mismatch, plt, sandwich):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Thomas Precession from Many Tiny Boosts
 
     The finite mismatch above is the Thomas-Wigner rotation for two non-collinear
@@ -135,7 +133,7 @@ def _(mo):
     opposite the orbital rotation. After one orbit the spin axis lags by
 
     $$
-    \Delta 	heta_T = 2\pi (\gamma - 1).
+    \Delta \theta_T = 2\pi (\gamma - 1).
     $$
 
     Below, the first cell gives the analytic prediction. The second computes the
@@ -165,7 +163,7 @@ def _(beta, gm, np, num_orbits, orbit_period):
     lag_per_orbit = 2 * np.pi * (gamma - 1.0)
     total_lag = num_orbits.value * lag_per_orbit
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Uniform Circular Motion
 
     For $\\beta = {_beta:.3f}$:
@@ -204,9 +202,9 @@ def _(beta, gm, np, num_orbits, orbit_period):
 @app.cell(hide_code=True)
 def _(beta, exp, g0, g1, g2, gamma, gm, np, num_orbits, steps_per_orbit, unit):
     _beta = beta.value
-    _g0 = g0.eval()
-    _g1 = g1.eval()
-    _g2 = g2.eval()
+    _g0 = g0
+    _g1 = g1
+    _g2 = g2
     rapidity = np.arctanh(_beta) if _beta < 1.0 else np.inf
 
     def orbital_frame_rotor(phase_angle):
@@ -229,8 +227,8 @@ def _(beta, exp, g0, g1, g2, gamma, gm, np, num_orbits, steps_per_orbit, unit):
         u0 = L0 * _g0 * ~L0
         u1 = L1 * _g0 * ~L1
         step_boost = unit(1 + u1 * u0)
-        wigner_step = (~(step_boost * L0) * L1).eval()
-        delta_theta = -2 * np.arctan2(wigner_step.data[6], wigner_step.scalar_part)
+        wigner_step = (~(step_boost * L0) * L1)
+        delta_theta = -2 * np.arctan2(wigner_step.data[6], wigner_step.coefficient(0))
         ga_lag_samples.append(ga_lag_samples[-1] + delta_theta)
 
     ga_lag_samples = np.array(ga_lag_samples)
@@ -238,7 +236,7 @@ def _(beta, exp, g0, g1, g2, gamma, gm, np, num_orbits, steps_per_orbit, unit):
     numeric_lag_one_orbit = ga_lag_samples[steps_per_orbit.value]
     analytic_lag_one_orbit = 2 * np.pi * (gamma - 1.0)
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Tiny-Boost Comparison
 
     Steps per orbit: {steps_per_orbit.value}

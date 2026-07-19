@@ -26,38 +26,39 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, sandwich, exp
+    from galaga.facade import Algebra, exp, grade, p_sta, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, grade, mo, np, plt, sandwich
+    return Algebra, exp, gm, grade, mo, np, p_sta, plt, sandwich
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     # Electromagnetism as One Bivector
 
     In spacetime algebra the electric and magnetic fields are not separate
     objects. They are the timelike and spacelike parts of a single bivector
     field `F`.
 
-    This notebook uses lazy basis blades so the reader can see the field
-    assembled symbolically before evaluating it.
+    This notebook records expression provenance on its basis blades so the
+    reader can inspect how the field was assembled while its coefficients stay
+    eagerly available.
     """)
     return
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
-    I = sta.I.name("I")
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
+    I = sta.I.named("I")
     return g0, g1, g2
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Build the Faraday Bivector
 
     For an observer with timelike basis vector `γ₀`:
@@ -88,16 +89,16 @@ def _(bz, ex, ey, g0, g1, g2, gm):
     Ex = ex.value
     Ey = ey.value
     Bz = bz.value
-    E_field = (Ex * (g1 * g0) + Ey * (g2 * g0)).name("E", latex=r"E")
-    B_field = (Bz * (g1 * g2)).name("B", latex=r"B")
-    F = (E_field + B_field).name("F", latex=r"F")
+    E_field = (Ex * (g1 * g0) + Ey * (g2 * g0)).named("E", latex=r"E")
+    B_field = (Bz * (g1 * g2)).named("B", latex=r"B")
+    F = (E_field + B_field).named("F", latex=r"F")
 
-    gm.md(t"""
-    {E_field} = {E_field.eval()}
+    gm.md(rt"""
+    {E_field} = {E_field:value}
 
-    {B_field} = {B_field.eval()}
+    {B_field} = {B_field:value}
 
-    {F} = {F.eval()}
+    {F} = {F:value}
     """)
     return (F,)
 
@@ -120,12 +121,12 @@ def _(F, gm, grade):
     scalar_part = grade(F2, 0)
     pseudoscalar_part = grade(F2, 4)
 
-    gm.md(t"""
-    {F2} = {F2.eval()}
+    gm.md(rt"""
+    {F2} = {F2:value}
 
-    {scalar_part} = {scalar_part.eval()}
+    {scalar_part} = {scalar_part:value}
 
-    {pseudoscalar_part} = {pseudoscalar_part.eval()}
+    {pseudoscalar_part} = {pseudoscalar_part:value}
     """)
     return
 
@@ -151,27 +152,27 @@ def _(mo):
 @app.cell
 def _(F, boost, exp, g0, g1, gm, grade, sandwich):
     phi = boost.value
-    Lambda = exp((phi / 2) * (g0 * g1)).name("Λ", latex=r"\Lambda")
-    F_prime = sandwich(Lambda, F).name(latex=r"F'")
+    Lambda = exp((phi / 2) * (g0 * g1)).named("Λ", latex=r"\Lambda")
+    F_prime = sandwich(Lambda, F).named(r"F'", latex=r"F'")
     electric_prime = grade(F_prime, 2)
     invariant_prime = grade(F_prime**2, 0)
 
-    gm.md(t"""
-    {Lambda} = {Lambda.eval()}
+    gm.md(rt"""
+    {Lambda} = {Lambda:value}
 
-    {F_prime} = {F_prime.eval()}
+    {F_prime} = {F_prime:value}
 
-    {electric_prime} = {electric_prime.eval()}
+    {electric_prime} = {electric_prime:value}
 
-    {invariant_prime} = {invariant_prime.eval()}
+    {invariant_prime} = {invariant_prime:value}
     """)
     return (F_prime,)
 
 
 @app.cell
 def _(F, F_prime, np, plt):
-    _source = F.eval()
-    _boosted = F_prime.eval()
+    _source = F
+    _boosted = F_prime
     _labels = [r"$\gamma_1\gamma_0$", r"$\gamma_2\gamma_0$", r"$\gamma_3\gamma_0$", r"$\gamma_2\gamma_3$", r"$\gamma_3\gamma_1$", r"$\gamma_1\gamma_2$"]
     _indices = [3, 5, 9, 12, 10, 6]
     _before = np.array([_source.data[i] for i in _indices])

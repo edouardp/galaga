@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, norm, sandwich, unit
+    from galaga.facade import Algebra, exp, norm, sandwich, unit
     import galaga_marimo as gm
 
     return Algebra, exp, gm, mo, norm, np, plt, sandwich, unit
@@ -46,8 +46,8 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return alg, e1, e2
 
 
@@ -125,46 +125,46 @@ def _(
     vector_deg,
 ):
     _phi = np.radians(opening_deg.value)
-    _theta = alg.scalar(np.radians(rotation_deg.value)).name(latex=r"\theta")
+    _theta = alg.scalar(np.radians(rotation_deg.value)).named(r"\theta", latex=r"\theta")
     _alpha = np.radians(vector_deg.value)
 
-    a = (1.0 * e1).name("a")
-    b = (np.cos(_phi) * e1 + np.sin(_phi) * e2).name("b")
-    B_raw = (a ^ b).name(latex=r"a \wedge b")
-    B_unit = unit(B_raw).name(latex=r"\widehat{B}")
+    a = (1.0 * e1).named("a")
+    b = (np.cos(_phi) * e1 + np.sin(_phi) * e2).named("b")
+    B_raw = (a ^ b).named(r"a \wedge b", latex=r"a \wedge b")
+    B_unit = unit(B_raw).named(r"\widehat{B}", latex=r"\widehat{B}")
     generator = B_unit if generator_mode.value == "unit bivector" else B_raw
-    R = exp((-_theta / 2) * generator).name("R")
-    v = (np.cos(_alpha) * e1 + np.sin(_alpha) * e2).name("v")
-    v_rot = sandwich(R, v).name(latex=r"v'")
+    R = exp((-_theta / 2) * generator).named("R")
+    v = (np.cos(_alpha) * e1 + np.sin(_alpha) * e2).named("v")
+    v_rot = sandwich(R, v).named(r"v'", latex=r"v'")
     return B_raw, B_unit, R, a, b, generator, v, v_rot
 
 
 @app.cell(hide_code=True)
 def _(B_raw, B_unit, R, a, b, generator, gm, norm, rotation_deg, v, v_rot):
-    gm.md(t"""
+    gm.md(rt"""
     ## Code Layer
 
-    {a} = {a.eval()}
+    {a} = {a:value}
 
-    {b} = {b.eval()}
+    {b} = {b:value}
 
-    {B_raw} = {B_raw.eval()}
+    {B_raw} = {B_raw:value}
 
-    {B_unit} = {B_unit.eval()}
+    {B_unit} = {B_unit:value}
 
     Generator used in the exponential:
 
-    {generator} = {generator.eval()}
+    {generator} = {generator:value}
 
-    {R} = {R.eval()}
+    {R} = {R:value}
 
-    {v} = {v.eval()}
+    {v} = {v:value}
 
-    {v_rot} = {v_rot.eval()}
+    {v_rot} = {v_rot:value}
 
     Length check:
 
-    {norm(v).eval():.3f} $\\rightarrow$ {norm(v_rot).eval():.3f}
+    {norm(v):.3f} $\\rightarrow$ {norm(v_rot):.3f}
 
     Requested angle: ${rotation_deg.value:.0f}^\\circ$
     """)
@@ -183,17 +183,17 @@ def _(
     v,
     v_rot,
 ):
-    _input = v.eval().vector_part[:2]
-    _output = v_rot.eval().vector_part[:2]
+    _input = v.vector_part[:2]
+    _output = v_rot.vector_part[:2]
     _input_angle = np.degrees(np.arctan2(_input[1], _input[0]))
     _output_angle = np.degrees(np.arctan2(_output[1], _output[0]))
     _actual_rotation = (_output_angle - _input_angle) % 360
-    _raw_scale = norm(B_raw).eval()
+    _raw_scale = norm(B_raw)
     _predicted_rotation = (
         rotation_deg.value if generator_mode.value == "unit bivector" else rotation_deg.value * _raw_scale
     )
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Validation
 
     The wedge magnitude is {_raw_scale:.3f}, which matches \\sin({opening_deg.value:.0f}$^\\circ$).
@@ -213,10 +213,10 @@ def _(
 
 @app.cell
 def _(a, b, plt, v, v_rot):
-    _a = a.eval().vector_part[:2]
-    _b = b.eval().vector_part[:2]
-    _v = v.eval().vector_part[:2]
-    _v_rot = v_rot.eval().vector_part[:2]
+    _a = a.vector_part[:2]
+    _b = b.vector_part[:2]
+    _v = v.vector_part[:2]
+    _v_rot = v_rot.vector_part[:2]
 
     _fig, _ax = plt.subplots(figsize=(6, 6))
     _ax.quiver(0, 0, _a[0], _a[1], angles="xy", scale_units="xy", scale=1, color="steelblue", width=0.010)

@@ -26,12 +26,12 @@ def _():
     from galaga_matrix.matrix import compact_basis
 
     import galaga_marimo as gm
-    from galaga import Algebra, b_sta, exp
+    from galaga.facade import Algebra, spacetime_blade_convention, exp
 
     return (
         Algebra,
         MatrixRepr,
-        b_sta,
+        spacetime_blade_convention,
         compact_basis,
         exp,
         from_spinor_column,
@@ -149,9 +149,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, b_sta, compact_basis, np):
-    sta = Algebra((1, -1, -1, -1), blades=b_sta(), repr_unicode=True)
-    sta_g0, sta_g1, sta_g2, sta_g3 = sta.basis_vectors(lazy=True)
+def _(Algebra, spacetime_blade_convention, compact_basis, np):
+    sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention(), )
+    sta_g0, sta_g1, sta_g2, sta_g3 = sta.basis_vectors(expr=True)
 
     dirac_gammas = compact_basis(sta)
     dirac_gamma0 = dirac_gammas[0]
@@ -241,7 +241,7 @@ def _(
     )
     _gamma5_shape_ok = np.allclose(weyl_gamma5, np.diag([-1, -1, 1, 1]))
 
-    gm.md(t"""
+    gm.md(rt"""
     The basis-change matrix is:
 
     {MatrixRepr(weyl_from_dirac).name(latex=r"U_{W\leftarrow D}"):block}
@@ -360,7 +360,7 @@ def _(
         for _nu in range(_mu + 1, 4)
     )
 
-    gm.md(t"""
+    gm.md(rt"""
     The Majorana basis-change matrix is:
 
     {MatrixRepr(majorana_from_dirac).name(latex=r"U_{M\leftarrow D}"):block}
@@ -521,8 +521,8 @@ def _(
         + vector_x.value * sta_g1
         + vector_y.value * sta_g2
         + vector_z.value * sta_g3
-    ).eval().name("v")
-    _v_square = float((_v * _v).eval().data[0])
+    ).named("v")
+    _v_square = float((_v * _v).data[0])
     _dirac_vector_matrix = to_matrix(_v, mode="compact")
     _weyl_vector_matrix = dirac_to_weyl_matrix(_dirac_vector_matrix)
     _majorana_vector_matrix = dirac_to_majorana_matrix(_dirac_vector_matrix)
@@ -542,7 +542,7 @@ def _(
         atol=1e-10,
     )
 
-    _md = gm.md(t"""
+    _md = gm.md(rt"""
     Spacetime vector:
 
     {_v.display()}
@@ -659,12 +659,12 @@ def _(
     _I = sta.pseudoscalar()
     _source_spinor = (
         sta.scalar(1.0)
-        + source_boost.value * (sta_g0 * sta_g1).eval()
-        + 0.35 * (sta_g1 * sta_g2).eval()
-        - 0.20 * (sta_g0 * sta_g3).eval()
+        + source_boost.value * (sta_g0 * sta_g1)
+        + 0.35 * (sta_g1 * sta_g2)
+        - 0.20 * (sta_g0 * sta_g3)
         + source_phase.value * _I
-        + 0.15 * source_rotation.value * (sta_g2 * sta_g3).eval()
-    ).name(latex=r"\Psi")
+        + 0.15 * source_rotation.value * (sta_g2 * sta_g3)
+    ).named(r"\Psi", latex=r"\Psi")
 
     _dirac_column = to_spinor_column(_source_spinor)
     _weyl_column = dirac_to_weyl_column(_dirac_column)
@@ -690,7 +690,7 @@ def _(
         charge_conjugate_majorana_column(_majorana_column),
         atol=1e-10,
     )
-    _spinor_back = from_spinor_column(sta, _dirac_column_back).name(latex=r"\Psi'")
+    _spinor_back = from_spinor_column(sta, _dirac_column_back).named(r"\Psi'", latex=r"\Psi'")
     _ga_roundtrip_ok = np.allclose(_spinor_back.data, _source_spinor.data, atol=1e-10)
 
     _real_majorana_column = np.array([[1.0], [0.25], [-0.5], [0.75]], dtype=complex)
@@ -698,7 +698,7 @@ def _(
     _real_majorana_spinor = from_spinor_column(
         sta,
         _real_majorana_dirac_column,
-    ).name(latex=r"\Psi_{\mathrm{real}\ M}")
+    ).named(r"\Psi_{\mathrm{real}\ M}", latex=r"\Psi_{\mathrm{real}\ M}")
     _real_majorana_is_real_ok = np.allclose(
         _real_majorana_column,
         charge_conjugate_majorana_column(_real_majorana_column),
@@ -715,7 +715,7 @@ def _(
         atol=1e-10,
     )
 
-    _md = gm.md(t"""
+    _md = gm.md(rt"""
     Source STA spinor:
 
     {_source_spinor.display()}
@@ -845,17 +845,17 @@ def _(
     _I = sta.pseudoscalar()
     _source_spinor = (
         sta.scalar(1.0)
-        + source_boost.value * (sta_g0 * sta_g1).eval()
-        + 0.35 * (sta_g1 * sta_g2).eval()
-        - 0.20 * (sta_g0 * sta_g3).eval()
+        + source_boost.value * (sta_g0 * sta_g1)
+        + 0.35 * (sta_g1 * sta_g2)
+        - 0.20 * (sta_g0 * sta_g3)
         + source_phase.value * _I
-        + 0.15 * source_rotation.value * (sta_g2 * sta_g3).eval()
-    ).name(latex=r"\Psi")
+        + 0.15 * source_rotation.value * (sta_g2 * sta_g3)
+    ).named(r"\Psi", latex=r"\Psi")
 
     _action = (
-        exp((action_boost.value / 2) * (sta_g0 * sta_g1).eval())
-        * exp((-action_rotation.value / 2) * (sta_g2 * sta_g3).eval())
-    ).name(latex=r"L")
+        exp((action_boost.value / 2) * (sta_g0 * sta_g1))
+        * exp((-action_rotation.value / 2) * (sta_g2 * sta_g3))
+    ).named(r"L", latex=r"L")
 
     _dirac_action_matrix = to_matrix(_action, mode="compact")
     _weyl_action_matrix = dirac_to_weyl_matrix(_dirac_action_matrix)
@@ -880,8 +880,8 @@ def _(
         atol=1e-10,
     )
 
-    _ga_after = from_spinor_column(sta, _dirac_after).name(latex=r"\Psi'")
-    _ga_expected = (_action * _source_spinor).eval()
+    _ga_after = from_spinor_column(sta, _dirac_after).named(r"\Psi'", latex=r"\Psi'")
+    _ga_expected = (_action * _source_spinor)
     _ga_action_ok = np.allclose(_ga_after.data, _ga_expected.data, atol=1e-10)
 
     _scalar_dirac = dirac_scalar(_dirac_after, dirac_gamma0)
@@ -914,7 +914,7 @@ def _(
         and np.allclose(_current_dirac, _current_majorana, atol=1e-10)
     )
 
-    _md = gm.md(t"""
+    _md = gm.md(rt"""
     Lorentz action:
 
     {_action.display()}

@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra
+    from galaga.facade import Algebra
     import galaga_marimo as gm
 
     return Algebra, gm, mo, np, plt
@@ -48,19 +48,19 @@ def _(mo):
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1), repr_unicode=True)
-    e1, e2 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1), )
+    e1, e2 = alg.basis_vectors(expr=True)
     return e1, e2
 
 
 @app.cell
 def _(e1, e2, gm):
-    gm.md(t"""
+    gm.md(rt"""
     Search-plane basis:
 
-    {e1} = {e1.eval()}
+    {e1} = {e1:value}
 
-    {e2} = {e2.eval()}
+    {e2} = {e2:value}
 
     Grover's algorithm is a repeated rotation inside this effective 2D subspace.
     """)
@@ -82,7 +82,7 @@ def _(gm, iterations, np, theta):
     angle = np.arcsin(1 / np.sqrt(N))
     success = np.sin((2 * k + 1) * angle) ** 2
 
-    gm.md(t"""
+    gm.md(rt"""
     ## Two-State Reduction
 
     Let $|w\\rangle$ be the marked state and $|r\\rangle$ the normalized superposition
@@ -111,9 +111,9 @@ def _(gm, iterations, np, theta):
 
 @app.cell
 def _(iterations, np, plt, success, theta):
-    N = theta.value
+    _N = theta.value
     _ks = np.arange(0, max(10, iterations.value + 4))
-    _theta = np.arcsin(1 / np.sqrt(N))
+    _theta = np.arcsin(1 / np.sqrt(_N))
     _curve = np.sin((2 * _ks + 1) * _theta) ** 2
 
     _fig, (_ax1, _ax2) = plt.subplots(1, 2, figsize=(11, 4))

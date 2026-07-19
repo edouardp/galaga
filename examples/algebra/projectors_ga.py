@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, project, reject
+    from galaga.facade import Algebra, exp, inverse, left_contraction
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, project, reject
+    return Algebra, exp, gm, inverse, left_contraction, mo, np, plt
 
 
 @app.cell(hide_code=True)
@@ -54,16 +54,17 @@ def _(mo):
     \operatorname{rej}_B(v) = (v \wedge B) B^{-1}.
     $$
 
-    In this library those are the named functions `project(v, B)` and
-    `reject(v, B)`.
+    Galaga 2 keeps these decompositions explicit instead of adding redundant
+    core operations: projection is `left_contraction(v, B) * inverse(B)`, and
+    rejection is `v - projection`.
     """)
     return
 
 
 @app.cell
 def _(Algebra):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
+    alg = Algebra((1, 1, 1), )
+    e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
@@ -90,40 +91,40 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(angle, e1, e2, e3, exp, gm, np, project, reject, vx, vy, vz):
+def _(angle, e1, e2, e3, exp, gm, inverse, left_contraction, np, vx, vy, vz):
     _theta = np.radians(angle.value)
-    R = exp((-_theta / 2) * (e1 * e2)).name(latex="R")
+    R = exp((-_theta / 2) * (e1 * e2)).named("R", latex="R")
     a = R * e1 * ~R
-    v = (vx.value * e1 + vy.value * e2 + vz.value * e3).name("v")
-    p = project(v, a)
-    r = reject(v, a)
+    v = (vx.value * e1 + vy.value * e2 + vz.value * e3).named("v")
+    p = left_contraction(v, a) * inverse(a)
+    r = v - p
 
-    gm.md(t"""
+    gm.md(rt"""
     Rotor defining the line:
-    {R} = {R.eval()}
+    {R} = {R:value}
 
-    {a} = {a.eval()}
+    {a} = {a:value}
 
-    {v} = {v.eval()}
+    {v} = {v:value}
 
     Projection onto the line:
-    {p} = {p.eval()}
+    {p} = {p:value}
 
     Rejection from the line:
-    {r} = {r.eval()}
+    {r} = {r:value}
 
     Check:
-    {p + r} = {(p + r).eval()}
+    {p + r} = {(p + r):value}
     """)
     return R, a, p, r, v
 
 
 @app.cell(hide_code=True)
 def _(a, p, plt, r, v):
-    _a = a.eval().vector_part[:2]
-    _v = v.eval().vector_part[:2]
-    _p = p.eval().vector_part[:2]
-    _r = r.eval().vector_part[:2]
+    _a = a.vector_part[:2]
+    _v = v.vector_part[:2]
+    _p = p.vector_part[:2]
+    _r = r.vector_part[:2]
 
     _fig, _ax = plt.subplots(figsize=(6, 6))
     _ax.plot([-2.5 * _a[0], 2.5 * _a[0]], [-2.5 * _a[1], 2.5 * _a[1]], color="gray", alpha=0.5)
@@ -154,32 +155,32 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(R, e1, e3, gm, project, reject, v):
+def _(R, e1, e3, gm, inverse, left_contraction, v):
     B = R * (e1 ^ e3) * ~R
-    p_plane = project(v, B)
-    r_plane = reject(v, B)
+    p_plane = left_contraction(v, B) * inverse(B)
+    r_plane = v - p_plane
 
-    gm.md(t"""
+    gm.md(rt"""
     Plane blade:
-    {B} = {B.eval()}
+    {B} = {B:value}
 
     Projection into the plane:
-    {p_plane} = {p_plane.eval()}
+    {p_plane} = {p_plane:value}
 
     Rejection from the plane:
-    {r_plane} = {r_plane.eval()}
+    {r_plane} = {r_plane:value}
 
     Again:
-    {p_plane + r_plane} = {(p_plane + r_plane).eval()}
+    {p_plane + r_plane} = {(p_plane + r_plane):value}
     """)
     return p_plane, r_plane
 
 
 @app.cell
 def _(np, p_plane, plt, r_plane, v):
-    _v = v.eval().vector_part
-    _p = p_plane.eval().vector_part
-    _r = r_plane.eval().vector_part
+    _v = v.vector_part
+    _p = p_plane.vector_part
+    _r = r_plane.vector_part
 
     _fig = plt.figure(figsize=(7, 5))
     _ax = _fig.add_subplot(111, projection="3d")

@@ -26,23 +26,23 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, exp, sandwich
+    from galaga.facade import Algebra, exp, p_sta, sandwich
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, mo, np, plt, sandwich
+    return Algebra, exp, gm, mo, np, p_sta, plt, sandwich
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
-    # Special Relativity with Lazy STA Blades
+    mo.md(r"""
+    # Special Relativity with Traced STA Blades
 
     This notebook treats Lorentz boosts as rotor sandwiches in spacetime algebra
     `Cl(1,3)`. The emphasis is on the library workflow:
 
-    1. build expressions from **lazy named basis blades**
-    2. inspect the symbolic construction
-    3. call `.eval()` when you want the concrete multivector
+    1. construct eager values from basis blades with expression provenance
+    2. inspect the recorded construction
+    3. render the expression or value explicitly for the teaching context
 
     Rapidity is the natural parameter. In GA it appears in the rotor directly,
     so Einstein velocity addition becomes ordinary addition of boost generators.
@@ -51,23 +51,23 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    sta = Algebra((1, -1, -1, -1), names="gamma", repr_unicode=True)
-    g0, g1, g2, g3 = sta.basis_vectors(lazy=True)
-    I = sta.I.name("I")
+def _(Algebra, p_sta):
+    sta = Algebra(config=p_sta())
+    g0, g1, g2, g3 = sta.basis_vectors(expr=True)
+    I = sta.I.named("I")
     return g0, g1, g2, g3
 
 
 @app.cell
 def _(g0, g1, g2, g3, gm):
     _basis_rows = [
-        f"- {g0}: {g0 * g0} = {(g0 * g0).eval()}",
-        f"- {g1}: {g1 * g1} = {(g1 * g1).eval()}",
-        f"- {g2}: {g2 * g2} = {(g2 * g2).eval()}",
-        f"- {g3}: {g3 * g3} = {(g3 * g3).eval()}",
-        f"- Boost generator {g0 * g1}: {(g0 * g1).eval()} with square {((g0 * g1).eval() * (g0 * g1).eval()).scalar_part:+.0f}",
+        f"- {g0}: {g0 * g0} = {(g0 * g0)}",
+        f"- {g1}: {g1 * g1} = {(g1 * g1)}",
+        f"- {g2}: {g2 * g2} = {(g2 * g2)}",
+        f"- {g3}: {g3 * g3} = {(g3 * g3)}",
+        f"- Boost generator {g0 * g1}: {(g0 * g1)} with square {((g0 * g1) * (g0 * g1)).coefficient(0):+.0f}",
     ]
-    gm.md(t"""
+    gm.md(rt"""
     ## Metric and Boost Generator
 
     {"\n".join(_basis_rows):text}
@@ -77,19 +77,19 @@ def _(g0, g1, g2, g3, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## One Boost
 
     The boost rotor in the `γ₀γ₁` plane is
 
     $$
-    \Lambda(    arphi) = e^{(    arphi/2)\,\gamma_0 \gamma_1}.
+    \Lambda(\varphi) = e^{(\varphi/2)\,\gamma_0 \gamma_1}.
     $$
 
-    The same symbolic object can be read two ways:
+    The same tracked value can be read two ways:
 
-    - as an algebraic expression tree
-    - as a concrete multivector after evaluation
+    - as its recorded algebraic expression tree
+    - as its already available concrete multivector
     """)
     return
 
@@ -104,22 +104,22 @@ def _(mo):
 @app.cell
 def _(exp, g0, g1, gm, np, rapidity, sandwich):
     phi = rapidity.value
-    half_phi = (phi / 2) * (1 + 0 * g0).name("φ/2", latex=r"\varphi/2")
-    Bx = (g0 * g1).name("B_x", latex=r"\gamma_0 \gamma_1")
-    Lambda = exp(half_phi * Bx).name("Λ", latex=r"\Lambda")
-    time_axis = sandwich(Lambda, g0).name(latex=r"\gamma_0'")
-    space_axis = sandwich(Lambda, g1).name(latex=r"\gamma_1'")
+    half_phi = (phi / 2) * (1 + 0 * g0).named("φ/2", latex=r"\varphi/2")
+    Bx = (g0 * g1).named("B_x", latex=r"\gamma_0 \gamma_1")
+    Lambda = exp(half_phi * Bx).named("Λ", latex=r"\Lambda")
+    time_axis = sandwich(Lambda, g0).named(r"\gamma_0'", latex=r"\gamma_0'")
+    space_axis = sandwich(Lambda, g1).named(r"\gamma_1'", latex=r"\gamma_1'")
     beta = np.tanh(phi)
     gamma = np.cosh(phi)
 
-    gm.md(t"""
-    {Bx} = {Bx.eval()}
+    gm.md(rt"""
+    {Bx} = {Bx:value}
 
-    {Lambda} = {Lambda.eval()}
+    {Lambda} = {Lambda:value}
 
-    {time_axis} = {time_axis.eval()}
+    {time_axis} = {time_axis:value}
 
-    {space_axis} = {space_axis.eval()}
+    {space_axis} = {space_axis:value}
 
     $\\beta = \\tanh \\varphi = {beta:.4f}$, $\\gamma = \\cosh \\varphi = {gamma:.4f}$
     """)
@@ -128,7 +128,7 @@ def _(exp, g0, g1, gm, np, rapidity, sandwich):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Minkowski Diagram
 
     The boosted basis vectors tilt toward the light cone. Because the boost is a
@@ -141,8 +141,8 @@ def _(mo):
 def _(exp, g0, g1, np, plt, rapidity, sandwich):
     _phi = rapidity.value
     _Lambda = exp((_phi / 2) * (g0 * g1))
-    _g0p = sandwich(_Lambda, g0).eval()
-    _g1p = sandwich(_Lambda, g1).eval()
+    _g0p = sandwich(_Lambda, g0)
+    _g1p = sandwich(_Lambda, g1)
     _t0, _x0 = _g0p.data[1], _g0p.data[2]
     _t1, _x1 = _g1p.data[1], _g1p.data[2]
 
@@ -170,17 +170,17 @@ def _(exp, g0, g1, np, plt, rapidity, sandwich):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Velocity Addition
 
     Compose two boosts in the same plane. In rapidity language the result is
     immediate:
 
     $$
-    \Lambda(    arphi_2)\Lambda(    arphi_1) = \Lambda(    arphi_1 +     arphi_2).
+    \Lambda(\varphi_2)\Lambda(\varphi_1) = \Lambda(\varphi_1 + \varphi_2).
     $$
 
-    The symbolic expression shows the composition, and `.eval()` confirms the
+    The recorded expression shows the composition alongside the already eager
     numeric result.
     """)
     return
@@ -198,25 +198,25 @@ def _(mo):
 def _(exp, g0, g1, gm, np, phi_one, phi_two):
     _phi1 = phi_one.value
     _phi2 = phi_two.value
-    _B = (g0 * g1).name("B", latex=r"\gamma_0 \gamma_1")
-    _L1 = exp((_phi1 / 2) * _B).name(latex=r"\Lambda_1")
-    _L2 = exp((_phi2 / 2) * _B).name(latex=r"\Lambda_2")
-    _composed = (_L2 * _L1).name(latex=r"\Lambda_2 \Lambda_1")
-    _direct = exp(((_phi1 + _phi2) / 2) * _B).name(latex=r"\Lambda(\varphi_1+\varphi_2)")
+    _B = (g0 * g1).named("B", latex=r"\gamma_0 \gamma_1")
+    _L1 = exp((_phi1 / 2) * _B).named(r"\Lambda_1", latex=r"\Lambda_1")
+    _L2 = exp((_phi2 / 2) * _B).named(r"\Lambda_2", latex=r"\Lambda_2")
+    _composed = (_L2 * _L1).named(r"\Lambda_2 \Lambda_1", latex=r"\Lambda_2 \Lambda_1")
+    _direct = exp(((_phi1 + _phi2) / 2) * _B).named(r"\Lambda(\varphi_1+\varphi_2)", latex=r"\Lambda(\varphi_1+\varphi_2)")
     _beta_rel = (_phi1 + _phi2)
     _beta = np.tanh(_beta_rel)
     _beta1 = np.tanh(_phi1)
     _beta2 = np.tanh(_phi2)
     _einstein = (_beta1 + _beta2) / (1 + _beta1 * _beta2)
 
-    gm.md(t"""
-    {_L1} = {_L1.eval()}
+    gm.md(rt"""
+    {_L1} = {_L1:value}
 
-    {_L2} = {_L2.eval()}
+    {_L2} = {_L2:value}
 
-    {_composed} = {_composed.eval()}
+    {_composed} = {_composed:value}
 
-    {_direct} = {_direct.eval()}
+    {_direct} = {_direct:value}
 
     $\\tanh(\\varphi_1 + \\varphi_2) = {_beta}$ and Einstein addition gives { _einstein}
     """)
