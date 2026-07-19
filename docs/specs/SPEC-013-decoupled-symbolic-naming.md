@@ -1,6 +1,12 @@
 # SPEC-013: Decoupled Symbolic Naming and Expression Trees
 
-**Status: Accepted**
+Status: Accepted
+
+> Historical implementation specification. Its MatrixRepr naming behavior is
+> retained, but its shared-`symbolic_core` ownership was superseded for Galaga
+> 2 by [ADR-082](../adrs/082-matrix-provenance-is-package-owned.md). Matrix
+> provenance is now immutable and owned by `galaga_matrix`; facade provenance
+> enters only through public adapters.
 
 ## Intent
 
@@ -606,7 +612,8 @@ $$
 \rho^{-1}(M)
 $$
 
-  where $M$ is the matrix's symbolic name or expression;
+where $M$ is the matrix's symbolic name or expression;
+
 - raw numpy arrays remain unnamed.
 
 Example:
@@ -620,7 +627,7 @@ The recovered multivector is named:
 
 $$
 \rho^{-1}(\sigma_1)
-```
+$$
 
 Roundtripping a named multivector through a matrix may still produce verbose
 provenance:

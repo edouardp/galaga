@@ -38,11 +38,13 @@ mat.inv()                              # MatrixRepr: σ₁⁻¹ = σ₁
 mat.trace()                            # 0 (traceless)
 mat.mv                                 # back to Multivector
 
-# Named MV gets automatic ρ(name) symbolic name
+# Named, tracked MV gets automatic ρ(name) symbolic name
+e1, e2, e3 = cl3.basis_vectors(expr=True)
 R = (e1 * e2).named("B", latex=r"\hat{B}")
 M = to_matrix(R, mode="compact")
 M.latex()                              # "\\rho(\\hat{B}) = \\begin{pmatrix}..."
 M.expr.latex()                         # "\\rho(\\hat{B})"
+M.symbolic_name.latex                  # "\\rho(\\hat{B})"
 
 # from_matrix can infer algebra and mode from MatrixRepr
 from_matrix(M)                         # MV named ρ⁻¹(ρ(B̂))
@@ -71,7 +73,8 @@ from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 - **All arithmetic operations** — `@`, `+`, `-`, `*`, `/`, `**` return `MatrixRepr`
 - **Linear algebra** — `.T`, `.H`, `.conj()`, `.trace()`, `.det()`, `.inv()`
 - **Numpy interop** — `np.add(M, N)`, `np.conj(M)` etc. return `MatrixRepr` via `__array_ufunc__`
-- **Symbolic naming** — `.name()` gives matrices the same naming and expression-tree behavior as multivectors
+- **Symbolic naming** — `.name()` assigns an immutable, target-aware `symbolic_name`
+- **Immutable provenance** — `.expr` records frozen matrix-domain operations; `.as_expression()` exposes an operand
 - **Metadata propagation** — `algebra`, `mode`, `basis`, and `kind` pass through operations
 - **Indexing** — `M[i,j]` for elements, `M[0:2, 0:2]` for submatrices
 - **Rendering** — `.latex()`, `._repr_latex_()` for notebooks
@@ -87,6 +90,19 @@ algebra and mode from `MatrixRepr` and names the recovered MV as
 `ρ⁻¹(name-or-expression)`. Raw arrays still need
 `from_matrix(alg, array, mode=...)`. Unnamed inputs pass through without new
 names. Quaternion-block mode uses `ρ_{\mathbb{H}}(name)`.
+
+### Expression ownership
+
+`galaga_matrix.expr` owns matrix multiplication, transpose, adjoint, inverse,
+basis-change, Kronecker-product, representation-map, and spinor-column nodes.
+They are frozen and their matrix leaves hold read-only NumPy snapshots.
+
+Galaga's public expression tree remains a geometric-algebra operation tree.
+When a facade value carries provenance, conversion wraps it in a matrix adapter
+with the active presentation. Rendering continues to honor context-local
+presentation overrides on the facade algebra. `galaga_matrix` does not import
+`galaga.symbolic_core` or inspect private multivector fields. This keeps the
+optional package independent without losing evaluable provenance.
 
 Works in galaga_marimo t-strings:
 

@@ -46,8 +46,10 @@ Each optional package declares `galaga>=2.0.0`. Package-internal imports are
 relative. Source tests reject the legacy expression imports and private
 multivector fields.
 
-The old notebook gallery and `MatrixRepr` symbolic base are explicitly not
-covered by this decision and keep W7.4 open.
+The old notebook gallery and `MatrixRepr` symbolic base were explicitly not
+covered by this decision. Matrix provenance was subsequently migrated by
+[ADR-082](082-matrix-provenance-is-package-owned.md); the notebook gallery
+continues to keep W7.4 open.
 
 ## Consequences
 
@@ -62,5 +64,5 @@ covered by this decision and keep W7.4 open.
 - Cost, because standalone expression graphs need an explicit presentation.
 - Cost, because old Mermaid callers must migrate from legacy `Expr.eval()`
   behavior to explicit environments.
-- Deferred, because the notebook gallery needs a guarded semantic codemod and
-  `MatrixRepr` still needs a v2-native symbolic boundary.
+- Follow-up complete for `MatrixRepr` in ADR-082. The notebook gallery still
+  needs a guarded semantic codemod or an explicit retirement decision.

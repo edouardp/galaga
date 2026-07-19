@@ -18,9 +18,10 @@ from typing import Any
 
 import numpy as np
 
-from galaga.symbolic_core import Add, Neg, Scalar, ScalarDiv, ScalarMul, Sub, Sym, SymbolicNamingMixin
+from galaga.names import Name
 
 from .expr import (
+    Add,
     Adjoint,
     ConjugateMatrix,
     KroneckerProduct,
@@ -28,6 +29,12 @@ from .expr import (
     MatrixBasisChange,
     MatrixElementwiseMul,
     MatrixInverse,
+    Neg,
+    Scalar,
+    ScalarDiv,
+    ScalarMul,
+    Sub,
+    Symbol,
     Transpose,
 )
 
@@ -114,7 +121,7 @@ class _MatrixDisplayResult:
         return self.latex()
 
 
-class MatrixRepr(SymbolicNamingMixin):
+class MatrixRepr:
     """A matrix with LaTeX rendering and transparent numpy proxy behavior.
 
     Works in galaga_marimo t-strings via the ``.latex()`` protocol,
@@ -144,7 +151,9 @@ class MatrixRepr(SymbolicNamingMixin):
         basis: str | None = None,
         kind: str = "operator",
     ):
-        self._init_symbolic_state()
+        self._symbolic_name: Name | None = None
+        self._tracking = False
+        self._expression = None
         if isinstance(data, MatrixRepr):
             # Unwrap: copy the underlying matrix, inherit metadata if not overridden
             self.mat = data.mat.copy()
@@ -152,11 +161,9 @@ class MatrixRepr(SymbolicNamingMixin):
             self.mode = mode if mode != "left-regular" else data.mode
             self.basis = basis if basis is not None else data.basis
             self.kind = kind if kind != "operator" else data.kind
-            self._name = data._name
-            self._name_latex = data._name_latex
-            self._name_unicode = data._name_unicode
-            self._is_symbolic = data._is_symbolic
-            self._expr = data._expr
+            self._symbolic_name = data._symbolic_name
+            self._tracking = data._tracking
+            self._expression = data._expression
         elif isinstance(data, np.ndarray):
             self.mat = data
         elif isinstance(data, list) and data and isinstance(data[0], list):
@@ -173,40 +180,106 @@ class MatrixRepr(SymbolicNamingMixin):
 
     def _copy_with_symbolic(self, **overrides) -> MatrixRepr:
         copy = MatrixRepr(self.mat.copy(), algebra=self.algebra, mode=self.mode, basis=self.basis, kind=self.kind)
-        copy._name = overrides.get("_name", self._name)
-        copy._name_latex = overrides.get("_name_latex", self._name_latex)
-        copy._name_unicode = overrides.get("_name_unicode", self._name_unicode)
-        copy._is_symbolic = overrides.get("_is_symbolic", self._is_symbolic)
-        copy._expr = overrides.get("_expr", self._expr)
+        copy._symbolic_name = overrides.get("name", self._symbolic_name)
+        copy._tracking = overrides.get("tracking", self._tracking)
+        copy._expression = overrides.get("expression", self._expression)
         return copy
 
-    def _make_symbolic_leaf(self) -> Sym:
-        return Sym(
-            self.eval(),
-            self._name_unicode or self._name,
-            name_latex=self._name_latex,
-            name_ascii=self._name,
-        )
+    @property
+    def symbolic_name(self) -> Name | None:
+        """The immutable, target-aware matrix name, if one was assigned."""
+        return self._symbolic_name
 
-    def _to_expr(self):
-        """Convert this matrix wrapper to a symbolic expression node."""
-        if self._name is not None:
-            inner = self._expr if self._expr is not None and not isinstance(self._expr, Sym) else None
-            return Sym(
-                self.eval(),
-                self._name_unicode or self._name,
-                name_latex=self._name_latex,
-                name_ascii=self._name,
-                inner_expr=inner,
+    @property
+    def is_symbolic(self) -> bool:
+        """Whether subsequent operations record matrix expression provenance."""
+        return self._tracking
+
+    def name(
+        self,
+        label: str | None = None,
+        *,
+        latex: str | None = None,
+        unicode: str | None = None,
+        ascii: str | None = None,
+    ) -> MatrixRepr:
+        """Assign a target-aware name and enable expression tracking in place."""
+        if label is None and latex is None:
+            raise ValueError("at least one of label or latex must be provided")
+        ascii_name = (ascii or label or latex).strip()
+        unicode_name = (unicode or label or ascii_name).strip()
+        latex_name = (latex or label or unicode_name).strip()
+        self._symbolic_name = Name(ascii_name, unicode=unicode_name, latex=latex_name)
+        self._tracking = True
+        if self._expression is None or isinstance(self._expression, Symbol):
+            self._expression = Symbol(self._symbolic_name, self.mat)
+        return self
+
+    def anon(self) -> MatrixRepr:
+        """Remove the name while preserving compound provenance."""
+        if isinstance(self._expression, Symbol):
+            self._expression = None
+        self._symbolic_name = None
+        return self
+
+    def symbolic(self) -> MatrixRepr:
+        self._tracking = True
+        return self
+
+    def lazy(self) -> MatrixRepr:
+        return self.symbolic()
+
+    def numeric(self, name: str | None = None) -> MatrixRepr:
+        self._tracking = False
+        self._expression = None
+        self._symbolic_name = Name(name) if name is not None else None
+        return self
+
+    def eager(self, name: str | None = None) -> MatrixRepr:
+        return self.numeric(name)
+
+    def eval(self) -> MatrixRepr:
+        """Return an eager copy without symbolic name or provenance."""
+        return self._copy_with_symbolic(name=None, tracking=False, expression=None)
+
+    def reveal(self) -> MatrixRepr:
+        """Return a copy with provenance but without its display name."""
+        return self._copy_with_symbolic(name=None)
+
+    def copy_as(
+        self,
+        label: str | None = None,
+        *,
+        latex: str | None = None,
+        unicode: str | None = None,
+        ascii: str | None = None,
+    ) -> MatrixRepr:
+        return self._copy_with_symbolic().name(label, latex=latex, unicode=unicode, ascii=ascii)
+
+    def as_expression(self):
+        """Return this matrix as a package-owned immutable expression node."""
+        if self._symbolic_name is not None:
+            inner = (
+                self._expression if self._expression is not None and not isinstance(self._expression, Symbol) else None
             )
-        if self._expr is not None:
-            return self._expr
-        return Sym(self.eval(), str(self), name_latex=self.latex())
+            return Symbol(self._symbolic_name, self.mat, inner_expr=inner)
+        if self._expression is not None:
+            return self._expression
+        return Symbol(Name(str(self), latex=self._matrix_latex_raw()), self.mat)
 
     @property
     def expr(self):
         """The symbolic expression tree, if this matrix is symbolic."""
-        return self._expr
+        return self._expression
+
+    def _attach_expression(self, expression) -> None:
+        """Attach package-owned provenance to an eager conversion result."""
+        from .expr import Expr
+
+        if not isinstance(expression, Expr):
+            raise TypeError("expression must be a galaga_matrix Expr")
+        self._tracking = True
+        self._expression = expression
 
     def _symbolic_result(
         self,
@@ -225,8 +298,8 @@ class MatrixRepr(SymbolicNamingMixin):
             basis=self.basis if basis is None else basis,
             kind=self.kind if kind is None else kind,
         )
-        wrapped._is_symbolic = True
-        wrapped._expr = expr
+        wrapped._tracking = True
+        wrapped._expression = expr
         return wrapped
 
     def _wrap(self, result: np.ndarray) -> MatrixRepr:
@@ -305,7 +378,7 @@ class MatrixRepr(SymbolicNamingMixin):
 
     def _operand_expr(self, value):
         if isinstance(value, MatrixRepr):
-            return value._to_expr()
+            return value.as_expression()
         if _is_scalar(value):
             return Scalar(value)
         return MatrixRepr(
@@ -314,10 +387,10 @@ class MatrixRepr(SymbolicNamingMixin):
             mode=self.mode,
             basis=self.basis,
             kind="operator",
-        )._to_expr()
+        ).as_expression()
 
     def _is_symbolic_with(self, other=None) -> bool:
-        return self._is_symbolic or (isinstance(other, MatrixRepr) and other._is_symbolic)
+        return self._tracking or (isinstance(other, MatrixRepr) and other._tracking)
 
     # ── Arithmetic operators ──
 
@@ -336,76 +409,76 @@ class MatrixRepr(SymbolicNamingMixin):
         if self._is_symbolic_with(other):
             return self._symbolic_result(
                 result,
-                MatMul(self._to_expr(), self._operand_expr(other)),
+                MatMul(self.as_expression(), self._operand_expr(other)),
                 kind=result_kind,
             )
         return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=result_kind)
 
     def __rmatmul__(self, other) -> MatrixRepr:
-        if self._is_symbolic:
+        if self._tracking:
             return self._symbolic_result(
-                _unwrap(other) @ self._require_mat(), MatMul(self._operand_expr(other), self._to_expr())
+                _unwrap(other) @ self._require_mat(), MatMul(self._operand_expr(other), self.as_expression())
             )
         return self._wrap(_unwrap(other) @ self._require_mat())
 
     def __add__(self, other) -> MatrixRepr:
         result = self._require_mat() + _unwrap(other)
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, Add(self._to_expr(), self._operand_expr(other)))
+            return self._symbolic_result(result, Add(self.as_expression(), self._operand_expr(other)))
         return self._wrap(result)
 
     def __radd__(self, other) -> MatrixRepr:
         result = _unwrap(other) + self._require_mat()
-        if self._is_symbolic:
-            return self._symbolic_result(result, Add(self._operand_expr(other), self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, Add(self._operand_expr(other), self.as_expression()))
         return self._wrap(result)
 
     def __sub__(self, other) -> MatrixRepr:
         result = self._require_mat() - _unwrap(other)
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, Sub(self._to_expr(), self._operand_expr(other)))
+            return self._symbolic_result(result, Sub(self.as_expression(), self._operand_expr(other)))
         return self._wrap(result)
 
     def __rsub__(self, other) -> MatrixRepr:
         result = _unwrap(other) - self._require_mat()
-        if self._is_symbolic:
-            return self._symbolic_result(result, Sub(self._operand_expr(other), self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, Sub(self._operand_expr(other), self.as_expression()))
         return self._wrap(result)
 
     def __mul__(self, other) -> MatrixRepr:
         result = self._require_mat() * _unwrap(other)
         if self._is_symbolic_with(other):
             if _is_scalar(other):
-                expr = ScalarMul(other, self._to_expr())
+                expr = ScalarMul(other, self.as_expression())
             else:
-                expr = MatrixElementwiseMul(self._to_expr(), self._operand_expr(other))
+                expr = MatrixElementwiseMul(self.as_expression(), self._operand_expr(other))
             return self._symbolic_result(result, expr)
         return self._wrap(result)
 
     def __rmul__(self, other) -> MatrixRepr:
         result = _unwrap(other) * self._require_mat()
-        if self._is_symbolic:
+        if self._tracking:
             if _is_scalar(other):
-                expr = ScalarMul(other, self._to_expr())
+                expr = ScalarMul(other, self.as_expression())
             else:
-                expr = MatrixElementwiseMul(self._operand_expr(other), self._to_expr())
+                expr = MatrixElementwiseMul(self._operand_expr(other), self.as_expression())
             return self._symbolic_result(result, expr)
         return self._wrap(result)
 
     def __truediv__(self, other) -> MatrixRepr:
         result = self._require_mat() / _unwrap(other)
-        if self._is_symbolic:
+        if self._tracking:
             if _is_scalar(other):
-                expr = ScalarDiv(self._to_expr(), other)
+                expr = ScalarDiv(self.as_expression(), other)
             else:
-                expr = MatrixElementwiseMul(self._to_expr(), self._operand_expr(1 / _unwrap(other)))
+                expr = MatrixElementwiseMul(self.as_expression(), self._operand_expr(1 / _unwrap(other)))
             return self._symbolic_result(result, expr)
         return self._wrap(result)
 
     def __neg__(self) -> MatrixRepr:
         result = -self._require_mat()
-        if self._is_symbolic:
-            return self._symbolic_result(result, Neg(self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, Neg(self.as_expression()))
         return self._wrap(result)
 
     def __pos__(self) -> MatrixRepr:
@@ -426,8 +499,8 @@ class MatrixRepr(SymbolicNamingMixin):
     def T(self) -> MatrixRepr:
         """Transpose."""
         result = self._require_mat().T
-        if self._is_symbolic:
-            return self._symbolic_result(result, Transpose(self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, Transpose(self.as_expression()))
         return self._wrap(result)
 
     @property
@@ -439,15 +512,15 @@ class MatrixRepr(SymbolicNamingMixin):
             new_kind = "bra"
         elif self.kind == "bra":
             new_kind = "ket"
-        if self._is_symbolic:
-            return self._symbolic_result(result, Adjoint(self._to_expr()), kind=new_kind)
+        if self._tracking:
+            return self._symbolic_result(result, Adjoint(self.as_expression()), kind=new_kind)
         return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=new_kind)
 
     def conj(self) -> MatrixRepr:
         """Element-wise complex conjugate."""
         result = self._require_mat().conj()
-        if self._is_symbolic:
-            return self._symbolic_result(result, ConjugateMatrix(self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, ConjugateMatrix(self.as_expression()))
         return self._wrap(result)
 
     def trace(self) -> complex:
@@ -461,8 +534,8 @@ class MatrixRepr(SymbolicNamingMixin):
     def inv(self) -> MatrixRepr:
         """Matrix inverse."""
         result = np.linalg.inv(self._require_mat())
-        if self._is_symbolic:
-            return self._symbolic_result(result, MatrixInverse(self._to_expr()))
+        if self._tracking:
+            return self._symbolic_result(result, MatrixInverse(self.as_expression()))
         return self._wrap(result)
 
     # ── Basis change ──
@@ -517,8 +590,9 @@ class MatrixRepr(SymbolicNamingMixin):
         else:
             new_mat = S @ mat @ S.conj().T
 
-        if self._is_symbolic:
-            return self._symbolic_result(new_mat, MatrixBasisChange(self._to_expr(), target), basis=target)
+        if self._tracking:
+            expression = MatrixBasisChange(self.as_expression(), target, value=new_mat)
+            return self._symbolic_result(new_mat, expression, basis=target)
 
         return MatrixRepr(new_mat, algebra=self.algebra, mode=self.mode, basis=target, kind=self.kind)
 
@@ -538,7 +612,7 @@ class MatrixRepr(SymbolicNamingMixin):
         """Kronecker (tensor) product."""
         result = np.kron(self._require_mat(), _unwrap(other))
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, KroneckerProduct(self._to_expr(), self._operand_expr(other)))
+            return self._symbolic_result(result, KroneckerProduct(self.as_expression(), self._operand_expr(other)))
         return self._wrap(result)
 
     # ── Numpy interop ──
@@ -602,12 +676,13 @@ class MatrixRepr(SymbolicNamingMixin):
         Args:
             wrap: ``"$"`` for inline, ``"$$"`` for display, or ``None`` for raw.
         """
-        if wrap is None and getattr(self.algebra, "_display_mode", False):
+        display_policy = getattr(getattr(self.algebra, "presentation", None), "display", None)
+        if wrap is None and getattr(display_policy, "content", None) in {"expr", "full"}:
             return self.display().latex()
         body = self._body_latex()
         raw = f"\\begin{{pmatrix}}\n{body}\n\\end{{pmatrix}}"
-        if self._name_latex:
-            raw = f"{self._name_latex} \\quad = \\quad {raw}"
+        if self._symbolic_name is not None:
+            raw = f"{self._symbolic_name.latex} \\quad = \\quad {raw}"
         if wrap == "$":
             return f"${raw}$"
         if wrap == "$$":
@@ -618,10 +693,10 @@ class MatrixRepr(SymbolicNamingMixin):
         """Return a LaTeX-renderable object showing name = expression = value."""
         parts = []
         value_latex = self.eval()._matrix_latex_raw()
-        if self._name_latex is not None:
-            parts.append(self._name_latex)
-        if self._is_symbolic and self._expr is not None:
-            expr_latex = self._expr.latex()
+        if self._symbolic_name is not None:
+            parts.append(self._symbolic_name.latex)
+        if self._tracking and self._expression is not None:
+            expr_latex = self._expression.latex()
             if expr_latex not in parts and expr_latex != value_latex:
                 parts.append(expr_latex)
         if value_latex not in parts:

@@ -27,6 +27,7 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 
 from galaga.facade import Algebra, Multivector
+from galaga.names import Name
 
 if TYPE_CHECKING:
     from .repr import MatrixRepr
@@ -82,13 +83,10 @@ def _new_multivector(alg: Algebra, data: np.ndarray) -> Multivector:
     return cast(Multivector, legacy_type(alg, data))
 
 
-def _multivector_latex_name(mv: Multivector) -> str | None:
-    """Read a public facade name or a Galaga 1 compatibility name."""
+def _multivector_name(mv: Multivector) -> Name | None:
+    """Read the public Galaga 2 semantic name without private-field fallbacks."""
     name = getattr(mv, "name", None)
-    if name is not None and not callable(name):
-        latex = getattr(name, "latex", None)
-        return str(name) if latex is None else str(latex)
-    return getattr(mv, "_name_latex", None) or getattr(mv, "_name", None)
+    return name if isinstance(name, Name) else None
 
 
 def _left_action(mv: Multivector) -> np.ndarray:
@@ -182,21 +180,18 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
         basis = "pauli"
 
     result = MatrixRepr(mat, algebra=mv.algebra, mode=mode, basis=basis)
-    mv_name = _multivector_latex_name(mv)
-    mv_expr = getattr(mv, "_expr", None)
-    to_expr = getattr(mv, "_to_expr", None)
-    if callable(to_expr) and (mv_name or (getattr(mv, "_is_symbolic", False) and mv_expr is not None)):
-        from .expr import MatrixRepresentation
+    from .expr import MatrixRepresentation, multivector_operand
 
-        expr = MatrixRepresentation(to_expr(), mode=mode, basis=basis, value=result.eval())
-        if mv_name:
-            result.name(latex=expr.latex())
-        else:
-            result._is_symbolic = True
-        result._expr = expr
-    elif mv_name:
-        rho = r"\rho_{\mathbb{H}}" if mode == "quaternion" else r"\rho"
-        result.name(latex=rf"{rho}({mv_name})")
+    operand = multivector_operand(mv)
+    if operand is not None:
+        expression = MatrixRepresentation(operand, mode=mode, basis=basis, value=result.mat)
+        result._attach_expression(expression)
+        if _multivector_name(mv) is not None:
+            result.name(
+                expression.render("ascii"),
+                unicode=expression.render("unicode"),
+                latex=expression.render("latex"),
+            )
     return result
 
 
@@ -235,17 +230,21 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         # Two-argument call: from_matrix(alg, mat)
         alg = alg_or_mat
 
-    mat_name = None
+    mat_name: Name | None = None
     mat_basis = None
     if isinstance(mat, MatrixRepr):
         if mat.mode:
             mode = mat.mode
         if mat.algebra is not None and alg is None:
             alg = mat.algebra
-        if mat._name_latex is not None:
-            mat_name = mat._name_latex
-        elif mat._expr is not None:
-            mat_name = cast(Any, mat._expr).latex()
+        if mat.symbolic_name is not None:
+            mat_name = mat.symbolic_name
+        elif mat.expr is not None:
+            mat_name = Name(
+                mat.expr.render("ascii"),
+                unicode=mat.expr.render("unicode"),
+                latex=mat.expr.render("latex"),
+            )
         mat_basis = mat.basis
         mat = mat.mat
 
@@ -277,11 +276,15 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
 
     if mat_name:
-        legacy_name = getattr(mv, "name", None)
-        if callable(legacy_name):
-            mv = cast(Multivector, legacy_name(latex=rf"\rho^{{-1}}({mat_name})"))
+        ascii_name = f"rho^-1({mat_name.ascii})"
+        unicode_name = f"ρ⁻¹({mat_name.unicode})"
+        latex_name = rf"\rho^{{-1}}({mat_name.latex})"
+        if isinstance(mv, Multivector):
+            mv = mv.named(ascii_name, unicode=unicode_name, latex=latex_name)
         else:
-            mv = mv.named(f"rho^-1({mat_name})", latex=rf"\rho^{{-1}}({mat_name})")
+            legacy_name = getattr(mv, "name", None)
+            if callable(legacy_name):
+                mv = cast(Multivector, legacy_name(ascii_name, unicode=unicode_name, latex=latex_name))
 
     return mv
 
@@ -919,14 +922,18 @@ def to_spinor_column(mv: Multivector) -> MatrixRepr:
 
     result = MatrixRepr(spinor, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
 
-    mv_name = _multivector_latex_name(mv)
-    if mv_name:
-        result.name(latex=rf"\left|\rho({mv_name})\right\rangle")
-        to_expr = getattr(mv, "_to_expr", None)
-        if callable(to_expr):
-            from .expr import SpinorColumnRepresentation
+    from .expr import SpinorColumnRepresentation, multivector_operand
 
-            result._expr = SpinorColumnRepresentation(to_expr(), basis=basis, value=result.eval())
+    operand = multivector_operand(mv)
+    if operand is not None:
+        expression = SpinorColumnRepresentation(operand, basis=basis, value=result.mat)
+        result._attach_expression(expression)
+        if _multivector_name(mv) is not None:
+            result.name(
+                expression.render("ascii"),
+                unicode=expression.render("unicode"),
+                latex=expression.render("latex"),
+            )
 
     return result
 

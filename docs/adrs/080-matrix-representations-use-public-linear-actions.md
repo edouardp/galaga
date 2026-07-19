@@ -67,5 +67,6 @@ the generator relation against oblique and native-null Gram matrices.
 - Cost, because general-Gram matrices currently use the larger left-regular
   representation.
 - Cost, because the temporary Galaga 1 fallback computes a product per column.
-- Deferred, because `MatrixRepr` expression and rendering internals still need
-  the shared Galaga 2 protocols.
+- Follow-up complete in [ADR-082](082-matrix-provenance-is-package-owned.md):
+  `MatrixRepr` now owns immutable matrix provenance and consumes only public
+  Galaga 2 names, expressions, and presentation objects.

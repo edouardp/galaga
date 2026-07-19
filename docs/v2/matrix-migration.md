@@ -67,9 +67,38 @@ unsupported error.
 Facade values carry immutable public names. Matrix conversion reads that public
 name and applies the representation label without calling legacy multivector
 expression internals. `from_matrix` returns a newly named facade value. The
-matrix wrapper's own expression implementation is still a Galaga 1 component;
-moving it to the shared Galaga 2 expression and rendering protocols belongs to
-the remaining optional-integration work.
+matrix wrapper now exposes its immutable `symbolic_name`, `is_symbolic`, and
+`expr` state without exposing or inspecting multivector implementation fields.
+
+### Package-owned matrix provenance
+
+Matrix operations are not geometric-algebra catalog operations. The companion
+package therefore owns frozen nodes for matrix multiplication, elementwise
+multiplication, transpose, adjoint, conjugation, inverse, basis change,
+Kronecker product, representation maps, and spinor columns. Named leaves store
+an immutable `Name` and a read-only copy of the eager NumPy value.
+
+A single adapter brings a public `galaga.expression.Expr` into this tree along
+with the facade's explicit `PresentationConfig` and eager value. Rendering
+resolves the value's current context-local presentation and uses the stored
+configuration only as a fallback, so teaching notation can still change in a
+thread- and async-safe scope. This preserves the distinction between GA
+provenance and matrix provenance:
+
+```mermaid
+flowchart LR
+    G[galaga.expression.Expr] --> A[GalagaExpression adapter]
+    N[Public immutable Name] --> S[Matrix Symbol]
+    A --> R[MatrixRepresentation rho]
+    S --> R
+    R --> M[Matrix-owned operations]
+    M --> E[Eager MatrixRepr value]
+```
+
+`MatrixRepr.as_expression()` is the matrix operand boundary. The conversion
+implementation reads public facade `name`, `expr`, `algebra.presentation`, and
+`data` only; source tests reject the retired private-field vocabulary and any
+`galaga.symbolic_core` import.
 
 ## Verification
 
@@ -82,8 +111,11 @@ The facade matrix contract verifies:
 - compact rejection for nonorthogonal and scaled metrics;
 - compact product compatibility for a normalized diagonal metric;
 - immutable facade naming round trips; and
-- absence of private multiplication-table and legacy numeric imports.
+- frozen matrix expression nodes and read-only leaf snapshots;
+- evaluation parity between matrix provenance and eager results; and
+- absence of private multiplication-table, multivector expression, legacy
+  numeric, and `galaga.symbolic_core` imports.
 
-The pre-existing matrix suite remains an independent compatibility gate for
-Pauli, Dirac, quaternion, spinor, basis-change, NumPy, symbolic, and rendering
-behavior.
+All 392 Python 3.11 matrix tests pass. The suite remains an independent gate
+for Pauli, Dirac, quaternion, spinor, basis-change, NumPy, provenance, and
+rendering behavior.

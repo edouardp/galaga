@@ -94,6 +94,7 @@ helps future contributors understand why certain choices were made.
 | [079](079-curated-compatibility-without-redundant-helpers.md) | Curated Compatibility without Redundant Generic Helpers | Accepted |
 | [080](080-matrix-representations-use-public-linear-actions.md) | Matrix Representations Use Public Linear Actions | Accepted |
 | [081](081-optional-integrations-consume-public-protocols.md) | Optional Integrations Consume Public Protocols | Accepted |
+| [082](082-matrix-provenance-is-package-owned.md) | Matrix Provenance Is Package-Owned | Accepted |
 
 ## Creating New ADRs
 

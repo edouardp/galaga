@@ -189,14 +189,16 @@ public APIs:
 - `galaga_matrix` no longer reads `Algebra._mul_index` or `_mul_sign`. Phase 7
   moved left-regular conversion to `Algebra.left_action`, with a table-free
   public-product fallback only while v1 compatibility tests remain active.
-- `galaga_matrix` reads and mutates private multivector expression state;
-  Phase 7 must use the public expression-provenance protocol.
+- `galaga_matrix` no longer reads or mutates private multivector expression or
+  name state. Phase 7 introduced a package-owned immutable matrix expression
+  protocol and a one-way adapter over public facade `name`, `expr`, and
+  presentation values.
 - `galaga_mermaid` traverses private expression and multivector fields; Phase 7
   must use the public expression traversal protocol.
 - examples display `_is_lazy` and `_name`; they must move to immutable naming
   and expression provenance.
 
-The matrix table row is complete; the remaining rows stay executable migration
+Both matrix rows are complete; the remaining rows stay executable migration
 requirements. This makes the Phase 1 guarantee precise: later work may depend
 on a recorded migration target, but not on an unrecorded private legacy
 structure.

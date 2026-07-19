@@ -13,6 +13,7 @@ from galaga_matrix.matrix import (
 
 from galaga import Algebra
 from galaga.algebra import Multivector
+from galaga.facade import Algebra as FacadeAlgebra
 
 # ── Left-regular representation ──
 
@@ -1435,7 +1436,7 @@ class TestMatrixReprMetadata:
         A = MatrixRepr(np.eye(2, dtype=complex)).name(latex=r"\sigma_1")
         B = MatrixRepr(np.eye(2, dtype=complex))
         C = A @ B
-        assert C._name_latex is None
+        assert C.symbolic_name is None
         assert type(C.expr).__name__ == "MatMul"
 
     def test_algebra_propagates_through_inv(self):
@@ -1545,65 +1546,70 @@ class TestMatrixReprNaming:
 
     def test_to_matrix_named_mv_gets_rho_name(self):
         """Named MV produces MatrixRepr with ρ(name) name."""
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        R = (e1 * e2).name(latex=r"\hat{B}")
+        alg = FacadeAlgebra(3)
+        e1, e2, e3 = alg.basis_vectors(expr=True)
+        R = (e1 * e2).named("B", latex=r"\hat{B}")
         M = to_matrix(R, mode="compact")
-        assert M._name_latex == r"\rho(\hat{B})"
+        assert M.symbolic_name is not None
+        assert M.symbolic_name.latex == r"\rho(\hat{B})"
         assert type(M.expr).__name__ == "MatrixRepresentation"
 
     def test_to_matrix_unnamed_mv_no_name(self):
         """Unnamed MV produces MatrixRepr with no name."""
-        alg = Algebra(3)
+        alg = FacadeAlgebra(3)
         e1, e2, e3 = alg.basis_vectors()
         v = 2 * e1 + 3 * e2
         M = to_matrix(v, mode="compact")
-        assert M._name_latex is None
+        assert M.symbolic_name is None
         assert M.expr is None
 
     def test_from_matrix_named_gives_rho_inv_name(self):
         """Named MatrixRepr produces MV named ρ⁻¹(name)."""
-        alg = Algebra(3)
+        alg = FacadeAlgebra(3)
         M = MatrixRepr(np.array([[0, 1], [1, 0]], dtype=complex), algebra=alg, mode="compact").name(latex=r"\sigma_1")
         mv = from_matrix(alg, M)
-        assert mv._name_latex == r"\rho^{-1}(\sigma_1)"
+        assert mv.name is not None
+        assert mv.name.latex == r"\rho^{-1}(\sigma_1)"
 
     def test_from_matrix_unlabeled_no_name(self):
         """Unlabeled MatrixRepr produces unnamed MV."""
-        alg = Algebra(3)
+        alg = FacadeAlgebra(3)
         M = MatrixRepr(
             np.array([[0, 1], [1, 0]], dtype=complex),
             algebra=alg,
             mode="compact",
         )
         mv = from_matrix(alg, M)
-        assert getattr(mv, "_name_latex", None) is None
+        assert mv.name is None
 
     def test_from_matrix_raw_ndarray_no_name(self):
         """Raw ndarray produces unnamed MV (backward compat)."""
-        alg = Algebra(3)
+        alg = FacadeAlgebra(3)
         mat = np.array([[0, 1], [1, 0]], dtype=complex)
         mv = from_matrix(alg, mat, mode="compact")
-        assert getattr(mv, "_name_latex", None) is None
+        assert mv.name is None
 
     def test_roundtrip_named_mv(self):
         """Named MV → to_matrix → from_matrix preserves data, gets composed name."""
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        R = (0.5 * (e1 * e2)).name(latex="B")
+        alg = FacadeAlgebra(3)
+        e1, e2, e3 = alg.basis_vectors(expr=True)
+        R = (0.5 * (e1 * e2)).named("B")
         M = to_matrix(R, mode="compact")
-        assert M._name_latex == r"\rho(B)"
+        assert M.symbolic_name is not None
+        assert M.symbolic_name.latex == r"\rho(B)"
         mv2 = from_matrix(alg, M)
         assert np.allclose(R.data, mv2.data)
-        assert mv2._name_latex == r"\rho^{-1}(\rho(B))"
+        assert mv2.name is not None
+        assert mv2.name.latex == r"\rho^{-1}(\rho(B))"
 
     def test_to_matrix_ascii_name_fallback(self):
         """MV with only ASCII name (no latex) still gets named."""
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        R = (e1 * e2).name("B12")
+        alg = FacadeAlgebra(3)
+        e1, e2, e3 = alg.basis_vectors(expr=True)
+        R = (e1 * e2).named("B12")
         M = to_matrix(R, mode="compact")
-        assert M._name_latex == r"\rho(B12)"
+        assert M.symbolic_name is not None
+        assert M.symbolic_name.latex == r"\rho(B12)"
 
 
 class TestMatrixReprCopyConstruction:
@@ -1621,15 +1627,18 @@ class TestMatrixReprCopyConstruction:
         alg = Algebra(3)
         A = MatrixRepr(np.eye(2, dtype=complex), algebra=alg, mode="compact").name(latex=r"\sigma_1")
         B = MatrixRepr(A)
-        assert B._name_latex == r"\sigma_1"
+        assert B.symbolic_name is not None
+        assert B.symbolic_name.latex == r"\sigma_1"
         assert B.algebra is alg
         assert B.mode == "compact"
 
     def test_wrap_then_copy_as_new_name(self):
         A = MatrixRepr(np.eye(2, dtype=complex)).name("old")
         B = MatrixRepr(A).copy_as("new")
-        assert B._name_latex == "new"
-        assert A._name_latex == "old"
+        assert B.symbolic_name is not None
+        assert A.symbolic_name is not None
+        assert B.symbolic_name.latex == "new"
+        assert A.symbolic_name.latex == "old"
 
     def test_wrap_override_algebra(self):
         alg1 = Algebra(3)
@@ -1988,15 +1997,16 @@ class TestSpinorKetBra:
         """Named MV gets ket name."""
         from galaga_matrix import to_spinor_column
 
-        from galaga import exp
+        from galaga.facade import exp
 
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        R = exp(-0.3 * (e1 * e2)).name(latex=r"\psi")
+        alg = FacadeAlgebra(3)
+        e1, e2, e3 = alg.basis_vectors(expr=True)
+        R = exp(-0.3 * (e1 * e2)).named("psi", latex=r"\psi")
         ket = to_spinor_column(R)
-        assert r"\left|" in ket._name_latex
-        assert r"\psi" in ket._name_latex
-        assert r"\right\rangle" in ket._name_latex
+        assert ket.symbolic_name is not None
+        assert r"\left|" in ket.symbolic_name.latex
+        assert r"\psi" in ket.symbolic_name.latex
+        assert r"\right\rangle" in ket.symbolic_name.latex
         assert type(ket.expr).__name__ == "SpinorColumnRepresentation"
 
     def test_ket_H_gives_bra(self):

@@ -80,12 +80,18 @@ representation is not exposed as a full quaternionic conversion.
 - Complex numbers with both real and imaginary parts use `a + bi` format;
   some users may prefer `a + b\mathrm{i}` or `a + b\,i` in LaTeX
 
-### No integration with galaga's symbolic layer
+### Matrix provenance is structural, not entry-wise symbolic algebra
 
-`to_matrix` operates on the numeric `.data` array. If a multivector has a
-symbolic expression tree, the matrix representation doesn't preserve or
-display it. A future version could produce a symbolic matrix (with expression
-tree entries) for use in derivations.
+`to_matrix` preserves a facade value's public name and optional expression
+provenance through a package-owned `MatrixRepresentation` node. Matrix
+arithmetic then records frozen matrix-domain nodes. The concrete entries remain
+eager NumPy values; the package does not construct a separate symbolic scalar
+expression for every matrix entry.
+
+Expression leaves snapshot their eager arrays as read-only data. Mutating a
+later `MatrixRepr.mat` therefore does not mutate existing provenance, but it
+also means expression evaluation returns the captured value rather than
+observing subsequent array edits.
 
 ### Left-regular representation is always real
 
@@ -95,9 +101,9 @@ algebra) but means the matrices are larger than necessary. A complex
 left-regular representation could halve the size for algebras with complex
 structure.
 
-### No `__matmul__` on MatrixRepr
+### The NumPy proxy is deliberately partial
 
-`MatrixRepr` supports `np.array(mr)` via `__array__`, but `mr1 @ mr2` doesn't
-work because Python's `@` operator dispatches on type, not via the array
-protocol. Adding `__matmul__` would make `MatrixRepr` a fuller matrix wrapper,
-which may or may not be desirable — it risks duplicating numpy's API.
+`MatrixRepr` supports `@`, arithmetic, transpose, adjoint, inverse, conjugate,
+Kronecker product, `__array__`, and ordinary `__array_ufunc__` calls. It is not
+an ndarray subclass and does not attempt to proxy every NumPy method. Use
+`.mat` or `np.asarray(matrix)` when an API requires an actual ndarray.

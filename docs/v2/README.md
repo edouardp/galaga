@@ -69,8 +69,9 @@ for removal. `galaga_matrix` now uses public core-backed linear actions,
 basis-independent inertia, and general-Gram-safe mode selection without private
 multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
-executable. W7.4 remains open for the legacy notebook gallery, MatrixRepr's
-legacy symbolic base, and installed-wheel integration tests.
+executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
+only public facade names, expressions, and presentations. Installed-wheel
+integration gates pass. W7.4 remains open only for the legacy notebook gallery.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.
@@ -83,6 +84,7 @@ phases make the final shadow cutover safe.
 - [ADR-076: Immutable presentation configuration](../adrs/076-immutable-presentation-configuration.md)
 - [ADR-077: Optional expression provenance](../adrs/077-optional-expression-provenance.md)
 - [ADR-078: Shared semantic rendering pipeline](../adrs/078-shared-semantic-rendering-pipeline.md)
+- [ADR-082: Matrix provenance is package-owned](../adrs/082-matrix-provenance-is-package-owned.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

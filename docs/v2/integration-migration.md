@@ -8,8 +8,8 @@ semantics. Marimo owns t-string-to-markdown layout but not mathematical
 rendering. Small executable examples show when to import the numeric core and
 when to use the full facade.
 
-W7.4 remains open while the older notebook gallery and `MatrixRepr` symbolic
-base still use Galaga 1 vocabulary.
+W7.4 remains open only for the older notebook gallery. `MatrixRepr` now owns a
+v2-native immutable expression boundary and consumes public Galaga provenance.
 
 ## Mermaid expression consumer
 
@@ -74,8 +74,19 @@ codemodded and reviewed, or explicitly retired, before W7.4 closes.
 1. Build a conservative notebook codemod for immutable `.named()`, `expr=True`,
    and eager-value display vocabulary, with negative-space tests for Marimo and
    matrix objects that retain their own `.name()` methods.
-2. Replace `MatrixRepr`'s dependency on `galaga.symbolic_core` with a
-   matrix-owned expression protocol or the shared format-neutral render tree.
+
+## Matrix provenance consumer
+
+`galaga_matrix` owns matrix-domain expression nodes rather than extending the
+geometric-algebra operation catalog. Frozen nodes capture matrix arithmetic,
+linear-algebra transforms, representation maps, and spinor columns. A public
+adapter accepts `galaga.expression.Expr`, `Name`, and `PresentationConfig`
+objects; conversion code does not inspect private multivector fields.
+
+Matrix leaves snapshot read-only NumPy arrays, expression evaluation reproduces
+the eager result, and source architecture tests prohibit both
+`galaga.symbolic_core` and private facade state. See
+[ADR-082](../adrs/082-matrix-provenance-is-package-owned.md).
 
 ## Installed-wheel gate
 

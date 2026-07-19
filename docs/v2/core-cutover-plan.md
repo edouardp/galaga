@@ -173,10 +173,10 @@ The replacement suite must visibly distinguish:
 | 1 | Replacement contract is exhaustive | Complete | Every legacy public behavior is classified |
 | 2 | Numeric facade is complete | Complete | Facade results match direct core results |
 | 3 | Legacy numeric suite runs on facade | Complete | All applicable numeric tests pass the facade |
-| 4 | Presentation and presets are independent | Next | Configuration and scope isolation tests pass |
-| 5 | Expression provenance is rebuilt | Planned | Evaluation round trips and numeric-only isolation pass |
-| 6 | Rendering and notation are rebuilt | Planned | Semantic and golden rendering tests pass |
-| 7 | Companion packages and shims migrate | Planned | Integration and deprecation suites pass |
+| 4 | Presentation and presets are independent | Complete | Configuration and scope isolation tests pass |
+| 5 | Expression provenance is rebuilt | Complete | Evaluation round trips and numeric-only isolation pass |
+| 6 | Rendering and notation are rebuilt | Complete | Semantic and golden rendering tests pass |
+| 7 | Companion packages and shims migrate | In progress | Integration and deprecation suites pass |
 | 8 | Top-level API shadows the facade | Planned | Full suite reaches no legacy numeric path |
 | 9 | Legacy engine is removed | Planned | Clean wheel and release gates pass |
 
@@ -1109,17 +1109,25 @@ Completed so far:
 - locally built adapter wheels install beside the Galaga 2 wheel in isolated
   Python 3.11 and 3.14 environments and pass import/protocol smoke checks
   without repository `PYTHONPATH`;
-- the combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,153 tests
+- `MatrixRepr` now records matrix-domain operations in frozen,
+  `galaga_matrix`-owned expression nodes, adapts public Galaga expressions with
+  an explicit presentation, snapshots leaf matrices as read-only arrays, and
+  reads no private multivector name or expression state;
+- all 392 `galaga_matrix` tests pass under Python 3.11, including expression
+  immutability, evaluation, public facade conversion, and source-architecture
+  gates; and
+- the combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,169 tests
   with 19 skips, while all 93 Marimo tests pass under Python 3.14.
 
 Remaining before W7.4 is complete:
 
 - migrate or explicitly retire the older Marimo notebook gallery that still
-  demonstrates Galaga 1 mutation and evaluation vocabulary;
-- move `MatrixRepr`'s own symbolic operations off `galaga.symbolic_core`.
+  demonstrates Galaga 1 mutation and evaluation vocabulary.
 
 See [Integration migration](integration-migration.md) and
-[ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
+[ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md). The
+matrix provenance boundary is recorded separately in
+[ADR-082](../adrs/082-matrix-provenance-is-package-owned.md).
 
 Phase 7 exit gate:
 

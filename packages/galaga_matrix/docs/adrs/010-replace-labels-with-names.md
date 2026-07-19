@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-010: Replace MatrixRepr Labels with Symbolic Names
 
+> Galaga 2 retains this public behavior but refines the implementation
+> ownership in repository [ADR-082](../../../../docs/adrs/082-matrix-provenance-is-package-owned.md):
+> matrix expressions are package-owned and no longer reuse
+> `galaga.symbolic_core`.
+
 ## Context and Problem Statement
 
 `MatrixRepr.label` was introduced as a lightweight way to make matrices more

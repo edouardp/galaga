@@ -128,7 +128,8 @@ def test_named_facade_value_roundtrips_without_legacy_expression_internals() -> 
     matrix = to_matrix(value, mode="left-regular")
     recovered = from_matrix(matrix)
 
-    assert matrix._name_latex == r"\rho(v)"
+    assert matrix.symbolic_name is not None
+    assert matrix.symbolic_name.latex == r"\rho(v)"
     assert recovered.name is not None
     assert recovered.name.latex == r"\rho^{-1}(\rho(v))"
     np.testing.assert_array_equal(recovered.data, value.data)
@@ -141,3 +142,7 @@ def test_matrix_implementation_does_not_read_legacy_multiplication_tables() -> N
     assert "_mul_sign" not in source
     assert "from galaga import Algebra" not in source
     assert "from galaga.algebra import Multivector" not in source
+    assert 'getattr(mv, "_expr"' not in source
+    assert 'getattr(mv, "_is_symbolic"' not in source
+    assert 'getattr(mv, "_to_expr"' not in source
+    assert 'getattr(mv, "_name' not in source

@@ -61,9 +61,11 @@ the left-regular representation for degenerate, nonorthogonal, and scaled
 metrics. Compact mode retains normalized diagonal behavior and clearly rejects
 general Gram matrices until a validated basis transform exists.
 
-The remaining matrix work is expression/rendering integration: `MatrixRepr`
-still uses the Galaga 1 symbolic tree internally. Numeric representation is no
-longer a companion-package blocker.
+`MatrixRepr` also now owns frozen matrix-domain expression nodes and immutable
+leaf snapshots. Public Galaga names and expressions enter through an explicit
+adapter carrying the active presentation; conversion reads no private
+multivector symbolic state. Numeric representation and matrix provenance are no
+longer companion-package blockers.
 
 ### 3. Galaga outer-layer cutover
 
