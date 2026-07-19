@@ -19,8 +19,8 @@ Usage::
             d.md(t"**{name}:** {e} = {e.eval()}")
 """
 
-from galaga_marimo.api import Doc, block, block_latex, doc, inline, latex, md, text
-from galaga_marimo.renderer import render_template
+from .api import Doc, block, block_latex, doc, inline, latex, md, text
+from .renderer import render_template
 
 __all__ = [
     "md",

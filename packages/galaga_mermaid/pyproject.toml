@@ -1,6 +1,6 @@
 [project]
 name = "galaga-mermaid"
-version = "0.1.0"
+version = "0.2.0"
 description = "Mermaid diagram generation for galaga expression trees"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
-    "galaga>=1.2.0",
+    "galaga>=2.0.0",
 ]
 
 [project.urls]

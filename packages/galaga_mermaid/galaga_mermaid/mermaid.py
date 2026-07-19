@@ -1,189 +1,173 @@
-"""Generate Mermaid graph diagrams from lazy Multivector expression trees.
-
-Walks the Expr tree and produces a Mermaid flowchart string showing every
-node's rendered unicode expression and its evaluated numeric value.
-"""
+"""Generate Mermaid diagrams from Galaga 2 expression provenance."""
 
 from __future__ import annotations
 
-from galaga.expr import (
-    Complement,
-    Conjugate,
-    Dual,
+from collections.abc import Mapping
+from typing import Any, cast
+
+from galaga.display import render
+from galaga.expression import (
+    BladeLiteral,
+    Call,
     Expr,
-    Inverse,
-    Involute,
-    Reverse,
-    Scalar,
-    Sym,
-    Uncomplement,
-    Undual,
+    MultivectorLiteral,
+    ScalarLiteral,
+    Symbol,
+    evaluate,
 )
-from galaga.render import render
+from galaga.names import Name
+from galaga.presentation import PresentationConfig
 
-# Unary postfix ops that decorate a single operand (R̃, B*, etc.)
-_POSTFIX_OPS = (Reverse, Involute, Conjugate, Dual, Undual, Complement, Uncomplement, Inverse)
-
-
-def _escape(s: str) -> str:
-    return s.replace('"', "#quot;")
+_DIRECTIONS = {"BT", "LR", "RL", "TD"}
+_LEAF_TYPES = (Symbol, ScalarLiteral, BladeLiteral, MultivectorLiteral)
 
 
-def _value_str(node: Expr) -> str:
+def _escape(value: str) -> str:
+    return value.replace('"', "#quot;")
+
+
+def _expression_label(expression: Expr, presentation: PresentationConfig) -> str:
+    return render(expression, target="unicode", presentation=presentation)
+
+
+def _value_label(
+    expression: Expr,
+    *,
+    algebra: Any | None,
+    environment: Mapping[Name | str, Any],
+) -> str | None:
+    if algebra is None:
+        return None
     try:
-        mv = node.eval()
-        return str(mv.eval())
-    except Exception:
-        return "?"
+        value = evaluate(expression, algebra=algebra, environment=environment)
+        return render(value, content="value", target="unicode")
+    except (KeyError, TypeError, ValueError):
+        return None
 
 
-def _inner_tree(node: Sym) -> Expr | None:
-    """Get the inner expression tree of a named Sym, if any."""
-    if node._inner_expr is not None:
-        return node._inner_expr
-    if node._mv._expr is not None:
-        inner = node._mv._expr
-        if isinstance(inner, Sym) and inner._name == node._name:
-            return None
-        return inner
-    return None
-
-
-def _is_named_sym(node: Expr) -> bool:
-    return isinstance(node, Sym) and _inner_tree(node) is not None
-
-
-def _collect_significant_children(node: Expr) -> list[Expr]:
-    """Walk an expression tree, collecting the nearest Sym/Scalar descendants."""
+def _significant_descendants(expression: Expr) -> tuple[Expr, ...]:
+    if isinstance(expression, _LEAF_TYPES):
+        return (expression,)
+    if not isinstance(expression, Call):
+        return ()
     result: list[Expr] = []
-
-    def walk(n: Expr):
-        if isinstance(n, Scalar):
-            return  # skip bare numeric constants
-        if isinstance(n, Sym):
-            result.append(n)
-            return
-        # Postfix op on a Sym is significant (e.g. Reverse(R) → R̃)
-        if isinstance(n, _POSTFIX_OPS) and isinstance(n.x, Sym):
-            result.append(n)
-            return
-        if hasattr(n, "a") and hasattr(n, "b"):
-            walk(n.a)
-            walk(n.b)
-        elif hasattr(n, "x"):
-            walk(n.x)
-
-    if isinstance(node, Sym):
-        inner = _inner_tree(node)
-        if inner is not None:
-            walk(inner) if not isinstance(inner, Sym) else result.append(inner)
-    elif hasattr(node, "a") and hasattr(node, "b"):
-        walk(node.a)
-        walk(node.b)
-    elif hasattr(node, "x"):
-        walk(node.x)
-    return result
+    for operand in expression.operands:
+        result.extend(_significant_descendants(operand))
+    return tuple(result)
 
 
-def expr_to_mermaid(expr: Expr, *, direction: str = "TD", show_values: bool = True, compact: bool = False) -> str:
-    """Convert an Expr tree to a Mermaid flowchart string.
+def expr_to_mermaid(
+    expression: Expr,
+    *,
+    presentation: PresentationConfig,
+    direction: str = "TD",
+    show_values: bool = True,
+    compact: bool = False,
+    algebra: Any | None = None,
+    environment: Mapping[Name | str, Any] | None = None,
+) -> str:
+    """Convert public Galaga 2 expression provenance to a Mermaid flowchart.
 
-    Args:
-        expr: Root expression node.
-        direction: Mermaid graph direction (TD, LR, BT, RL).
-        show_values: If True, include evaluated values on each node.
-        compact: If True, collapse intermediate unnamed nodes so only
-                 named variables and leaf basis blades appear.
+    ``Expr`` intentionally carries no algebra or concrete symbol values.
+    Rendering therefore requires a presentation. Optional numeric annotations
+    require both an algebra and values for every referenced symbol.
     """
+    if not isinstance(expression, Expr):
+        raise TypeError("expression must be a galaga.expression.Expr")
+    if not isinstance(presentation, PresentationConfig):
+        raise TypeError("presentation must be a PresentationConfig")
+    if direction not in _DIRECTIONS:
+        raise ValueError("direction must be 'TD', 'LR', 'BT', or 'RL'")
+
+    selected_environment = {} if environment is None else environment
     lines: list[str] = [f"graph {direction}"]
-    counter = [0]
     node_ids: dict[int, str] = {}
     edges: set[tuple[str, str]] = set()
-    named_ids: list[str] = []
+    symbol_ids: list[str] = []
     blade_ids: list[str] = []
     scalar_ids: list[str] = []
 
     def make_label(node: Expr) -> str:
-        label = _escape(render(node))
+        label = _escape(_expression_label(node, presentation))
         if show_values:
-            val = _escape(_value_str(node))
-            if _is_named_sym(node):
-                inner = _inner_tree(node)
-                inner_str = _escape(render(inner))
-                label = f"{node._name} = {inner_str}"
-                if inner_str == val:
-                    return label
-            if label != val:
-                label = f"{label}<br>{val}"
+            value = _value_label(node, algebra=algebra, environment=selected_environment)
+            if value is not None:
+                escaped_value = _escape(value)
+                if label != escaped_value:
+                    label = f"{label}<br>{escaped_value}"
         return label
 
-    def classify(node: Expr, node_id: str):
-        if isinstance(node, Sym) and node._name is not None:
-            if _is_named_sym(node):
-                named_ids.append(node_id)
-            elif node._grade == 0:
-                scalar_ids.append(node_id)
-            else:
-                blade_ids.append(node_id)
-
     def make_node(node: Expr) -> str:
-        # Only dedupe user-named compound Syms (R, B, v), not leaf basis blades
-        if isinstance(node, Sym) and _is_named_sym(node):
-            nid = id(node._mv)
-        else:
-            nid = id(node)
-        if nid in node_ids:
-            return node_ids[nid]
-        counter[0] += 1
-        node_id = f"n{counter[0]}"
-        node_ids[nid] = node_id
+        identity = id(node)
+        if identity in node_ids:
+            return node_ids[identity]
+        node_id = f"n{len(node_ids) + 1}"
+        node_ids[identity] = node_id
         lines.append(f'    {node_id}["{make_label(node)}"]')
-        classify(node, node_id)
+        if isinstance(node, Symbol):
+            symbol_ids.append(node_id)
+        elif isinstance(node, BladeLiteral):
+            blade_ids.append(node_id)
+        elif isinstance(node, (ScalarLiteral, MultivectorLiteral)):
+            scalar_ids.append(node_id)
         return node_id
 
-    def add_edge(from_id: str, to_id: str):
-        if (from_id, to_id) not in edges:
-            edges.add((from_id, to_id))
-            lines.append(f"    {to_id} --> {from_id}")
+    def add_edge(parent: str, child: str) -> None:
+        edge = (parent, child)
+        if edge not in edges:
+            edges.add(edge)
+            lines.append(f"    {child} --> {parent}")
 
-    if compact:
+    def visit(node: Expr) -> str:
+        node_id = make_node(node)
+        if isinstance(node, Call):
+            children = _significant_descendants(node) if compact else node.operands
+            for child in children:
+                add_edge(node_id, visit(child))
+        return node_id
 
-        def visit_compact(node: Expr) -> str:
-            node_id = make_node(node)
-            for child in _collect_significant_children(node):
-                child_id = visit_compact(child)
-                add_edge(node_id, child_id)
-            return node_id
+    visit(expression)
 
-        visit_compact(expr)
-    else:
-
-        def visit(node: Expr) -> str:
-            node_id = make_node(node)
-            if isinstance(node, Sym):
-                inner = _inner_tree(node)
-                if inner is not None:
-                    add_edge(node_id, visit(inner))
-            elif isinstance(node, Scalar):
-                pass
-            elif hasattr(node, "a") and hasattr(node, "b"):
-                add_edge(node_id, visit(node.a))
-                add_edge(node_id, visit(node.b))
-            elif hasattr(node, "x"):
-                add_edge(node_id, visit(node.x))
-            return node_id
-
-        visit(expr)
-
-    for nid in named_ids:
-        lines.append(f"    style {nid} fill:#e0f0ff,stroke:#4a90d9")
-    for nid in blade_ids:
-        lines.append(f"    style {nid} fill:#f0ffe0,stroke:#6a9a30")
-    for nid in scalar_ids:
-        lines.append(f"    style {nid} fill:#fff0e0,stroke:#d9a04a")
+    for node_id in symbol_ids:
+        lines.append(f"    style {node_id} fill:#e0f0ff,stroke:#4a90d9")
+    for node_id in blade_ids:
+        lines.append(f"    style {node_id} fill:#f0ffe0,stroke:#6a9a30")
+    for node_id in scalar_ids:
+        lines.append(f"    style {node_id} fill:#fff0e0,stroke:#d9a04a")
     return "\n".join(lines)
 
 
-def mv_to_mermaid(mv, **kwargs) -> str:
-    """Generate a Mermaid diagram from a lazy Multivector."""
-    return expr_to_mermaid(mv._to_expr(), **kwargs)
+def mv_to_mermaid(
+    value: Any,
+    *,
+    presentation: PresentationConfig | None = None,
+    direction: str = "TD",
+    show_values: bool = True,
+    compact: bool = False,
+    environment: Mapping[Name | str, Any] | None = None,
+) -> str:
+    """Generate a Mermaid diagram from a core-backed facade multivector."""
+    algebra = getattr(value, "algebra", None)
+    resolve = getattr(algebra, "resolve_presentation", None)
+    with_expr = getattr(value, "with_expr", None)
+    if resolve is None or not callable(resolve) or with_expr is None or not callable(with_expr):
+        raise TypeError("value must be a core-backed galaga.facade.Multivector")
+    expression = getattr(value, "expr", None)
+    if expression is None:
+        expression = cast(Any, with_expr()).expr
+    if not isinstance(expression, Expr):  # pragma: no cover - defensive protocol boundary
+        raise TypeError("value has no public expression provenance")
+    selected_presentation = cast(PresentationConfig, resolve(presentation))
+    selected_environment: dict[Name | str, Any] = dict(environment or {})
+    name = getattr(value, "name", None)
+    if isinstance(expression, Symbol) and isinstance(name, Name):
+        selected_environment.setdefault(name, value)
+    return expr_to_mermaid(
+        expression,
+        presentation=selected_presentation,
+        direction=direction,
+        show_values=show_values,
+        compact=compact,
+        algebra=algebra,
+        environment=selected_environment,
+    )

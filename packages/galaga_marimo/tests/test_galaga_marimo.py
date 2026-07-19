@@ -8,6 +8,7 @@ with synthetic Template/Interpolation objects.
 import sys
 import types
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -417,17 +418,18 @@ class TestRenderTemplate:
 class TestRgaIntegration:
     def test_symbolic_rga_multivectors_render_their_generated_latex(self):
         """Exercise the same ``{mv}`` path used by the RGA notebook."""
-        from galaga import (
+        from galaga.facade import (
             Algebra,
-            Notation,
+            DisplayPolicy,
             antidot_product,
             antireverse,
             antiwedge,
-            b_rga,
             bulk_part,
             complement,
             geometric_antiproduct,
-            gp,
+            geometric_product,
+            p_rga,
+            rga_blade_convention,
             right_hodge_dual,
             right_weight_dual,
             transwedge,
@@ -435,24 +437,23 @@ class TestRgaIntegration:
         )
 
         algebra = Algebra(
-            (1, 1, 1, 0),
-            blades=b_rga(),
-            notation=Notation.lengyel(),
-            display_repr=True,
+            config=p_rga(),
+            display=DisplayPolicy(content="expr", target="latex"),
         )
-        e1, e2, e3, e4 = algebra.basis_vectors(symbolic=True)
+        assert algebra.presentation.blades == rga_blade_convention()
+        e1, e2, e3, e4 = algebra.basis_vectors(expr=True)
         a = e1 + 2 * e4
         b = e2 + e3
         expressions = (
             (algebra.I, r"\text{𝟙}"),
-            (gp(a, b), r"\mathbin{\text{⟑}}"),
+            (geometric_product(a, b), r"\mathbin{\text{⟑}}"),
             (geometric_antiproduct(a, b), r"\mathbin{\text{⟇}}"),
-            (antidot_product(a, b), r"\mathbin{\circ}"),
+            (antidot_product(a, b), r"\circ"),
             (bulk_part(a), r"_{\text{●}}"),
             (weight_part(a), r"_{\text{○}}"),
             (right_hodge_dual(a), r"^{\text{★}}"),
             (right_weight_dual(a), r"^{\text{☆}}"),
-            (transwedge(a, b, 1), r"\underset{1}{\text{⩓}}"),
+            (transwedge(a, b, 1), r"{\text{⩓}}_{1}"),
             (antireverse(antiwedge(complement(e1), complement(e2))), r"\utilde{"),
         )
 
@@ -689,7 +690,7 @@ class TestGAIntegration:
     @pytest.fixture
     def vga(self):
         try:
-            from galaga import Algebra
+            from galaga.facade import Algebra
 
             return Algebra((1, 1, 1))
         except ImportError:
@@ -754,20 +755,33 @@ class TestGAIntegration:
         assert "$" in result
         assert "has components" in result
 
+    def test_facade_content_format_selects_expression_or_value(self, vga):
+        e1, _, _ = vga.basis_vectors(expr=True)
+        value = (e1 + e1).named("v", latex=r"\vec{v}")
+
+        expression = render_value(value, None, "expr")
+        concrete = render_value(value, None, "value")
+
+        assert expression.kind is RenderKind.INLINE_LATEX
+        assert concrete.kind is RenderKind.INLINE_LATEX
+        assert r"\vec{v}" not in expression.value
+        assert r"\vec{v}" not in concrete.value
+        assert expression.value != concrete.value
+
 
 class TestRecognize:
     """Tests for the recognize= parameter that annotates known MVs."""
 
     @pytest.fixture
     def alg(self):
-        from galaga import Algebra
+        from galaga.facade import Algebra
 
         return Algebra(2)
 
     def test_recognize_matches_known(self, alg):
         """When a value matches a known MV, annotation is appended."""
         e1, e2 = alg.basis_vectors()
-        u = alg.scalar(1.0).name(r"\uparrow")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv))
@@ -777,7 +791,7 @@ class TestRecognize:
     def test_recognize_no_match(self, alg):
         """When no match, no annotation."""
         e1, e2 = alg.basis_vectors()
-        u = alg.scalar(1.0).name(r"\uparrow")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         t = FakeTemplate(FakeInterpolation(e1))
         rendered = render_template(t, recognize=knowns)
@@ -785,7 +799,7 @@ class TestRecognize:
 
     def test_recognize_skips_self_match(self, alg):
         """Don't annotate if the MV's own name matches the label."""
-        u = alg.scalar(1.0).name(r"\uparrow")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         t = FakeTemplate(FakeInterpolation(u))
         rendered = render_template(t, recognize=knowns)
@@ -807,7 +821,7 @@ class TestRecognize:
 
     def test_recognize_block_mode(self, alg):
         """Recognition works in block mode too."""
-        u = alg.scalar(1.0).name(r"\uparrow")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv, format_spec="block"))
@@ -817,7 +831,7 @@ class TestRecognize:
 
     def test_recognize_dict_values_used(self, alg):
         """Dict values are iterated (keys ignored)."""
-        u = alg.scalar(1.0).name(r"\uparrow")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = {"up": u}  # key is irrelevant, label comes from MV
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv))
@@ -835,11 +849,19 @@ class TestRecognize:
 
     def test_recognize_multiple_matches(self, alg):
         """All matching knowns are shown."""
-        u = alg.scalar(1.0).name(r"\uparrow")
-        ket0 = alg.scalar(1.0).name(r"|0\rangle")
+        u = alg.scalar(1.0).named("up", latex=r"\uparrow")
+        ket0 = alg.scalar(1.0).named("ket0", latex=r"|0\rangle")
         knowns = [u, ket0]
         result_mv = alg.scalar(1.0)
         t = FakeTemplate(FakeInterpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\uparrow" in rendered
         assert r"|0\rangle" in rendered
+
+
+def test_renderer_reads_public_immutable_names_not_multivector_private_state():
+    source = (Path(__file__).parents[1] / "galaga_marimo/renderer.py").read_text()
+
+    assert 'getattr(value, "_name' not in source
+    assert 'getattr(known, "_name' not in source
+    assert "from galaga.names import Name" in source

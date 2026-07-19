@@ -8,7 +8,7 @@ from __future__ import annotations
 from string.templatelib import Template
 from typing import Any
 
-from galaga_marimo.renderer import _get_latex, _has_latex, render_template
+from .renderer import _get_latex, _has_latex, render_template
 
 
 def md(template: Template, *, recognize: dict | list | tuple | None = None) -> Any:

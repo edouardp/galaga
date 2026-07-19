@@ -241,4 +241,5 @@ def test_accidental_private_dependencies_are_removed_as_phase_7_advances() -> No
     assert "_mul_sign" not in matrix_source
     assert "from galaga.facade import Algebra, Multivector" in matrix_source
     assert "left_action" in matrix_source
-    assert "mv._to_expr()" in mermaid_source
+    assert "_to_expr" not in mermaid_source
+    assert "from galaga.expression import" in mermaid_source

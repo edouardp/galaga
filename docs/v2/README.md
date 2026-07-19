@@ -31,6 +31,9 @@
 - [Matrix migration](matrix-migration.md) explains how left-regular
   representations now consume public facade linear actions and general Gram
   metadata.
+- [Integration migration](integration-migration.md) records the public
+  expression, display, and naming boundaries used by Mermaid, Marimo, and the
+  maintained v2 examples.
 - [Migration engineering techniques](migration-engineering-techniques.md)
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
@@ -64,8 +67,10 @@ concise aliases are exact canonical objects, temporary v1 spellings and the
 products remain absent, and redundant generic geometry helpers are classified
 for removal. `galaga_matrix` now uses public core-backed linear actions,
 basis-independent inertia, and general-Gram-safe mode selection without private
-multiplication tables. The next work unit migrates examples and the optional
-Marimo and Mermaid integrations.
+multiplication tables. Mermaid and Marimo now consume public expression,
+display, and naming protocols, and the first maintained v2 examples are
+executable. W7.4 remains open for the legacy notebook gallery, MatrixRepr's
+legacy symbolic base, and installed-wheel integration tests.
 Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
 legacy engine until the presentation, expression, rendering, and integration
 phases make the final shadow cutover safe.

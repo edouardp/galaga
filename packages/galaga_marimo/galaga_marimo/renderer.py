@@ -11,6 +11,8 @@ from enum import Enum
 from string.templatelib import Interpolation, Template
 from typing import Any
 
+from galaga.names import Name
+
 
 class RenderKind(Enum):
     TEXT = "text"
@@ -32,6 +34,7 @@ _SPEC_MAP = {
     "text": RenderKind.TEXT,
     "unicode": RenderKind.TEXT,
 }
+_GALAGA_CONTENT_SPECS = {"expr", "full", "name", "value"}
 
 
 def _has_latex(obj: Any) -> bool:
@@ -59,6 +62,14 @@ def _get_latex(obj: Any) -> str:
     return _strip_latex_delimiters(obj._repr_latex_())
 
 
+def _public_latex_name(value: Any) -> str | None:
+    """Return an immutable Galaga 2 name without reading private value state."""
+    name = getattr(value, "name", None)
+    if not isinstance(name, Name):
+        return None
+    return name.latex
+
+
 def render_value(value: Any, conversion: str | None, format_spec: str) -> Rendered:
     """Render a single interpolated value.
 
@@ -82,6 +93,13 @@ def render_value(value: Any, conversion: str | None, format_spec: str) -> Render
         if kind in (RenderKind.INLINE_LATEX, RenderKind.BLOCK_LATEX) and _has_latex(value):
             return Rendered(kind, _get_latex(value))
         return Rendered(RenderKind.TEXT, str(value))
+
+    # Facade content selection stays independent of markdown layout. The
+    # facade owns expression/value/name policy; galaga_marimo only requests
+    # LaTeX and decides whether it is inline or block markdown.
+    display = getattr(value, "display", None)
+    if format_spec in _GALAGA_CONTENT_SPECS and callable(display):
+        return Rendered(RenderKind.INLINE_LATEX, str(display(content=format_spec, target="latex")))
 
     # Numeric format specs (e.g. :.3f) → latex with formatted coefficients if possible
     if format_spec:
@@ -117,7 +135,7 @@ def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> list[str]:
     data = getattr(value, "data", None)
     if not isinstance(data, np.ndarray):
         return []
-    name = getattr(value, "_name_latex", None) or getattr(value, "_name", None)
+    name = _public_latex_name(value)
     knowns = recognize.values() if isinstance(recognize, dict) else recognize
     matches = []
     for known in knowns:
@@ -126,7 +144,7 @@ def _recognize_value(value: Any, recognize, tol: float = 1e-10) -> list[str]:
             continue
         if data.shape != known_data.shape:
             continue
-        label = getattr(known, "_name_latex", None) or getattr(known, "_name", None)
+        label = _public_latex_name(known)
         if not label:
             continue
         if np.allclose(data, known_data, atol=tol):

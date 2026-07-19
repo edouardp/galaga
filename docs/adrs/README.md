@@ -93,6 +93,7 @@ helps future contributors understand why certain choices were made.
 | [078](078-shared-semantic-rendering-pipeline.md) | Shared Semantic Rendering Pipeline | Accepted |
 | [079](079-curated-compatibility-without-redundant-helpers.md) | Curated Compatibility without Redundant Generic Helpers | Accepted |
 | [080](080-matrix-representations-use-public-linear-actions.md) | Matrix Representations Use Public Linear Actions | Accepted |
+| [081](081-optional-integrations-consume-public-protocols.md) | Optional Integrations Consume Public Protocols | Accepted |
 
 ## Creating New ADRs
 

@@ -1074,6 +1074,8 @@ Completion evidence:
 
 ### W7.4 Migrate examples and optional integrations
 
+Status: **in progress (2026-07-19)**.
+
 Deliverables:
 
 - update documented examples to the core-backed public API;
@@ -1089,6 +1091,35 @@ Required tests:
 - optional integrations fail gracefully when their dependencies are absent;
   and
 - installed-wheel imports, rather than source-tree accidents, are exercised.
+
+Completed so far:
+
+- `galaga_mermaid` 0.2 traverses only public immutable expression nodes,
+  requires an explicit presentation for standalone provenance, and makes
+  numeric node annotations explicitly algebra/environment-driven;
+- `galaga_marimo` 2.0 continues to require Python 3.14 without raising the
+  base package requirement, renders through public `.latex()`/`.display()`
+  hooks, and recognizes values through immutable public names;
+- Marimo content format specifications select `name`, `expr`, `value`, or
+  `full` independently of inline/block markdown layout;
+- four maintained Python 3.11 examples execute direct-core, facade,
+  context-local presentation, and native general-Gram workflows; and
+- architecture tests prohibit the retired Mermaid expression hierarchy and
+  private multivector name/expression access; and
+- locally built adapter wheels install beside the Galaga 2 wheel in isolated
+  Python 3.11 and 3.14 environments and pass import/protocol smoke checks
+  without repository `PYTHONPATH`;
+- the combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,153 tests
+  with 19 skips, while all 93 Marimo tests pass under Python 3.14.
+
+Remaining before W7.4 is complete:
+
+- migrate or explicitly retire the older Marimo notebook gallery that still
+  demonstrates Galaga 1 mutation and evaluation vocabulary;
+- move `MatrixRepr`'s own symbolic operations off `galaga.symbolic_core`.
+
+See [Integration migration](integration-migration.md) and
+[ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 Phase 7 exit gate:
 

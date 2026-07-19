@@ -566,9 +566,15 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
 
 
 COMPANION_TOUCHPOINTS = {
-    "galaga_matrix": SurfaceDisposition("integration", "migrate", "facade/core public linear actions", "phase-7"),
-    "galaga_marimo": SurfaceDisposition("integration", "migrate", "galaga facade display protocol", "phase-7"),
-    "galaga_mermaid": SurfaceDisposition("integration", "migrate", "galaga facade expression protocol", "phase-7"),
+    "galaga_matrix": SurfaceDisposition(
+        "integration", "numeric-migrated", "facade/core public linear actions", "phase-7-in-progress"
+    ),
+    "galaga_marimo": SurfaceDisposition(
+        "integration", "migrated", "galaga facade display protocol", "phase-7-complete"
+    ),
+    "galaga_mermaid": SurfaceDisposition(
+        "integration", "migrated", "galaga facade expression protocol", "phase-7-complete"
+    ),
     "examples": SurfaceDisposition("integration", "migrate", "top-level Galaga 2 API", "phase-7"),
 }
 
@@ -588,9 +594,9 @@ ACCIDENTAL_PRIVATE_DEPENDENCIES = {
     ),
     "galaga_mermaid:Expr internals/Multivector._to_expr": SurfaceDisposition(
         "rendering",
-        "replace-private-expression-access",
+        "replaced-private-expression-access",
         "public expression traversal protocol",
-        "phase-7",
+        "phase-7-complete",
     ),
     "examples:Multivector._is_lazy/_name": SurfaceDisposition(
         "expression",
