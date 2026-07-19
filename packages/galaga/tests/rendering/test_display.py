@@ -31,7 +31,7 @@ def documented_value():
         ("name", "latex", "z"),
         ("expr", "latex", "x + y"),
         ("value", "latex", r"e_{1} + e_{2}"),
-        ("full", "latex", r"z = x + y = e_{1} + e_{2}"),
+        ("full", "latex", r"z \quad = \quad x + y \quad = \quad e_{1} + e_{2}"),
     ),
 )
 def test_content_and_target_are_independent_axes(
@@ -54,7 +54,54 @@ def test_automatic_content_uses_names_for_teaching_equalities_but_not_provenance
     assert str(anonymous) == "e₁"
     assert str(named) == "x = e₁"
     assert str(tracked) == "e₁"
-    assert str(named_and_tracked) == "x = x = e₁"
+    assert str(named_and_tracked) == "x = e₁"
+
+
+def test_full_display_deduplicates_rendered_parts_without_changing_explicit_parts() -> None:
+    algebra = Algebra((1, 1, 1))
+    e1, e2, _ = algebra.basis_vectors(expr=True)
+    value = (2 * e1 + e2).named("u")
+
+    rendered_sum = r"2 e_{1} + e_{2}"
+    assert value.latex(content="expr") == rendered_sum
+    assert value.latex(content="value") == rendered_sum
+    assert value.latex() == rf"u \quad = \quad {rendered_sum}"
+
+
+def test_default_display_policy_elides_noise_and_uses_six_significant_digits() -> None:
+    algebra = Algebra(1)
+    value = algebra.multivector((1.23456789, 1.4524e-16))
+
+    assert value.display("value/ascii") == "1.23457"
+    assert value.data[0] == 1.23456789
+    assert value.data[1] == 1.4524e-16
+
+
+def test_display_policy_can_reveal_noise_and_override_coefficient_precision() -> None:
+    algebra = Algebra(
+        1,
+        display=DisplayPolicy(
+            zero_tolerance=0,
+            coefficient_precision=10,
+        ),
+    )
+    value = algebra.multivector((1.23456789, 1.4524e-16))
+
+    assert value.display("value/ascii") == "1.23456789 + 1.4524e-16e1"
+    assert value.display("value/latex") == (r"1.23456789 + 1.4524 \times 10^{-16} e_{1}")
+
+
+def test_coefficient_precision_applies_consistently_to_expression_and_value() -> None:
+    algebra = Algebra(
+        1,
+        display=DisplayPolicy(content="full", coefficient_precision=3),
+    )
+    (e1,) = algebra.basis_vectors(expr=True)
+    value = (1.23456789 * e1).named("v")
+
+    assert value.latex(content="expr") == r"1.23 e_{1}"
+    assert value.latex(content="value") == r"1.23 e_{1}"
+    assert value.latex() == r"v \quad = \quad 1.23 e_{1}"
 
 
 def test_explicit_content_has_a_sensible_value_fallback_when_metadata_is_absent() -> None:

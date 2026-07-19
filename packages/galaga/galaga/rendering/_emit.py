@@ -15,6 +15,7 @@ from .tree import (
     Identifier,
     Infix,
     Literal,
+    MathClass,
     Node,
     Postfix,
     Power,
@@ -23,11 +24,13 @@ from .tree import (
     Subscript,
     Sum,
     Text,
+    Underset,
     Wrapper,
 )
 
 _SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 _SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
+_POSITIONAL_MARKERS = frozenset("★☆●○")
 _LATEX_ESCAPE = str.maketrans(
     {
         "&": r"\&",
@@ -57,7 +60,7 @@ def _emit(node: Node, target: str) -> str:
     if isinstance(node, Identifier):
         return node.name.for_target(target)
     if isinstance(node, Literal):
-        return _number(node.value, target)
+        return _number(node.value, target, node.precision)
     if isinstance(node, Text):
         return _escape_text(node.value, target)
     if isinstance(node, Group):
@@ -83,33 +86,51 @@ def _emit(node: Node, target: str) -> str:
         denominator = _emit(node.denominator, target)
         if target == "latex":
             return rf"\frac{{{numerator}}}{{{denominator}}}"
+        if node.numerator.precedence < node.precedence:
+            numerator = f"({numerator})"
+        if node.denominator.precedence <= node.precedence:
+            denominator = f"({denominator})"
         return f"{numerator} / {denominator}"
     if isinstance(node, Power):
         base = _emit(node.base, target)
         exponent = _emit(node.exponent, target)
         if target == "latex":
-            return rf"{{{base}}}^{{{exponent}}}"
+            if isinstance(node.base, Power):
+                base = "{" + base + "}"
+            if re.fullmatch(r"[A-Za-z0-9*]", exponent):
+                return f"{base}^{exponent}"
+            return rf"{base}^{{{exponent}}}"
         if target == "unicode":
             compact = _unicode_script(exponent, superscript=True)
-            return f"{base}{compact}" if compact is not None else f"{base}^({exponent})"
+            if compact is not None:
+                return f"{base}{compact}"
+            if exponent in _POSITIONAL_MARKERS:
+                return f"{base}^{exponent}"
+            return f"{base}^({exponent})"
         return f"{base}^{exponent}"
     if isinstance(node, Subscript):
         base = _emit(node.base, target)
         subscript = _emit(node.subscript, target)
         if target == "latex":
-            return rf"{{{base}}}_{{{subscript}}}"
+            return rf"{base}_{{{subscript}}}"
         if target == "unicode":
             compact = _unicode_script(subscript, superscript=False)
-            return f"{base}{compact}" if compact is not None else f"{base}_[{subscript}]"
+            if compact is not None:
+                return f"{base}{compact}"
+            if subscript in _POSITIONAL_MARKERS:
+                return f"{base}_{subscript}"
+            return f"{base}_[{subscript}]"
         return f"{base}[{subscript}]"
     if isinstance(node, Call):
         function = node.function.for_target(target)
         if target == "latex":
             function = _latex_function(function)
-            opening, closing = r"\left(", r"\right)"
+            opening, closing = (r"\left(", r"\right)") if node.scalable else ("(", ")")
+            separator = r",\, " if not node.scalable else ", "
         else:
             opening, closing = "(", ")"
-        arguments = ", ".join(_emit(argument, target) for argument in node.arguments)
+            separator = ", "
+        arguments = separator.join(_emit(argument, target) for argument in node.arguments)
         return f"{function}{opening}{arguments}{closing}"
     if isinstance(node, Prefix):
         operator = node.operator.for_target(target)
@@ -122,11 +143,25 @@ def _emit(node: Node, target: str) -> str:
         return f" {operator} ".join(_emit(operand, target) for operand in node.operands)
     if isinstance(node, Accent):
         return _accent(node, target)
+    if isinstance(node, Underset):
+        body = _emit(node.body, target)
+        annotation = _emit(node.annotation, target)
+        if target == "latex":
+            return rf"\underset{{{annotation}}}{{{body}}}"
+        if target == "unicode":
+            compact = _unicode_script(annotation, superscript=False)
+            return f"{body}{compact}" if compact is not None else f"{body}_[{annotation}]"
+        return f"{body}[{annotation}]"
+    if isinstance(node, MathClass):
+        body = _emit(node.body, target)
+        if target == "latex" and node.kind == "binary":
+            return rf"\mathbin{{{body}}}"
+        return body
     if isinstance(node, Wrapper):
         opening = node.opening.for_target(target)
         closing = node.closing.for_target(target)
         body = _emit(node.body, target)
-        if target == "latex":
+        if target == "latex" and node.scalable:
             opening_space = " " if opening.startswith("\\") else ""
             closing_space = " " if closing.startswith("\\") else ""
             return rf"\left{opening}{opening_space}{body}{closing_space}\right{closing}"
@@ -134,23 +169,26 @@ def _emit(node: Node, target: str) -> str:
     if isinstance(node, Delimited):
         opening = node.opening.for_target(target)
         closing = node.closing.for_target(target)
-        items = ", ".join(_emit(item, target) for item in node.items)
-        if target == "latex":
+        separator = node.separator.for_target(target)
+        items = separator.join(_emit(item, target) for item in node.items)
+        if target == "latex" and node.scalable:
             opening_space = " " if opening.startswith("\\") else ""
             closing_space = " " if closing.startswith("\\") else ""
             return rf"\left{opening}{opening_space}{items}{closing_space}\right{closing}"
         return f"{opening}{items}{closing}"
     if isinstance(node, Equality):
-        return " = ".join(_emit(part, target) for part in node.parts)
+        separator = r" \quad = \quad " if target == "latex" else " = "
+        # Teaching display omits parts that become identical only after the
+        # selected notation and target have been emitted.
+        rendered_parts = dict.fromkeys(_emit(part, target) for part in node.parts)
+        return separator.join(rendered_parts)
     raise TypeError(f"unsupported semantic render node {type(node).__name__}")
 
 
-def _number(value: int | float, target: str) -> str:
+def _number(value: int | float, target: str, precision: int) -> str:
     if isinstance(value, int):
         return str(value)
-    if value.is_integer() and abs(value) < 1e16:
-        return str(int(value))
-    text = format(value, ".12g")
+    text = format(value, f".{precision}g")
     if target != "latex" or "e" not in text.lower():
         return text
     mantissa, exponent = re.split("[eE]", text)
@@ -164,7 +202,7 @@ def _number(value: int | float, target: str) -> str:
 
 def _unicode_script(value: str, *, superscript: bool) -> str | None:
     translation = _SUPERSCRIPT if superscript else _SUBSCRIPT
-    if all(character in "0123456789+-⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻₀₁₂₃₄₅₆₇₈₉₊₋★☆●○" for character in value):
+    if all(character in "0123456789+-⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻₀₁₂₃₄₅₆₇₈₉₊₋" for character in value):
         return value.translate(translation)
     return None
 

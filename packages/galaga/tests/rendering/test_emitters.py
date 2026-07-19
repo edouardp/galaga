@@ -22,6 +22,7 @@ from galaga.rendering import (
     Identifier,
     Infix,
     Literal,
+    MathClass,
     Postfix,
     Power,
     Prefix,
@@ -30,6 +31,7 @@ from galaga.rendering import (
     Sum,
     SumTerm,
     Text,
+    Underset,
     Wrapper,
 )
 
@@ -54,8 +56,8 @@ from galaga.rendering import (
             r"2 e_{1}",
         ),
         (Fraction(Identifier("a"), Identifier("b")), "a / b", "a / b", r"\frac{a}{b}"),
-        (Power(Identifier("x"), Literal(2)), "x^2", "x²", r"{x}^{2}"),
-        (Subscript(Identifier("x"), Literal(2)), "x[2]", "x₂", r"{x}_{2}"),
+        (Power(Identifier("x"), Literal(2)), "x^2", "x²", r"x^2"),
+        (Subscript(Identifier("x"), Literal(2)), "x[2]", "x₂", r"x_{2}"),
         (
             Call("metric_inner_product", (Identifier("a"), Identifier("b"))),
             "metric_inner_product(a, b)",
@@ -72,6 +74,12 @@ from galaga.rendering import (
         ),
         (Accent(Identifier("x"), Name("~", "\u0303", r"\widetilde")), "~x", "x̃", r"\widetilde{x}"),
         (
+            MathClass(Underset(Identifier(Name("wedge", "⩓", r"\text{⩓}")), Literal(1)), "binary"),
+            "wedge[1]",
+            "⩓₁",
+            r"\mathbin{\underset{1}{\text{⩓}}}",
+        ),
+        (
             Wrapper(
                 Identifier("x"),
                 Name("|", "|", r"\lvert"),
@@ -87,7 +95,12 @@ from galaga.rendering import (
             "[1, 2]",
             r"\left[1, 2\right]",
         ),
-        (Equality((Identifier("x"), Literal(2))), "x = 2", "x = 2", "x = 2"),
+        (
+            Equality((Identifier("x"), Literal(2))),
+            "x = 2",
+            "x = 2",
+            r"x \quad = \quad 2",
+        ),
     ),
 )
 def test_every_semantic_node_is_consumed_by_all_three_emitters(
@@ -99,6 +112,40 @@ def test_every_semantic_node_is_consumed_by_all_three_emitters(
     assert emit(node, "ascii") == ascii  # type: ignore[arg-type]
     assert emit(node, "unicode") == unicode  # type: ignore[arg-type]
     assert emit(node, "latex") == latex  # type: ignore[arg-type]
+
+
+def test_teaching_equality_deduplicates_after_target_specific_rendering() -> None:
+    equality = Equality(
+        (
+            Identifier(Name("x", "same", "x")),
+            Identifier(Name("y", "same", "y")),
+            Literal(2),
+            Literal(2),
+        )
+    )
+
+    assert emit(equality, "ascii") == "x = y = 2"
+    assert emit(equality, "unicode") == "same = 2"
+    assert emit(equality, "latex") == r"x \quad = \quad y \quad = \quad 2"
+
+
+def test_compact_calls_and_fraction_bars_own_their_target_specific_grouping() -> None:
+    compact = Call("f", (Identifier("a"), Identifier("b")), scalable=False)
+    numerator = Infix((Identifier("a"), Identifier("b")), "+", precedence=20)
+    fraction = Fraction(numerator, Literal(3))
+
+    assert emit(compact, "latex") == r"\operatorname{f}(a,\, b)"
+    assert emit(fraction, "latex") == r"\frac{a + b}{3}"
+    assert emit(fraction, "ascii") == "(a + b) / 3"
+
+
+def test_unicode_preserves_position_for_symbols_without_script_codepoints() -> None:
+    star = Identifier(Name("star", "★", r"\text{★}"))
+    bulk = Identifier(Name("bulk", "●", r"\text{●}"))
+
+    assert emit(Power(Identifier("a"), star), "unicode") == "a^★"
+    assert emit(Subscript(Identifier("a"), star), "unicode") == "a_★"
+    assert emit(Subscript(Identifier("a"), bulk), "unicode") == "a_●"
 
 
 @pytest.mark.parametrize(

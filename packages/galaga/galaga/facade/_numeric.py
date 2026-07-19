@@ -602,7 +602,10 @@ class Multivector:
         return _invoke("add", self, converted)
 
     def __radd__(self, other: object) -> Multivector | NotImplementedType:
-        return self.__add__(other)
+        converted = self._coerce_additive(other)
+        if converted is NotImplemented:
+            return NotImplemented
+        return _invoke("add", converted, self)
 
     def __sub__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
@@ -1055,7 +1058,12 @@ def inverse(
     rtol: float = 1e-10,
     atol: float = 1e-12,
 ) -> Multivector:
-    return _invoke("inverse", value, rtol=rtol, atol=atol)
+    parameters: dict[str, float] = {}
+    if rtol != 1e-10:
+        parameters["rtol"] = rtol
+    if atol != 1e-12:
+        parameters["atol"] = atol
+    return _invoke("inverse", value, **parameters)
 
 
 def squared(value: Multivector) -> Multivector:
@@ -1067,7 +1075,7 @@ def scalar_sqrt(value: Real | Multivector) -> float | Multivector:
 
 
 def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivector:
-    return _invoke("sqrt", value, atol=atol)
+    return _invoke("sqrt", value, **({"atol": atol} if atol != 1e-12 else {}))
 
 
 def norm2(value: Multivector) -> Multivector:
@@ -1079,7 +1087,7 @@ def norm(value: Multivector) -> float:
 
 
 def unit(value: Multivector, *, atol: float = 1e-15) -> Multivector:
-    return _invoke("unit", value, atol=atol)
+    return _invoke("unit", value, **({"atol": atol} if atol != 1e-15 else {}))
 
 
 def is_scalar(value: Multivector, *, atol: float = 1e-12) -> bool:
@@ -1115,7 +1123,7 @@ def exp(value: Multivector) -> Multivector:
 
 
 def log(value: Multivector, *, atol: float = 1e-12) -> Multivector:
-    return _invoke("log", value, atol=atol)
+    return _invoke("log", value, **({"atol": atol} if atol != 1e-12 else {}))
 
 
 def outerexp(value: Multivector) -> Multivector:

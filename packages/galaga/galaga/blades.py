@@ -264,7 +264,7 @@ def euclidean_blade_convention(dimension: int) -> BladeConvention:
 
 
 def spacetime_blade_convention() -> BladeConvention:
-    """The four-dimensional ``gamma0`` … ``gamma3`` spacetime convention."""
+    """The four-dimensional ``gamma0`` … ``gamma3`` STA convention with pseudoscalar ``i``."""
     roles = {
         "time": BladeRef(0b0001),
         "space_1": BladeRef(0b0010),
@@ -276,6 +276,7 @@ def spacetime_blade_convention() -> BladeConvention:
         prefix=Name("g", "γ", r"\gamma"),
         start=0,
         style="juxtapose",
+        overrides={0b1111: Name("i")},
         roles=roles,
     )
 
@@ -358,7 +359,13 @@ def rga_blade_convention() -> BladeConvention:
         "projective": BladeRef(0b1000),
         "pseudoscalar": BladeRef(0b1111),
     }
-    return indexed_blade_convention(4, overrides=overrides, aliases=aliases, roles=roles)
+    return indexed_blade_convention(
+        4,
+        prefix=Name("e", "e", r"\mathbf{e}"),
+        overrides=overrides,
+        aliases=aliases,
+        roles=roles,
+    )
 
 
 def rga_display_order() -> DisplayOrder:

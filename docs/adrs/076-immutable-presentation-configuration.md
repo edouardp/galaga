@@ -57,6 +57,11 @@ objects deterministically build an `AlgebraConfig`; they are ordinary frozen
 classes with inspectable parameters, not strings dispatched through a central
 conditional.
 
+Preset presentation is mathematical vocabulary as well as formatting. The
+spacetime preset therefore names the oriented grade-four pseudoscalar `i`, as
+in the established STA blade convention, while retaining gamma products for
+the other compound blades.
+
 The facade constructor accepts complete setup through `config=`:
 
 ```python

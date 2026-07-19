@@ -7,14 +7,18 @@ import pytest
 from galaga.names import Name
 from galaga.rendering.tree import (
     Associativity,
+    Call,
+    Delimited,
     Group,
     Identifier,
     Infix,
     Literal,
+    MathClass,
     Precedence,
     Product,
     Sum,
     SumTerm,
+    Wrapper,
     grouped_child,
 )
 
@@ -101,3 +105,15 @@ def test_invalid_tree_shapes_fail_at_construction() -> None:
         Infix((Identifier("x"),), "+")
     with pytest.raises(ValueError, match="associativity"):
         Product((Identifier("x"),), associativity="sometimes")
+    with pytest.raises(TypeError, match="literal precision must be an integer"):
+        Literal(1, precision=True)
+    with pytest.raises(ValueError, match="literal precision must be between 1 and 17"):
+        Literal(1, precision=18)
+    with pytest.raises(TypeError, match="call scalable flag"):
+        Call("f", scalable=1)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="wrapper scalable flag"):
+        Wrapper(Identifier("x"), "(", ")", scalable=1)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="delimiter scalable flag"):
+        Delimited((), scalable=1)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="math class"):
+        MathClass(Identifier("x"), "relation")

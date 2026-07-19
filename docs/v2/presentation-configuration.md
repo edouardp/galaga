@@ -144,7 +144,7 @@ algebra is not permanently in a hidden preset mode.
 | Preset | Numeric definition | Presentation highlights |
 |---|---|---|
 | `EuclideanPreset(n)` | `Cl(n, 0)` | Indexed Euclidean roles |
-| `SpacetimePreset(...)` | Mostly-minus or mostly-plus `Cl(1, 3)` ordering | Gamma vocabulary and time/space roles |
+| `SpacetimePreset(...)` | Mostly-minus or mostly-plus `Cl(1, 3)` ordering | Gamma vocabulary, pseudoscalar `i`, and time/space roles |
 | `PGAPreset(n)` | `n` positive vectors plus a final native null vector | Projective role |
 | `CGAPreset(n, frame="null")` | Native null pair with configurable nonzero mutual product | Actual origin/infinity roles |
 | `CGAPreset(n, frame="orthogonal")` | Positive/negative orthogonal conformal pair | Actual plus/minus roles |
@@ -264,3 +264,7 @@ context-local, or per-render presentation does not change expression identity,
 evaluation, equality, hashing, or numeric coefficients. `DisplayPolicy` now
 also supports `content="auto"`; a name opts into an explanatory equality while
 expression tracking alone continues to display the concrete value by default.
+Its `zero_tolerance` and `coefficient_precision` fields control visible numeric
+noise and significant digits only. Their compatibility defaults are `1e-12`
+and six, respectively; setting the tolerance to zero reveals every nonzero
+stored coefficient.

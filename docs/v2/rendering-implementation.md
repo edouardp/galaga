@@ -77,7 +77,7 @@ The node set represents mathematical layout rather than strings:
 | Leaves | `Identifier`, `Literal`, `Text` | Target-aware names, finite numbers, and escapable ordinary text |
 | Arithmetic | `Sum`, `Product`, `Fraction`, `Power` | Structured mathematical forms |
 | Application | `Call`, `Prefix`, `Postfix`, `Infix` | Function and operator layouts |
-| Decoration | `Subscript`, `Accent`, `Wrapper` | Scripts, over/under accents, and delimiters |
+| Decoration | `Subscript`, `Accent`, `Underset`, `MathClass`, `Wrapper` | Scripts, accents, below-annotations, TeX math classes, and delimiters |
 | Structure | `Group`, `Delimited`, `Equality` | Explicit parentheses, lists, and teaching equalities |
 
 `Name` values carry the intended ASCII, Unicode, and LaTeX spellings for
@@ -88,7 +88,18 @@ or percent sign.
 
 All nodes are frozen structural values. Emitters do not mutate or annotate
 them, and a node can be compared directly in tests without committing to one
-final string syntax.
+final string syntax. `Call`, `Wrapper`, and `Delimited` also carry a scalable
+delimiter decision. That lets conventional notation request compact
+`f(a,\,b)` while canonical functional fallback can retain scalable delimiters,
+without embedding either LaTeX spelling in the expression model.
+
+Conventional `add` calls become `Sum` nodes whose `SumTerm` children carry an
+explicit sign. The builder flattens nested additions and absorbs a leading
+minus from a negated or negatively scaled term. Consequently all emitters
+serialize `a + (-0.5)b` as `a - 0.5b`, while a customized addition notation
+continues to use its configured `Infix` rule. Subtracting from an already-flat
+left-hand sum appends a negative `SumTerm`, so `(a + b) - c` renders as
+`a + b - c`; a right-hand subtraction such as `a - (b - c)` remains grouped.
 
 ## One precedence model
 
@@ -98,6 +109,7 @@ The shared binding strengths, from weakest to strongest, are:
 |---|---:|
 | Equality | 10 |
 | Sum | 20 |
+| Scalar coefficient product | 25 |
 | Product and infix product-like operations | 30 |
 | Prefix | 40 |
 | Power | 50 |
@@ -137,9 +149,19 @@ displayed coefficient = native coefficient × BladeLabel.ref.orientation
 ```
 
 That sign is essential for conventions such as Lengyel RGA, where displayed
-`e31` denotes `-E13` in canonical exterior-mask order. Zero coefficients are
-omitted, unit coefficients on nonscalar blades are suppressed, and a zero
-multivector becomes `Literal(0)`.
+`e31` denotes `-E13` in canonical exterior-mask order. Coefficients whose
+absolute value is below `DisplayPolicy.zero_tolerance` are omitted, unit
+coefficients on nonscalar blades are suppressed, and a zero multivector becomes
+`Literal(0)`. The compatibility default is `1e-12`; a policy value of zero
+retains every exactly nonzero coefficient.
+
+Numeric literals carry the format-neutral
+`DisplayPolicy.coefficient_precision` into the shared tree. All emitters use
+that many significant digits, with a compatibility default of six and a valid
+range of 1 through 17. The same precision applies to expression literals and
+concrete values, allowing a `full` teaching display to deduplicate equal visible
+forms. These controls never round, clamp, or otherwise mutate stored core
+coefficients.
 
 ### Expression provenance
 
@@ -153,10 +175,24 @@ multivector becomes `Literal(0)`.
   its operands and normalized parameters, then applies the selected
   `RenderRule`.
 
+It first applies `galaga.expression.simplify()` to a temporary rendering view.
+That conservative pass removes literal structural identities such as unit and
+zero scaling, including normalizing `-1 x` to `-x`, while leaving the retained
+provenance object unchanged. It never reorders operands or applies
+metric-dependent algebraic identities.
+
 An unknown or stale operation ID fails in the builder before any output target
-is emitted. Parameter values remain visible. If a compact rule cannot honestly
-show supplied optional parameters, the builder falls back to the canonical
-long function call instead of hiding them.
+is emitted. Required parameters and non-default optional parameters remain
+visible. Public numeric wrappers omit optional tolerance parameters from
+provenance when they equal the operation default, so ordinary expressions show
+`unit(x)`, `inverse(x)`, `log(x)`, and `sqrt(x)` rather than implementation
+thresholds. A non-default value is retained and reevaluates exactly. If a
+compact rule cannot honestly show such a supplied parameter, the builder falls
+back to the canonical long function call instead of hiding it.
+
+Provenance records the user's operand order, not merely a commutative numeric
+normal form. In particular, reflected addition builds `1 + a`, rather than
+silently recording `a + 1`, even though both eager values are equal.
 
 ## Notation is presentation data
 
@@ -168,10 +204,17 @@ long function call instead of hiding them.
 - an optional operation parameter that decorates an operator;
 - an optional complete argument permutation;
 - wrapper delimiters; and
-- whether repeated matching operations may be visually flattened.
+- whether repeated matching operations may be visually flattened;
+- whether calls and wrappers use compact or scalable delimiters;
+- whether an accent groups its operand; and
+- whether a parameter is a side subscript or an underscripted binary-operator
+  annotation.
 
 Supported kinds are function, infix, juxtaposition, prefix, postfix, accent,
-underaccent, wrapper, fraction, subscript, and superscript.
+underaccent, wrapper, fraction, subscript, superscript, reverse sandwich, and
+metric-regressive definition layout. The last two are semantic compositions,
+not preformatted strings: the builder produces ordinary product, accent,
+power, and grouping nodes for every emitter.
 
 `Notation` maps a stable catalog operation ID to a generic rule and may add a
 target-specific override. Target-specific structure is reserved for honest
@@ -214,9 +257,9 @@ localized target rewrites:
 
 | Concern | ASCII | Unicode | LaTeX |
 |---|---|---|---|
-| Scripts | `x[2]`, `x^2` | `x₂`, `x²` when available | `{x}_{2}`, `{x}^{2}` |
+| Scripts | `x[2]`, `x^2` | `x₂`, `x²` when available; explicit `_`/`^` retains the position of RGA markers such as `★` | `x_{2}`, `x^2` where braces are unnecessary |
 | Fraction | `a / b` | `a / b` | `\frac{a}{b}` |
-| Function | `metric_inner_product(...)` | same name or configured glyph | escaped `\operatorname{...}` |
+| Function | `metric_inner_product(...)` | same name or configured glyph | escaped `\operatorname{...}` with rule-selected compact/scalable delimiters |
 | Accent | `~x` or functional fallback | combining mark | accent command with grouped body |
 | Scientific literal | `1.25e+20` | `1.25e+20` | `1.25 \times 10^{20}` |
 | Ordinary text | unchanged | unchanged | LaTeX escaped |
@@ -233,7 +276,7 @@ Content and target are independent:
 | `name` | Explicit semantic name, falling back to the value |
 | `expr` | Provenance, falling back to the value |
 | `value` | Concrete coefficients and blade labels |
-| `full` | Available name, expression, and value joined by equality |
+| `full` | Distinct rendered name, expression, and value joined by equality |
 | `auto` | Value unless a name opts into an explanatory full equality |
 
 | Target | Meaning |
@@ -251,11 +294,24 @@ format(value, "value/ascii")
 format(value, "full/latex")
 ```
 
+Numeric display defaults and overrides are part of the same immutable policy:
+
+```python
+DisplayPolicy()  # zero_tolerance=1e-12, coefficient_precision=6
+DisplayPolicy(zero_tolerance=0, coefficient_precision=12)
+```
+
 Facade values expose `display()`, `ascii()`, `unicode()`, and `latex()`.
 `str`, `repr`, `format`, and `_repr_latex_` delegate to the same public
 pipeline. `repr` uses the selected content policy with an ASCII target; `str`
 uses the policy target; and the rich hook wraps the same LaTeX result in inline
 math delimiters.
+
+Only `full` or automatic teaching display deduplicates parts, after rendering
+them for the selected target. Explicit `name`, `expr`, and `value` requests
+always return the requested component, even when two components would render
+identically. LaTeX teaching equalities use `\quad = \quad`; plain-text targets
+use an ordinarily spaced equals sign.
 
 Presentation resolution is:
 
@@ -284,6 +340,9 @@ The implementation and tests enforce these relationships:
 7. Signed blade labels round-trip through the same convention for expression
    literals and concrete values.
 8. Direct tree, display, and facade imports work in either order.
+9. Default numeric tolerances do not appear in provenance; non-default values
+   remain normalized expression parameters.
+10. Reflected operators preserve written operand order in provenance.
 
 ## Validation ownership
 
@@ -297,18 +356,33 @@ Phase 6 tests live under `packages/galaga/tests/rendering`:
 - `test_emitters.py` owns the all-node/all-target matrix, escaping, import
   boundaries, import order, and golden parenthesization; and
 - `test_display.py` owns every content/target combination, fallback policy,
-  public hooks, explicit/scoped/default precedence, and async isolation.
+  public hooks, explicit/scoped/default precedence, and async isolation; and
+- `test_legacy_facade_parity.py` builds the same operation inventory against
+  both live algebras, compares numeric and LaTeX channels, and requires every
+  difference to match the executable review ledger; and
+- `test_compound_latex_contract.py`, `test_sta_latex_contract.py`, and
+  `test_rga_latex_contract.py` record exact output for the parameterized
+  implementation/algebra/display/expression matrix with decorated,
+  value-returning test functions and check that results render after their
+  construction scope has exited. The RGA file also owns the exact
+  all-operation notation matrix and complete blade table.
 
-The Phase 6 full Galaga run passes 2,738 tests with 19 skips on Python 3.11.
-Focused branch coverage is 91% for the emitter, 87% for the semantic tree, 80%
-for public display policy, and 76% for the builder. Lower builder branches are
-primarily defensive handling for malformed custom rules; accepted presets and
-every catalog fallback are exercised directly. Focused Pyrefly and Ruff checks
-pass for the implementation and tests.
+The associated audit command writes a structured Markdown artifact for human
+review. Its adapters, coverage contract, report format, and first findings are
+documented in [Legacy/facade LaTeX rendering parity](rendering-parity.md).
+
+The reviewed differential audit now has 65 exact matches and eight explicit
+Galaga 2 decisions, improved from 16 matches and 57 differences in its first
+run. The permanent suite checks the complete 73-case differential inventory,
+58 exact full-display expression scenarios, the exact accepted-difference
+ledger, semantic nodes and emitters, source-order provenance, optional
+parameter handling, a 26-operation Lengyel notation matrix, and the complete
+16-label RGA blade table plus signed-orientation behavior.
 
 ## Deliberate limits and next migration work
 
-- The semantic tree is not an algebraic simplifier or expression evaluator.
+- The semantic tree applies only conservative structural display identities;
+  it is not a general algebraic simplifier or expression evaluator.
 - Numeric formatting is display-oriented, not a serialization format.
 - Legacy top-level values still use the legacy rendering path until cutover.
 - Legacy mutable notation and operation-specific renderer adapters remain only

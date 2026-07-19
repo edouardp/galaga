@@ -152,9 +152,11 @@ def test_ergonomic_preset_constructors_return_inspectable_preset_objects():
 
 
 def test_spacetime_preset_and_custom_null_pair_change_the_numeric_definition():
+    mostly_minus = Algebra(config=SpacetimePreset())
     mostly_plus = Algebra(config=SpacetimePreset("mostly-plus"))
     custom_null = Algebra(config=CGAPreset(1, null_pair=-0.5))
 
+    assert mostly_minus.blade("i") == mostly_minus.I
     np.testing.assert_array_equal(mostly_plus.basis_squares, (-1, 1, 1, 1))
     assert custom_null.gram[1, 2] == custom_null.gram[2, 1] == -0.5
 

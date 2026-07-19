@@ -453,7 +453,7 @@ class TestRgaIntegration:
             (weight_part(a), r"_{\text{○}}"),
             (right_hodge_dual(a), r"^{\text{★}}"),
             (right_weight_dual(a), r"^{\text{☆}}"),
-            (transwedge(a, b, 1), r"{\text{⩓}}_{1}"),
+            (transwedge(a, b, 1), r"\mathbin{\underset{1}{\text{⩓}}}"),
             (antireverse(antiwedge(complement(e1), complement(e2))), r"\utilde{"),
         )
 

@@ -24,6 +24,7 @@ def _():
     import galaga_marimo as gm
     from galaga.facade import (
         Algebra,
+        DisplayPolicy,
         antidot_product,
         antimetric_apply,
         antireverse,
@@ -52,6 +53,7 @@ def _():
 
     return (
         Algebra,
+        DisplayPolicy,
         antidot_product,
         antimetric_apply,
         antireverse,
@@ -120,15 +122,21 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, p_rga):
-    rga = Algebra(config=p_rga())
+def _(Algebra, DisplayPolicy, p_rga):
+    rga = Algebra(config=p_rga(), display=DisplayPolicy("full"))
     return (rga,)
 
 
 @app.cell
 def _(rga):
-    locals().update(rga.locals(expr=True))
-    return
+    e1,e2,e3,e4 = rga.basis_vectors(expr=True)
+    e423 = (e4^e2^e3).without_expr()
+    e431 = (e4^e3^e1).without_expr()
+    e23  = (e2^e3).without_expr()
+    e31  = (e3^e1).without_expr()
+    e41  = (e4^e1).without_expr()
+    e42  = (e4^e2).without_expr()
+    return e1, e2, e23, e3, e31, e4, e41, e42, e423, e431
 
 
 @app.cell

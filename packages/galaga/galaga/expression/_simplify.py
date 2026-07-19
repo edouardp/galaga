@@ -57,6 +57,8 @@ def _rewrite(expression: Call) -> Expr:
             return ScalarLiteral(0)
         if scalar == 1:
             return operands[0]
+        if scalar == -1:
+            return Call("negate", operands)
         if isinstance(operands[0], ScalarLiteral):
             return ScalarLiteral(operands[0].value * scalar)
     if operation == "scalar_divide":

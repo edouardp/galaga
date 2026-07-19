@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -21,10 +21,10 @@ def _():
 def _():
     import marimo as mo
     import numpy as np
-    from galaga.facade import Algebra, exp, log
+    from galaga.facade import Algebra, DisplayPolicy, exp, log
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, log, mo, np
+    return Algebra, DisplayPolicy, exp, gm, log, mo, np
 
 
 @app.cell(hide_code=True)
@@ -39,8 +39,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
     return alg, e1, e2
 
@@ -54,25 +54,19 @@ def _(mo):
 
 @app.cell
 def _(alg, angle, e1, e2, exp, gm, log, np):
-    _theta = alg.scalar(np.radians(angle.value)).named(r"\theta", latex=r"\theta")
+    _theta = alg.scalar(np.radians(angle.value)).named(r"\theta")
     B = (e1 * e2).named("B")
-    half_angle = (-_theta * B) / 2
+    half_angle = -_theta * B / 2
     R = exp(half_angle)
     gm.md(rt"""
-    {B} = {B:value}
+    {B}
 
-    {R} = {R:value}
+    {R}
 
-    {log(R)} = {log(R):value}
+    {log(R)}
 
-    {half_angle} = {half_angle:value}
+    {half_angle}
     """)
-    return (R,)
-
-
-@app.cell
-def _(R):
-    R.latex()
     return
 
 

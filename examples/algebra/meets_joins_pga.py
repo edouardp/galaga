@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,35 +26,34 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, complement
+    from galaga.facade import Algebra, DisplayPolicy, complement
     import galaga_marimo as gm
 
-    return Algebra, complement, gm, mo, np, plt
+    return Algebra, DisplayPolicy, complement, gm, mo, np, plt
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Meets and Joins in PGA
+    mo.md("""
+    # Meets and Joins in PGA
 
-        In projective geometry, the outer product builds joins and complement tricks
-        help move between primal and dual representations. This notebook gives a few
-        small line/point examples.
-        """
-    )
+    In projective geometry, the outer product builds joins and complement tricks
+    help move between primal and dual representations. This notebook gives a few
+    small line/point examples.
+    """)
     return
 
 
 @app.cell
-def _(Algebra):
-    pga = Algebra((1, 1, 1, 0), )
+def _(Algebra, DisplayPolicy):
+    pga = Algebra((1, 1, 1, 0), display=DisplayPolicy(content="full"))
     e1, e2, e3, e0 = pga.basis_vectors(expr=True)
-    e123 = e1 ^ e2 ^ e3
-    E1 = e2 ^ e3 ^ e0
-    E2 = -(e1 ^ e3 ^ e0)
-    E3 = e1 ^ e2 ^ e0
-    return E1, E2, E3, complement, e123
+    e123,_,_,_ = pga.basis_blades(3, expr=True)
+    #e123 = (e1 ^ e2 ^ e3)
+    E1 = (e2 ^ e3 ^ e0).named("E_1")
+    E2 = (-e1 ^ e3 ^ e0).named("E_2")
+    E3 = (e1 ^ e2 ^ e0).named("E_3")
+    return E1, E2, E3, e0, e1, e123, e3, pga
 
 
 @app.cell
@@ -72,23 +71,23 @@ def _(E1, E2, E3, e123, np):
 
 @app.cell
 def _(complement, gm, point):
-    A = point(-1, 0)
-    B = point(1, 1)
-    C = point(-0.5, 1.5)
+    A = point(-1, 0).named("A")
+    B = point(1, 1).named("B")
+    C = point(-0.5, 1.5).named("C")
     line_ab = complement(A) ^ complement(B)
     line_bc = complement(B) ^ complement(C)
     gm.md(rt"""
-    {A} = {A:value}
+    {A}
 
-    {B} = {B:value}
+    {B}
 
-    {C} = {C:value}
+    {C}
 
     Join of A and B:
-    {line_ab} = {line_ab:value}
+    {line_ab}
 
     Join of B and C:
-    {line_bc} = {line_bc:value}
+    {line_bc}
     """)
     return A, B, C
 
@@ -107,6 +106,25 @@ def _(A, B, C, coords, np, plt):
     _ax.set_title("Joins of projective points")
     _fig.tight_layout()
     _fig
+    return
+
+
+@app.cell
+def _(e0, e1, e3):
+    (-e1 ^ e3 ^ e0)
+    return
+
+
+@app.cell
+def _(e0, e1, e3):
+    (-e1 ^ e3 ^ e0)
+    return
+
+
+@app.cell
+def _(pga):
+    pga.basis_blades(3,expr=True)
+    return
 
 
 @app.cell

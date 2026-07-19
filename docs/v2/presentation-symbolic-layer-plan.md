@@ -519,13 +519,30 @@ roles constructs a new algebra. Changing notation, blade labels, local names,
 display order, or coefficient formatting creates a cheap presentation view or
 render-time override over the same numeric algebra.
 
+`DisplayPolicy` owns coefficient formatting without changing coefficients:
+
+```python
+DisplayPolicy(
+    content="full",
+    zero_tolerance=1e-12,
+    coefficient_precision=6,
+)
+```
+
+The tolerance is an absolute display cutoff; zero disables approximate-zero
+elision while exact zero terms remain absent. Precision is a significant-digit
+count from 1 through 17 and applies consistently to expression and value
+literals.
+
 ### Notation
 
 `Notation` is an immutable mapping from operation identifier and output target
 to a generic `RenderRule`. A rule contains fixity, tokens, precedence,
-associativity, grouping behavior, and target-specific glyphs. Rule kinds
+associativity, grouping behavior, argument order, parameter decoration,
+compact/scalable delimiter policy, and target-specific glyphs. Rule kinds
 include function, prefix, postfix, accent, infix, juxtaposition, wrapper,
-fraction, subscript, and superscript.
+fraction, subscript, superscript, and the semantic definition layouts used for
+reverse sandwich and metric-regressive products.
 
 Notation controls spelling only. It cannot change `|` from Doran-Lasenby inner
 to Hestenes inner or insert a hidden factor of one half. Python operator
@@ -577,7 +594,7 @@ independent dimensions:
 | `name` | Explicit display name only |
 | `expr` | Operation history only |
 | `value` | Concrete multivector only |
-| `full` | Available name, expression, and value joined by equality |
+| `full` | Distinct rendered name, expression, and value joined by equality |
 
 | Target | Meaning |
 |---|---|
@@ -602,7 +619,11 @@ global `display_repr` flag:
 | No | No | value |
 | Yes | No | name = value |
 | No | Yes | value; expression remains explicitly requestable |
-| Yes | Yes | name = expression = value |
+| Yes | Yes | distinct parts from name = expression = value |
+
+Deduplication belongs only to `full` or automatic teaching display and occurs
+after target-specific rendering. Explicit `name`, `expr`, and `value` requests
+still return the selected component when its rendering matches another part.
 
 The public surface should include `str`, `repr`, `format`, `.ascii()`,
 `.unicode()`, `.latex()`, and `_repr_latex_()`. Notebook-specific widgets stay

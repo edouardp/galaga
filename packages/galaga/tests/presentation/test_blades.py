@@ -50,6 +50,13 @@ def test_rga_distinguishes_a_negative_signed_name_from_the_native_blade():
     )
 
 
+def test_spacetime_convention_names_the_pseudoscalar_i() -> None:
+    convention = spacetime_blade_convention()
+
+    assert convention.label(0b1111) == BladeLabel(Name("i"), BladeRef(0b1111))
+    assert convention.resolve("i") == BladeRef(0b1111)
+
+
 def test_rga_display_order_is_a_complete_grade_grouped_permutation():
     order = rga_display_order()
 

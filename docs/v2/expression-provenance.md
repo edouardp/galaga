@@ -131,11 +131,18 @@ as `grades(x, targets)` are normalized before tracked evaluation, so a
 one-shot generator is consumed once and both the eager result and provenance
 use the same tuple.
 
+Optional numeric controls use their evaluator defaults when omitted. Facade
+wrappers omit `unit`, `inverse`, `log`, and `sqrt` tolerances from a `Call`
+when they equal the public default; this avoids displaying implementation
+thresholds as mathematical arguments. A non-default value is normalized and
+stored, so reevaluation remains reproducible.
+
 The dispatch sequence is:
 
 1. resolve one `OperationSpec`;
 2. reject mixed numeric algebras;
-3. normalize tracked parameters;
+3. omit unchanged optional defaults and normalize the remaining tracked
+   parameters;
 4. invoke the numeric evaluator exactly once per binary edge; and
 5. construct a `Call` only if at least one multivector operand was already
    tracked.
@@ -214,7 +221,8 @@ algebra theorem:
 - scalar-literal folding for addition, subtraction, negation, scalar scaling,
   scalar division, and non-negative integer powers;
 - additive-zero removal; and
-- identity scalar scaling, scalar division, and powers zero or one.
+- identity scalar scaling, normalization of `-1 x` to `-x`, scalar division,
+  and powers zero or one.
 
 It never reorders operands. It does not flatten subtraction or any other
 nonassociative operation. It deliberately does not attempt general

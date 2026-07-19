@@ -5,6 +5,7 @@ from __future__ import annotations
 import math
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass, replace
+from numbers import Integral, Real
 from typing import cast
 
 from .blades import BladeConvention, BladeRef, DisplayOrder, LocalNamePolicy
@@ -16,8 +17,10 @@ _RULE_KINDS = {
     "function",
     "infix",
     "juxtaposition",
+    "metric_regressive",
     "postfix",
     "prefix",
+    "sandwich",
     "subscript",
     "superscript",
     "underaccent",
@@ -37,6 +40,8 @@ _DEFAULT_PRECEDENCE = {
     "fraction": 30,
     "infix": 30,
     "juxtaposition": 30,
+    "metric_regressive": 30,
+    "sandwich": 30,
 }
 
 
@@ -67,6 +72,9 @@ class RenderRule:
     opening: Name | None
     closing: Name | None
     flatten: bool
+    scalable: bool
+    group_operand: bool
+    parameter_position: str
 
     def __init__(
         self,
@@ -80,6 +88,9 @@ class RenderRule:
         opening: Name | str | None = None,
         closing: Name | str | None = None,
         flatten: bool = False,
+        scalable: bool = True,
+        group_operand: bool = True,
+        parameter_position: str = "subscript",
     ) -> None:
         if kind not in _RULE_KINDS:
             expected = ", ".join(sorted(_RULE_KINDS))
@@ -109,6 +120,12 @@ class RenderRule:
                 raise ValueError("render-rule argument order must not repeat an index")
         if not isinstance(flatten, bool):
             raise TypeError("render-rule flatten flag must be a boolean")
+        if not isinstance(scalable, bool):
+            raise TypeError("render-rule scalable flag must be a boolean")
+        if not isinstance(group_operand, bool):
+            raise TypeError("render-rule group_operand flag must be a boolean")
+        if parameter_position not in {"subscript", "underscript"}:
+            raise ValueError("render-rule parameter_position must be 'subscript' or 'underscript'")
         object.__setattr__(self, "kind", kind)
         object.__setattr__(self, "symbol", selected_symbol)
         object.__setattr__(self, "precedence", selected_precedence)
@@ -118,6 +135,9 @@ class RenderRule:
         object.__setattr__(self, "opening", selected_opening)
         object.__setattr__(self, "closing", selected_closing)
         object.__setattr__(self, "flatten", flatten)
+        object.__setattr__(self, "scalable", scalable)
+        object.__setattr__(self, "group_operand", group_operand)
+        object.__setattr__(self, "parameter_position", parameter_position)
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -250,6 +270,8 @@ class Notation:
             precedence=30,
             associativity="none",
         )
+        rules["hestenes_inner"] = RenderRule("function", symbol="hestenes_inner", scalable=False)
+        rules.pop(("hestenes_inner", "latex"), None)
         return cls("doran-lasenby", rules=rules)
 
     @classmethod
@@ -299,13 +321,17 @@ _SHORT_FUNCTION_NAMES = {
 
 def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
     """Build a fresh conventional rule map so presets never share state."""
-    return {
+
+    def compact_function(name: str) -> RenderRule:
+        return RenderRule("function", symbol=name, scalable=False)
+
+    rules: dict[str | tuple[str, str], RenderRule] = {
         "add": RenderRule("infix", symbol="+", precedence=20, associativity="associative", flatten=True),
         "subtract": RenderRule("infix", symbol="-", precedence=20, associativity="left"),
         "negate": RenderRule("prefix", symbol="-", precedence=40),
         "scalar_multiply": RenderRule(
             "juxtaposition",
-            precedence=30,
+            precedence=25,
             argument_order=(1, 0),
         ),
         "scalar_divide": RenderRule("fraction"),
@@ -328,20 +354,174 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
             symbol=Name("|", "·", r"\cdot"),
             precedence=30,
         ),
-        "grade": RenderRule("subscript"),
+        "left_contraction": RenderRule(
+            "infix",
+            symbol=Name("_|", "⌋", r"\;\lrcorner\;"),
+            precedence=30,
+        ),
+        "right_contraction": RenderRule(
+            "infix",
+            symbol=Name("|_", "⌊", r"\;\llcorner\;"),
+            precedence=30,
+        ),
+        "hestenes_inner": compact_function("hestenes_inner"),
+        ("hestenes_inner", "latex"): RenderRule(
+            "infix",
+            symbol=Name(".", "·", r"\cdot"),
+            precedence=30,
+        ),
+        "scalar_product": RenderRule("infix", symbol="*", precedence=30),
+        "commutator": RenderRule("wrapper", opening="[", closing="]", scalable=False),
+        "lie_bracket": RenderRule("wrapper", opening="[", closing="]", scalable=False),
+        "anticommutator": RenderRule(
+            "wrapper",
+            opening=Name("{", "{", r"\{"),
+            closing=Name("}", "}", r"\}"),
+            scalable=False,
+        ),
+        "jordan_product": RenderRule(
+            "wrapper",
+            opening=Name("{", "{", r"\{"),
+            closing=Name("}", "}", r"\}"),
+            scalable=False,
+        ),
+        "half_commutator": RenderRule(
+            "wrapper",
+            opening=Name("1/2[", "½[", r"\tfrac{1}{2}["),
+            closing="]",
+            scalable=False,
+        ),
+        "half_anticommutator": RenderRule(
+            "wrapper",
+            opening=Name("1/2{", "½{", r"\tfrac{1}{2}\{"),
+            closing=Name("}", "}", r"\}"),
+            scalable=False,
+        ),
+        "grade": RenderRule(
+            "wrapper",
+            opening=Name("<", "⟨", r"\langle "),
+            closing=Name(">", "⟩", r" \rangle"),
+            parameter="target",
+            scalable=False,
+        ),
+        "grades": RenderRule(
+            "wrapper",
+            opening=Name("<", "⟨", r"\langle "),
+            closing=Name(">", "⟩", r" \rangle"),
+            parameter="targets",
+            scalable=False,
+        ),
         "reverse": RenderRule("accent", symbol=Name("~", "\u0303", r"\widetilde")),
+        ("reverse", "latex"): RenderRule(
+            "accent",
+            symbol=Name("~", "\u0303", r"\widetilde"),
+            group_operand=False,
+        ),
         "grade_involution": RenderRule("accent", symbol=Name("hat", "\u0302", r"\widehat")),
         "conjugate": RenderRule("accent", symbol=Name("bar", "\u0305", r"\overline")),
+        ("conjugate", "latex"): RenderRule(
+            "accent",
+            symbol=Name("bar", "\u0305", r"\overline"),
+            group_operand=False,
+        ),
         "inverse": RenderRule("superscript", symbol=Name("-1", "⁻¹", "-1")),
         "squared": RenderRule("superscript", symbol=Name("2", "²", "2")),
-        "dual": RenderRule("superscript", symbol=Name("*", "★", r"\star")),
-        "undual": RenderRule("superscript", symbol=Name("-*", "⁻★", r"-\star")),
+        "dual": RenderRule("superscript", symbol=Name("*", "★", "*")),
+        "undual": RenderRule("superscript", symbol=Name("*^-1", "★⁻¹", r"*^{-1}")),
+        "complement": RenderRule(
+            "superscript",
+            symbol=Name("c", "ᶜ", r"\complement"),
+        ),
+        "right_complement": RenderRule(
+            "superscript",
+            symbol=Name("c", "ᶜ", r"\complement"),
+        ),
+        "uncomplement": RenderRule(
+            "superscript",
+            symbol=Name("c^-1", "ᶜ⁻¹", r"\complement^{-1}"),
+        ),
+        "left_complement": RenderRule(
+            "superscript",
+            symbol=Name("c^-1", "ᶜ⁻¹", r"\complement^{-1}"),
+        ),
         "regressive_product": RenderRule(
             "infix",
             symbol=Name("vee", "∨", r"\vee"),
             precedence=30,
         ),
+        "unit": RenderRule("accent", symbol=Name("hat", "\u0302", r"\widehat")),
+        "exp": RenderRule(
+            "wrapper",
+            opening=Name("exp(", "exp(", r"e^{"),
+            closing=Name(")", ")", "}"),
+            scalable=False,
+        ),
+        "log": RenderRule(
+            "wrapper",
+            opening=Name("log(", "log(", r"\log\left("),
+            closing=Name(")", ")", r"\right)"),
+            scalable=False,
+        ),
+        "sqrt": RenderRule(
+            "wrapper",
+            opening=Name("sqrt(", "√(", r"\sqrt{"),
+            closing=Name(")", ")", "}"),
+            scalable=False,
+        ),
+        "scalar_sqrt": RenderRule(
+            "wrapper",
+            opening=Name("sqrt(", "√(", r"\sqrt{"),
+            closing=Name(")", ")", "}"),
+            scalable=False,
+        ),
+        "norm": RenderRule(
+            "wrapper",
+            opening=Name("||", "‖", r"\lVert "),
+            closing=Name("||", "‖", r" \rVert"),
+            scalable=False,
+        ),
+        "norm2": RenderRule(
+            "wrapper",
+            opening=Name("||", "‖", r"\lVert "),
+            closing=Name("||^2", "‖²", r" \rVert^{2}"),
+            scalable=False,
+        ),
+        "even_grades": RenderRule(
+            "wrapper",
+            opening=Name("<", "⟨", r"\langle "),
+            closing=Name(">even", "⟩₊", r" \rangle_{\text{even}}"),
+            scalable=False,
+        ),
+        "odd_grades": RenderRule(
+            "wrapper",
+            opening=Name("<", "⟨", r"\langle "),
+            closing=Name(">odd", "⟩₋", r" \rangle_{\text{odd}}"),
+            scalable=False,
+        ),
+        "sandwich": RenderRule("sandwich"),
+        "metric_regressive_product": RenderRule("metric_regressive"),
     }
+    for operation_id in (
+        "antidot_product",
+        "antimetric_apply",
+        "antireverse",
+        "antiwedge",
+        "bulk_part",
+        "geometric_antiproduct",
+        "left_hodge_dual",
+        "left_interior_product",
+        "left_weight_dual",
+        "metric_apply",
+        "metric_inner_product",
+        "right_hodge_dual",
+        "right_interior_product",
+        "right_weight_dual",
+        "transwedge",
+        "transwedge_antiproduct",
+        "weight_part",
+    ):
+        rules[operation_id] = compact_function(operation_id)
+    return rules
 
 
 def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
@@ -356,16 +536,23 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
             "geometric_antiproduct",
             Name("geometric_antiproduct", "⟇", r"\mathbin{\text{⟇}}"),
         ),
-        "metric_inner_product": ("metric_inner_product", Name("metric_inner_product", "•", r"\bullet")),
-        "antidot_product": ("antidot_product", Name("antidot_product", "∘", r"\circ")),
+        "metric_inner_product": (
+            "metric_inner_product",
+            Name("metric_inner_product", "•", r"\mathbin{\bullet}"),
+        ),
+        "antidot_product": (
+            "antidot_product",
+            Name("antidot_product", "∘", r"\mathbin{\circ}"),
+        ),
         "left_interior_product": (
             "left_interior_product",
-            Name("left_interior_product", "⌋", r"\rfloor"),
+            Name("left_interior_product", "⌋", r"\mathbin{\rfloor}"),
         ),
         "right_interior_product": (
             "right_interior_product",
-            Name("right_interior_product", "⌊", r"\lfloor"),
+            Name("right_interior_product", "⌊", r"\mathbin{\lfloor}"),
         ),
+        "antiwedge": ("antiwedge", Name("antiwedge", "∨", r"\vee")),
     }
     for operation_id, (ascii_name, symbol) in rga_binary.items():
         target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
@@ -389,17 +576,28 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
         target_rule(
             operation_id,
             "latex",
-            RenderRule("infix", symbol=symbol, parameter="order", precedence=30),
+            RenderRule(
+                "infix",
+                symbol=symbol,
+                parameter="order",
+                parameter_position="underscript",
+                precedence=30,
+            ),
         )
 
     for operation_id, ascii_name, accent, kind in (
+        ("complement", "complement", Name("bar", "\u0305", r"\overline"), "accent"),
         ("right_complement", "right_complement", Name("bar", "\u0305", r"\overline"), "accent"),
         ("left_complement", "left_complement", Name("underline", "\u0332", r"\underline"), "underaccent"),
         ("antireverse", "antireverse", Name("utilde", "\u0330", r"\utilde"), "underaccent"),
     ):
         target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
         target_rule(operation_id, "unicode", RenderRule(kind, symbol=accent))
-        target_rule(operation_id, "latex", RenderRule(kind, symbol=accent))
+        target_rule(
+            operation_id,
+            "latex",
+            RenderRule(kind, symbol=accent, group_operand=False),
+        )
 
     for operation_id, ascii_name, symbol, kind in (
         ("right_hodge_dual", "right_hodge_dual", Name("star", "★", r"\text{★}"), "superscript"),
@@ -422,7 +620,16 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
         target_rule(operation_id, "latex", RenderRule("prefix", symbol=symbol))
 
     for target in _RULE_TARGETS:
-        target_rule("conjugate", target, RenderRule("function", symbol="conjugate"))
+        target_rule(
+            "conjugate",
+            target,
+            RenderRule("function", symbol="conjugate", scalable=False),
+        )
+        target_rule(
+            "hestenes_inner",
+            target,
+            RenderRule("function", symbol="hestenes_inner", scalable=False),
+        )
     return rules
 
 
@@ -432,12 +639,26 @@ class DisplayPolicy:
 
     content: str = "auto"
     target: str = "unicode"
+    zero_tolerance: float = 1e-12
+    coefficient_precision: int = 6
 
     def __post_init__(self) -> None:
         if self.content not in {"auto", "name", "expr", "value", "full"}:
             raise ValueError("display content must be 'auto', 'name', 'expr', 'value', or 'full'")
         if self.target not in {"ascii", "unicode", "latex"}:
             raise ValueError("display target must be 'ascii', 'unicode', or 'latex'")
+        if not isinstance(self.zero_tolerance, Real) or isinstance(self.zero_tolerance, bool):
+            raise TypeError("display zero_tolerance must be a real number")
+        tolerance = float(self.zero_tolerance)
+        if not math.isfinite(tolerance) or tolerance < 0:
+            raise ValueError("display zero_tolerance must be finite and non-negative")
+        if not isinstance(self.coefficient_precision, Integral) or isinstance(self.coefficient_precision, bool):
+            raise TypeError("display coefficient_precision must be an integer")
+        precision = int(self.coefficient_precision)
+        if not 1 <= precision <= 17:
+            raise ValueError("display coefficient_precision must be between 1 and 17")
+        object.__setattr__(self, "zero_tolerance", tolerance)
+        object.__setattr__(self, "coefficient_precision", precision)
 
 
 @dataclass(frozen=True, slots=True)

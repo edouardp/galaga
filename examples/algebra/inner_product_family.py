@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -22,6 +22,7 @@ def _():
     import marimo as mo
     from galaga.facade import (
         Algebra,
+        DisplayPolicy,
         doran_lasenby_inner,
         hestenes_inner,
         left_contraction,
@@ -32,6 +33,7 @@ def _():
 
     return (
         Algebra,
+        DisplayPolicy,
         doran_lasenby_inner,
         gm,
         hestenes_inner,
@@ -55,8 +57,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 

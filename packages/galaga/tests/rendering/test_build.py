@@ -5,7 +5,7 @@ import pytest
 from galaga.expression import BladeLiteral, Call, MultivectorLiteral, ScalarLiteral, Symbol
 from galaga.facade import Algebra, OperationSpec
 from galaga.names import Name
-from galaga.presentation import Notation, default_presentation
+from galaga.presentation import Notation, RenderRule, default_presentation
 from galaga.presets import LengyelRGAPreset
 from galaga.rendering import (
     Accent,
@@ -20,6 +20,7 @@ from galaga.rendering import (
     Subscript,
     Sum,
     SumTerm,
+    Wrapper,
     _build,
     expression_tree,
     value_tree,
@@ -64,21 +65,100 @@ def test_default_call_rules_build_semantic_layout_nodes() -> None:
     x = Symbol("x")
     y = Symbol("y")
 
-    assert expression_tree(Call("add", (x, y)), presentation) == Infix(
-        (Identifier("x"), Identifier("y")),
-        "+",
-        precedence=20,
-        associativity="associative",
-        operation_id="add",
+    assert expression_tree(Call("add", (x, y)), presentation) == Sum(
+        (SumTerm(Identifier("x")), SumTerm(Identifier("y")))
     )
     assert expression_tree(Call("scalar_divide", (x,), {"scalar": 2}), presentation) == Fraction(
         Identifier("x"), Literal(2)
     )
     assert expression_tree(Call("power", (x,), {"exponent": 2}), presentation) == Power(Identifier("x"), Literal(2))
-    assert expression_tree(Call("grade", (x,), {"target": 2}), presentation) == Subscript(Identifier("x"), Literal(2))
+    assert expression_tree(Call("grade", (x,), {"target": 2}), presentation) == Subscript(
+        Wrapper(
+            Identifier("x"),
+            Name("<", "⟨", r"\langle "),
+            Name(">", "⟩", r" \rangle"),
+            scalable=False,
+        ),
+        Literal(2),
+    )
     reverse = expression_tree(Call("reverse", (x,)), presentation)
     assert isinstance(reverse, Accent)
     assert reverse.body == Identifier("x")
+
+
+def test_expression_tree_applies_conservative_display_identities_without_mutating_provenance() -> None:
+    expression = Call(
+        "add",
+        (
+            Call("scalar_multiply", (Symbol("x"),), {"scalar": 1}),
+            Call("scalar_multiply", (Symbol("y"),), {"scalar": 0}),
+        ),
+    )
+
+    tree = expression_tree(expression, default_presentation(2))
+
+    assert tree == Identifier("x")
+    assert expression.operation_id == "add"
+    assert expression.operands[0] == Call("scalar_multiply", (Symbol("x"),), {"scalar": 1})
+    assert expression.operands[1] == Call("scalar_multiply", (Symbol("y"),), {"scalar": 0})
+
+
+def test_conventional_addition_absorbs_a_negative_scaled_rhs_into_a_sum_term() -> None:
+    expression = Call(
+        "add",
+        (
+            ScalarLiteral(1),
+            Call("scalar_multiply", (Symbol("v"),), {"scalar": -0.5}),
+        ),
+    )
+
+    assert expression_tree(expression, default_presentation(1)) == Sum(
+        (
+            SumTerm(Literal(1.0)),
+            SumTerm(
+                Product(
+                    (Literal(0.5), Identifier("v")),
+                    precedence=25,
+                    associativity="none",
+                    operation_id="scalar_multiply",
+                ),
+                negative=True,
+            ),
+        )
+    )
+
+
+def test_custom_addition_rule_remains_an_infix_operation() -> None:
+    notation = Notation.default().with_rule(
+        "add",
+        RenderRule("infix", symbol="@", precedence=25, associativity="left"),
+    )
+    presentation = default_presentation(1).with_notation(notation)
+
+    assert expression_tree(Call("add", (Symbol("x"), Symbol("y"))), presentation) == Infix(
+        (Identifier("x"), Identifier("y")),
+        "@",
+        precedence=25,
+        associativity="left",
+        operation_id="add",
+    )
+
+
+def test_subtracting_from_a_sum_keeps_the_left_associative_sum_flat() -> None:
+    presentation = default_presentation(1)
+
+    tree = expression_tree(
+        Call("subtract", (Call("add", (Symbol("a"), Symbol("b"))), Symbol("c"))),
+        presentation,
+    )
+
+    assert tree == Sum(
+        (
+            SumTerm(Identifier("a")),
+            SumTerm(Identifier("b")),
+            SumTerm(Identifier("c"), negative=True),
+        )
+    )
 
 
 def test_nested_operations_use_one_parenthesization_model_before_emission() -> None:
@@ -123,7 +203,7 @@ def test_builder_resolves_operation_identity_but_never_calls_its_evaluator(
 
     tree = expression_tree(Call("add", (Symbol("a"), Symbol("b"))), default_presentation(1))
 
-    assert isinstance(tree, Infix)
+    assert isinstance(tree, Sum)
     assert calls == 0
 
 

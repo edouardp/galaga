@@ -1,11 +1,23 @@
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
-from galaga.expression import Call, Symbol, evaluate
-from galaga.facade import OPERATIONS, Algebra, Multivector, OperationSpec, _numeric, geometric_product
+from galaga.expression import Call, ScalarLiteral, Symbol, evaluate
+from galaga.facade import (
+    OPERATIONS,
+    Algebra,
+    Multivector,
+    OperationSpec,
+    _numeric,
+    exp,
+    geometric_product,
+    inverse,
+    log,
+    sqrt,
+    unit,
+)
 
 
 def _arguments(operation_id: str, left: Multivector, right: Multivector) -> tuple[tuple[Any, ...], dict[str, Any]]:
@@ -130,3 +142,43 @@ def test_tracked_parameter_iterables_are_normalized_before_numeric_evaluation() 
     assert isinstance(result.expr, Call)
     assert result.expr.parameters == (("targets", (0, 2)),)
     assert evaluate(result.expr, algebra=algebra) == result
+
+
+def test_reflected_addition_preserves_the_users_source_order_in_provenance() -> None:
+    algebra = Algebra(2)
+    a, b = (value.named(name) for value, name in zip(algebra.basis_vectors(expr=True), "ab", strict=True))
+
+    result = 1 + a + (a ^ b)
+
+    assert result.expr == Call(
+        "add",
+        (
+            Call("add", (ScalarLiteral(1), Symbol("a"))),
+            Call("outer_product", (Symbol("a"), Symbol("b"))),
+        ),
+    )
+
+
+def test_default_numeric_tolerances_do_not_leak_into_expression_provenance() -> None:
+    algebra = Algebra(2)
+    a, b = (value.named(name) for value, name in zip(algebra.basis_vectors(expr=True), "ab", strict=True))
+    invertible = cast(Multivector, 2 + 0.25 * a)
+    rotor = exp(cast(Multivector, 0.25 * (a ^ b)))
+
+    results = (unit(a + b), inverse(invertible), log(rotor), sqrt(rotor))
+
+    for result in results:
+        assert isinstance(result, Multivector)
+        assert isinstance(result.expr, Call)
+        assert result.expr.parameters == ()
+
+
+def test_nondefault_numeric_tolerances_remain_reproducible_expression_parameters() -> None:
+    algebra = Algebra(1)
+    (a,) = (value.named("a") for value in algebra.basis_vectors(expr=True))
+
+    result = inverse(cast(Multivector, 2 + a), rtol=1e-8)
+
+    assert isinstance(result.expr, Call)
+    assert result.expr.parameters == (("rtol", 1e-8),)
+    assert evaluate(result.expr, algebra=algebra, environment={"a": a}).almost_equal(result)

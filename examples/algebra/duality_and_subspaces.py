@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -20,11 +20,12 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, complement, dual, inverse, left_contraction, uncomplement, undual
+    from galaga.facade import Algebra, DisplayPolicy, complement, dual, inverse, left_contraction, uncomplement, undual
     import galaga_marimo as gm
 
     return (
         Algebra,
+        DisplayPolicy,
         complement,
         dual,
         gm,
@@ -48,8 +49,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
@@ -73,21 +74,21 @@ def _(
     rejection = v - projection
     reflection = -e3 * v * inverse(e3)
     gm.md(rt"""
-    {B} = {B:value}
+    {B}
 
-    Dual of {B}: $\\quad$  {dual(B)} = {dual(B):value}
+    Dual of {B:name}: $\quad$  {dual(B)}
 
-    Undual of Dual of {B}: $\\quad$ {undual(dual(B))} = {undual(dual(B)):value}
+    Undual of Dual of {B:name}: $\quad$ {undual(dual(B))}
 
-    Complement of {B}: $\\quad$  {complement(B)} = {complement(B):value}
+    Complement of {B:name}: $\quad$  {complement(B)}
 
-    Uncomplement of Complement of {B}: $\\quad$ {uncomplement(complement(B))} = {uncomplement(complement(B)):value}
+    Uncomplement of Complement of {B:name}: $\quad$ {uncomplement(complement(B))}
 
-    Project {v} onto {B}: $\\quad$ {projection} = {projection:value}
+    Project {v:name} onto {B:name}: $\quad$ {projection}
 
-    Reject {v} onto {B}: $\\quad$ {rejection} = {rejection:value}
+    Reject {v:name} onto {B:name}: $\quad$ {rejection}
 
-    Reflect {v} in {e3}: $\\quad$ {reflection} = {reflection:value}
+    Reflect {v:name} in {e3}: $\quad$ {reflection}
     """)
     return
 

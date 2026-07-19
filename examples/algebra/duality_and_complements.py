@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, complement, dual, undual, uncomplement
+    from galaga.facade import Algebra, DisplayPolicy, complement, dual, undual, uncomplement
     import galaga_marimo as gm
 
-    return Algebra, complement, dual, gm, mo, np, plt, uncomplement, undual
+    return Algebra, DisplayPolicy, complement, dual, gm, mo, np, plt, uncomplement, undual
 
 
 @app.cell(hide_code=True)
@@ -49,9 +49,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    cl3 = Algebra((1, 1, 1), )
-    pga = Algebra((1, 1, 1, 0), )
+def _(Algebra, DisplayPolicy):
+    cl3 = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
+    pga = Algebra((1, 1, 1, 0), display=DisplayPolicy(content="full"))
     e1, e2, e3 = cl3.basis_vectors(expr=True)
     p1, p2, p3, p0 = pga.basis_vectors(expr=True)
     return e1, e2, p0, p1, p2
@@ -60,23 +60,21 @@ def _(Algebra):
 @app.cell
 def _(complement, dual, e1, e2, gm, uncomplement, undual):
     bivector = (e1 ^ e2).named("B")
-    dual_b = dual(bivector).named(r"B^\star", latex=r"B^\star")
-    comp_b = complement(bivector).named(r"B^\complement", latex=r"B^\complement")
-    undual_b = undual(dual_b).named(r"(B^\star)^{\star^{-1}}", latex=r"(B^\star)^{\star^{-1}}")
-    uncomp_b = uncomplement(comp_b).named(r"(B^\complement)^{\complement^{-1}}", latex=r"(B^\complement)^{\complement^{-1}}")
+    dual_b = dual(bivector)
+    comp_b = complement(bivector)
+    undual_b = undual(dual_b)
+    uncomp_b = uncomplement(comp_b)
 
     gm.md(rt"""
-    ## Euclidean 3D
-
     {bivector} = {bivector:value}
 
-    {dual_b} = {dual_b:value}
+    {dual(bivector)}
 
-    {comp_b} = {comp_b:value}
+    {complement(bivector)}
 
-    {undual_b} = {undual_b:value}
+    {undual(dual_b)}
 
-    {uncomp_b} = {uncomp_b:value}
+    {uncomplement(comp_b)}
     """)
     return
 
@@ -95,12 +93,12 @@ def _(mo):
 @app.cell
 def _(complement, gm, p0, p1, p2):
     plane = (p1 + 0.7 * p2 - 1.2 * p0).named(r"\pi", latex=r"\pi")
-    ideal_line = complement(plane).named(r"\pi^\complement", latex=r"\pi^\complement")
+    ideal_line = complement(plane)
 
     gm.md(rt"""
-    {plane} = {plane:value}
+    {plane}
 
-    {ideal_line} = {ideal_line:value}
+    {ideal_line}
 
     In this degenerate algebra the complement still converts between primal and
     complementary basis structure without needing a pseudoscalar inverse.
@@ -132,16 +130,16 @@ def _(angle, complement, dual, e1, e2, gm, np):
     _theta = np.radians(angle.value)
     a = e1.named("a")
     b = (np.cos(_theta) * e1 + np.sin(_theta) * e2).named("b")
-    area = (a ^ b).named(r"a \wedge b", latex=r"a \wedge b")
-    dual_area = dual(area).named(r"(a \wedge b)^\star", latex=r"(a \wedge b)^\star")
-    comp_area = complement(area).named(r"(a \wedge b)^\complement", latex=r"(a \wedge b)^\complement")
+    area = (a ^ b)
+    dual_area = dual(area)
+    comp_area = complement(area)
 
     gm.md(rt"""
-    {area} = {area:value}
+    {area}
 
-    {dual_area} = {dual_area:value}
+    {dual_area}
 
-    {comp_area} = {comp_area:value}
+    {comp_area}
     """)
     return
 

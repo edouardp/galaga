@@ -47,6 +47,13 @@ operation ID, expression operands, and normalized immutable parameters. The
 legacy `galaga.expr` namespace is not replaced before its compatibility
 cutover.
 
+Optional numeric tolerances are stored only when they differ from the public
+operation default. Default calls therefore remain mathematical expressions
+such as `inverse(x)` rather than exposing implementation thresholds, while a
+non-default tolerance remains normalized provenance and reproduces evaluation.
+Reflected commutative operators also preserve the user's source operand order;
+numeric commutativity is not permission to reorder provenance.
+
 `OperationSpec` is extended with expression arity, `ParameterSpec` schemas,
 and a result kind. Numeric evaluator arity remains separate: a grade call, for
 example, has evaluator arity two but one expression operand plus a normalized

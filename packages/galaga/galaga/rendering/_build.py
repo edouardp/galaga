@@ -12,6 +12,7 @@ from ..expression import (
     MultivectorLiteral,
     ScalarLiteral,
     Symbol,
+    simplify,
 )
 from ..expression import (
     Call as ExpressionCall,
@@ -24,9 +25,11 @@ from .tree import (
     Delimited,
     Equality,
     Fraction,
+    Group,
     Identifier,
     Infix,
     Literal,
+    MathClass,
     Node,
     Postfix,
     Power,
@@ -35,6 +38,7 @@ from .tree import (
     Subscript,
     Sum,
     SumTerm,
+    Underset,
     Wrapper,
     grouped_child,
 )
@@ -51,21 +55,30 @@ def expression_tree(
         raise TypeError("expression must be an Expr")
     selected = _presentation(presentation)
     _target(target)
+    return _expression_tree(simplify(expression), selected, target=target)
+
+
+def _expression_tree(
+    expression: Expr,
+    presentation: PresentationConfig,
+    *,
+    target: str | None,
+) -> Node:
     if isinstance(expression, Symbol):
         return Identifier(expression.name)
     if isinstance(expression, ScalarLiteral):
-        return _signed_literal(expression.value)
+        return _signed_literal(expression.value, presentation)
     if isinstance(expression, BladeLiteral):
-        return _blade_term(expression.mask, float(expression.orientation), selected)
+        return _blade_term(expression.mask, float(expression.orientation), presentation)
     if isinstance(expression, MultivectorLiteral):
-        return _coefficient_tree(expression.coefficients, selected)
+        return _coefficient_tree(expression.coefficients, presentation)
     if isinstance(expression, ExpressionCall):
         # Resolve the operation before descending so a stale or foreign ID
         # fails in the semantic layer, independently of emitter selection.
         operation = _get_operation(expression.operation_id)
-        operands = tuple(expression_tree(operand, selected, target=target) for operand in expression.operands)
-        parameters = tuple((name, _parameter_tree(value)) for name, value in expression.parameters)
-        rule = selected.notation.rule(operation.id, target)
+        operands = tuple(_expression_tree(operand, presentation, target=target) for operand in expression.operands)
+        parameters = tuple((name, _parameter_tree(value, presentation)) for name, value in expression.parameters)
+        rule = presentation.notation.rule(operation.id, target)
         return _operation_tree(operation.id, operands, parameters, rule)
     raise TypeError(f"unsupported expression node {type(expression).__name__}")
 
@@ -126,20 +139,20 @@ def _coefficient_tree(coefficients: Sequence[float], presentation: PresentationC
     terms: list[SumTerm] = []
     for mask in presentation.display_order.masks:
         coefficient = float(coefficients[mask])
-        if coefficient == 0:
+        if coefficient == 0 or abs(coefficient) < presentation.display.zero_tolerance:
             continue
         label = presentation.blades.label(mask)
         displayed_coefficient = coefficient * label.ref.orientation
         magnitude = abs(displayed_coefficient)
         if mask == 0:
-            body: Node = Literal(magnitude)
-        elif magnitude == 1:
+            body: Node = _literal(magnitude, presentation)
+        elif _formats_as_one(magnitude, presentation.display.coefficient_precision):
             body = Identifier(label.name)
         else:
-            body = Product((Literal(magnitude), Identifier(label.name)))
+            body = Product((_literal(magnitude, presentation), Identifier(label.name)))
         terms.append(SumTerm(body, displayed_coefficient < 0))
     if not terms:
-        return Literal(0)
+        return _literal(0, presentation)
     if len(terms) == 1:
         term = terms[0]
         return _negated(term.body) if term.negative else term.body
@@ -155,22 +168,31 @@ def _blade_term(mask: int, coefficient: float, presentation: PresentationConfig)
     return _coefficient_tree(coefficients, presentation)
 
 
-def _signed_literal(value: float) -> Node:
-    return _negated(Literal(abs(value))) if value < 0 else Literal(value)
+def _literal(value: int | float, presentation: PresentationConfig) -> Literal:
+    return Literal(value, precision=presentation.display.coefficient_precision)
+
+
+def _signed_literal(value: float, presentation: PresentationConfig) -> Node:
+    literal = _literal(abs(value) if value < 0 else value, presentation)
+    return _negated(literal) if value < 0 else literal
+
+
+def _formats_as_one(value: float, precision: int) -> bool:
+    return format(value, f".{precision}g") == "1"
 
 
 def _negated(body: Node) -> Prefix:
     return Prefix("-", grouped_child(body, parent_precedence=40), precedence=40)
 
 
-def _parameter_tree(value: Any) -> Node:
+def _parameter_tree(value: Any, presentation: PresentationConfig) -> Node:
     if isinstance(value, Real) and not isinstance(value, bool):
-        return _signed_literal(float(value))
+        return _signed_literal(float(value), presentation)
     if isinstance(value, str):
         return Identifier(value)
     if isinstance(value, tuple):
         return Delimited(
-            tuple(_parameter_tree(item) for item in value),
+            tuple(_parameter_tree(item, presentation) for item in value),
             opening=Name("[", "[", r"["),
             closing=Name("]", "]", r"]"),
         )
@@ -189,7 +211,11 @@ def _operation_tree(
         symbol = rule.symbol
         if symbol is None:  # pragma: no cover - RenderRule validation
             raise RuntimeError("function render rule has no symbol")
-        return Call(symbol, _ordered((*operands, *(value for _, value in parameters)), rule))
+        return Call(
+            symbol,
+            _ordered((*operands, *(value for _, value in parameters)), rule),
+            scalable=rule.scalable,
+        )
 
     if rule.parameter is not None:
         parameter_lookup = dict(parameters)
@@ -214,9 +240,16 @@ def _operation_tree(
         symbol = rule.symbol
         if symbol is None:  # pragma: no cover - RenderRule validation
             raise RuntimeError("infix render rule has no symbol")
+        if operation_id == "add" and _is_conventional_addition(rule):
+            return _sum_tree(arguments)
+        if operation_id == "subtract" and _is_conventional_subtraction(rule) and isinstance(arguments[0], Sum):
+            return _difference_from_sum(arguments)
         operator: Node = Identifier(symbol)
         if decoration is not None:
-            operator = Subscript(operator, decoration)
+            if rule.parameter_position == "underscript":
+                operator = MathClass(Underset(operator, decoration), "binary")
+            else:
+                operator = Subscript(operator, decoration)
         children = _flatten_infix(arguments, operation_id, rule)
         grouped = _group_operands(children, operation_id, rule)
         return Infix(
@@ -243,10 +276,38 @@ def _operation_tree(
     if rule.kind == "fraction":
         if decoration is not None or len(arguments) != 2:
             return _functional_tree(operation_id, operands, parameters)
-        return Fraction(
-            grouped_child(arguments[0], parent_precedence=30),
-            grouped_child(arguments[1], parent_precedence=30),
+        return Fraction(arguments[0], arguments[1])
+
+    if rule.kind == "sandwich":
+        if decoration is not None or len(arguments) != 2:
+            return _functional_tree(operation_id, operands, parameters)
+        rotor, value = arguments
+        return Product(
+            (
+                grouped_child(rotor, parent_precedence=30),
+                grouped_child(value, parent_precedence=30),
+                Accent(rotor, Name("~", "\u0303", r"\widetilde")),
+            ),
+            precedence=30,
+            operation_id=operation_id,
         )
+
+    if rule.kind == "metric_regressive":
+        if decoration is not None or len(arguments) != 2:
+            return _functional_tree(operation_id, operands, parameters)
+        dual_symbol = Name("*", "★", "*")
+        undual_symbol = Name("*^-1", "★⁻¹", r"*^{-1}")
+        duals = tuple(
+            Power(grouped_child(argument, parent_precedence=50), Identifier(dual_symbol)) for argument in arguments
+        )
+        joined = Infix(
+            duals,
+            Name("^", "∧", r"\wedge"),
+            precedence=30,
+            associativity="associative",
+            operation_id="outer_product",
+        )
+        return Power(Group(joined), Identifier(undual_symbol))
 
     if rule.kind in {"superscript", "subscript"}:
         if decoration is not None:
@@ -278,6 +339,26 @@ def _operation_tree(
             )
         return Subscript(grouped_child(base, parent_precedence=rule.precedence), script)
 
+    if rule.kind == "wrapper":
+        opening = rule.opening
+        closing = rule.closing
+        if opening is None or closing is None:  # pragma: no cover - RenderRule validation
+            raise RuntimeError("wrapper render rule has no delimiters")
+        if not arguments:
+            return _functional_tree(operation_id, operands, parameters)
+        wrapped: Node
+        if len(arguments) == 1:
+            wrapped = Wrapper(arguments[0], opening, closing, scalable=rule.scalable)
+        else:
+            wrapped = Delimited(
+                arguments,
+                opening=opening,
+                closing=closing,
+                separator=Name(", ", ", ", r",\, "),
+                scalable=rule.scalable,
+            )
+        return Subscript(wrapped, _compact_script(decoration)) if decoration is not None else wrapped
+
     if decoration is not None or len(arguments) != 1:
         return _functional_tree(operation_id, operands, parameters)
     operand = arguments[0]
@@ -304,16 +385,14 @@ def _operation_tree(
         if symbol is None:  # pragma: no cover - RenderRule validation
             raise RuntimeError("accent render rule has no symbol")
         return Accent(
-            grouped_child(operand, parent_precedence=rule.precedence, operation_id=operation_id),
+            (
+                grouped_child(operand, parent_precedence=rule.precedence, operation_id=operation_id)
+                if rule.group_operand
+                else operand
+            ),
             symbol,
             position="under" if rule.kind == "underaccent" else "over",
         )
-    if rule.kind == "wrapper":
-        opening = rule.opening
-        closing = rule.closing
-        if opening is None or closing is None:  # pragma: no cover - RenderRule validation
-            raise RuntimeError("wrapper render rule has no delimiters")
-        return Wrapper(operand, opening, closing)
     raise RuntimeError(f"unsupported render-rule kind {rule.kind!r}")
 
 
@@ -323,6 +402,18 @@ def _functional_tree(
     parameters: tuple[tuple[str, Node], ...],
 ) -> Call:
     return Call(operation_id, (*operands, *(value for _, value in parameters)))
+
+
+def _compact_script(value: Node) -> Node:
+    if not isinstance(value, Delimited):
+        return value
+    return Delimited(
+        value.items,
+        opening=value.opening,
+        closing=value.closing,
+        separator=Name(",", ",", ","),
+        scalable=False,
+    )
 
 
 def _ordered(arguments: tuple[Node, ...], rule: RenderRule) -> tuple[Node, ...]:
@@ -357,6 +448,72 @@ def _flatten_product(arguments: tuple[Node, ...], operation_id: str, rule: Rende
         else:
             flattened.append(argument)
     return tuple(flattened)
+
+
+def _is_conventional_addition(rule: RenderRule) -> bool:
+    """Return whether an addition rule has the built-in signed-sum semantics."""
+    symbol = rule.symbol
+    return (
+        symbol is not None
+        and symbol.ascii == symbol.unicode == symbol.latex == "+"
+        and rule.precedence == 20
+        and rule.associativity == "associative"
+        and rule.flatten
+    )
+
+
+def _is_conventional_subtraction(rule: RenderRule) -> bool:
+    """Return whether subtraction has the built-in signed-sum semantics."""
+    symbol = rule.symbol
+    return (
+        symbol is not None
+        and symbol.ascii == symbol.unicode == symbol.latex == "-"
+        and rule.precedence == 20
+        and rule.associativity == "left"
+    )
+
+
+def _sum_tree(arguments: tuple[Node, ...]) -> Sum:
+    """Flatten addition and absorb a leading minus into each semantic term."""
+    terms: list[SumTerm] = []
+    for argument in arguments:
+        if isinstance(argument, Sum):
+            terms.extend(argument.terms)
+            continue
+        body, negative = _unsigned_term(argument)
+        terms.append(SumTerm(body, negative))
+    return Sum(terms)
+
+
+def _difference_from_sum(arguments: tuple[Node, ...]) -> Sum:
+    """Append a subtraction to an already-flat left-hand signed sum."""
+    if len(arguments) != 2 or not isinstance(arguments[0], Sum):  # pragma: no cover - caller invariant
+        raise RuntimeError("difference-from-sum requires a left-hand sum and one right operand")
+    right, already_negative = _unsigned_term(arguments[1])
+    return Sum((*arguments[0].terms, SumTerm(right, not already_negative)))
+
+
+def _unsigned_term(node: Node) -> tuple[Node, bool]:
+    """Split the conventional leading minus from one rendered sum term."""
+    if isinstance(node, Prefix) and node.operator.ascii == node.operator.unicode == node.operator.latex == "-":
+        return node.operand, True
+    if isinstance(node, Product) and node.factors:
+        coefficient = node.factors[0]
+        if (
+            isinstance(coefficient, Prefix)
+            and coefficient.operator.ascii == coefficient.operator.unicode == coefficient.operator.latex == "-"
+        ):
+            return (
+                Product(
+                    (coefficient.operand, *node.factors[1:]),
+                    separator=node.separator,
+                    precedence=node.binding,
+                    associativity=node.associativity,
+                    operation_id=node.operation_id,
+                ),
+                True,
+            )
+    return node, False
 
 
 def _group_operands(arguments: tuple[Node, ...], operation_id: str, rule: RenderRule) -> tuple[Node, ...]:

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, dual, norm
+    from galaga.facade import Algebra, DisplayPolicy, dual, norm
     import galaga_marimo as gm
 
-    return Algebra, dual, gm, mo, norm, np, plt
+    return Algebra, DisplayPolicy, dual, gm, mo, norm, np, plt
 
 
 @app.cell(hide_code=True)
@@ -45,8 +45,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra(p=3, q=0, display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
@@ -62,15 +62,15 @@ def _(e1, e2, e3, gm):
     gm.md(rt"""
     ## Length, Area, Volume
 
-    {_u} = {_u:value}
+    {_u}
 
-    {_v} = {_v:value}
+    {_v}
 
-    {_w} = {_w:value}
+    {_w}
 
-    {bivector} = {bivector:value}
+    {bivector}
 
-    {trivector} = {trivector:value}
+    {trivector}
     """)
     return
 
@@ -103,16 +103,22 @@ def _(angle, dual, e1, e2, gm, length, norm, np):
     pseudo_cross = dual(wedge)
 
     gm.md(rt"""
-    {u} = {u:value}
+    {u}
 
-    {v} = {v:value}
+    {v}
 
-    {wedge} = {wedge:value}
+    {wedge}
 
-    Area of the parallelogram = {area:.4f}
+    Area of the parallelogram = {area:.6f}
 
-    Dual vector {pseudo_cross} = {pseudo_cross:value}
+    Dual vector {pseudo_cross}
     """)
+    return (v,)
+
+
+@app.cell
+def _(v):
+    v.latex()
     return
 
 

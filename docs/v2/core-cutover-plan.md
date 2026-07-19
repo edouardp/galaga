@@ -176,7 +176,7 @@ The replacement suite must visibly distinguish:
 | 3 | Legacy numeric suite runs on facade | Complete | All applicable numeric tests pass the facade |
 | 4 | Presentation and presets are independent | Complete | Configuration and scope isolation tests pass |
 | 5 | Expression provenance is rebuilt | Complete | Evaluation round trips and numeric-only isolation pass |
-| 6 | Rendering and notation are rebuilt | Complete | Semantic and golden rendering tests pass |
+| 6 | Rendering and notation are rebuilt | Complete | Semantic, golden, and legacy/facade differential rendering tests pass |
 | 7 | Companion packages and shims migrate | Complete | Integration and deprecation suites pass |
 | 8 | Top-level API shadows the facade | Planned | Full suite reaches no legacy numeric path |
 | 9 | Legacy engine is removed | Planned | Clean wheel and release gates pass |
@@ -895,7 +895,8 @@ Required tests:
 
 - changing notation leaves expression identity and numeric value unchanged;
 - every catalog operation has a fallback rendering;
-- competing inner products remain distinguishable in every preset; and
+- competing inner-product identities remain distinct, and explicit teaching
+  presets render them distinguishably; and
 - primary long-form and optional short functional output are both covered.
 
 ### W6.3 Implement ASCII, Unicode, and LaTeX emitters
@@ -949,22 +950,29 @@ Phase 6 exit evidence recorded on 2026-07-19:
 - immutable generic and target-specific `RenderRule` values provide complete
   long functional fallback, optional short functions, and conventional,
   Doran-Lasenby, Hestenes, and Lengyel/RGA presets;
-- competing inner products are distinct in every preset and output target;
+- competing inner products are distinct in explicit teaching presets and in
+  functional output; default LaTeX deliberately retains Galaga 1's shared dot
+  glyph for its Hestenes and Doran-Lasenby operations while their stable IDs
+  remain distinct;
 - ASCII, Unicode, and LaTeX emitters cover every node family and import no
   legacy numeric or rendering implementation;
 - `galaga.display` independently resolves content and target with explicit,
   scoped, and persistent precedence, and every facade display hook delegates
   to it;
-- signed RGA blades, ambiguous precedence cases, target escaping, and async
-  presentation isolation have dedicated structural and golden tests;
-- the full Python 3.11 Galaga suite passes 2,738 tests with 19 skips; focused
-  rendering/presentation coverage records 91% branch coverage for emission,
-  87% for the semantic tree, 80% for display policy, and 76% for the builder;
-  and
+- signed RGA blades, ambiguous precedence cases, compact/scalable delimiters,
+  default-parameter elision, source-order provenance, target escaping, and
+  async presentation isolation have dedicated structural and golden tests;
+- the live-algebra differential audit compares expression, value, full,
+  rich-display, and coefficient channels; its first checked report covers 73
+  expressions and all 45 operation IDs shared by the legacy and facade
+  catalogs; reviewer-guided remediation increased exact matches from 16 to 65,
+  with eight accepted differences classified in the executable ledger; and
 - focused Ruff and Pyrefly validation passes. The architecture and ownership
   are recorded in
   [Semantic rendering implementation](rendering-implementation.md) and
-  [ADR-078](../adrs/078-shared-semantic-rendering-pipeline.md).
+  [ADR-078](../adrs/078-shared-semantic-rendering-pipeline.md). The
+  [rendering parity guide](rendering-parity.md) records the differential
+  command, report format, and review workflow.
 
 ## Phase 7: migrate compatibility and companion packages
 

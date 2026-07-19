@@ -15,6 +15,10 @@ from galaga.facade import Algebra
         (Call("negate", (Call("negate", (Symbol("x"),)),)), Symbol("x")),
         (Call("negate", (ScalarLiteral(2),)), ScalarLiteral(-2)),
         (Call("scalar_multiply", (Symbol("x"),), {"scalar": 1}), Symbol("x")),
+        (
+            Call("scalar_multiply", (Symbol("x"),), {"scalar": -1}),
+            Call("negate", (Symbol("x"),)),
+        ),
         (Call("scalar_multiply", (Symbol("x"),), {"scalar": 0}), ScalarLiteral(0)),
         (Call("scalar_multiply", (ScalarLiteral(2),), {"scalar": 3}), ScalarLiteral(6)),
         (Call("scalar_divide", (Symbol("x"),), {"scalar": 1}), Symbol("x")),

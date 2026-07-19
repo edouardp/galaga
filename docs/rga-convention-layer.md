@@ -45,6 +45,19 @@ changes lookup and future rendering, not the Gram matrix or storage basis.
 
 The Lengyel preset emits KaTeX-compatible LaTeX without `\unicode{...}`
 extensions. In particular, the Unicode antiscalar `𝟙` renders as `\text{𝟙}`.
+Its compact notation also distinguishes the position of related operations:
+right Hodge and weight duals render as `A^★` and `A^☆`, left duals as `A_★`
+and `A_☆`, and the bulk and weight projections as `A_●` and `A_○` in Unicode.
+LaTeX uses the corresponding `\text{★}`, `\text{☆}`, `\text{●}`, and
+`\text{○}` scripts. Both `complement(a)` and `right_complement(a)` use the
+RGA overline, while `left_complement(a)` uses the underline; `antiwedge(a, b)`
+uses the same `\vee` meet symbol as `regressive_product(a, b)`.
+
+These are executable presentation contracts, not documentation-only examples.
+`tests/rendering/test_rga_latex_contract.py` checks every Lengyel operation in
+the supported expression channels, all sixteen blade labels, signed native
+orientation, and representative compound expressions from the RGA demo and
+numeric source tables.
 
 ## Operation Correspondence
 

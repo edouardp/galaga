@@ -174,6 +174,8 @@ def test_notation_and_display_policy_validate_their_own_concerns():
     notation = Notation("functional", {"geometric_product": "gp"})
     assert notation.token("geometric_product") == "gp"
     assert notation.token("missing", "?") == "?"
+    assert DisplayPolicy().zero_tolerance == 1e-12
+    assert DisplayPolicy().coefficient_precision == 6
 
     with pytest.raises(ValueError, match="duplicate notation"):
         Notation("bad", (("gp", "*"), ("gp", "×")))
@@ -185,6 +187,18 @@ def test_notation_and_display_policy_validate_their_own_concerns():
         DisplayPolicy(content="everything")
     with pytest.raises(ValueError, match="display target"):
         DisplayPolicy(target="html")
+    with pytest.raises(TypeError, match="zero_tolerance must be a real number"):
+        DisplayPolicy(zero_tolerance=True)
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        DisplayPolicy(zero_tolerance=-1)
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        DisplayPolicy(zero_tolerance=float("inf"))
+    with pytest.raises(TypeError, match="coefficient_precision must be an integer"):
+        DisplayPolicy(coefficient_precision=6.5)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="between 1 and 17"):
+        DisplayPolicy(coefficient_precision=0)
+    with pytest.raises(ValueError, match="between 1 and 17"):
+        DisplayPolicy(coefficient_precision=18)
 
 
 def test_configuration_type_boundaries_fail_before_partial_objects_escape():

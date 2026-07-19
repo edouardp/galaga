@@ -110,10 +110,15 @@ class Literal(Node):
     """A finite numeric literal."""
 
     value: int | float
+    precision: int
 
-    def __init__(self, value: int | float) -> None:
+    def __init__(self, value: int | float, *, precision: int = 6) -> None:
         if not isinstance(value, Real) or isinstance(value, bool):
             raise TypeError("literal value must be a real number")
+        if not isinstance(precision, Integral) or isinstance(precision, bool):
+            raise TypeError("literal precision must be an integer")
+        if not 1 <= precision <= 17:
+            raise ValueError("literal precision must be between 1 and 17")
         normalized: int | float
         if isinstance(value, Integral):
             normalized = int(value)
@@ -124,6 +129,7 @@ class Literal(Node):
             if normalized == 0:
                 normalized = 0.0
         object.__setattr__(self, "value", normalized)
+        object.__setattr__(self, "precision", int(precision))
 
     @property
     def precedence(self) -> int:
@@ -286,10 +292,14 @@ class Call(Node):
 
     function: Name
     arguments: tuple[Node, ...]
+    scalable: bool
 
-    def __init__(self, function: Name | str, arguments: Any = ()) -> None:
+    def __init__(self, function: Name | str, arguments: Any = (), *, scalable: bool = True) -> None:
+        if not isinstance(scalable, bool):
+            raise TypeError("call scalable flag must be a boolean")
         object.__setattr__(self, "function", _name(function, field="function name"))
         object.__setattr__(self, "arguments", _nodes(arguments, field="call arguments", minimum=0))
+        object.__setattr__(self, "scalable", scalable)
 
     @property
     def precedence(self) -> int:
@@ -386,17 +396,55 @@ class Accent(Node):
 
 
 @dataclass(frozen=True, slots=True, init=False)
+class Underset(Node):
+    """An annotation placed beneath a mathematical body when supported."""
+
+    body: Node
+    annotation: Node
+
+    def __init__(self, body: Node, annotation: Node) -> None:
+        object.__setattr__(self, "body", _node(body, field="underset body"))
+        object.__setattr__(self, "annotation", _node(annotation, field="underset annotation"))
+
+    @property
+    def precedence(self) -> int:
+        return Precedence.POSTFIX
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class MathClass(Node):
+    """Assign a TeX math class without contaminating the semantic body."""
+
+    body: Node
+    kind: str
+
+    def __init__(self, body: Node, kind: str) -> None:
+        if kind not in {"binary"}:
+            raise ValueError("math class must be 'binary'")
+        object.__setattr__(self, "body", _node(body, field="math-class body"))
+        object.__setattr__(self, "kind", kind)
+
+    @property
+    def precedence(self) -> int:
+        return self.body.precedence
+
+
+@dataclass(frozen=True, slots=True, init=False)
 class Wrapper(Node):
     """A body delimited by semantic open and close glyphs."""
 
     body: Node
     opening: Name
     closing: Name
+    scalable: bool
 
-    def __init__(self, body: Node, opening: Name | str, closing: Name | str) -> None:
+    def __init__(self, body: Node, opening: Name | str, closing: Name | str, *, scalable: bool = True) -> None:
+        if not isinstance(scalable, bool):
+            raise TypeError("wrapper scalable flag must be a boolean")
         object.__setattr__(self, "body", _node(body, field="wrapper body"))
         object.__setattr__(self, "opening", _name(opening, field="wrapper opening"))
         object.__setattr__(self, "closing", _name(closing, field="wrapper closing"))
+        object.__setattr__(self, "scalable", scalable)
 
     @property
     def precedence(self) -> int:
@@ -410,6 +458,8 @@ class Delimited(Node):
     items: tuple[Node, ...]
     opening: Name
     closing: Name
+    separator: Name
+    scalable: bool
 
     def __init__(
         self,
@@ -417,10 +467,16 @@ class Delimited(Node):
         *,
         opening: Name | str = "(",
         closing: Name | str = ")",
+        separator: Name | str = ", ",
+        scalable: bool = True,
     ) -> None:
+        if not isinstance(scalable, bool):
+            raise TypeError("delimiter scalable flag must be a boolean")
         object.__setattr__(self, "items", _nodes(items, field="delimited items", minimum=0))
         object.__setattr__(self, "opening", _name(opening, field="delimiter opening"))
         object.__setattr__(self, "closing", _name(closing, field="delimiter closing"))
+        object.__setattr__(self, "separator", _name(separator, field="delimiter separator"))
+        object.__setattr__(self, "scalable", scalable)
 
     @property
     def precedence(self) -> int:
@@ -489,6 +545,7 @@ __all__ = [
     "Identifier",
     "Infix",
     "Literal",
+    "MathClass",
     "Node",
     "Postfix",
     "Power",
@@ -499,6 +556,7 @@ __all__ = [
     "Sum",
     "SumTerm",
     "Text",
+    "Underset",
     "Wrapper",
     "grouped_child",
 ]

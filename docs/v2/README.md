@@ -25,6 +25,12 @@
 - [Semantic rendering implementation](rendering-implementation.md) decomposes
   the shared render tree, precedence model, immutable notation rules, emitters,
   content policy, rich hooks, and scoped teaching presentations.
+- [Legacy/facade LaTeX rendering parity](rendering-parity.md) explains the
+  dual-algebra audit, executable difference ledger, permanent Pytest gate, and
+  structured Markdown reports used to review the top-level cutover.
+- [Exact configured rendering contracts](exact-rendering-contracts.md) explain
+  the parameterized algebra/display/expression matrix and reviewed literal
+  LaTeX strings that make rendering decisions permanent unit tests.
 - [Compatibility shims](compatibility-shims.md) records permanent same-object
   aliases, temporary warning adapters, ambiguous-name guidance, and bridge
   retirement policy.
@@ -86,6 +92,7 @@ legacy engine until Phase 8 performs the shadow cutover.
 - [ADR-078: Shared semantic rendering pipeline](../adrs/078-shared-semantic-rendering-pipeline.md)
 - [ADR-082: Matrix provenance is package-owned](../adrs/082-matrix-provenance-is-package-owned.md)
 - [ADR-083: Maintained notebooks are executable integration contracts](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md)
+- [ADR-084: Exact configured rendering contracts](../adrs/084-exact-configured-rendering-contracts.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

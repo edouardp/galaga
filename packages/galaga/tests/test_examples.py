@@ -74,8 +74,10 @@ def test_rga_demo_uses_the_rga_preset_and_expression_provenance():
 
     assert "from galaga.facade import (" in source
     assert "p_rga," in source
-    assert "rga = Algebra(config=p_rga())" in source
-    assert "locals().update(rga.locals(expr=True))" in source
+    assert "rga = Algebra(config=p_rga()" in source
+    assert "rga.basis_vectors(expr=True)" in source
+    assert "without_expr()" in source
+    assert "locals().update(" not in source
     assert "b_rga" not in source
     assert "display_repr" not in source
     assert "symbolic=True" not in source

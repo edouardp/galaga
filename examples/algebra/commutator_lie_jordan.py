@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -20,18 +20,10 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, anticommutator, commutator, jordan_product, lie_bracket
+    from galaga.facade import Algebra, DisplayPolicy, half_anticommutator, half_commutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
-    return (
-        Algebra,
-        anticommutator,
-        commutator,
-        gm,
-        jordan_product,
-        lie_bracket,
-        mo,
-    )
+    return Algebra, DisplayPolicy, gm, half_anticommutator, half_commutator, mo
 
 
 @app.cell(hide_code=True)
@@ -46,28 +38,24 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
     return e1, e2, e3
 
 
 @app.cell
-def _(anticommutator, commutator, e1, e2, e3, gm, jordan_product, lie_bracket):
-    A = e1 ^ e2
+def _(e1, e2, e3, gm, half_anticommutator, half_commutator):
+    A = (e1 ^ e2).named("A")
     B = e2 ^ e3
     gm.md(rt"""
-    {A} = {A:value}
+    {A}
 
-    {B} = {B:value}
+    {B}
 
-    {commutator(A, B)} = {commutator(A, B):value}
+    {half_commutator(A, B)}
 
-    {anticommutator(A, B)} = {anticommutator(A, B):value}
-
-    {lie_bracket(A, B)} = {lie_bracket(A, B):value}
-
-    {jordan_product(A, B)} = {jordan_product(A, B):value}
+    {half_anticommutator(A, B)}
     """)
     return
 
