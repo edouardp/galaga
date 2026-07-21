@@ -98,6 +98,7 @@ helps future contributors understand why certain choices were made.
 | [083](083-maintained-notebooks-are-executable-integration-contracts.md) | Maintained Notebooks Are Executable Integration Contracts | Accepted |
 | [084](084-exact-configured-rendering-contracts.md) | Exact Configured Rendering Contracts | Accepted |
 | [085](085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md) | Top-Level API Is the Facade with an Explicit Legacy Oracle | Accepted |
+| [086](086-native-null-cga-is-a-validated-model-layer.md) | Native-Null CGA Is a Validated Model Layer | Accepted |
 
 ## Creating New ADRs
 

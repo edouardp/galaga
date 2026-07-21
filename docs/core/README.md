@@ -32,6 +32,9 @@ numeric engine and Galaga's facade, presentation, and expression layers.
   derives the conformal basis transformation and its outermorphism.
 - [CGA null-pair scaling](cga-null-pair-scaling.md) compares common normalized
   null-pair conventions.
+- [Native-null conformal geometric algebra](../cga/README.md) describes the
+  validated model layer, embedding, direct objects, semantic operations, and
+  transformation recipes built on this core.
 - [SPEC-005: Numeric functions](specs/SPEC-005-numeric-functions.md) is also the
   concise reference for square-root, exponential, logarithm, outer-series,
   and real-branch domains. Checked scalar conversion is specified in

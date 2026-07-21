@@ -1,5 +1,13 @@
 # Proposal: CGA Convenience Functions
 
+> **Implemented with a revised architecture (2026-07-21).** The accepted
+> design is documented in
+> [ADR-086](../adrs/086-native-null-cga-is-a-validated-model-layer.md) and the
+> [native-null CGA guide](../cga/README.md). This proposal predates
+> `AlgebraConfig`, `ModelConfig`, the native-null `p_cga` preset, and the
+> Galaga 2 facade. It remains as design history; where it conflicts with those
+> documents, ADR-086 takes precedence.
+
 ## Summary
 
 Add `up()`, `down()`, and `homo()` as free functions that embed/project points
@@ -11,7 +19,7 @@ subclassing, no special Algebra type.
 
 The CGA embedding formula is simple but tedious to re-derive:
 
-```
+```text
 up(x) = x + ½|x|² e∞ + eo
 down(X) = Euclidean part of X / (-e∞ · X)
 ```
@@ -44,7 +52,7 @@ No special algebra subclass. No `cga.up()`. Just functions that inspect
 
 Three options were considered:
 
-**Option A: Metadata on BladeConvention** (recommended)
+#### Option A: Metadata on BladeConvention (recommended)
 
 `b_cga()` knows which orthogonal e₊,e₋ vectors span the Minkowski plane
 and which vectors are Euclidean. Add fields to `BladeConvention`:
@@ -80,7 +88,7 @@ def _euclidean_vectors(alg):
 Pros: explicit, no guessing, works with any naming convention.
 Cons: requires `b_cga()` — won't work on a bare `Algebra(4,1)`.
 
-**Option B: Detect from metric**
+#### Option B: Detect from metric
 
 Find an orthogonal +1/-1 pair from the metric, then derive eₒ and e∞. The
 Euclidean vectors are the rest.
@@ -89,7 +97,7 @@ Pros: works without `b_cga()`.
 Cons: ambiguous whenever the algebra contains multiple positive or negative
 directions and no metadata identifies the CGA Minkowski plane.
 
-**Option C: Detect from blade names**
+#### Option C: Detect from blade names
 
 Look for blades named `ep`/`em` in the convention and derive the null pair.
 

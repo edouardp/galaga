@@ -33,6 +33,7 @@ product-table internals.
 | Core numeric API | Arithmetic, checked scalar conversion, involutions, grades, powers, norm, unit, inverse, predicates, sandwich |
 | Numeric functions | Scalar and Study square roots, general exponential, Study-rotor logarithm, and outer transcendental functions |
 | Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
+| Native CGA model | Validated native `eo`/`einf` roles, generalized round-point embedding, semantic operations, and transformation contracts |
 | Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
 | Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
 | Presentation configuration | Immutable independent components, signed conventions, complete presets, facade lookup/factories, and context-local overrides |
@@ -116,18 +117,23 @@ want a short local spelling can write, for example,
 `from galaga import doran_lasenby_inner as ip`. The library contract should
 keep competing conventions explicit.
 
-### 4. Native CGA surface
+### 4. Native CGA surface: complete
 
-After work item 1 promotes linear maps, the existing facade metadata can
-support model-specific additions:
+`p_cga` constructs an actual native null Gram basis and declares Euclidean,
+origin, and infinity roles. `galaga.cga.ConformalModel` validates those roles
+against the metric and supplies generalized round-point embedding,
+homogenization, Euclidean extraction, conformal weight, coordinates, and
+signed squared radius. It also implements validated attitude, carrier,
+cocarrier, center, container, partner, expansion, and projection semantics.
 
-- metric-aware origin/infinity conventions;
-- `up`, `down`, and `homo`;
-- point, line, plane, circle, sphere, and point-pair constructors;
-- examples comparing orthogonal and native-null frames.
+Direct flat points, dipoles, lines, circles, planes, and spheres remain ordinary
+outer products. Translation, rotation, dilation, and transversion remain
+ordinary exponentials and sandwich actions. This deliberately avoids helpers
+that would only duplicate `outer_product`, `exp`, or `sandwich`.
 
-These functions should consume explicit null-pair and Euclidean-subspace
-metadata rather than guessing from display names.
+An explicit native/orthogonal-frame comparison remains deferred until work
+item 1 supplies a public outermorphism and basis-change object; it is not a
+dependency of the native model.
 
 ### 5. Production hardening
 
@@ -150,17 +156,19 @@ metadata rather than guessing from display names.
 flowchart LR
     X[Phase 8 top-level cutover complete] --> R[Phase 9 remove legacy engine]
     X --> H[Further performance hardening]
-    O[Public outermorphisms and basis changes] --> G[Native CGA conveniences]
+    G[Native CGA model complete] --> Q
+    O[Public outermorphisms and basis changes] --> C[Native/orthogonal CGA comparison]
     R --> Q[Galaga 2 release hardening]
     H --> Q
 ```
 
 Numeric function and facade parity, presentation configuration, expression
 provenance, semantic rendering, public linear actions, companion migration,
-and the top-level cutover are complete. The next cutover phase removes the
-retained legacy engine and migration-only names. Linear-map promotion, native
-CGA conveniences, and further performance hardening remain independent
-numeric/model work rather than blockers for the public facade.
+the top-level cutover, and the native CGA model are complete. The next cutover
+phase removes the retained legacy engine and migration-only names. Linear-map
+promotion, an explicit native/orthogonal CGA comparison, and further
+performance hardening remain independent numeric/model work rather than
+blockers for the public facade.
 
 ## Explicit non-goals for the numeric core
 

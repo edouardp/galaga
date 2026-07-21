@@ -94,6 +94,29 @@ rga = Algebra(config=p_rga(spatial_dim=3))
 `blades=`, `notation=`, `local_names=`, `display_order=`, and `display=`
 parameters permit deliberate overrides when constructing an algebra directly.
 
+### Native-null conformal model
+
+The conformal preset stores `eo` and `einf` as actual null basis vectors in a
+non-diagonal Gram matrix. Attach the model-specific semantics explicitly:
+
+```python
+from galaga import Algebra, outer_product, p_cga
+from galaga.cga import ConformalModel
+
+algebra = Algebra(config=p_cga(spatial_dim=3))
+cga = ConformalModel(algebra)
+
+a = cga.round_point((0, 0, 0))
+b = cga.round_point((1, 0, 0))
+line = outer_product(a, b, cga.infinity)
+
+assert cga.carrier(cga.round_point((1, 2, 3))).homogeneous_grade() == 2
+```
+
+The [native-null CGA guide](../../docs/cga/README.md) covers round and flat
+objects, `att`/`car`/`ccr`/`cen`/`con`/`par`, dual conventions, projection,
+and transformation recipes.
+
 ## Values, names, and expressions
 
 Multivectors are eager and immutable. Naming and expression tracking return a

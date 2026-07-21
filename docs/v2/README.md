@@ -49,6 +49,9 @@
   diagonal operations.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
   remaining numeric capabilities and companion-package work.
+- [Native-null conformal geometric algebra](../cga/README.md) documents the
+  `p_cga` Gram model, `ConformalModel`, direct objects, semantic CGA operations,
+  and transformations.
 
 ## Current status
 
@@ -93,6 +96,12 @@ the complete Python 3.11 and 3.14 package suites, and the layer-separated
 performance baseline pass. Phase 9 removal of the retained legacy engine is
 the next cutover work.
 
+The post-cutover native CGA model layer is also implemented. It validates the
+actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
+points for arbitrary null-pair scaling, and provides the established CGA
+attitude/carrier/center/container vocabulary as model-specific compositions
+over the existing generic products.
+
 ## Supporting documents
 
 - [Numeric core documentation](../core/README.md)
@@ -105,6 +114,7 @@ the next cutover work.
 - [ADR-083: Maintained notebooks are executable integration contracts](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md)
 - [ADR-084: Exact configured rendering contracts](../adrs/084-exact-configured-rendering-contracts.md)
 - [ADR-085: Top-level API is the facade with an explicit legacy oracle](../adrs/085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md)
+- [ADR-086: Native-null CGA is a validated model layer](../adrs/086-native-null-cga-is-a-validated-model-layer.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful
