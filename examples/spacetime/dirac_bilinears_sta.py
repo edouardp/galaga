@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.4"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -31,7 +31,6 @@ def _():
     return (
         Algebra,
         MatrixRepr,
-        spacetime_blade_convention,
         compact_basis,
         exp,
         from_spinor_column,
@@ -39,6 +38,7 @@ def _():
         mo,
         np,
         reverse,
+        spacetime_blade_convention,
         to_matrix,
         to_spinor_column,
     )
@@ -99,7 +99,7 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, spacetime_blade_convention, compact_basis, np):
+def _(Algebra, compact_basis, np, spacetime_blade_convention):
     sta = Algebra((1, -1, -1, -1), blades=spacetime_blade_convention(), )
     g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     gamma_matrices = compact_basis(sta)
@@ -159,7 +159,7 @@ def _(MatrixRepr, gamma0_matrix, gamma5_matrix, gamma_matrices, gm):
     where
 
     $$
-    \\Gamma^5 = i\\Gamma^0\\Gamma^1\\Gamma^2\\Gamma^3.
+    \Gamma^5 = i\Gamma^0\Gamma^1\Gamma^2\Gamma^3.
     $$
     """)
     return
@@ -278,7 +278,7 @@ def _(
     _md = gm.md(rt"""
     Source even multivector:
 
-    {_source.display()}
+    {_source}
 
     Its Dirac column:
 
@@ -286,15 +286,15 @@ def _(
 
     Roundtrip through the column map:
 
-    {_roundtrip.display()}
+    {_roundtrip}
 
     The scalar-plus-pseudoscalar product is:
 
-    {_rho.display()}
+    {_rho}
 
     The current vector is:
 
-    {_current_ga.display()}
+    {_current_ga}
 
     | Check | Result |
     |---|---:|

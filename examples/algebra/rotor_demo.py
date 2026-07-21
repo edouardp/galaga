@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -32,7 +32,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import (
+    from galaga.facade import (
         Algebra, grade, reverse, sandwich, norm, unit,
         gp, op, exp, log, norm2,
     )
@@ -101,22 +101,21 @@ def _(mo):
 
 
 @app.cell
-def _(angle_2d, cl2, exp, f1, f2, gm, np, sandwich, sym):
-    _theta = cl2.scalar(np.radians(angle_2d.value)).name(latex=r"\theta")
-    _I = (f1 ^ f2).name("I")
-    _R = exp(_I * _theta/2).name("R")
-    _v = sym(f1).name("v")
-    _result = sandwich(_R, _v).name("v'")
+def _(angle_2d, cl2, exp, f1, f2, gm, np, sandwich):
+    _theta = cl2.scalar(np.radians(angle_2d.value)).named(r"\theta")
+    _I = (f1 ^ f2).named("I")
+    _R = exp(_I * _theta/2).named("R")
+    _v = f1.named("v")
+    _result = sandwich(_R, _v).named("v'")
 
 
     gm.md(t"""
     {_theta}  $\\quad$ = $\\quad$ {angle_2d.value}° <br/>
-    {_I}  $\\quad$ =  $\\quad$ {_I.eval()} <br/>
-    {_R} $\\quad$ = $\\quad$ {_R.reveal()} $\\quad$ = $\\quad$  {_R.eval()} <br/>
-    {_v} $\\quad$ = $\\quad$ {_v.eval()} <br/>
-    {_result} $\\quad$ = $\\quad$ {_result.reveal()} $\\quad$ = $\\quad$ {_result.eval()}
+    {_I}<br/>
+    {_R}<br/>
+    {_v}<br/>
+    {_result}
     """)
-
     return
 
 

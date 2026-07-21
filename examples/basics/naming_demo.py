@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -33,13 +33,13 @@ def _():
         left_contraction, hestenes_inner, even_grades, odd_grades,
         squared
     )
-    from galaga import (
-        sym, simplify, grade as sgrade, reverse as srev,
+    from galaga.facade import (
+        simplify, grade as sgrade, reverse as srev,
         norm as snorm, unit as sunit, inverse as sinverse,
     )
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, np, reverse, sandwich, simplify, squared, sym
+    return Algebra, exp, gm, np, reverse, sandwich, simplify, squared
 
 
 @app.cell(hide_code=True)
@@ -615,10 +615,10 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra([1,1,1])
-    e1,e2,e3 = alg.basis_vectors(lazy=True)
-    return alg, e1, e2, e3
+def _():
+    #alg = Algebra([1,1,1])
+    #e1,e2,e3 = alg.basis_vectors(lazy=True)
+    return
 
 
 @app.cell

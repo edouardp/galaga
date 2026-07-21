@@ -5,6 +5,7 @@ import pytest
 
 from galaga import core
 from galaga.blades import BladeRef, DisplayOrder, LocalNamePolicy, default_blade_convention
+from galaga.expression import BladeLiteral, Call
 from galaga.facade import Algebra
 from galaga.presentation import (
     AlgebraConfig,
@@ -25,6 +26,78 @@ def test_named_and_signed_blade_factories_have_independently_verifiable_coeffici
     assert algebra.blade("e31").coefficient(0b0101) == -1
     assert algebra.blade("e13").coefficient(0b0101) == 1
     assert np.count_nonzero(algebra.blade("e31").data) == 1
+
+
+def test_multivector_blade_factory_preserves_rga_orientation_and_replaces_provenance():
+    algebra = Algebra(config=LengyelRGAPreset())
+    e1, _, e3, _ = algebra.basis_vectors(expr=True)
+    displayed_positive = (e3 ^ e1).named("constructed")
+    displayed_negative = e1 ^ e3
+
+    positive_literal = algebra.blade(displayed_positive, expr=True)
+    negative_literal = algebra.blade(displayed_negative, expr=True)
+    untracked = algebra.blade(displayed_positive)
+
+    assert isinstance(displayed_positive.expr, Call)
+    assert positive_literal.name is None
+    assert positive_literal.coefficient(0b0101) == -1
+    assert positive_literal.expr == BladeLiteral(0b0101, -1)
+    assert positive_literal.latex(content="expr") == r"\mathbf{e}_{31}"
+    assert negative_literal.coefficient(0b0101) == 1
+    assert negative_literal.expr == BladeLiteral(0b0101, 1)
+    assert negative_literal.latex(content="expr") == r"-\mathbf{e}_{31}"
+    assert untracked.name is None
+    assert untracked.expr is None
+    assert untracked == displayed_positive
+
+
+def test_multivector_blade_factory_rejects_nonunit_and_foreign_values():
+    algebra = Algebra(config=LengyelRGAPreset())
+    e1, e2, _, _ = algebra.basis_vectors(expr=True)
+
+    for invalid in (algebra.scalar(0), e1 + e2, 2 * (e1 ^ e2)):
+        with pytest.raises(ValueError, match="signed unit basis blade"):
+            algebra.blade(invalid, expr=True)
+
+    foreign = Algebra(config=LengyelRGAPreset()).basis_vectors()[0]
+    with pytest.raises(ValueError, match="different numeric algebra"):
+        algebra.blade(foreign, expr=True)
+
+
+def test_blades_factory_literalizes_computed_rga_blades_in_argument_order():
+    algebra = Algebra(config=LengyelRGAPreset())
+    e1, e2, e3, e4 = algebra.basis_vectors(expr=True)
+
+    values = algebra.blades(e2 ^ e3, e3 ^ e1, e4 ^ e1, e4 ^ e2, expr=True)
+
+    assert isinstance(values, tuple)
+    assert tuple(value.expr for value in values) == (
+        BladeLiteral(0b0110, 1),
+        BladeLiteral(0b0101, -1),
+        BladeLiteral(0b1001, -1),
+        BladeLiteral(0b1010, -1),
+    )
+    assert tuple(value.latex(content="expr") for value in values) == (
+        r"\mathbf{e}_{23}",
+        r"\mathbf{e}_{31}",
+        r"\mathbf{e}_{41}",
+        r"\mathbf{e}_{42}",
+    )
+
+
+def test_blades_factory_accepts_mixed_singular_inputs_and_validates_shared_expr_flag():
+    algebra = Algebra(config=LengyelRGAPreset())
+    e1, e2, _, _ = algebra.basis_vectors(expr=True)
+
+    values = algebra.blades("e23", BladeRef(0b0101, -1), e1 ^ e2)
+
+    assert tuple(value.expr for value in values) == (None, None, None)
+    assert tuple(np.flatnonzero(value.data).item() for value in values) == (0b0110, 0b0101, 0b0011)
+    assert algebra.blades() == ()
+    with pytest.raises(TypeError, match="expr must be a boolean"):
+        algebra.blades(expr=None)  # type: ignore[arg-type]
+    with pytest.raises(ValueError, match="signed unit basis blade"):
+        algebra.blades(e1 + e2, expr=True)
 
 
 def test_basis_factories_remain_native_numeric_factories():

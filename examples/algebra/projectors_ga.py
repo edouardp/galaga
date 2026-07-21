@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -26,10 +26,20 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, exp, inverse, left_contraction
+    from galaga.facade import Algebra, DisplayPolicy, exp, inverse, left_contraction
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, inverse, left_contraction, mo, np, plt
+    return (
+        Algebra,
+        DisplayPolicy,
+        exp,
+        gm,
+        inverse,
+        left_contraction,
+        mo,
+        np,
+        plt,
+    )
 
 
 @app.cell(hide_code=True)
@@ -62,10 +72,10 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1, 1), )
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
-    return e1, e2, e3
+    return alg, e1, e2, e3
 
 
 @app.cell(hide_code=True)
@@ -91,30 +101,45 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(angle, e1, e2, e3, exp, gm, inverse, left_contraction, np, vx, vy, vz):
-    _theta = np.radians(angle.value)
-    R = exp((-_theta / 2) * (e1 * e2)).named("R", latex="R")
-    a = R * e1 * ~R
+def _(
+    alg,
+    angle,
+    e1,
+    e2,
+    e3,
+    exp,
+    gm,
+    inverse,
+    left_contraction,
+    np,
+    vx,
+    vy,
+    vz,
+):
+    _theta = alg.scalar(np.radians(angle.value)).named(r"\theta")
+    _B = (e1^e2).named("B")
+    R = exp(-_theta * _B / 2).named("R", latex="R")
+    a = (R * e1 * ~R).named("L")
     v = (vx.value * e1 + vy.value * e2 + vz.value * e3).named("v")
     p = left_contraction(v, a) * inverse(a)
     r = v - p
 
     gm.md(rt"""
     Rotor defining the line:
-    {R} = {R:value}
+    {R}
 
-    {a} = {a:value}
+    {a}
 
-    {v} = {v:value}
+    {v}
 
     Projection onto the line:
-    {p} = {p:value}
+    {p}
 
     Rejection from the line:
-    {r} = {r:value}
+    {r}
 
     Check:
-    {p + r} = {(p + r):value}
+    {p + r}
     """)
     return R, a, p, r, v
 
@@ -156,22 +181,22 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(R, e1, e3, gm, inverse, left_contraction, v):
-    B = R * (e1 ^ e3) * ~R
+    B = (R * (e1 ^ e3) * ~R).named("P")
     p_plane = left_contraction(v, B) * inverse(B)
     r_plane = v - p_plane
 
     gm.md(rt"""
     Plane blade:
-    {B} = {B:value}
+    {B}
 
     Projection into the plane:
-    {p_plane} = {p_plane:value}
+    {p_plane}
 
     Rejection from the plane:
-    {r_plane} = {r_plane:value}
+    {r_plane}
 
     Again:
-    {p_plane + r_plane} = {(p_plane + r_plane):value}
+    {p_plane + r_plane}
     """)
     return p_plane, r_plane
 

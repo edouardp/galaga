@@ -130,13 +130,17 @@ def _(Algebra, DisplayPolicy, p_rga):
 @app.cell
 def _(rga):
     e1,e2,e3,e4 = rga.basis_vectors(expr=True)
-    e423 = (e4^e2^e3).without_expr()
-    e431 = (e4^e3^e1).without_expr()
-    e23  = (e2^e3).without_expr()
-    e31  = (e3^e1).without_expr()
-    e41  = (e4^e1).without_expr()
-    e42  = (e4^e2).without_expr()
-    return e1, e2, e23, e3, e31, e4, e41, e42, e423, e431
+    e423, e431, e12, e23, e31, e41, e42 = rga.blades(
+        e4^e2^e3, e4^e3^e1,
+        e1^e2, e2^e3, e3^e1,  e4^e1, e4^e2,
+        expr=True)
+    return e1, e12, e2, e23, e3, e31, e4, e41, e42, e423, e431
+
+
+@app.cell
+def _(e2, e3, rga):
+    rga.blade(e2^e3, expr=True)
+    return
 
 
 @app.cell

@@ -83,19 +83,21 @@ def _(mo):
     mo.md(r"""
     ## The Shared Idea
 
-    In geometric algebra, a spinor is usually represented inside the algebra as
-    an even multivector:
+    After choosing a spin frame and reference spinor, a Pauli or Dirac-Hestenes
+    spinor can be represented inside the algebra by an even multivector:
 
     $$
     \psi \in Cl^0(p,q).
     $$
 
-    In quantum mechanics, a spinor is usually represented as a column vector.
-    The conversion in this package chooses a fixed reference column $u$ in a
-    matrix representation $\rho$ and maps
+    This is a convention-dependent representative, not an intrinsic claim that
+    every even multivector is physically a spinor. In quantum mechanics, a
+    spinor is usually represented as a column vector. The conversion in this
+    package chooses a fixed reference column $u$ in a matrix representation
+    $\varrho$ and maps
 
     $$
-    \operatorname{col}(\psi) = \rho(\psi)u.
+    \operatorname{col}(\psi) = \varrho(\psi)u.
     $$
 
     This is not just a dimension count. For every supported algebra, the library
@@ -432,11 +434,11 @@ def _(mo):
     The conversion uses matrices internally:
 
     $$
-    \operatorname{col}(\psi)=\rho(\psi)u.
+    \operatorname{col}(\psi)=\varrho(\psi)u.
     $$
 
     But the returned object is the column $\operatorname{col}(\psi)$, not the
-    operator matrix $\rho(\psi)$. That is why the preferred API name is
+    operator matrix $\varrho(\psi)$. That is why the preferred API name is
     `to_spinor_column`.
     """)
     return
@@ -493,7 +495,7 @@ def _(mo):
     The same rule still applies:
 
     $$
-    \operatorname{col}(\psi)=\rho(\psi)u.
+    \operatorname{col}(\psi)=\varrho(\psi)u.
     $$
 
     For the identity even multivector, the chosen reference column is the
@@ -583,9 +585,9 @@ def _(
 
     {_sta_rotor.display()}
 
-    Compact operator matrix $\\rho(S)$:
+    Compact operator matrix $\\varrho(S)$:
 
-    {MatrixRepr(_sta_matrix).name(latex=r"\rho(S)"):block}
+    {MatrixRepr(_sta_matrix).name(latex=r"\varrho(S)"):block}
 
     Dirac column from `to_spinor_column`:
 
@@ -597,7 +599,7 @@ def _(
 
     | Check | Result |
     |---|---|
-    | $\\rho(S)u$ equals `to_spinor_column(S)` | {_sta_reconstructs_column} |
+    | $\\varrho(S)u$ equals `to_spinor_column(S)` | {_sta_reconstructs_column} |
     | `from_spinor_column(sta, to_spinor_column(S)) == S` | {_sta_roundtrip_ok} |
     | Rotor normalization $S\\widetilde{{S}}$ | {_sta_rotor_norm} |
     | Ordinary column norm $\\psi^\\dagger\\psi$ | {_hermitian_norm:.6f} |
@@ -806,43 +808,64 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Pseudoscalar Phase Rotor
+    ## Density and the Yvon--Takabayasi Angle
 
-    In this section `pss` means the STA pseudoscalar
-
-    $$
-    i = \gamma_0\gamma_1\gamma_2\gamma_3.
-    $$
-
-    It is also the pseudoscalar of the relative Pauli-space basis:
+    A general regular Dirac-Hestenes spinor is more than a Lorentz rotor:
 
     $$
-    i = \sigma_1\sigma_2\sigma_3,
+    \psi=\sqrt{\rho}\,e^{I\beta/2}R,
+    \qquad R\widetilde R=1.
+    $$
+
+    Here $\rho>0$ is the proper scalar density, $R$ carries the Lorentz frame,
+    and $\beta$ is the Yvon--Takabayasi angle. The element
+
+    $$
+    I=\gamma_0\gamma_1\gamma_2\gamma_3,
+    \qquad I^2=-1,
+    $$
+
+    is the STA pseudoscalar. Because reverse leaves $I$ unchanged, the
+    pseudoscalar factor is not generally a Lorentz rotor:
+
+    $$
+    \psi\widetilde\psi=\rho e^{I\beta},
     \qquad
-    \sigma_k=\gamma_k\gamma_0.
+    J=\psi\gamma_0\widetilde\psi
+      =\rho R\gamma_0\widetilde R.
     $$
 
-    The pseudoscalar squares to $-1$, so it generates a unit phase rotor:
+    Thus $\rho=\sqrt{J^2}$ is the rest-frame density, while the measured time
+    component $J^0$ also depends on the observer and boost. The angle $\beta$
+    controls the scalar--pseudoscalar bilinears. It cancels from $J$, but is not
+    merely an unobservable global phase.
+
+    The ordinary complex $U(1)$ phase is a separate operation. In this
+    Dirac-Hestenes convention,
 
     $$
-    Q_{\mathrm{pss}}(\theta)
-    =
-    \exp(\theta i)
-    =
-    \cos\theta + i\sin\theta.
+    e^{i\alpha}\operatorname{col}(\psi)
+    \quad\longleftrightarrow\quad
+    \psi e^{(\gamma_2\gamma_1)\alpha}.
     $$
 
-    This is not a spacetime boost or a physical rotation of a vector. It is a
-    PSS/pseudoscalar phase rotor, and it still lives in the even STA subalgebra,
-    so the spinor-column conversion can roundtrip it.
+    A common constant $\alpha$ cancels from observables, while relative values
+    can interfere. It should not be confused with the left pseudoscalar
+    Yvon--Takabayasi factor $e^{I\beta/2}$.
     """)
     return
 
 
 @app.cell
 def _(mo, np):
-    sta_pss_phase_slider = mo.ui.slider(0.0, float(2 * np.pi), value=0.7, step=0.01, label="pseudoscalar phase")
-    return (sta_pss_phase_slider,)
+    sta_yt_angle_slider = mo.ui.slider(
+        0.0,
+        float(2 * np.pi),
+        value=0.7,
+        step=0.01,
+        label="Yvon–Takabayasi angle β",
+    )
+    return (sta_yt_angle_slider,)
 
 
 @app.cell
@@ -853,58 +876,85 @@ def _(
     gm,
     mo,
     np,
+    reverse,
     sta,
     sta_g0,
     sta_g1,
     sta_g2,
     sta_g3,
-    sta_pss_phase_slider,
+    sta_yt_angle_slider,
     to_spinor_column,
 ):
-    _theta = sta_pss_phase_slider.value
-    _pss = sta.pseudoscalar().named(r"i", latex=r"i")
+    _beta = sta_yt_angle_slider.value
+    _rho = 1.7
+    _alpha = 0.4
+    _pss = sta.pseudoscalar().named(r"I", latex=r"I")
     _sigma1 = (sta_g1 * sta_g0).named(r"\sigma_1", latex=r"\sigma_1")
     _sigma2 = (sta_g2 * sta_g0).named(r"\sigma_2", latex=r"\sigma_2")
     _sigma3 = (sta_g3 * sta_g0).named(r"\sigma_3", latex=r"\sigma_3")
     _sigma123 = (_sigma1 * _sigma2 * _sigma3).named(r"\sigma_1\sigma_2\sigma_3", latex=r"\sigma_1\sigma_2\sigma_3")
-    _pss_phase_rotor = exp(_theta * _pss).named(r"Q_{\mathrm{pss}}", latex=r"Q_{\mathrm{pss}}")
-    _pss_phase_column = to_spinor_column(_pss_phase_rotor)
-    _pss_expected_column = np.array(
-        [[np.cos(_theta)], [0], [-1j * np.sin(_theta)], [0]],
-        dtype=complex,
+    _yt_factor = exp((_beta / 2) * _pss).named(r"Q_\beta", latex=r"Q_\beta")
+    _frame_rotor = exp(0.25 * (sta_g0 * sta_g1)).named(r"R", latex=r"R")
+    _regular_spinor = (np.sqrt(_rho) * _yt_factor * _frame_rotor).named(
+        r"\Psi",
+        latex=r"\Psi",
     )
-    _pss_roundtrip = from_spinor_column(sta, _pss_phase_column).named(r"Q_{\mathrm{pss}}'", latex=r"Q_{\mathrm{pss}}'")
-    _pss_inverse = exp((-_theta) * _pss)
-    _pss_identity_check = (_pss_phase_rotor * _pss_inverse)
-    _pss_column_label = r"\operatorname{col}(Q_{\mathrm{pss}})"
-    _pss_expected_column_label = r"(\cos\theta,0,-i\sin\theta,0)^T"
-    _pss_column_ok = np.allclose(_pss_phase_column, _pss_expected_column, atol=1e-10)
-    _pss_roundtrip_error = float(np.max(np.abs(_pss_roundtrip.data - _pss_phase_rotor.data)))
+    _regular_column = to_spinor_column(_regular_spinor)
+    _regular_roundtrip = from_spinor_column(sta, _regular_column)
+    _regular_roundtrip_ok = np.allclose(
+        _regular_roundtrip.data,
+        _regular_spinor.data,
+        atol=1e-10,
+    )
+    _polar_product = _regular_spinor * reverse(_regular_spinor)
+    _expected_polar_product = _rho * exp(_beta * _pss)
+    _polar_product_ok = np.allclose(
+        _polar_product.data,
+        _expected_polar_product.data,
+        atol=1e-10,
+    )
+    _current = _regular_spinor * sta_g0 * reverse(_regular_spinor)
+    _expected_current = _rho * _frame_rotor * sta_g0 * reverse(_frame_rotor)
+    _current_ok = np.allclose(_current.data, _expected_current.data, atol=1e-10)
+
+    _column_phase_generator = sta_g2 * sta_g1
+    _u1_phased_spinor = _regular_spinor * exp(_alpha * _column_phase_generator)
+    _u1_phased_column = to_spinor_column(_u1_phased_spinor)
+    _u1_phase_ok = np.allclose(
+        _u1_phased_column.mat,
+        np.exp(1j * _alpha) * _regular_column.mat,
+        atol=1e-10,
+    )
 
     mo.vstack([
-        sta_pss_phase_slider,
+        sta_yt_angle_slider,
         gm.md(rt"""
-    With $\\theta = {_theta:.3f}$:
+    With $\\rho = {_rho:.3f}$ and $\\beta = {_beta:.3f}$:
 
     Pseudoscalar and relative-basis product:
 
     {_pss.display()} <br/>
     {_sigma123.display()}
 
-    PSS phase rotor:<br/>
-    {_pss_phase_rotor.display()}
+    Yvon--Takabayasi factor and Lorentz rotor:<br/>
+    {_yt_factor.display()} <br/>
+    {_frame_rotor.display()}
+
+    General regular spinor:<br/>
+    {_regular_spinor.display()}
 
     Dirac column:<br/>
-    {MatrixRepr(_pss_phase_column).name(latex=_pss_column_label):block}
+    {MatrixRepr(_regular_column).name(latex=r"\operatorname{col}(\Psi)"):block}
 
-    Expected column phase:<br/>
-    {MatrixRepr(_pss_expected_column).name(latex=_pss_expected_column_label):block}
+    With the separate right-bivector $U(1)$ phase:<br/>
+    {MatrixRepr(_u1_phased_column).name(latex=r"\operatorname{col}(\Psi e^{\gamma_2\gamma_1\alpha})"):block}
 
     | Check | Result |
     |---|---|
-    | $Q_{{\\mathrm{{pss}}}}\\exp(-\\theta i)$ | {_pss_identity_check} |
-    | Column equals expected pseudoscalar-phase column | {_pss_column_ok} |
-    | Roundtrip max error | {_pss_roundtrip_error:.3e} |
+    | $\Psi\widetilde{{\Psi}}=\rho e^{{I\beta}}$ | {_polar_product_ok} |
+    | $J=\rho R\gamma_0\widetilde{{R}}$ is independent of $\beta$ | {_current_ok} |
+    | $\operatorname{{col}}(\Psi e^{{\gamma_2\gamma_1\alpha}})=e^{{i\alpha}}\operatorname{{col}}(\Psi)$ | {_u1_phase_ok} |
+    | General regular spinor roundtrip | {_regular_roundtrip_ok} |
         """),
     ])
     return
@@ -1053,9 +1103,11 @@ def _(mo):
 
     The conversion has two layers:
 
-    1. **GA layer:** the spinor is an even multivector $\psi \in Cl^0(p,q)$.
+    1. **GA layer:** after choosing a spin frame and convention, an even
+       multivector can represent the spinor. In STA, a general regular
+       representative has density, Yvon--Takabayasi angle, and rotor factors.
     2. **QM/matrix layer:** the same information is represented by its action on
-       a fixed reference column, $\rho(\psi)u$.
+       a fixed reference column, $\varrho(\psi)u$.
 
     The roundtrip works only when that action is injective on the even
     subalgebra. That condition is computed from the algebra, not assumed from a

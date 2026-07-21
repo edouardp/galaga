@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -48,15 +48,26 @@ def _(mo):
 def _(Algebra):
     pga = Algebra((1, 1, 1, 0), )
     e1, e2, e3, e0 = pga.basis_vectors(expr=True)
-    e123 = (e1 ^ e2 ^ e3).named(r"e_{123}", latex=r"e_{123}")
-    E1 = (e2 ^ e3 ^ e0).named("E_1", latex=r"E_1")
-    E2 = (-(e1 ^ e3 ^ e0)).named("E_2", latex=r"E_2")
-    E3 = (e1 ^ e2 ^ e0).named("E_3", latex=r"E_3")
-    return E1, E2, E3, e0, e1, e123, e2
+    e123, _E1, _E2, _E3, e12, e20, e10, e120 = pga.blades(
+        e1 ^ e2 ^ e3,
+        e2 ^ e3 ^ e0,
+        -(e1 ^ e3 ^ e0),
+        e1 ^ e2 ^ e0,
+        e1 ^ e2,
+        e2 ^ e0,
+        e1 ^ e0,
+        e1 ^ e2 ^ e0,
+        expr=True,
+    )
+    e123 = e123.named(r"e_{123}", latex=r"e_{123}")
+    E1 = _E1.named("E_1", latex=r"E_1")
+    E2 = _E2.named("E_2", latex=r"E_2")
+    E3 = _E3.named("E_3", latex=r"E_3")
+    return E1, E2, E3, e10, e12, e120, e123, e20
 
 
 @app.cell
-def _(E1, E2, E3, complement, e0, e1, e123, e2, np):
+def _(E1, E2, E3, complement, e10, e12, e120, e123, e20, np):
     def point(x, y, z=0.0):
         return (e123 + x * E1 + y * E2 + z * E3).named(rf"P({x:.1f},{y:.1f},{z:.1f})", latex=rf"P({x:.1f},{y:.1f},{z:.1f})")
 
@@ -76,16 +87,16 @@ def _(E1, E2, E3, complement, e0, e1, e123, e2, np):
         return (opns_point(P) ^ opns_point(Q)).named("ℓ", latex=r"\ell")
 
     def line_equation(join):
-        _c = blade_coefficient(join, e1 ^ e2)
-        _a = blade_coefficient(join, e2 ^ e0)
-        _b = -blade_coefficient(join, e1 ^ e0)
+        _c = blade_coefficient(join, e12)
+        _a = blade_coefficient(join, e20)
+        _b = -blade_coefficient(join, e10)
         return _a, _b, -_c
 
     def join_triangle(P, Q, R):
         return (opns_point(P) ^ opns_point(Q) ^ opns_point(R)).named("Π", latex=r"\Pi")
 
     def triangle_area(join):
-        return 0.5 * abs(blade_coefficient(join, e1 ^ e2 ^ e0))
+        return 0.5 * abs(blade_coefficient(join, e120))
 
     def coords(P):
         _P = P
@@ -133,11 +144,11 @@ def _(ax, ay, bx, by, gm, join_line, line_equation, point):
     line = join_line(A, B)
     _a, _b, _c = line_equation(line)
     gm.md(rt"""
-    {A} = {A:value}
+    {A}
 
-    {B} = {B:value}
+    {B}
 
-    {line} = {line:value}
+    {line}
 
     Plane coordinates of $\\ell$: {_a:.3f}x + {_b:.3f}y + {_c:.3f} = 0
     """)
@@ -162,9 +173,9 @@ def _(A, B, gm, join_triangle, point, triangle_area):
     area = triangle_area(triangle)
 
     gm.md(rt"""
-    {C} = {C:value}
+    {C}
 
-    {triangle} = {triangle:value}
+    {triangle}
 
     Triangle area = {area:.3f}
     """)
@@ -192,10 +203,6 @@ def _(A, B, C, coords, line, line_equation, np, plt):
     _ax.set_title("Points, line join, and oriented triangle in PGA")
     _fig.tight_layout()
     _fig
-
-
-@app.cell
-def _():
     return
 
 

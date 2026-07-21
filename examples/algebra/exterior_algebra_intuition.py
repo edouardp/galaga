@@ -109,16 +109,10 @@ def _(angle, dual, e1, e2, gm, length, norm, np):
 
     {wedge}
 
-    Area of the parallelogram = {area:.6f}
+    Area of the parallelogram = {area}
 
     Dual vector {pseudo_cross}
     """)
-    return (v,)
-
-
-@app.cell
-def _(v):
-    v.latex()
     return
 
 

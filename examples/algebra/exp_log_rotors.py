@@ -55,9 +55,8 @@ def _(mo):
 @app.cell
 def _(alg, angle, e1, e2, exp, gm, log, np):
     _theta = alg.scalar(np.radians(angle.value)).named(r"\theta")
-    B = (e1 * e2).named("B")
-    half_angle = -_theta * B / 2
-    R = exp(half_angle)
+    B = (e1 ^ e2).named("B")
+    R = exp(-_theta * B / 2)
     gm.md(rt"""
     {B}
 
@@ -65,7 +64,6 @@ def _(alg, angle, e1, e2, exp, gm, log, np):
 
     {log(R)}
 
-    {half_angle}
     """)
     return
 

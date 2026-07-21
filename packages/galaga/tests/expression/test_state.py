@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from galaga.expression import BladeLiteral, ScalarLiteral, Symbol
+from galaga.expression import BladeLiteral, Call, ScalarLiteral, Symbol
 from galaga.facade import Algebra
 from galaga.names import Name
 
@@ -63,14 +63,16 @@ def test_mathematical_equality_and_hash_ignore_name_and_expression() -> None:
     assert len({value, decorated}) == 1
 
 
-def test_naming_alone_does_not_enable_tracking() -> None:
+def test_naming_does_not_attach_an_expression_but_named_operations_are_tracked() -> None:
     algebra = Algebra(2)
     x = algebra.blade(1).named("x")
     y = algebra.blade(2).named("y")
 
     result = x * y
 
-    assert result.expr is None
+    assert x.expr is None
+    assert y.expr is None
+    assert result.expr == Call("geometric_product", (Symbol("x"), Symbol("y")))
 
 
 def test_factories_support_names_and_explicit_tracking() -> None:

@@ -309,17 +309,50 @@ class Algebra:
 
     def blade(
         self,
-        blade: int | str | BladeRef,
+        blade: int | str | BladeRef | Multivector,
         *,
         name: Name | str | None = None,
         expr: bool | Expr = False,
     ) -> Multivector:
-        """Construct a blade by native mask, signed reference, label, alias, or role."""
-        ref = self._resolve_blade_ref(blade)
+        """Construct or literalize one signed unit exterior-basis blade.
+
+        Integer masks, signed references, configured labels, aliases, and
+        roles construct the selected blade. A facade multivector must belong
+        to this numeric algebra and have exactly one coefficient equal to
+        ``+1`` or ``-1``. Its value is preserved while its name and provenance
+        are discarded; ``expr=True`` attaches a fresh literal expression.
+        """
+        if isinstance(blade, Multivector):
+            if blade.numeric.algebra is not self._numeric:
+                raise ValueError("blade multivector belongs to a different numeric algebra")
+            nonzero = np.flatnonzero(blade.data)
+            if len(nonzero) != 1:
+                raise ValueError("blade multivector must be a signed unit basis blade")
+            mask = int(nonzero[0])
+            coefficient = float(blade.data[mask])
+            if coefficient not in {-1.0, 1.0}:
+                raise ValueError("blade multivector must be a signed unit basis blade")
+            ref = BladeRef(mask, int(coefficient))
+        else:
+            ref = self._resolve_blade_ref(blade)
         numeric = self._numeric.blade(ref.mask)
         if ref.orientation == -1:
             numeric = self._numeric.multivector(-numeric.data)
         return self._factory_wrap(numeric, name=name, expr=expr)
+
+    def blades(
+        self,
+        *blades: int | str | BladeRef | Multivector,
+        expr: bool = False,
+    ) -> tuple[Multivector, ...]:
+        """Construct or literalize an ordered batch of basis blades.
+
+        This is the plural form of :meth:`blade`: every input follows the
+        singular factory's value, orientation, ownership, and provenance
+        rules. The shared ``expr`` flag applies independently to every result.
+        """
+        _require_expr_flag(expr)
+        return tuple(self.blade(blade, expr=expr) for blade in blades)
 
     def _factory_wrap(
         self,
@@ -818,7 +851,7 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
             elif argument.numeric.algebra is not owner.numeric:
                 raise ValueError("cannot mix multivectors from different algebras")
             numeric_args.append(argument.numeric)
-            tracking = tracking or argument.expr is not None
+            tracking = tracking or argument.name is not None or argument.expr is not None
         else:
             numeric_args.append(argument)
 
@@ -861,6 +894,12 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
         if owner is None:
             raise RuntimeError(f"{operation_id} produced a value without an owner")
         return owner._wrap(result, expr=expression)
+    if expression is not None and operation.result_kind == "scalar":
+        if owner is None:  # pragma: no cover - scalar operations have a multivector operand
+            raise RuntimeError(f"{operation_id} produced a tracked scalar without an owner")
+        if not isinstance(result, Real) or isinstance(result, (bool, np.bool_)):
+            raise RuntimeError(f"{operation_id} declared a scalar result but produced {type(result).__name__}")
+        return owner.scalar(result, expr=expression)
     return result
 
 
@@ -1082,7 +1121,8 @@ def norm2(value: Multivector) -> Multivector:
     return _invoke("norm2", value)
 
 
-def norm(value: Multivector) -> float:
+def norm(value: Multivector) -> float | Multivector:
+    """Return a float, or a tracked scalar multivector for a semantic input."""
     return _invoke("norm", value)
 
 

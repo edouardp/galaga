@@ -111,6 +111,7 @@ def _(H, V, e1, e2, gm, middle, norm, np, polarise, unit):
     E1 = polarise(E0, M).named(r"E_1", latex=r"E_1")
     E2 = polarise(E1, V).named(r"E_2", latex=r"E_2")
     intensity = (norm(E2) ** 2)
+    _intensity_value = float(intensity)
 
     gm.md(rt"""
     {M} = {M:value}
@@ -119,7 +120,7 @@ def _(H, V, e1, e2, gm, middle, norm, np, polarise, unit):
 
     {E2} = {E2:value}
 
-    Output intensity = {intensity:.4f}
+    Output intensity = {_intensity_value:.4f}
     """)
     return
 
@@ -184,12 +185,6 @@ def _(H, V, e1, e2, exp, norm, np, plt, polarise, unit):
     _ax.legend()
     _fig.tight_layout()
     _fig
-
-
-@app.cell
-def _():
-    return
-
 
 if __name__ == "__main__":
     app.run()

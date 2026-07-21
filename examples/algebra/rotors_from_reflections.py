@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -74,15 +74,15 @@ def _(alpha, beta, e1, e2, gm, np, vector_angle):
     gm.md(rt"""
     ## Reflection Composition
 
-    {_n1} = {_n1:value}
+    {_n1}
 
-    {_n2} = {_n2:value}
+    {_n2}
 
-    After first reflection: {_x1} = {_x1:value}
+    After first reflection: {_x1}
 
-    After second reflection: {_x2} = {_x2:value}
+    After second reflection: {_x2}
 
-    Rotor from the mirror pair: {_R} = {_R:value}
+    Rotor from the mirror pair: {_R}
     """)
     return
 
@@ -110,6 +110,7 @@ def _(alpha, beta, np, plt, vector_angle):
     _ax.grid(True, alpha=0.2)
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

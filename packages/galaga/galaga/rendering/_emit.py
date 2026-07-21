@@ -56,7 +56,7 @@ def emit(node: Node, target: str) -> str:
     return _emit(node, target)
 
 
-def _emit(node: Node, target: str) -> str:
+def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
     if isinstance(node, Identifier):
         return node.name.for_target(target)
     if isinstance(node, Literal):
@@ -64,12 +64,12 @@ def _emit(node: Node, target: str) -> str:
     if isinstance(node, Text):
         return _escape_text(node.value, target)
     if isinstance(node, Group):
-        body = _emit(node.body, target)
+        body = _emit(node.body, target, compact_fractions=compact_fractions)
         return rf"\left({body}\right)" if target == "latex" else f"({body})"
     if isinstance(node, Sum):
         rendered: list[str] = []
         for index, term in enumerate(node.terms):
-            body = _emit(term.body, target)
+            body = _emit(term.body, target, compact_fractions=compact_fractions)
             if index == 0:
                 rendered.append(f"-{body}" if term.negative else body)
             else:
@@ -80,20 +80,31 @@ def _emit(node: Node, target: str) -> str:
             separator = " " if target == "latex" else ""
         else:
             separator = f" {node.separator.for_target(target)} "
-        return separator.join(_emit(factor, target) for factor in node.factors)
+        factors: list[str] = []
+        for factor in node.factors:
+            rendered = _emit(factor, target, compact_fractions=compact_fractions)
+            if target == "latex" and compact_fractions and len(node.factors) > 1 and isinstance(factor, Fraction):
+                rendered = rf"\left({rendered}\right)"
+            factors.append(rendered)
+        return separator.join(factors)
     if isinstance(node, Fraction):
-        numerator = _emit(node.numerator, target)
-        denominator = _emit(node.denominator, target)
-        if target == "latex":
+        numerator = _emit(node.numerator, target, compact_fractions=compact_fractions)
+        denominator = _emit(node.denominator, target, compact_fractions=compact_fractions)
+        if target == "latex" and not compact_fractions:
             return rf"\frac{{{numerator}}}{{{denominator}}}"
         if node.numerator.precedence < node.precedence:
-            numerator = f"({numerator})"
+            numerator = rf"\left({numerator}\right)" if target == "latex" else f"({numerator})"
         if node.denominator.precedence <= node.precedence:
-            denominator = f"({denominator})"
-        return f"{numerator} / {denominator}"
+            denominator = rf"\left({denominator}\right)" if target == "latex" else f"({denominator})"
+        separator = "/" if target == "latex" else " / "
+        return f"{numerator}{separator}{denominator}"
     if isinstance(node, Power):
-        base = _emit(node.base, target)
-        exponent = _emit(node.exponent, target)
+        base = _emit(node.base, target, compact_fractions=compact_fractions)
+        exponent = _emit(
+            node.exponent,
+            target,
+            compact_fractions=target == "latex" or compact_fractions,
+        )
         if target == "latex":
             if isinstance(node.base, Power):
                 base = "{" + base + "}"
@@ -109,9 +120,15 @@ def _emit(node: Node, target: str) -> str:
             return f"{base}^({exponent})"
         return f"{base}^{exponent}"
     if isinstance(node, Subscript):
-        base = _emit(node.base, target)
-        subscript = _emit(node.subscript, target)
+        base = _emit(node.base, target, compact_fractions=compact_fractions)
+        subscript = _emit(node.subscript, target, compact_fractions=compact_fractions)
         if target == "latex":
+            # A configured identifier may already contain a subscript, as in
+            # the RGA blade ``\mathbf{e}_{1}``. Group that existing scripted
+            # atom before adding another semantic subscript; ordinary atomic
+            # bases retain the conventional compact ``x_i`` spelling.
+            if _latex_subscript_base_requires_group(node.base):
+                base = "{" + base + "}"
             return rf"{base}_{{{subscript}}}"
         if target == "unicode":
             compact = _unicode_script(subscript, superscript=False)
@@ -130,22 +147,26 @@ def _emit(node: Node, target: str) -> str:
         else:
             opening, closing = "(", ")"
             separator = ", "
-        arguments = separator.join(_emit(argument, target) for argument in node.arguments)
+        arguments = separator.join(
+            _emit(argument, target, compact_fractions=compact_fractions) for argument in node.arguments
+        )
         return f"{function}{opening}{arguments}{closing}"
     if isinstance(node, Prefix):
         operator = node.operator.for_target(target)
-        operand = _emit(node.operand, target)
+        operand = _emit(node.operand, target, compact_fractions=compact_fractions)
         return f"{operator}{operand}"
     if isinstance(node, Postfix):
-        return f"{_emit(node.operand, target)}{node.operator.for_target(target)}"
+        return f"{_emit(node.operand, target, compact_fractions=compact_fractions)}{node.operator.for_target(target)}"
     if isinstance(node, Infix):
-        operator = _emit(node.operator, target)
-        return f" {operator} ".join(_emit(operand, target) for operand in node.operands)
+        operator = _emit(node.operator, target, compact_fractions=compact_fractions)
+        return f" {operator} ".join(
+            _emit(operand, target, compact_fractions=compact_fractions) for operand in node.operands
+        )
     if isinstance(node, Accent):
-        return _accent(node, target)
+        return _accent(node, target, compact_fractions=compact_fractions)
     if isinstance(node, Underset):
-        body = _emit(node.body, target)
-        annotation = _emit(node.annotation, target)
+        body = _emit(node.body, target, compact_fractions=compact_fractions)
+        annotation = _emit(node.annotation, target, compact_fractions=compact_fractions)
         if target == "latex":
             return rf"\underset{{{annotation}}}{{{body}}}"
         if target == "unicode":
@@ -153,14 +174,18 @@ def _emit(node: Node, target: str) -> str:
             return f"{body}{compact}" if compact is not None else f"{body}_[{annotation}]"
         return f"{body}[{annotation}]"
     if isinstance(node, MathClass):
-        body = _emit(node.body, target)
+        body = _emit(node.body, target, compact_fractions=compact_fractions)
         if target == "latex" and node.kind == "binary":
             return rf"\mathbin{{{body}}}"
         return body
     if isinstance(node, Wrapper):
         opening = node.opening.for_target(target)
         closing = node.closing.for_target(target)
-        body = _emit(node.body, target)
+        body = _emit(
+            node.body,
+            target,
+            compact_fractions=compact_fractions or (target == "latex" and node.script_style),
+        )
         if target == "latex" and node.scalable:
             opening_space = " " if opening.startswith("\\") else ""
             closing_space = " " if closing.startswith("\\") else ""
@@ -170,7 +195,7 @@ def _emit(node: Node, target: str) -> str:
         opening = node.opening.for_target(target)
         closing = node.closing.for_target(target)
         separator = node.separator.for_target(target)
-        items = separator.join(_emit(item, target) for item in node.items)
+        items = separator.join(_emit(item, target, compact_fractions=compact_fractions) for item in node.items)
         if target == "latex" and node.scalable:
             opening_space = " " if opening.startswith("\\") else ""
             closing_space = " " if closing.startswith("\\") else ""
@@ -180,7 +205,7 @@ def _emit(node: Node, target: str) -> str:
         separator = r" \quad = \quad " if target == "latex" else " = "
         # Teaching display omits parts that become identical only after the
         # selected notation and target have been emitted.
-        rendered_parts = dict.fromkeys(_emit(part, target) for part in node.parts)
+        rendered_parts = dict.fromkeys(_emit(part, target, compact_fractions=compact_fractions) for part in node.parts)
         return separator.join(rendered_parts)
     raise TypeError(f"unsupported semantic render node {type(node).__name__}")
 
@@ -213,14 +238,21 @@ def _latex_function(value: str) -> str:
     return rf"\operatorname{{{_escape_text(value, 'latex')}}}"
 
 
+def _latex_subscript_base_requires_group(node: Node) -> bool:
+    """Return whether another subscript would create an illegal TeX atom."""
+    if isinstance(node, Subscript):
+        return True
+    return isinstance(node, Identifier) and re.search(r"(?<!\\)_", node.name.latex) is not None
+
+
 def _escape_text(value: str, target: str) -> str:
     if target == "latex":
         return value.translate(_LATEX_ESCAPE)
     return value
 
 
-def _accent(node: Accent, target: str) -> str:
-    body = _emit(node.body, target)
+def _accent(node: Accent, target: str, *, compact_fractions: bool = False) -> str:
+    body = _emit(node.body, target, compact_fractions=compact_fractions)
     accent = node.accent.for_target(target)
     if target == "latex":
         if accent.startswith("\\"):

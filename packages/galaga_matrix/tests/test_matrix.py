@@ -690,6 +690,44 @@ class TestSpinorMatrix:
         R2 = from_spinor_matrix(sta, spinor)
         assert np.allclose(R.data, R2.data, atol=1e-10)
 
+    def test_cl13_regular_spinor_contains_density_and_yvon_takabayasi_angle(self):
+        """A regular STA spinor is not restricted to a normalized rotor."""
+        from galaga import exp, reverse
+
+        sta = Algebra(1, 3)
+        g0, g1, g2, g3 = sta.basis_vectors()
+        pseudoscalar = sta.pseudoscalar()
+        density = 1.7
+        beta = 0.6
+        rotor = exp(-0.2 * (g0 * g1)) * exp(0.15 * (g2 * g3))
+        psi = np.sqrt(density) * exp(0.5 * beta * pseudoscalar) * rotor
+
+        polar_product = psi * reverse(psi)
+        expected_polar_product = density * exp(beta * pseudoscalar)
+        current = psi * g0 * reverse(psi)
+        expected_current = density * rotor * g0 * reverse(rotor)
+
+        assert np.allclose(polar_product.data, expected_polar_product.data, atol=1e-10)
+        assert np.allclose(current.data, expected_current.data, atol=1e-10)
+        assert not np.allclose(polar_product.data, sta.scalar(1).data, atol=1e-10)
+
+    def test_cl13_column_complex_phase_is_right_bivector_action(self):
+        """Column U(1) phase is not the STA pseudoscalar YT factor."""
+        from galaga_matrix import to_spinor_column
+
+        from galaga import exp
+
+        sta = Algebra(1, 3)
+        g0, g1, g2, g3 = sta.basis_vectors()
+        psi = sta.scalar(1.2) + 0.3 * (g0 * g1) - 0.4 * (g2 * g3)
+        alpha = 0.37
+        geometric_imaginary = g2 * g1
+
+        column = to_spinor_column(psi)
+        phased_column = to_spinor_column(psi * exp(alpha * geometric_imaginary))
+
+        assert np.allclose(phased_column.mat, np.exp(1j * alpha) * column.mat, atol=1e-10)
+
     def test_odd_grade_raises(self):
         """Odd-grade MV raises ValueError."""
         from galaga_matrix import to_spinor_matrix

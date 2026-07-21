@@ -62,6 +62,28 @@ def test_short_functional_notation_is_optional_and_keeps_inner_products_distinct
     }
 
 
+def test_short_functional_notation_covers_the_transwedge_family() -> None:
+    presentation = default_presentation(2).with_notation(Notation.functional(short=True))
+
+    rendered = {
+        operation_id: render(
+            Call(
+                operation_id,
+                (Symbol("a"), Symbol("b")),
+                {"order": 1},
+            ),
+            target="ascii",
+            presentation=presentation,
+        )
+        for operation_id in ("transwedge", "transwedge_antiproduct")
+    }
+
+    assert rendered == {
+        "transwedge": "tw(a, b, 1)",
+        "transwedge_antiproduct": "antitw(a, b, 1)",
+    }
+
+
 @pytest.mark.parametrize(
     "notation",
     (
@@ -175,6 +197,8 @@ def test_notation_rules_are_immutable_and_target_overrides_are_persistent_views(
         lambda: RenderRule("function", symbol="f", precedence=-1),
         lambda: RenderRule("function", symbol="f", argument_order=(0, 0)),
         lambda: RenderRule("function", symbol="f", scalable=1),  # type: ignore[arg-type]
+        lambda: RenderRule("function", symbol="f", script_style=True),
+        lambda: RenderRule("wrapper", opening="(", closing=")", script_style=1),  # type: ignore[arg-type]
         lambda: RenderRule("accent", symbol="~", group_operand=1),  # type: ignore[arg-type]
         lambda: RenderRule("infix", symbol="@", parameter_position="above"),
         lambda: Notation("bad", rules={("add", "html"): RenderRule("infix", symbol="+")}),

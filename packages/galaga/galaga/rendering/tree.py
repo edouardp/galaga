@@ -437,14 +437,26 @@ class Wrapper(Node):
     opening: Name
     closing: Name
     scalable: bool
+    script_style: bool
 
-    def __init__(self, body: Node, opening: Name | str, closing: Name | str, *, scalable: bool = True) -> None:
+    def __init__(
+        self,
+        body: Node,
+        opening: Name | str,
+        closing: Name | str,
+        *,
+        scalable: bool = True,
+        script_style: bool = False,
+    ) -> None:
         if not isinstance(scalable, bool):
             raise TypeError("wrapper scalable flag must be a boolean")
+        if not isinstance(script_style, bool):
+            raise TypeError("wrapper script_style flag must be a boolean")
         object.__setattr__(self, "body", _node(body, field="wrapper body"))
         object.__setattr__(self, "opening", _name(opening, field="wrapper opening"))
         object.__setattr__(self, "closing", _name(closing, field="wrapper closing"))
         object.__setattr__(self, "scalable", scalable)
+        object.__setattr__(self, "script_style", script_style)
 
     @property
     def precedence(self) -> int:

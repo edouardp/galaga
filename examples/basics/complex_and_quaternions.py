@@ -1,7 +1,20 @@
 import marimo
 
-__generated_with = "0.23.4"
-app = marimo.App(width="medium")
+__generated_with = "0.23.11"
+app = marimo.App()
+
+
+@app.cell
+def _():
+    import sys
+    from pathlib import Path
+
+    _root = str(Path(__file__).resolve().parent.parent.parent)
+    _gamo = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_marimo")
+    for _p in [_root, _gamo]:
+        if _p not in sys.path:
+            sys.path.insert(0, _p)
+    return
 
 
 @app.cell
@@ -14,53 +27,45 @@ def _():
 @app.cell
 def _():
     import numpy as np
-    from galaga import Algebra, b_complex, b_quaternion, conjugate, exp, inverse, log, norm, reverse, unit
-    from galaga.notation import NotationRule
 
-    return (
+    import galaga_marimo as gm
+    from galaga.facade import (
         Algebra,
-        b_complex,
-        b_quaternion,
+        DisplayPolicy,
         conjugate,
         exp,
         inverse,
         log,
         norm,
+        p_complex,
+        p_quaternion,
+        unit,
+    )
+
+    return (
+        Algebra,
+        DisplayPolicy,
+        conjugate,
+        exp,
+        gm,
+        inverse,
+        log,
+        norm,
         np,
+        p_complex,
+        p_quaternion,
         unit,
     )
 
 
-@app.cell
-def _(mo):
-    class Display:
-        def __init__(self):
-            self._lines = []
-
-        def __call__(self, *p):
-            parts = []
-            for _p in p:
-                if hasattr(_p, "display"):
-                    parts.append(f"${_p.display()}$")
-                elif hasattr(_p, "latex"):
-                    parts.append(f"${_p.latex()}$")
-                else:
-                    parts.append(str(_p))
-            self._lines.append(" ".join(parts))
-
-        def _repr_html_(self):
-            return mo.md("<br/>".join(self._lines)).text
-
-    return (Display,)
-
-
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     # Complex Numbers and Quaternions in Geometric Algebra
 
-    galaga provides `b_complex()` and `b_quaternion()` convention factories
-    that let you work with complex numbers and quaternions directly as
+    Galaga provides the complete `p_complex()` and `p_quaternion()` presets,
+    which combine the numeric algebra, blade convention, display order, and
+    notation needed to work with complex numbers and quaternions directly as
     Clifford algebra elements. Both use bivectors as imaginary units.
     """)
     return
@@ -68,7 +73,7 @@ def _(mo):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md("""
+    mo.md(r"""
     ## Complex Numbers — Cl(2,0) even subalgebra
 
     The bivector $e_1 \wedge e_2$ squares to $-1$, giving us the imaginary
@@ -79,15 +84,16 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, Display, b_complex):
-    alg_c = Algebra(2, blades=b_complex())
+def _(Algebra, DisplayPolicy, gm, p_complex):
+    alg_c = Algebra(config=p_complex(), display=DisplayPolicy(content="full"))
 
-    _i = alg_c.pseudoscalar(lazy=True)
+    _i = alg_c.blade("imaginary", expr=True)
 
-    _d = Display()
-    _d( _i )
-    _d( _i**2 )
-    _d
+    gm.md(rt"""
+    {_i}
+
+    {_i**2}
+    """)
     return (alg_c,)
 
 
@@ -100,19 +106,23 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_c):
-    _i = alg_c.pseudoscalar()
+def _(alg_c, gm):
+    _i = alg_c.blade("imaginary", expr=True)
 
-    _z1 = (3 + 4 * _i).name("z_1")
-    _z2 = (1 - 2 * _i).name("z_2")
+    _z1 = (3 + 4 * _i).named("z_1")
+    _z2 = (1 - 2 * _i).named("z_2")
 
-    _d = Display()
-    _d( _z1 )
-    _d( _z2 )
-    _d( _z1 + _z2 )
-    _d( _z1 * _z2 )
-    _d( _z1**2 )
-    _d
+    gm.md(rt"""
+    {_z1}
+
+    {_z2}
+
+    {_z1 + _z2}
+
+    {_z1 * _z2}
+
+    {_z1**2}
+    """)
     return
 
 
@@ -128,17 +138,20 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_c, conjugate, norm):
-    _i = alg_c.pseudoscalar()
+def _(alg_c, conjugate, gm, norm):
+    _i = alg_c.blade("imaginary", expr=True)
 
-    _z = (3 + 4 * _i).name("z")
+    _z = (3 + 4 * _i).named("z")
 
-    _d = Display()
-    _d( _z )
-    _d( conjugate(_z) )
-    _d( _z * conjugate(_z) )
-    _d( norm(_z) )
-    _d
+    gm.md(rt"""
+    {_z}
+
+    {conjugate(_z)}
+
+    {_z * conjugate(_z)}
+
+    {norm(_z)}
+    """)
     return
 
 
@@ -153,17 +166,20 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_c, exp, np):
-    _i = alg_c.pseudoscalar()
+def _(alg_c, exp, gm, np):
+    _i = alg_c.blade("imaginary", expr=True)
 
-    _theta = 0.25 * alg_c.pi
+    _pi = alg_c.scalar(np.pi).named("pi", latex=r"\pi")
+    _theta = 0.25 * _pi
     _r = exp(_theta * _i)
 
-    _d = Display()
-    _d( _r )
-    _d(f"$cos(0.25\\pi) \\quad = \\quad {np.cos(_theta.scalar_part):.6f}$")
-    _d(f"$sin(0.25\\pi) \\quad = \\quad {np.sin(_theta.scalar_part):.6f}$")
-    _d
+    gm.md(rt"""
+    {_r}
+
+    $\cos(0.25\pi) = {np.cos(float(_theta)):.6f}$
+
+    $\sin(0.25\pi) = {np.sin(float(_theta)):.6f}$
+    """)
     return
 
 
@@ -178,18 +194,21 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_c):
-    _i = alg_c.pseudoscalar()
+def _(alg_c, gm):
+    _i = alg_c.blade("imaginary", expr=True)
 
-    _z1 = (3 + 4 * _i).name("z_1")
-    _z2 = (1 - 2 * _i).name("z_2")
+    _z1 = (3 + 4 * _i).named("z_1")
+    _z2 = (1 - 2 * _i).named("z_2")
 
-    _d = Display()
-    _d( _z1 )
-    _d( _z2 )
-    _d( _z1 / _z2 )
-    _d( _z2 * (_z1 / _z2) )
-    _d
+    gm.md(rt"""
+    {_z1}
+
+    {_z2}
+
+    {_z1 / _z2}
+
+    {_z2 * (_z1 / _z2)}
+    """)
     return
 
 
@@ -201,16 +220,21 @@ def _(mo):
     ## Quaternions — Cl(3,0) bivectors
 
     The three bivectors of Cl(3,0) square to $-1$ and satisfy Hamilton's
-    identities. `b_quaternion()` names them $i$, $j$, $k$ and sets the
+    identities. `p_quaternion()` names them $i$, $j$, $k$ and sets the
     display order so terms render conventionally.
     """)
     return
 
 
 @app.cell
-def _(Algebra, b_quaternion):
-    alg_q = Algebra(3, blades=b_quaternion())
-    i, j, k = alg_q.basis_blades(k=2, lazy=True)
+def _(Algebra, DisplayPolicy, p_quaternion):
+    alg_q = Algebra(config=p_quaternion(), display=DisplayPolicy(content="full"))
+    i, j, k = alg_q.blades(
+        "quaternion_i",
+        "quaternion_j",
+        "quaternion_k",
+        expr=True,
+    )
     return alg_q, i, j, k
 
 
@@ -223,21 +247,32 @@ def _(mo):
 
 
 @app.cell
-def _(Display, i, j, k):
-    _d = Display()
-    _d( i**2 )
-    _d( j**2 )
-    _d( k**2 )
-    _d( i*j*k )
-    _d()
-    _d( i*j )
-    _d( j*k )
-    _d( k*i )
-    _d()
-    _d( j*i )
-    _d( k*j )
-    _d( i*k )
-    _d
+def _(gm, i, j, k):
+    gm.md(rt"""
+    {i**2}
+
+    {j**2}
+
+    {k**2}
+
+    {i * j * k}
+
+    ---
+
+    {i * j}
+
+    {j * k}
+
+    {k * i}
+
+    ---
+
+    {j * i}
+
+    {k * j}
+
+    {i * k}
+    """)
     return
 
 
@@ -252,16 +287,19 @@ def _(mo):
 
 
 @app.cell
-def _(Display, i, j, k):
-    _q1 = (1 + 2 * i + 3 * j + 4 * k).name("q_1")
-    _q2 = (2 - i + j - 3 * k).name("q_2")
+def _(gm, i, j, k):
+    _q1 = (1 + 2 * i + 3 * j + 4 * k).named("q_1")
+    _q2 = (2 - i + j - 3 * k).named("q_2")
 
-    _d = Display()
-    _d( _q1 )
-    _d( _q2 )
-    _d( _q1 + _q2 )
-    _d( _q1 * _q2 )
-    _d
+    gm.md(rt"""
+    {_q1}
+
+    {_q2}
+
+    {_q1 + _q2}
+
+    {_q1 * _q2}
+    """)
     return
 
 
@@ -277,17 +315,22 @@ def _(mo):
 
 
 @app.cell
-def _(Display, conjugate, i, inverse, j, k, norm):
-    _q = (1 + 2*i + 3*j + 4*k).name("q")
+def _(conjugate, gm, i, inverse, j, k, norm):
+    _q = (1 + 2 * i + 3 * j + 4 * k).named("q")
 
-    _d = Display()
-    _d( _q )
-    _d( conjugate(_q) )
-    _d( _q * conjugate(_q) )
-    _d( norm(_q) )
-    _d( inverse(_q) )
-    _d( _q * inverse(_q) )
-    _d
+    gm.md(rt"""
+    {_q}
+
+    {conjugate(_q)}
+
+    {_q * conjugate(_q)}
+
+    {norm(_q)}
+
+    {inverse(_q)}
+
+    {_q * inverse(_q)}
+    """)
     return
 
 
@@ -304,18 +347,24 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_q, conjugate, exp, i, j, np):
-    _theta = 0.25 * alg_q.pi
+def _(alg_q, conjugate, exp, gm, i, j, np):
+    _pi = alg_q.scalar(np.pi).named("pi", latex=r"\pi")
+    _theta = 0.25 * _pi
     _axis = i
-    _q = exp(_theta * _axis).name("q")
-    _v = j.eval().name('v')
-    _rotated = (_q * _v * conjugate(_q)).name("v'")
+    _q = exp(_theta * _axis).named("q")
+    _v = j.named("v")
+    _rotated = (_q * _v * conjugate(_q)).named("v'")
+    _degrees = np.degrees(float(_theta)) * 2
 
-    _d = Display()
-    _d( _v )
-    _d( _q, fr"$\qquad$ ({np.degrees(_theta.scalar_part)*2}° rotation around {_axis})")
-    _d( _rotated )
-    _d
+    gm.md(rt"""
+    {_v}
+
+    {_q}
+
+    This is a ${_degrees:g}^\circ$ rotation around {_axis}.
+
+    {_rotated}
+    """)
     return
 
 
@@ -332,22 +381,35 @@ def _(mo):
 
 
 @app.cell
-def _(Display, alg_q, exp, i, log):
-    _theta = alg_q.pi / 3
+def _(alg_q, exp, gm, i, log, np):
+    _pi = alg_q.scalar(np.pi).named("pi", latex=r"\pi")
+    _theta = _pi / 3
 
     _q = exp(i * _theta / 2)
-    _b = log(_q).name("q_{log}")
+    _b = log(_q).named("q_log", latex=r"q_{\log}")
+    _q0 = exp(0.0 * _b)
+    _q25 = exp(0.25 * _b)
+    _q50 = exp(0.5 * _b)
+    _q75 = exp(0.75 * _b)
+    _q100 = exp(1.0 * _b)
 
-    _d = Display()
-    _d( _q )
-    _d( _b )
-    _d( exp(_b) )
-    _d()
-    _d("SLERP — interpolate from identity to q:")
-    for _t in [0.0, 0.25, 0.5, 0.75, 1.0]:
-        _qt = exp( _t * _b )
-        _d(f"  {_t}: $\\qquad$", _qt)
-    _d
+    gm.md(rt"""
+    {_q}
+
+    {_b}
+
+    {exp(_b)}
+
+    **SLERP — interpolate from identity to $q$: **
+
+    | $t$ | $\exp(t\,q_{{\log}})$ |
+    |---:|:---|
+    | 0 | {_q0} |
+    | 0.25 | {_q25} |
+    | 0.50 | {_q50} |
+    | 0.75 | {_q75} |
+    | 1 | {_q100} |
+    """)
     return
 
 
@@ -360,15 +422,18 @@ def _(mo):
 
 
 @app.cell
-def _(Display, i, j, k, norm, unit):
-    _q = (1 + 2 * i + 3 * j + 4 * k).name("q")
+def _(gm, i, j, k, norm, unit):
+    _q = (1 + 2 * i + 3 * j + 4 * k).named("q")
 
-    _d = Display()
-    _d( _q )
-    _d( norm(_q) )
-    _d( unit(_q) )
-    _d( norm(unit(_q)) )
-    _d
+    gm.md(rt"""
+    {_q}
+
+    {norm(_q)}
+
+    {unit(_q)}
+
+    {norm(unit(_q))}
+    """)
     return
 
 

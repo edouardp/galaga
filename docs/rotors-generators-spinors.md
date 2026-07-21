@@ -110,6 +110,54 @@ The key insight: a spinor is *an element of the algebra itself*, not something l
 
 This is the simplest definition and the one most GA software uses. But it doesn't capture everything physicists mean by "spinor."
 
+#### A regular STA spinor is more than a rotor
+
+After choosing a spin frame, a regular Dirac-Hestenes spinor in mostly-minus
+spacetime algebra has the polar decomposition
+
+$$
+\psi = \sqrt{\rho}\,e^{I\beta/2}R,
+\qquad R\widetilde R=1.
+$$
+
+The factors carry different information:
+
+- $\rho>0$ is the local scalar density;
+- $R$ is a proper orthochronous Lorentz rotor and carries the local frame and
+  velocity orientation;
+- $I=\gamma_0\gamma_1\gamma_2\gamma_3$ is the STA pseudoscalar; and
+- $\beta$ is the Yvon--Takabayasi angle.
+
+The frequently used identification $\psi=R$ is therefore a restricted case
+with $\rho=1$ and $\beta=0$. It is useful for teaching rotations and normalized
+Pauli states, but it is not the general regular STA spinor.
+
+The distinction is algebraically visible. In four dimensions
+$\widetilde I=I$, so
+
+$$
+\psi\widetilde\psi=\rho e^{I\beta},
+$$
+
+whereas a normalized Lorentz rotor satisfies $R\widetilde R=1$. Nevertheless,
+the vector current is
+
+$$
+J=\psi\gamma_0\widetilde\psi
+ =\rho R\gamma_0\widetilde R,
+$$
+
+because the pseudoscalar anticommutes with vectors; the Yvon--Takabayasi phase
+cancels from this observable. The pseudoscalar factor $e^{I\beta/2}$ should
+also not be confused with the conventional column's scalar complex phase. In
+the standard Dirac-Hestenes correspondence, multiplication by complex $i$ is
+represented by right multiplication by $\gamma_2\gamma_1$.
+
+This polar decomposition applies to regular spinors. Singular spinors, for
+which the relevant scalar--pseudoscalar norm vanishes, need a separate
+classification and cannot be recovered by simply choosing $\rho>0$, $\beta$,
+and a rotor.
+
 ### Definition 2: Mathematics — "element of a minimal left ideal"
 
 The Chevalley/Lounesto definition. Pick an idempotent $p$ — like $p = \frac{1}{2}(1 + e_n)$ — and form the minimal left ideal $\mathrm{Cl}(V)p$. Spinors are elements of this ideal.

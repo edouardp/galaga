@@ -24,6 +24,16 @@ def evaluate(
     result = _evaluate(expression, numeric_algebra, environment or {})
     if facade_algebra is not None and isinstance(result, core.Multivector):
         return facade_algebra._wrap(result)
+    if (
+        facade_algebra is not None
+        and isinstance(expression, Call)
+        and isinstance(result, Real)
+        and not isinstance(result, bool)
+    ):
+        from ..facade.catalog import get_operation
+
+        if get_operation(expression.operation_id).result_kind == "scalar":
+            return facade_algebra.scalar(result)
     return result
 
 

@@ -155,7 +155,7 @@ def _coefficient_tree(coefficients: Sequence[float], presentation: PresentationC
         return _literal(0, presentation)
     if len(terms) == 1:
         term = terms[0]
-        return _negated(term.body) if term.negative else term.body
+        return _negated_coefficient_term(term.body) if term.negative else term.body
     return Sum(terms)
 
 
@@ -183,6 +183,19 @@ def _formats_as_one(value: float, precision: int) -> bool:
 
 def _negated(body: Node) -> Prefix:
     return Prefix("-", grouped_child(body, parent_precedence=40), precedence=40)
+
+
+def _negated_coefficient_term(body: Node) -> Node:
+    """Attach a concrete term's sign to its scalar coefficient factor."""
+    if isinstance(body, Product) and body.factors and isinstance(body.factors[0], Literal):
+        return Product(
+            (_negated(body.factors[0]), *body.factors[1:]),
+            separator=body.separator,
+            precedence=body.precedence,
+            associativity=body.associativity,
+            operation_id=body.operation_id,
+        )
+    return _negated(body)
 
 
 def _parameter_tree(value: Any, presentation: PresentationConfig) -> Node:
@@ -348,7 +361,13 @@ def _operation_tree(
             return _functional_tree(operation_id, operands, parameters)
         wrapped: Node
         if len(arguments) == 1:
-            wrapped = Wrapper(arguments[0], opening, closing, scalable=rule.scalable)
+            wrapped = Wrapper(
+                arguments[0],
+                opening,
+                closing,
+                scalable=rule.scalable,
+                script_style=rule.script_style,
+            )
         else:
             wrapped = Delimited(
                 arguments,

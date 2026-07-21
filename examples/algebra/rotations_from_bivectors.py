@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -144,29 +144,29 @@ def _(B_raw, B_unit, R, a, b, generator, gm, norm, rotation_deg, v, v_rot):
     gm.md(rt"""
     ## Code Layer
 
-    {a} = {a:value}
+    {a}
 
-    {b} = {b:value}
+    {b}
 
-    {B_raw} = {B_raw:value}
+    {B_raw}
 
-    {B_unit} = {B_unit:value}
+    {B_unit}
 
     Generator used in the exponential:
 
-    {generator} = {generator:value}
+    {generator}
 
-    {R} = {R:value}
+    {R}
 
-    {v} = {v:value}
+    {v}
 
-    {v_rot} = {v_rot:value}
+    {v_rot}
 
     Length check:
 
-    {norm(v):.3f} $\\rightarrow$ {norm(v_rot):.3f}
+    {norm(v)} $\rightarrow$ {norm(v_rot)}
 
-    Requested angle: ${rotation_deg.value:.0f}^\\circ$
+    Requested angle: ${rotation_deg.value:.0f}^\circ$
     """)
     return
 
@@ -196,11 +196,11 @@ def _(
     gm.md(rt"""
     ## Validation
 
-    The wedge magnitude is {_raw_scale:.3f}, which matches \\sin({opening_deg.value:.0f}$^\\circ$).
+    The wedge magnitude is {_raw_scale}, which matches \\sin({opening_deg.value:.0f}$^\circ$).
 
-    Predicted rotation from the chosen generator: {_predicted_rotation:.2f}$^\\circ$
+    Predicted rotation from the chosen generator: {_predicted_rotation:.2f}$^\circ$
 
-    Measured rotation from the sandwich action: ${_actual_rotation:.2f}^\\circ$
+    Measured rotation from the sandwich action: ${_actual_rotation:.2f}^\circ$
 
     This is the key invariant story:
 

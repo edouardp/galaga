@@ -97,14 +97,14 @@ def _(
     with gm.doc() as d:
         d.md(rt"""
         Input vector pair:
-        {a} = {a:value}
+        {a}
 
-        {b} = {b:value}
+        {b}
 
         Input bivector pair:
-        {A} = {A:value}
+        {A}
 
-        {B} = {B:value}
+        {B}
         """)
         d.text("| Operation | On vectors | On bivectors |")
         d.line("|---|---|---|")

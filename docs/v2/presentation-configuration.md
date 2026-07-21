@@ -184,8 +184,33 @@ flowchart TD
 ```
 
 `blade()` accepts a native integer bitmask, `BladeRef`, canonical name, alias,
-or semantic role. Integer masks always preserve native orientation. Named and
-signed forms apply only their declared sign.
+semantic role, or a facade multivector from the same numeric algebra. Integer
+masks always preserve native orientation. Named and signed forms apply only
+their declared sign. A multivector input must be an exact signed unit basis
+blade: the factory preserves its value and orientation but discards its name
+and previous provenance. Passing `expr=True` attaches a fresh `BladeLiteral`,
+which provides an explicit alternative to
+`value.without_expr().with_expr()` when a computed factorization should become
+a literal leaf in subsequent expressions.
+
+`blades(*values, expr=False)` is the ordered batch form of `blade()`. It
+accepts any mixture supported by the singular factory and applies one shared
+expression-provenance choice, so notebook code can use explicit unpacking
+without mutating `locals()`:
+
+```python
+e23, e31, e41, e42 = rga.blades(
+    e2 ^ e3,
+    e3 ^ e1,
+    e4 ^ e1,
+    e4 ^ e2,
+    expr=True,
+)
+```
+
+The result is a tuple in argument order. It intentionally has no batch
+`name=` parameter because independent results require independent names;
+call `named()` on those values when names are wanted.
 
 `basis_vectors()`, `basis_blades()`, and `pseudoscalar()` remain native numeric
 factories. `blade_label()` exposes the active canonical label. `locals()`

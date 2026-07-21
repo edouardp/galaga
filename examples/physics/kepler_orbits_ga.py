@@ -99,6 +99,7 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
     _position = _r * _radial
     _velocity = _hodograph_center + _tangent / np.sqrt(_p)
     _L = _position ^ _velocity
+    _L_magnitude = float(norm(_L))
 
     gm.md(rt"""
     Orbital Plane: {_plane} = {_plane:value}
@@ -118,7 +119,7 @@ def _(alg, anomaly, e1, e2, eccentricity, exp, gm, norm, np, semilatus):
 
     Angular momentum bivector: {_L} = {_L:value}
 
-    Its magnitude is {norm(_L):.6f}.
+    Its magnitude is {_L_magnitude:.6f}.
     """)
     return
 
@@ -168,12 +169,6 @@ def _(anomaly, e1, e2, eccentricity, exp, np, plt, sandwich, semilatus):
     _fig.tight_layout()
     _fig
     return
-
-
-@app.cell
-def _():
-    return
-
 
 if __name__ == "__main__":
     app.run()

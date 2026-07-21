@@ -15,6 +15,7 @@ from galaga.facade import (
     geometric_product,
     inverse,
     log,
+    norm,
     sqrt,
     unit,
 )
@@ -157,6 +158,54 @@ def test_reflected_addition_preserves_the_users_source_order_in_provenance() -> 
             Call("outer_product", (Symbol("a"), Symbol("b"))),
         ),
     )
+
+
+def test_named_scalar_survives_unary_negation_before_a_tracked_rotor_expression() -> None:
+    algebra = Algebra((1, 1, 1))
+    e1, e2, _ = algebra.basis_vectors(expr=True)
+    theta = algebra.scalar(0.25).named("theta", latex=r"\theta")
+    plane = (e1 ^ e2).named("B")
+
+    rotor = exp(-theta * plane / 2)
+
+    assert theta.expr is None
+    assert rotor.expr == Call(
+        "exp",
+        (
+            Call(
+                "scalar_divide",
+                (
+                    Call(
+                        "geometric_product",
+                        (
+                            Call("negate", (Symbol(theta.name),)),
+                            Symbol(plane.name),
+                        ),
+                    ),
+                ),
+                {"scalar": 2},
+            ),
+        ),
+    )
+    assert rotor.latex(content="expr") == r"e^{-\theta B/2}"
+
+
+def test_norm_lifts_only_semantic_inputs_to_a_scalar_multivector() -> None:
+    algebra = Algebra((1, 1, 1))
+    numeric = algebra.vector((3, 4, 0))
+    named = numeric.named("v")
+
+    numeric_norm = norm(numeric)
+    semantic_norm = norm(named)
+
+    assert type(numeric_norm) is float
+    assert numeric_norm == 5.0
+    assert isinstance(semantic_norm, Multivector)
+    assert float(semantic_norm) == 5.0
+    assert semantic_norm.expr == Call("norm", (Symbol(named.name),))
+    assert semantic_norm.latex(content="full") == r"\lVert v \rVert \quad = \quad 5"
+    assert evaluate(semantic_norm.expr, algebra=algebra, environment={"v": named}) == semantic_norm
+    assert type(evaluate(semantic_norm.expr, algebra=algebra.numeric, environment={"v": named})) is float
 
 
 def test_default_numeric_tolerances_do_not_leak_into_expression_provenance() -> None:

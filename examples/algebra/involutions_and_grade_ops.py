@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, DisplayPolicy, conjugate, even_grades, grade, grade_involution, odd_grades, reverse
+    from galaga.facade import Algebra, DisplayPolicy, conjugate, even_grades, grade, grade_involution, odd_grades, reverse, grades
     import galaga_marimo as gm
 
     return (
@@ -31,6 +31,7 @@ def _():
         gm,
         grade,
         grade_involution,
+        grades,
         mo,
         odd_grades,
         reverse,
@@ -52,23 +53,25 @@ def _(mo):
 def _(Algebra, DisplayPolicy):
     alg = Algebra((1, 1, 1), display=DisplayPolicy(content="full"))
     e1, e2, e3 = alg.basis_vectors(expr=True)
-    return e1, e2, e3
+    e12, e123 = alg.blades(e1^e2, e1^e2^e3, expr=True)
+    return e1, e12, e123
 
 
 @app.cell
 def _(
     conjugate,
     e1,
-    e2,
-    e3,
+    e12,
+    e123,
     even_grades,
     gm,
     grade,
     grade_involution,
+    grades,
     odd_grades,
     reverse,
 ):
-    x = (3 + e1 + 2 * (e1 ^ e2) + (e1 ^ e2 ^ e3)).named("x")
+    x = (3 + e1 + 2 * e12 + e123).named("x")
 
     gm.md(rt"""
     {x}
@@ -90,6 +93,8 @@ def _(
     {even_grades(x)}
 
     {odd_grades(x)}
+
+    {grades(x, [0,2])}
     """)
     return
 

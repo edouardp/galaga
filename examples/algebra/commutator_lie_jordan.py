@@ -20,10 +20,21 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, DisplayPolicy, half_anticommutator, half_commutator, jordan_product, lie_bracket
+    from galaga.facade import Algebra, DisplayPolicy, half_anticommutator, half_commutator, commutator, anticommutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
-    return Algebra, DisplayPolicy, gm, half_anticommutator, half_commutator, mo
+    return (
+        Algebra,
+        DisplayPolicy,
+        anticommutator,
+        commutator,
+        gm,
+        half_anticommutator,
+        half_commutator,
+        jordan_product,
+        lie_bracket,
+        mo,
+    )
 
 
 @app.cell(hide_code=True)
@@ -45,17 +56,45 @@ def _(Algebra, DisplayPolicy):
 
 
 @app.cell
-def _(e1, e2, e3, gm, half_anticommutator, half_commutator):
-    A = (e1 ^ e2).named("A")
-    B = e2 ^ e3
+def _(
+    anticommutator,
+    commutator,
+    e1,
+    e2,
+    e3,
+    gm,
+    half_anticommutator,
+    half_commutator,
+):
+    A = (e1 + e2).named("A")
+    B = (e2 ^ e3).named("B")
+
     gm.md(rt"""
     {A}
 
     {B}
 
+    {commutator(A, B)}
+
+    {anticommutator(A, B)}
+
     {half_commutator(A, B)}
 
     {half_anticommutator(A, B)}
+    """)
+    return A, B
+
+
+@app.cell
+def _(A, B, gm, jordan_product, lie_bracket):
+    gm.md(rt"""
+    {A}
+
+    {B}
+
+    {lie_bracket(A, B)}
+
+    {jordan_product(A, B)}
     """)
     return
 

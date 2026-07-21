@@ -16,6 +16,15 @@ import libcst as cst
 from libcst.helpers import get_full_name_for_node
 
 MIGRATED_NOTEBOOKS = (
+    "galaga_v2/algebra_construction.py",
+    "galaga_v2/eager_values_and_expressions.py",
+    "galaga_v2/presentation_contexts.py",
+    "galaga_v2/custom_functional_notation.py",
+    "galaga_v2/numeric_core.py",
+    "matrix/representations_and_roundtrips.py",
+    "matrix/pauli_and_dirac.py",
+    "matrix/spinor_columns.py",
+    "basics/complex_and_quaternions.py",
     "basics/spinor_column_conversions.py",
     "spacetime/dirac_bilinears_sta.py",
     "spacetime/weyl_chiral_basis.py",

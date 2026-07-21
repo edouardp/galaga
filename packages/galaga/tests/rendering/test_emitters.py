@@ -139,6 +139,20 @@ def test_compact_calls_and_fraction_bars_own_their_target_specific_grouping() ->
     assert emit(fraction, "ascii") == "(a + b) / 3"
 
 
+def test_latex_fractions_are_inline_only_inside_superscripts() -> None:
+    fraction = Fraction(Identifier("theta"), Literal(2))
+
+    assert emit(fraction, "latex") == r"\frac{theta}{2}"
+    assert emit(Power(Identifier("e"), fraction), "latex") == r"e^{theta/2}"
+
+
+def test_latex_groups_an_inline_fraction_that_is_one_factor_in_an_exponent() -> None:
+    fraction = Fraction(Prefix("-", Identifier("theta"), precedence=40), Literal(2))
+    exponent = Product((fraction, Identifier("B")))
+
+    assert emit(Power(Identifier("e"), exponent), "latex") == r"e^{\left(-theta/2\right) B}"
+
+
 def test_unicode_preserves_position_for_symbols_without_script_codepoints() -> None:
     star = Identifier(Name("star", "★", r"\text{★}"))
     bulk = Identifier(Name("bulk", "●", r"\text{●}"))
@@ -146,6 +160,13 @@ def test_unicode_preserves_position_for_symbols_without_script_codepoints() -> N
     assert emit(Power(Identifier("a"), star), "unicode") == "a^★"
     assert emit(Subscript(Identifier("a"), star), "unicode") == "a_★"
     assert emit(Subscript(Identifier("a"), bulk), "unicode") == "a_●"
+
+
+def test_latex_groups_a_scripted_identifier_before_adding_another_subscript() -> None:
+    blade = Identifier(Name("e1", "e₁", r"\mathbf{e}_{1}"))
+    star = Identifier(Name("star", "★", r"\text{★}"))
+
+    assert emit(Subscript(blade, star), "latex") == r"{\mathbf{e}_{1}}_{\text{★}}"
 
 
 @pytest.mark.parametrize(

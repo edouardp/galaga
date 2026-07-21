@@ -144,6 +144,77 @@ def test_exterior_volume_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
+        "legacy-v1/cl3/full-default",
+        r"\lVert v \rVert \quad = \quad 5",
+    ),
+    testcase(
+        "core-facade-v2/cl3/full-default",
+        r"\lVert v \rVert \quad = \quad 5",
+    ),
+)
+def test_named_vector_norm_is_a_renderable_scalar(context: ExpressionContext) -> Any:
+    e1, e2, _ = context.basis_vectors()
+    vector = context.named(3 * e1 + 4 * e2, "v")
+    return context.call("norm", vector)
+
+
+@latex_test(
+    testcase(
+        "legacy-v1/cl3/full-default",
+        r"\lVert B \rVert \quad = \quad 1",
+    ),
+    testcase(
+        "core-facade-v2/cl3/full-default",
+        r"\lVert B \rVert \quad = \quad 1",
+    ),
+)
+def test_named_bivector_norm_is_a_renderable_scalar(context: ExpressionContext) -> Any:
+    e1, e2, _ = context.basis_vectors()
+    plane = context.named(e1 ^ e2, "B")
+    return context.call("norm", plane)
+
+
+@latex_test(
+    testcase(
+        "legacy-v1/cl3/full-default",
+        r"e^{-\theta B/2} \quad = \quad 0.92388 - 0.382683 e_{12}",
+    ),
+    testcase(
+        "core-facade-v2/cl3/full-default",
+        r"e^{-\theta B/2} \quad = \quad 0.92388 - 0.382683 e_{12}",
+    ),
+)
+def test_named_angle_survives_rotor_generator_operations(context: ExpressionContext) -> Any:
+    """A named scalar remains semantic through unary negation, product, division, and exp."""
+    e1, e2, _ = context.basis_vectors()
+    theta = context.named(context.algebra.scalar(math.radians(45)), "theta", latex=r"\theta")
+    plane = context.named(e1 ^ e2, "B")
+    return context.call("exp", -theta * plane / 2)
+
+
+@latex_test(
+    testcase(
+        "legacy-v1/cl3/full-default",
+        r"\log\left(e^{-\theta B/2}\right) \quad = \quad -0.5 e_{12}",
+    ),
+    testcase(
+        "core-facade-v2/cl3/full-default",
+        r"\log\left(e^{-\theta B/2}\right) \quad = \quad -0.5 e_{12}",
+    ),
+)
+def test_rotor_logarithm_elides_parentheses_around_one_negative_blade_term(
+    context: ExpressionContext,
+) -> Any:
+    """The sign is part of the concrete coefficient, not a grouped product."""
+    e1, e2, _ = context.basis_vectors()
+    theta = context.named(context.algebra.scalar(1.0), "theta", latex=r"\theta")
+    plane = context.named(e1 ^ e2, "B")
+    rotor = context.call("exp", -theta * plane / 2)
+    return context.call("log", rotor)
+
+
+@latex_test(
+    testcase(
         "legacy-v1/cl2/full-default",
         r"""
         r' \quad = \quad R r \tilde{R}

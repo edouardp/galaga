@@ -18,7 +18,7 @@ flowchart LR
     U[Facade operation] --> C[facade.catalog OperationSpec]
     C --> N[galaga.core numeric evaluator]
     N --> V[Concrete core.Multivector]
-    U -->|only when an operand is tracked| E[galaga.expression Call]
+    U -->|when an operand is named or tracked| E[galaga.expression Call]
     V --> W[facade.Multivector wrapper]
     E --> W
     E --> X[expression.evaluate]
@@ -98,7 +98,7 @@ tracked = x.with_expr()
 named_tracked = named.with_expr()
 
 assert named.numeric is x.numeric
-assert named.expr is None       # naming alone never enables tracking
+assert named.expr is None       # naming does not alter the named value's provenance
 assert tracked.name is None
 assert named_tracked.name.ascii == "x"
 
@@ -144,19 +144,26 @@ The dispatch sequence is:
 3. omit unchanged optional defaults and normalize the remaining tracked
    parameters;
 4. invoke the numeric evaluator exactly once per binary edge; and
-5. construct a `Call` only if at least one multivector operand was already
-   tracked.
+5. construct a `Call` only if at least one multivector operand is named or
+   already tracked.
 
-A named, untracked operand becomes a `Symbol` leaf only when another operand
-has already made the operation tracked. Otherwise no expression node is
-constructed. Tests replace every expression constructor with a failing spy on
-the untracked path, giving an executable zero-expression-allocation contract.
+A named, untracked value remains untracked until it participates in an
+operation. That operation starts provenance and uses the value as a `Symbol`
+leaf. This is important for intermediate unary operations: `-theta * B`
+retains `theta` even though Python evaluates `-theta` before the product.
+Completely anonymous, untracked operations still construct no expression
+nodes. Tests replace every expression constructor with a failing spy on that
+path, giving an executable zero-expression-allocation contract.
 
-Operations returning a facade multivector retain a generated call. Scalar and
-predicate operations return their normal Python result types and therefore
-terminate attached provenance; their catalog schemas still allow explicit
-`Call` construction and evaluation. `result_kind` records this distinction,
-including the few operations whose return kind is dynamic.
+Operations returning a facade multivector retain a generated call. A catalog
+operation with `result_kind="scalar"` returns its normal Python scalar on the
+anonymous, untracked path, but lifts that result through `Algebra.scalar()`
+when a named or tracked operand starts provenance. Consequently `norm(v)` is
+both renderable and explicitly convertible with `float()` for a semantic `v`,
+while numeric-only code retains the direct float result. Predicate operations
+return their normal Python result types and terminate attached provenance.
+`result_kind` records these distinctions, including the few operations whose
+return kind is dynamic.
 
 ## Variadic products
 

@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -32,12 +32,14 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, reverse, dual, sandwich, norm2
+    from galaga.facade import Algebra, grade, reverse, dual, sandwich, norm2
+    from galaga.presets import SpacetimePreset
     from galaga import sym, grade as sym_grade, simplify, norm, unit, inverse
     import galaga_marimo as gm
 
     return (
         Algebra,
+        SpacetimePreset,
         gm,
         grade,
         inverse,
@@ -65,8 +67,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, gm):
-    sta = Algebra((1, -1, -1, -1), names="gamma")
+def _(Algebra, SpacetimePreset, gm):
+    sta = Algebra(config=SpacetimePreset())
     g0, g1, g2, g3 = sta.basis_vectors()
     I = sta.I
 
@@ -75,12 +77,12 @@ def _(Algebra, gm):
     _g2sq = g2 * g2
     _g3sq = g3 * g3
 
-    gm.md(t"""**Basis vectors and their squares:**
-    - $\\gamma_0^2$ = {_g0sq}
-    - $\\gamma_1^2$ = {_g1sq}
-    - $\\gamma_2^2$ = {_g2sq}
-    - $\\gamma_3^2$ = {_g3sq}
-    - Pseudoscalar $I$ = {I}, $\\quad I^2$ = {I*I}""")
+    gm.md(rt"""**Basis vectors and their squares:**
+    - $\gamma_0^2$ = {_g0sq}
+    - $\gamma_1^2$ = {_g1sq}
+    - $\gamma_2^2$ = {_g2sq}
+    - $\gamma_3^2$ = {_g3sq}
+    - Pseudoscalar $I$ = {I}, $\quad I^2$ = {I*I}""")
     return I, g0, g1, g2, g3, sta
 
 

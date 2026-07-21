@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -76,13 +76,13 @@ def _(exp, g0, g1, g2, gm, phi_x, phi_y):
     gm.md(rt"""
     ## Thomas-Wigner Rotation from Boost Composition
 
-    {Rx} = {Rx:value}
+    {Rx}
 
-    {Ry} = {Ry:value}
+    {Ry}
 
-    {Rxy} = {Rxy:value}
+    {Rxy}
 
-    {Ryx} = {Ryx:value}
+    {Ryx}
 
     Mismatch rotor {mismatch} = {mismatch:value}
 

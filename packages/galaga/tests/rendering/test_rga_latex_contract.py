@@ -368,6 +368,39 @@ def test_native_and_named_rga_blade_orientations_render_with_opposite_signs() ->
     assert named_e31.latex(content="value") == r"\mathbf{e}_{31}"
 
 
+@pytest.mark.parametrize(
+    ("operation", "expected"),
+    (
+        (
+            "left_hodge_dual",
+            r"{\mathbf{e}_{1}}_{\text{★}} \quad = \quad -\mathbf{e}_{423}",
+        ),
+        (
+            "left_weight_dual",
+            r"{\mathbf{e}_{1}}_{\text{☆}} \quad = \quad 0",
+        ),
+        (
+            "bulk_part",
+            r"{\mathbf{e}_{1}}_{\text{●}} \quad = \quad \mathbf{e}_{1}",
+        ),
+        (
+            "weight_part",
+            r"{\mathbf{e}_{1}}_{\text{○}} \quad = \quad 0",
+        ),
+    ),
+)
+def test_rga_subscript_operations_on_a_scripted_blade_emit_legal_latex(
+    operation: str,
+    expected: str,
+) -> None:
+    context = context_for(FACADE_RGA)
+    e1, _, _, _ = context.basis_vectors()
+    result = context.call(operation, e1)
+
+    assert result.latex() == expected
+    assert result._repr_latex_() == f"${expected}$"
+
+
 @latex_test(
     testcase(
         LEGACY_RGA,

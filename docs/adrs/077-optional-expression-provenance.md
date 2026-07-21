@@ -37,8 +37,8 @@ allocation on users who do not opt in.
 Galaga 2 uses a composition facade whose multivectors hold optional `Name` and
 `Expr` references alongside a concrete `core.Multivector`. `named`, `unnamed`,
 `with_expr`, and `without_expr` return new wrappers sharing that concrete
-value. Naming alone does not enable tracking, and equality and hashing ignore
-both metadata fields.
+value. Naming does not attach provenance to the named value itself, and
+equality and hashing ignore both metadata fields.
 
 Expression nodes live in `galaga.expression`. The format-neutral immutable
 model consists of `Symbol`, `ScalarLiteral`, `BladeLiteral`,
@@ -60,11 +60,13 @@ example, has evaluator arity two but one expression operand plus a normalized
 target parameter. The same spec validates constructed calls and evaluates
 them.
 
-Facade dispatch computes eagerly exactly once per binary edge. If no operand
-is tracked, it constructs no expression node. If tracking participates, named
-operands become symbol leaves and unnamed values contribute existing
-provenance or literal leaves. Geometric and outer product retain binary
-catalog identity while their variadic facade forms lower to explicit
+Facade dispatch computes eagerly exactly once per binary edge. A named or
+tracked operand starts or propagates provenance; named operands become symbol
+leaves and unnamed values contribute existing provenance or literal leaves.
+This prevents an intermediate unary operation from replacing a semantic name
+with its current numeric value. If every operand is anonymous and untracked,
+dispatch constructs no expression node. Geometric and outer product retain
+binary catalog identity while their variadic facade forms lower to explicit
 left-associated call trees, including an earlier untracked prefix.
 
 Standalone evaluation requires an algebra and an explicit environment for
@@ -83,8 +85,8 @@ operations, or attempts general geometric-algebra simplification.
   expression objects.
 - Good, because operation identity, arity, parameter normalization, dispatch,
   and replay have one catalog owner.
-- Good, because names can improve a tracked tree without forcing otherwise
-  named calculations to retain history.
+- Good, because a semantic name survives intermediate operations without
+  requiring a redundant `with_expr()` call.
 - Good, because expression identity is stable across ASCII, Unicode, LaTeX,
   and temporary teaching presentations.
 - Good, because variadic provenance records the same evaluation association
@@ -92,9 +94,12 @@ operations, or attempts general geometric-algebra simplification.
 - Cost, because facade wrappers now contain two optional metadata references.
 - Cost, because operation declarations distinguish evaluator arity,
   expression arity, parameters, and result kind.
-- Limitation, because Python scalar and predicate results cannot retain
-  `.expr`; they terminate attached provenance, although explicit catalog calls
-  remain constructible and evaluable.
+- Good, because `norm()` retains its direct float result for anonymous numeric
+  inputs while named or tracked inputs produce a renderable scalar multivector
+  with checked `float()` conversion.
+- Limitation, because predicate results cannot retain `.expr`; they terminate
+  attached provenance, although explicit catalog calls remain constructible
+  and evaluable.
 - Deferred, because semantic render trees, emitters, legacy expression-class
   adapters, and companion-package migrations remain later phases.
 

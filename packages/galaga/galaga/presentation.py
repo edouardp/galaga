@@ -73,6 +73,7 @@ class RenderRule:
     closing: Name | None
     flatten: bool
     scalable: bool
+    script_style: bool
     group_operand: bool
     parameter_position: str
 
@@ -89,6 +90,7 @@ class RenderRule:
         closing: Name | str | None = None,
         flatten: bool = False,
         scalable: bool = True,
+        script_style: bool = False,
         group_operand: bool = True,
         parameter_position: str = "subscript",
     ) -> None:
@@ -122,6 +124,10 @@ class RenderRule:
             raise TypeError("render-rule flatten flag must be a boolean")
         if not isinstance(scalable, bool):
             raise TypeError("render-rule scalable flag must be a boolean")
+        if not isinstance(script_style, bool):
+            raise TypeError("render-rule script_style flag must be a boolean")
+        if script_style and kind != "wrapper":
+            raise ValueError("script_style is supported only by wrapper render rules")
         if not isinstance(group_operand, bool):
             raise TypeError("render-rule group_operand flag must be a boolean")
         if parameter_position not in {"subscript", "underscript"}:
@@ -136,6 +142,7 @@ class RenderRule:
         object.__setattr__(self, "closing", selected_closing)
         object.__setattr__(self, "flatten", flatten)
         object.__setattr__(self, "scalable", scalable)
+        object.__setattr__(self, "script_style", script_style)
         object.__setattr__(self, "group_operand", group_operand)
         object.__setattr__(self, "parameter_position", parameter_position)
 
@@ -316,6 +323,8 @@ _SHORT_FUNCTION_NAMES = {
     "right_interior_product": "r_interior",
     "scalar_product": "sp",
     "sandwich": "sw",
+    "transwedge": "tw",
+    "transwedge_antiproduct": "antitw",
 }
 
 
@@ -455,6 +464,7 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
             opening=Name("exp(", "exp(", r"e^{"),
             closing=Name(")", ")", "}"),
             scalable=False,
+            script_style=True,
         ),
         "log": RenderRule(
             "wrapper",

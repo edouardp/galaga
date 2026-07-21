@@ -77,14 +77,14 @@ Immutable `RenderRule` and `Notation` values remain presentation components.
 Rules are keyed by operation ID with optional target-specific overrides. They
 record layout kind, semantic symbol, precedence, associativity, parameter
 decoration and placement, argument order, delimiters, operand grouping,
-delimiter scaling, and visual flattening. Definition-shaped rules cover the
-reverse sandwich and metric regressive product without changing the stored
-operation ID. A missing rule renders as the long operation name. Optional
-short functional notation changes only rendered spelling. Doran-Lasenby,
-Hestenes, and Lengyel/RGA presets keep competing inner products visually
-distinct. The default LaTeX presentation deliberately retains Galaga 1's
-shared dot glyph for the Doran-Lasenby and Hestenes products; their expression
-IDs and functional names remain distinct.
+delimiter scaling, script-style wrapper bodies, and visual flattening.
+Definition-shaped rules cover the reverse sandwich and metric regressive
+product without changing the stored operation ID. A missing rule renders as
+the long operation name. Optional short functional notation changes only
+rendered spelling. Doran-Lasenby, Hestenes, and Lengyel/RGA presets keep
+competing inner products visually distinct. The default LaTeX presentation
+deliberately retains Galaga 1's shared dot glyph for the Doran-Lasenby and
+Hestenes products; their expression IDs and functional names remain distinct.
 
 Expression provenance stores optional numeric parameters only when they differ
 from the operation's public default. This keeps tolerances out of ordinary
@@ -95,7 +95,10 @@ operand order even when the eager numeric result would be unchanged.
 ASCII, Unicode, and LaTeX emitters consume the same node model. Emitters own
 escaping, scripts, combining accents, fractions, delimiter syntax, and
 scientific-number rewrites. They import neither the legacy algebra nor legacy
-renderers.
+renderers. The LaTeX emitter renders fractions in `Power` exponents and
+script-style wrapper bodies with an inline slash, retaining full fraction bars
+elsewhere. It groups a compact fraction when adjacent script factors would
+otherwise make its scope ambiguous.
 
 `galaga.display` independently resolves content (`name`, `expr`, `value`,
 `full`, or automatic policy) and target (`ascii`, `unicode`, or `latex`).

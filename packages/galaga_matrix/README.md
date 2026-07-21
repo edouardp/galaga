@@ -66,6 +66,17 @@ x = oblique.multivector([1.0, 2.0, 3.0, 4.0])
 from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 ```
 
+## Executable examples
+
+The repository includes a short Marimo series using the Galaga 2 facade:
+
+- [representations and round-trips](../../examples/matrix/representations_and_roundtrips.py);
+- [Pauli and Dirac matrices](../../examples/matrix/pauli_and_dirac.py); and
+- [spinor columns](../../examples/matrix/spinor_columns.py).
+
+Each notebook is compiled, dependency-checked, and executed headlessly by the
+example test ledger.
+
 ## MatrixRepr
 
 `MatrixRepr` is a transparent numpy proxy that wraps a matrix with:

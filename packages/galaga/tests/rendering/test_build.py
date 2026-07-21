@@ -47,6 +47,19 @@ def test_expression_leaves_translate_without_selecting_an_output_syntax() -> Non
     )
 
 
+def test_single_negative_concrete_blade_attaches_its_sign_to_the_coefficient() -> None:
+    algebra = Algebra((1, 1))
+    value = algebra.multivector((0, 0, 0, -0.5))
+    presentation = algebra.presentation
+
+    assert value_tree(value) == Product(
+        (
+            Prefix("-", Literal(0.5), precedence=40),
+            Identifier(presentation.blades.label(0b11).name),
+        )
+    )
+
+
 def test_signed_rga_blade_labels_round_trip_into_the_semantic_tree() -> None:
     presentation = LengyelRGAPreset().build().presentation
 

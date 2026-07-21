@@ -26,23 +26,22 @@ def _():
 
 @app.cell
 def _():
-    from galaga import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade
-    from galaga.notation import Notation, NotationRule
+    from galaga.facade import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade, grade_involution,DisplayPolicy, Notation
     from galaga import simplify
     import galaga_marimo as gm
     import numpy as np
 
     return (
         Algebra,
+        DisplayPolicy,
         Notation,
-        NotationRule,
         conjugate,
         dual,
         exp,
         gm,
         grade,
+        grade_involution,
         inverse,
-        involute,
         reverse,
         squared,
     )
@@ -74,23 +73,23 @@ def _(
     exp,
     gm,
     grade,
+    grade_involution,
     inverse,
-    involute,
     reverse,
     squared,
 ):
     alg = Algebra((1, 1, 1))
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
-    _v = e1.name("v")
-    _R = (e1 * e2).name("R")
-    _B = (e1 ^ e2).name("B")
+    e1, e2, e3 = alg.basis_vectors(expr=True)
+    _v = e1.named("v")
+    _R = (e1 * e2).named("R")
+    _B = (e1 ^ e2).named("B")
 
     with gm.doc() as _d:
         _d.text("| Operation | Unicode | LaTeX |")
         _d.line("|-----------|---------|-------|")
         _ops = [
             ("reverse(v)", reverse(_v)),
-            ("involute(v)", involute(_v)),
+            ("grade_involution(v)", grade_involution(_v)),
             ("conjugate(v)", conjugate(_v)),
             ("dual(v)", dual(_v)),
             ("inverse(v)", inverse(_v)),
@@ -118,11 +117,11 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, Notation, gm, reverse):
-    _alg = Algebra((1, 1, 1), notation=Notation.hestenes())
-    _e1, _e2, _ = _alg.basis_vectors(lazy=True)
-    _v = _e1.name("v")
-    _R = (_e1 * _e2).name("R")
+def _(Algebra, DisplayPolicy, Notation, gm, reverse):
+    _alg = Algebra(p=3, q=0, r=0, display=DisplayPolicy("full"), notation=Notation.hestenes())
+    _e1, _e2, _ = _alg.basis_vectors(expr=True)
+    _v = _e1.named("v")
+    _R = (_e1 * _e2).named("R")
 
     gm.md(t"""
     With `Notation.hestenes()`:
@@ -130,8 +129,16 @@ def _(Algebra, Notation, gm, reverse):
     - reverse(v) = {reverse(_v)}
     - R * v * ~R = {_R * _v * ~_R}
 
+    ${reverse(_v).display(content="full",notation=Notation.hestenes())}$
+
     Compare default: ṽ vs Hestenes: v†
     """)
+
+    return
+
+
+@app.cell
+def _():
     return
 
 

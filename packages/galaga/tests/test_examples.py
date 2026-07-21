@@ -76,7 +76,8 @@ def test_rga_demo_uses_the_rga_preset_and_expression_provenance():
     assert "p_rga," in source
     assert "rga = Algebra(config=p_rga()" in source
     assert "rga.basis_vectors(expr=True)" in source
-    assert "without_expr()" in source
+    assert "rga.blades(" in source
+    assert "without_expr()" not in source
     assert "locals().update(" not in source
     assert "b_rga" not in source
     assert "display_repr" not in source
@@ -143,3 +144,15 @@ def test_rga_demo_covers_the_rga_operation_families():
         "transwedge_antiproduct(",
     ):
         assert operation in source
+
+
+def test_pga_geometry_constructions_literalizes_reused_coordinate_blades():
+    """Keep repeated PGA coordinate blades as explicit facade literals."""
+    source = (ROOT / "examples" / "pga" / "pga_geometry_constructions.py").read_text()
+
+    assert "pga.blades(" in source
+    assert "blade_coefficient(join, e12)" in source
+    assert "blade_coefficient(join, e20)" in source
+    assert "blade_coefficient(join, e10)" in source
+    assert "blade_coefficient(join, e120)" in source
+    assert "blade_coefficient(join, e1 ^ e2)" not in source

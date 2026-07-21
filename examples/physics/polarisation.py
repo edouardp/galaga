@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.11"
 app = marimo.App()
 
 
@@ -32,11 +32,11 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, gp, norm, unit, exp, squared, grade
+    from galaga.facade import Algebra, DisplayPolicy, gp, norm, unit, exp, squared, grade
     from galaga import simplify, sym
     import galaga_marimo as gm
 
-    return Algebra, exp, gm, grade, norm, np, plt, sym, unit
+    return Algebra, DisplayPolicy, exp, gm, grade, norm, np, plt, sym, unit
 
 
 @app.cell(hide_code=True)
@@ -52,9 +52,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra):
-    alg = Algebra((1, 1))
-    e1, e2 = alg.basis_vectors(lazy=True)
+def _(Algebra, DisplayPolicy):
+    alg = Algebra((1, 1), display=DisplayPolicy(content="full"))
+    e1, e2 = alg.basis_vectors(expr=True)
     return alg, e1, e2
 
 
@@ -66,7 +66,10 @@ def _(e1, e2, gm, grade):
 
     # Example
     _p = polarise(e1, e2)
-    gm.md(t"{_p} = {_p.eval()}")
+
+    gm.md(t"""
+    {_p}
+    """)
     return (polarise,)
 
 
@@ -81,20 +84,18 @@ def _(mo):
 
 
 @app.cell
-def _(e1, e2, exp, gm, np, sym):
-    H = sym(e1, "H")
-    V = sym(e2, "V")
-    R_45 = exp((e1 ^ e2) * (-np.radians(45) / 2)).name(
+def _(alg, e1, e2, exp, gm, np):
+    H = e1.named("H")
+    V = e2.named("V")
+    R_45 = exp((e1 ^ e2) * alg.scalar(-np.radians(45) / 2)).named("R_45deg",
         latex=r"R_{45^\circ}",
-        unicode="R₄₅°",
-        ascii="R_45deg",
-    )
-    D = (R_45 * H * ~R_45).name("D")
+        unicode="R₄₅°")
+    D = (R_45 * H * ~R_45).named("D")
 
     gm.md(t"""
-    - Horizontal: {H} = {H.eval()}
-    - Vertical: {V} = {V.eval()}
-    - Diagonal (45°): {D} = {D.eval()}
+    - Horizontal: {H}
+    - Vertical: {V}
+    - Diagonal (45°): {D}
     """)
     return D, H, V
 
@@ -108,17 +109,17 @@ def _(mo):
 
 
 @app.cell
-def _(H, V, gm, norm, polarise, sym):
-    _E0 = sym(H, 'E0').name(latex=r"E_0")
-    _E1 = polarise(_E0, V).name(latex=r"E_1")
+def _(H, V, gm, norm, polarise):
+    _E0 = H.named(r"E_0")
+    _E1 = polarise(_E0, V).named(r"E_1")
     _I1 = norm(_E1)**2
 
-    gm.md(t"""
-    {_E0} = {_E0.eval()} (horizontal input)
+    gm.md(rt"""
+    {_E0}
 
-    After vertical polariser: {_E1} = {_E1.eval()}
+    After vertical polariser: {_E1}
 
-    Intensity: {_I1} = {_I1.eval()}  — **completely blocked**.
+    Intensity: {_I1} $\qquad — \qquad$  **completely blocked**.
     """)
     return
 
@@ -132,20 +133,20 @@ def _(mo):
 
 
 @app.cell
-def _(D, H, V, gm, norm, polarise, sym):
-    _E0 = sym(H).name(latex=r"E_0")
-    _E1 = polarise(_E0, D).name(latex=r"E_1")
-    _E2 = polarise(_E1, V).name(latex=r"E_2")
+def _(D, H, V, gm, norm, polarise):
+    _E0 = H.named(r"E_0")
+    _E1 = polarise(_E0, D).named(r"E_1")
+    _E2 = polarise(_E1, V).named(r"E_2")
     _I1 = norm(_E2)**2
 
-    gm.md(t"""
-    {_E0} = {_E0.eval()}
+    gm.md(rt"""
+    {_E0}
 
-    After 45° polariser: {_E1} = {_E1.eval()}
+    After 45° polariser: $\quad$ {_E1}
 
-    After vertical polariser: {_E2} = {_E2.eval()}
+    After vertical polariser: $\quad$ {_E2}
 
-    Intensity: {_I1} = {_I1.eval()} — **quarter gets through!**
+    Intensity: $\quad$ {_I1} $\qquad — \qquad$ **quarter gets through!**
     """)
     return
 

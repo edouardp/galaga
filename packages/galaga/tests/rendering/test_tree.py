@@ -113,6 +113,8 @@ def test_invalid_tree_shapes_fail_at_construction() -> None:
         Call("f", scalable=1)  # type: ignore[arg-type]
     with pytest.raises(TypeError, match="wrapper scalable flag"):
         Wrapper(Identifier("x"), "(", ")", scalable=1)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="wrapper script_style flag"):
+        Wrapper(Identifier("x"), "(", ")", script_style=1)  # type: ignore[arg-type]
     with pytest.raises(TypeError, match="delimiter scalable flag"):
         Delimited((), scalable=1)  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="math class"):

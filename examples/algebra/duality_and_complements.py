@@ -26,10 +26,26 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, DisplayPolicy, complement, dual, undual, uncomplement
+    from galaga.facade import Algebra, DisplayPolicy, complement, dual, undual, uncomplement, left_complement, left_hodge_dual, left_contraction, left_interior_product, left_weight_dual
     import galaga_marimo as gm
 
-    return Algebra, DisplayPolicy, complement, dual, gm, mo, np, plt, uncomplement, undual
+    return (
+        Algebra,
+        DisplayPolicy,
+        complement,
+        dual,
+        gm,
+        left_complement,
+        left_contraction,
+        left_hodge_dual,
+        left_interior_product,
+        left_weight_dual,
+        mo,
+        np,
+        plt,
+        uncomplement,
+        undual,
+    )
 
 
 @app.cell(hide_code=True)
@@ -54,19 +70,20 @@ def _(Algebra, DisplayPolicy):
     pga = Algebra((1, 1, 1, 0), display=DisplayPolicy(content="full"))
     e1, e2, e3 = cl3.basis_vectors(expr=True)
     p1, p2, p3, p0 = pga.basis_vectors(expr=True)
-    return e1, e2, p0, p1, p2
+    return e1, e2, e3, p0, p1, p2
 
 
 @app.cell
-def _(complement, dual, e1, e2, gm, uncomplement, undual):
-    bivector = (e1 ^ e2).named("B")
+def _(complement, dual, e1, e2, e3, gm, uncomplement, undual):
+    bivector = (e1 ^ e2).named("B_1")
+    bivector2 = (e2 ^ e3).named("B_2")
     dual_b = dual(bivector)
     comp_b = complement(bivector)
     undual_b = undual(dual_b)
     uncomp_b = uncomplement(comp_b)
 
     gm.md(rt"""
-    {bivector} = {bivector:value}
+    {bivector}
 
     {dual(bivector)}
 
@@ -76,6 +93,34 @@ def _(complement, dual, e1, e2, gm, uncomplement, undual):
 
     {uncomplement(comp_b)}
     """)
+    return bivector, bivector2
+
+
+@app.cell
+def _(
+    bivector,
+    bivector2,
+    gm,
+    left_complement,
+    left_contraction,
+    left_hodge_dual,
+    left_interior_product,
+    left_weight_dual,
+):
+    gm.md(rt"""
+    {bivector}
+
+    {left_complement(bivector)}
+
+    {left_hodge_dual(bivector)}
+
+    {left_contraction(bivector, bivector2)}
+
+    {left_interior_product(bivector, bivector2)}
+
+    {left_weight_dual(bivector)}
+    """)
+
     return
 
 

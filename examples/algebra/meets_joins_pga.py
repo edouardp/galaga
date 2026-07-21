@@ -83,10 +83,10 @@ def _(complement, gm, point):
 
     {C}
 
-    Join of A and B:
+    Join of A and B: $\quad$
     {line_ab}
 
-    Join of B and C:
+    Join of B and C: $\quad$
     {line_bc}
     """)
     return A, B, C

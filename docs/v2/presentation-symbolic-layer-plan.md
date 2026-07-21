@@ -345,11 +345,12 @@ The four axes are independent:
 | Expression | Facade value | Provenance to show and inspect |
 | Presentation | Facade algebra/context | Blade labels, notation, ordering, output policy |
 
-`named()` is presentation-only. A named untracked operand does not by itself
-make a result tracked, but its name is used as a leaf when it participates in
-an already-tracked operation. This realizes the four states identified by the
-v2 plan: unnamed/untracked, named/untracked, unnamed/tracked, and
-named/tracked.
+`named()` is presentation-only and does not alter the value's expression.
+When a named value participates in an operation, however, its name starts
+provenance as a symbol leaf. This preserves semantic inputs through
+intermediate operations such as the unary negation in `-theta * B`. The four
+states remain independent on stored values: unnamed/untracked,
+named/untracked, unnamed/tracked, and named/tracked.
 
 `__eq__` delegates to exact numeric equality; names and expressions do not
 change the mathematical value. Approximate comparison uses `almost_equal()`.
@@ -387,7 +388,7 @@ sequenceDiagram
     F->>C: resolve geometric_product
     F->>G: geometric_product(a.numeric, b.numeric)
     G-->>F: concrete result
-    alt either operand tracks an expression
+    alt either operand is named or tracks an expression
         F->>E: Call("geometric_product", leaves)
         E-->>F: expression node
     end

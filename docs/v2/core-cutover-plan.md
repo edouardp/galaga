@@ -795,7 +795,7 @@ Deliverables:
 Required tests:
 
 - every transition returns a new wrapper and preserves the core value;
-- naming alone does not enable tracking;
+- naming does not attach an expression to the named value;
 - removing a name does not remove an expression;
 - removing an expression does not remove a name; and
 - mathematical equality and hashing ignore both fields.
@@ -805,9 +805,10 @@ Required tests:
 Deliverables:
 
 - every operation evaluates its numeric result exactly once;
-- a call node is added only when tracking propagates from the operands or is
-  explicitly requested; and
-- named operands become useful leaves when they participate in a tracked call.
+- a call node is added when an operand is named, tracking propagates from an
+  operand, or tracking is explicitly requested; and
+- named operands start provenance as symbol leaves when they participate in
+  a call.
 
 Required tests:
 

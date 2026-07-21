@@ -155,6 +155,12 @@ coefficients on nonscalar blades are suppressed, and a zero multivector becomes
 `Literal(0)`. The compatibility default is `1e-12`; a policy value of zero
 retains every exactly nonzero coefficient.
 
+A single negative concrete blade term attaches its sign to the scalar
+coefficient factor, producing `-0.5 e12` rather than treating the whole term as
+a generic negated product and producing `-(0.5 e12)`. Genuine compound
+expression negation continues to follow the shared precedence rules and keeps
+grouping where required.
+
 Numeric literals carry the format-neutral
 `DisplayPolicy.coefficient_precision` into the shared tree. All emitters use
 that many significant digits, with a compatibility default of six and a valid
@@ -206,6 +212,7 @@ silently recording `a + 1`, even though both eager values are equal.
 - wrapper delimiters; and
 - whether repeated matching operations may be visually flattened;
 - whether calls and wrappers use compact or scalable delimiters;
+- whether a wrapper's body is typeset in script style;
 - whether an accent groups its operand; and
 - whether a parameter is a side subscript or an underscripted binary-operator
   annotation.
@@ -258,7 +265,7 @@ localized target rewrites:
 | Concern | ASCII | Unicode | LaTeX |
 |---|---|---|---|
 | Scripts | `x[2]`, `x^2` | `x₂`, `x²` when available; explicit `_`/`^` retains the position of RGA markers such as `★` | `x_{2}`, `x^2` where braces are unnecessary |
-| Fraction | `a / b` | `a / b` | `\frac{a}{b}` |
+| Fraction | `a / b` | `a / b` | `\frac{a}{b}` normally; `a/b` in a superscript or script-style wrapper |
 | Function | `metric_inner_product(...)` | same name or configured glyph | escaped `\operatorname{...}` with rule-selected compact/scalable delimiters |
 | Accent | `~x` or functional fallback | combining mark | accent command with grouped body |
 | Scientific literal | `1.25e+20` | `1.25e+20` | `1.25 \times 10^{20}` |
@@ -266,6 +273,11 @@ localized target rewrites:
 
 Final glyph selection and escaping occur here. Emitters import neither the
 legacy `Algebra` nor legacy `render`, `latex_build`, or `latex_emit` modules.
+LaTeX script context is structural: `Power` exponents and wrappers marked
+`script_style=True` compact nested fractions to slash form. A compact fraction
+that is only one factor of a larger script is parenthesized, so `e^{a/2}` and
+`e^{\left(a/2\right)B}` remain both compact and unambiguous. Ordinary fractions
+outside scripts retain a full fraction bar.
 
 ## Display policy and public API
 
