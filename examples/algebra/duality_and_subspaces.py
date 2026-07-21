@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, DisplayPolicy, complement, dual, inverse, left_contraction, uncomplement, undual
+    from galaga import Algebra, DisplayPolicy, complement, dual, inverse, left_contraction, uncomplement, undual
     import galaga_marimo as gm
 
     return (

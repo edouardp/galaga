@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, DisplayPolicy, complement
+    from galaga import Algebra, DisplayPolicy, complement
     import galaga_marimo as gm
 
     return Algebra, DisplayPolicy, complement, gm, mo, np, plt

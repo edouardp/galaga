@@ -66,7 +66,6 @@ def _sign_of_reorder(a: int, b: int) -> int:
     return 1 - 2 * (n & 1)
 
 
-from . import render as _render
 from .basis_blade import BasisBlade
 from .blade_convention import BladeConvention, _resolve_metric_role_key, b_default, build_blades
 from .latex_emit import emit as _latex_emit
@@ -76,6 +75,20 @@ from .latex_nodes import sci_lnode as _sci_lnode
 from .latex_symbols import LatexSymbols
 from .notation import Notation
 from .ops import build_expr, ga_op, is_sym, make_sym
+
+
+def _render_legacy_unicode(expr, notation: Notation) -> str:
+    """Load the retained renderer lazily to keep legacy import order acyclic."""
+    from .legacy.render import render
+
+    return render(expr, notation)
+
+
+def _render_legacy_latex(expr, notation: Notation) -> str:
+    """Load the retained LaTeX renderer lazily during the Phase 8 oracle."""
+    from .legacy.render import render_latex
+
+    return render_latex(expr, notation)
 
 
 def _resolve_symbolic(lazy: bool | None, symbolic: bool | None) -> bool:
@@ -1467,7 +1480,7 @@ class Multivector:
         if self._name is not None:
             return self._name
         if self._is_symbolic and self._expr is not None:
-            return _render.render(self._expr, self.algebra._notation)
+            return _render_legacy_unicode(self._expr, self.algebra._notation)
         return self._format(unicode=True)
 
     def __format__(self, spec: str) -> str:
@@ -1481,13 +1494,13 @@ class Multivector:
             if self._name_unicode is not None:
                 return self._name_unicode
             if self._is_symbolic and self._expr is not None:
-                return _render.render(self._expr, self.algebra._notation)
+                return _render_legacy_unicode(self._expr, self.algebra._notation)
             return self._format(unicode=True)
         if spec in ("ascii", "a"):
             if self._name is not None:
                 return self._name
             if self._is_symbolic and self._expr is not None:
-                return _render.render(self._expr, self.algebra._notation)
+                return _render_legacy_unicode(self._expr, self.algebra._notation)
             return self._format(unicode=False)
         # Numeric format spec — apply to each coefficient, no threshold
         alg = self.algebra
@@ -1522,7 +1535,7 @@ class Multivector:
             raw = self._name
         # Anonymous symbolic → delegate to renderer
         elif self._is_symbolic and self._expr is not None and coeff_format is None:
-            raw = _render.render_latex(self._expr, self.algebra._notation)
+            raw = _render_legacy_latex(self._expr, self.algebra._notation)
         else:
             # Eager anonymous → coefficient rendering via LNodes
             alg = self.algebra

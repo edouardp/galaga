@@ -89,7 +89,7 @@ The transitions always return a new lightweight wrapper over the same core
 value:
 
 ```python
-from galaga.facade import Algebra
+from galaga import Algebra
 
 algebra = Algebra(2)
 x = algebra.blade(1)
@@ -193,7 +193,7 @@ Evaluation requires an algebra and requires explicit values for symbols:
 
 ```python
 from galaga.expression import evaluate
-from galaga.facade import geometric_product
+from galaga import geometric_product
 
 x, y = algebra.basis_vectors()
 x = x.named("x").with_expr()

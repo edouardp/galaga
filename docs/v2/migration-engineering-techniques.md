@@ -218,12 +218,23 @@ stack has presentation, expression, rendering, and integration support.
 
 The important technique is not merely keeping both implementations. Their
 identity is tested. During the additive phases,
-`test_top_level_algebra_remains_legacy_during_additive_migration` asserts that
+`test_top_level_algebra_remains_legacy_during_additive_migration` asserted that
 top-level `Algebra` is still the legacy class and that `galaga.core.Algebra` is
-distinct. Phase 8 will deliberately invert that assertion.
+distinct. Phase 8 deliberately inverted that assertion.
 
 This makes the cutover a named, reviewable event rather than an accidental
 consequence of reorganizing imports.
+
+Phase 8 deliberately inverted that contract. The top-level package now copies
+the facade's export manifest and identity tests compare every object, while a
+subprocess proves plain import leaves the legacy engine unloaded. The former
+top-level v1 surface moved coherently to `galaga.legacy`.
+
+The same executable-ledger technique isolates oracle tests. A LibCST codemod
+changes only actual `from galaga import ...` nodes in an allowlisted test set;
+comments and source examples remain untouched. Pytest marks those files as
+`legacy_oracle` and poisons both old numeric constructors for every unledgered
+test. New tests therefore fail closed onto Galaga 2.
 
 ### Compatibility bridges preserve identity
 

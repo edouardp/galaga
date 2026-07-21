@@ -3,7 +3,16 @@
 import numpy as np
 import pytest
 
-from galaga import (
+from galaga.expr import (
+    Anticommutator,
+    Commutator,
+    Expr,
+    Hi,
+    JordanProduct,
+    LieBracket,
+    sym,
+)
+from galaga.legacy import (
     Algebra,
     anticommutator,
     commutator,
@@ -24,20 +33,11 @@ from galaga import (
     undual,
     unit,
 )
-from galaga import gp as _gp
-from galaga import grade as _grade
-from galaga import op as _op
-from galaga import reverse as _reverse
-from galaga.expr import (
-    Anticommutator,
-    Commutator,
-    Expr,
-    Hi,
-    JordanProduct,
-    LieBracket,
-    sym,
-)
-from galaga.simplify import simplify
+from galaga.legacy import gp as _gp
+from galaga.legacy import grade as _grade
+from galaga.legacy import op as _op
+from galaga.legacy import reverse as _reverse
+from galaga.legacy.simplify import simplify
 
 
 @pytest.fixture
@@ -315,7 +315,7 @@ class TestSymEval:
     def test_dual_eval(self, cl3):
         """Dual eval matches numeric dual."""
         _, e1, _, _ = cl3
-        from galaga import dual as _dual
+        from galaga.legacy import dual as _dual
 
         v = sym(e1, "v")
         result = dual(v).eval()

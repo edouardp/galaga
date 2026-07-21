@@ -32,7 +32,7 @@ When computed results are numerically equal to named multivectors (e.g.
 eigenstates, basis elements), use `recognize=` to annotate them:
 
 ```python
-from galaga.facade import Algebra
+from galaga import Algebra
 
 alg = Algebra(2)
 e1, e2 = alg.basis_vectors()

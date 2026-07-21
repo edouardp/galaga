@@ -1,4 +1,4 @@
-"""Migrate the maintained Marimo gallery to the Galaga 2 facade.
+"""Migrate the maintained Marimo gallery to the Galaga 2 public API.
 
 The notebook list is an executable migration ledger as well as a write guard:
 the codemod refuses to edit any other path.  Rewrites are deliberately limited
@@ -152,9 +152,9 @@ class _MigrateNotebook(cst.CSTTransformer):
         return updated_node.with_changes(value=replacement)
 
     def leave_ImportFrom(self, original_node: cst.ImportFrom, updated_node: cst.ImportFrom) -> cst.ImportFrom:
-        if get_full_name_for_node(original_node.module) != "galaga":
+        if get_full_name_for_node(original_node.module) not in {"galaga", "galaga.facade"}:
             return updated_node
-        return updated_node.with_changes(module=cst.parse_expression("galaga.facade"))
+        return updated_node.with_changes(module=cst.parse_expression("galaga"))
 
     def leave_Call(self, original_node: cst.Call, updated_node: cst.Call) -> cst.BaseExpression:
         if _is_zero_argument_method_call(original_node, "eval"):

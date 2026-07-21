@@ -57,12 +57,12 @@ class Expr:
         return str(self)
 
     def __str__(self) -> str:
-        from .render import render
+        from .legacy.render import render
 
         return render(self)
 
     def latex(self, wrap: str | None = None) -> str:
-        from .render import render_latex
+        from .legacy.render import render_latex
 
         raw = render_latex(self)
         if wrap == "$":

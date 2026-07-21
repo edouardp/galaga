@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, b_gamma, exp
+from galaga.legacy import Algebra, b_gamma, exp
 
 
 @pytest.fixture

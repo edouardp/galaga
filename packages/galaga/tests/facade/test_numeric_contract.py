@@ -15,8 +15,8 @@ from typing import Any
 import numpy as np
 import pytest
 
-import galaga.algebra as legacy
 import galaga.facade as facade
+import galaga.legacy as legacy
 
 
 @dataclass(frozen=True, slots=True)
@@ -49,7 +49,7 @@ IMPLEMENTATIONS = (
 
 def reject_legacy_numeric_construction(*args: Any, **kwargs: Any) -> None:
     """Fail when a facade-only contract accidentally reaches the v1 engine."""
-    raise AssertionError("facade-only numeric test constructed galaga.algebra.Algebra")
+    raise AssertionError("facade-only numeric test constructed galaga.legacy.Algebra")
 
 
 @pytest.fixture(params=IMPLEMENTATIONS, ids=lambda implementation: implementation.id)

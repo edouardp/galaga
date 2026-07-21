@@ -34,8 +34,8 @@ from .expr import (
     Unit,
 )
 from .latex_nodes import Command, Frac, LNode, Parens, Seq, Sup, Text, fmt_coeff, sci_lnode
+from .legacy.render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
 from .notation import Notation
-from .render import _CHILD_MIN, _COMMA_BINARY, _NAME, _needs_wrap
 
 _DEFAULT = Notation()
 

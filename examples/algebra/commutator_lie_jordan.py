@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, DisplayPolicy, half_anticommutator, half_commutator, commutator, anticommutator, jordan_product, lie_bracket
+    from galaga import Algebra, DisplayPolicy, half_anticommutator, half_commutator, commutator, anticommutator, jordan_product, lie_bracket
     import galaga_marimo as gm
 
     return (

@@ -1,4 +1,4 @@
-"""Precedence-aware tree-walking renderer for symbolic expressions.
+"""Galaga 1 precedence-aware renderer retained as a Phase 8 oracle.
 
 This is the single source of truth for how Expr trees become strings.
 Both Multivector.__str__() and .latex() delegate here for symbolic MVs.
@@ -31,7 +31,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from .expr import (
+from ..expr import (
     Add,
     Anticommutator,
     AntidotProduct,
@@ -88,7 +88,7 @@ from .expr import (
     Unit,
     WeightPart,
 )
-from .notation import Notation
+from ..notation import Notation
 
 _SUBSCRIPTS = str.maketrans("0123456789", "₀₁₂₃₄₅₆₇₈₉")
 # Characters that don't count toward "visual width" — used to decide
@@ -378,8 +378,8 @@ def render(node: Expr, notation: Notation | None = None) -> str:
 
 
 def render_latex(node: Expr, notation: Notation | None = None) -> str:
-    from .latex_build import build
-    from .latex_emit import emit
-    from .latex_rewrite import rewrite
+    from ..latex_build import build
+    from ..latex_emit import emit
+    from ..latex_rewrite import rewrite
 
     return emit(rewrite(build(node, notation)))

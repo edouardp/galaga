@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from galaga import Algebra, exp, gp, norm2, scalar_sqrt, sqrt
+from galaga.legacy import Algebra, exp, gp, norm2, scalar_sqrt, sqrt
 
 
 def test_sqrt_of_expression_rotor_preserves_provenance_and_value():

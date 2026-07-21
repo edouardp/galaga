@@ -11,28 +11,29 @@ compares it with the live Galaga 1 API.
 
 The manifest currently classifies:
 
-- all 99 names in `galaga.__all__`;
+- all 99 former top-level names now preserved in `galaga.legacy.__all__`;
+- all 147 promoted names in `galaga.__all__` and `galaga.facade.__all__`;
 - all 28 public legacy `Algebra` members;
 - all 20 public legacy `Multivector` members;
 - all 22 special methods declared by the legacy `Multivector`;
 - all six legacy multivector formatting and display hooks, including
   `_repr_latex_`;
 - all 59 public legacy expression classes;
-- all 26 non-private top-level package modules and seven relied-upon nested
+- all 25 non-private top-level package modules and nine relied-upon nested
   entry points;
 - four companion-package or example touch points; and
 - four known dependencies on private legacy structures.
 
-Adding or removing a live v1 export without updating the matrix fails the
-compatibility suite. Each row has one owner, action, target, milestone, and,
-where applicable, migration-warning text.
+Adding or removing a live v1 export without updating the legacy matrix fails
+the compatibility suite. A separate identity contract keeps the promoted
+top-level manifest exactly synchronized with the facade.
 
 ## Top-level exports
 
-### Numeric facade: completed in Phase 2
+### Numeric facade: promoted in Phase 8
 
 `Algebra`, `Multivector`, and the following long-form numeric operations are
-owned by `galaga.facade`:
+owned by `galaga.facade` and re-exported as the exact same objects by `galaga`:
 
 `antidot_product`, `anticommutator`, `antimetric_apply`, `antireverse`,
 `antiwedge`, `bulk_part`, `commutator`, `complement`, `conjugate`,
@@ -168,9 +169,11 @@ compatibility work.
 
 The supported import inventory covers every non-private top-level module:
 `algebra`, `basis_blade`, `blade_convention`, `blades`, `core`, `expr`,
-`expression`, `facade`, `gram_bridge`, the five `latex_*` modules, `lazy`, `names`,
-`notation`, `ops`, `presentation`, `presets`, `render`, `simplify`, `symbolic`,
-and `symbolic_core`. It also records
+`expression`, `facade`, `gram_bridge`, the five `latex_*` modules, `lazy`,
+`legacy`, `names`, `notation`, `ops`, `presentation`, `presets`, `symbolic`,
+and `symbolic_core`. The old `render` and `simplify` modules are now
+`legacy.render` and `legacy.simplify`, preventing collisions with the promoted
+functions. It also records
 `facade.catalog`, both bridge submodules, and the four `symbolic_core`
 submodules used by current tests or companion packages.
 
@@ -179,7 +182,8 @@ submodules used by current tests or companion packages.
 the facade catalog, simplification, and symbolic modules have explicit owners
 in Phases 5 through 7 rather than being treated as incidental implementation
 files. Old modules remain compatibility entry points according to their
-recorded milestones.
+recorded milestones; `galaga.legacy` and its nested oracle modules retire in
+Phase 9.
 
 ## Known private dependencies
 

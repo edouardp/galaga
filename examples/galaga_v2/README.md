@@ -1,8 +1,8 @@
 # Galaga 2 examples
 
-These notebooks introduce the Galaga 2 architecture and public facade one
-layer at a time. They use `galaga.facade` explicitly while the repository
-still keeps the legacy implementation at the top-level `galaga` namespace.
+These notebooks introduce the Galaga 2 architecture one layer at a time. They
+use the promoted top-level `galaga` API; `galaga.facade` remains the explicit
+implementation namespace and `galaga.core` the presentation-free engine.
 
 The recommended reading order is:
 

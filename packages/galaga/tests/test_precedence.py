@@ -6,7 +6,7 @@ representation has correct parentheses for mathematical precedence.
 
 import pytest
 
-from galaga import (
+from galaga.legacy import (
     Algebra,
     conjugate,
     dual,

@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from galaga import (
+from galaga.legacy import (
     Algebra,
     BladeConvention,
     Multivector,

@@ -7,8 +7,8 @@ from dataclasses import dataclass
 from types import MappingProxyType, ModuleType
 from typing import Any, Literal
 
-import galaga.algebra as legacy
 import galaga.facade as facade
+import galaga.legacy as legacy
 from galaga.blade_convention import b_pga, b_rga, b_sta
 from galaga.notation import Notation as LegacyNotation
 

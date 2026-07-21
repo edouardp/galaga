@@ -5,7 +5,6 @@ Tests are written FIRST — the renderer must pass all of these.
 
 import pytest
 
-from galaga import Algebra
 from galaga.expr import (
     Add,
     Anticommutator,
@@ -38,6 +37,7 @@ from galaga.expr import (
     Undual,
     Unit,
 )
+from galaga.legacy import Algebra
 
 
 @pytest.fixture
@@ -58,7 +58,7 @@ def syms(alg):
 # Import the renderer under test
 # ============================================================
 
-from galaga.render import render, render_latex
+from galaga.legacy.render import render, render_latex
 
 # ============================================================
 # Atoms
@@ -823,8 +823,8 @@ class TestNotationOverrideRendering:
 
     def test_prefix_unary_dual(self, alg):
         """Prefix dual: *v instead of v⋆."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
@@ -833,8 +833,8 @@ class TestNotationOverrideRendering:
 
     def test_prefix_unary_dual_latex(self, alg):
         """Prefix dual override in LaTeX."""
+        from galaga.legacy.render import render_latex
         from galaga.notation import NotationRule
-        from galaga.render import render_latex
 
         alg.notation.set("Dual", "latex", NotationRule(kind="prefix", symbol="*"))
         e1, _, _ = alg.basis_vectors()
@@ -843,8 +843,8 @@ class TestNotationOverrideRendering:
 
     def test_postfix_reverse_dagger(self, alg):
         """Postfix reverse: v† instead of ṽ."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, _, _ = alg.basis_vectors()
@@ -853,8 +853,8 @@ class TestNotationOverrideRendering:
 
     def test_postfix_reverse_compound(self, alg):
         """Postfix reverse on compound: (ab)†."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
         e1, e2, _ = alg.basis_vectors()
@@ -863,8 +863,8 @@ class TestNotationOverrideRendering:
 
     def test_function_unary_reverse(self, alg):
         """Function-style reverse: rev(v)."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
         e1, _, _ = alg.basis_vectors()
@@ -873,8 +873,8 @@ class TestNotationOverrideRendering:
 
     def test_function_binary_wedge(self, alg):
         """Function-style wedge: wedge(a, b)."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
@@ -883,8 +883,8 @@ class TestNotationOverrideRendering:
 
     def test_function_binary_latex(self, alg):
         """Function-style wedge in LaTeX."""
+        from galaga.legacy.render import render_latex
         from galaga.notation import NotationRule
-        from galaga.render import render_latex
 
         alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
         e1, e2, _ = alg.basis_vectors()
@@ -894,8 +894,8 @@ class TestNotationOverrideRendering:
 
     def test_infix_override(self, alg):
         """Override wedge symbol."""
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg.notation.set("Op", "unicode", NotationRule(kind="infix", separator=" AND "))
         e1, e2, _ = alg.basis_vectors()
@@ -904,8 +904,8 @@ class TestNotationOverrideRendering:
 
     def test_hestenes_preset_sandwich(self, alg):
         """Hestenes preset: RvR† in sandwich."""
+        from galaga.legacy.render import render
         from galaga.notation import Notation
-        from galaga.render import render
 
         n = Notation.hestenes()
         e1, e2, _ = alg.basis_vectors()
@@ -915,9 +915,9 @@ class TestNotationOverrideRendering:
 
     def test_notation_does_not_leak(self):
         """Overriding one algebra's notation doesn't affect another."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
+        from galaga.legacy.render import render
         from galaga.notation import NotationRule
-        from galaga.render import render
 
         alg1 = Algebra((1, 1, 1))
         alg2 = Algebra((1, 1, 1))

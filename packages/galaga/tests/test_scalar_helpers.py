@@ -3,7 +3,7 @@
 import numpy as np
 import pytest
 
-from galaga import Algebra
+from galaga.legacy import Algebra
 
 
 @pytest.fixture
@@ -69,7 +69,7 @@ class TestFraction:
 
     def test_in_exp(self, alg):
         """fraction in exp renders with slash in superscript."""
-        from galaga import exp
+        from galaga.legacy import exp
 
         e1, e2, _ = alg.basis_vectors(lazy=True)
         B = (e1 ^ e2).name("B")

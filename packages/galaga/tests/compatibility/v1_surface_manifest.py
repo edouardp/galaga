@@ -496,6 +496,12 @@ SUPPORTED_SUBMODULES = {
         "phase-9",
         "galaga.gram_bridge.facade is deprecated; import galaga.facade",
     ),
+    "galaga.legacy": SurfaceDisposition(
+        "compatibility",
+        "temporary-v1-oracle",
+        "galaga.legacy",
+        "phase-9",
+    ),
     "galaga.latex_build": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
     "galaga.latex_emit": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
     "galaga.latex_nodes": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
@@ -513,10 +519,15 @@ SUPPORTED_SUBMODULES = {
     "galaga.ops": SurfaceDisposition("facade", "redesign", "galaga.facade.catalog", "phase-5"),
     "galaga.presentation": SurfaceDisposition("presentation", "retain", "galaga.presentation", "permanent"),
     "galaga.presets": SurfaceDisposition("presentation", "retain", "galaga.presets", "permanent"),
-    "galaga.render": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
+    "galaga.legacy.render": SurfaceDisposition(
+        "compatibility",
+        "temporary-v1-oracle",
+        "galaga.legacy.render",
+        "phase-9",
+    ),
     "galaga.rendering": SurfaceDisposition("rendering", "retain", "galaga.rendering", "permanent"),
-    "galaga.simplify": SurfaceDisposition(
-        "expression", "compatibility-reexport", "galaga.expression.simplify", "phase-7"
+    "galaga.legacy.simplify": SurfaceDisposition(
+        "compatibility", "temporary-v1-oracle", "galaga.legacy.simplify", "phase-9"
     ),
     "galaga.symbolic": SurfaceDisposition(
         "compatibility",
@@ -545,6 +556,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.expression",
         "galaga.facade",
         "galaga.gram_bridge",
+        "galaga.legacy",
         "galaga.latex_build",
         "galaga.latex_emit",
         "galaga.latex_nodes",
@@ -556,9 +568,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.ops",
         "galaga.presentation",
         "galaga.presets",
-        "galaga.render",
         "galaga.rendering",
-        "galaga.simplify",
         "galaga.symbolic",
         "galaga.symbolic_core",
     }

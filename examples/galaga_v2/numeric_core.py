@@ -29,7 +29,7 @@ def _():
     import galaga_marimo as gm
     from galaga.core import Algebra as NumericAlgebra
     from galaga.core import geometric_product as numeric_geometric_product
-    from galaga.facade import Algebra, DisplayPolicy, geometric_product
+    from galaga import Algebra, DisplayPolicy, geometric_product
 
     return (
         Algebra,

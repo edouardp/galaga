@@ -8,15 +8,21 @@ import pytest
 
 import galaga
 import galaga.facade as facade
+import galaga.legacy as legacy
 
 
-def test_v1_numeric_aliases_remain_the_same_function_objects() -> None:
-    assert galaga.geometric_product is galaga.gp
-    assert galaga.wedge is galaga.op
-    assert galaga.join is galaga.op
-    assert galaga.meet is galaga.regressive_product
-    assert galaga.rev is galaga.reverse
-    assert galaga.antiwedge is galaga.regressive_product
+def test_top_level_numeric_aliases_are_the_facade_objects() -> None:
+    for alias, canonical in facade.OPERATION_ALIASES.items():
+        assert getattr(galaga, alias) is getattr(facade, canonical)
+
+
+def test_explicit_v1_numeric_aliases_remain_the_same_function_objects() -> None:
+    assert legacy.geometric_product is legacy.gp
+    assert legacy.wedge is legacy.op
+    assert legacy.join is legacy.op
+    assert legacy.meet is legacy.regressive_product
+    assert legacy.rev is legacy.reverse
+    assert legacy.antiwedge is legacy.regressive_product
 
 
 def test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value() -> None:

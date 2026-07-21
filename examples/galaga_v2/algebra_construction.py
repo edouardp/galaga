@@ -27,7 +27,7 @@ def _():
     import numpy as np
 
     import galaga_marimo as gm
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         Notation,

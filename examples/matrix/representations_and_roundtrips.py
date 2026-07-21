@@ -29,7 +29,7 @@ def _():
     from galaga_matrix import from_matrix, to_matrix
 
     import galaga_marimo as gm
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         geometric_product,

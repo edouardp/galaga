@@ -26,7 +26,7 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga.facade import Algebra, DisplayPolicy, complement, dual, undual, uncomplement, left_complement, left_hodge_dual, left_contraction, left_interior_product, left_weight_dual
+    from galaga import Algebra, DisplayPolicy, complement, dual, undual, uncomplement, left_complement, left_hodge_dual, left_contraction, left_interior_product, left_weight_dual
     import galaga_marimo as gm
 
     return (

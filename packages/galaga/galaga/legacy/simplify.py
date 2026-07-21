@@ -1,4 +1,4 @@
-"""Algebraic simplification of symbolic expression trees.
+"""Galaga 1 expression simplifier retained as a Phase 8 oracle.
 
 Rewrites Expr trees using algebraic identities — double involution,
 identity elimination, self-cancellation, scalar collapse, term collection,
@@ -11,8 +11,8 @@ the tree stops changing, capped at 100 iterations.
 
 from __future__ import annotations
 
-from . import algebra as _alg
-from .expr import (
+from .. import algebra as _alg
+from ..expr import (
     Add,
     Anticommutator,
     AntidotProduct,

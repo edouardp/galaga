@@ -19,7 +19,7 @@ import unittest
 
 import numpy as np
 
-from galaga import Algebra, b_complex, b_quaternion
+from galaga.legacy import Algebra, b_complex, b_quaternion
 
 
 def _make_quaternion_algebra(lazy=False):
@@ -178,7 +178,7 @@ class TestComplexFactory(unittest.TestCase):
 
     def test_complex_conjugate_via_reverse(self):
         """Reverse acts as complex conjugation for bivectors: ~(a + bi) = a - bi."""
-        from galaga import reverse
+        from galaga.legacy import reverse
 
         z = self.alg.scalar(3) + 4 * self.i
         zc = reverse(z)

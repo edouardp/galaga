@@ -70,14 +70,15 @@ top-level imports or private attribute access.
 
 ## Maintained notebook gallery
 
-The 51 maintained topic notebooks are listed once in
+The 61 maintained topic notebooks are listed once in
 `tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS`. That tuple is both the
 migration ledger and the codemod write allowlist. Files outside it are neither
 silently claimed as maintained nor eligible for automated mutation.
 
 The LibCST transformation owns only structural changes:
 
-- `galaga` imports move to `galaga.facade`;
+- v1 `galaga` and transitional `galaga.facade` imports move to the promoted
+  top-level `galaga` API;
 - symbolic or lazy factory flags become `expr=True` provenance;
 - multivector `.name()` becomes immutable `.named()`, including an explicit
   semantic spelling for legacy latex-only names;
@@ -103,7 +104,7 @@ The permanent gate has four levels:
 1. Python 3.11 checks the ledger, write guard, architecture, and codemod.
 2. Python 3.14 compiles every notebook and rejects stale v1 vocabulary.
 3. `marimo check` validates the complete cell dependency graph.
-4. Headless Marimo export executes all 51 notebooks and fails if any cell
+4. Headless Marimo export executes all 61 notebooks and fails if any cell
    raises.
 
 This makes the gallery an integration contract, not a collection that merely

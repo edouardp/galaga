@@ -3,7 +3,20 @@
 import numpy as np
 import pytest
 
-from galaga import (
+from galaga.expr import (
+    Conjugate,
+    Dual,
+    Expr,
+    Grade,
+    Involute,
+    Neg,
+    Reverse,
+    Scalar,
+    ScalarMul,
+    Unit,
+    sym,
+)
+from galaga.legacy import (
     Algebra,
     BladeConvention,
     b_gamma,
@@ -32,44 +45,31 @@ from galaga import (
     undual,
     unit,
 )
-from galaga import conjugate as sconjugate
-from galaga import dual as sdual
-from galaga import even_grades as seven
-from galaga import even_grades as seven_grades
-from galaga import gp as sgp
-from galaga import grade as sgrade
-from galaga import hestenes_inner as shi
-from galaga import inverse as sinverse
-from galaga import involute as sinvolute
-from galaga import ip as sip
-from galaga import left_contraction as slc
-from galaga import norm as snorm
-from galaga import normalise as snormalise
-from galaga import normalize as snormalize
-from galaga import odd_grades as sodd
-from galaga import odd_grades as sodd_grades
-from galaga import op as sop
-from galaga import right_contraction as src
-from galaga import sandwich as ssandwich
-from galaga import scalar_product as ssp
-from galaga import squared as ssq
-from galaga import sw as ssw_alias
-from galaga import undual as sundual
-from galaga import unit as sunit
-from galaga.expr import (
-    Conjugate,
-    Dual,
-    Expr,
-    Grade,
-    Involute,
-    Neg,
-    Reverse,
-    Scalar,
-    ScalarMul,
-    Unit,
-    sym,
-)
-from galaga.simplify import simplify
+from galaga.legacy import conjugate as sconjugate
+from galaga.legacy import dual as sdual
+from galaga.legacy import even_grades as seven
+from galaga.legacy import even_grades as seven_grades
+from galaga.legacy import gp as sgp
+from galaga.legacy import grade as sgrade
+from galaga.legacy import hestenes_inner as shi
+from galaga.legacy import inverse as sinverse
+from galaga.legacy import involute as sinvolute
+from galaga.legacy import ip as sip
+from galaga.legacy import left_contraction as slc
+from galaga.legacy import norm as snorm
+from galaga.legacy import normalise as snormalise
+from galaga.legacy import normalize as snormalize
+from galaga.legacy import odd_grades as sodd
+from galaga.legacy import odd_grades as sodd_grades
+from galaga.legacy import op as sop
+from galaga.legacy import right_contraction as src
+from galaga.legacy import sandwich as ssandwich
+from galaga.legacy import scalar_product as ssp
+from galaga.legacy import squared as ssq
+from galaga.legacy import sw as ssw_alias
+from galaga.legacy import undual as sundual
+from galaga.legacy import unit as sunit
+from galaga.legacy.simplify import simplify
 
 
 @pytest.fixture
@@ -737,7 +737,7 @@ class TestRotorValidation:
 class TestSymbolicGradeEvenOdd:
     def test_sym_grade_even(self, cl3):
         """Symbolic grade('even') builds Even node."""
-        from galaga import grade as sgrade
+        from galaga.legacy import grade as sgrade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -745,7 +745,7 @@ class TestSymbolicGradeEvenOdd:
 
     def test_sym_grade_odd(self, cl3):
         """Symbolic grade('odd') builds Odd node."""
-        from galaga import grade as sgrade
+        from galaga.legacy import grade as sgrade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -874,7 +874,7 @@ class TestLatex:
     def test_sandwich_grade(self, cl3):
         """Grade of sandwich renders correctly."""
         e1, e2, _ = cl3.basis_vectors()
-        from galaga import grade as sgrade
+        from galaga.legacy import grade as sgrade
 
         R = sym(e1 * e2, "R")
         v = sym(e1, "v")
@@ -1375,7 +1375,7 @@ class TestCoverageGaps:
     # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)
     def test_eq_conjugate(self, cl3):
         """Conjugate Expr equality."""
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1384,7 +1384,7 @@ class TestCoverageGaps:
 
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1393,7 +1393,7 @@ class TestCoverageGaps:
 
     def test_eq_fallback(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1404,20 +1404,20 @@ class TestCoverageGaps:
     def test_known_grade_scalar(self):
         """Scalar has known grade 0."""
         from galaga.expr import Scalar
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         assert _known_grade(Scalar(5)) == 0
 
     def test_known_grade_grade_node(self, cl3):
         """Grade node has known grade."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Grade(sym(e1, "v"), 2)) == 2
 
     def test_known_grade_reverse(self, cl3):
         """Reverse preserves known grade."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         v = sym(e1, "v")
@@ -1425,28 +1425,28 @@ class TestCoverageGaps:
 
     def test_known_grade_neg(self, cl3):
         """Neg preserves known grade."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Neg(sym(e1, "v"))) == 1
 
     def test_known_grade_scalarmul(self, cl3):
         """ScalarMul preserves known grade."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(ScalarMul(3, sym(e1, "v"))) == 1
 
     def test_known_grade_unit(self, cl3):
         """Unit preserves known grade."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         assert _known_grade(Unit(sym(e1, "v"))) == 1
 
     def test_known_grade_unknown(self, cl3):
         """Unknown grade returns None."""
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, e2, _ = cl3.basis_vectors()
         a = sym(e1, "a")
@@ -1456,8 +1456,8 @@ class TestCoverageGaps:
     # symbolic.py: simplify even/odd with known grade (line 819)
     def test_simplify_odd_known_grade(self, cl3):
         """Odd of known even-grade simplifies to 0."""
-        from galaga import even_grades as seven
-        from galaga import odd_grades as sodd
+        from galaga.legacy import even_grades as seven
+        from galaga.legacy import odd_grades as sodd
 
         e1, e2, _ = cl3.basis_vectors()
         v = sym(e1, "v")  # grade 1 (odd)
@@ -1470,7 +1470,7 @@ class TestCoverageGaps:
     # symbolic.py: _eq for Involute (line 635)
     def test_eq_involute(self, cl3):
         """Involute Expr equality."""
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = sym(e1, "a")

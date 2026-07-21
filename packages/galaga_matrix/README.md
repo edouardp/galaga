@@ -25,7 +25,7 @@ The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
 ## Quick start
 
 ```python
-from galaga.facade import Algebra
+from galaga import Algebra
 from galaga_matrix import to_matrix, from_matrix, MatrixRepr
 
 # Pauli matrices from Cl(3,0)
@@ -152,6 +152,10 @@ general periodicity recursion.
 ## Architecture decisions
 
 See [docs/adrs/](docs/adrs/README.md).
+
+For the mathematical relationship between primitive idempotents, reciprocal
+frames, and compact real, complex, or quaternionic matrix representations, see
+[Spectral-Sandwich Matrix Representations](docs/spectral-sandwich-representations.md).
 
 ## Tests
 

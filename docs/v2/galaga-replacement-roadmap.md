@@ -36,6 +36,9 @@ product-table internals.
 | Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
 | Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
 | Presentation configuration | Immutable independent components, signed conventions, complete presets, facade lookup/factories, and context-local overrides |
+| Outer layers | Optional expression provenance, semantic rendering, compatibility policy, and companion-package integration |
+| Top-level cutover | `galaga` exactly re-exports the facade; Galaga 1 is isolated under the temporary `galaga.legacy` oracle |
+| Release evidence | Guarded full suites, clean Python 3.11 wheel install, Python 3.14 Marimo execution, and a layer-separated performance baseline |
 
 ## Remaining work
 
@@ -67,15 +70,15 @@ adapter carrying the active presentation; conversion reads no private
 multivector symbolic state. Numeric representation and matrix provenance are no
 longer companion-package blockers.
 
-### 3. Galaga outer-layer cutover
+### 3. Galaga outer-layer cutover: complete
 
 The architecture and phased implementation are specified in the
 [presentation and expression layer plan](presentation-symbolic-layer-plan.md).
-The numeric composition facade is complete: `galaga.facade` values wrap core
-values, and expression provenance remains an optional outer-layer concern.
-The presentation-configuration cut is complete. Remaining cutover work is
-expression provenance, semantic rendering, helpers, companion packages, and
-the final top-level shadow.
+`galaga.facade` values wrap core values, expression provenance remains an
+optional outer-layer concern, and presentation, semantic rendering,
+compatibility helpers, and companion integrations use public protocols.
+Top-level `galaga` now exactly re-exports the facade. The retained v1 engine is
+an explicit guarded `galaga.legacy` oracle scheduled for Phase 9 removal.
 
 The completed Phase 1 matrix records the policy for API elements that are
 numeric-adjacent but not part of the core metric engine:
@@ -115,7 +118,8 @@ keep competing conventions explicit.
 
 ### 4. Native CGA surface
 
-Once linear maps and facade metadata exist, add:
+After work item 1 promotes linear maps, the existing facade metadata can
+support model-specific additions:
 
 - metric-aware origin/infinity conventions;
 - `up`, `down`, and `homo`;
@@ -137,29 +141,26 @@ metadata rather than guessing from display names.
 - Add memory guards or operator forms for dense compound metric matrices.
 - Measure dense-multivector workloads on the lazy backend and tune caching or
   packed selection from evidence.
-- Establish diagonal-backend performance baselines.
+- Preserve and extend the recorded diagonal-backend performance baseline.
 - Add serialization only after the final facade boundary is settled.
 
 ## Recommended sequence
 
 ```mermaid
 flowchart LR
-    O[Public outermorphisms] --> M[galaga_matrix left-regular migration]
-    C[Operation catalog] --> F[Numeric facade]
-    F --> B[Blade conventions and presets]
-    B --> S[Expression tracking and rendering]
-    M --> X[Integration cutover]
-    S --> X
-    O --> G[Native CGA conveniences]
-    G --> X
-    X --> H[Performance hardening]
+    X[Phase 8 top-level cutover complete] --> R[Phase 9 remove legacy engine]
+    X --> H[Further performance hardening]
+    O[Public outermorphisms and basis changes] --> G[Native CGA conveniences]
+    R --> Q[Galaga 2 release hardening]
+    H --> Q
 ```
 
 Numeric function and facade parity, presentation configuration, expression
-provenance, and semantic rendering are complete. The public outermorphism and
-linear-action API is also complete. Compatibility policy is now executable;
-the next step is migrating `galaga_matrix` away from private multiplication
-tables and onto those public representations.
+provenance, semantic rendering, public linear actions, companion migration,
+and the top-level cutover are complete. The next cutover phase removes the
+retained legacy engine and migration-only names. Linear-map promotion, native
+CGA conveniences, and further performance hardening remain independent
+numeric/model work rather than blockers for the public facade.
 
 ## Explicit non-goals for the numeric core
 

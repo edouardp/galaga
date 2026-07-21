@@ -72,7 +72,7 @@ def test_rga_demo_uses_the_rga_preset_and_expression_provenance():
     """Keep the RGA demo on the immutable facade presentation APIs."""
     source = (ROOT / "examples" / "rga" / "rga_demo.py").read_text()
 
-    assert "from galaga.facade import (" in source
+    assert "from galaga import (" in source
     assert "p_rga," in source
     assert "rga = Algebra(config=p_rga()" in source
     assert "rga.basis_vectors(expr=True)" in source

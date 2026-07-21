@@ -1,9 +1,9 @@
 """Core-backed numeric and presentation facade for Galaga 2.
 
-Importing top-level :mod:`galaga` continues to expose the v1 implementation
-until the rendering and integration layers are ready for cutover. This
-namespace is the stable implementation owner; :mod:`galaga.gram_bridge` is a
-temporary compatibility re-export of these same objects.
+Top-level :mod:`galaga` re-exports this manifest with exact object identity.
+This namespace remains the stable implementation owner;
+:mod:`galaga.gram_bridge` is a temporary compatibility re-export of these same
+objects, while :mod:`galaga.legacy` is the explicit Galaga 1 oracle.
 """
 
 from types import MappingProxyType

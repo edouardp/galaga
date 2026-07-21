@@ -20,8 +20,11 @@ process make those gates enforceable.
 Phases 0 through 7 are complete on the `galaga_v2` branch: the core,
 replacement contract, facade, presentation, provenance, rendering,
 compatibility, companion packages, and maintained examples all have their
-replacement evidence. Phase 8 is not complete merely because the remaining
-legacy Galaga suite still passes against the legacy implementation.
+replacement evidence. Phase 8 is complete: top-level Galaga exposes the
+facade, the old engine remains an explicit guarded `galaga.legacy` oracle,
+the full supported-version suites pass, and clean-wheel and performance
+evidence are recorded. Phase 9 legacy removal is the next implementation
+phase.
 
 ## Current position
 
@@ -29,8 +32,9 @@ The repository currently has four relevant numeric paths:
 
 ```mermaid
 flowchart TD
-    T[galaga.Algebra and galaga.Multivector] --> L[legacy algebra.py engine]
-    B[galaga.gram_bridge compatibility alias] --> F[galaga.facade]
+    T[galaga public API] --> F[galaga.facade]
+    B[galaga.gram_bridge compatibility alias] --> F
+    O[galaga.legacy explicit oracle] --> L[legacy algebra.py engine]
     F --> C[galaga.core]
     C --> G[Gram-matrix numeric implementation]
 ```
@@ -40,10 +44,12 @@ flowchart TD
   operation catalog.
 - `galaga.gram_bridge` re-exports those exact objects as a temporary migration
   alias; it contains no implementation fork.
-- top-level `galaga.Algebra` and `galaga.Multivector` still resolve to the
-  legacy implementation.
-- the existing Galaga tests therefore remain regression evidence for Galaga
-  v1 unless a test explicitly constructs the core-backed facade.
+- top-level `galaga.Algebra` and `galaga.Multivector` are the exact facade
+  classes, and the whole top-level manifest is identity-checked against
+  `galaga.facade.__all__`;
+- `galaga.legacy` preserves the coherent v1 surface only for ledgered oracle
+  tests and deliberate migration work; plain `import galaga` does not load it;
+- unledgered Galaga tests poison both legacy numeric constructors;
 - the external `gram` distribution is no longer required by Galaga.
 
 The intended end state is:
@@ -1129,10 +1135,10 @@ Completed so far:
 - the final combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,174
   tests with 21 skips, while the Python 3.14 Marimo and maintained-notebook
   gate passes 110 tests;
-- the 51 maintained Marimo notebooks are an executable allowlist in
+- the 61 maintained Marimo notebooks are an executable allowlist in
   `tools.migrate_v2_notebooks`, and the codemod refuses to write any other
   example path;
-- those notebooks now import `galaga.facade`, use eager values with optional
+- those notebooks now import the promoted `galaga` API, use eager values with optional
   `expr=True` provenance, use immutable `.named()`, and select `:expr` or
   `:value` at the display site rather than calling `.reveal()` or `.eval()`;
 - matrix and quaternion render objects retain their package-owned `.name()`
@@ -1141,7 +1147,7 @@ Completed so far:
   contraction, inverse, subtraction, and sandwich compositions in teaching
   notebooks rather than being reintroduced into the facade;
 - Python 3.14 compiles every ledgered notebook without LaTeX escape warnings,
-  Marimo validates every cell dependency graph, and all 51 notebooks execute
+  Marimo validates every cell dependency graph, and all 61 notebooks execute
   headlessly with zero failed cells; and
 - Python 3.11 runs the ledger and codemod architecture tests while explicitly
   skipping only the t-string compile and runtime gates.
@@ -1159,13 +1165,17 @@ Phase 7 exit gate:
 - every compatibility shim is tested and has a removal policy; and
 - all maintained examples execute against the facade.
 
-All three conditions are satisfied. Phase 8 is the next implementation phase.
+All three conditions are satisfied. Phase 8 is complete; its individual work
+units and validation evidence follow.
 
 ## Phase 8: shadow and perform the top-level cutover
 
 This phase changes what ordinary `import galaga` users receive.
 
 ### W8.1 Make the legacy engine explicitly private
+
+Status: complete. `galaga.legacy` is the explicit temporary v1 domain, with
+its conflicting renderer and simplifier under that namespace.
 
 Deliverables:
 
@@ -1183,6 +1193,9 @@ Required tests:
 
 ### W8.2 Run a facade-only shadow suite
 
+Status: complete. An executable ledger opts oracle tests in; every other
+Galaga test poisons legacy `Algebra` and `Multivector` construction.
+
 Before changing exports, run the entire applicable suite with a guard that
 fails if legacy `Algebra` or `Multivector` is constructed.
 
@@ -1195,6 +1208,10 @@ Required tests:
 - coverage demonstrates facade and core execution, not legacy table execution.
 
 ### W8.3 Switch top-level exports
+
+Status: complete. `galaga.__all__` follows `galaga.facade.__all__`, every
+object has identity with its facade owner, and maintained notebooks use the
+promoted namespace.
 
 Deliverables:
 
@@ -1214,6 +1231,15 @@ Required tests:
 
 ### W8.4 Validate packaging and performance
 
+Status: complete. A wheel built from the source distribution installs into an
+isolated Python 3.11 environment and passes API and numeric smoke tests under
+isolated Python, with neither the checkout nor an external `gram` package
+available. The [performance baseline](phase8-performance.md) separates direct
+core, untracked facade, tracked facade, and retained-v1 costs. Investigation
+of the original diagonal-product regression identified non-native NumPy index
+storage; native `intp` storage reduced direct-core Cl(1,3) geometric product
+from about 1.98× to 1.08× the retained engine on the recorded machine.
+
 Required tests:
 
 - build and install a wheel in a clean Python 3.11 environment;
@@ -1229,6 +1255,10 @@ Phase 8 exit gate:
 - the full suite passes with a hard failure on legacy numeric execution;
 - clean-wheel and companion-package tests pass; and
 - any accepted performance tradeoff is measured and documented.
+
+All four conditions are satisfied. The Python 3.11 Galaga, matrix, and Mermaid
+suite passes with the legacy-construction guard active; the Python 3.14 full
+package suite additionally executes the Marimo/t-string integrations.
 
 ## Phase 9: remove the legacy engine and harden the release
 

@@ -18,7 +18,7 @@ from galaga.core import (
     right_contraction,
     scalar_product,
 )
-from galaga.core._backends import LazyProductBackend
+from galaga.core._backends import DiagonalProductBackend, LazyProductBackend
 from galaga.core._metadata import bitmask_dtype, dimension_metadata
 
 
@@ -81,6 +81,14 @@ class TestBackendSelection:
         assert first._grade_masks is second._grade_masks
         assert first._wedge_factor is second._wedge_factor
         assert first._product_backend is not second._product_backend
+
+    def test_diagonal_hot_path_uses_native_numpy_indices(self) -> None:
+        backend = Algebra(4)._product_backend
+
+        assert isinstance(backend, DiagonalProductBackend)
+        # NumPy otherwise converts compact unsigned indices on every fancy
+        # indexing operation, roughly doubling dense-product time in Cl(1,3).
+        assert backend._outputs.dtype == np.dtype(np.intp)
 
     def test_lazy_cache_is_bounded_and_reported(self) -> None:
         metric = np.full((4, 4), 0.25) + np.eye(4)

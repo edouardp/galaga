@@ -18,8 +18,8 @@ from typing import Any, Literal
 
 import numpy as np
 
-import galaga.algebra as legacy
 import galaga.facade as facade
+import galaga.legacy as legacy
 from galaga.blade_convention import b_rga
 from galaga.facade.catalog import OPERATIONS
 from galaga.notation import Notation as LegacyNotation

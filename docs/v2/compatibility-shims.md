@@ -5,8 +5,8 @@ names are the mathematical contract. A concise spelling is either a permanent
 same-object alias, a temporary warning adapter with a removal milestone, or a
 local import choice made by the user.
 
-This document records Phase 7 W7.1. The facade namespace is available now;
-top-level `galaga` switches to it in Phase 8.
+This policy is now active at both `galaga` and `galaga.facade`: the top-level
+objects are exact facade re-exports.
 
 ## Permanent concise aliases
 
@@ -64,7 +64,7 @@ operations disagree for mixed grades and scalar inputs. Code that wants a
 project-local short name can use ordinary Python:
 
 ```python
-from galaga.facade import doran_lasenby_inner as ip
+from galaga import doran_lasenby_inner as ip
 ```
 
 ## Migration-only import paths
@@ -82,10 +82,12 @@ The bridge contains no implementation and must not become a second public
 architecture.
 
 Legacy `galaga.lazy`, `galaga.symbolic`, `galaga.expr`, `galaga.notation`, and
-legacy renderer paths are still active compatibility inputs for top-level v1
-objects. Phase 7 consumers have moved to public v2 protocols; these remaining
-entry points are governed by the executable disposition ledger through the
-Phase 8 cutover and Phase 9 removal.
+related v1 internals remain temporary implementation paths. The supported
+Phase 8 oracle entry point is `galaga.legacy`; its renderer and simplifier are
+`galaga.legacy.render` and `galaga.legacy.simplify`. This relocation is
+required because `render` and `simplify` are top-level facade functions, and a
+same-named Python submodule would overwrite those attributes based on import
+order. The entire legacy namespace is removed in Phase 9.
 
 ## Helpers are not aliases
 
@@ -106,4 +108,7 @@ warning message. Compatibility tests prove:
 - tracked adapter calls retain the canonical expression operation ID;
 - ambiguous inner products remain absent and provide explicit choices;
 - bridge import paths warn and still import; and
+- top-level exports are identical to their facade owners;
+- plain `import galaga` leaves legacy engine modules unloaded;
+- unledgered tests cannot construct legacy numeric values; and
 - this guide names every temporary function and bridge replacement.

@@ -565,7 +565,7 @@ class TestAccents:
 
     def test_hat_in_name(self):
         """Maps \\hat_in_name accent."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()

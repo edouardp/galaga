@@ -12,7 +12,7 @@ from functools import reduce
 import numpy as np
 import pytest
 
-from galaga import (
+from galaga.legacy import (
     Algebra,
     Notation,
     antidot_product,
@@ -40,9 +40,9 @@ from galaga import (
     transwedge_antiproduct,
     weight_part,
 )
+from galaga.legacy.simplify import simplify
 from galaga.notation import NotationRule
 from galaga.ops import GA_OPS
-from galaga.simplify import simplify
 
 
 def _wedge(vectors):

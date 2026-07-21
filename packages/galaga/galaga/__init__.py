@@ -1,263 +1,34 @@
-"""ga — Geometric Algebra for Python.
+"""Galaga 2 — geometric algebra over a Gram-matrix numeric core.
 
-A numeric Clifford algebra library with a stable, programmer-first API.
+The top-level package is the canonical Galaga 2 API.  Its public objects are
+the exact objects owned by :mod:`galaga.facade`; no wrapper or parallel public
+implementation is created here.  The presentation-independent numeric engine
+remains available as :mod:`galaga.core`.
 
-Architecture
-------------
-The library is split into two modules:
+Galaga 1 is retained temporarily during the Phase 8 shadow cutover through an
+explicit import::
 
-- ``ga.algebra``   — The numeric core. Defines ``Algebra`` (the Clifford algebra
-  factory) and ``Multivector`` (the value type), plus every named operation
-  (``gp``, ``op``, ``grade``, ``reverse``, etc.). All computation happens here
-  via precomputed multiplication tables and dense NumPy coefficient arrays.
+    from galaga import legacy
 
-- ``ga.symbolic``  — An expression-tree layer for pretty-printing and symbolic
-  manipulation. Provides ``simplify()`` and drop-in replacements for all
-  numeric functions that detect symbolic ``Multivector`` arguments and build
-  expression trees. The ``Expr`` class hierarchy is an internal implementation
-  detail.
-
-Naming and Evaluation
----------------------
-Every ``Multivector`` independently controls two orthogonal axes:
-
-- **Identity / display** — ``.name("B")`` assigns a display name;
-  ``.anon()`` removes it.
-- **Evaluation strategy** — ``.symbolic()`` preserves expression trees;
-  ``.numeric()`` forces concrete evaluation in-place (strips name by default,
-  or ``.numeric("B")`` to keep it); ``.eval()`` returns a new anonymous numeric
-  copy without mutating the original.
-
-Basis blades from ``Algebra.basis_vectors()`` are **named + numeric** by default:
-they have display names (``e₁``) but behave as concrete numeric objects.
-
-``sym(mv, "R")`` is a convenience alias for ``mv.name("R")``.
-
-This ``__init__`` re-exports the numeric API so users can write
-``from galaga import *`` and get everything they need for computation.
-The symbolic layer is imported separately (``from galaga import sym, ...``)
-because it's opt-in — most users only need it for notebooks and display.
-
-Design Principles
------------------
-- **Named functions are the contract.** ``gp``, ``op``, ``grade``, ``reverse``
-  never change meaning. Operators (``*``, ``^``, ``|``, ``~``) are sugar.
-- **No ambiguity.** Every inner product variant has its own name. The ``|``
-  operator maps to Doran–Lasenby inner, but ``left_contraction``,
-  ``right_contraction``, ``hestenes_inner``, and ``scalar_product`` are
-  always available.
-- **Aliases exist for convenience**, not as separate implementations.
-  ``wedge`` is literally ``op``, ``rev`` is literally ``reverse``, etc.
-- **Symbolic is contagious.** When a symbolic MV operates with a numeric one, the
-  result is symbolic. When all operands are numeric, the fast numeric path is taken.
+Legacy algebras, multivectors, and operations form a separate value domain and
+must not be mixed with their Galaga 2 counterparts.  The legacy namespace is a
+migration and test-oracle facility scheduled for removal in Phase 9.
 """
 
-from .algebra import (
-    Algebra,
-    Multivector,
-    anticommutator,
-    antidot_product,
-    antimetric_apply,
-    antireverse,
-    antiwedge,
-    bulk_part,
-    commutator,
-    complement,
-    conjugate,
-    doran_lasenby_inner,
-    dorst_inner,
-    dual,
-    even_grades,
-    exp,
-    geometric_antiproduct,
-    # Aliases
-    geometric_product,
-    # Core operations
-    gp,
-    grade,
-    grade_involution,
-    grades,
-    hestenes_inner,
-    inner_product,
-    inverse,
-    involute,
-    ip,
-    is_basis_blade,
-    is_bivector,
-    is_even,
-    is_rotor,
-    # Predicates
-    is_scalar,
-    is_vector,
-    join,
-    jordan_product,
-    left_complement,
-    left_contraction,
-    left_hodge_dual,
-    left_interior_product,
-    left_weight_dual,
-    lie_bracket,
-    log,
-    mag2,
-    magnitude_squared,
-    meet,
-    metric_apply,
-    metric_inner_product,
-    metric_regressive_product,
-    norm,
-    norm2,
-    norm_squared,
-    normalise,
-    normalize,
-    odd_grades,
-    op,
-    outer_product,
-    outercos,
-    outerexp,
-    outersin,
-    outertan,
-    project,
-    reflect,
-    regressive_product,
-    reject,
-    rev,
-    # Unary
-    reverse,
-    right_complement,
-    right_contraction,
-    right_hodge_dual,
-    right_interior_product,
-    right_weight_dual,
-    sandwich,
-    scalar_product,
-    scalar_sqrt,
-    sqrt,
-    squared,
-    sw,
-    transwedge,
-    transwedge_antiproduct,
-    uncomplement,
-    undual,
-    unit,
-    wedge,
-    weight_part,
-)
-from .basis_blade import BasisBlade
-from .blade_convention import (
-    BladeConvention,
-    b_cga,
-    b_complex,
-    b_default,
-    b_gamma,
-    b_pga,
-    b_quaternion,
-    b_rga,
-    b_sigma,
-    b_sigma_xyz,
-    b_sta,
-)
-from .expr import sym
-from .notation import Notation
-from .simplify import simplify
+from __future__ import annotations
 
-__all__ = [
-    "Algebra",
-    "BasisBlade",
-    "BladeConvention",
-    "Multivector",
-    "Notation",
-    "b_cga",
-    "b_complex",
-    "b_default",
-    "b_gamma",
-    "b_pga",
-    "b_rga",
-    "b_quaternion",
-    "b_sigma",
-    "b_sigma_xyz",
-    "b_sta",
-    "simplify",
-    "sym",
-    "gp",
-    "op",
-    "left_contraction",
-    "right_contraction",
-    "hestenes_inner",
-    "doran_lasenby_inner",
-    "dorst_inner",
-    "scalar_product",
-    "metric_inner_product",
-    "metric_apply",
-    "antimetric_apply",
-    "antidot_product",
-    "antireverse",
-    "geometric_antiproduct",
-    "transwedge",
-    "transwedge_antiproduct",
-    "left_interior_product",
-    "right_interior_product",
-    "right_hodge_dual",
-    "left_hodge_dual",
-    "bulk_part",
-    "weight_part",
-    "right_weight_dual",
-    "left_weight_dual",
-    "commutator",
-    "anticommutator",
-    "lie_bracket",
-    "jordan_product",
-    "reverse",
-    "involute",
-    "grade_involution",
-    "conjugate",
-    "grade",
-    "grades",
-    "scalar_sqrt",
-    "sqrt",
-    "dual",
-    "undual",
-    "complement",
-    "left_complement",
-    "right_complement",
-    "uncomplement",
-    "regressive_product",
-    "metric_regressive_product",
-    "meet",
-    "antiwedge",
-    "join",
-    "norm2",
-    "norm",
-    "unit",
-    "inverse",
-    "is_scalar",
-    "is_vector",
-    "is_bivector",
-    "is_even",
-    "is_rotor",
-    "is_basis_blade",
-    "even_grades",
-    "odd_grades",
-    "squared",
-    "sandwich",
-    "sw",
-    "exp",
-    "log",
-    "project",
-    "reject",
-    "reflect",
-    "geometric_product",
-    "wedge",
-    "outer_product",
-    "outercos",
-    "outerexp",
-    "outersin",
-    "outertan",
-    "rev",
-    "normalize",
-    "normalise",
-    "norm_squared",
-    "magnitude_squared",
-    "mag2",
-    "ip",
-    "inner_product",
-]
+from . import facade as facade
+from .facade import *  # noqa: F401,F403
+
+# The facade owns the public manifest.  Copy the list so consumers cannot
+# mutate the implementation namespace through ``galaga.__all__``.
+__all__ = list(facade.__all__)
+
+
+def __getattr__(name: str) -> object:
+    """Delegate rejected or future facade attributes without API duplication."""
+    try:
+        return getattr(facade, name)
+    except AttributeError as error:
+        message = str(error).replace("galaga.facade", "galaga")
+        raise AttributeError(message) from None

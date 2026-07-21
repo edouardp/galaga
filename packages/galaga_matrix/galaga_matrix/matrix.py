@@ -36,7 +36,7 @@ if TYPE_CHECKING:
 
 
 def _metric_inertia(alg: Algebra) -> tuple[int, int, int]:
-    """Return basis-independent metric inertia, with a v1 compatibility path."""
+    """Return basis-independent metric inertia, with a Phase 8 oracle fallback."""
     inertia = getattr(alg, "inertia", None)
     if inertia is not None:
         positive, negative, null = inertia
@@ -74,7 +74,7 @@ def _require_compact_metric(alg: Algebra) -> tuple[int, int]:
 
 
 def _new_multivector(alg: Algebra, data: np.ndarray) -> Multivector:
-    """Construct through the public algebra factory, retaining a v1 fallback."""
+    """Construct through the public factory, retaining a Phase 8 oracle fallback."""
     factory = getattr(alg, "multivector", None)
     if callable(factory):
         return cast(Multivector, factory(data))
@@ -96,8 +96,8 @@ def _left_action(mv: Multivector) -> np.ndarray:
     if callable(action):
         return np.asarray(action(mv))
 
-    # Galaga 1 compatibility while top-level users are still on the legacy
-    # engine: construct columns through its public geometric-product operator.
+    # Explicit Galaga 1 oracle compatibility until Phase 9: construct columns
+    # through its public geometric-product operator, never private tables.
     result = np.zeros((alg.dim, alg.dim), dtype=float)
     for column in range(alg.dim):
         data = np.zeros(alg.dim, dtype=float)

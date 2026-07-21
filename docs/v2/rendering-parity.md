@@ -43,8 +43,8 @@ Each implementation-neutral recipe is evaluated against two adapters:
 
 | Adapter | Algebra and display contract |
 |---|---|
-| Legacy v1 | `galaga.algebra.Algebra` and public `Multivector.display()` |
-| Core facade v2 | `galaga.facade.Algebra` and `DisplayPolicy("full")` |
+| Legacy v1 | `galaga.legacy.Algebra` and public `Multivector.display()` |
+| Core facade v2 | `galaga.Algebra` and `DisplayPolicy("full")` |
 
 The audit compares these channels independently:
 
@@ -152,7 +152,7 @@ For each difference:
 6. rerun the audit and focused parity tests; and
 7. remove or revise the ledger entry only after reviewing the new report.
 
-The legacy adapter is temporary. It can be retired after the top-level cutover
-when every retained behavior has either converged or received an explicit
-Galaga 2 decision. The implementation-neutral case registry should remain as a
-semantic rendering regression suite after its legacy half is removed.
+The legacy adapter is temporary. Phase 9 can retire it with the old engine when
+every retained behavior has either converged or received an explicit Galaga 2
+decision. The implementation-neutral case registry should remain as a semantic
+rendering regression suite after its legacy half is removed.

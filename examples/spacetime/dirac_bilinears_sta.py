@@ -23,7 +23,7 @@ def _():
     import marimo as mo
     import numpy as np
 
-    from galaga.facade import Algebra, spacetime_blade_convention, exp, reverse
+    from galaga import Algebra, spacetime_blade_convention, exp, reverse
     import galaga_marimo as gm
     from galaga_matrix import MatrixRepr, from_spinor_column, to_matrix, to_spinor_column
     from galaga_matrix.matrix import compact_basis

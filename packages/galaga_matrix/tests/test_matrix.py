@@ -12,7 +12,6 @@ from galaga_matrix.matrix import (
 )
 
 from galaga import Algebra
-from galaga.algebra import Multivector
 from galaga.facade import Algebra as FacadeAlgebra
 
 # ── Left-regular representation ──
@@ -37,7 +36,7 @@ class TestLeftRegular:
         alg = Algebra(3)
         np.random.seed(42)
         data = np.random.randn(alg.dim)
-        mv = Multivector(alg, data)
+        mv = alg.multivector(data)
         mat = to_matrix(mv)
         mv2 = from_matrix(alg, mat)
         assert np.allclose(mv.data, mv2.data)
@@ -48,9 +47,9 @@ class TestLeftRegular:
         e = alg.basis_vectors()
         a = e[0] + 2 * e[1]
         b = 3 * e[0] - e[2]
-        from galaga.algebra import gp
+        from galaga import geometric_product
 
-        mat_ab = to_matrix(gp(a, b))
+        mat_ab = to_matrix(geometric_product(a, b))
         mat_a = to_matrix(a)
         mat_b = to_matrix(b)
         assert np.allclose(mat_ab, mat_a @ mat_b)
@@ -71,7 +70,7 @@ class TestLeftRegular:
         sta.basis_vectors()
         np.random.seed(7)
         data = np.random.randn(sta.dim)
-        mv = Multivector(sta, data)
+        mv = sta.multivector(data)
         mv2 = from_matrix(sta, to_matrix(mv))
         assert np.allclose(mv.data, mv2.data)
 
@@ -165,7 +164,7 @@ class TestCompactRoundtrip:
         alg = Algebra(p, q)
         np.random.seed(42)
         data = np.random.randn(alg.dim)
-        mv = Multivector(alg, data)
+        mv = alg.multivector(data)
         mat = to_matrix(mv, mode="compact")
         mv2 = from_matrix(alg, mat, mode="compact")
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Roundtrip failed for Cl({p},{q})"
@@ -176,9 +175,9 @@ class TestCompactRoundtrip:
         e1, e2, e3 = alg.basis_vectors()
         a = e1 + 2 * e2
         b = 3 * e1 - e3
-        from galaga.algebra import gp
+        from galaga import geometric_product
 
-        mat_ab = to_matrix(gp(a, b), mode="compact")
+        mat_ab = to_matrix(geometric_product(a, b), mode="compact")
         mat_a = to_matrix(a, mode="compact")
         mat_b = to_matrix(b, mode="compact")
         assert np.allclose(mat_ab, mat_a @ mat_b)
@@ -898,7 +897,7 @@ class TestSpinorQuaternion:
         sta = Algebra(1, 3)
         np.random.seed(99)
         data = np.random.randn(sta.dim)
-        mv = Multivector(sta, data)
+        mv = sta.multivector(data)
         mv_even = even_grades(mv)
         qspinor = to_spinor_quaternion(mv_even)
         mv2 = from_spinor_quaternion(sta, qspinor)
@@ -1033,7 +1032,7 @@ class TestSpinorFullRoundtrip:
         alg = Algebra(3)
         np.random.seed(seed)
         data = np.random.randn(alg.dim)
-        mv = even_grades(Multivector(alg, data))
+        mv = even_grades(alg.multivector(data))
         spinor = to_spinor_matrix(mv)
         mv2 = from_spinor_matrix(alg, spinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(3,0) complex spinor roundtrip failed (seed={seed})"
@@ -1048,7 +1047,7 @@ class TestSpinorFullRoundtrip:
         sta = Algebra(1, 3)
         np.random.seed(seed + 100)
         data = np.random.randn(sta.dim)
-        mv = even_grades(Multivector(sta, data))
+        mv = even_grades(sta.multivector(data))
         spinor = to_spinor_matrix(mv)
         mv2 = from_spinor_matrix(sta, spinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(1,3) complex spinor roundtrip failed (seed={seed})"
@@ -1063,7 +1062,7 @@ class TestSpinorFullRoundtrip:
         alg = Algebra(4, 0)
         np.random.seed(seed + 150)
         data = np.random.randn(alg.dim)
-        mv = even_grades(Multivector(alg, data))
+        mv = even_grades(alg.multivector(data))
         spinor = to_spinor_column(mv)
         mv2 = from_spinor_column(alg, spinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(4,0) complex spinor roundtrip failed (seed={seed})"
@@ -1078,7 +1077,7 @@ class TestSpinorFullRoundtrip:
         alg = Algebra(3, 1)
         np.random.seed(seed + 200)
         data = np.random.randn(alg.dim)
-        mv = even_grades(Multivector(alg, data))
+        mv = even_grades(alg.multivector(data))
         with pytest.raises(TypeError, match="does not support faithful spinor roundtrip"):
             to_spinor_matrix(mv)
 
@@ -1092,7 +1091,7 @@ class TestSpinorFullRoundtrip:
         sta = Algebra(1, 3)
         np.random.seed(seed + 300)
         data = np.random.randn(sta.dim)
-        mv = even_grades(Multivector(sta, data))
+        mv = even_grades(sta.multivector(data))
         qspinor = to_spinor_quaternion(mv)
         mv2 = from_spinor_quaternion(sta, qspinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(1,3) quat spinor roundtrip failed (seed={seed})"
@@ -1107,7 +1106,7 @@ class TestSpinorFullRoundtrip:
         alg = Algebra(0, 2)
         np.random.seed(seed + 400)
         data = np.random.randn(alg.dim)
-        mv = even_grades(Multivector(alg, data))
+        mv = even_grades(alg.multivector(data))
         qspinor = to_spinor_quaternion(mv)
         mv2 = from_spinor_quaternion(alg, qspinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(0,2) quat spinor roundtrip failed (seed={seed})"
@@ -1974,7 +1973,7 @@ class TestBasisChange:
         sta = self._sta()
         np.random.seed(seed + 700)
         data = np.random.randn(sta.dim)
-        mv = Multivector(sta, data)
+        mv = sta.multivector(data)
         M = to_matrix(mv, mode="dirac").to_basis("weyl")
         mv2 = from_matrix(M)
         assert np.allclose(mv.data, mv2.data, atol=1e-10)
@@ -1985,7 +1984,7 @@ class TestBasisChange:
         sta = self._sta()
         np.random.seed(seed + 800)
         data = np.random.randn(sta.dim)
-        mv = Multivector(sta, data)
+        mv = sta.multivector(data)
         M = to_matrix(mv, mode="dirac").to_basis("majorana")
         mv2 = from_matrix(M)
         assert np.allclose(mv.data, mv2.data, atol=1e-10)
@@ -2253,7 +2252,7 @@ class TestQuaternionUnifiedStorage:
         sta = Algebra(1, 3)
         np.random.seed(seed + 900)
         data = np.random.randn(sta.dim)
-        mv = Multivector(sta, data)
+        mv = sta.multivector(data)
         M = to_matrix(mv, mode="quaternion")
         mv2 = from_matrix(M)
         assert np.allclose(mv.data, mv2.data, atol=1e-10)

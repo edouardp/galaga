@@ -56,7 +56,11 @@ class DiagonalProductBackend:
         metadata: DimensionMetadata,
     ) -> None:
         dim = metadata.dim
-        outputs = np.empty((dim, dim), dtype=bitmask_dtype(dim))
+        # Keep this dense diagonal lookup in NumPy's native indexing dtype.
+        # Compact unsigned bitmasks save some table memory, but NumPy converts
+        # them on every fancy-indexing operation; for the hot dense-product
+        # path that conversion is comparable to the product itself.
+        outputs = np.empty((dim, dim), dtype=np.intp)
         factors = np.empty((dim, dim), dtype=np.float64)
         for left in range(dim):
             for right in range(dim):

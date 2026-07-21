@@ -12,7 +12,9 @@ import pytest
 import galaga
 import galaga.expr as legacy_expr
 import galaga.facade as facade
-from galaga import algebra as legacy_algebra
+import galaga.legacy as legacy
+
+legacy_algebra = legacy
 
 from .v1_surface_manifest import (
     ACCIDENTAL_PRIVATE_DEPENDENCIES,
@@ -41,6 +43,8 @@ _GENERATED_CLASS_ATTRIBUTES = {
     "__doc__",
     "__module__",
     "__slots__",
+    "__firstlineno__",
+    "__static_attributes__",
     "__weakref__",
 }
 
@@ -58,8 +62,14 @@ def _declared_special_methods(value: type[object]) -> set[str]:
 
 
 def test_every_top_level_v1_export_has_exactly_one_disposition() -> None:
-    assert len(galaga.__all__) == len(set(galaga.__all__))
-    assert set(galaga.__all__) == set(TOP_LEVEL_EXPORTS)
+    assert len(legacy.__all__) == len(set(legacy.__all__))
+    assert set(legacy.__all__) == set(TOP_LEVEL_EXPORTS)
+
+
+def test_top_level_v2_exports_are_owned_by_the_facade() -> None:
+    assert galaga.__all__ == facade.__all__
+    for name in facade.__all__:
+        assert getattr(galaga, name) is getattr(facade, name)
 
 
 def test_legacy_type_members_and_protocols_are_exhaustively_recorded() -> None:

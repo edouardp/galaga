@@ -27,16 +27,16 @@ from galaga.facade import (
 @pytest.fixture(autouse=True)
 def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:
     """Make every direct facade test fail if it falls back to the v1 engine."""
-    import galaga.algebra as legacy
+    import galaga.legacy as legacy
 
     def reject(*args: object, **kwargs: object) -> None:
-        raise AssertionError("core-backed facade test constructed galaga.algebra.Algebra")
+        raise AssertionError("core-backed facade test constructed galaga.legacy.Algebra")
 
     monkeypatch.setattr(legacy.Algebra, "__init__", reject)
 
 
 def test_legacy_numeric_constructor_guard_is_active() -> None:
-    import galaga.algebra as legacy
+    import galaga.legacy as legacy
 
     with pytest.raises(AssertionError, match="core-backed facade test constructed"):
         legacy.Algebra(2)

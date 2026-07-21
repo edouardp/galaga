@@ -2,7 +2,7 @@
 
 import unittest
 
-from galaga import Algebra, b_gamma, b_sta
+from galaga.legacy import Algebra, b_gamma, b_sta
 
 
 class TestBladeLazyPaths(unittest.TestCase):
@@ -91,14 +91,14 @@ class TestGammaFactoryPss(unittest.TestCase):
 
     def test_sigma_with_pss(self):
         """b_sigma(pss='I') names the pseudoscalar."""
-        from galaga import b_sigma
+        from galaga.legacy import b_sigma
 
         alg = Algebra(3, blades=b_sigma(pss="I"))
         assert str(alg.pseudoscalar()) == "I"
 
     def test_sigma_xyz_with_pss(self):
         """b_sigma_xyz(pss='I') names the pseudoscalar."""
-        from galaga import b_sigma_xyz
+        from galaga.legacy import b_sigma_xyz
 
         alg = Algebra(3, blades=b_sigma_xyz(pss="I"))
         assert str(alg.pseudoscalar()) == "I"

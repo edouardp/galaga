@@ -33,7 +33,7 @@ def _():
     )
 
     import galaga_marimo as gm
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         exp,

@@ -13,8 +13,7 @@ import numpy as np
 from galaga_matrix import from_matrix, to_matrix
 from galaga_matrix.repr import MatrixRepr
 
-from galaga import Algebra, gp
-from galaga.algebra import Multivector
+from galaga import Algebra, Multivector, geometric_product
 
 N_TRIALS = 1000
 TOLERANCE = 1e-10
@@ -25,7 +24,7 @@ def _random_multivector(alg: Algebra, rng: np.random.Generator, sparsity: float 
     coeffs = rng.standard_normal(alg.dim)
     mask = rng.random(alg.dim) < sparsity
     coeffs *= mask
-    return Multivector(alg, coeffs)
+    return alg.multivector(coeffs)
 
 
 def _run_product_roundtrip(alg: Algebra, mode: str, n_trials: int = N_TRIALS) -> float:
@@ -37,7 +36,7 @@ def _run_product_roundtrip(alg: Algebra, mode: str, n_trials: int = N_TRIALS) ->
         B = _random_multivector(alg, rng)
 
         # Direct geometric product
-        C_direct = gp(A, B)
+        C_direct = geometric_product(A, B)
 
         # Via matrix multiplication
         M_A = to_matrix(A, mode=mode)

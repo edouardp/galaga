@@ -44,12 +44,15 @@
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
   cutover.
+- [Phase 8 performance baseline](phase8-performance.md) separates direct-core,
+  facade, expression-provenance, and retained-v1 costs for representative
+  diagonal operations.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
   remaining numeric capabilities and companion-package work.
 
 ## Current status
 
-Phases 0 through 6 of the core cutover plan are complete on `galaga_v2`. The
+Phases 0 through 7 of the core cutover plan are complete on `galaga_v2`. The
 proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
 replacement contract is checked in and executable; `galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
@@ -77,10 +80,18 @@ multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
 executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
 only public facade names, expressions, and presentations. Installed-wheel
-integration gates pass. The 51 maintained Marimo notebooks now use the facade,
-pass Marimo dependency validation, and execute headlessly under Python 3.14.
-Top-level `galaga.Algebra` and `galaga.Multivector` deliberately remain on the
-legacy engine until Phase 8 performs the shadow cutover.
+integration gates pass. The 61 maintained Marimo notebooks now use the
+promoted top-level API, pass Marimo dependency validation, and execute
+headlessly under Python 3.14.
+
+Phase 8 is complete. `galaga.Algebra`,
+`galaga.Multivector`, and every other top-level public export are the exact
+objects owned by `galaga.facade`. The old table engine is available only as
+the explicit `galaga.legacy` oracle; plain `import galaga` does not load it,
+and unledgered tests poison its constructors. Clean Python 3.11 wheel tests,
+the complete Python 3.11 and 3.14 package suites, and the layer-separated
+performance baseline pass. Phase 9 removal of the retained legacy engine is
+the next cutover work.
 
 ## Supporting documents
 
@@ -93,6 +104,7 @@ legacy engine until Phase 8 performs the shadow cutover.
 - [ADR-082: Matrix provenance is package-owned](../adrs/082-matrix-provenance-is-package-owned.md)
 - [ADR-083: Maintained notebooks are executable integration contracts](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md)
 - [ADR-084: Exact configured rendering contracts](../adrs/084-exact-configured-rendering-contracts.md)
+- [ADR-085: Top-level API is the facade with an explicit legacy oracle](../adrs/085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

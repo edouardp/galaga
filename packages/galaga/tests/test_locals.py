@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import pytest
 
-from galaga import Algebra, b_default, b_gamma, b_sta
 from galaga.blade_convention import BladeConvention
+from galaga.legacy import Algebra, b_default, b_gamma, b_sta
 
 
 @pytest.fixture

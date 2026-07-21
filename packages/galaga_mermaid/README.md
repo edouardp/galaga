@@ -3,7 +3,7 @@
 Experimental Mermaid flowcharts for Galaga 2 expression provenance.
 
 ```python
-from galaga.facade import Algebra, geometric_product
+from galaga import Algebra, geometric_product
 from galaga_mermaid import expr_to_mermaid, mv_to_mermaid
 
 algebra = Algebra(3)

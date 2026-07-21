@@ -26,7 +26,7 @@ def _():
     from galaga_matrix.matrix import compact_basis
 
     import galaga_marimo as gm
-    from galaga.facade import Algebra, spacetime_blade_convention, exp
+    from galaga import Algebra, spacetime_blade_convention, exp
 
     return (
         Algebra,

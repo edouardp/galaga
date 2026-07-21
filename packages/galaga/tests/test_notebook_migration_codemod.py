@@ -22,7 +22,7 @@ scalar = (norm(x).eval() ** 2).scalar_part
 
     migrated = migrate_source(source)
 
-    assert "from galaga.facade import Algebra, spacetime_blade_convention, grade_involution, norm" in migrated
+    assert "from galaga import Algebra, spacetime_blade_convention, grade_involution, norm" in migrated
     assert "blades=spacetime_blade_convention()" in migrated
     assert "repr_unicode" not in migrated
     assert "basis_vectors(expr=True)" in migrated
@@ -78,6 +78,12 @@ result = (e1 * e2).name("B").eval()
     migrated = migrate_source(source)
 
     assert migrate_source(migrated) == migrated
+
+
+def test_promotes_the_explicit_facade_namespace_to_the_phase8_public_api() -> None:
+    source = "from galaga.facade import Algebra, DisplayPolicy\n"
+
+    assert migrate_source(source) == "from galaga import Algebra, DisplayPolicy\n"
 
 
 def test_path_guard_rejects_files_outside_the_ledger(tmp_path: Path) -> None:

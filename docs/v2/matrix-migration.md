@@ -43,10 +43,11 @@ basis element is the scalar identity. `from_matrix` therefore recovers a value
 without solving a system. It constructs through the public algebra factory, so
 the returned value is a facade `Multivector` over the same algebra.
 
-While top-level Galaga 1 tests remain active, a compatibility path constructs
-each matrix column with the public geometric-product operator. It is slower but
-has the same mathematical boundary and contains no legacy multiplication-table
-access. Phase 8 removes that path with the legacy engine.
+For the explicit Phase 8 `galaga.legacy` oracle only, a temporary compatibility
+path constructs each matrix column with the public geometric-product operator.
+It is slower but has the same mathematical boundary and contains no legacy
+multiplication-table access. Phase 9 removes that path with the legacy engine;
+ordinary top-level and companion-package tests use only facade values.
 
 ### Compact boundary
 

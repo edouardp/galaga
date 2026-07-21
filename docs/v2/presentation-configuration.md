@@ -157,7 +157,7 @@ Ergonomic `p_*` functions return these preset objects; they do not construct a
 second kind of configuration.
 
 ```python
-from galaga.facade import Algebra, Notation, p_cga
+from galaga import Algebra, Notation, p_cga
 
 algebra = Algebra(config=p_cga(3))
 teaching = Algebra(config=p_cga(3), notation=Notation("teaching"))

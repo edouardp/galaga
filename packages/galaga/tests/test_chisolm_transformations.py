@@ -12,7 +12,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, gp, inverse, is_vector, left_contraction, norm2, op, project, reflect, reject
+from galaga.legacy import Algebra, gp, inverse, is_vector, left_contraction, norm2, op, project, reflect, reject
 
 
 @pytest.fixture

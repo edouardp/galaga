@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import Algebra, DisplayPolicy, inverse, norm, squared, unit
+    from galaga import Algebra, DisplayPolicy, inverse, norm, squared, unit
     import galaga_marimo as gm
 
     return Algebra, DisplayPolicy, gm, inverse, mo, norm, squared, unit

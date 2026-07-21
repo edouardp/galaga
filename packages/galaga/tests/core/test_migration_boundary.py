@@ -7,13 +7,17 @@ from importlib.metadata import requires
 from pathlib import Path
 
 import galaga.core as core
+import galaga.facade as facade
+import galaga.legacy as legacy
 from galaga import Algebra as PublicAlgebra
 
 
-def test_top_level_algebra_remains_legacy_during_additive_migration() -> None:
-    """Moving the core must not perform the public v2 cutover implicitly."""
+def test_top_level_algebra_is_the_promoted_facade() -> None:
+    """Phase 8 makes the core-backed facade the ordinary public API."""
     assert PublicAlgebra is not core.Algebra
-    assert PublicAlgebra.__module__ == "galaga.algebra"
+    assert PublicAlgebra is facade.Algebra
+    assert PublicAlgebra is not legacy.Algebra
+    assert PublicAlgebra.__module__ == "galaga.facade._numeric"
     assert core.Algebra.__module__ == "galaga.core"
 
 

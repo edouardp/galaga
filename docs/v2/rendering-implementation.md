@@ -396,11 +396,11 @@ parameter handling, a 26-operation Lengyel notation matrix, and the complete
 - The semantic tree applies only conservative structural display identities;
   it is not a general algebraic simplifier or expression evaluator.
 - Numeric formatting is display-oriented, not a serialization format.
-- Legacy top-level values still use the legacy rendering path until cutover.
+- Top-level values use the semantic renderer through the promoted facade.
 - Legacy mutable notation and operation-specific renderer adapters remain only
-  on the top-level v1 compatibility path.
+  under `galaga.legacy`; `legacy.render` is retained as a Phase 8 oracle.
 - `galaga_matrix`, `galaga_marimo`, `galaga_mermaid`, and the maintained
   notebooks now consume the public facade/expression/display protocols.
 
-Those boundaries make the next phase a top-level type cutover rather than
+Those boundaries let Phase 8 perform the top-level type cutover without
 another rendering redesign.

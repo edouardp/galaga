@@ -3,9 +3,9 @@
 import numpy as np
 import pytest
 
-from galaga import Algebra, BladeConvention, b_gamma
 from galaga.expr import Sym, sym
-from galaga.simplify import simplify
+from galaga.legacy import Algebra, BladeConvention, b_gamma
+from galaga.legacy.simplify import simplify
 
 
 @pytest.fixture
@@ -673,7 +673,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_reverse_lazy_mv(self, cl3):
         """reverse(lazy_mv) stays lazy."""
-        from galaga import reverse
+        from galaga.legacy import reverse
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -682,7 +682,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_grade_lazy_mv(self, cl3):
         """grade(lazy_mv, k) stays lazy."""
-        from galaga import grade
+        from galaga.legacy import grade
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -691,7 +691,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_sandwich_lazy_mv(self, cl3):
         """sandwich(lazy, lazy) stays lazy."""
-        from galaga import sandwich
+        from galaga.legacy import sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -701,7 +701,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_ip_lazy_mv(self, cl3):
         """ip(lazy, lazy) stays lazy."""
-        from galaga import ip
+        from galaga.legacy import ip
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -710,7 +710,7 @@ class TestAdditionalCoverage:
 
     def test_symbolic_squared_lazy_mv(self, cl3):
         """squared(lazy) stays lazy."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -910,7 +910,7 @@ class TestExprOperatorCoverage:
     def test_eq_neg(self, cl3):
         """Neg Expr equality."""
         from galaga.expr import Neg
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
@@ -920,7 +920,7 @@ class TestExprOperatorCoverage:
     def test_eq_grade(self, cl3):
         """Grade Expr equality."""
         from galaga.expr import Grade
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = Sym(e1, "a")
@@ -933,7 +933,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_involute_lazy(self, cl3):
         """involute(lazy) returns lazy."""
-        from galaga import involute
+        from galaga.legacy import involute
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -942,7 +942,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_conjugate_lazy(self, cl3):
         """conjugate(lazy) returns lazy."""
-        from galaga import conjugate
+        from galaga.legacy import conjugate
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -951,7 +951,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_dual_lazy(self, cl3):
         """dual(lazy) returns lazy."""
-        from galaga import dual
+        from galaga.legacy import dual
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -960,7 +960,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_undual_lazy(self, cl3):
         """undual(lazy) returns lazy."""
-        from galaga import undual
+        from galaga.legacy import undual
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -969,7 +969,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_norm_lazy(self, cl3):
         """norm(lazy) returns lazy."""
-        from galaga import norm
+        from galaga.legacy import norm
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -978,7 +978,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_unit_lazy(self, cl3):
         """unit(lazy) returns lazy."""
-        from galaga import unit
+        from galaga.legacy import unit
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -987,7 +987,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_inverse_lazy(self, cl3):
         """inverse(lazy) returns lazy."""
-        from galaga import inverse
+        from galaga.legacy import inverse
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -996,7 +996,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_left_contraction_lazy(self, cl3):
         """left_contraction(lazy, lazy) returns lazy."""
-        from galaga import left_contraction
+        from galaga.legacy import left_contraction
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1005,7 +1005,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_right_contraction_lazy(self, cl3):
         """right_contraction(lazy, lazy) returns lazy."""
-        from galaga import right_contraction
+        from galaga.legacy import right_contraction
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1014,7 +1014,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_hestenes_inner_lazy(self, cl3):
         """hestenes_inner(lazy, lazy) returns lazy."""
-        from galaga import hestenes_inner
+        from galaga.legacy import hestenes_inner
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1023,7 +1023,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_doran_lasenby_inner_lazy(self, cl3):
         """doran_lasenby_inner(lazy, lazy) returns lazy."""
-        from galaga import doran_lasenby_inner
+        from galaga.legacy import doran_lasenby_inner
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1032,7 +1032,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_scalar_product_lazy(self, cl3):
         """scalar_product(lazy, lazy) returns lazy."""
-        from galaga import scalar_product
+        from galaga.legacy import scalar_product
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1041,7 +1041,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_commutator_lazy(self, cl3):
         """commutator(lazy, lazy) returns lazy."""
-        from galaga import commutator
+        from galaga.legacy import commutator
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1050,7 +1050,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_anticommutator_lazy(self, cl3):
         """anticommutator(lazy, lazy) returns lazy."""
-        from galaga import anticommutator
+        from galaga.legacy import anticommutator
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1059,7 +1059,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_lie_bracket_lazy(self, cl3):
         """lie_bracket(lazy, lazy) returns lazy."""
-        from galaga import lie_bracket
+        from galaga.legacy import lie_bracket
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1068,7 +1068,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_jordan_product_lazy(self, cl3):
         """jordan_product(lazy, lazy) returns lazy."""
-        from galaga import jordan_product
+        from galaga.legacy import jordan_product
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1077,7 +1077,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_even_grades_lazy(self, cl3):
         """even_grades(lazy) returns lazy."""
-        from galaga import even_grades
+        from galaga.legacy import even_grades
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -1086,7 +1086,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_odd_grades_lazy(self, cl3):
         """odd_grades(lazy) returns lazy."""
-        from galaga import odd_grades
+        from galaga.legacy import odd_grades
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -1095,7 +1095,7 @@ class TestSymbolicDropInWithLazyMV:
 
     def test_ip_modes_lazy(self, cl3):
         """ip() with all modes returns lazy."""
-        from galaga import ip
+        from galaga.legacy import ip
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1109,7 +1109,7 @@ class TestSandwichLazy:
 
     def test_sandwich_lazy_rotor(self, cl3):
         """sandwich(lazy_R, lazy_v) returns lazy."""
-        from galaga import sandwich
+        from galaga.legacy import sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -1121,7 +1121,7 @@ class TestSandwichLazy:
 
     def test_sandwich_lazy_concrete_correct(self, cl3):
         """Lazy sandwich evaluates correctly."""
-        from galaga import gp, reverse, sandwich
+        from galaga.legacy import gp, reverse, sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -1131,7 +1131,7 @@ class TestSandwichLazy:
 
     def test_sandwich_eager_stays_eager(self, cl3):
         """sandwich(eager, eager) stays eager."""
-        from galaga import sandwich
+        from galaga.legacy import sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         result = sandwich(e1 * e2, e1)
@@ -1139,7 +1139,7 @@ class TestSandwichLazy:
 
     def test_sandwich_one_lazy_operand(self, cl3):
         """One lazy operand makes result lazy."""
-        from galaga import sandwich
+        from galaga.legacy import sandwich
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -1150,7 +1150,7 @@ class TestSandwichLazy:
 
     def test_sw_alias_lazy(self, cl3):
         """sw() alias works with lazy MVs."""
-        from galaga import sw
+        from galaga.legacy import sw
 
         e1, e2, _ = cl3.basis_vectors()
         R = (e1 * e2).name("R")
@@ -1296,7 +1296,7 @@ class TestDivExprNode:
 
     def test_exp_node(self, cl3):
         """Exp expr renders as exp(...)."""
-        from galaga import exp
+        from galaga.legacy import exp
 
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
@@ -1311,7 +1311,7 @@ class TestDivExprNode:
         """Exp expr evaluates correctly."""
         import numpy as np
 
-        from galaga import exp
+        from galaga.legacy import exp
 
         e1, e2, _ = cl3.basis_vectors()
         B = (e1 ^ e2).name("B")
@@ -1326,7 +1326,7 @@ class TestSquaredParens:
 
     def test_squared_single_term_no_parens(self, cl3):
         """Squared atom: no parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -1334,7 +1334,7 @@ class TestSquaredParens:
 
     def test_squared_add_gets_parens(self, cl3):
         """Squared sum: gets parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1344,7 +1344,7 @@ class TestSquaredParens:
 
     def test_squared_sub_gets_parens(self, cl3):
         """Squared difference: gets parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1354,7 +1354,7 @@ class TestSquaredParens:
 
     def test_squared_product_no_parens(self, cl3):
         """Squared product: no parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1364,7 +1364,7 @@ class TestSquaredParens:
 
     def test_squared_latex_add_gets_parens(self, cl3):
         """Squared sum in LaTeX: gets parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, e2, _ = cl3.basis_vectors()
         a = e1.name("a")
@@ -1375,7 +1375,7 @@ class TestSquaredParens:
 
     def test_squared_latex_single_no_parens(self, cl3):
         """Squared atom in LaTeX: no parens."""
-        from galaga import squared
+        from galaga.legacy import squared
 
         e1, _, _ = cl3.basis_vectors()
         v = e1.name("v")
@@ -1446,7 +1446,7 @@ class TestLazyBladesFullWorkflow:
 
     def test_exp_symbolic(self, cl3):
         """Lazy exp renders symbolically."""
-        from galaga import exp
+        from galaga.legacy import exp
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         B = (e1 ^ e2).name("B")
@@ -1457,7 +1457,7 @@ class TestLazyBladesFullWorkflow:
         """Full lazy rotor workflow."""
         import numpy as np
 
-        from galaga import exp
+        from galaga.legacy import exp
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         theta = cl3.scalar(np.pi / 4).name("θ")
@@ -1486,7 +1486,7 @@ class TestLazyBladesFullWorkflow:
 
     def test_all_module_functions_lazy(self, cl3):
         """All module-level functions produce symbolic output with lazy blades."""
-        from galaga import conjugate, dual, grade, inverse, involute, reverse, squared, unit
+        from galaga.legacy import conjugate, dual, grade, inverse, involute, reverse, squared, unit
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = (e1 + e2).name("v")
@@ -1529,7 +1529,7 @@ class TestAllBinaryOpsLazy:
 
     def test_gp_lazy(self, cl3):
         """gp(lazy, lazy) returns lazy."""
-        from galaga import gp
+        from galaga.legacy import gp
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1537,7 +1537,7 @@ class TestAllBinaryOpsLazy:
 
     def test_op_lazy(self, cl3):
         """op(lazy, lazy) returns lazy."""
-        from galaga import op
+        from galaga.legacy import op
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1545,7 +1545,7 @@ class TestAllBinaryOpsLazy:
 
     def test_left_contraction_lazy(self, cl3):
         """left_contraction(lazy, lazy) returns lazy."""
-        from galaga import left_contraction
+        from galaga.legacy import left_contraction
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1553,7 +1553,7 @@ class TestAllBinaryOpsLazy:
 
     def test_right_contraction_lazy(self, cl3):
         """right_contraction(lazy, lazy) returns lazy."""
-        from galaga import right_contraction
+        from galaga.legacy import right_contraction
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1561,7 +1561,7 @@ class TestAllBinaryOpsLazy:
 
     def test_hestenes_inner_lazy(self, cl3):
         """hestenes_inner(lazy, lazy) returns lazy."""
-        from galaga import hestenes_inner
+        from galaga.legacy import hestenes_inner
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1569,7 +1569,7 @@ class TestAllBinaryOpsLazy:
 
     def test_doran_lasenby_inner_lazy(self, cl3):
         """doran_lasenby_inner(lazy, lazy) returns lazy."""
-        from galaga import doran_lasenby_inner
+        from galaga.legacy import doran_lasenby_inner
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1577,7 +1577,7 @@ class TestAllBinaryOpsLazy:
 
     def test_scalar_product_lazy(self, cl3):
         """scalar_product(lazy, lazy) returns lazy."""
-        from galaga import scalar_product
+        from galaga.legacy import scalar_product
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1585,7 +1585,7 @@ class TestAllBinaryOpsLazy:
 
     def test_commutator_lazy(self, cl3):
         """commutator(lazy, lazy) returns lazy."""
-        from galaga import commutator
+        from galaga.legacy import commutator
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
@@ -1594,7 +1594,7 @@ class TestAllBinaryOpsLazy:
 
     def test_anticommutator_lazy(self, cl3):
         """anticommutator(lazy, lazy) returns lazy."""
-        from galaga import anticommutator
+        from galaga.legacy import anticommutator
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
@@ -1603,7 +1603,7 @@ class TestAllBinaryOpsLazy:
 
     def test_lie_bracket_lazy(self, cl3):
         """lie_bracket(lazy, lazy) returns lazy."""
-        from galaga import lie_bracket
+        from galaga.legacy import lie_bracket
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
@@ -1612,7 +1612,7 @@ class TestAllBinaryOpsLazy:
 
     def test_jordan_product_lazy(self, cl3):
         """jordan_product(lazy, lazy) returns lazy."""
-        from galaga import jordan_product
+        from galaga.legacy import jordan_product
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a, b = e1.name("a"), e2.name("b")
@@ -1726,7 +1726,7 @@ class TestSimplifyEdgeCases:
 
     def test_simplify_norm_unit(self, cl3):
         """simplify(norm(unit(x))) = 1."""
-        from galaga import norm, unit
+        from galaga.legacy import norm, unit
 
         e1, _, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
@@ -1763,7 +1763,7 @@ class TestGpSpacing:
 
     def test_combining_char_counts_as_single(self, cl3):
         """Combining accent counts as single char."""
-        from galaga import reverse
+        from galaga.legacy import reverse
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         a = e1.name("a")
@@ -1827,7 +1827,7 @@ class TestSymNoName:
 
     def test_norm_lazy(self, cl3):
         """norm(lazy) returns lazy."""
-        from galaga import norm
+        from galaga.legacy import norm
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = (3 * e1 + 4 * e2).name("v")
@@ -1841,7 +1841,7 @@ class TestBasisBladeRename:
 
     def test_get_basis_blade_by_mv(self):
         """get_basis_blade(mv) returns BasisBlade."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors()
@@ -1850,7 +1850,7 @@ class TestBasisBladeRename:
 
     def test_get_basis_blade_by_index(self):
         """get_basis_blade(int) returns BasisBlade."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         bb = alg.get_basis_blade(0b011)
@@ -1858,7 +1858,7 @@ class TestBasisBladeRename:
 
     def test_rename_affects_rendering(self):
         """Renaming a blade changes str() output."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b011).rename(unicode="B₁₂", latex=r"\mathbf{B}_{12}")
@@ -1869,7 +1869,7 @@ class TestBasisBladeRename:
 
     def test_rename_pseudoscalar(self):
         """Pseudoscalar can be renamed."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(alg.pseudoscalar()).rename(unicode="I₃")
@@ -1877,7 +1877,7 @@ class TestBasisBladeRename:
 
     def test_rename_basis_vector(self):
         """Basis vector can be renamed."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b001).rename(unicode="x", ascii="x", latex="x")
@@ -1886,7 +1886,7 @@ class TestBasisBladeRename:
 
     def test_get_non_blade_raises(self):
         """get_basis_blade on non-blade raises."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors()
@@ -1895,7 +1895,7 @@ class TestBasisBladeRename:
 
     def test_rename_chaining(self):
         """Rename methods chain."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         alg.get_basis_blade(0b011).rename(ascii="B12").rename(latex=r"\beta_{12}")
@@ -1905,7 +1905,7 @@ class TestBasisBladeRename:
 
     def test_rename_updates_existing_mv(self):
         """Renaming a BasisBlade updates already-created MVs."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
 
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
@@ -1920,7 +1920,7 @@ class TestRegressiveProduct:
 
     def test_symbolic_rendering(self, cl3):
         """Regressive product renders with ∨."""
-        from galaga import regressive_product
+        from galaga.legacy import regressive_product
 
         e1, e2, e3 = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
@@ -1931,7 +1931,7 @@ class TestRegressiveProduct:
 
     def test_symbolic_eval(self, cl3):
         """Symbolic regressive evaluates correctly."""
-        from galaga import regressive_product
+        from galaga.legacy import regressive_product
 
         e1, e2, e3 = cl3.basis_vectors(lazy=True)
         A = (e1 ^ e2).name("A")
@@ -1964,7 +1964,7 @@ class TestCoverageGaps:
 
     def test_grade_lazy_even_odd(self, cl3):
         """grade('even'/'odd') on lazy MV works."""
-        from galaga import grade
+        from galaga.legacy import grade
 
         e1, e2, _ = cl3.basis_vectors(lazy=True)
         v = e1.name("v")
@@ -2026,7 +2026,7 @@ class TestCoverageGaps:
     def test_eq_scalar_div(self, cl3):
         """ScalarDiv equality."""
         from galaga.expr import ScalarDiv
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         a = ScalarDiv(Sym(e1, "v"), 2)
@@ -2035,7 +2035,7 @@ class TestCoverageGaps:
 
     def test_eq_fallback_false(self, cl3):
         """Expr equality fallback returns False."""
-        from galaga.simplify import _eq
+        from galaga.legacy.simplify import _eq
 
         e1, _, _ = cl3.basis_vectors()
         # Two different types
@@ -2044,7 +2044,7 @@ class TestCoverageGaps:
     def test_known_grade_scalar_div(self, cl3):
         """ScalarDiv preserves known grade."""
         from galaga.expr import ScalarDiv
-        from galaga.simplify import _known_grade
+        from galaga.legacy.simplify import _known_grade
 
         e1, _, _ = cl3.basis_vectors()
         expr = ScalarDiv(Sym(e1, "v", grade=1), 2)
@@ -2145,7 +2145,7 @@ class TestReveal:
         """reveal() on named rotor shows exp form."""
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
-        from galaga import exp
+        from galaga.legacy import exp
 
         B = (e1 * e2).name("B")
         R = exp(B).name("R")

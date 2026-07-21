@@ -26,8 +26,8 @@ def test_new_example_notebooks_use_v2_facade_teaching_pattern():
     """Check the ledgered gallery uses expression provenance over eager values."""
     for notebook in MIGRATED_NOTEBOOKS:
         source = (EXAMPLES / notebook).read_text()
-        assert "from galaga.facade import" in source
-        assert "from galaga import" not in source
+        assert "from galaga import" in source
+        assert "from galaga.facade import" not in source
         assert "expr=True" in source
         assert "import galaga_marimo as gm" in source
         assert ".eval()" not in source

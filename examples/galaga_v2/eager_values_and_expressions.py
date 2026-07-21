@@ -26,7 +26,7 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         doran_lasenby_inner,

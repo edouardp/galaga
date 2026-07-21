@@ -2,7 +2,7 @@
 
 import pytest
 
-from galaga import (
+from galaga.legacy import (
     Algebra,
     anticommutator,
     commutator,
@@ -452,7 +452,7 @@ class TestPresets:
 
     def test_preset_with_algebra(self):
         """Notation preset integrates with Algebra rendering."""
-        from galaga import Algebra, reverse
+        from galaga.legacy import Algebra, reverse
 
         alg = Algebra((1, 1, 1), notation=Notation.hestenes())
         e1, _, _ = alg.basis_vectors(lazy=True)
@@ -463,7 +463,7 @@ class TestPresets:
 class TestFunctionStyle:
     def test_wedge_as_function(self):
         """Op can render as function style: wedge(a, b)."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
         from galaga.notation import NotationRule
 
         alg = Algebra((1, 1, 1))
@@ -473,7 +473,7 @@ class TestFunctionStyle:
 
     def test_reverse_as_function(self):
         """Reverse can render as function style: rev(v)."""
-        from galaga import Algebra, reverse
+        from galaga.legacy import Algebra, reverse
         from galaga.notation import NotationRule
 
         alg = Algebra((1, 1, 1))
@@ -484,7 +484,7 @@ class TestFunctionStyle:
 
     def test_function_style_latex(self):
         r"""Function style uses \operatorname in LaTeX."""
-        from galaga import Algebra
+        from galaga.legacy import Algebra
         from galaga.notation import NotationRule
 
         alg = Algebra((1, 1, 1))

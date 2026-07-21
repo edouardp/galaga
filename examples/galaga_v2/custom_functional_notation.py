@@ -26,7 +26,7 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         Notation,
@@ -322,7 +322,7 @@ def _(mo):
     enough:
 
     ```python
-    from galaga.facade import hestenes_inner as hestenes_ip
+    from galaga import hestenes_inner as hestenes_ip
 
     result = hestenes_ip(a, b)
     ```

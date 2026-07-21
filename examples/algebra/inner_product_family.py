@@ -20,7 +20,7 @@ def _():
 @app.cell
 def _():
     import marimo as mo
-    from galaga.facade import (
+    from galaga import (
         Algebra,
         DisplayPolicy,
         doran_lasenby_inner,

@@ -97,6 +97,7 @@ helps future contributors understand why certain choices were made.
 | [082](082-matrix-provenance-is-package-owned.md) | Matrix Provenance Is Package-Owned | Accepted |
 | [083](083-maintained-notebooks-are-executable-integration-contracts.md) | Maintained Notebooks Are Executable Integration Contracts | Accepted |
 | [084](084-exact-configured-rendering-contracts.md) | Exact Configured Rendering Contracts | Accepted |
+| [085](085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md) | Top-Level API Is the Facade with an Explicit Legacy Oracle | Accepted |
 
 ## Creating New ADRs
 

@@ -7,7 +7,6 @@ produces identical results to the old single-pass render_latex().
 
 import numpy as np
 
-from galaga import Algebra
 from galaga.expr import (
     Add,
     Anticommutator,
@@ -44,6 +43,7 @@ from galaga.expr import (
 from galaga.latex_build import build
 from galaga.latex_emit import emit
 from galaga.latex_rewrite import rewrite
+from galaga.legacy import Algebra
 
 # Minimal algebra for constructing Sym nodes
 _alg = Algebra((1, 1, 1))
@@ -428,7 +428,7 @@ class TestEndToEndLatex:
 
     def test_exp_frac_slash(self):
         """exp(-θ/2 B) uses slash not frac in superscript."""
-        from galaga import Algebra, exp
+        from galaga.legacy import Algebra, exp
 
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
@@ -441,7 +441,7 @@ class TestEndToEndLatex:
 
     def test_neg_hoisted_in_exp(self):
         """Negation hoists before slash in superscript."""
-        from galaga import Algebra, exp
+        from galaga.legacy import Algebra, exp
 
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)
@@ -452,7 +452,7 @@ class TestEndToEndLatex:
 
     def test_complement_lazy(self):
         """complement() stays symbolic on lazy MVs."""
-        from galaga import Algebra, complement
+        from galaga.legacy import Algebra, complement
 
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors(lazy=True)
@@ -463,7 +463,7 @@ class TestEndToEndLatex:
 
     def test_log_lazy(self):
         """log() stays symbolic on lazy MVs."""
-        from galaga import Algebra, exp, log
+        from galaga.legacy import Algebra, exp, log
 
         alg = Algebra((1, 1, 1))
         e1, e2, _ = alg.basis_vectors(lazy=True)

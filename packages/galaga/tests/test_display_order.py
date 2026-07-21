@@ -2,8 +2,8 @@
 
 import unittest
 
-from galaga import Algebra, b_quaternion
 from galaga.blade_convention import BladeConvention
+from galaga.legacy import Algebra, b_quaternion
 
 
 class TestDisplayOrderValidation(unittest.TestCase):
