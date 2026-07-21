@@ -24,3 +24,9 @@ automatically supplies its own value for a named-symbol leaf.
 The implementation traverses only the public immutable `Call`, `Symbol`, and
 literal node fields. It does not import the Galaga 1 expression hierarchy or
 read private multivector expression state.
+
+## Executable example
+
+The repository includes a Marimo notebook demonstrating interactive layout,
+compact trees, value annotations, generated source, and notation-sensitive
+labels: [Mermaid diagrams from Galaga expressions](../../examples/mermaid/mermaid_diagram.py).

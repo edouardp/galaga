@@ -24,6 +24,7 @@ MIGRATED_NOTEBOOKS = (
     "matrix/representations_and_roundtrips.py",
     "matrix/pauli_and_dirac.py",
     "matrix/spinor_columns.py",
+    "mermaid/mermaid_diagram.py",
     "basics/complex_and_quaternions.py",
     "basics/spinor_column_conversions.py",
     "spacetime/dirac_bilinears_sta.py",
