@@ -83,7 +83,7 @@ multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
 executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
 only public facade names, expressions, and presentations. Installed-wheel
-integration gates pass. The 61 maintained Marimo notebooks now use the
+integration gates pass. The 64 maintained Marimo notebooks now use the
 promoted top-level API, pass Marimo dependency validation, and execute
 headlessly under Python 3.14.
 

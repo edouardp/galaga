@@ -16,6 +16,9 @@ import libcst as cst
 from libcst.helpers import get_full_name_for_node
 
 MIGRATED_NOTEBOOKS = (
+    "cga/native_null_foundations.py",
+    "cga/direct_objects_and_semantics.py",
+    "cga/lengyel_cga_transformations.py",
     "galaga_v2/algebra_construction.py",
     "galaga_v2/eager_values_and_expressions.py",
     "galaga_v2/presentation_contexts.py",

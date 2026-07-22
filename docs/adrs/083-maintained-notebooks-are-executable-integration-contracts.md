@@ -31,7 +31,7 @@ multivector method.
 
 ## Decision outcome
 
-`tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS` is the single 61-file gallery
+`tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS` is the single 64-file gallery
 ledger. The migration command refuses paths outside that tuple and supports a
 non-writing `--check` mode.
 
@@ -62,7 +62,7 @@ the runtime gate.
 - Good, because `MatrixRepr` keeps its own coherent naming API.
 - Good, because Python 3.14 remains isolated to notebook validation and the
   optional Marimo package.
-- Cost, because the Python 3.14 gate executes 61 notebooks and is heavier than
+- Cost, because the Python 3.14 gate executes 64 notebooks and is heavier than
   a compile-only test.
 - Cost, because additions to the maintained gallery must satisfy facade,
   Marimo structure, and headless runtime contracts.

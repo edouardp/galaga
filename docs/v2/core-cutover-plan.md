@@ -1135,7 +1135,7 @@ Completed so far:
 - the final combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,174
   tests with 21 skips, while the Python 3.14 Marimo and maintained-notebook
   gate passes 110 tests;
-- the 61 maintained Marimo notebooks are an executable allowlist in
+- the 64 maintained Marimo notebooks are an executable allowlist in
   `tools.migrate_v2_notebooks`, and the codemod refuses to write any other
   example path;
 - those notebooks now import the promoted `galaga` API, use eager values with optional
@@ -1147,7 +1147,7 @@ Completed so far:
   contraction, inverse, subtraction, and sandwich compositions in teaching
   notebooks rather than being reintroduced into the facade;
 - Python 3.14 compiles every ledgered notebook without LaTeX escape warnings,
-  Marimo validates every cell dependency graph, and all 61 notebooks execute
+  Marimo validates every cell dependency graph, and all 64 notebooks execute
   headlessly with zero failed cells; and
 - Python 3.11 runs the ledger and codemod architecture tests while explicitly
   skipping only the t-string compile and runtime gates.

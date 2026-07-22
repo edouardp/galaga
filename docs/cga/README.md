@@ -298,6 +298,27 @@ translated = geometric_antiproduct(
 This is tested alongside the geometric-product versor form. It needs no CGA
 special case in the numeric core.
 
+## Executable notebooks
+
+The maintained Marimo gallery includes three native-null CGA notebooks:
+
+- [`native_null_foundations.py`](../../examples/cga/native_null_foundations.py)
+  derives the Gram matrix facts, point embedding, distance identity, and
+  homogeneous `up`/`down` round trip.
+- [`direct_objects_and_semantics.py`](../../examples/cga/direct_objects_and_semantics.py)
+  constructs direct points, flat points, dipoles, lines, circles, planes, and
+  spheres, then exercises `att`, `car`, `ccr`, `cen`, `con`, `par`, expansion,
+  and projection.
+- [`lengyel_cga_transformations.py`](../../examples/cga/lengyel_cga_transformations.py)
+  selects Eric Lengyel's notation, displays the pseudoscalar as the antiunit
+  $\text{𝟙}$, and compares his sandwich-antiproduct translation with the
+  equivalent geometric-product versor before demonstrating rotation,
+  dilation, and transversion.
+
+These files are entries in the executable notebook migration ledger. CI
+checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,
+and headless execution.
+
 ## What is deliberately not present
 
 - No diagonalization or hidden change of basis.
