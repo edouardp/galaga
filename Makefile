@@ -116,9 +116,13 @@ check: build ## Build and run twine checks
 # ============================================================================
 
 .PHONY: release
-release: ## Release interactively (asks for patch, minor, or major)
+release: ## Release interactively, or release exact VERSION=X.Y.Z[aN|bN|rcN]
+ifdef VERSION
+	./scripts/release.sh --version "$(VERSION)"
+else
 	@CHOICE=$$(uv run scripts/chooser.py --title "Release type?" patch minor major 3>&1 1>&2) || exit 1; \
 	./scripts/release.sh $$CHOICE
+endif
 
 .PHONY: release-patch
 release-patch: ## Release a patch version

@@ -39,3 +39,17 @@ are in the root `pyproject.toml`.
 * Good, because `uv sync` sets up the development environment
 * Good, because packages can be published independently
 * Bad, because `gamo` is excluded from the workspace (can't use workspace source)
+
+## Subsequent evolution
+
+The repository now also contains the `galaga-matrix` and experimental
+`galaga-mermaid` companion packages. The workspace decision remains about
+dependency and development topology; it does not require every distribution to
+have an independent release train.
+
+[ADR-088](088-explicit-versions-for-prereleases.md) records the current release
+coordination policy. `galaga`, `galaga-marimo`, and `galaga-matrix` are
+versioned and published together by the main release workflow. The
+independently versioned `galaga-mermaid` is not published by that workflow, but
+its Galaga dependency floor is synchronized. A breaking major release uses the
+explicit alpha, beta, release-candidate, and final sequence documented there.

@@ -47,6 +47,8 @@
 - [Phase 8 performance baseline](phase8-performance.md) separates direct-core,
   facade, expression-provenance, and retained-v1 costs for representative
   diagonal operations.
+- [Release process](../RELEASE_PROCESS.md) gives the operational alpha, beta,
+  release-candidate, and final Galaga 2 publication train.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
   remaining numeric capabilities and companion-package work.
 - [Native-null conformal geometric algebra](../cga/README.md) documents the
@@ -126,6 +128,7 @@ operation; geometric line correction is model-owned and explicit.
 - [ADR-085: Top-level API is the facade with an explicit legacy oracle](../adrs/085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md)
 - [ADR-086: Native-null CGA is a validated model layer](../adrs/086-native-null-cga-is-a-validated-model-layer.md)
 - [ADR-087: RGA semantics are a validated model layer](../adrs/087-rga-semantics-are-a-validated-model-layer.md)
+- [ADR-088: Explicit versions for prereleases](../adrs/088-explicit-versions-for-prereleases.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

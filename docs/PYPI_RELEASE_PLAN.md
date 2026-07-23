@@ -1,6 +1,35 @@
-# PyPI Release Plan
+# Historical Initial PyPI Release Plan
 
-Release plan for the `galaga` and `galaga-marimo` packages.
+This document records the repository's original PyPI planning work. Package
+names, package count, URLs, versions, and manual commands below are historical
+and must not be used as the current release procedure.
+
+The authoritative operational guide is
+[Release Process](RELEASE_PROCESS.md), and the architectural policy is
+[ADR-088](adrs/088-explicit-versions-for-prereleases.md).
+
+## Current Galaga 2 Major-Release Train
+
+Galaga 2 is published as five explicit, complete releases:
+
+```bash
+make release VERSION=2.0.0a1
+make release VERSION=2.0.0a2
+make release VERSION=2.0.0b1
+make release VERSION=2.0.0rc1
+make release VERSION=2.0.0
+```
+
+The last command is essential. `2.0.0rc1` remains a prerelease; it is never
+automatically promoted. `make release VERSION=2.0.0` publishes the separate
+stable artifacts and creates the stable tag and GitHub release. Do not replace
+that final command with `make release-major`.
+
+Everything below this point is retained only as historical planning context.
+
+---
+
+Original release plan for the `galaga` and `galaga-marimo` packages.
 
 ## Package Overview
 

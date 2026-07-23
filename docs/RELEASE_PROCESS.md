@@ -56,27 +56,81 @@ gh auth login
 make release-patch   # 0.3.3 → 0.3.4  (bug fixes, docs)
 make release-minor   # 0.3.3 → 0.4.0  (new features)
 make release-major   # 0.3.3 → 1.0.0  (breaking changes)
+make release         # choose patch, minor, or major interactively
 ```
+
+These are the normal release paths. They calculate the next stable version and
+require the current source version to be stable.
+
+### Major-Release Alpha, Beta, RC, and Final Train
+
+A breaking major release is a sequence of complete releases. For Galaga 2, run
+this train in order:
+
+```bash
+make release VERSION=2.0.0a1
+make release VERSION=2.0.0a2
+make release VERSION=2.0.0b1
+make release VERSION=2.0.0rc1
+make release VERSION=2.0.0
+```
+
+Each command runs the whole release workflow: version and dependency
+synchronization, changelog editing, tests, builds, publication, tagging, and a
+GitHub release. Do not run the five commands back-to-back mechanically. Move to
+the next stage only after the preceding release has been published, installed,
+and evaluated. Additional alphas, betas, or release candidates can be inserted
+when validation finds work that needs another public iteration.
+
+| Stage | Command | Purpose |
+|---|---|---|
+| First alpha | `make release VERSION=2.0.0a1` | First public build of the breaking release |
+| Second alpha | `make release VERSION=2.0.0a2` | Incorporate early API and migration feedback |
+| Beta | `make release VERSION=2.0.0b1` | Feature-complete external validation |
+| Release candidate | `make release VERSION=2.0.0rc1` | Final release-shaped validation |
+| Final | `make release VERSION=2.0.0` | Publish the stable major release |
+
+**The final command is mandatory.** `2.0.0rc1` is still a prerelease on PyPI
+and GitHub. It does not become `2.0.0` automatically, and
+`make release-major` must not be used to promote it. The exact
+`make release VERSION=2.0.0` invocation removes the prerelease suffix,
+publishes the stable artifacts, creates tag `v2.0.0`, and creates a stable
+GitHub release.
+
+For a future major version, substitute its exact target throughout the same
+pattern—for example, `3.0.0a1` through `3.0.0`. After the final stable release,
+the ordinary commands resume; `make release-patch` would advance `2.0.0` to
+`2.0.1`.
+
+Supported exact forms are `X.Y.Z`, `X.Y.ZaN`, `X.Y.ZbN`, and `X.Y.ZrcN`.
+Development, post, local, noncanonical, and SemVer-style `-alpha` versions are
+rejected.
+
+The repository currently carries the intended, unpublished final version
+`2.0.0`. The first `2.0.0a1` release is therefore an intentional apparent
+version decrease. The exact-version path permits this bootstrap; automatic
+version bumping does not.
 
 ### What the Release Script Does
 
-`scripts/release.sh <patch|minor|major>` runs these steps in order:
+`scripts/release.sh <patch|minor|major>` and
+`scripts/release.sh --version <version>` run these steps in order:
 
 | Step | What | Fails if |
 |---|---|---|
 | 1. Guard | Check on `main`, clean working tree | Dirty repo or wrong branch |
-| 2. Bump | Update version in both `pyproject.toml` files + galaga dep pin | — |
-| 3. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
-| 4. Commit | `git commit -m "Release vX.Y.Z"` | Pre-commit hooks fail |
-| 5. Test galaga | `pytest packages/galaga/tests/` (Python 3.13) | Any test failure |
-| 6. Test galaga-marimo | `pytest` in temp Python 3.14 venv | Any test failure |
-| 7. Build | `uv build` both packages | Build failure |
-| 8. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
-| 9. Publish galaga | `uv publish` to PyPI | Auth failure or version conflict |
-| 10. Publish galaga-marimo | `uv publish` to PyPI | Auth failure or version conflict |
-| 11. Push | `git push` the release commit | — |
-| 12. Tag | `git tag vX.Y.Z && git push origin vX.Y.Z` | — |
-| 13. GitHub release | `gh release create` from CHANGELOG | — |
+| 2. Resolve | Calculate a stable bump or validate an exact stable/prerelease version | Invalid or repeated version |
+| 3. Synchronize | Update the three released packages and all companion galaga dependency floors | — |
+| 4. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
+| 5. Commit | `git commit -m "Release vX.Y.Z"` | Pre-commit hooks fail |
+| 6. Test galaga | `pytest packages/galaga/tests/` | Any test failure |
+| 7. Test galaga-matrix | `pytest packages/galaga_matrix/tests/` | Any test failure |
+| 8. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
+| 9. Build | `uv build` all three released packages | Build failure |
+| 10. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
+| 11. Publish | Publish galaga, then matrix and Marimo companions | Auth failure or version conflict |
+| 12. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
+| 13. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
 If any step fails, the script stops. Nothing is published or tagged until tests pass.
 
@@ -84,6 +138,9 @@ If any step fails, the script stops. Nothing is published or tagged until tests 
 
 - `packages/galaga/pyproject.toml` — version bumped
 - `packages/galaga_marimo/pyproject.toml` — version bumped + galaga dep pin updated
+- `packages/galaga_matrix/pyproject.toml` — version bumped + galaga dep pin updated
+- `packages/galaga_mermaid/pyproject.toml` — galaga dep pin updated; its own version is independent
+- `uv.lock` — regenerated for the workspace version
 - `CHANGELOG.md` — new section added
 
 ### Packages Published
@@ -91,9 +148,12 @@ If any step fails, the script stops. Nothing is published or tagged until tests 
 | Package | PyPI | Import | Python |
 |---|---|---|---|
 | `galaga` | <https://pypi.org/project/galaga/> | `from galaga import Algebra` | ≥ 3.11 |
+| `galaga-matrix` | <https://pypi.org/project/galaga-matrix/> | `import galaga_matrix` | ≥ 3.11 |
 | `galaga-marimo` | <https://pypi.org/project/galaga-marimo/> | `import galaga_marimo as gm` | ≥ 3.14 |
 
-`galaga` is always published first because `galaga-marimo` depends on it.
+`galaga` is always published first because both companion packages depend on
+it. `galaga-mermaid` remains experimental and independently versioned; the
+joint release updates its dependency floor but does not publish it.
 
 ## Versioning Policy
 
@@ -104,14 +164,28 @@ Follow [Semantic Versioning](https://semver.org/):
 | Patch | Bug fixes, docs, tests, internal cleanup | `0.3.3 → 0.3.4` |
 | Minor | New operations, new features, pre-1.0 breaking changes | `0.3.4 → 0.4.0` |
 | Major | Breaking changes to public API (post-1.0) | `0.4.0 → 1.0.0` |
+| Alpha | Early breaking-release validation | `2.0.0a1 → 2.0.0a2` |
+| Beta | Feature-complete external validation | `2.0.0b1 → 2.0.0b2` |
+| RC | Final-candidate validation | `2.0.0rc1 → 2.0.0` |
 
 Pre-1.0, minor bumps are acceptable for breaking changes. Document them clearly in the CHANGELOG.
+
+PyPI derives prerelease status from the PEP 440 version. GitHub needs an
+explicit prerelease flag, which the release workflow adds for `a`, `b`, and
+`rc` versions. Installers do not normally choose a prerelease unless the user
+opts in, requests it exactly, or uses a requirement whose available candidates
+require prerelease consideration.
+
+The release command does not infer lifecycle progress. In particular, it never
+turns an RC into a final release. The maintainer explicitly chooses
+`make release VERSION=X.Y.Z` after accepting the release candidate.
 
 ## Quality Gates
 
 Before every release, the script enforces:
 
-- [ ] All galaga tests pass (Python 3.13)
+- [ ] All galaga tests pass (release environment, Python ≥3.11)
+- [ ] All galaga-matrix tests pass (Python 3.11+)
 - [ ] All galaga-marimo tests pass (Python 3.14)
 - [ ] Pre-commit hooks pass (ruff, shellcheck, bandit, rumdl, checkmake)
 - [ ] Twine check passes (metadata + README render)

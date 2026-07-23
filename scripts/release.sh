@@ -4,31 +4,29 @@ set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 source "$SCRIPT_DIR/publish-guard.sh"
 
-BUMP_TYPE="${1:?Usage: $0 <patch|minor|major>}"
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 <patch|minor|major>" >&2
+    echo "       $0 --version <X.Y.Z|X.Y.ZaN|X.Y.ZbN|X.Y.ZrcN>" >&2
+    exit 2
+fi
 
 # --- Read current version ---
 CURRENT=$(grep '^version' "$ROOT/packages/galaga/pyproject.toml" | head -1 | sed 's/.*"\(.*\)"/\1/')
-IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT"
-
-case "$BUMP_TYPE" in
-    patch) NEW="$MAJOR.$MINOR.$((PATCH + 1))" ;;
-    minor) NEW="$MAJOR.$((MINOR + 1)).0" ;;
-    major) NEW="$((MAJOR + 1)).0.0" ;;
-    *) echo "ERROR: bump type must be patch, minor, or major" >&2; exit 1 ;;
-esac
+read -r NEW RELEASE_KIND < <(python3 "$SCRIPT_DIR/release_version.py" "$CURRENT" "$@")
 
 echo "==> Bumping $CURRENT -> $NEW"
 
-# --- Update versions in both pyproject.toml files ---
+# --- Update versions in the jointly released packages ---
 sed -i '' "s/^version = \"$CURRENT\"/version = \"$NEW\"/" \
     "$ROOT/packages/galaga/pyproject.toml" \
     "$ROOT/packages/galaga_marimo/pyproject.toml" \
     "$ROOT/packages/galaga_matrix/pyproject.toml"
 
-# --- Update galaga dep pin in galaga-marimo and galaga-matrix ---
+# --- Update galaga dependency floors in every companion package ---
 sed -i '' "s/\"galaga>=.*\"/\"galaga>=$NEW\"/" \
     "$ROOT/packages/galaga_marimo/pyproject.toml" \
-    "$ROOT/packages/galaga_matrix/pyproject.toml"
+    "$ROOT/packages/galaga_matrix/pyproject.toml" \
+    "$ROOT/packages/galaga_mermaid/pyproject.toml"
 
 # --- Regenerate lockfile to reflect version changes ---
 uv lock
@@ -116,6 +114,10 @@ git tag "v$NEW"
 git push origin "v$NEW"
 
 echo "==> Creating GitHub release"
-gh release create "v$NEW" --title "v$NEW" --notes-file CHANGELOG.md
+GH_RELEASE_ARGS=()
+if [[ "$RELEASE_KIND" == "prerelease" ]]; then
+    GH_RELEASE_ARGS+=(--prerelease)
+fi
+gh release create "v$NEW" --title "v$NEW" --notes-file CHANGELOG.md "${GH_RELEASE_ARGS[@]}"
 
 echo "==> Released v$NEW 🎉"

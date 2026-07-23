@@ -68,6 +68,11 @@ ADR-075 subsequently promotes the implementation from the transitional
 facade objects; this follow-up does not change the `galaga.core` boundary or
 perform the eventual top-level cutover.
 
+ADR-088 subsequently defines how the resulting major release is published.
+The numeric core and facade do not have a separate version: the Galaga 2 train
+is explicitly released as `2.0.0a1`, `2.0.0a2`, `2.0.0b1`, `2.0.0rc1`, and
+finally the distinct stable `2.0.0` release.
+
 ## Consequences
 
 - Good, because Galaga 2.0 has one essential package and one coordinated

@@ -1315,6 +1315,26 @@ Phase 9 exit gate:
 - the package version and metadata declare the agreed Python targets; and
 - the release candidate passes the complete gate from clean artifacts.
 
+### Galaga 2 publication train
+
+After Phase 9's source and artifact gates pass, publication follows the
+normative [release process](../RELEASE_PROCESS.md) and
+[ADR-088](../adrs/088-explicit-versions-for-prereleases.md):
+
+```bash
+make release VERSION=2.0.0a1
+make release VERSION=2.0.0a2
+make release VERSION=2.0.0b1
+make release VERSION=2.0.0rc1
+make release VERSION=2.0.0
+```
+
+These are five complete releases with validation and feedback between them,
+not five version mutations performed in one session. Further prerelease
+iterations may be inserted. The final exact command is required:
+`2.0.0rc1` remains a prerelease and does not become the stable `2.0.0`
+release automatically.
+
 ## Test-suite organization
 
 The exact filenames may evolve, but ownership should remain obvious:
