@@ -124,16 +124,37 @@ origin, and infinity roles. `galaga.cga.ConformalModel` validates those roles
 against the metric and supplies generalized round-point embedding,
 homogenization, Euclidean extraction, conformal weight, coordinates, and
 signed squared radius. It also implements validated attitude, carrier,
-cocarrier, center, container, partner, expansion, and projection semantics.
+cocarrier, center, container, partner, expansion, and projection semantics,
+Eric Lengyel's four role-dependent CGA component families, conformal
+conjugation, weighted component/center/radius norms, and normalized center
+distance and radius.
 
 Direct flat points, dipoles, lines, circles, planes, and spheres remain ordinary
 outer products. Translation, rotation, dilation, and transversion remain
-ordinary exponentials and sandwich actions. This deliberately avoids helpers
-that would only duplicate `outer_product`, `exp`, or `sandwich`.
+ordinary exponentials and sandwich actions. Plane reflection and sphere
+inversion remain the generic odd-versor action. This deliberately avoids
+helpers that would only duplicate `outer_product`, `exp`, `inverse`, or
+`sandwich`.
 
 An explicit native/orthogonal-frame comparison remains deferred until work
 item 1 supplies a public outermorphism and basis-change object; it is not a
 dependency of the native model.
+
+### 4.1 Point-based RGA surface: complete
+
+`p_rga` declares Eric Lengyel's Euclidean, projective, and antiscalar roles.
+`galaga.rga.RigidModel` validates those roles and supplies homogeneous points,
+coordinates, attitude, paired norms, unitization, homogeneous distance and
+angle, contractions, expansions, orthogonal and central projections, support,
+and antisupport. Its semantic operations retain executable expression
+provenance without enlarging the free numeric facade.
+
+Line, motor, and flector constraints are explicit model operations. A
+transwedge result remains an ambient algebra element until its applicable
+geometry constraint has been checked; finite line correction is deliberately
+model-owned rather than silently applied by the product. Point-based RGA and
+plane-based PGA remain distinct presets because they reverse the point/plane
+grade ladder and use dual transformation products.
 
 ### 5. Production hardening
 

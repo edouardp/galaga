@@ -1,7 +1,7 @@
 import marimo
 
 __generated_with = "0.23.11"
-app = marimo.App()
+app = marimo.App(width="medium")
 
 
 @app.cell
@@ -30,30 +30,22 @@ def _():
     import galaga_marimo as gm
     from galaga import (
         Algebra,
-        BladeConvention,
-        BladeLabel,
         DisplayPolicy,
-        Name,
-        Notation,
         antireverse,
         exp,
         geometric_antiproduct,
         geometric_product,
         metric_inner_product,
         outer_product,
-        p_cga,
+        p_lengyel_cga,
         sandwich,
     )
     from galaga.cga import ConformalModel
 
     return (
         Algebra,
-        BladeConvention,
-        BladeLabel,
         ConformalModel,
         DisplayPolicy,
-        Name,
-        Notation,
         antireverse,
         exp,
         geometric_antiproduct,
@@ -63,7 +55,7 @@ def _():
         metric_inner_product,
         mo,
         outer_product,
-        p_cga,
+        p_lengyel_cga,
         sandwich,
     )
 
@@ -74,10 +66,11 @@ def _(mo):
     # Native-null CGA with Eric Lengyel's notation
 
     **Claim:** the metric model, blade convention, and operation notation are
-    independent presentation choices. This notebook keeps Galaga's native
-    $(e_1,e_2,e_3,e_o,e_\infty)$ conformal frame while selecting Eric
-    Lengyel's geometric-product, antiproduct, and metric-inner-product
-    symbols.
+    independent presentation choices. The `p_lengyel_cga()` preset composes
+    Galaga's native null Gram matrix with Eric's
+    $(\mathbf e_1,\ldots,\mathbf e_5)$ blade convention, basis order, and
+    operation symbols. The model roles still identify $\mathbf e_4$ as the
+    conformal origin and $\mathbf e_5$ as infinity.
 
     The pseudoscalar is also displayed as Lengyel's antiunit $\text{𝟙}$.
     This is a label change, not a numeric change.
@@ -86,41 +79,16 @@ def _(mo):
 
 
 @app.cell
-def _(
-    Algebra,
-    BladeConvention,
-    BladeLabel,
-    ConformalModel,
-    DisplayPolicy,
-    Name,
-    Notation,
-    p_cga,
-):
-    _preset = p_cga(spatial_dim=3, frame="null")
-    _base_blades = _preset.build().presentation.blades
-    _labels = list(_base_blades.labels)
-    _labels[-1] = BladeLabel(
-        Name("I", "𝟙", r"\text{𝟙}"),
-        _base_blades.labels[-1].ref,
-    )
-    _lengyel_blades = BladeConvention(
-        _base_blades.dimension,
-        _labels,
-        aliases=_base_blades.aliases,
-        roles=_base_blades.roles,
-    )
-
+def _(Algebra, ConformalModel, DisplayPolicy, p_lengyel_cga):
     algebra = Algebra(
-        config=_preset,
-        blades=_lengyel_blades,
-        notation=Notation.lengyel(),
+        config=p_lengyel_cga(),
         display=DisplayPolicy(content="full"),
     )
-    cga = ConformalModel(algebra)
-    e1, e2, e3 = cga.euclidean_basis_vectors(expr=True)
-    eo, einf = algebra.blades("origin", "infinity", expr=True)
+    cga = ConformalModel(algebra, expr=True)
+    e1, e2, e3 = cga.euclidean_basis_vectors()
+    eo, einf = cga.origin, cga.infinity
     antiunit = algebra.pseudoscalar(expr=True)
-    return algebra, antiunit, cga, e1, e2, e3, einf, eo
+    return antiunit, cga, e1, e2, e3, einf, eo
 
 
 @app.cell(hide_code=True)
@@ -142,15 +110,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    e1,
-    e2,
-    e3,
-    geometric_product,
-    gm,
-    metric_inner_product,
-    outer_product,
-):
+def _(e1, e2, e3, geometric_product, gm, metric_inner_product, outer_product):
     u = (e1 + 2 * e2).named("u")
     v = (e2 - e3).named("v")
     _geometric = geometric_product(u, v).named("g")
@@ -168,7 +128,113 @@ def _(
 
     {_outer}
     """)
-    return u, v
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Lengyel's conformal semantic functions
+
+    The CGA model preserves the identity of Eric's named operations instead
+    of exposing only their expanded wedge-and-meet implementations. Their
+    expression forms therefore use `att`, `car`, `ccr`, `cen`, `con`, and
+    `par` under this notation policy.
+    """)
+    return
+
+
+@app.cell
+def _(cga, gm, outer_product):
+    _a = cga.up((0.0, 0.0, 0.0))
+    _b = cga.up((1.0, 0.0, 0.0))
+    _c = cga.up((0.0, 1.0, 0.0))
+    circle = outer_product(_a, _b, _c).named("C")
+
+    _attitude = cga.att(circle)
+    _carrier = cga.car(circle)
+    _cocarrier = cga.ccr(circle)
+    _center = cga.cen(circle)
+    _container = cga.con(circle)
+    _partner = cga.par(circle)
+
+    gm.md(rt"""
+    Starting with the circle:
+    {circle:block}
+
+    Then we have the following:
+
+    {_attitude}
+
+    {_carrier}
+
+    {_cocarrier}
+
+    {_center}
+
+    {_container}
+
+    {_partner}
+    """)
+    return (circle,)
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Four CGA component families and their norms
+
+    Eric's CGA decomposition records independently whether a term contains
+    $e_o$ and whether it contains $e_\infty$. The resulting round-bulk,
+    round-weight, flat-bulk, and flat-weight projections render as
+    ●, ○, ■, and □ subscripts.
+
+    `weighted_center_norm` and `weighted_radius_norm` are homogeneous
+    numerator quantities. Eric's `center_norm` and `radius_norm` divide them
+    by `round_weight_norm`, cancelling the arbitrary projective scale.
+    `center_distance` and `radius` remain descriptive aliases.
+    """)
+    return
+
+
+@app.cell
+def _(cga, circle, gm):
+    _round_bulk = cga.round_bulk_part(circle)
+    _round_weight = cga.round_weight_part(circle)
+    _flat_bulk = cga.flat_bulk_part(circle)
+    _flat_weight = cga.flat_weight_part(circle)
+
+    _weighted_center_norm = cga.weighted_center_norm(circle)
+    _weighted_radius_norm = cga.weighted_radius_norm(circle)
+    _round_weight_norm = cga.round_weight_norm(circle)
+    _center_norm = cga.center_norm(circle)
+    _radius_norm = cga.radius_norm(circle)
+
+    gm.md(rt"""
+    {_round_bulk}
+
+    {_round_weight}
+
+    {_flat_bulk}
+
+    {_flat_weight}
+
+    {_weighted_center_norm}
+
+    {_weighted_radius_norm}
+
+    {_round_weight_norm}
+
+    {_center_norm}
+
+    {_radius_norm}
+    """)
+    return
+
+
+@app.cell
+def _():
+    return
 
 
 @app.cell(hide_code=True)
@@ -191,32 +257,73 @@ def _(mo):
 
 
 @app.cell
-def _(
-    antiunit,
-    antireverse,
-    cga,
-    e2,
-    e3,
-    einf,
-    geometric_antiproduct,
-    gm,
-):
-    source_point = cga.up((1.0, 2.0, 3.0), expr=True).named("P")
+def _(antireverse, antiunit, cga, e2, e3, einf, geometric_antiproduct, gm):
+    source_point = cga.up([1.0, 2.0, 3.0]).named("P")
+
     anti_translator = (antiunit + 0.5 * (e2 ^ e3 ^ einf)).named("T")
+
     translated_by_antiproduct = geometric_antiproduct(
         geometric_antiproduct(anti_translator, source_point),
         antireverse(anti_translator),
-    ).named("P_a", latex=r"P_a^{\prime}")
+    ).named("P'", latex=r"P^{\prime}")
+
     _anti_coordinates = cga.coordinates(translated_by_antiproduct)
 
     gm.md(rt"""
+    Given the point:
+    {source_point:block}
+
+    Then the translation via the antiproduct sandwhich is:
+
     {anti_translator}
 
     {translated_by_antiproduct}
 
     Translated coordinates: `{_anti_coordinates!s}`.
     """)
-    return anti_translator, source_point, translated_by_antiproduct
+    return source_point, translated_by_antiproduct
+
+
+@app.cell
+def _(
+    antireverse,
+    antiunit,
+    cga,
+    e1,
+    geometric_antiproduct,
+    gm,
+    source_point,
+    translated_by_antiproduct,
+):
+    _translation_plane = cga.dual(e1).named("g")
+    _translation_attitude = cga.att(_translation_plane)
+    _anti_translator_from_direction = (
+        antiunit + 0.5 * _translation_attitude
+    ).named("T", latex=r"T")
+
+    _translated_from_direction = geometric_antiproduct(
+        geometric_antiproduct(_anti_translator_from_direction, source_point),
+        antireverse(_anti_translator_from_direction),
+    ).named("P'", latex=r"P^{\prime}")
+
+    _direction_coordinates = cga.coordinates(_translated_from_direction)
+    _forms_agree = _translated_from_direction == translated_by_antiproduct
+
+    gm.md(rt"""
+    The same generator can be constructed from the translation direction:
+
+    {_translation_plane}
+
+    {_translation_attitude}
+
+    {_anti_translator_from_direction}
+
+    {_translated_from_direction}
+
+    Translated coordinates: `{_direction_coordinates!s}`.
+    The explicit and direction-derived forms agree numerically: `{_forms_agree!s}`.
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -233,15 +340,29 @@ def _(mo):
 
 
 @app.cell
-def _(cga, e1, einf, exp, gm, sandwich, source_point, translated_by_antiproduct):
+def _(
+    cga,
+    e1,
+    einf,
+    exp,
+    gm,
+    sandwich,
+    source_point,
+    translated_by_antiproduct,
+):
     translator = exp(-0.5 * e1 * einf).named("U")
     translated_by_product = sandwich(translator, source_point).named(
-        "P_g", latex=r"P_g^{\prime}"
+        "P", latex=r"P^{\prime}"
     )
     _product_coordinates = cga.coordinates(translated_by_product)
     _forms_agree = translated_by_product == translated_by_antiproduct
 
     gm.md(rt"""
+    Given the same point:
+    {source_point:block}
+
+    Then the translation by the geometric-product versor is:
+
     {translator}
 
     {translated_by_product}
@@ -249,7 +370,7 @@ def _(cga, e1, einf, exp, gm, sandwich, source_point, translated_by_antiproduct)
     Translated coordinates: `{_product_coordinates!s}`.
     The product and antiproduct forms agree numerically: `{_forms_agree!s}`.
     """)
-    return translated_by_product, translator
+    return
 
 
 @app.cell(hide_code=True)
@@ -266,7 +387,7 @@ def _(mo):
 
 @app.cell
 def _(cga, e1, e2, einf, eo, exp, gm, math, sandwich):
-    _test_point = cga.up((1.0, 0.0, 0.0), expr=True).named("Q")
+    _test_point = cga.up((1.0, 0.0, 0.0)).named("Q")
 
     _rotor = exp(-0.25 * math.pi * (e1 ^ e2)).named("R")
     _rotated = sandwich(_rotor, _test_point).named("Q_R", latex=r"Q_R")

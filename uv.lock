@@ -18,7 +18,7 @@ dev = [
     { name = "bandit", specifier = ">=1.7.0" },
     { name = "galaga", editable = "packages/galaga" },
     { name = "libcst", specifier = ">=1.8.6" },
-    { name = "marimo", specifier = ">=0.21.1" },
+    { name = "marimo", specifier = ">=0.23.14" },
     { name = "matplotlib", specifier = ">=3.10.8" },
     { name = "pip-audit", specifier = ">=2.0.0" },
     { name = "pre-commit", specifier = ">=4.0.0" },
@@ -909,7 +909,7 @@ wheels = [
 
 [[package]]
 name = "marimo"
-version = "0.23.11"
+version = "0.23.14"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "click", marker = "sys_platform != 'emscripten'" },
@@ -932,9 +932,9 @@ dependencies = [
     { name = "uvicorn", marker = "sys_platform != 'emscripten'" },
     { name = "websockets", marker = "sys_platform != 'emscripten'" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b9/56/e4b50516ae5ab7e6e14aae81e04cc49c36a97cdd01c2c213019dc84cd538/marimo-0.23.11.tar.gz", hash = "sha256:f32fc3095aa1e46d3b9cf9f67729b3e121eb91bffffb75f380e1449d83288878", size = 38616146, upload-time = "2026-06-25T20:04:37.585Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/9a/33/b60febb3f7e44658fc0c4b59e04ba9071e01f4186235d9dd1864e7efba72/marimo-0.23.14.tar.gz", hash = "sha256:f33f17abb5106edabf6921d016d91a6d8f02b4d1b0ed599039957b8f7f5b9489", size = 38705304, upload-time = "2026-07-10T20:01:01.646Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/96/fd/e4468116b197585d800c57e0da16678b087f870d4746772acc4a3f7eb373/marimo-0.23.11-py3-none-any.whl", hash = "sha256:69dbf51993988fb854b513da768b1a64cbc36750610b93569b4c1d10fe7e5c2a", size = 39057161, upload-time = "2026-06-25T20:04:34.51Z" },
+    { url = "https://files.pythonhosted.org/packages/55/ea/898058b213ed79555cf4fde8f59fcb2c257c888dcbc351e0670d3a0b632d/marimo-0.23.14-py3-none-any.whl", hash = "sha256:c93a25ab3ae928f06d2d9855c8b582836485ad9af4d038de2eac8d028af837ee", size = 39160204, upload-time = "2026-07-10T20:00:58.325Z" },
 ]
 
 [[package]]

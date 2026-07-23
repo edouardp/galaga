@@ -26,16 +26,16 @@ def _():
 
 @app.cell
 def _():
-    import numpy as np
-    import matplotlib.pyplot as plt
     import matplotlib
+    import matplotlib.pyplot as plt
+    import numpy as np
+
+    import galaga_marimo as gm
+    from galaga import Algebra, DisplayPolicy, exp, log, p_pga, sandwich
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, exp, log, reverse, norm
-    import galaga_marimo as gm
-
-    return Algebra, exp, gm, grade, log, norm, np, plt, reverse
+    return Algebra, DisplayPolicy, exp, gm, log, np, p_pga, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -58,13 +58,13 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, gm):
-    alg = Algebra((1, 1, 1, 0), repr_unicode=True)
-    e1, e2, e3, e0 = alg.basis_vectors()
+def _(Algebra, DisplayPolicy, gm, p_pga):
+    alg = Algebra(config=p_pga(), display=DisplayPolicy(content="full"))
+    e1, e2, e3, e0 = alg.basis_vectors(expr=True)
 
     gm.md(t"""**Basis vectors:**
-- $e_1^2 = {(e1*e1).scalar_part:text}$, $e_2^2 = {(e2*e2).scalar_part:text}$, $e_3^2 = {(e3*e3).scalar_part:text}$ (Euclidean)
-- $e_0^2 = {(e0*e0).scalar_part:text}$ (degenerate — this is what makes PGA projective)""")
+- $e_1^2 = {float(e1 * e1):.0f}$, $e_2^2 = {float(e2 * e2):.0f}$, $e_3^2 = {float(e3 * e3):.0f}$ (Euclidean)
+- $e_0^2 = {float(e0 * e0):.0f}$ (degenerate — this is what makes PGA projective)""")
     return alg, e0, e1, e2, e3
 
 
@@ -137,14 +137,14 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alg, coords, e0, e1, e2, gm, mo, np, plt, point, tx_slider, ty_slider):
+def _(alg, coords, e0, e1, e2, gm, mo, np, plt, point, sandwich, tx_slider, ty_slider):
     _dx = tx_slider.value
     _dy = ty_slider.value
     _T = alg.identity + (_dx / 2) * e0 * e1 + (_dy / 2) * e0 * e2
 
     # Translate a triangle
     _tri = [point(0, 0, 0), point(1, 0, 0), point(0.5, 0.8, 0)]
-    _tri_t = [_T * P * ~_T for P in _tri]
+    _tri_t = [sandwich(_T, P) for P in _tri]
 
     _orig = np.array([coords(P) for P in _tri])
     _trans = np.array([coords(P) for P in _tri_t])
@@ -188,17 +188,17 @@ def _(gm):
 @app.cell(hide_code=True)
 def _(mo):
     rot_slider = mo.ui.slider(start=0, stop=360, step=1, value=90, label="θ (degrees)")
-    rot_slider
+    mo.vstack([rot_slider])
     return (rot_slider,)
 
 
 @app.cell(hide_code=True)
-def _(alg, coords, e1, e2, gm, mo, np, plt, point, rot_slider):
+def _(alg, coords, e1, e2, exp, gm, mo, np, plt, point, rot_slider, sandwich):
     _theta = np.radians(rot_slider.value)
-    _R = alg.rotor(e1 ^ e2, radians=_theta)
+    _R = exp(-0.5 * _theta * (e1 ^ e2))
 
     _tri = [point(1, 0, 0), point(2, 0, 0), point(1.5, 0.8, 0)]
-    _tri_r = [_R * P * ~_R for P in _tri]
+    _tri_r = [sandwich(_R, P) for P in _tri]
 
     _orig = np.array([coords(P) for P in _tri])
     _rot = np.array([coords(P) for P in _tri_r])
@@ -241,16 +241,16 @@ def _(gm):
 @app.cell(hide_code=True)
 def _(mo):
     ref_d = mo.ui.slider(start=-3, stop=3, step=0.1, value=1.5, label="Plane offset d")
-    ref_d
+    mo.vstack([ref_d])
     return (ref_d,)
 
 
 @app.cell(hide_code=True)
-def _(alg, coords, e0, e1, gm, mo, np, plt, point, ref_d):
+def _(alg, coords, e0, e1, gm, mo, np, plt, point, ref_d, sandwich):
     _d = ref_d.value
     # Plane x = d: translate e1 by d along x
     _T = alg.identity + (_d / 2) * e0 * e1
-    _p = _T * e1 * ~_T
+    _p = sandwich(_T, e1)
 
     _tri = [point(2.5, -0.5, 0), point(3.5, -0.5, 0), point(3, 0.5, 0)]
     _tri_ref = [_p * P * _p for P in _tri]
@@ -305,14 +305,30 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(alg, coords, e0, e1, e2, gm, mo, motor_angle, motor_tx, motor_ty, np, plt, point):
+def _(
+    alg,
+    coords,
+    e0,
+    e1,
+    e2,
+    exp,
+    gm,
+    mo,
+    motor_angle,
+    motor_tx,
+    motor_ty,
+    np,
+    plt,
+    point,
+    sandwich,
+):
     _theta = np.radians(motor_angle.value)
-    _R = alg.rotor(e1 ^ e2, radians=_theta)
+    _R = exp(-0.5 * _theta * (e1 ^ e2))
     _T = alg.identity + (motor_tx.value / 2) * e0 * e1 + (motor_ty.value / 2) * e0 * e2
     _M = _T * _R  # rotate first, then translate
 
     _tri = [point(0.5, -0.3, 0), point(1.5, -0.3, 0), point(1, 0.5, 0)]
-    _tri_m = [_M * P * ~_M for P in _tri]
+    _tri_m = [sandwich(_M, P) for P in _tri]
 
     _orig = np.array([coords(P) for P in _tri])
     _moved = np.array([coords(P) for P in _tri_m])
@@ -356,14 +372,14 @@ def _(gm):
 @app.cell(hide_code=True)
 def _(mo):
     interp_slider = mo.ui.slider(start=0.0, stop=1.0, step=0.01, value=0.5, label="t")
-    interp_slider
+    mo.vstack([interp_slider])
     return (interp_slider,)
 
 
 @app.cell(hide_code=True)
-def _(alg, coords, e0, e1, e2, exp, gm, interp_slider, log, mo, np, plt, point):
+def _(alg, coords, e0, e1, e2, exp, gm, interp_slider, log, mo, np, plt, point, sandwich):
     # Motor: 90° rotation + translation
-    _R = alg.rotor(e1 ^ e2, radians=np.pi / 2)
+    _R = exp(-0.25 * np.pi * (e1 ^ e2))
     _T = alg.identity + (3 / 2) * e0 * e1 + (2 / 2) * e0 * e2
     _M = _T * _R
 
@@ -373,15 +389,15 @@ def _(alg, coords, e0, e1, e2, exp, gm, interp_slider, log, mo, np, plt, point):
 
     _tri = [point(0.5, -0.3, 0), point(1.5, -0.3, 0), point(1, 0.5, 0)]
     _tri_start = np.array([coords(P) for P in _tri])
-    _tri_end = np.array([coords(_M * P * ~_M) for P in _tri])
-    _tri_t = np.array([coords(_M_t * P * ~_M_t) for P in _tri])
+    _tri_end = np.array([coords(sandwich(_M, P)) for P in _tri])
+    _tri_t = np.array([coords(sandwich(_M_t, P)) for P in _tri])
 
     # Trace path of centroid
     _cx, _cy = [], []
     _centroid = point(2 / 3, 0, 0)  # approximate centroid
     for ti in np.linspace(0, 1, 80):
         _Mi = exp(ti * _B)
-        _c = coords(_Mi * _centroid * ~_Mi)
+        _c = coords(sandwich(_Mi, _centroid))
         _cx.append(_c[0])
         _cy.append(_c[1])
 
@@ -422,16 +438,16 @@ def _(gm):
 
 
 @app.cell
-def _(E1, alg, e0, e1, e2, gm, np):
+def _(E1, alg, e0, e1, e2, exp, gm, np, sandwich):
     _d = E1  # ideal point along x
 
     # Translation does nothing
     _T = alg.identity + (100 / 2) * e0 * e1
-    _d_trans = _T * _d * ~_T
+    _d_trans = sandwich(_T, _d)
 
     # Rotation rotates the direction
-    _R = alg.rotor(e1 ^ e2, radians=np.pi / 2)
-    _d_rot = _R * _d * ~_R
+    _R = exp(-0.25 * np.pi * (e1 ^ e2))
+    _d_rot = sandwich(_R, _d)
 
     gm.md(t"""Ideal point (direction $+x$): {_d}
 
@@ -464,11 +480,6 @@ def _(gm):
     Motors compose by geometric product: $M_{{\\text{{total}}}} = M_2 M_1$ (right-to-left,
     like rotors). The entire Euclidean group SE(3) lives in the even subalgebra.
     """)
-    return
-
-
-@app.cell
-def _():
     return
 
 

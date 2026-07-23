@@ -30,7 +30,7 @@ from .tree import (
 
 _SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 _SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
-_POSITIONAL_MARKERS = frozenset("★☆●○")
+_POSITIONAL_MARKERS = frozenset("★☆●○■□")
 _LATEX_ESCAPE = str.maketrans(
     {
         "&": r"\&",

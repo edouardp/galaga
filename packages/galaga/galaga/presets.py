@@ -13,6 +13,8 @@ from .blades import (
     complex_blade_convention,
     euclidean_blade_convention,
     exterior_blade_convention,
+    lengyel_cga_blade_convention,
+    lengyel_cga_display_order,
     null_cga_blade_convention,
     orthogonal_cga_blade_convention,
     pga_blade_convention,
@@ -164,6 +166,32 @@ class LengyelRGAPreset:
 
 
 @dataclass(frozen=True, slots=True)
+class LengyelCGAPreset:
+    """Eric Lengyel's native-null five-dimensional CGA presentation."""
+
+    spatial_dim: int = 3
+
+    def __post_init__(self) -> None:
+        if self.spatial_dim != 3:
+            raise ValueError("Lengyel CGA currently requires spatial_dim=3")
+
+    def build(self) -> AlgebraConfig:
+        blades = lengyel_cga_blade_convention()
+        return AlgebraConfig(
+            definition=AlgebraDefinition(
+                _native_null_cga_gram(self.spatial_dim, -1.0),
+                id="lengyel-cga-3d-null",
+            ),
+            presentation=_presentation(
+                blades,
+                notation=Notation.lengyel(),
+                display_order=lengyel_cga_display_order(),
+            ),
+            model=_model("cga-null", blades),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class ComplexPreset:
     """Complex numbers in the even subalgebra of Euclidean ``Cl(2, 0)``."""
 
@@ -243,6 +271,11 @@ def p_rga(spatial_dim: int = 3) -> LengyelRGAPreset:
     return LengyelRGAPreset(spatial_dim)
 
 
+def p_lengyel_cga(spatial_dim: int = 3) -> LengyelCGAPreset:
+    """Return Eric Lengyel's complete native-null CGA preset."""
+    return LengyelCGAPreset(spatial_dim)
+
+
 def p_complex() -> ComplexPreset:
     """Return an inspectable complex-number preset."""
     return ComplexPreset()
@@ -306,6 +339,7 @@ __all__ = [
     "ComplexPreset",
     "EuclideanPreset",
     "ExteriorPreset",
+    "LengyelCGAPreset",
     "LengyelRGAPreset",
     "PGAPreset",
     "Preset",
@@ -315,6 +349,7 @@ __all__ = [
     "p_complex",
     "p_euclidean",
     "p_exterior",
+    "p_lengyel_cga",
     "p_pga",
     "p_quaternion",
     "p_rga",

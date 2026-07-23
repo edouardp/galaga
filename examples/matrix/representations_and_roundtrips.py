@@ -35,6 +35,7 @@ def _():
         geometric_product,
         p_euclidean,
     )
+
     return (
         Algebra,
         DisplayPolicy,
@@ -85,7 +86,7 @@ def _(Algebra, DisplayPolicy, p_euclidean):
     )
     e1, e2, e3 = cl3.basis_vectors(expr=True)
     vector = (1 + 2 * e1 - e2).named("a", latex=r"\mathbf{a}")
-    return cl3, e1, e2, e3, vector
+    return e1, e2, e3, vector
 
 
 @app.cell
@@ -156,16 +157,20 @@ def _(e1, e2, e3, geometric_product, np, to_matrix):
     homomorphism_holds = np.allclose(represented_product, product_of_matrices)
     return (
         homomorphism_holds,
-        left_value,
         product_in_ga,
         product_of_matrices,
         represented_product,
-        right_value,
     )
 
 
 @app.cell
-def _(gm, homomorphism_holds, product_in_ga, product_of_matrices, represented_product):
+def _(
+    gm,
+    homomorphism_holds,
+    product_in_ga,
+    product_of_matrices,
+    represented_product,
+):
     gm.md(rt"""
     GA product:
 
@@ -245,7 +250,7 @@ def _(Algebra, from_matrix, np, to_matrix):
     oblique_matrix = to_matrix(oblique_value)
     oblique_recovered = from_matrix(oblique_matrix)
     oblique_roundtrip = np.allclose(oblique_recovered.data, oblique_value.data)
-    return oblique_matrix, oblique_recovered, oblique_roundtrip, oblique_value
+    return oblique_matrix, oblique_roundtrip, oblique_value
 
 
 @app.cell

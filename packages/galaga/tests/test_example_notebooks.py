@@ -18,7 +18,7 @@ def test_new_example_notebooks_compile():
         if sys.version_info >= (3, 14):
             compile(source, str(EXAMPLES / notebook), "exec")
         else:
-            assert "app = marimo.App()" in source
+            assert "app = marimo.App(" in source
             assert '__generated_with = "' in source
 
 

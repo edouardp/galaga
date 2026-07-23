@@ -148,6 +148,7 @@ algebra is not permanently in a hidden preset mode.
 | `PGAPreset(n)` | `n` positive vectors plus a final native null vector | Projective role |
 | `CGAPreset(n, frame="null")` | Native null pair with configurable nonzero mutual product | Actual origin/infinity roles |
 | `CGAPreset(n, frame="orthogonal")` | Positive/negative orthogonal conformal pair | Actual plus/minus roles |
+| `LengyelCGAPreset(3)` | Standard native-null CGA | Bold signed $e_1,\ldots,e_5$ blades, Lengyel order, and unit antiscalar $𝟙$ |
 | `LengyelRGAPreset(3)` | Three positive vectors plus a final null vector | Signed RGA vocabulary and Lengyel order |
 | `ComplexPreset()` | Euclidean `Cl(2, 0)` | Bivector `i` |
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |

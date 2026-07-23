@@ -17,7 +17,7 @@ Both packages are MIT licensed, authored by Edouard Poor.
 
 ### 1. Name availability ✅
 
-```
+```text
 galaga          — available on PyPI
 galaga-marimo   — available on PyPI
 ```
@@ -49,7 +49,7 @@ the `[tool.uv.sources]` section from gamo's pyproject.toml before publishing.
 dependencies = ["numpy>=1.24"]  # not >=2.4.3 — support older numpy
 
 # galaga-marimo
-dependencies = ["galaga>=0.1.0", "marimo>=0.21.1"]
+dependencies = ["galaga>=0.1.0", "marimo>=0.23.14"]
 ```
 
 ### 5. Add py.typed marker
@@ -60,6 +60,7 @@ package as typed (the `Typing :: Typed` classifier is already set).
 ### 6. Verify README renders on PyPI
 
 PyPI renders README.md — check that:
+
 - No relative links that break (images, internal docs links)
 - Code blocks render correctly
 - Tables render correctly
@@ -137,6 +138,7 @@ uv publish --publish-url https://test.pypi.org/legacy/
 ```
 
 Verify installation from Test PyPI:
+
 ```bash
 pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ galaga
 pip install -i https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ galaga-marimo
@@ -221,6 +223,7 @@ for both packages, linked to the GitHub repo and workflow.
 ### Versioning
 
 Follow [Semantic Versioning](https://semver.org/):
+
 - **Patch** (0.1.x): bug fixes, docstring updates, new tests
 - **Minor** (0.x.0): new operations, new symbolic classes, new examples
 - **Major** (x.0.0): breaking changes to named functions, changed operator mappings
@@ -238,6 +241,7 @@ version bumps post-1.0. Pre-1.0, minor bumps are acceptable for breaking changes
 ### Quality gates
 
 Before every release:
+
 - [ ] All tests pass (`pytest packages/galaga/tests/ -v`)
 - [ ] All examples run (`for f in examples/*.py; do python "$f"; done`)
 - [ ] No syntax warnings (`python -W error -c "ast.parse(open(f).read())"`)

@@ -25,12 +25,14 @@ _RULE_KINDS = {
     "superscript",
     "underaccent",
     "wrapper",
+    "wrapper_fraction",
 }
 _RULE_ASSOCIATIVITY = {"none", "left", "right", "associative"}
 _RULE_TARGETS = {"ascii", "unicode", "latex"}
 _DEFAULT_PRECEDENCE = {
     "function": 80,
     "wrapper": 80,
+    "wrapper_fraction": 30,
     "postfix": 60,
     "accent": 60,
     "underaccent": 60,
@@ -71,6 +73,8 @@ class RenderRule:
     argument_order: tuple[int, ...] | None
     opening: Name | None
     closing: Name | None
+    numerator_closing: Name | None
+    denominator_closing: Name | None
     flatten: bool
     scalable: bool
     script_style: bool
@@ -88,6 +92,8 @@ class RenderRule:
         argument_order: Iterable[int] | None = None,
         opening: Name | str | None = None,
         closing: Name | str | None = None,
+        numerator_closing: Name | str | None = None,
+        denominator_closing: Name | str | None = None,
         flatten: bool = False,
         scalable: bool = True,
         script_style: bool = False,
@@ -100,11 +106,25 @@ class RenderRule:
         selected_symbol = _render_name(symbol, field="render-rule symbol")
         selected_opening = _render_name(opening, field="render-rule opening")
         selected_closing = _render_name(closing, field="render-rule closing")
+        selected_numerator_closing = _render_name(
+            numerator_closing,
+            field="render-rule numerator_closing",
+        )
+        selected_denominator_closing = _render_name(
+            denominator_closing,
+            field="render-rule denominator_closing",
+        )
         required_symbol = {"accent", "function", "infix", "postfix", "prefix", "underaccent"}
         if kind in required_symbol and selected_symbol is None:
             raise ValueError(f"{kind} render rules require a symbol")
         if kind == "wrapper" and (selected_opening is None or selected_closing is None):
             raise ValueError("wrapper render rules require opening and closing names")
+        if kind == "wrapper_fraction" and (
+            selected_opening is None or selected_numerator_closing is None or selected_denominator_closing is None
+        ):
+            raise ValueError(
+                "wrapper_fraction render rules require opening, numerator_closing, and denominator_closing names"
+            )
         selected_precedence = _DEFAULT_PRECEDENCE[kind] if precedence is None else precedence
         if not isinstance(selected_precedence, int) or isinstance(selected_precedence, bool):
             raise TypeError("render-rule precedence must be an integer")
@@ -140,6 +160,8 @@ class RenderRule:
         object.__setattr__(self, "argument_order", selected_order)
         object.__setattr__(self, "opening", selected_opening)
         object.__setattr__(self, "closing", selected_closing)
+        object.__setattr__(self, "numerator_closing", selected_numerator_closing)
+        object.__setattr__(self, "denominator_closing", selected_denominator_closing)
         object.__setattr__(self, "flatten", flatten)
         object.__setattr__(self, "scalable", scalable)
         object.__setattr__(self, "script_style", script_style)
@@ -308,6 +330,11 @@ class Notation:
 
 _SHORT_FUNCTION_NAMES = {
     "antidot_product": "antidot",
+    "attitude": "att",
+    "carrier": "car",
+    "center": "cen",
+    "cocarrier": "ccr",
+    "container": "con",
     "doran_lasenby_inner": "dl_inner",
     "geometric_antiproduct": "gap",
     "geometric_product": "gp",
@@ -321,8 +348,10 @@ _SHORT_FUNCTION_NAMES = {
     "reverse": "rev",
     "right_contraction": "rc",
     "right_interior_product": "r_interior",
+    "radius": "rad",
     "scalar_product": "sp",
     "sandwich": "sw",
+    "partner": "par",
     "transwedge": "tw",
     "transwedge_antiproduct": "antitw",
 }
@@ -484,6 +513,18 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
             closing=Name(")", ")", "}"),
             scalable=False,
         ),
+        "cga_scalar_norm_root": RenderRule(
+            "wrapper",
+            opening=Name("sqrt(", "√(", r"\sqrt{"),
+            closing=Name(")", ")", "}"),
+            scalable=False,
+        ),
+        "cga_antiscalar_norm_root": RenderRule(
+            "wrapper",
+            opening=Name("sqrt(", "√(", r"\sqrt{"),
+            closing=Name(")", ")", "}"),
+            scalable=False,
+        ),
         "norm": RenderRule(
             "wrapper",
             opening=Name("||", "‖", r"\lVert "),
@@ -512,6 +553,59 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         "metric_regressive_product": RenderRule("metric_regressive"),
     }
     for operation_id in (
+        "attitude",
+        "antisupport",
+        "bulk_contraction",
+        "bulk_expansion",
+        "bulk_norm",
+        "carrier",
+        "central_antiprojection",
+        "central_projection",
+        "center_distance",
+        "center_norm",
+        "center",
+        "cocarrier",
+        "conformal_bulk_part",
+        "conformal_conjugate",
+        "conformal_weight_part",
+        "container",
+        "flat_bulk_norm",
+        "flat_center",
+        "flat_bulk_part",
+        "flat_part",
+        "flat_weight_norm",
+        "flat_weight_part",
+        "down",
+        "expansion",
+        "geometric_norm",
+        "homogeneous_angle",
+        "homogeneous_distance",
+        "homogenize",
+        "orthogonal_antiprojection",
+        "orthogonal_projection",
+        "partner",
+        "projection",
+        "radius",
+        "radius_squared",
+        "radius_norm",
+        "round_bulk_norm",
+        "round_bulk_part",
+        "round_part",
+        "round_weight_norm",
+        "round_weight_part",
+        "support",
+        "round_point",
+        "unitize",
+        "up",
+        "weight_contraction",
+        "weight_expansion",
+        "weight_norm",
+        "weighted_center_norm",
+        "weighted_radius_norm",
+        "weight",
+    ):
+        rules[operation_id] = compact_function(operation_id)
+    for operation_id in (
         "antidot_product",
         "antimetric_apply",
         "antireverse",
@@ -536,6 +630,16 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
 
 def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
     rules = _conventional_rules()
+
+    for operation_id, short_name in (
+        ("attitude", "att"),
+        ("carrier", "car"),
+        ("cocarrier", "ccr"),
+        ("center", "cen"),
+        ("container", "con"),
+        ("partner", "par"),
+    ):
+        rules[operation_id] = RenderRule("function", symbol=short_name, scalable=False)
 
     def target_rule(operation_id: str, target: str, rule: RenderRule) -> None:
         rules[(operation_id, target)] = rule
@@ -565,9 +669,34 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
         "antiwedge": ("antiwedge", Name("antiwedge", "∨", r"\vee")),
     }
     for operation_id, (ascii_name, symbol) in rga_binary.items():
+        associative = operation_id in {
+            "antiwedge",
+            "geometric_antiproduct",
+            "geometric_product",
+        }
         target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
-        target_rule(operation_id, "unicode", RenderRule("infix", symbol=symbol, precedence=30))
-        target_rule(operation_id, "latex", RenderRule("infix", symbol=symbol, precedence=30))
+        target_rule(
+            operation_id,
+            "unicode",
+            RenderRule(
+                "infix",
+                symbol=symbol,
+                precedence=30,
+                associativity="associative" if associative else "none",
+                flatten=associative,
+            ),
+        )
+        target_rule(
+            operation_id,
+            "latex",
+            RenderRule(
+                "infix",
+                symbol=symbol,
+                precedence=30,
+                associativity="associative" if associative else "none",
+                flatten=associative,
+            ),
+        )
 
     for operation_id, ascii_name, symbol in (
         ("transwedge", "transwedge", Name("transwedge", "⩓", r"\text{⩓}")),
@@ -616,10 +745,81 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
         ("left_weight_dual", "left_weight_dual", Name("white_star", "☆", r"\text{☆}"), "subscript"),
         ("bulk_part", "bulk_part", Name("bulk", "●", r"\text{●}"), "subscript"),
         ("weight_part", "weight_part", Name("weight", "○", r"\text{○}"), "subscript"),
+        ("round_bulk_part", "round_bulk_part", Name("round_bulk", "●", r"\text{●}"), "subscript"),
+        ("round_weight_part", "round_weight_part", Name("round_weight", "○", r"\text{○}"), "subscript"),
+        ("flat_bulk_part", "flat_bulk_part", Name("flat_bulk", "■", r"\text{■}"), "subscript"),
+        ("flat_weight_part", "flat_weight_part", Name("flat_weight", "□", r"\text{□}"), "subscript"),
     ):
         target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
         target_rule(operation_id, "unicode", RenderRule(kind, symbol=symbol))
         target_rule(operation_id, "latex", RenderRule(kind, symbol=symbol))
+
+    for operation_id, ascii_name, closing in (
+        ("bulk_norm", "bulk_norm", Name("||_bulk", "‖_●", r" \rVert_{\text{●}}")),
+        ("weight_norm", "weight_norm", Name("||_weight", "‖_○", r" \rVert_{\text{○}}")),
+        (
+            "weighted_center_norm",
+            "weighted_center_norm",
+            Name("||_c", "‖_ⓒ", r" \rVert_{\text{ⓒ}}"),
+        ),
+        (
+            "weighted_radius_norm",
+            "weighted_radius_norm",
+            Name("||_r", "‖_ⓡ", r" \rVert_{\text{ⓡ}}"),
+        ),
+        ("round_bulk_norm", "round_bulk_norm", Name("||_round_bulk", "‖_●", r" \rVert_{\text{●}}")),
+        ("round_weight_norm", "round_weight_norm", Name("||_round_weight", "‖_○", r" \rVert_{\text{○}}")),
+        ("flat_bulk_norm", "flat_bulk_norm", Name("||_flat_bulk", "‖_■", r" \rVert_{\text{■}}")),
+        ("flat_weight_norm", "flat_weight_norm", Name("||_flat_weight", "‖_□", r" \rVert_{\text{□}}")),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
+        target_rule(
+            operation_id,
+            "unicode",
+            RenderRule("wrapper", opening=Name("||", "‖", r"\lVert "), closing=closing, scalable=False),
+        )
+        target_rule(
+            operation_id,
+            "latex",
+            RenderRule("wrapper", opening=Name("||", "‖", r"\lVert "), closing=closing, scalable=False),
+        )
+
+    for operation_id, numerator_closing in (
+        (
+            "center_norm",
+            Name("||_c", "‖_ⓒ", r" \rVert_{\text{ⓒ}}"),
+        ),
+        (
+            "radius_norm",
+            Name("||_r", "‖_ⓡ", r" \rVert_{\text{ⓡ}}"),
+        ),
+    ):
+        target_rule(operation_id, "ascii", RenderRule("function", symbol=operation_id))
+        ratio = RenderRule(
+            "wrapper_fraction",
+            opening=Name("||", "‖", r"\lVert "),
+            numerator_closing=numerator_closing,
+            denominator_closing=Name("||_round_weight", "‖_○", r" \rVert_{\text{○}}"),
+            scalable=False,
+        )
+        target_rule(operation_id, "unicode", ratio)
+        target_rule(operation_id, "latex", ratio)
+
+    for target in ("unicode", "latex"):
+        target_rule(
+            "geometric_norm",
+            target,
+            RenderRule(
+                "wrapper",
+                opening=Name("||", "‖", r"\lVert "),
+                closing=Name("||", "‖", r" \rVert"),
+                scalable=False,
+            ),
+        )
+    target_rule("geometric_norm", "ascii", RenderRule("function", symbol="geometric_norm"))
+
+    rules["radius"] = RenderRule("function", symbol="rad", scalable=False)
+    rules["up"] = RenderRule("function", symbol="up", scalable=False)
 
     for operation_id, ascii_name, symbol in (
         ("metric_apply", "metric_apply", Name("G", "G", r"\mathbf{G}")),

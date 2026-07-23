@@ -120,7 +120,6 @@ def _(
 
     {left_weight_dual(bivector)}
     """)
-
     return
 
 

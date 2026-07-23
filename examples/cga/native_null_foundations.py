@@ -64,10 +64,10 @@ def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
         config=p_cga(spatial_dim=3, frame="null"),
         display=DisplayPolicy(content="full"),
     )
-    cga = ConformalModel(algebra)
-    e1, e2, e3 = cga.euclidean_basis_vectors(expr=True)
-    eo, einf = algebra.blades("origin", "infinity", expr=True)
-    return algebra, cga, e1, e2, e3, einf, eo
+    cga = ConformalModel(algebra, expr=True)
+    e1, e2, e3 = cga.euclidean_basis_vectors()
+    eo, einf = cga.origin, cga.infinity
+    return algebra, cga, einf, eo
 
 
 @app.cell(hide_code=True)
@@ -136,11 +136,11 @@ def _(mo):
 
 @app.cell
 def _(cga, gm, squared):
-    position = cga.euclidean_vector((1.0, 2.0, -0.5), expr=True).named("x")
-    point = cga.up(position, expr=True).named("P")
-    round_point = cga.round_point(position, radius_squared=4.0, expr=True).named("A")
-    _point_squared = squared(point).named("P^2", latex=r"P^2")
-    _round_squared = squared(round_point).named("A^2", latex=r"A^2")
+    position = cga.euclidean_vector((1.0, 2.0, -0.5)).named("x")
+    point = cga.up(position).named("P")
+    round_point = cga.round_point(position, radius_squared=4.0).named("A")
+    _point_squared = squared(point)
+    _round_squared = squared(round_point)
 
     gm.md(rt"""
     {position}
@@ -153,7 +153,7 @@ def _(cga, gm, squared):
 
     {_round_squared}
     """)
-    return point, position, round_point
+    return point, position
 
 
 @app.cell(hide_code=True)
@@ -170,8 +170,8 @@ def _(mo):
 
 @app.cell
 def _(cga, gm, np, point, position, scalar_product):
-    _other_position = cga.euclidean_vector((-2.0, 1.0, 0.5), expr=True).named("y")
-    _other_point = cga.up(_other_position, expr=True).named("Q")
+    _other_position = cga.euclidean_vector((-2.0, 1.0, 0.5)).named("y")
+    _other_point = cga.up(_other_position).named("Q")
     _conformal_distance = (-2 * scalar_product(point, _other_point)).named(
         "d^2", latex=r"d^2"
     )

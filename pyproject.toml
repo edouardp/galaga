@@ -5,7 +5,7 @@ exclude = ["packages/galaga_marimo"]
 [dependency-groups]
 dev = [
     "galaga",
-    "marimo>=0.21.1",
+    "marimo>=0.23.14",
     "matplotlib>=3.10.8",
     "pytest>=9.0.2",
     "pytest-cov>=7.1.0",

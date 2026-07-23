@@ -35,7 +35,16 @@ def _():
         p_euclidean,
     )
 
-    return Algebra, DisplayPolicy, Notation, geometric_product, gm, mo, norm, p_euclidean
+    return (
+        Algebra,
+        DisplayPolicy,
+        Notation,
+        geometric_product,
+        gm,
+        mo,
+        norm,
+        p_euclidean,
+    )
 
 
 @app.cell(hide_code=True)
@@ -60,7 +69,7 @@ def _(Algebra, DisplayPolicy, geometric_product, p_euclidean):
     x = (e1 + 2 * e2).named("x")
     y = (3 * e1 - e2).named("y")
     product = geometric_product(x, y).named("M")
-    return algebra, e1, e2, product, x, y
+    return algebra, product, x
 
 
 @app.cell(hide_code=True)
@@ -138,7 +147,7 @@ def _(Notation, algebra, geometric_product, gm):
 
     {_functional_product}
     """)
-    return (functional_view,)
+    return
 
 
 @app.cell(hide_code=True)
@@ -182,7 +191,12 @@ def _(Notation, algebra, product):
 
 
 @app.cell
-def _(default_expression_latex, functional_expression_latex, gm, restored_expression_latex):
+def _(
+    default_expression_latex,
+    functional_expression_latex,
+    gm,
+    restored_expression_latex,
+):
     gm.md(rt"""
     Before the scope:
 
@@ -278,7 +292,7 @@ def _(Algebra, DisplayPolicy):
     with detailed_algebra.use_presentation(quiet_presentation):
         quiet_latex = detailed_value.latex()
     stored_coefficients = detailed_value.data.copy()
-    return detailed_latex, detailed_value, quiet_latex, quiet_presentation, stored_coefficients
+    return detailed_latex, quiet_latex, stored_coefficients
 
 
 @app.cell
@@ -325,7 +339,7 @@ def _(gm, norm, x):
 
     Python numeric formatting after checked conversion: `{_numeric_length:.3f}`.
     """)
-    return (x_length,)
+    return
 
 
 if __name__ == "__main__":

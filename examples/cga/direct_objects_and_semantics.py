@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.11"
+__generated_with = "0.23.14"
 app = marimo.App()
 
 
@@ -51,27 +51,15 @@ def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
         config=p_cga(spatial_dim=3),
         display=DisplayPolicy(content="full"),
     )
-    cga = ConformalModel(algebra)
-    e1, e2, e3 = cga.euclidean_basis_vectors(expr=True)
-    eo, einf = algebra.blades("origin", "infinity", expr=True)
+    cga = ConformalModel(algebra, expr=True)
+    e1, e2, e3 = cga.euclidean_basis_vectors()
+    einf = cga.infinity
 
-    origin_point = cga.up((0.0, 0.0, 0.0), expr=True).named("O")
-    x_point = cga.up((1.0, 0.0, 0.0), expr=True).named("X")
-    y_point = cga.up((0.0, 1.0, 0.0), expr=True).named("Y")
-    z_point = cga.up((0.0, 0.0, 1.0), expr=True).named("Z")
-    return (
-        algebra,
-        cga,
-        e1,
-        e2,
-        e3,
-        einf,
-        eo,
-        origin_point,
-        x_point,
-        y_point,
-        z_point,
-    )
+    origin_point = cga.up((0.0, 0.0, 0.0)).named("O")
+    x_point = cga.up((1.0, 0.0, 0.0)).named("X")
+    y_point = cga.up((0.0, 1.0, 0.0)).named("Y")
+    z_point = cga.up((0.0, 0.0, 1.0)).named("Z")
+    return cga, einf, origin_point, x_point, y_point, z_point
 
 
 @app.cell(hide_code=True)
@@ -116,7 +104,7 @@ def _(einf, gm, origin_point, outer_product, x_point, y_point, z_point):
 
     {sphere}
     """)
-    return circle, dipole, flat_point, line, plane, sphere
+    return circle, dipole, line, plane
 
 
 @app.cell(hide_code=True)
@@ -210,7 +198,7 @@ def _(mo):
 
 @app.cell
 def _(cga, gm, plane):
-    _source = cga.up((0.25, 0.5, 2.0), expr=True).named("Q")
+    _source = cga.up((0.25, 0.5, 2.0)).named("Q")
     _expanded = cga.expansion(_source, plane).named("E")
     _projected = cga.project(_source, plane).named("Q_P", latex=r"Q_P")
     _projected_center = cga.coordinates(_projected)

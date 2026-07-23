@@ -20,7 +20,7 @@ classifiers = [
 ]
 dependencies = [
     "galaga>=2.0.0",
-    "marimo>=0.21.1",
+    "marimo>=0.23.14",
 ]
 
 [project.urls]

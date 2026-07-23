@@ -520,6 +520,7 @@ SUPPORTED_SUBMODULES = {
     "galaga.ops": SurfaceDisposition("facade", "redesign", "galaga.facade.catalog", "phase-5"),
     "galaga.presentation": SurfaceDisposition("presentation", "retain", "galaga.presentation", "permanent"),
     "galaga.presets": SurfaceDisposition("presentation", "retain", "galaga.presets", "permanent"),
+    "galaga.rga": SurfaceDisposition("model", "retain", "galaga.rga", "permanent"),
     "galaga.legacy.render": SurfaceDisposition(
         "compatibility",
         "temporary-v1-oracle",
@@ -570,6 +571,7 @@ TOP_LEVEL_PACKAGE_MODULES = frozenset(
         "galaga.ops",
         "galaga.presentation",
         "galaga.presets",
+        "galaga.rga",
         "galaga.rendering",
         "galaga.symbolic",
         "galaga.symbolic_core",

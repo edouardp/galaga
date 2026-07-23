@@ -9,6 +9,8 @@ from galaga.blades import (
     complex_blade_convention,
     euclidean_blade_convention,
     indexed_blade_convention,
+    lengyel_cga_blade_convention,
+    lengyel_cga_display_order,
     null_cga_blade_convention,
     orthogonal_cga_blade_convention,
     quaternion_blade_convention,
@@ -26,6 +28,7 @@ from galaga.names import Name
         (spacetime_blade_convention(), 4, "time"),
         (orthogonal_cga_blade_convention(3), 5, "plus"),
         (null_cga_blade_convention(3), 5, "origin"),
+        (lengyel_cga_blade_convention(), 5, "antiscalar"),
         (rga_blade_convention(), 4, "projective"),
         (complex_blade_convention(), 2, "imaginary"),
         (quaternion_blade_convention(), 3, "quaternion_i"),
@@ -63,6 +66,32 @@ def test_rga_display_order_is_a_complete_grade_grouped_permutation():
     assert order.masks[:5] == (0, 1, 2, 4, 8)
     assert order.masks[-1] == 15
     assert set(order.masks) == set(range(16))
+
+
+def test_lengyel_cga_uses_signed_bold_blades_and_a_distinguished_antiscalar() -> None:
+    convention = lengyel_cga_blade_convention()
+    order = lengyel_cga_display_order()
+
+    assert convention.label(0b00101) == BladeLabel(
+        Name("e31", "e₃₁", r"\mathbf{e}_{31}"),
+        BladeRef(0b00101, -1),
+    )
+    assert convention.label(0b11110) == BladeLabel(
+        Name("e4235", "e₄₂₃₅", r"\mathbf{e}_{4235}"),
+        BladeRef(0b11110),
+    )
+    assert convention.label(0b11111) == BladeLabel(
+        Name("I", "𝟙", r"\text{𝟙}"),
+        BladeRef(0b11111),
+    )
+    assert convention.resolve("e13") == BladeRef(0b00101)
+    assert convention.resolve("e12345") == BladeRef(0b11111)
+    assert convention.resolve("origin") == convention.resolve("e4")
+    assert convention.resolve("infinity") == convention.resolve("e5")
+    assert order.masks[6:16] == (9, 10, 12, 6, 5, 3, 17, 18, 20, 24)
+    assert order.masks[16:26] == (14, 13, 11, 7, 25, 26, 28, 22, 21, 19)
+    assert order.masks[-6:] == (15, 30, 29, 27, 23, 31)
+    assert set(order.masks) == set(range(32))
 
 
 def test_convention_validation_rejects_collisions_bad_masks_and_bad_orders():

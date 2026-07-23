@@ -75,16 +75,86 @@ from galaga import Algebra, p_cga
 from galaga.cga import ConformalModel
 
 algebra = Algebra(config=p_cga(spatial_dim=3))
-cga = ConformalModel(algebra)
+cga = ConformalModel(algebra, expr=True)
 
-e1, e2, e3 = cga.euclidean_basis_vectors(expr=True)
+e1, e2, e3 = cga.euclidean_basis_vectors()
 eo = cga.origin
 einf = cga.infinity
 ```
 
+### Eric Lengyel's complete CGA presentation
+
+`p_lengyel_cga()` composes the same standard native-null Gram matrix and CGA
+model roles with `Notation.lengyel()`, compact bold blade labels, and Eric's
+five-dimensional basis-table order:
+
+```python
+from galaga import Algebra, p_lengyel_cga
+from galaga.cga import ConformalModel
+
+algebra = Algebra(config=p_lengyel_cga())
+cga = ConformalModel(algebra, expr=True)
+```
+
+The role called `origin` renders as $\mathbf e_4$ and `infinity` renders as
+$\mathbf e_5$. Signed non-ascending labels such as $\mathbf e_{31}$,
+$\mathbf e_{423}$, and $\mathbf e_{4315}$ retain their displayed orientation.
+The top blade satisfies
+
+$$
+\mathbf e_{12345}=\text{𝟙},
+$$
+
+and renders canonically as Lengyel's unit antiscalar $\text{𝟙}$; `e12345`
+remains an accepted blade alias. This preset is intentionally separate from
+ordinary `p_cga()`: blade convention, display order, and operation notation
+can still be overridden independently on `Algebra`.
+
 Presentation is still independent. Passing `display=`, `notation=`, or a
 custom presentation to `Algebra` changes how the values appear without
 changing the conformal model.
+
+`expr=True` is the model-wide default for values created by `ConformalModel`,
+including `origin`, `infinity`, Euclidean basis vectors, Euclidean vectors,
+round points, and extracted Euclidean centers. Factory methods accept
+`expr=True` or `expr=False` to override that default for one call. Omitting the
+constructor option retains the lightweight numeric default with no expression
+provenance.
+
+Expression tracking and expression shape are separate policies. CGA helpers
+default to compact operator provenance because it usually communicates the
+geometric intent most directly:
+
+```python
+cga = ConformalModel(algebra, expr=True)  # expression_form="operator"
+p = cga.up((1, 2, 3))                    # up(e1 + 2 e2 + 3 e3)
+carrier = cga.carrier(circle)             # car(C) in Lengyel notation
+```
+
+An immutable model view can instead expose each helper's defining generic GA
+operations:
+
+```python
+expanded_cga = cga.with_expression_form("expanded")
+p_formula = expanded_cga.up((1, 2, 3))
+carrier_formula = expanded_cga.carrier(circle)  # C ^ einf
+```
+
+Both views share the exact same `Algebra`; only newly attached provenance
+changes. Any expression-aware helper also accepts a per-call override without
+mutating the model:
+
+```python
+p_formula = cga.up((1, 2, 3), expression_form="expanded")
+carrier_name = expanded_cga.carrier(circle, expression_form="operator")
+```
+
+Expanded provenance stops at an atomic model operation when there is no honest
+generic-algebra formula. For example, `down()` selects Euclidean coefficients,
+and the ●/○/■/□ component helpers select terms by native-null basis roles; they
+remain executable semantic calls in either form. See the
+[`expression_forms.py`](../../examples/cga/expression_forms.py) notebook for a
+side-by-side rendering tour.
 
 ## Round points and ordinary points
 
@@ -132,8 +202,10 @@ $$
 `homogenize(X)` divides by that weight, `down(X)` returns its Euclidean center
 as a Galaga vector, and `coordinates(X)` returns an immutable NumPy array.
 These operations reject an infinite vector whose weight is zero.
-The conventional `up` and `homo` spellings are exact aliases of `round_point`
-and `homogenize`; the descriptive names remain primary.
+`up(x)` is the distinct zero-radius operation, so its compact provenance can
+render as `up(x)` instead of `round_point(x, 0)`. It returns the same numeric
+multivector as `round_point(x)`. The conventional `homo` spelling remains an
+exact alias of `homogenize`; the descriptive name is primary.
 
 For ordinary points $P(x)$ and $P(y)$, the
 [dot-product identity](https://conformalgeometricalgebra.org/wiki/index.php?title=Dot_products)
@@ -206,6 +278,135 @@ These correspond to the wiki pages for
 [partners](https://conformalgeometricalgebra.org/wiki/index.php?title=Partners),
 [expansion](https://conformalgeometricalgebra.org/wiki/index.php?title=Expansion),
 and [projection](https://conformalgeometricalgebra.org/wiki/index.php?title=Projections).
+
+In the default `expression_form="operator"`, the model methods retain those
+semantic identities in expression provenance. With `Notation.lengyel()`, they
+render exactly as Eric's
+`att(u)`, `car(u)`, `ccr(u)`, `cen(u)`, `con(u)`, and `par(u)` functional
+notation. Conventional notation uses the descriptive long names instead.
+The origin and infinity role references needed to re-evaluate these nodes are
+stored as non-rendered expression parameters, so compact display does not
+sacrifice executable provenance.
+
+With `expression_form="expanded"`, the same methods expose their
+wedge/antidual/meet definitions. This includes expansion and projection, while
+operator form deliberately gives them explicit `expansion(a, b)` and
+`projection(a, b)` identities. Likewise, `radius_squared` is not rendered as
+`rad`: Eric's `rad(u)` denotes a radius, whereas Galaga's method returns a
+signed squared radius.
+
+## Eric Lengyel's CGA component families
+
+Eric's conformal Mathematica package decomposes every homogeneous geometry
+according to whether each basis term contains $e_o$, $e_\infty$, both, or
+neither. `ConformalModel` exposes the same four projections:
+
+| Primary name | Lengyel notation | Contains $e_o$ | Contains $e_\infty$ |
+|---|---:|:---:|:---:|
+| `round_bulk_part(u)` | $u_{\text{●}}$ | no | no |
+| `round_weight_part(u)` | $u_{\text{○}}$ | yes | no |
+| `flat_bulk_part(u)` | $u_{\text{■}}$ | no | yes |
+| `flat_weight_part(u)` | $u_{\text{□}}$ | yes | yes |
+
+These four disjoint values sum exactly to the input. The overlapping
+two-family views follow directly:
+
+$$
+\begin{aligned}
+\operatorname{round\_part}(u) &= u_{\text{●}}+u_{\text{○}}, &
+\operatorname{flat\_part}(u) &= u_{\text{■}}+u_{\text{□}}, \\
+\operatorname{bulk\_part}_{\mathrm{CGA}}(u) &= u_{\text{●}}+u_{\text{■}}, &
+\operatorname{weight\_part}_{\mathrm{CGA}}(u) &= u_{\text{○}}+u_{\text{□}}.
+\end{aligned}
+$$
+
+They are available as `round_part`, `flat_part`, `bulk_part`, and
+`weight_part` methods on the model. The method namespace matters:
+`cga.bulk_part(u)` is Eric's CGA component projection, whereas the free
+`galaga.bulk_part(u)` is the general RGA metric exomorphism. In degenerate RGA
+the latter is a projection; in native-null, nondegenerate CGA it is not this
+component filter.
+
+Eric's conformal conjugate preserves the round part and negates the flat part:
+
+$$
+\operatorname{conformal\_conjugate}(u)
+=\operatorname{round\_part}(u)-\operatorname{flat\_part}(u).
+$$
+
+These definitions follow the public `RoundBulkPart`, `RoundWeightPart`,
+`FlatBulkPart`, `FlatWeightPart`, `RoundPart`, `FlatPart`, `BulkPart`,
+`WeightPart`, and `ConformalConjugate` operations in Eric's
+[component-part definitions](https://github.com/EricLengyel/Geometric-Algebra/blob/main/Packages/ConformalAlgebra3D.wl#L432-L453)
+and
+[conformal conjugate definition](https://github.com/EricLengyel/Geometric-Algebra/blob/main/Packages/ConformalAlgebra3D.wl#L539-L576).
+
+## Weighted component, center, and radius norms
+
+The corresponding model methods implement the Mathematica package's six
+weighted norms:
+
+| Method | Lengyel notation | Result subspace |
+|---|---:|---|
+| `weighted_center_norm(u)` | $\lVert u\rVert_{\text{ⓒ}}$ | scalar |
+| `weighted_radius_norm(u)` | $\lVert u\rVert_{\text{ⓡ}}$ | antiscalar |
+| `round_bulk_norm(u)` | $\lVert u\rVert_{\text{●}}$ | scalar |
+| `round_weight_norm(u)` | $\lVert u\rVert_{\text{○}}$ | complement of $e_\infty$ |
+| `flat_bulk_norm(u)` | $\lVert u\rVert_{\text{■}}$ | span of $e_\infty$ |
+| `flat_weight_norm(u)` | $\lVert u\rVert_{\text{□}}$ | antiscalar |
+
+In particular, Eric defines
+
+$$
+\lVert u\rVert_{\text{ⓒ}}
+=\sqrt{u\mathbin{\bullet}\operatorname{conformal\_conjugate}(u)}
+$$
+
+and
+
+$$
+\lVert u\rVert_{\text{ⓡ}}
+=\sqrt[\text{antiscalar}]{u\mathbin{\circ}u}.
+$$
+
+The second square root is not a geometric-product square root. It takes the
+non-negative coefficient of the antidot's pseudoscalar result and returns its
+square root on the same pseudoscalar blade, exactly as Eric's Mathematica
+package specializes `Power` for antiscalars. The real numeric core rejects a
+negative coefficient; `radius_squared` remains the signed operation for real,
+zero-radius, and imaginary round points.
+
+Eric's poster calls the projectively normalized ratios the center norm and
+radius norm. Galaga returns both as scalar multivectors:
+
+```python
+center_norm = cga.center_norm(circle)
+radius_norm = cga.radius_norm(circle)
+```
+
+They divide the positive coefficients of the weighted numerator values by
+round weight:
+
+$$
+\operatorname{center\_norm}(u)
+=\frac{\lVert u\rVert_{\text{ⓒ}}}{\lVert u\rVert_{\text{○}}},
+\qquad
+\operatorname{radius\_norm}(u)
+=\frac{\lVert u\rVert_{\text{ⓡ}}}{\lVert u\rVert_{\text{○}}}.
+$$
+
+With `Notation.lengyel()`, those operation nodes render directly as the two
+fractions above. `center_distance(u)` is an explicit geometric alias for
+`center_norm(u)`, while `radius(u)` is the conventional alias for
+`radius_norm(u)` and renders as $\operatorname{rad}(u)$.
+
+Both ratios reject flat objects having zero round weight. `center_norm` is
+valid for every nonzero null-pair scale accepted by `p_cga`. Eric's antidot
+radius formula assumes the package metric $e_o\mathbin{\cdot}e_\infty=-1$, so
+`weighted_radius_norm`, `radius_norm`, and `radius` explicitly require that
+standard normalization.
+The implementation and formulas are checked against Eric's
+[norm definitions](https://github.com/EricLengyel/Geometric-Algebra/blob/main/Packages/ConformalAlgebra3D.wl#L685-L718).
 
 The methods check algebra ownership and homogeneous-grade preconditions. They
 do not try to prove that arbitrary coefficients satisfy every Plücker-like
@@ -282,6 +483,34 @@ These cover the wiki's
 and [transversion](https://conformalgeometricalgebra.org/wiki/index.php?title=Transversion)
 without duplicating `exp` or `sandwich`.
 
+Plane reflection and sphere inversion are the same odd-versor action. An IPNS
+plane vector $\pi$ or non-null sphere vector $s$ acts on a conformal point by
+
+$$
+P'=-aPa^{-1}.
+$$
+
+For the standard null-pair normalization, the plane
+$\pi=e_1+d e_\infty$ represents $x=d$, and the real sphere with center $c$
+and radius $r$ is $s=P(c)-\tfrac12r^2e_\infty$:
+
+```python
+from galaga import inverse
+
+plane = e1 + cga.infinity             # x = 1
+reflected = -plane * point * inverse(plane)
+
+sphere = cga.round_point((1, 0, 0), radius_squared=-4)
+inverted = -sphere * point * inverse(sphere)
+```
+
+The negative `radius_squared` is deliberate: `round_point` accepts a signed
+round-point radius and satisfies $A(x,r^2)^2=-r^2$; a real inversion sphere
+has positive square. Acting on a direct line not through the inversion center
+produces a direct circle through that center. These identities use the generic
+geometric product and inverse rather than redundant reflection or inversion
+helpers.
+
 The wiki often writes the complementary antiproduct representation. For a
 unit translation in the $e_1$ direction in 3D:
 
@@ -300,7 +529,7 @@ special case in the numeric core.
 
 ## Executable notebooks
 
-The maintained Marimo gallery includes three native-null CGA notebooks:
+The maintained Marimo gallery includes four native-null CGA notebooks:
 
 - [`native_null_foundations.py`](../../examples/cga/native_null_foundations.py)
   derives the Gram matrix facts, point embedding, distance identity, and
@@ -314,6 +543,10 @@ The maintained Marimo gallery includes three native-null CGA notebooks:
   $\text{𝟙}$, and compares his sandwich-antiproduct translation with the
   equivalent geometric-product versor before demonstrating rotation,
   dilation, and transversion.
+- [`reflections_and_inversions.py`](../../examples/cga/reflections_and_inversions.py)
+  derives plane reflection and sphere inversion from the same odd-versor
+  action, verifies inversion is involutive, and shows a line becoming a circle
+  through the inversion center.
 
 These files are entries in the executable notebook migration ledger. CI
 checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,

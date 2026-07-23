@@ -4,7 +4,7 @@ import pytest
 
 from galaga.display import render
 from galaga.expression import Call, Symbol
-from galaga.facade import OPERATIONS, Algebra, geometric_product
+from galaga.facade import OPERATIONS, Algebra, geometric_product, get_operation
 from galaga.presentation import Notation, RenderRule, default_presentation
 from galaga.presets import LengyelRGAPreset
 from galaga.rendering import Call as RenderCall
@@ -152,6 +152,22 @@ def test_lengyel_preset_uses_target_specific_semantic_rules() -> None:
     assert render(metric_apply, target="latex", presentation=presentation) == r"\mathbf{G}a"
 
 
+def test_lengyel_associative_antiproduct_elides_left_nested_parentheses() -> None:
+    presentation = default_presentation(5).with_notation(Notation.lengyel())
+    expression = Call(
+        "geometric_antiproduct",
+        (
+            Call("geometric_antiproduct", (Symbol("T"), Symbol("P"))),
+            Call("antireverse", (Symbol("T"),)),
+        ),
+    )
+
+    assert render(expression, target="unicode", presentation=presentation) == "T ⟇ P ⟇ T̰"
+    assert render(expression, target="latex", presentation=presentation) == (
+        r"T \mathbin{\text{⟇}} P \mathbin{\text{⟇}} \utilde{T}"
+    )
+
+
 def test_lengyel_blade_convention_bolds_vectors_and_higher_grade_blades_consistently() -> None:
     algebra = Algebra(config=LengyelRGAPreset())
     e1, e2, e3, _ = algebra.basis_vectors()
@@ -169,7 +185,7 @@ def test_every_declared_rule_has_complete_precedence_and_associativity_metadata(
         Notation.functional(short=True),
     ):
         for operation_id, target, rule in notation.rules:
-            assert operation_id in OPERATIONS
+            assert get_operation(operation_id).id == operation_id
             assert target in {None, "ascii", "unicode", "latex"}
             assert isinstance(rule.precedence, int)
             assert rule.precedence >= 0
@@ -194,6 +210,11 @@ def test_notation_rules_are_immutable_and_target_overrides_are_persistent_views(
         lambda: RenderRule("magic", symbol="?"),
         lambda: RenderRule("infix"),
         lambda: RenderRule("wrapper", opening="("),
+        lambda: RenderRule(
+            "wrapper_fraction",
+            opening="||",
+            numerator_closing="||_x",
+        ),
         lambda: RenderRule("function", symbol="f", precedence=-1),
         lambda: RenderRule("function", symbol="f", argument_order=(0, 0)),
         lambda: RenderRule("function", symbol="f", scalable=1),  # type: ignore[arg-type]

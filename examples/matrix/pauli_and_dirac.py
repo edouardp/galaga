@@ -35,7 +35,18 @@ def _():
         p_euclidean,
         p_sta,
     )
-    return Algebra, DisplayPolicy, from_matrix, gm, mo, np, p_euclidean, p_sta, to_matrix
+
+    return (
+        Algebra,
+        DisplayPolicy,
+        from_matrix,
+        gm,
+        mo,
+        np,
+        p_euclidean,
+        p_sta,
+        to_matrix,
+    )
 
 
 @app.cell(hide_code=True)
@@ -71,7 +82,7 @@ def _(Algebra, DisplayPolicy, p_euclidean, to_matrix):
     sigma1 = to_matrix(pauli_e1.named("e_1"), mode="pauli")
     sigma2 = to_matrix(pauli_e2.named("e_2"), mode="pauli")
     sigma3 = to_matrix(pauli_e3.named("e_3"), mode="pauli")
-    return pauli_algebra, pauli_e1, pauli_e2, pauli_e3, sigma1, sigma2, sigma3
+    return sigma1, sigma2, sigma3
 
 
 @app.cell
@@ -98,11 +109,20 @@ def _(np, sigma1, sigma2, sigma3):
         for left, right in ((sigma1, sigma2), (sigma2, sigma3), (sigma3, sigma1))
     )
     pauli_orientation_holds = np.allclose(sigma1 @ sigma2, 1j * sigma3)
-    return pauli_anticommutation_holds, pauli_orientation_holds, pauli_squares_hold
+    return (
+        pauli_anticommutation_holds,
+        pauli_orientation_holds,
+        pauli_squares_hold,
+    )
 
 
 @app.cell
-def _(gm, pauli_anticommutation_holds, pauli_orientation_holds, pauli_squares_hold):
+def _(
+    gm,
+    pauli_anticommutation_holds,
+    pauli_orientation_holds,
+    pauli_squares_hold,
+):
     gm.md(rt"""
     - $\sigma_i^2=I$: `{pauli_squares_hold!s}`
     - $\sigma_i\sigma_j+\sigma_j\sigma_i=0$ for $i\ne j$:
@@ -162,7 +182,7 @@ def _(Algebra, DisplayPolicy, p_sta, to_matrix):
     gamma0, gamma1, gamma2, gamma3 = spacetime_algebra.basis_vectors(expr=True)
     gamma0_dirac = to_matrix(gamma0.named("gamma0", latex=r"\gamma^0"), mode="dirac")
     gamma1_dirac = to_matrix(gamma1.named("gamma1", latex=r"\gamma^1"), mode="dirac")
-    return gamma0, gamma0_dirac, gamma1, gamma1_dirac, gamma2, gamma3, spacetime_algebra
+    return gamma0, gamma0_dirac, gamma1_dirac
 
 
 @app.cell
@@ -262,7 +282,7 @@ def _(gamma0, gm, to_matrix):
 
     {gamma0_quaternion:block}
     """)
-    return (gamma0_quaternion,)
+    return
 
 
 if __name__ == "__main__":

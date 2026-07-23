@@ -162,7 +162,13 @@ def test_conventional_short_forms_are_exact_class_aliases() -> None:
     assert ConformalModel.homo is ConformalModel.homogenize
     assert ConformalModel.par is ConformalModel.partner
     assert ConformalModel.project is ConformalModel.projection
-    assert ConformalModel.up is ConformalModel.round_point
+
+
+def test_up_is_a_distinct_zero_radius_operation_with_round_point_values() -> None:
+    cga = ConformalModel(Algebra(config=p_cga()))
+
+    assert ConformalModel.up is not ConformalModel.round_point
+    assert cga.up((1.0, 2.0, 3.0)) == cga.round_point((1.0, 2.0, 3.0))
 
 
 def test_semantic_operations_reject_mixed_values_and_invalid_expansion_grades(cga: ConformalModel) -> None:

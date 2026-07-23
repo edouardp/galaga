@@ -61,6 +61,38 @@ def test_model_construction_and_embedding_retain_optional_expression_provenance(
     assert float(cga.radius_squared(point)) == pytest.approx(4.0)
 
 
+def test_model_expression_default_applies_to_every_model_owned_factory() -> None:
+    cga = ConformalModel(Algebra(config=p_cga()), expr=True)
+
+    assert cga.expr is True
+    assert cga.origin.expr is not None
+    assert cga.infinity.expr is not None
+    assert all(vector.expr is not None for vector in cga.euclidean_basis_vectors())
+
+    position = cga.euclidean_vector((1.0, 2.0, 3.0))
+    point = cga.round_point(position)
+
+    assert position.expr is not None
+    assert point.expr is not None
+    assert cga.down(point).expr is not None
+    assert cga.dual(cga.algebra.basis_vectors()[0]).expr is not None
+
+
+def test_factory_expression_override_takes_precedence_over_the_model_default() -> None:
+    tracked = ConformalModel(Algebra(config=p_cga()), expr=True)
+    untracked = ConformalModel(Algebra(config=p_cga()))
+
+    assert tracked.expr is True
+    assert tracked.euclidean_vector((1.0, 2.0, 3.0), expr=False).expr is None
+    assert tracked.round_point((1.0, 2.0, 3.0), expr=False).expr is None
+    assert all(vector.expr is None for vector in tracked.euclidean_basis_vectors(expr=False))
+
+    assert untracked.expr is False
+    assert untracked.euclidean_vector((1.0, 2.0, 3.0), expr=True).expr is not None
+    assert untracked.round_point((1.0, 2.0, 3.0), expr=True).expr is not None
+    assert all(vector.expr is not None for vector in untracked.euclidean_basis_vectors(expr=True))
+
+
 def test_model_rejects_orthogonal_and_untyped_cl41_algebras() -> None:
     with pytest.raises(ValueError, match="frame='null'"):
         ConformalModel(Algebra(config=p_cga(frame="orthogonal")))
@@ -68,6 +100,8 @@ def test_model_rejects_orthogonal_and_untyped_cl41_algebras() -> None:
         ConformalModel(Algebra(4, 1))
     with pytest.raises(TypeError, match="galaga Algebra"):
         ConformalModel(object())  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="expr must be a boolean"):
+        ConformalModel(Algebra(config=p_cga()), expr=1)  # type: ignore[arg-type]
 
 
 def test_model_validates_the_metric_behind_declared_semantic_roles() -> None:

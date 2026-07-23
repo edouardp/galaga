@@ -321,6 +321,121 @@ def null_cga_blade_convention(spatial_dim: int) -> BladeConvention:
     return indexed_blade_convention(spatial_dim + 2, subscripts=subscripts, roles=roles)
 
 
+def lengyel_cga_blade_convention() -> BladeConvention:
+    """Eric Lengyel's signed five-dimensional conformal blade table.
+
+    The native null vectors occupy the fourth and fifth basis positions, as in
+    Lengyel's formulas. Ordinary blades use compact bold ``e`` notation; the
+    top-grade blade is the distinguished unit antiscalar ``𝟙``. The expanded
+    spelling ``e12345`` remains an alias of that same signed blade.
+    """
+    displayed = {
+        0b01001: ("e41", (3, 0)),
+        0b01010: ("e42", (3, 1)),
+        0b01100: ("e43", (3, 2)),
+        0b00110: ("e23", (1, 2)),
+        0b00101: ("e31", (2, 0)),
+        0b00011: ("e12", (0, 1)),
+        0b01110: ("e423", (3, 1, 2)),
+        0b01101: ("e431", (3, 2, 0)),
+        0b01011: ("e412", (3, 0, 1)),
+        0b00111: ("e321", (2, 1, 0)),
+        0b11001: ("e415", (3, 0, 4)),
+        0b11010: ("e425", (3, 1, 4)),
+        0b11100: ("e435", (3, 2, 4)),
+        0b10110: ("e235", (1, 2, 4)),
+        0b10101: ("e315", (2, 0, 4)),
+        0b10011: ("e125", (0, 1, 4)),
+        0b01111: ("e1234", (0, 1, 2, 3)),
+        0b11110: ("e4235", (3, 1, 2, 4)),
+        0b11101: ("e4315", (3, 2, 0, 4)),
+        0b11011: ("e4125", (3, 0, 1, 4)),
+        0b10111: ("e3215", (2, 1, 0, 4)),
+    }
+    overrides: dict[int, BladeLabel] = {}
+    aliases: dict[str, BladeRef] = {
+        "eo": BladeRef(0b01000),
+        "einf": BladeRef(0b10000),
+    }
+    for mask, (ascii_name, indices) in displayed.items():
+        subscript = ascii_name[1:]
+        overrides[mask] = BladeLabel(
+            Name(
+                ascii_name,
+                f"e{subscript.translate(_SUBSCRIPT_TRANSLATION)}",
+                rf"\mathbf{{e}}_{{{subscript}}}",
+            ),
+            BladeRef(mask, _orientation(indices)),
+        )
+        ascending = "e" + "".join(str(index + 1) for index in range(5) if mask & (1 << index))
+        if ascending != ascii_name:
+            aliases[ascending] = BladeRef(mask)
+
+    antiscalar_mask = 0b11111
+    overrides[antiscalar_mask] = BladeLabel(
+        Name("I", "𝟙", r"\text{𝟙}"),
+        BladeRef(antiscalar_mask),
+    )
+    aliases["e12345"] = BladeRef(antiscalar_mask)
+    roles = {
+        "euclidean_1": BladeRef(0b00001),
+        "euclidean_2": BladeRef(0b00010),
+        "euclidean_3": BladeRef(0b00100),
+        "origin": BladeRef(0b01000),
+        "infinity": BladeRef(0b10000),
+        "antiscalar": BladeRef(antiscalar_mask),
+        "pseudoscalar": BladeRef(antiscalar_mask),
+    }
+    return indexed_blade_convention(
+        5,
+        prefix=Name("e", "e", r"\mathbf{e}"),
+        overrides=overrides,
+        aliases=aliases,
+        roles=roles,
+    )
+
+
+def lengyel_cga_display_order() -> DisplayOrder:
+    """Lengyel's scalar-through-antiscalar conformal basis-table order."""
+    return DisplayOrder(
+        5,
+        (
+            0b00000,
+            0b00001,
+            0b00010,
+            0b00100,
+            0b01000,
+            0b10000,
+            0b01001,
+            0b01010,
+            0b01100,
+            0b00110,
+            0b00101,
+            0b00011,
+            0b10001,
+            0b10010,
+            0b10100,
+            0b11000,
+            0b01110,
+            0b01101,
+            0b01011,
+            0b00111,
+            0b11001,
+            0b11010,
+            0b11100,
+            0b10110,
+            0b10101,
+            0b10011,
+            0b01111,
+            0b11110,
+            0b11101,
+            0b11011,
+            0b10111,
+            0b11111,
+        ),
+    )
+
+
 def rga_blade_convention() -> BladeConvention:
     """Lengyel's signed four-dimensional RGA blade table."""
     overrides: dict[int, BladeLabel] = {}
@@ -356,7 +471,11 @@ def rga_blade_convention() -> BladeConvention:
         "e123": BladeRef(0b0111),
     }
     roles = {
+        "euclidean_1": BladeRef(0b0001),
+        "euclidean_2": BladeRef(0b0010),
+        "euclidean_3": BladeRef(0b0100),
         "projective": BladeRef(0b1000),
+        "antiscalar": BladeRef(0b1111),
         "pseudoscalar": BladeRef(0b1111),
     }
     return indexed_blade_convention(
@@ -513,6 +632,8 @@ __all__ = [
     "euclidean_blade_convention",
     "exterior_blade_convention",
     "indexed_blade_convention",
+    "lengyel_cga_blade_convention",
+    "lengyel_cga_display_order",
     "null_cga_blade_convention",
     "orthogonal_cga_blade_convention",
     "pga_blade_convention",

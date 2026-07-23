@@ -82,11 +82,12 @@ null_plane = Algebra(
 Complete presets configure numeric and presentation choices together:
 
 ```python
-from galaga import Algebra, p_cga, p_pga, p_rga, p_sta
+from galaga import Algebra, p_cga, p_lengyel_cga, p_pga, p_rga, p_sta
 
 sta = Algebra(config=p_sta("mostly-minus"))
 pga = Algebra(config=p_pga(spatial_dim=3))
 cga = Algebra(config=p_cga(spatial_dim=3, frame="null"))
+lengyel_cga = Algebra(config=p_lengyel_cga())
 rga = Algebra(config=p_rga(spatial_dim=3))
 ```
 
@@ -104,18 +105,56 @@ from galaga import Algebra, outer_product, p_cga
 from galaga.cga import ConformalModel
 
 algebra = Algebra(config=p_cga(spatial_dim=3))
-cga = ConformalModel(algebra)
+cga = ConformalModel(algebra, expr=True)
+expanded_cga = cga.with_expression_form("expanded")
 
-a = cga.round_point((0, 0, 0))
-b = cga.round_point((1, 0, 0))
+a = cga.up((0, 0, 0))
+b = cga.up((1, 0, 0))
 line = outer_product(a, b, cga.infinity)
 
 assert cga.carrier(cga.round_point((1, 2, 3))).homogeneous_grade() == 2
+
+round_point = cga.round_point((3, 4, 0), radius_squared=4)
+assert float(cga.center_norm(round_point)) == 5
+assert float(cga.radius_norm(round_point)) == 2
+
+# The same value can explain itself with compact CGA vocabulary or its formula.
+compact = cga.carrier(round_point)
+expanded = expanded_cga.carrier(round_point)
+assert compact == expanded
 ```
 
 The [native-null CGA guide](../../docs/cga/README.md) covers round and flat
-objects, `att`/`car`/`ccr`/`cen`/`con`/`par`, dual conventions, projection,
-and transformation recipes.
+objects, operator/expanded expression forms,
+`att`/`car`/`ccr`/`cen`/`con`/`par`, dual conventions, projection,
+Eric Lengyel's ●/○/■/□ components and weighted norms, and transformation
+recipes.
+
+### Point-based rigid model
+
+`p_rga()` selects Eric Lengyel's point-based interpretation of
+`Cl(3, 0, 1)`. Attach `RigidModel` when coordinates, projective measurement,
+projection, support, or validity constraints are needed:
+
+```python
+from galaga import Algebra, p_rga
+from galaga.rga import RigidModel
+
+algebra = Algebra(config=p_rga())
+rga = RigidModel(algebra, expr=True)
+
+p = rga.point((3, 4, 0)).named("P")
+q = rga.point((1, 0, 0)).named("Q")
+line = p ^ q
+
+assert float(rga.bulk_norm(p)) == 5
+assert rga.is_valid_line(line)
+```
+
+The [RGA guide](../../docs/rga-convention-layer.md) covers the algebraic
+convention layer, paired norms, homogeneous distance and angle, projections,
+support, line/motor/flector constraints, transwedge correction, and the dual
+relationship with plane-based PGA.
 
 ## Values, names, and expressions
 

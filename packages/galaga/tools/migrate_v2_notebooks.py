@@ -17,8 +17,10 @@ from libcst.helpers import get_full_name_for_node
 
 MIGRATED_NOTEBOOKS = (
     "cga/native_null_foundations.py",
+    "cga/expression_forms.py",
     "cga/direct_objects_and_semantics.py",
     "cga/lengyel_cga_transformations.py",
+    "cga/reflections_and_inversions.py",
     "galaga_v2/algebra_construction.py",
     "galaga_v2/eager_values_and_expressions.py",
     "galaga_v2/presentation_contexts.py",
@@ -80,6 +82,8 @@ MIGRATED_NOTEBOOKS = (
     "algebra/meets_joins_pga.py",
     "algebra/rotations_from_bivectors.py",
     "rga/rga_demo.py",
+    "rga/dual_approaches_to_pga.py",
+    "rga/geometry_and_measurement.py",
 )
 
 _MIGRATED_NOTEBOOK_SET = frozenset(MIGRATED_NOTEBOOKS)

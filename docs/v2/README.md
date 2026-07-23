@@ -52,6 +52,9 @@
 - [Native-null conformal geometric algebra](../cga/README.md) documents the
   `p_cga` Gram model, `ConformalModel`, direct objects, semantic CGA operations,
   and transformations.
+- [Rigid geometric algebra](../rga-convention-layer.md) documents Eric
+  Lengyel's algebraic convention, the validated `RigidModel`, measurements,
+  projections, constraints, and the dual relationship with plane-based PGA.
 
 ## Current status
 
@@ -83,7 +86,7 @@ multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
 executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
 only public facade names, expressions, and presentations. Installed-wheel
-integration gates pass. The 64 maintained Marimo notebooks now use the
+integration gates pass. The 68 maintained Marimo notebooks now use the
 promoted top-level API, pass Marimo dependency validation, and execute
 headlessly under Python 3.14.
 
@@ -99,8 +102,15 @@ the next cutover work.
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
 points for arbitrary null-pair scaling, and provides the established CGA
-attitude/carrier/center/container vocabulary as model-specific compositions
-over the existing generic products.
+attitude/carrier/center/container vocabulary, four-way component projections,
+conformal conjugation, and weighted/normalized norms as model-specific
+compositions over the existing generic products.
+
+The point-based RGA model layer is implemented as the parallel validated
+composition. It provides homogeneous points, paired norms, distance, angle,
+projections, support, and explicit line/motor/flector constraints over the
+existing RGA operation family. Transwedge remains an ambient algebraic
+operation; geometric line correction is model-owned and explicit.
 
 ## Supporting documents
 
@@ -115,6 +125,7 @@ over the existing generic products.
 - [ADR-084: Exact configured rendering contracts](../adrs/084-exact-configured-rendering-contracts.md)
 - [ADR-085: Top-level API is the facade with an explicit legacy oracle](../adrs/085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md)
 - [ADR-086: Native-null CGA is a validated model layer](../adrs/086-native-null-cga-is-a-validated-model-layer.md)
+- [ADR-087: RGA semantics are a validated model layer](../adrs/087-rga-semantics-are-a-validated-model-layer.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

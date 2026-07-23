@@ -14,6 +14,7 @@ from galaga.facade import OPERATIONS, OperationSpec, ParameterSpec
         lambda: ParameterSpec(""),
         lambda: ParameterSpec("value", positional=True),
         lambda: ParameterSpec("value", normalize=None),
+        lambda: ParameterSpec("value", render=1),
     ],
 )
 def test_parameter_specs_reject_invalid_declarations(factory: Any) -> None:

@@ -9,6 +9,7 @@ from galaga.presets import (
     ComplexPreset,
     EuclideanPreset,
     ExteriorPreset,
+    LengyelCGAPreset,
     LengyelRGAPreset,
     PGAPreset,
     QuaternionPreset,
@@ -17,6 +18,7 @@ from galaga.presets import (
     p_complex,
     p_euclidean,
     p_exterior,
+    p_lengyel_cga,
     p_pga,
     p_quaternion,
     p_rga,
@@ -59,6 +61,7 @@ def test_preset_expansion_matches_explicit_numeric_and_presentation_configuratio
         PGAPreset(2),
         CGAPreset(2),
         CGAPreset(2, frame="orthogonal"),
+        LengyelCGAPreset(),
         LengyelRGAPreset(),
         ComplexPreset(),
         QuaternionPreset(),
@@ -83,6 +86,8 @@ def test_preset_parameters_are_validated():
         CGAPreset(frame="orthogonal", null_pair=-0.5)
     with pytest.raises(ValueError, match="spatial_dim=3"):
         LengyelRGAPreset(2)
+    with pytest.raises(ValueError, match="spatial_dim=3"):
+        LengyelCGAPreset(2)
     with pytest.raises(ValueError, match="dimension must be a positive integer"):
         ExteriorPreset(0)
 
@@ -146,9 +151,24 @@ def test_ergonomic_preset_constructors_return_inspectable_preset_objects():
     assert p_pga(2) == PGAPreset(2)
     assert p_cga(2, frame="orthogonal") == CGAPreset(2, "orthogonal")
     assert p_rga() == LengyelRGAPreset()
+    assert p_lengyel_cga() == LengyelCGAPreset()
     assert p_complex() == ComplexPreset()
     assert p_quaternion() == QuaternionPreset()
     assert p_exterior(2) == ExteriorPreset(2)
+
+
+def test_lengyel_cga_preset_combines_native_null_roles_blades_order_and_notation() -> None:
+    algebra = Algebra(config=p_lengyel_cga())
+
+    assert algebra.model is not None
+    assert algebra.model.id == "cga-null"
+    assert algebra.presentation.notation == Notation.lengyel()
+    assert algebra.blade("origin").latex(content="value") == r"\mathbf{e}_{4}"
+    assert algebra.blade("infinity").latex(content="value") == r"\mathbf{e}_{5}"
+    assert algebra.blade("e31").latex(content="value") == r"\mathbf{e}_{31}"
+    assert algebra.pseudoscalar().latex(content="value") == r"\text{𝟙}"
+    assert algebra.blade("e12345") == algebra.pseudoscalar()
+    assert algebra.display_order[-1] == 31
 
 
 def test_spacetime_preset_and_custom_null_pair_change_the_numeric_definition():

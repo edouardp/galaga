@@ -82,7 +82,7 @@ def _(NumericAlgebra, np, numeric_geometric_product):
         numeric_e1,
         numeric_e2,
     ) + numeric_geometric_product(numeric_e2, numeric_e1)
-    return numeric_algebra, numeric_e1, numeric_e2, numeric_symmetric_product
+    return numeric_algebra, numeric_symmetric_product
 
 
 @app.cell

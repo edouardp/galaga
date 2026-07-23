@@ -77,7 +77,12 @@ def _expression_tree(
         # fails in the semantic layer, independently of emitter selection.
         operation = _get_operation(expression.operation_id)
         operands = tuple(_expression_tree(operand, presentation, target=target) for operand in expression.operands)
-        parameters = tuple((name, _parameter_tree(value, presentation)) for name, value in expression.parameters)
+        parameter_specs = {parameter.name: parameter for parameter in operation.parameters}
+        parameters = tuple(
+            (name, _parameter_tree(value, presentation))
+            for name, value in expression.parameters
+            if parameter_specs[name].render
+        )
         rule = presentation.notation.rule(operation.id, target)
         return _operation_tree(operation.id, operands, parameters, rule)
     raise TypeError(f"unsupported expression node {type(expression).__name__}")
@@ -377,6 +382,22 @@ def _operation_tree(
                 scalable=rule.scalable,
             )
         return Subscript(wrapped, _compact_script(decoration)) if decoration is not None else wrapped
+
+    if rule.kind == "wrapper_fraction":
+        opening = rule.opening
+        numerator_closing = rule.numerator_closing
+        denominator_closing = rule.denominator_closing
+        if (
+            opening is None or numerator_closing is None or denominator_closing is None
+        ):  # pragma: no cover - RenderRule validation
+            raise RuntimeError("wrapper_fraction render rule has incomplete delimiters")
+        if decoration is not None or len(arguments) != 1:
+            return _functional_tree(operation_id, operands, parameters)
+        operand = arguments[0]
+        return Fraction(
+            Wrapper(operand, opening, numerator_closing, scalable=rule.scalable),
+            Wrapper(operand, opening, denominator_closing, scalable=rule.scalable),
+        )
 
     if decoration is not None or len(arguments) != 1:
         return _functional_tree(operation_id, operands, parameters)

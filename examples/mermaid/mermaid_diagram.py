@@ -96,7 +96,7 @@ def _(Algebra, DisplayPolicy, exp, p_euclidean, sandwich):
     theta = algebra.scalar(0.6).named("theta", latex=r"\theta")
     rotor = exp(-theta * rotation_plane / 2)
     rotated_u = sandwich(rotor, u).named("u_prime", latex=r"u^{\prime}")
-    return algebra, e1, e2, e3, rotated_u, rotation_plane, rotor, theta, u
+    return algebra, rotated_u, rotation_plane, rotor, theta, u
 
 
 @app.cell
@@ -194,8 +194,8 @@ def _(interactive_mermaid, mo):
         {
             "Generated Mermaid source": mo.md(
                 f"""```text
-{interactive_mermaid}
-```"""
+    {interactive_mermaid}
+    ```"""
             )
         }
     )
@@ -218,13 +218,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    Notation,
-    algebra,
-    expr_to_mermaid,
-    rotated_u,
-    symbol_environment,
-):
+def _(Notation, algebra, expr_to_mermaid, rotated_u, symbol_environment):
     short_functional_presentation = algebra.presentation.with_notation(
         Notation.functional(short=True)
     )
@@ -236,7 +230,7 @@ def _(
         algebra=algebra,
         environment=symbol_environment,
     )
-    return functional_mermaid, short_functional_presentation
+    return (functional_mermaid,)
 
 
 @app.cell

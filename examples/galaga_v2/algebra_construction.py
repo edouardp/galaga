@@ -119,11 +119,22 @@ def _(Algebra, np):
             ]
         )
     )
-    return euclidean_counts, oblique_metric, projective_signature, spacetime_signature
+    return (
+        euclidean_counts,
+        oblique_metric,
+        projective_signature,
+        spacetime_signature,
+    )
 
 
 @app.cell
-def _(euclidean_counts, gm, oblique_metric, projective_signature, spacetime_signature):
+def _(
+    euclidean_counts,
+    gm,
+    oblique_metric,
+    projective_signature,
+    spacetime_signature,
+):
     _euclidean_signature = euclidean_counts.signature
     _spacetime_inertia = spacetime_signature.inertia
     _projective_inertia = projective_signature.inertia
@@ -181,7 +192,7 @@ def _(Algebra, DisplayPolicy, p_cga, p_euclidean, p_pga, p_rga, p_sta):
     projective_model = Algebra(config=p_pga(spatial_dim=3), display=_full)
     conformal_model = Algebra(config=p_cga(spatial_dim=3, frame="null"), display=_full)
     rga_model = Algebra(config=p_rga(), display=_full)
-    return conformal_model, euclidean_model, projective_model, rga_model, spacetime_model
+    return conformal_model, projective_model, rga_model, spacetime_model
 
 
 @app.cell
@@ -231,7 +242,7 @@ def _(Algebra, DisplayPolicy, Notation, geometric_product, gm, p_euclidean):
 
     {_teaching_product}
     """)
-    return (teaching_algebra,)
+    return
 
 
 @app.cell(hide_code=True)
