@@ -260,9 +260,7 @@ $$
 The global phase leaves $\mathbf n$ unchanged:
 
 $$
-R e^{\alpha e_{12}} e_3
-\widetilde{(R e^{\alpha e_{12}})}
-=
+R e^{\alpha e_{12}} e_3 \widetilde{(R e^{\alpha e_{12}})} =
 R e_3\widetilde R.
 $$
 
@@ -341,8 +339,7 @@ $$
 The physical velocity/current vector is
 
 $$
-V = \Psi'\gamma_0\widetilde{\Psi'}
-=
+V = \Psi'\gamma_0\widetilde{\Psi'} =
 R\gamma_0\widetilde R.
 $$
 

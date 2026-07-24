@@ -99,8 +99,7 @@ $$
 \begin{pmatrix}
 I_2 & 0_2\\
 0_2 & -I_2
-\end{pmatrix}
-=
+\end{pmatrix} =
 \begin{pmatrix}
 1 & 0 & 0 & 0\\
 0 & 1 & 0 & 0\\
@@ -125,8 +124,7 @@ $$
 \begin{pmatrix}
 -I_2 & 0_2\\
 0_2 & I_2
-\end{pmatrix}
-=
+\end{pmatrix} =
 \begin{pmatrix}
 -1 & 0 & 0 & 0\\
 0 & -1 & 0 & 0\\
@@ -166,8 +164,7 @@ $$
 \begin{pmatrix}
 I_2 & 0_2\\
 0_2 & -I_2
-\end{pmatrix}
-=
+\end{pmatrix} =
 \begin{pmatrix}
 1 & 0 & 0 & 0\\
 0 & 1 & 0 & 0\\
@@ -191,10 +188,8 @@ $$
 The chirality matrix is
 
 $$
-\Gamma^5_D
-=
-i_{\mathbb C}\Gamma^0_D\Gamma^1_D\Gamma^2_D\Gamma^3_D
-=
+\Gamma^5_D =
+i_{\mathbb C}\Gamma^0_D\Gamma^1_D\Gamma^2_D\Gamma^3_D =
 \begin{pmatrix}
 0_2 & I_2\\
 I_2 & 0_2
@@ -289,8 +284,7 @@ $$
 \begin{pmatrix}
 -I_2 & 0_2\\
 0_2 & I_2
-\end{pmatrix}
-=
+\end{pmatrix} =
 \begin{pmatrix}
 -1 & 0 & 0 & 0\\
 0 & -1 & 0 & 0\\
@@ -302,8 +296,7 @@ $$
 The chiral projectors are then:
 
 $$
-P_L = \frac12(1-\Gamma^5_W)
-=
+P_L = \frac12(1-\Gamma^5_W) =
 \begin{pmatrix}
 I_2 & 0_2\\
 0_2 & 0_2
@@ -313,8 +306,7 @@ $$
 and
 
 $$
-P_R = \frac12(1+\Gamma^5_W)
-=
+P_R = \frac12(1+\Gamma^5_W) =
 \begin{pmatrix}
 0_2 & 0_2\\
 0_2 & I_2
@@ -356,8 +348,7 @@ For the current `galaga_matrix` Dirac basis, the unitary transform from Dirac
 coordinates to the recommended Weyl coordinates is:
 
 $$
-U_{W\leftarrow D}
-=
+U_{W\leftarrow D} =
 \frac{1}{\sqrt2}
 \begin{pmatrix}
 I_2 & -I_2\\
@@ -374,8 +365,7 @@ $$
 The gamma matrices change by:
 
 $$
-\Gamma^\mu_W
-=
+\Gamma^\mu_W =
 U_{W\leftarrow D}\Gamma^\mu_DU_{W\leftarrow D}^\dagger.
 $$
 
@@ -388,10 +378,8 @@ $$
 The current reference column becomes:
 
 $$
-u_W
-=
-U_{W\leftarrow D}u_D
-=
+u_W =
+U_{W\leftarrow D}u_D =
 \frac{1}{\sqrt2}
 \begin{pmatrix}
 1\\0\\1\\0
@@ -419,8 +407,7 @@ the STA pseudoscalar.
 The Majorana transform used in the example notebook is:
 
 $$
-U_{M\leftarrow D}
-=
+U_{M\leftarrow D} =
 \frac{1}{\sqrt2}
 \begin{pmatrix}
 i_{\mathbb C} & 0 & 0 & -i_{\mathbb C}\\
@@ -445,8 +432,7 @@ $$
 The gamma matrices change by:
 
 $$
-\Gamma^\mu_M
-=
+\Gamma^\mu_M =
 U_{M\leftarrow D}\Gamma^\mu_DU_{M\leftarrow D}^\dagger.
 $$
 

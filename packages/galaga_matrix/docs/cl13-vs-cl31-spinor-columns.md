@@ -40,7 +40,6 @@ There are several different senses in which a Clifford algebra can "work":
    $$
    \gamma_i\gamma_j + \gamma_j\gamma_i = 2g_{ij}I.
    $$
-
 3. **A spinor-column roundtrip works.** A single column $\rho(\psi)u$ contains
    enough information to recover every even multivector $\psi \in Cl^0(p,q)$.
 
@@ -124,8 +123,7 @@ $$
 The conversion can roundtrip exactly only when:
 
 $$
-\operatorname{rank}_{\mathbb R}(A)
-=
+\operatorname{rank}_{\mathbb R}(A) =
 \dim_{\mathbb R} Cl^0(p,q).
 $$
 
@@ -244,8 +242,7 @@ $$
 So there is a nontrivial kernel:
 
 $$
-\ker \Phi_u
-=
+\ker \Phi_u =
 \{\psi\in Cl^0(3,1) : \rho(\psi)u=0\}
 \neq 0.
 $$
@@ -274,10 +271,8 @@ That means the column cannot distinguish $\psi$ from $\psi+n$ for any $n$ in
 this kernel:
 
 $$
-\rho(\psi+n)u
-=
-\rho(\psi)u+\rho(n)u
-=
+\rho(\psi+n)u =
+\rho(\psi)u+\rho(n)u =
 \rho(\psi)u.
 $$
 
@@ -291,10 +286,8 @@ The rejection is not a theorem that $Cl(3,1)$ has no spinors. It is a statement
 about the current package convention:
 
 $$
-\text{selected compact representation}
-+
-\text{selected reference column}
-+
+\text{selected compact representation} +
+\text{selected reference column} +
 \text{single-column inverse}
 $$
 

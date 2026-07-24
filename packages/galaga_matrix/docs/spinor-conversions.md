@@ -179,10 +179,10 @@ For a spinor column $(\alpha, \beta)^T$, the reconstructed canonical even
 multivector is:
 
 $$
-\operatorname{Re}(\alpha)
-+ \operatorname{Im}(\alpha)e_{12}
-+ \operatorname{Re}(\beta)e_{13}
-+ \operatorname{Im}(\beta)e_{23}.
+\operatorname{Re}(\alpha) +
+\operatorname{Im}(\alpha)e_{12} +
+\operatorname{Re}(\beta)e_{13} +
+\operatorname{Im}(\beta)e_{23}.
 $$
 
 If expressed with $e_{31}$, the $e_{31}$ coefficient is $-\operatorname{Re}(\beta)$.

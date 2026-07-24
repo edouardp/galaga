@@ -46,6 +46,7 @@ from_spinor_column(alg, np.array(...))  # raw array — existing API
 ### Rule 4: Basis-aware spinor transforms
 
 `to_basis()` checks `kind`:
+
 - `"operator"`: similarity transform M' = S M S†
 - `"ket"`: single-sided ψ' = S ψ
 - `"bra"`: single-sided φ' = φ S†

@@ -163,8 +163,7 @@ $$
 Multiplication is componentwise:
 
 $$
-(x_+,x_-)(y_+,y_-)
-=
+(x_+,x_-)(y_+,y_-) =
 (x_+y_+,\ x_-y_-).
 $$
 
@@ -335,8 +334,7 @@ The natural faithful compact representation of a double algebra is not one
 irreducible block. It is the direct sum of both irreducible blocks:
 
 $$
-\rho(a_+,a_-)
-=
+\rho(a_+,a_-) =
 \begin{pmatrix}
 \rho_A(a_+) & 0 \\
 0 & \rho_A(a_-)

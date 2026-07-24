@@ -22,8 +22,9 @@ The spinor $|\psi_n\rangle$ is literally the "square root" of the direction n̂
 For n̂ = e₃ (the z-axis):
 
 $$
-\frac{1}{2}(I + \sigma_3) = \frac{1}{2}\begin{pmatrix}2 & 0\\0 & 0\end{pmatrix}
-= \begin{pmatrix}1\\0\end{pmatrix}\begin{pmatrix}1 & 0\end{pmatrix}
+\frac{1}{2}(I + \sigma_3) =
+\frac{1}{2}\begin{pmatrix}2 & 0\\0 & 0\end{pmatrix} =
+\begin{pmatrix}1\\0\end{pmatrix}\begin{pmatrix}1 & 0\end{pmatrix}
 $$
 
 The spinor (1, 0)ᵀ is "spin-up along z" — the square root of the z-direction.
