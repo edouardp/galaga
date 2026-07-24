@@ -101,6 +101,7 @@ helps future contributors understand why certain choices were made.
 | [086](086-native-null-cga-is-a-validated-model-layer.md) | Native-Null CGA Is a Validated Model Layer | Accepted |
 | [087](087-rga-semantics-are-a-validated-model-layer.md) | RGA Semantics Are a Validated Model Layer | Accepted |
 | [088](088-explicit-versions-for-prereleases.md) | Explicit Versions for Prereleases | Accepted |
+| [089](089-releases-use-any-clean-tracked-branch.md) | Releases Use Any Clean Tracked Branch | Accepted |
 
 ## Creating New ADRs
 

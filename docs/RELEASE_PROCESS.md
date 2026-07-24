@@ -118,7 +118,7 @@ version bumping does not.
 
 | Step | What | Fails if |
 |---|---|---|
-| 1. Guard | Check on `main`, clean working tree | Dirty repo or wrong branch |
+| 1. Guard | Resolve the current branch/upstream and check the working tree | Detached HEAD, missing upstream, or dirty repo |
 | 2. Resolve | Calculate a stable bump or validate an exact stable/prerelease version | Invalid or repeated version |
 | 3. Synchronize | Update the three released packages and all companion galaga dependency floors | — |
 | 4. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
@@ -133,6 +133,25 @@ version bumping does not.
 | 13. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
 If any step fails, the script stops. Nothing is published or tagged until tests pass.
+
+### Release Branch Policy
+
+Releases are not restricted to `main`. The shared publish guard accepts any
+clean attached branch with a configured upstream. This lets the Galaga 2
+prerelease train run directly from `galaga_v2`:
+
+```bash
+git switch galaga_v2
+git status --short --branch
+git branch --verbose --verbose
+make release VERSION=2.0.0a1
+```
+
+Before continuing, verify that the status is clean and that the branch tracks
+the intended remote—for example, `origin/galaga_v2`. The release commit is
+created on the checked-out branch, and the script's `git push` updates that
+branch's configured upstream. Tags and GitHub releases still identify the
+exact release commit independently of the branch name.
 
 ### Files Modified by a Release
 
@@ -191,7 +210,7 @@ Before every release, the script enforces:
 - [ ] Twine check passes (metadata + README render)
 - [ ] CHANGELOG has been edited (placeholder removed)
 - [ ] Working tree is clean
-- [ ] On `main` branch
+- [ ] Current branch is attached and tracks the intended remote branch
 
 ### Manual Checks (Not Automated)
 
