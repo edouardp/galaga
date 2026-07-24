@@ -157,6 +157,11 @@ For the mathematical relationship between primitive idempotents, reciprocal
 frames, and compact real, complex, or quaternionic matrix representations, see
 [Spectral-Sandwich Matrix Representations](docs/spectral-sandwich-representations.md).
 
+For the proposed faithful `4×4` complex representation of native-null 3D CGA,
+its Vahlen/Möbius block interpretation, and the `2×2` quaternion
+representation of the even conformal algebra, see
+[Native-Null CGA Matrix Representations](docs/specs/native-null-cga-matrix-representations.md).
+
 ## Tests
 
 ```bash
