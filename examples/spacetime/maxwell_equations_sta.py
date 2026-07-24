@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.14"
 app = marimo.App()
 
 
@@ -26,34 +26,32 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, p_sta
+    from galaga import Algebra, DisplayPolicy, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, grade, mo, np, p_sta, plt
+    return Algebra, DisplayPolicy, gm, grade, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        """
-        # Maxwell Equations in STA
+    mo.md(r"""
+    # Maxwell Equations in STA
 
-        In spacetime algebra the four Maxwell equations collapse to one equation:
+    In spacetime algebra the four Maxwell equations collapse to one equation:
 
-        $$
-        \nabla F = J.
-        $$
+    $$
+    \nabla F = J.
+    $$
 
-        Here `F` is the electromagnetic field bivector, `J` is the spacetime current,
-        and the geometric product automatically contains both divergence and curl parts.
-        """
-    )
+    Here `F` is the electromagnetic field bivector, `J` is the spacetime current,
+    and the geometric product automatically contains both divergence and curl parts.
+    """)
     return
 
 
 @app.cell
-def _(Algebra, p_sta):
-    sta = Algebra(config=p_sta())
+def _(Algebra, DisplayPolicy, p_sta):
+    sta = Algebra(config=p_sta(),display=DisplayPolicy(content="full"))
     g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1, g2, g3
 
@@ -83,21 +81,19 @@ def _(g0, g1, g2, g3, gm):
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Split Relative to an Observer
+    mo.md(r"""
+    ## Split Relative to an Observer
 
-        Relative to $\gamma_0$, write
+    Relative to $\gamma_0$, write
 
-        $$
-        F = E_x \gamma_1 \gamma_0 + E_y \gamma_2 \gamma_0 + E_z \gamma_3 \gamma_0
-        + B_x \gamma_2 \gamma_3 + B_y \gamma_3 \gamma_1 + B_z \gamma_1 \gamma_2.
-        $$
+    $$
+    F = E_x \gamma_1 \gamma_0 + E_y \gamma_2 \gamma_0 + E_z \gamma_3 \gamma_0 +
+    B_x \gamma_2 \gamma_3 + B_y \gamma_3 \gamma_1 + B_z \gamma_1 \gamma_2.
+    $$
 
-        The grade-1 and grade-3 parts of $\nabla F$ correspond to the inhomogeneous
-        and homogeneous Maxwell equations.
-        """
-    )
+    The grade-1 and grade-3 parts of $\nabla F$ correspond to the inhomogeneous
+    and homogeneous Maxwell equations.
+    """)
     return
 
 
@@ -111,7 +107,7 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(bz, ex, ey, g0, g1, g2, grade, gm):
+def _(bz, ex, ey, g0, g1, g2, gm, grade):
     F = ex.value * (g1 * g0) + ey.value * (g2 * g0) + bz.value * (g1 * g2)
     F2 = F * F
     gm.md(rt"""
@@ -129,23 +125,21 @@ def _(bz, ex, ey, g0, g1, g2, grade, gm):
 
     {grade(F2, 4)} = {grade(F2, 4):value}
     """)
-    return F
+    return
 
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        ## Plane Wave Example
+    mo.md(r"""
+    ## Plane Wave Example
 
-        For a vacuum plane wave with $E \perp B$ and $|E| = |B|$, the invariant square
-        vanishes:
+    For a vacuum plane wave with $E \perp B$ and $|E| = |B|$, the invariant square
+    vanishes:
 
-        $$
-        F^2 = 0.
-        $$
-        """
-    )
+    $$
+    F^2 = 0.
+    $$
+    """)
     return
 
 
@@ -188,6 +182,7 @@ def _(np, phase, plt, wave_amplitude):
     _ax.legend()
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

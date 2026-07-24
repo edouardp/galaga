@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.14"
 app = marimo.App()
 
 
@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, p_sta
+    from galaga import Algebra, DisplayPolicy, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, grade, mo, np, p_sta, plt
+    return Algebra, DisplayPolicy, gm, grade, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -45,11 +45,11 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, p_sta):
-    sta = Algebra(config=p_sta())
+def _(Algebra, DisplayPolicy, p_sta):
+    sta = Algebra(config=p_sta(),display=DisplayPolicy(content="full"))
     g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     I = sta.I
-    return I, g0, g1, g2, g3
+    return g0, g1, g2, g3
 
 
 @app.cell
@@ -61,27 +61,27 @@ def _(mo):
 
 
 @app.cell(hide_code=True)
-def _(I, amplitude, g0, g1, g2, g3, gm, grade, np, phase):
+def _(amplitude, g0, g1, g2, g3, gm, grade, np, phase):
     field_amplitude = amplitude.value * np.cos(phase.value)
-    E = field_amplitude * (g1 * g0)
-    B = field_amplitude * (g2 * g3)
+    E = (field_amplitude * (g1 * g0)).named("E")
+    B = (field_amplitude * (g2 * g3)).named("B")
     F = E + B
     F2 = F * F
 
     gm.md(rt"""
     ## Plane-Wave Field
 
-    {E} = {E:value}
+    {E}
 
-    {B} = {B:value}
+    {B}
 
-    {F} = {F:value}
+    {F}
 
-    {F2} = {F2:value}
+    {F2}
 
-    Scalar invariant {grade(F2, 0)} = {grade(F2, 0):value}
+    Scalar invariant {grade(F2, 0)}
 
-    Pseudoscalar invariant {grade(F2, 4)} = {grade(F2, 4):value}
+    Pseudoscalar invariant {grade(F2, 4)}
 
     For this wave both invariants vanish, which is the STA signature of a null field.
     """)
@@ -103,6 +103,7 @@ def _(field_amplitude, np, phase, plt):
     _ax.legend()
     _fig.tight_layout()
     _fig
+    return
 
 
 @app.cell

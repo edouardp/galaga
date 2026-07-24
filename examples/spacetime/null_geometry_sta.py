@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.14"
 app = marimo.App()
 
 
@@ -26,10 +26,10 @@ def _():
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, grade, p_sta
+    from galaga import Algebra, DisplayPolicy, grade, p_sta
     import galaga_marimo as gm
 
-    return Algebra, gm, mo, np, p_sta, plt
+    return Algebra, DisplayPolicy, gm, mo, np, p_sta, plt
 
 
 @app.cell(hide_code=True)
@@ -45,26 +45,26 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, p_sta):
-    sta = Algebra(config=p_sta())
+def _(Algebra, DisplayPolicy, p_sta):
+    sta = Algebra(config=p_sta(),display=DisplayPolicy(content="full"))
     g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 
 
 @app.cell(hide_code=True)
 def _(g0, g1, gm):
-    k_plus = g0 + g1
-    k_minus = g0 - g1
+    k_plus = (g0 + g1).named("k_{+}")
+    k_minus = (g0 - g1).named("k_{-}")
     gm.md(rt"""
     ## Basic Null Vectors
 
-    {k_plus} = {k_plus:value}
+    {k_plus}
 
-    {k_minus} = {k_minus:value}
+    {k_minus}
 
-    {(k_plus * k_plus)} = {(k_plus * k_plus):value}
+    {(k_plus * k_plus)}
 
-    {(k_minus * k_minus)} = {(k_minus * k_minus):value}
+    {(k_minus * k_minus)}
     """)
     return
 
@@ -86,7 +86,7 @@ def _(gm, np, rapidity):
     A boosted timelike observer has components
 
     $$
-    (\\cosh \\varphi, \\sinh \\varphi) = ({_future[0]:.6f}, {_future[1]:.6f})
+    (\cosh \varphi, \sinh \varphi) = ({_future[0]:.6f}, {_future[1]:.6f})
     $$
 
     Null directions remain on the cone under boosts, which is why light speed is
