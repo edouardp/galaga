@@ -67,6 +67,9 @@ git add -A
 git commit -m "Release v$NEW"
 
 # --- Tests ---
+echo "==> Running release-workflow tests"
+uv run python -m pytest tests/release/ -v
+
 echo "==> Running galaga tests"
 uv run pytest packages/galaga/tests/ -v
 

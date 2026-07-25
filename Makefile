@@ -52,10 +52,14 @@ security: ## Run security scans (bandit + pip-audit)
 # ============================================================================
 
 .PHONY: test
-test: test-galaga test-galaga-marimo test-galaga-matrix test-galaga-mermaid ## Run all tests
+test: test-release test-galaga test-galaga-marimo test-galaga-matrix test-galaga-mermaid ## Run all tests
 
 .PHONY: test-all
 test-all: test ## Alias for test
+
+.PHONY: test-release
+test-release: ## Run repository release-workflow tests
+	uv run python -m pytest tests/release/ -v
 
 .PHONY: test-galaga
 test-galaga: ## Run galaga tests

@@ -123,16 +123,22 @@ version bumping does not.
 | 3. Synchronize | Update the three released packages and all companion galaga dependency floors | — |
 | 4. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
 | 5. Commit | `git commit -m "Release vX.Y.Z"` | Pre-commit hooks fail |
-| 6. Test galaga | `pytest packages/galaga/tests/` | Any test failure |
-| 7. Test galaga-matrix | `pytest packages/galaga_matrix/tests/` | Any test failure |
-| 8. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
-| 9. Build | `uv build` all three released packages | Build failure |
-| 10. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
-| 11. Publish | Publish galaga, then matrix and Marimo companions | Auth failure or version conflict |
-| 12. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
-| 13. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
+| 6. Test release workflow | `python -m pytest tests/release/` | Any repository-tooling test failure |
+| 7. Test galaga | `pytest packages/galaga/tests/` | Any test failure |
+| 8. Test galaga-matrix | `pytest packages/galaga_matrix/tests/` | Any test failure |
+| 9. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
+| 10. Build | `uv build` all three released packages | Build failure |
+| 11. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
+| 12. Publish | Publish galaga, then matrix and Marimo companions | Auth failure or version conflict |
+| 13. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
+| 14. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
 If any step fails, the script stops. Nothing is published or tagged until tests pass.
+
+Release-workflow tests live at repository level because they exercise the
+Makefile, shell scripts, Git state, and repository version policy rather than
+the installable `galaga` package. Run them independently with
+`make test-release`.
 
 ### Release Branch Policy
 
@@ -203,6 +209,7 @@ turns an RC into a final release. The maintainer explicitly chooses
 
 Before every release, the script enforces:
 
+- [ ] Repository release-workflow tests pass
 - [ ] All galaga tests pass (release environment, Python ≥3.11)
 - [ ] All galaga-matrix tests pass (Python 3.11+)
 - [ ] All galaga-marimo tests pass (Python 3.14)
