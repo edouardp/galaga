@@ -221,7 +221,7 @@ Before every release, the script enforces:
 
 ### Manual Checks (Not Automated)
 
-- [ ] Examples still run: `uv run marimo edit examples/basics/naming_demo.py`
+- [ ] Examples still run: `make run-marimo`
 - [ ] README renders correctly on PyPI after publish
 - [ ] `pip install galaga` in a clean venv works
 

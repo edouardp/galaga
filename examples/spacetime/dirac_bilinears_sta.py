@@ -1,21 +1,7 @@
 import marimo
 
-__generated_with = "0.23.11"
+__generated_with = "0.23.14"
 app = marimo.App()
-
-
-@app.cell
-def _():
-    import sys
-    from pathlib import Path
-
-    _root = str(Path(__file__).resolve().parent.parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_marimo")
-    _gmat = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_matrix")
-    for _p in [_root, _gamo, _gmat]:
-        if _p not in sys.path:
-            sys.path.insert(0, _p)
-    return
 
 
 @app.cell
@@ -444,7 +430,7 @@ def _(
     _md = gm.md(rt"""
     Lorentz spinor:
 
-    {_L.display()}
+    {_L}
 
     Matrix representative:
 

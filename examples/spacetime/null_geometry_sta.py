@@ -6,19 +6,6 @@ app = marimo.App()
 
 @app.cell
 def _():
-    import sys
-    from pathlib import Path
-
-    _root = str(Path(__file__).resolve().parent.parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_marimo")
-    for p in [_root, _gamo]:
-        if p not in sys.path:
-            sys.path.insert(0, p)
-    return
-
-
-@app.cell
-def _():
     import marimo as mo
     import numpy as np
     import matplotlib.pyplot as plt

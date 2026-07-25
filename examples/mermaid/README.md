@@ -6,8 +6,12 @@ generation, value annotations, compact trees, layout directions, generated
 source, and notation-sensitive labels.
 
 The notebook requires Python 3.14 for Marimo t-strings. From the repository
-root, open it with:
+root, open the local example gallery with:
 
 ```shell
-uv run --python 3.14 marimo edit examples/mermaid/mermaid_diagram.py
+make run-marimo
 ```
+
+The launcher selects the uncommitted local packages as editable installations;
+the notebook itself remains portable and also runs against released packages
+outside the checkout.

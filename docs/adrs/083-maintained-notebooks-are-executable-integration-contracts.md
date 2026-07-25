@@ -31,7 +31,7 @@ multivector method.
 
 ## Decision outcome
 
-`tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS` is the single 64-file gallery
+`tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS` is the single 68-file gallery
 ledger. The migration command refuses paths outside that tuple and supports a
 non-writing `--check` mode.
 
@@ -50,6 +50,10 @@ Repository tests validate the same ledger in four stages: Python 3.11
 architecture and codemod checks, Python 3.14 compilation, Marimo dependency
 validation, and headless execution of every notebook. Any failed cell fails
 the runtime gate.
+
+All example Marimo source is repository-independent. Notebook cells do not
+derive checkout paths or mutate `sys.path`; the local editable-package launcher
+recorded in ADR-090 owns development source selection.
 
 ## Consequences
 

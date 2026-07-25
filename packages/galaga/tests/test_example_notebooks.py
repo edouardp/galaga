@@ -71,6 +71,7 @@ def test_migrated_notebooks_execute_headlessly(tmp_path: Path) -> None:
         str(ROOT / "packages" / "galaga"),
         str(ROOT / "packages" / "galaga_marimo"),
         str(ROOT / "packages" / "galaga_matrix"),
+        str(ROOT / "packages" / "galaga_mermaid"),
     ]
     environment = os.environ.copy()
     inherited = environment.get("PYTHONPATH")

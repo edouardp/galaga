@@ -22,11 +22,16 @@ The recommended reading order is:
    facade and the boundary between the two packages.
 
 The notebooks require Python 3.14 because Marimo's dynamic Markdown examples
-use t-strings. From the repository root, open one with:
+use t-strings. From the repository root, open the local example gallery with:
 
 ```shell
-uv run --python 3.14 marimo edit examples/galaga_v2/algebra_construction.py
+make run-marimo
 ```
+
+The launcher uses editable installs of every local Galaga package, so the
+notebooks exercise uncommitted source without containing repository-specific
+path setup. The same files run unchanged against installed releases outside
+the checkout.
 
 All five notebooks are part of the executable example ledger. The test suite
 compiles them, validates their Marimo dependency graphs, and executes them

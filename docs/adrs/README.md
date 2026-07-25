@@ -102,6 +102,7 @@ helps future contributors understand why certain choices were made.
 | [087](087-rga-semantics-are-a-validated-model-layer.md) | RGA Semantics Are a Validated Model Layer | Accepted |
 | [088](088-explicit-versions-for-prereleases.md) | Explicit Versions for Prereleases | Accepted |
 | [089](089-releases-use-any-clean-tracked-branch.md) | Releases Use Any Clean Tracked Branch | Accepted |
+| [090](090-portable-notebooks-use-a-local-editable-launcher.md) | Portable Notebooks Use a Local Editable Launcher | Accepted |
 
 ## Creating New ADRs
 

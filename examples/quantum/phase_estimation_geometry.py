@@ -1,20 +1,7 @@
 import marimo
 
-__generated_with = "0.21.1"
+__generated_with = "0.23.14"
 app = marimo.App()
-
-
-@app.cell
-def _():
-    import sys
-    from pathlib import Path
-
-    _root = str(Path(__file__).resolve().parent.parent.parent)
-    _gamo = str(Path(__file__).resolve().parent.parent.parent / "packages" / "galaga_marimo")
-    for _path in [_root, _gamo]:
-        if _path not in sys.path:
-            sys.path.insert(0, _path)
-    return
 
 
 @app.cell

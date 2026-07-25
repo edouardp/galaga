@@ -1,24 +1,7 @@
 import marimo
 
-__generated_with = "0.23.11"
+__generated_with = "0.23.14"
 app = marimo.App()
-
-
-@app.cell
-def _():
-    import sys
-    from pathlib import Path
-
-    _repository = Path(__file__).resolve().parent.parent.parent
-    for _source in (
-        _repository,
-        _repository / "packages" / "galaga",
-        _repository / "packages" / "galaga_marimo",
-    ):
-        _path = str(_source)
-        if _path not in sys.path:
-            sys.path.insert(0, _path)
-    return
 
 
 @app.cell

@@ -5,6 +5,10 @@
 #   make <target>     Run a specific target
 
 EXCLUDE_NEWER := $(shell date -u -v-7d +%Y-%m-%dT00:00:00Z 2>/dev/null || date -u -d '7 days ago' +%Y-%m-%dT00:00:00Z 2>/dev/null)
+MARIMO_EDITABLES := --with-editable ./packages/galaga \
+	--with-editable ./packages/galaga_marimo \
+	--with-editable ./packages/galaga_matrix \
+	--with-editable ./packages/galaga_mermaid
 
 .PHONY: help
 help: ## Show this help message
@@ -22,6 +26,15 @@ install: ## Install dependencies with uv
 .PHONY: install-hooks
 install-hooks: ## Install pre-commit git hooks
 	uv run pre-commit install
+
+# ============================================================================
+# Interactive Examples
+# ============================================================================
+
+.PHONY: run-marimo
+run-marimo: ## Open the example gallery against all local packages
+	uv run --python 3.14 $(MARIMO_EDITABLES) \
+		marimo edit --no-token examples
 
 # ============================================================================
 # Code Quality

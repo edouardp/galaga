@@ -17,11 +17,13 @@ The recommended reading order is:
    and faithful reconstruction.
 
 The notebooks require Python 3.14 for Marimo t-strings. From the repository
-root, open one with:
+root, open the local example gallery with:
 
 ```shell
-uv run --python 3.14 marimo edit examples/matrix/representations_and_roundtrips.py
+make run-marimo
 ```
 
-They are included in the executable notebook ledger and are run headlessly by
-the test suite.
+The launcher selects the uncommitted local packages as editable installations;
+the notebook files themselves remain portable and also run against released
+packages outside the checkout. They are included in the executable notebook
+ledger and are run headlessly by the test suite.
