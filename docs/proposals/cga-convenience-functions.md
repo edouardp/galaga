@@ -1,11 +1,12 @@
 # Proposal: CGA Convenience Functions
 
-> **Implemented with a revised architecture (2026-07-21).** The accepted
-> design is documented in
-> [ADR-086](../adrs/086-native-null-cga-is-a-validated-model-layer.md) and the
-> [native-null CGA guide](../cga/README.md). This proposal predates
-> `AlgebraConfig`, `ModelConfig`, the native-null `p_cga` preset, and the
-> Galaga 2 facade. It remains as design history; where it conflicts with those
+> [!NOTE]
+>
+> **Implemented with a revised architecture (2026-07-21).**
+> The accepted design is documented in [ADR-086](../adrs/086-native-null-cga-is-a-validated-model-layer.md) and the
+> [native-null CGA guide](../cga/README.md). This proposal predates `AlgebraConfig`,
+> `ModelConfig`, the native-null `p_cga` preset, and the Galaga 2
+> facade. It remains as design history; where it conflicts with those
 > documents, ADR-086 takes precedence.
 
 ## Summary
