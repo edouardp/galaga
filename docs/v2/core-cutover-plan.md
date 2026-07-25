@@ -184,7 +184,7 @@ The replacement suite must visibly distinguish:
 | 5 | Expression provenance is rebuilt | Complete | Evaluation round trips and numeric-only isolation pass |
 | 6 | Rendering and notation are rebuilt | Complete | Semantic, golden, and legacy/facade differential rendering tests pass |
 | 7 | Companion packages and shims migrate | Complete | Integration and deprecation suites pass |
-| 8 | Top-level API shadows the facade | Planned | Full suite reaches no legacy numeric path |
+| 8 | Top-level API shadows the facade | Complete | Full suite reaches no legacy numeric path |
 | 9 | Legacy engine is removed | Planned | Clean wheel and release gates pass |
 
 ## Phase 0: internalize the numeric core
@@ -1135,7 +1135,7 @@ Completed so far:
 - the final combined Python 3.11 Galaga, matrix, and Mermaid gate passes 3,174
   tests with 21 skips, while the Python 3.14 Marimo and maintained-notebook
   gate passes 110 tests;
-- the 64 maintained Marimo notebooks are an executable allowlist in
+- the 68 maintained Marimo notebooks are an executable allowlist in
   `tools.migrate_v2_notebooks`, and the codemod refuses to write any other
   example path;
 - those notebooks now import the promoted `galaga` API, use eager values with optional
@@ -1147,7 +1147,7 @@ Completed so far:
   contraction, inverse, subtraction, and sandwich compositions in teaching
   notebooks rather than being reintroduced into the facade;
 - Python 3.14 compiles every ledgered notebook without LaTeX escape warnings,
-  Marimo validates every cell dependency graph, and all 64 notebooks execute
+  Marimo validates every cell dependency graph, and all 68 notebooks execute
   headlessly with zero failed cells; and
 - Python 3.11 runs the ledger and codemod architecture tests while explicitly
   skipping only the t-string compile and runtime gates.
@@ -1317,8 +1317,7 @@ Phase 9 exit gate:
 
 ### Galaga 2 publication train
 
-After Phase 9's source and artifact gates pass, publication follows the
-normative [release process](../RELEASE_PROCESS.md) and
+Publication follows the normative [release process](../RELEASE_PROCESS.md) and
 [ADR-088](../adrs/088-explicit-versions-for-prereleases.md):
 
 ```bash
@@ -1329,11 +1328,15 @@ make release VERSION=2.0.0rc1
 make release VERSION=2.0.0
 ```
 
-These are five complete releases with validation and feedback between them,
-not five version mutations performed in one session. Further prerelease
-iterations may be inserted. The final exact command is required:
-`2.0.0rc1` remains a prerelease and does not become the stable `2.0.0`
-release automatically.
+These are complete releases with validation and feedback between them, not five
+version mutations performed in one session. Alpha releases can precede Phase 9
+completion so the retained oracle can support external comparison. The beta
+should represent the feature-complete surface; the release candidate and final
+release require the Phase 9 source and artifact gates.
+
+Further prerelease iterations may be inserted. The final exact command is
+required: `2.0.0rc1` remains a prerelease and does not become the stable
+`2.0.0` release automatically.
 
 ## Test-suite organization
 

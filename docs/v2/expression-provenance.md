@@ -70,9 +70,10 @@ operation-specific expression-class hierarchy and no second operation
 registry. Future compatibility constructors such as an old `Gp` spelling can
 construct `Call("geometric_product", ...)` without gaining separate semantics.
 
-The package is named `galaga.expression`, rather than taking over
-`galaga.expr` immediately, because `galaga.expr` remains a public legacy module
-until the Phase 9 compatibility cutover.
+The package is named `galaga.expression`. The old `galaga.expr` module remains
+only as a prerelease legacy path until the Phase 9 compatibility cutover; new
+code imports expression types and helpers from `galaga.expression` or the
+top-level public API.
 
 ## Independent name and tracking state
 
@@ -255,7 +256,12 @@ numeric evaluation or stable operation identity; the architecture and tests
 are documented in
 [Semantic rendering implementation](rendering-implementation.md).
 
-The dedicated Phase 5 suite contains 154 tests. In the combined expression,
-facade, presentation, and namespace coverage run, every implementation module
-under `galaga.expression` has 100% branch coverage; `galaga.facade._numeric`
-and `galaga.facade.catalog` each have 95% branch coverage.
+Run the owned suite from the repository root:
+
+```bash
+uv run pytest packages/galaga/tests/expression -q
+```
+
+Exact historic test counts and coverage percentages are intentionally omitted
+from this living implementation guide; the release gate measures the current
+tree.

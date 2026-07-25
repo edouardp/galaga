@@ -34,9 +34,15 @@ Chosen option: "One function per variant" — `left_contraction`,
 `right_contraction`, `hestenes_inner`, `doran_lasenby_inner`, `scalar_product`
 are all first-class functions. The `|` operator maps to `doran_lasenby_inner`.
 
-An `ip(a, b, mode="doran_lasenby")` convenience function is also provided for
-users who want a single entry point. `dorst_inner` is an alias for
-`doran_lasenby_inner`.
+Galaga deliberately does not provide an `ip(a, b, mode=...)` dispatcher. A
+user who wants a short functional spelling can create an ordinary local alias
+without hiding the convention from the surrounding code:
+
+```python
+from galaga import doran_lasenby_inner as ip
+```
+
+`dorst_inner` remains an alias for `doran_lasenby_inner`.
 
 ### Consequences
 

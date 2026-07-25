@@ -6,9 +6,8 @@ tree, not three independent interpretations of an expression. Rendering never
 performs a geometric-algebra operation and never changes numeric coefficients
 or expression identity.
 
-This is the Phase 6 implementation over `galaga.facade`. Phase 7 consumers now
-use it. Top-level Galaga deliberately keeps the legacy renderer until the
-Phase 8 type cutover.
+This was built in Phase 6 over `galaga.facade` and is now the renderer used by
+the promoted top-level Galaga 2 API and its Phase 7 companion consumers.
 
 ## Component decomposition
 
@@ -252,10 +251,9 @@ The implemented presets are:
   antidot products, interiors, transwedge products, complements, Hodge and
   weight duals, metric maps, bulk/weight parts, and antireverse.
 
-The immutable v2 `Notation` lives in `galaga.presentation` and is exported by
-`galaga.facade`. The public `galaga.notation` module remains the mutable v1
-compatibility implementation only while top-level `galaga.Algebra` remains on
-the legacy engine through Phase 8.
+The immutable Galaga 2 `Notation` lives in `galaga.presentation` and is
+exported by both `galaga` and `galaga.facade`. The old `galaga.notation` module
+is a migration-only Galaga 1 path; new code imports `Notation` from `galaga`.
 
 ## Emitters
 
@@ -398,9 +396,11 @@ parameter handling, a 26-operation Lengyel notation matrix, and the complete
 - Numeric formatting is display-oriented, not a serialization format.
 - Top-level values use the semantic renderer through the promoted facade.
 - Legacy mutable notation and operation-specific renderer adapters remain only
-  under `galaga.legacy`; `legacy.render` is retained as a Phase 8 oracle.
+  under `galaga.legacy`; `legacy.render` is retained only as a prerelease
+  differential oracle.
 - `galaga_matrix`, `galaga_marimo`, `galaga_mermaid`, and the maintained
   notebooks now consume the public facade/expression/display protocols.
 
-Those boundaries let Phase 8 perform the top-level type cutover without
-another rendering redesign.
+Those boundaries allowed the Phase 8 top-level type cutover without another
+rendering redesign and allow Phase 9 to delete the oracle without changing the
+public renderer.

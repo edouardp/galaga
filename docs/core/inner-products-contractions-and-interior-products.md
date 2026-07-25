@@ -359,14 +359,15 @@ In Galaga:
 
 - `doran_lasenby_inner()` is the definitive function;
 - `dorst_inner` is an alias;
-- `a | b` calls `doran_lasenby_inner(a, b)`;
-- `ip(a, b)` and its alias `inner_product(a, b)` default to this convention;
-- `ip()` also accepts the modes `"hestenes"`, `"left"`, `"right"`, and
-  `"scalar"`.
+- `a | b` calls `doran_lasenby_inner(a, b)`; and
+- Galaga 2 deliberately exposes no unqualified `ip()` or `inner_product()`
+  dispatcher.
 
-The dispatcher currently does not include Lengyel's `metric_inner_product()`
-or the RGA interior products. Code that needs those meanings should call their
-explicit functions.
+Galaga 1's dispatcher selected among several modes but did not include
+Lengyel's `metric_inner_product()` or the RGA interior products. Galaga 2
+removes that partial ambiguity: call every intended meaning explicitly, or
+choose a project-local alias such as
+`from galaga import doran_lasenby_inner as ip`.
 
 Because other GA libraries map `|` to Hestenes inner, a contraction, or other
 operations, portable explanations should never use “pipe means inner product”
@@ -841,14 +842,17 @@ Primary Lengyel and RGA sources:
 
 Relevant Galaga material in this repository:
 
-- [`galaga/algebra.py`](../../packages/galaga/galaga/algebra.py) for the legacy
-  executable definitions;
+- [`galaga/core`](../../packages/galaga/galaga/core/__init__.py) for the current
+  executable numeric definitions;
+- [`galaga/algebra.py`](../../packages/galaga/galaga/algebra.py) for the
+  prerelease legacy oracle;
 - [`rga-convention-layer.md`](../rga-convention-layer.md) for the RGA operation
   mapping;
 - [`review-terathon-ga-foundations.md`](../review-terathon-ga-foundations.md)
   for the source review;
 - [`ga-library-operations-survey.md`](../ga-library-operations-survey.md) for
   cross-library operator differences;
-- [`test_ga.py`](../../packages/galaga/tests/test_ga.py) and
+- [`test_metric_rga.py`](../../packages/galaga/tests/core/test_metric_rga.py)
+  and
   [`test_rga_convention_layer.py`](../../packages/galaga/tests/test_rga_convention_layer.py)
   for executable sign and grade identities.

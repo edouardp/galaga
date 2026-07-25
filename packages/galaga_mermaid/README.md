@@ -2,6 +2,10 @@
 
 Experimental Mermaid flowcharts for Galaga 2 expression provenance.
 
+```bash
+python -m pip install "galaga-mermaid"
+```
+
 ```python
 from galaga import Algebra, geometric_product
 from galaga_mermaid import expr_to_mermaid, mv_to_mermaid
@@ -29,4 +33,5 @@ read private multivector expression state.
 
 The repository includes a Marimo notebook demonstrating interactive layout,
 compact trees, value annotations, generated source, and notation-sensitive
-labels: [Mermaid diagrams from Galaga expressions](../../examples/mermaid/mermaid_diagram.py).
+labels:
+[Mermaid diagrams from Galaga expressions](https://github.com/edouardp/galaga/blob/main/examples/mermaid/mermaid_diagram.py).

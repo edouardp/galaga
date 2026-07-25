@@ -41,7 +41,12 @@ product-table internals.
 | Top-level cutover | `galaga` exactly re-exports the facade; Galaga 1 is isolated under the temporary `galaga.legacy` oracle |
 | Release evidence | Guarded full suites, clean Python 3.11 wheel install, Python 3.14 Marimo execution, and a layer-separated performance baseline |
 
-## Remaining work
+## Stable-release gate and post-2.0 work
+
+Only removal of the retained legacy engine and migration-only paths is part of
+the stable `2.0.0` cutover gate. The numeric and performance items below are
+post-2.0 improvements unless a release-candidate regression demonstrates that
+one is required for correctness.
 
 ### 1. Linear maps and basis changes
 

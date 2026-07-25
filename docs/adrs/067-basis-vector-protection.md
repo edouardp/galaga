@@ -1,10 +1,16 @@
 ---
-status: accepted
+status: superseded
 date: 2026-04-19
 deciders: edouard
+superseded-by: ADR-077
 ---
 
 # ADR-067: Basis Vectors Are Protected from In-Place Mutation
+
+> **Superseded by
+> [ADR-077](077-optional-expression-provenance.md).** Galaga 2 values and their
+> naming/provenance transitions are immutable, so basis vectors no longer need
+> a special mutation guard.
 
 ## Context and Problem Statement
 

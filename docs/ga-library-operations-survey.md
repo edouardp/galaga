@@ -1,3 +1,5 @@
+<!-- rumdl-disable MD013 -->
+
 # GA Library Operations Survey
 
 Tested across 7 libraries in Cl(3,0,0) unless noted. All results verified by running actual code.
@@ -52,7 +54,7 @@ For vector·vector and vector·bivector, all libraries agree. The difference onl
 | Left contraction | `<<` | `.lc()` | `.lc()` | `left_contraction()` | `<` | `⨼` | `<` |
 | Right contraction | `>>` | — | `.rc()` | `right_contraction()` | `>` | `⨽` | `>`, `\|`, `⋅` |
 | Hestenes inner | `\|` | `\|` | — | `hestenes_inner()` | `\|` | — | — |
-| Doran–Lasenby | — | — | `\|` | `\|`, `doran_lasenby_inner()`, `dorst_inner()`, `ip(mode="dorst")` | — | `⋅` | — |
+| Doran–Lasenby | — | — | `\|` | `\|`, `doran_lasenby_inner()`, `dorst_inner()` | — | `⋅` | — |
 | Scalar product | `.Dot` | — | `.sp()` | `scalar_product()` | — | `⊙` | — |
 | Conventional left | — | — | — | — | — | — | `<<` |
 | Conventional right | — | — | — | — | — | — | `>>` |
@@ -73,6 +75,7 @@ All libraries agree on left contraction results:
 | scl ⌋ vec | 5e₁ | 5e₁ | 5e₁ | 5e₁ | **0** | 5v₁ | 5v₁ |
 
 Differences:
+
 - **ganja.js** `<<` kills scalars (Hestenes-style left contraction), all others pass scalars through.
 - **Grassmann.jl** `<` gives `+1` for `biv < biv` where all others give `-1`. This is because Grassmann's `<` applies a reverse to the left operand: `⟨ã·b⟩` instead of `⟨a·b⟩`. For `e12 < e12`: reverse of `e12` is `-e12`, so `(-e12)·(e12) = +1`.
 
@@ -88,6 +91,7 @@ Differences:
 | scl ⌊ vec | 0 | 0 | 0 | — | 0 | 0 |
 
 Differences:
+
 - **Grassmann.jl** `>` gives opposite signs on `biv ⌊ vec` and `biv ⌊ biv` compared to all other libraries, again due to the reverse on the left operand. Grassmann's `>>` (conventional) matches the others.
 - **clifford** and **ganja.js** do not have a right contraction operator.
 
@@ -248,11 +252,13 @@ galaga is the only library that exposes all four variants as named functions. cl
 ## Unique Features by Library
 
 ### ganja.js
+
 - Visualization (graphs, animations)
 - `~` is conjugation (not reverse)
 - Inline code transformation for `1e1` syntax
 
 ### clifford
+
 - Numba JIT support
 - Sparse multivector support
 - Conformal model helpers (`ConformalLayout`)
@@ -262,6 +268,7 @@ galaga is the only library that exposes all four variants as named functions. cl
 - Taylor expansion module (`sin`, `cos`, `tan`, `sinh`, `cosh`, `tanh` on MVs)
 
 ### kingdon
+
 - Backend-agnostic (numpy, PyTorch, SymPy)
 - JIT codegen with CSE
 - `map()`, `filter()`, `itermv()` for functional coefficient manipulation
@@ -269,27 +276,34 @@ galaga is the only library that exposes all four variants as named functions. cl
 - `@alg.register` for compiling custom expressions
 
 ### galaga
-- Lazy expression trees for symbolic display with `display()` rendering
-- `Notation` system: `functional()`, `functional_short()`, custom rendering
-- 5 named inner product variants + unified `ip()` dispatcher (modes: `"doran_lasenby"`, `"dorst"`, `"hestenes"`, `"left"`, `"right"`, `"scalar"`)
+
+- Eager immutable values with optional expression provenance and shared
+  ASCII/Unicode/LaTeX semantic rendering
+- Immutable `Notation` rules: conventional, functional long/short, Hestenes,
+  Doran–Lasenby, and Lengyel presentations
+- Explicit Doran–Lasenby, Hestenes, metric, scalar, contraction, and RGA
+  interior products; no unqualified `ip()` dispatcher
 - `dorst_inner` alias for `doran_lasenby_inner`
-- `complement`/`uncomplement` (metric-independent duality)
-- `meet`/`join`, `project`/`reject`/`reflect`
-- `lie_bracket`, `jordan_product`, `anticommutator`
+- Left/right complements and metric Hodge/weight dual families
+- `meet`/`join` aliases for regressive/outer products
+- Unscaled `commutator`, `lie_bracket`, `anticommutator`, and
+  `jordan_product`, plus explicit half-scaled forms
 - Type predicates: `is_scalar`, `is_vector`, `is_bivector`, `is_even`, `is_rotor`, `is_basis_blade`
 - Grade utilities: `grades()`, `even_grades()`, `odd_grades()`
-- `BladeConvention` system with 7 factories: `b_default`, `b_gamma`, `b_sigma`, `b_sigma_xyz`, `b_pga`, `b_sta`, `b_cga`
+- Immutable `BladeConvention` builders for indexed, Euclidean, STA, PGA,
+  native-null/orthogonal CGA, Lengyel CGA/RGA, complex, quaternion, and
+  exterior presentations
 - 3 blade styles: `"compact"` (`e₁₂`), `"juxtapose"` (`e₁e₂`), `"wedge"` (`e₁∧e₂`)
-- `b_sta(sigmas=True, pseudovectors=True)` for σₖ/iσₖ/iγₖ aliases
-- `b_cga()` defaults to the metric-consistent e₊/e₋ CGA frame; the explicit
-  `null_basis="origin_infinity"` option provides legacy display labels only
-- Per-blade overrides via metric-role keys (`"+1-1"`, `"_1"`, `"pss"`)
-- Named constants: `alg.pi`, `.tau`, `.e`, `.h`, `.hbar`, `.c`, `.sqrt2`
-- `fraction()`/`frac()` for symbolic fractions
-- `scalar_sqrt()` with symbolic rendering
-- `simplify()` engine with fixed-point iteration
+- Complete presets for metric, blade vocabulary, display order, notation, and
+  semantic model roles, with independent component overrides
+- Native Gram matrices, including actual oblique and native-null bases
+- `ConformalModel` and `RigidModel` validated semantic layers
+- Numeric square root, exponential, logarithm, and outer transcendental
+  families with explicit real domains
+- Conservative immutable expression simplification rather than a general CAS
 
 ### galgebra
+
 - Full symbolic computation via SymPy
 - Differential operators (grad, div, curl)
 - Non-orthogonal metrics
@@ -297,6 +311,7 @@ galaga is the only library that exposes all four variants as named functions. cl
 - Coordinate-dependent multivector functions
 
 ### GeometricAlgebra.jl
+
 - Grade-aware types (only stores needed components)
 - Compile-time symbolic codegen via MiniCAS
 - `@symbolicga` macro for zero-allocation code generation
@@ -306,6 +321,7 @@ galaga is the only library that exposes all four variants as named functions. cl
 - `outermorphism()` for linear maps
 
 ### Grassmann.jl
+
 - Extensive differential geometry support (manifolds, fiber bundles, connections)
 - `D"..."` diagonal metric for arbitrary signatures including degenerate
 - Projective geometry via `∅` (origin point) — different model from standard PGA

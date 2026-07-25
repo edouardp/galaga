@@ -1,8 +1,16 @@
 # galaga_matrix
 
-Matrix representations for [galaga](../../packages/galaga) Clifford algebras.
+Matrix representations for
+[galaga](https://github.com/edouardp/galaga/tree/main/packages/galaga)
+Clifford algebras.
 
 > **Status**: published to PyPI alongside galaga. Released as part of the monorepo.
+
+During the Galaga 2 prerelease train:
+
+```bash
+python -m pip install --pre "galaga-matrix>=2.0.0a1,<3"
+```
 
 ## What it does
 
@@ -70,9 +78,9 @@ from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 
 The repository includes a short Marimo series using the Galaga 2 facade:
 
-- [representations and round-trips](../../examples/matrix/representations_and_roundtrips.py);
-- [Pauli and Dirac matrices](../../examples/matrix/pauli_and_dirac.py); and
-- [spinor columns](../../examples/matrix/spinor_columns.py).
+- [representations and round-trips](https://github.com/edouardp/galaga/blob/main/examples/matrix/representations_and_roundtrips.py);
+- [Pauli and Dirac matrices](https://github.com/edouardp/galaga/blob/main/examples/matrix/pauli_and_dirac.py); and
+- [spinor columns](https://github.com/edouardp/galaga/blob/main/examples/matrix/spinor_columns.py).
 
 Each notebook is compiled, dependency-checked, and executed headlessly by the
 example test ledger.
@@ -144,23 +152,25 @@ general periodicity recursion.
 - **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix`
   compact works, but `from_matrix` compact raises if the selected compact
   representation is not injective. Use `left-regular` for exact inverse
-  conversion. See [Double Clifford Algebras](docs/double-algebras.md).
+  conversion. See
+  [Double Clifford Algebras](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/double-algebras.md).
 - **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
 - **Spinor roundtrip**: spinor conversions are rank-checked for the actual reference-column map. Signatures whose even subalgebra is not injective under that map raise `TypeError`.
 - **No caching**: blade matrices are rebuilt on every call. Fine for interactive use, not for hot loops.
 
 ## Architecture decisions
 
-See [docs/adrs/](docs/adrs/README.md).
+See the
+[matrix ADR index](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/adrs/README.md).
 
 For the mathematical relationship between primitive idempotents, reciprocal
 frames, and compact real, complex, or quaternionic matrix representations, see
-[Spectral-Sandwich Matrix Representations](docs/spectral-sandwich-representations.md).
+[Spectral-Sandwich Matrix Representations](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/spectral-sandwich-representations.md).
 
 For the proposed faithful `4×4` complex representation of native-null 3D CGA,
 its Vahlen/Möbius block interpretation, and the `2×2` quaternion
 representation of the even conformal algebra, see
-[Native-Null CGA Matrix Representations](docs/specs/native-null-cga-matrix-representations.md).
+[Native-Null CGA Matrix Representations](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/specs/native-null-cga-matrix-representations.md).
 
 ## Tests
 

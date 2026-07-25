@@ -121,11 +121,12 @@ inspection, and small method conveniences that delegate to named operations.
 before returning coefficient zero. To extract that coefficient from an
 arbitrary mixed-grade value, the canonical composition is
 `float(grade(value, 0))`. An optional standalone `scalar_part(value)` helper
-may abbreviate that expression without becoming a required method on every
-multivector. The current implementation still exposes `.scalar_part` as a
-property; migrating it to the optional helper surface is planned API cleanup.
-Python conversion is implemented by `__float__`, not by NumPy's array or ufunc
-protocols.
+abbreviates that expression on the public facade without becoming a required
+member on every multivector. The lower-level core retains `.scalar_part` as an
+implementation-facing coefficient property; facade values intentionally do
+not expose it as a member. Python scalar conversion is implemented by
+`__float__`, not by NumPy's array or ufunc protocols. Coefficient-array access
+is explicit through `.data`.
 
 ### Why storage is metric-independent
 

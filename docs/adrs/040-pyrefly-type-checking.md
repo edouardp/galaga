@@ -15,7 +15,9 @@ verification. Type errors could be introduced silently.
 ## Decision Outcome
 
 Use Pyrefly (Meta's Rust-based type checker) as a non-blocking warning.
-Currently 138 errors, mostly from untyped Expr/LNode subclass dispatch.
+At adoption it reported 138 errors, mostly from untyped Expr/LNode subclass
+dispatch. The living [Pyrefly status](../PYREFLY_STATUS.md) records how to
+measure the current tree; an ADR does not carry a mutable error count.
 
 ### Why Pyrefly over Mypy
 
@@ -26,12 +28,11 @@ Currently 138 errors, mostly from untyped Expr/LNode subclass dispatch.
 
 ### Path to Zero Errors
 
-See `docs/PYREFLY_STATUS.md` for the full breakdown. The main fix is adding
-type stubs to the `Expr` and `LNode` base classes (~85% of errors).
+See `docs/PYREFLY_STATUS.md` for the current breakdown and release policy.
 
 ### Consequences
 
 - Good, because it surfaces real type safety issues
 - Good, because non-blocking means it doesn't slow development
-- Bad, because 138 errors is tech debt until addressed
+- Bad, because the reported errors remain technical debt until addressed
 - Goal: make blocking once errors reach zero

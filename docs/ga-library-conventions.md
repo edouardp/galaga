@@ -1,3 +1,5 @@
+<!-- rumdl-disable MD013 -->
+
 # Geometric Algebra Library Conventions Survey
 
 A comparison of algebra construction, basis naming, and basis ordering across GA libraries.
@@ -15,7 +17,12 @@ A comparison of algebra construction, basis naming, and basis ordering across GA
 | **Grassmann.jl** | Julia | `S"+-"` or `D"1,-1,0"` | `D"0,1,1"` or `D"1,1,0"` |
 
 Notes:
+
 - galaga accepts both tuples and lists: `Algebra((0, 1, 1))` or `Algebra([0, 1, 1])`. The explicit form gives direct control over which basis vector is null and where it sits in the ordering. The `(p, q, r)` form applies a fixed ordering convention (see below).
+- Galaga's complete `p_pga(spatial_dim=n)` preset deliberately uses a different
+  model order: the `n` Euclidean vectors come first and the projective null
+  vector comes last, where it is displayed as $e_0$. The table below describes
+  the raw compatibility constructor, not the preset.
 - galgebra has no `(p, q, r)` constructor — the user always specifies names and metric entries explicitly.
 - Grassmann.jl's `S"..."` string form does not support `0` for null vectors (treats them as `+1`). Use `D"..."` for diagonal metrics with zeros.
 
@@ -26,7 +33,7 @@ Notes:
 | **ganja.js** | `e0, e1, e2, …` (0-indexed) | `e01, e12, …` (compact subscript) | None standard |
 | **clifford** | `e1, e2, e3, …` (1-indexed) | `e12, e13, …` (compact subscript) | Custom via layout |
 | **kingdon** | `e0, e1, e2, …` for degenerate; `e1, e2, …` otherwise | `e01, e12, …` (compact subscript) | None standard |
-| **galaga** | `e₁, e₂, e₃, …` (1-indexed, unicode subscripts) | `e₁₂, e₁₃, …` (compact, default) | 7 factories: `b_default()`, `b_gamma()` (γ₀γ₁…), `b_sigma()` (σ₁σ₂…), `b_sigma_xyz()` (σₓσᵧ…), `b_pga()`, `b_sta()`, `b_cga()`. Custom: `BladeConvention(vector_names=...)`. 3 styles: `"compact"`, `"juxtapose"`, `"wedge"`. Per-blade overrides via metric-role keys. |
+| **galaga** | `e₁, e₂, e₃, …` (1-indexed, Unicode subscripts) | `e₁₂, e₁₃, …` (compact, default) | `indexed_blade_convention()` plus Euclidean, STA, PGA, native-null/orthogonal CGA, Lengyel CGA/RGA, complex, quaternion, and exterior builders. Three generated styles: `"compact"`, `"juxtapose"`, `"wedge"`. Complete immutable `BladeConvention` values support signed labels, aliases, roles, and mask overrides. |
 | **galgebra** | User-specified (e.g. `'e1 e2 e0'`, `'x y z'`) | `e1^e2`, `x^y` (wedge notation) | Fully user-controlled via constructor string |
 | **GeometricAlgebra.jl** | `v1, v2, v3, …` (1-indexed, `v` prefix) | `v12, v13, …` (compact subscript) | `BasisDisplayStyle`: custom prefix, separator, index labels, ordering. E.g. `prefix="𝐞"`, `prefix="γ"` with `indices="⁰¹²³"`, `prefix="d"` with `sep=" ∧ "` |
 | **Grassmann.jl** | `v1, v2, v3, …` or `v₁, v₂, …` (1-indexed) | `v₁₂, v₂₃, …` (compact subscript) | Named bases via `@basis (t=+1, x=-1)` |

@@ -13,16 +13,24 @@ Unicode, and LaTeX rendering.
 - Presets that configure the metric, blade convention, notation, and model
   metadata together while still permitting component-level overrides.
 - Thread- and async-safe scoped presentation changes.
-- NumPy array conversion and checked scalar conversion.
+- Read-only coefficient access and checked scalar conversion.
 
 ## Install
 
+For the Galaga 2 prerelease train:
+
 ```bash
-pip install galaga
+python -m pip install --pre "galaga>=2.0.0a1,<3"
+```
+
+After stable `2.0.0` is published:
+
+```bash
+python -m pip install "galaga>=2,<3"
 ```
 
 Galaga requires Python 3.11 or newer and NumPy. The optional
-`galaga_marimo` package requires Python 3.14 because it uses t-strings.
+`galaga-marimo` distribution requires Python 3.14 because it uses t-strings.
 
 ## Quick start
 
@@ -124,7 +132,8 @@ expanded = expanded_cga.carrier(round_point)
 assert compact == expanded
 ```
 
-The [native-null CGA guide](../../docs/cga/README.md) covers round and flat
+The [native-null CGA guide](https://github.com/edouardp/galaga/blob/main/docs/cga/README.md)
+covers round and flat
 objects, operator/expanded expression forms,
 `att`/`car`/`ccr`/`cen`/`con`/`par`, dual conventions, projection,
 Eric Lengyel's ●/○/■/□ components and weighted norms, and transformation
@@ -151,7 +160,8 @@ assert float(rga.bulk_norm(p)) == 5
 assert rga.is_valid_line(line)
 ```
 
-The [RGA guide](../../docs/rga-convention-layer.md) covers the algebraic
+The [RGA guide](https://github.com/edouardp/galaga/blob/main/docs/rga-convention-layer.md)
+covers the algebraic
 convention layer, paired norms, homogeneous distance and angle, projections,
 support, line/motor/flector constraints, transwedge correction, and the dual
 relationship with plane-based PGA.
@@ -216,6 +226,31 @@ e23, e31, e41, e42 = rga.blades(
 injection is appropriate. In reactive notebooks, explicit `blade()` or
 `blades()` calls preserve dependency tracking more clearly.
 
+Generated conventions support compact, juxtaposed, and wedge blade products:
+
+| Style | LaTeX example |
+|---|---|
+| `"compact"` | $e_{12}$ |
+| `"juxtapose"` | $e_1 e_2$ |
+| `"wedge"` | $e_1\wedge e_2$ |
+
+Model-aware convention builders retain semantic roles while changing that
+spelling. Their dimension argument is the model's spatial dimension, not the
+total algebra dimension:
+
+```python
+from galaga import Algebra, null_cga_blade_convention, p_cga
+
+cga = Algebra(
+    config=p_cga(spatial_dim=3),
+    blades=null_cga_blade_convention(3, style="juxtapose"),
+)
+```
+
+This is a five-dimensional algebra whose pseudoscalar renders as
+$e_1 e_2 e_3 e_o e_\infty$. The convention adds the origin and infinity
+vectors to the three Euclidean vectors itself.
+
 ## Product and contraction family
 
 The long names are canonical:
@@ -274,12 +309,15 @@ same_coefficient = scalar_part(value)   # optional helper
 ```
 
 `float(value)` succeeds only when the entire multivector is scalar. It never
-silently discards non-scalar grades. NumPy conversion exposes the coefficient
-array:
+silently discards non-scalar grades. The explicit `.data` property exposes the
+read-only NumPy coefficient array:
 
 ```python
-coefficients = np.asarray(value)
+coefficients = value.data
 ```
+
+Multivectors deliberately do not implement NumPy's array or ufunc protocols;
+`np.asarray(value)` is not a coefficient conversion.
 
 ## Rendering and presentation
 
@@ -309,9 +347,10 @@ with alg.use_presentation(teaching_presentation):
     print(x.latex())
 ```
 
-## Numeric core and explicit facade namespace
+## Public API and numeric core
 
-The public package is an exact re-export of the facade objects:
+Import application APIs from `galaga`. Internally, those public objects are
+owned by the composition facade:
 
 ```python
 import galaga
@@ -332,10 +371,10 @@ e1, e2 = numeric.basis_vectors()
 result = geometric_product(e1, e2)
 ```
 
-## Phase 8 legacy access
+## Prerelease legacy oracle
 
-Galaga 1 remains deliberately available as a temporary migration and test
-oracle during Phase 8:
+During the Galaga 2 prerelease migration, Galaga 1 remains deliberately
+available as an isolated test oracle:
 
 ```python
 from galaga import legacy
@@ -347,19 +386,18 @@ old_value = legacy.gp(old_e1, old_e2)
 
 Legacy and Galaga 2 values are separate domains and must not be mixed. The
 `galaga.legacy` namespace, including `galaga.legacy.render` and
-`galaga.legacy.simplify`, is scheduled for removal with the old table engine
-in Phase 9.
+`galaga.legacy.simplify`, is migration infrastructure and is scheduled for
+removal with the old table engine before stable `2.0.0`.
 
 ## More documentation
 
-- [Numeric core](../../docs/core/README.md)
-- [Galaga 2 implementation overview](../../docs/v2/README.md)
-- [Presentation configuration](../../docs/v2/presentation-configuration.md)
-- [Expression provenance](../../docs/v2/expression-provenance.md)
-- [Rendering implementation](../../docs/v2/rendering-implementation.md)
-- [Compatibility policy](../../docs/v2/compatibility-shims.md)
-- [Core cutover plan](../../docs/v2/core-cutover-plan.md)
+- [Documentation index](https://github.com/edouardp/galaga/blob/main/docs/README.md)
+- [Galaga 1 to 2 migration guide](https://github.com/edouardp/galaga/blob/main/docs/v2/migration-guide.md)
+- [Numeric core](https://github.com/edouardp/galaga/blob/main/docs/core/README.md)
+- [Galaga 2 implementation overview](https://github.com/edouardp/galaga/blob/main/docs/v2/README.md)
+- [Native-null CGA](https://github.com/edouardp/galaga/blob/main/docs/cga/README.md)
+- [Rigid Geometric Algebra](https://github.com/edouardp/galaga/blob/main/docs/rga-convention-layer.md)
+- [Release process](https://github.com/edouardp/galaga/blob/main/docs/RELEASE_PROCESS.md)
 
-Executable examples live under [`examples/galaga_v2`](../../examples/galaga_v2),
-[`examples/algebra`](../../examples/algebra), and the model-specific example
-directories.
+Executable examples live in the
+[repository gallery](https://github.com/edouardp/galaga/tree/main/examples).

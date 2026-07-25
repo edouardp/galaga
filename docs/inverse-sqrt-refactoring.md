@@ -1,8 +1,17 @@
 # Inverse and Square Root Refactoring
 
+> **Galaga 1 implementation record:** This document describes the legacy
+> Hitzer/Shirokov and Study-number refactor. Galaga 2's numeric contracts are
+> [SPEC-005](core/specs/SPEC-005-numeric-functions.md) and
+> [ADR-008](core/adrs/008-left-regular-general-inverse.md). The Gram-matrix core
+> currently uses a general left-regular solve for inversion and retains
+> optimized inverse paths as post-2.0 roadmap work.
+
 ## Overview
 
-Two significant gaps in galaga's numeric operations — identified by comparing against kingdon — have been closed. Both `inverse()` and `sqrt()` now handle general multivectors, not just the narrow special cases they were previously limited to.
+Two significant gaps in Galaga 1's numeric operations—identified by comparing
+against kingdon—were closed. Both `inverse()` and `sqrt()` handled general
+multivectors rather than only their earlier narrow special cases.
 
 ## Inverse: from versor-only to general
 
@@ -47,7 +56,7 @@ What galaga can now invert:
 
 A new `sqrt(x)` function uses the Study number decomposition (Roelfs & De Keninck 2022):
 
-```
+```text
 sqrt(a + bI) = bI / (2·cp) + cp
 where cp = √(½(a + √(a² - bI²)))
 ```

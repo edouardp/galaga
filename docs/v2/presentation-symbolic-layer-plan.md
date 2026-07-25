@@ -1,23 +1,25 @@
 # Presentation and Expression Layer Plan
 
-> **Planning role:** This document defines the target architecture. Numbered
-> implementation work units, required tests, phase gates, and cutover criteria
-> are tracked in the [Galaga 2 core cutover plan](core-cutover-plan.md). The
-> [numeric test migration inventory](numeric-test-migration-inventory.md)
-> identifies the existing tests that must move to core or run against the
-> facade.
+> **Implementation record:** The architecture in this plan is implemented.
+> Future-tense passages and the local phase numbering below preserve the design
+> sequence used to build it. For current user behavior, see
+> [presentation configuration](presentation-configuration.md),
+> [expression provenance](expression-provenance.md), and
+> [semantic rendering](rendering-implementation.md). The
+> [core cutover plan](core-cutover-plan.md) owns the remaining stable-release
+> gate.
 
-## Outcome
+## Implemented outcome
 
-Build the Galaga-facing layer as a **composition facade over `galaga.core`**,
+The Galaga-facing layer is a **composition facade over `galaga.core`**,
 not as a subclass of `galaga.core.Multivector` and not by adding expression fields to the
 numeric core.
 
-The public Galaga value will wrap an immutable `galaga.core.Multivector` and may also
-carry a display name and an expression tree. The public Galaga algebra will
-wrap one `galaga.core.Algebra` and one immutable presentation context. Every numeric
-operation will unwrap its operands, call a named core operation, and wrap the
-result. Expression construction will run alongside that path only when a value
+The public Galaga value wraps an immutable `galaga.core.Multivector` and may
+also carry a display name and an expression tree. The public Galaga algebra
+wraps one `galaga.core.Algebra` and one immutable presentation context. Every
+numeric operation unwraps its operands, calls a named core operation, and wraps
+the result. Expression construction runs alongside that path only when a value
 has explicitly opted into expression tracking.
 
 This gives one convenient Galaga API while preserving a strict dependency

@@ -1,19 +1,17 @@
+<!-- rumdl-disable MD013 -->
+
 # Galaga Version 2 Planning
 
-> **Implementation status (2026-07-18):** The `galaga_v2` branch targets
-> Galaga 2.0 with `galaga.core` as its required numeric engine. The core was
-> proved in the standalone Gram repository and now lives inside the Galaga
-> package; ADR-073 records that consolidation. The existing material below
-> predates the core and remains an issue inventory, not the normative
-> architecture. The current sequence is in the
-> [Galaga 2 core cutover plan](docs/v2/core-cutover-plan.md); the
-> [presentation and expression layer plan](docs/v2/presentation-symbolic-layer-plan.md)
-> explains the target architecture, and the
-> [numeric test migration inventory](docs/v2/numeric-test-migration-inventory.md)
-> identifies the legacy tests that must move to core or run against the facade.
-> Migration continues through the opt-in `galaga.gram_bridge`
-> facade; the existing top-level `galaga.Algebra` is not replaced until the
-> numeric compatibility suite passes against that facade.
+> **Historical issue inventory:** This document predates the Gram-matrix core
+> and the completed top-level Galaga 2 cutover. Its questions are preserved as
+> design history, not as current API guidance. `galaga.Algebra` now uses the
+> core-backed facade; immutable names use `.named()`, expression provenance
+> uses `expr=True`, and accepted ADRs record the resolved choices.
+>
+> Start with the [Galaga 2 documentation index](docs/v2/README.md), the
+> [migration guide](docs/v2/migration-guide.md), and the
+> [core cutover plan](docs/v2/core-cutover-plan.md). Phase 9 removal and stable
+> release hardening remain the normative unfinished migration work.
 
 This document records changes considered for Galaga 2.0. Some questions have
 since been decided by the core-backed facade architecture; newer ADRs,
@@ -57,7 +55,7 @@ In practice, galaga always computes eagerly — `.data` is never deferred. The "
 
 A cleaner model:
 
-```
+```text
 Multivector
   .data          # always present, always numeric
   .expr          # optional: the expression tree (None if not tracked)
@@ -65,6 +63,7 @@ Multivector
 ```
 
 With `.expr` and `.name` fully orthogonal:
+
 - Named + tracked: `v = e1.name("v"); w = v ^ e2` → w has expr `v ∧ e₂` and no name
 - Named + untracked: just a label for display, no tree
 - Unnamed + tracked: anonymous intermediate with full expression history
@@ -281,7 +280,6 @@ Since we use functions rather than operators, products can accept more than two 
 
 The Chisolm test suite (ADR-060) covers non-degenerate algebras thoroughly. Degenerate algebras (r > 0, e.g. PGA) have less systematic coverage — particularly around `inverse()`, `sqrt()`, `exp()`, and `log()` where null elements cause special cases. Assess whether a PGA/CGA-specific test suite is needed.
 
-
 ## Ideas from other GA libraries
 
 Survey of design decisions across clifford, kingdon, ganja.js, galgebra, GeometricAlgebra.jl, Grassmann.jl, Klein (C++), and SymbolicGA.jl. Focus is on choices galaga v2 could adopt.
@@ -297,6 +295,7 @@ Dense is simple and fast for small n, but wasteful for PGA/CGA where most elemen
 Kingdon provides `map(func)`, `filter(func)`, and iteration over coefficients. These are useful for batch operations (e.g. rounding, thresholding, applying a function to all coefficients). Galaga has no equivalent — users must access `.data` directly.
 
 Consider adding:
+
 - `mv.map(func)` — apply func to each nonzero coefficient, return new MV
 - `mv.filter(func)` — zero out coefficients where func returns False
 - `mv.coefficients()` — iterator of `(blade_index, value)` pairs
@@ -316,6 +315,7 @@ This is more ambitious than our SYMPY_PLAN.md Option A (polymorphic coefficients
 Clifford's `ConformalLayout` provides `up(x)` (embed point in CGA), `down(x)` (project back), and `homo(x)` (homogenise). These are the most common CGA operations and having them built-in saves users from re-deriving the embedding formula. Galaga's `b_cga()` handles naming but not the geometric operations.
 
 Consider adding CGA convenience methods, either on Algebra or as a separate module:
+
 - `alg.up(point)` / `alg.down(mv)` / `alg.homo(mv)`
 - Point/line/plane/circle/sphere constructors for PGA and CGA
 
@@ -336,6 +336,7 @@ Taylor expansion is general but slow. Closed-form implementations for specific e
 Python's fixed operator precedence means `a ^ b | c` parses as `a ^ (b | c)`, not `(a ^ b) | c`. Galgebra works around this with `def_prec()` and `GAeval()` which evaluate string expressions with custom precedence. This is a real pain point for GA in Python.
 
 Not clear there's a good solution. Options:
+
 1. Do nothing — document the precedence issue and recommend parentheses
 2. Provide a string-based evaluator like galgebra (fragile, loses IDE support)
 3. Use `@` for geometric product (higher precedence than `^` and `|`) — but `@` is left-associative and conventionally matrix multiply
@@ -343,6 +344,7 @@ Not clear there's a good solution. Options:
 ### Multiple duality operations (GeometricAlgebra.jl, Grassmann.jl)
 
 GeometricAlgebra.jl provides four distinct duality operations:
+
 - `ldual(a)` / `rdual(a)` — metric-independent left/right complements (work in degenerate algebras)
 - `hodgedual(a)` — metric-dependent Hodge dual
 - `A * I` — pseudoscalar multiplication
@@ -350,6 +352,7 @@ GeometricAlgebra.jl provides four distinct duality operations:
 Grassmann.jl similarly distinguishes Grassmann complements (metric-independent) from Hodge complements (metric-dependent).
 
 Galaga has `complement`/`uncomplement` (metric-independent) and `dual`/`undual` (which raises in degenerate algebras). This is close to GeometricAlgebra.jl's approach but with less explicit naming. Consider whether v2 should:
+
 - Rename `dual` → `hodge_dual` to make the metric-dependence obvious
 - Keep `complement` as the metric-independent operation
 - Add `ldual`/`rdual` if left vs right complement matters (it does in even dimensions)
@@ -383,6 +386,7 @@ Galaga has no visualisation. For v2, consider a `galaga_viz` package (like `gala
 `ga.mv('V', 'vector')` creates `V^x e_x + V^y e_y + V^z e_z` with auto-generated symbolic coefficients. This is extremely useful for deriving identities and proving theorems.
 
 If SymPy integration lands, galaga should support something similar:
+
 ```python
 V = alg.symbolic_vector('V')  # V_1 e₁ + V_2 e₂ + V_3 e₃
 R = alg.symbolic_rotor('R')   # R_0 + R_12 e₁₂ + R_13 e₁₃ + R_23 e₂₃
@@ -401,6 +405,7 @@ Galgebra 0.6.0 added `is_blade()` and `is_versor()`. Clifford has similar. Galag
 ### Custom operator precedence via `@` (not yet used by any library)
 
 No GA library currently uses Python's `@` operator (`__matmul__`). It has higher precedence than `*`, `^`, and `|`, and is left-associative. Potential mappings:
+
 - `a @ b` for geometric product (frees `*` for scalar-only)
 - `a @ b` for sandwich product
 - `a @ b` for some other frequently-used operation

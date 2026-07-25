@@ -1,7 +1,9 @@
-# Galaga 2 Planning
+# Galaga 2 Architecture, Migration, and Release Status
 
 ## Start here
 
+- [Galaga 1 to 2 migration guide](migration-guide.md) is the concise
+  user-facing source migration path.
 - [Core cutover plan](core-cutover-plan.md) is the normative execution plan
   for replacing the legacy `Algebra` and `Multivector`, completing the facade,
   and performing the Galaga 2.0 cutover. It defines numbered work units, tests,
@@ -50,7 +52,8 @@
 - [Release process](../RELEASE_PROCESS.md) gives the operational alpha, beta,
   release-candidate, and final Galaga 2 publication train.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
-  remaining numeric capabilities and companion-package work.
+  post-2.0 numeric capabilities and release-blocking migration work
+  separately.
 - [Native-null conformal geometric algebra](../cga/README.md) documents the
   `p_cga` Gram model, `ConformalModel`, direct objects, semantic CGA operations,
   and transformations.
@@ -60,7 +63,8 @@
 
 ## Current status
 
-Phases 0 through 7 of the core cutover plan are complete on `galaga_v2`. The
+Galaga `2.0.0a1` has been published from the `galaga_v2` release line. Phases
+0 through 8 of the core cutover plan are complete. The
 proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
 replacement contract is checked in and executable; `galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
@@ -78,7 +82,7 @@ Unicode, and LaTeX emitters. Content and target are independently selectable,
 and facade string, format, and rich-display hooks use the same context-safe
 pipeline.
 
-Phase 7 is complete. Its compatibility policy is implemented: permanent
+The Phase 7 compatibility policy is implemented: permanent
 concise aliases are exact canonical objects, temporary v1 spellings and the
 `gram_bridge` paths warn with executable replacement guidance, ambiguous inner
 products remain absent, and redundant generic geometry helpers are classified
@@ -92,14 +96,20 @@ integration gates pass. The 68 maintained Marimo notebooks now use the
 promoted top-level API, pass Marimo dependency validation, and execute
 headlessly under Python 3.14.
 
-Phase 8 is complete. `galaga.Algebra`,
+The Phase 8 top-level cutover is complete. `galaga.Algebra`,
 `galaga.Multivector`, and every other top-level public export are the exact
 objects owned by `galaga.facade`. The old table engine is available only as
 the explicit `galaga.legacy` oracle; plain `import galaga` does not load it,
 and unledgered tests poison its constructors. Clean Python 3.11 wheel tests,
 the complete Python 3.11 and 3.14 package suites, and the layer-separated
-performance baseline pass. Phase 9 removal of the retained legacy engine is
-the next cutover work.
+performance baseline pass.
+
+Phase 9 is the stable `2.0.0` release gate. It removes the retained table-backed
+legacy engine and migration-only bridge paths, finalizes the public export
+surface, runs the full supported-version and artifact gates, and records all
+removals in the migration guide and release changelog. Alpha releases may
+retain the explicit `galaga.legacy` oracle for comparison; the stable release
+must not ship it.
 
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
@@ -116,6 +126,8 @@ operation; geometric line correction is model-owned and explicit.
 
 ## Supporting documents
 
+- [Documentation index](../README.md)
+- [Galaga 1 to 2 migration guide](migration-guide.md)
 - [Numeric core documentation](../core/README.md)
 - [ADR-073: Move the numeric core into Galaga](../adrs/073-move-the-numeric-core-into-galaga.md)
 - [ADR-075: Promote the core-backed facade](../adrs/075-promote-the-core-backed-facade.md)

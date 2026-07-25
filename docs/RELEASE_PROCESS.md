@@ -106,10 +106,11 @@ Supported exact forms are `X.Y.Z`, `X.Y.ZaN`, `X.Y.ZbN`, and `X.Y.ZrcN`.
 Development, post, local, noncanonical, and SemVer-style `-alpha` versions are
 rejected.
 
-The repository currently carries the intended, unpublished final version
-`2.0.0`. The first `2.0.0a1` release is therefore an intentional apparent
-version decrease. The exact-version path permits this bootstrap; automatic
-version bumping does not.
+The stored package version is release state, not merely a value supplied by
+`VERSION=`. After publishing `2.0.0a1`, the package metadata remains
+`2.0.0a1`; the next invocation must select a new target such as `2.0.0a2`.
+Repeating an exact version is rejected locally, and PyPI never permits a file
+for an already published project/version pair to be replaced.
 
 ### What the Release Script Does
 
@@ -129,11 +130,15 @@ version bumping does not.
 | 9. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
 | 10. Build | `uv build` all three released packages | Build failure |
 | 11. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
-| 12. Publish | Publish galaga, then matrix and Marimo companions | Auth failure or version conflict |
+| 12. Publish | Publish galaga, then Marimo and matrix companions | Auth failure or version conflict |
 | 13. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
 | 14. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
-If any step fails, the script stops. Nothing is published or tagged until tests pass.
+If any step fails, the script stops. Nothing is published or tagged until all
+tests and artifact checks pass. Publication itself is sequential rather than
+transactional: a failure after the first upload can leave some packages
+published and others absent. Follow the failure-stage rules below rather than
+blindly rerunning the command.
 
 Release-workflow tests live at repository level because they exercise the
 Makefile, shell scripts, Git state, and repository version policy rather than
@@ -223,7 +228,29 @@ Before every release, the script enforces:
 
 - [ ] Examples still run: `make run-marimo`
 - [ ] README renders correctly on PyPI after publish
-- [ ] `pip install galaga` in a clean venv works
+- [ ] The exact release installs in a clean venv without repository paths
+- [ ] Each jointly released companion imports against that installed wheel
+
+### Stable 2.0 RC and Final Gates
+
+Before `2.0.0rcN` and again before stable `2.0.0`:
+
+- [ ] Phase 9 of the
+  [core cutover plan](v2/core-cutover-plan.md) is complete
+- [ ] The table-backed engine and `galaga.legacy` do not ship in the wheel
+- [ ] Migration-only `galaga.gram_bridge` paths follow their final removal
+  policy
+- [ ] The [Galaga 1 to 2 migration guide](v2/migration-guide.md) reflects every
+  removal and corrected mathematical convention
+- [ ] Package classifiers no longer describe a stable release as Alpha
+- [ ] Published READMEs lead with the stable install command rather than the
+  prerelease opt-in command
+- [ ] Companion dependency floors resolve to the intended final Galaga version
+- [ ] `make validate` passes from a clean checkout
+- [ ] Built wheels install and pass import/numeric smoke tests in clean Python
+  3.11 and 3.14 environments as applicable
+- [ ] The release candidate has been installed from PyPI and reviewed before
+  invoking `make release VERSION=2.0.0`
 
 ## Ongoing Custodianship
 
@@ -273,7 +300,30 @@ You can't re-publish the same version. Bump the version and release again.
 
 ### Pre-commit hooks fail on release commit
 
-The release script runs `git commit` which triggers pre-commit. Fix the issues, then re-run the release. The script is safe to re-run — it will re-bump from the current version.
+The release script updates version files and the changelog before it attempts
+the commit. Fix the reported files, then inspect `git status` and the stored
+version before deciding how to continue. Do not assume that rerunning the same
+exact-version command is safe: once the files already contain the target,
+version resolution rejects the repeated target.
+
+### A post-commit test or build failed
+
+The release commit now exists, but no package has yet been published. Fix the
+failure in a new commit. To run the complete orchestration again for the same
+target, restore the jointly released package metadata to the previous released
+version in another explicit commit, confirm a clean tracked branch, and then
+invoke the exact target again. Do not amend the original release commit.
+
+The safer alternative for a public prerelease train is to choose the next
+serial after fixing the problem, for example `2.0.0a2`.
+
+### Publication failed partway through
+
+First check each PyPI project page. Published artifacts are immutable. If any
+package for the target version exists, do not try to replace it and do not
+delete tags or rewrite pushed history. Fix the failure and publish a new
+prerelease serial. Record the partial release in the changelog or GitHub
+release notes so dependency resolution is understandable.
 
 ### galaga-marimo tests fail (Python 3.14 not found)
 

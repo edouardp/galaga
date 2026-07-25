@@ -1,8 +1,20 @@
-# Specifications Index
+# Legacy Presentation Specifications Index
 
-Formal specifications for galaga's rendering and formatting behaviour.
-Each spec defines the authoritative rules for a subsystem, with decision
-tables and examples that map directly to tests.
+These documents specify the Galaga 1 rendering, mutable naming, and expression
+implementation. They remain valuable design history and test provenance, but
+they are not the authoritative Galaga 2 API.
+
+For current behavior, start with:
+
+- [Galaga 2 presentation configuration](../v2/presentation-configuration.md);
+- [expression provenance](../v2/expression-provenance.md);
+- [semantic rendering](../v2/rendering-implementation.md);
+- [exact rendering contracts](../v2/exact-rendering-contracts.md); and
+- the implemented [numeric core specifications](../core/specs/README.md).
+
+Statuses below describe completion against the Galaga 1 design at the time.
+Examples using `.name()`, `.symbolic()`, `.numeric()`, or `symbolic=True` are
+historical; Galaga 2 uses immutable `.named()` and `expr=True`.
 
 ## Specs
 
@@ -24,7 +36,8 @@ tables and examples that map directly to tests.
 
 ## Format
 
-Each spec uses a hybrid format:
+Each historical spec uses a hybrid format:
+
 - **Intent**: why this behaviour exists
 - **Rules**: decision tables defining input → output mappings
 - **Examples**: concrete input/output pairs (verifiable against tests)

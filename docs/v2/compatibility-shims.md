@@ -29,7 +29,8 @@ this group.
 
 ## Temporary function spellings
 
-These v1 names remain callable through Phase 9. Each emits
+These v1 names remain callable during the prerelease migration and are removed
+by the Phase 9 stable-release gate. Each emits
 `GalagaDeprecationWarning` at the user's callsite and delegates to the canonical
 facade function. A tracked value therefore records only the canonical
 operation ID.
@@ -74,20 +75,21 @@ namespace re-exports the current implementation but now warns on import:
 
 | Deprecated module | Replacement | Removal |
 |---|---|---|
-| `galaga.gram_bridge` | `galaga.facade` | Phase 9 |
-| `galaga.gram_bridge.facade` | `galaga.facade` | Phase 9 |
-| `galaga.gram_bridge.catalog` | `galaga.facade.catalog` | Phase 9 |
+| `galaga.gram_bridge` | `galaga.facade` | Before stable `2.0.0` |
+| `galaga.gram_bridge.facade` | `galaga.facade` | Before stable `2.0.0` |
+| `galaga.gram_bridge.catalog` | `galaga.facade.catalog` | Before stable `2.0.0` |
 
 The bridge contains no implementation and must not become a second public
 architecture.
 
 Legacy `galaga.lazy`, `galaga.symbolic`, `galaga.expr`, `galaga.notation`, and
 related v1 internals remain temporary implementation paths. The supported
-Phase 8 oracle entry point is `galaga.legacy`; its renderer and simplifier are
-`galaga.legacy.render` and `galaga.legacy.simplify`. This relocation is
+prerelease oracle entry point is `galaga.legacy`; its renderer and simplifier
+are `galaga.legacy.render` and `galaga.legacy.simplify`. This relocation is
 required because `render` and `simplify` are top-level facade functions, and a
 same-named Python submodule would overwrite those attributes based on import
-order. The entire legacy namespace is removed in Phase 9.
+order. The entire legacy namespace is removed by the Phase 9 stable-release
+gate.
 
 ## Helpers are not aliases
 

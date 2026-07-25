@@ -1,122 +1,168 @@
-# Design Decisions
+# Galaga 2 Design Principles
 
-High-level principles that guide the `galaga` geometric algebra library.
-
-> **Galaga 2 migration:** [`galaga.core`](core/README.md) is now the numeric
-> engine of record. It coexists with the legacy `galaga.algebra` implementation
-> until the composition facade passes the compatibility suite and becomes the
-> top-level API. ADR-073 records this additive migration boundary. Sections
-> describing `galaga.algebra` and its expression behavior document the legacy
-> implementation during that transition.
+This document summarizes the current design posture. The
+[ADR index](adrs/README.md) records individual decisions and their chronology;
+superseded Galaga 1 decisions remain there as history.
 
 ## Project posture
 
-Galaga is primarily a pedagogical geometric algebra library. It is not trying
-to be the highest-performance GA implementation. Correctness, clarity,
-inspectability, and explicit mathematical choices matter more than minimizing
-the number of operations or choosing a single convention for speed.
+Galaga is primarily a pedagogical geometric-algebra library. Correctness,
+clarity, inspectability, and explicit mathematical choices take precedence
+over minimizing the API or selecting one convention silently.
 
-Its secondary goal is to make the range of differing opinions in the GA
-community usable from one codebase. When a convention is contested, Galaga
-chooses a documented default and exposes other coherent conventions under
-explicit names. Multiple named operations for similar-looking ideas are a
-feature, not a failure, when they help users see exactly which mathematics they
-are using.
+The library is numeric rather than a general computer-algebra system.
+Multivector coefficients and Gram matrices are real numeric values. Optional
+expression provenance records how an eager result was obtained; it does not
+defer evaluation or introduce symbolic coefficients.
 
-## 1. Named functions are the contract
+## 1. Long operation names are the contract
 
-Every operation has a stable, named function: `gp`, `op`, `grade`, `reverse`, `dual`, `inverse`, etc. These names never change meaning.
+Canonical names describe the operation directly:
 
-Operators (`*`, `^`, `|`, `~`) are sugar — convenient, but not the API you depend on. If there's ever ambiguity about what an operator does, the named function resolves it.
+```python
+geometric_product(a, b)
+outer_product(a, b)
+grade_involution(a)
+doran_lasenby_inner(a, b)
+```
 
-## 2. No ambiguity
+Operators and concise aliases are conveniences:
 
-Galaga uses geometric-algebra terminology as its primary vocabulary. Where the
-GA literature has competing conventions, Galaga chooses one documented default
-and exposes the other conventions under explicit names.
+```python
+a * b   # geometric_product
+a ^ b   # outer_product
+a | b   # doran_lasenby_inner
+~a      # reverse
+```
 
-For example, in linear algebra "inner product" usually means a scalar-valued
-metric pairing such as `<x, y>`. In geometric algebra, "inner product" commonly
-means a grade-selecting part of the geometric product, and it may return a
-multivector rather than only a scalar. Galaga, as a geometric algebra library,
-uses the geometric algebra approach to inner products while naming each
-competing GA convention explicitly.
+Permanent aliases such as `gp`, `op`, `rev`, and `sw` are the same function
+objects as their canonical operations. A short spelling does not own another
+implementation or another expression identity.
 
-- Inner products: `left_contraction`, `right_contraction`, `hestenes_inner`, `doran_lasenby_inner`, `scalar_product` — all available, all named.
-- Commutator family: `commutator` and `lie_bracket` are $ab-ba$;
-  `anticommutator` and `jordan_product` are $ab+ba$. The explicitly named
-  `half_commutator` and `half_anticommutator` introduce the factor of one half.
-- The `|` operator maps to Doran–Lasenby inner, but that's documented sugar, not a hidden choice.
+## 2. Competing mathematical conventions stay explicit
 
-## 3. Explicit over implicit
+Galaga does not collapse operations merely because they agree on vectors or
+other restricted inputs. It exposes Doran–Lasenby and Hestenes inner products,
+metric and scalar products, left and right contractions, RGA interiors, and
+the antidot product under distinct names.
 
-Two named functions beat one function with a mode flag. `half_commutator(a,
-b)` is self-documenting; `commutator(a, b, half=True)` is not.
+There is no unqualified public `inner_product` or `ip`. Users may choose local
+notation with an ordinary import alias:
 
-The factor in `half_commutator` versus `commutator` is not a formatting choice;
-it changes the algebraic convention. That distinction deserves its own name.
+```python
+from galaga import doran_lasenby_inner as ip
+```
 
-## 4. Aliases exist for convenience, not as separate implementations
+Bracket scaling is equally explicit. `commutator`, `lie_bracket`,
+`anticommutator`, and `jordan_product` are unscaled. Only
+`half_commutator` and `half_anticommutator` divide by two.
 
-`wedge` is literally `op`. `rev` is literally `reverse`. `normalize` is literally `unit`. They share the same function object — no divergence, no maintenance burden.
+## 3. The Gram matrix is numeric truth
 
-## 5. Layered architecture
+Every algebra normalizes to an immutable real symmetric Gram matrix. Diagonal
+signatures are convenient constructor forms, not a different engine. Oblique
+and native-null bases remain in the basis supplied by the user; Galaga does
+not silently diagonalize them.
 
-The Galaga 2 target separates the layers as follows:
+Multivectors store dense immutable coefficients in an exterior bitmask basis.
+A mask identifies an exterior blade independently of the metric. Product
+backends derive Clifford multiplication from the Gram matrix, while the outer
+product and complements remain metric-independent.
 
-- **`galaga.core`** — Immutable numeric algebras and multivectors, product
-  backends, metric extensions, and named numeric functions. It imports no
-  presentation or expression code.
-- **Galaga facade and operation catalog** — Composition wrappers that delegate
-  numeric work to `galaga.core` while coordinating conventions, names, and
-  optional expression provenance.
-- **Presentation and integrations** — Blade conventions, notation, semantic
-  rendering, and optional notebook or companion packages.
+## 4. Dependencies point inward
 
-The following modules describe the legacy implementation retained during the
-additive migration:
+```mermaid
+flowchart TD
+    U[Public galaga API] --> F[Composition facade]
+    F --> C[galaga.core]
+    F --> E[Expression provenance]
+    F --> P[Presentation]
+    P --> R[Semantic rendering]
+    M[galaga-matrix] --> U
+    J[galaga-marimo] --> U
+    D[galaga-mermaid] --> E
+```
 
-- **`galaga.ops`** — The operation registry. A leaf module with no internal dependencies. Every GA operation is registered here via `@ga_op` with algebraic metadata (name, arity, grade rule). The symbolic layer registers handlers against operation names. This breaks the circular dependency between algebra and expr.
-- **`galaga.algebra`** — The numeric core. `Algebra` (factory), `Multivector` (value type), and every named operation. Computation happens here via precomputed multiplication tables and dense NumPy arrays. Never imports `expr`.
-- **`galaga.expr`** — An expression-tree layer for pretty-printing and symbolic manipulation. The `Expr` class hierarchy is an internal implementation detail — users interact with `Multivector` objects that may optionally carry an expression tree. Node classes are auto-generated from a table that mirrors the operation registry.
+- `galaga.core` owns numeric algebras, multivectors, metric metadata, product
+  backends, and numeric operations. It imports no outer layer.
+- The facade owns public values, operation dispatch, optional provenance,
+  presentation selection, and model metadata.
+- `galaga` re-exports the facade as the ordinary public API.
+- Companion packages consume public protocols and never inspect product tables
+  or private expression state.
 
-`Multivector` is the single public type. It can be named or anonymous, symbolic or numeric — these are orthogonal axes controlled by `.name()`, `.anon()`, `.symbolic()`, `.numeric()`.
+`galaga.facade` remains useful when discussing architecture.
+`galaga.core` is a supported lower-level numeric API. Ordinary application code
+should generally import from `galaga`.
 
-## 6. Naming and evaluation are orthogonal
+## 5. Values are eager and immutable
 
-Every multivector independently controls two things:
+Every public multivector contains a concrete core value. Names and expression
+provenance are independent immutable metadata:
 
-- **Identity / display** — named (prints as `B`) or anonymous (prints as `e₁₂`)
-- **Evaluation strategy** — symbolic (carries expression tree) or numeric (concrete coefficients only)
+| Name | Expression | Meaning |
+|---|---|---|
+| absent | absent | plain eager value |
+| present | absent | named value without operation history |
+| absent | present | tracked anonymous value |
+| present | present | named and tracked value |
 
-`.name("B")` makes an object named + symbolic by default. `.numeric()` forces concrete evaluation in-place and strips the name (or `.numeric("B")` to keep it). `.eval()` returns a new anonymous numeric copy without mutating the original. `.anon()` removes the name while preserving the symbolic/numeric state.
+`named()`, `without_name()`, `with_expr()`, and `without_expr()` return new
+wrappers. Factories use `expr=True` to opt into provenance. They do not mutate
+shared basis values and do not change when arithmetic is evaluated.
 
-Basis blades are **named + numeric** by default — they have display names (`e₁`) but behave as concrete numeric objects with no symbolic overhead. Use `basis_vectors(symbolic=True)` for fully symbolic workflows where every operation builds an expression tree.
+## 6. Presentation concerns are independent
 
-## 7. Symbolic is contagious
+Blade vocabulary, local Python names, display order, operation notation, and
+display policy are separate immutable components. A preset configures a
+coherent group, while a constructor or algebra view may replace one component
+without changing the others.
 
-When a symbolic multivector participates in an operation with a numeric one, the result is symbolic. The result carries both concrete data (for `.eval()`) and an expression tree (for display). Names don't propagate — the result is anonymous, but named operands appear by name in the tree.
+Generated blade conventions support compact, juxtaposed, and wedge styles.
+Changing style affects labels only; it cannot change coefficient order, signed
+blade orientation, semantic model roles, or the Gram matrix.
 
-When all operands are eager, the fast numeric path is taken with zero symbolic overhead.
+Persistent changes create cheap algebra views. Temporary changes use
+`ContextVar`, so nested, threaded, and asynchronous teaching scopes restore
+correctly without process-global mutation.
 
-## 8. Operators build expression trees transparently
+## 7. One semantic rendering pipeline serves every target
 
-In the symbolic layer, `R * v * ~R` builds a `Gp(Gp(R, v), Reverse(R))` tree — no special syntax needed. The same code that does numeric computation also builds symbolic expressions when any input is lazy.
+Concrete values and expression provenance translate into a shared,
+format-neutral render tree. ASCII, Unicode, and LaTeX emitters serialize that
+tree. Precedence, grouping, content selection, zero elision, and coefficient
+precision are defined before target emission.
 
-## 9. Rendering protocol
+Rendering never performs geometric-algebra arithmetic. Notation changes layout
+and spelling, not operation identity or numeric meaning.
 
-Objects that can render as LaTeX expose `.latex()` (raw LaTeX content) and `_repr_latex_()` (Jupyter/IPython protocol with `$...$` wrapping). Named objects return their name in all formats; anonymous lazy objects delegate to the expression tree; anonymous eager objects render coefficients.
+## 8. Models add semantics, not duplicate arithmetic
 
-The `.name()` method accepts `latex=`, `unicode=`, `ascii=` keyword arguments for per-format name overrides.
+`ConformalModel` and `RigidModel` validate model-specific roles and provide
+operations whose meaning depends on those roles. Direct geometric objects
+remain ordinary multivectors. Generic helpers are not added merely to shorten
+a composition already expressed clearly with `outer_product`, `exp`,
+`inverse`, or `sandwich`.
 
-## 10. Stable public surface
+A model helper is justified when it contributes a domain contract, validation,
+coordinate convention, or useful semantic expression node.
 
-The `__init__.py` re-exports the numeric API so `from galaga import *` gives you everything for computation. The `__all__` list is the contract. New operations are added; existing ones don't change meaning.
+## 9. Conversions are checked and unsurprising
 
-## 11. Separate notebook helper
+`float(value)` succeeds only when the whole multivector is scalar. Extracting
+grade zero from a mixed-grade value is explicit through `grade(value, 0)` or
+the optional `scalar_part(value)` helper.
 
-The marimo integration (`galaga_marimo` / `gamo`) is a separate package, not part of the core. It depends on marimo and uses Python 3.14 t-strings for automatic LaTeX rendering. This keeps the core library dependency-free (only NumPy) and framework-agnostic.
+`value.data` exposes the read-only NumPy coefficient array. Multivectors do not
+pretend to be NumPy arrays and do not implement the array or ufunc protocols.
+Numeric equality is exact; approximate comparison is an explicit operation.
 
-## 12. ADRs for specific decisions
+## 10. Migration machinery does not become permanent architecture
 
-Individual architectural decisions are recorded in [`docs/adrs/`](adrs/). Each ADR captures the context, decision, and consequences for a specific choice.
+The Galaga 2 prerelease line retains `galaga.legacy` as an isolated comparison
+oracle and temporary warning adapters for selected Galaga 1 spellings. Legacy
+values never mix implicitly with Galaga 2 values.
+
+The stable 2.0 release gate removes the table-backed engine and migration-only
+bridge paths. Historical tests, reports, specifications, and ADRs remain as
+evidence without keeping obsolete production implementations alive.

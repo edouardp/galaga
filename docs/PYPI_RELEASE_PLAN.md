@@ -10,7 +10,7 @@ The authoritative operational guide is
 
 ## Current Galaga 2 Major-Release Train
 
-Galaga 2 is published as five explicit, complete releases:
+The Galaga 2 train uses explicit, complete releases:
 
 ```bash
 make release VERSION=2.0.0a1
@@ -20,7 +20,9 @@ make release VERSION=2.0.0rc1
 make release VERSION=2.0.0
 ```
 
-The last command is essential. `2.0.0rc1` remains a prerelease; it is never
+The sequence is illustrative: additional prerelease serials may be inserted
+and stages are run only when their readiness gates are met. The last command is
+essential. `2.0.0rc1` remains a prerelease; it is never
 automatically promoted. `make release VERSION=2.0.0` publishes the separate
 stable artifacts and creates the stable tag and GitHub release. Do not replace
 that final command with `make release-major`.

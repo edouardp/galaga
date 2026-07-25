@@ -66,7 +66,7 @@ recorded in ADR-090 owns development source selection.
 - Good, because `MatrixRepr` keeps its own coherent naming API.
 - Good, because Python 3.14 remains isolated to notebook validation and the
   optional Marimo package.
-- Cost, because the Python 3.14 gate executes 64 notebooks and is heavier than
+- Cost, because the Python 3.14 gate executes 68 notebooks and is heavier than
   a compile-only test.
 - Cost, because additions to the maintained gallery must satisfy facade,
   Marimo structure, and headless runtime contracts.
