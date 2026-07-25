@@ -6,10 +6,16 @@ from pathlib import Path
 
 import pytest
 
-from scripts.release_version import ReleaseVersionError, parse_version, resolve_version
-
 ROOT = Path(__file__).parents[3]
 SCRIPT = ROOT / "scripts" / "release_version.py"
+
+# Pytest chooses packages/galaga as its import root when the package suite is
+# invoked exactly as release.sh invokes it. Keep the repository-level release
+# helper importable without relying on the caller's working directory or an
+# ambient PYTHONPATH.
+sys.path.insert(0, str(ROOT))
+
+from scripts.release_version import ReleaseVersionError, parse_version, resolve_version  # noqa: E402
 
 
 @pytest.mark.parametrize(
