@@ -1,13 +1,16 @@
 # Terathon/RGA Convention Layer — Implementation Plan
 
-> **Historical implementation record:** The operation family in this plan is
-> implemented in the Gram-matrix core and public facade. The plan's references
-> to diagonal-only exomorphisms, `@ga_op`, symbolic inputs, and generated legacy
-> expression classes describe the Galaga 1 implementation path. Current
-> behavior is documented in
-> [RGA convention layer](rga-convention-layer.md),
-> [core product conventions](core/specs/SPEC-003-product-and-duality-conventions.md),
-> and [expression provenance](v2/expression-provenance.md).
+> [!NOTE]
+>
+> **Historical implementation record**
+>
+> The operation family in this plan is implemented in the Gram-matrix
+> core and public facade. The plan's references to diagonal-only
+> exomorphisms, `@ga_op`, symbolic inputs, and generated legacy
+> expression classes describe the Galaga 1 implementation path.
+>
+> Current behavior is documented in [RGA convention layer](rga-convention-layer.md),
+> [core product conventions](core/specs/SPEC-003-product-and-duality-conventions.md), and [expression provenance](v2/expression-provenance.md).
 
 ## Problem Statement
 
