@@ -333,7 +333,7 @@ def _(
     source_point,
     translated_by_antiproduct,
 ):
-    translator = exp(-0.5 * e1 * einf).named("U")
+    translator = exp(-0.5 * (e1 ^ einf)).named("U")
     translated_by_product = sandwich(translator, source_point).named(
         "P", latex=r"P^{\prime}"
     )
