@@ -1,5 +1,144 @@
 # Changelog
 
+## 2.0.0a1 (2026-07-25)
+
+This is the first alpha of Galaga 2. It makes the Gram-matrix numeric
+implementation the foundation of the public API and moves the former Galaga 1
+implementation to the temporary `galaga.legacy` namespace.
+
+### Added
+
+- **Native Gram-matrix numeric core** — Adds `galaga.core`, an immutable dense
+  multivector implementation whose algebra is defined by a general symmetric
+  Gram matrix. Diagonal signatures remain convenient, while native nonorthogonal
+  and null bases no longer require a hidden change of basis.
+
+- **Canonical Galaga 2 facade** — Promotes the core-backed `Algebra`,
+  `Multivector`, presets, products, involutions, dualities, norms, and numeric
+  functions to the top-level `galaga` namespace. The facade preserves optional
+  expression provenance without coupling the numeric core to symbolic concerns.
+
+- **Explicit operation vocabulary** — Makes descriptive names such as
+  `geometric_product`, `outer_product`, `grade_involution`,
+  `doran_lasenby_inner_product`, and `metric_inner_product` canonical. Familiar
+  short functional forms remain available as aliases, including configurable
+  notation aliases for presentation-oriented code.
+
+- **Presentation configuration** — Adds immutable `DisplayPolicy`,
+  `Notation`, `BladeConvention`, and preset configuration. Algebra, blade
+  naming, operation notation, and display content can be configured
+  independently, overridden per algebra, and changed temporarily with
+  context-local presentation scopes that are safe across threads and async
+  tasks.
+
+- **Semantic expression and rendering pipeline** — Adds optional symbolic
+  expression nodes over concrete multivectors, evaluation and simplification,
+  exact configured rendering contracts, full `name = expression = value`
+  display, selective display parts, numeric precision and small-value elision,
+  and KaTeX-compatible LaTeX emission.
+
+- **Blade construction helpers** — Adds expression-aware `Algebra.blade()` and
+  variadic `Algebra.blades()` construction from blade names, indices, or
+  existing blade multivectors. This supports explicit notebook bindings without
+  dynamic-local mutations that interfere with Marimo dependency tracking.
+
+- **Native-null conformal model** — Adds `galaga.cga.ConformalModel` over the
+  native `e_o`/`e_\infty` Gram basis, with validated point embedding,
+  homogenization, coordinate and radius recovery, duals, attitudes, carriers,
+  cocarriers, centers, containers, partners, component families, projections,
+  reflections, inversions, and model-level expression-form controls.
+
+- **Rigid Geometric Algebra model** — Adds a validated Lengyel-style
+  `RigidModel` with projective measurements, geometry constraints, projections,
+  support operations, complements, bulk/weight decomposition, antiproducts,
+  transwedge products, and convention-specific semantic rendering.
+
+- **Executable Galaga 2 examples** — Migrates the maintained Marimo notebooks
+  to the public facade and adds focused v2, RGA, native-null CGA, STA,
+  `galaga_matrix`, and `galaga_mermaid` examples. The maintained notebook set is
+  now exercised as an integration contract.
+
+- **Audited migration infrastructure** — Adds executable API manifests,
+  numeric contracts, rendering parity cases, architectural tests, LibCST
+  codemods, migration ledgers, clean-wheel checks, coverage gates, and
+  performance benchmarks used to validate the cutover.
+
+### Changed
+
+- **Top-level API now uses the Galaga 2 implementation** — `galaga.Algebra`
+  and related public values and functions are now the core-backed facade.
+  Code that intentionally needs the previous implementation during the alpha
+  migration window must import it from `galaga.legacy`.
+
+- **Long operation names are primary** — Documentation, expression catalogs,
+  integrations, and examples now use the explicit long names. Short names are
+  conveniences rather than a separate competing API.
+
+- **Bracket-family scaling is explicit** — `commutator`,
+  `anticommutator`, `lie_bracket`, and `jordan_product` are unscaled.
+  `half_commutator` and `half_anticommutator` provide the explicitly scaled
+  operations.
+
+- **Numeric scalar conversion is strict** — `float(multivector)` and NumPy
+  scalar conversion succeed only for scalar-only multivectors; they no longer
+  silently discard nonscalar grades. Use `grade(value, 0)` or the optional
+  `scalar_part(value)` helper when projection is intended.
+
+- **Scalar-valued numeric functions preserve the domain** — Operations such as
+  `norm()` return scalar Galaga multivectors, retaining algebra ownership,
+  naming, expression provenance, and display behavior. Explicit conversion to
+  a Python or NumPy scalar remains available for scalar-only results.
+
+- **Products support variadic functional notation** — Associative operations
+  can accept multiple operands while expression provenance records their
+  semantic operation and evaluation order.
+
+- **Rendering follows semantic structure** — Full display separates equal
+  parts with readable spacing, omits a duplicated value only when its rendered
+  expression is identical, preserves explicitly requested parts, simplifies
+  signs and unit coefficients, and avoids unnecessary grouping where operator
+  precedence is sufficient.
+
+- **Companion packages use public protocols** — `galaga_marimo`,
+  `galaga_matrix`, and `galaga_mermaid` now consume Galaga 2 public protocols
+  instead of legacy internals. Matrix representations use public linear
+  actions, and `galaga_matrix` owns its matrix-specific symbolic provenance.
+
+- **Supported Python baseline is 3.11** — Galaga, `galaga_matrix`, and
+  `galaga_mermaid` target Python 3.11 and later. `galaga_marimo` retains its
+  newer Python requirement for t-string notebook support.
+
+### Fixed
+
+- **Expression provenance through numeric functions** — Compound operations
+  such as `exp`, `log`, norms, sandwiches, and conformal-model helpers retain
+  named operands instead of prematurely replacing them with evaluated
+  coefficients.
+
+- **Stable full rendering** — Restores the six-decimal default, suppresses
+  insignificant floating-point residue, renders subtraction without `+ -`,
+  drops unit blade coefficients, and retains expression/value output for
+  unnamed compound expressions.
+
+- **LaTeX compatibility and grouping** — Corrects complement, dual,
+  antireverse, fraction, exponential, unary-negation, antiproduct, and
+  native-null CGA rendering for KaTeX and Marimo.
+
+- **CGA convention consistency** — Native conformal blade conventions now
+  follow the actual Gram metric, with scale-aware coordinate, weight, center,
+  and signed-radius calculations.
+
+- **General-metric fast-path validation** — Numeric fast paths are checked
+  against their algebra and metric assumptions so diagonal optimizations
+  cannot silently produce incorrect results for general Gram matrices.
+
+### Deprecated
+
+- **`galaga.legacy` is transitional** — The Galaga 1 implementation remains
+  available as an explicit migration and rendering-parity oracle during the
+  alpha period. It is not the Galaga 2 compatibility surface and is scheduled
+  for removal before the final 2.0 release.
+
 ## 1.8.1 (2026-07-15)
 
 ### Changed
