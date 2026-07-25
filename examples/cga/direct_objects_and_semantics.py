@@ -9,10 +9,19 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, outer_product, p_cga
+    from galaga import Algebra, DisplayPolicy, outer_product, p_cga, null_cga_blade_convention
     from galaga.cga import ConformalModel
 
-    return Algebra, ConformalModel, DisplayPolicy, gm, mo, outer_product, p_cga
+    return (
+        Algebra,
+        ConformalModel,
+        DisplayPolicy,
+        gm,
+        mo,
+        null_cga_blade_convention,
+        outer_product,
+        p_cga,
+    )
 
 
 @app.cell(hide_code=True)
@@ -29,10 +38,17 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(
+    Algebra,
+    ConformalModel,
+    DisplayPolicy,
+    null_cga_blade_convention,
+    p_cga,
+):
     algebra = Algebra(
         config=p_cga(spatial_dim=3),
         display=DisplayPolicy(content="full"),
+        blades=null_cga_blade_convention(3, style="juxtapose"),
     )
     cga = ConformalModel(algebra, expr=True)
     e1, e2, e3 = cga.euclidean_basis_vectors()
@@ -154,9 +170,7 @@ def _(mo):
 @app.cell
 def _(cga, circle, gm):
     _dual_circle = cga.dual(circle).named("C_dual", latex=r"C^\ast")
-    _antidual_circle = cga.antidual(circle).named(
-        "C_antidual", latex=r"C^\star"
-    )
+    _antidual_circle = cga.antidual(circle).named("C_antidual", latex=r"C^\star")
 
     gm.md(rt"""
     {_dual_circle}
