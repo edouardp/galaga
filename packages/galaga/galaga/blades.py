@@ -306,8 +306,17 @@ def orthogonal_cga_blade_convention(spatial_dim: int) -> BladeConvention:
     return indexed_blade_convention(spatial_dim + 2, subscripts=subscripts, roles=roles)
 
 
-def null_cga_blade_convention(spatial_dim: int) -> BladeConvention:
-    """Euclidean vectors followed by an actual native-null origin/infinity pair."""
+def null_cga_blade_convention(
+    spatial_dim: int,
+    *,
+    style: str = "compact",
+) -> BladeConvention:
+    """Build native-null CGA blades in ``spatial_dim + 2`` dimensions.
+
+    ``spatial_dim`` counts Euclidean vectors; the convention appends the
+    origin and infinity vectors. ``style`` selects compact, juxtaposed, or
+    wedge spelling without changing those semantic roles.
+    """
     _validate_spatial_dimension(spatial_dim)
     subscripts: list[Name | str] = [str(index) for index in range(1, spatial_dim + 1)]
     subscripts.extend((Name("o", "ₒ", "o"), Name("inf", "∞", r"\infty")))
@@ -318,7 +327,12 @@ def null_cga_blade_convention(spatial_dim: int) -> BladeConvention:
             "infinity": BladeRef(1 << (spatial_dim + 1)),
         }
     )
-    return indexed_blade_convention(spatial_dim + 2, subscripts=subscripts, roles=roles)
+    return indexed_blade_convention(
+        spatial_dim + 2,
+        subscripts=subscripts,
+        style=style,
+        roles=roles,
+    )
 
 
 def lengyel_cga_blade_convention() -> BladeConvention:

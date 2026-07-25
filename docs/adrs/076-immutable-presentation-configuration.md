@@ -65,7 +65,7 @@ the other compound blades.
 The facade constructor accepts complete setup through `config=`:
 
 ```python
-from galaga.facade import Algebra, Notation, p_cga
+from galaga import Algebra, Notation, p_cga
 
 algebra = Algebra(
     config=p_cga(spatial_dim=3),
@@ -89,6 +89,14 @@ rga.blade("e31")    # -1 times that native blade
 
 The core never sees the label. Facade factories apply only the declared sign
 to an otherwise ordinary core value.
+
+Model-specific blade-convention builders may expose the indexed convention's
+compact, juxtaposed, and wedge styles. This keeps model roles such as CGA's
+`origin` and `infinity` intact while allowing the blade product spelling to be
+selected independently of the numeric definition. Their `spatial_dim`
+parameter counts model-space vectors; a conformal builder adds its two
+origin/infinity vectors and returns a convention of dimension
+`spatial_dim + 2`.
 
 Persistent presentation changes create a cheap facade view sharing the same
 `core.Algebra`. Temporary changes use a per-algebra `ContextVar`:

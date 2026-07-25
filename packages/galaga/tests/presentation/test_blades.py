@@ -1,5 +1,6 @@
 import pytest
 
+from galaga import Algebra, p_cga
 from galaga.blades import (
     BladeConvention,
     BladeLabel,
@@ -161,6 +162,21 @@ def test_indexed_convention_styles_and_custom_subscripts_are_semantic_configurat
         indexed_blade_convention(2, subscripts=("x",))
     with pytest.raises(ValueError, match="outside the convention dimension"):
         indexed_blade_convention(1, overrides={2: "e2"})
+
+
+def test_native_null_cga_can_juxtapose_blades_without_losing_semantic_roles():
+    convention = null_cga_blade_convention(3, style="juxtapose")
+    algebra = Algebra(config=p_cga(spatial_dim=3), blades=convention)
+
+    assert convention.dimension == 5
+    assert convention.label(0b11111).name.variants == (
+        "e1e2e3eoeinf",
+        "e₁e₂e₃eₒe∞",
+        r"e_{1} e_{2} e_{3} e_{o} e_{\infty}",
+    )
+    assert convention.resolve("origin") == BladeRef(0b01000)
+    assert convention.resolve("infinity") == BladeRef(0b10000)
+    assert algebra.pseudoscalar().latex() == r"e_{1} e_{2} e_{3} e_{o} e_{\infty}"
 
 
 def test_local_policy_mapping_is_read_only_and_skips_nonidentifiers():

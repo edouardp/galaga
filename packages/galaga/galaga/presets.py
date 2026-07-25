@@ -85,7 +85,7 @@ class SpacetimePreset:
 
 @dataclass(frozen=True, slots=True)
 class PGAPreset:
-    """Projective geometric algebra with a final native-null basis vector."""
+    """PGA with ``spatial_dim`` Euclidean vectors and one final null vector."""
 
     spatial_dim: int = 3
 
@@ -106,7 +106,7 @@ class PGAPreset:
 
 @dataclass(frozen=True, slots=True)
 class CGAPreset:
-    """Conformal geometric algebra in a native-null or orthogonal frame."""
+    """CGA with ``spatial_dim`` Euclidean vectors plus two conformal vectors."""
 
     spatial_dim: int = 3
     frame: Literal["null", "orthogonal"] = "null"
@@ -252,7 +252,7 @@ def p_sta(
 
 
 def p_pga(spatial_dim: int = 3) -> PGAPreset:
-    """Return an inspectable projective preset."""
+    """Return a ``spatial_dim + 1`` projective-algebra preset."""
     return PGAPreset(spatial_dim)
 
 
@@ -262,7 +262,7 @@ def p_cga(
     frame: Literal["null", "orthogonal"] = "null",
     null_pair: float = -1.0,
 ) -> CGAPreset:
-    """Return an inspectable conformal preset."""
+    """Return a ``spatial_dim + 2`` conformal-algebra preset."""
     return CGAPreset(spatial_dim, frame, null_pair)
 
 

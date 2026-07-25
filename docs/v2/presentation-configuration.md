@@ -9,9 +9,9 @@ answers two different user needs with one architecture:
 - “let me replace exactly one naming, notation, local, ordering, or display
   choice.”
 
-The implementation does not render expressions yet. It establishes the
-immutable objects, signed blade semantics, preset expansion, facade factories,
-and context-safe selection that later expression and rendering phases consume.
+The completed implementation supplies immutable objects, signed blade
+semantics, preset expansion, facade factories, context-safe selection, and the
+configuration consumed by the shared expression/value renderer.
 
 ## System boundary
 
@@ -95,6 +95,30 @@ The supplied conventions cover default indexed and Euclidean blades,
 spacetime gamma blades, PGA, orthogonal and native-null CGA, Lengyel RGA,
 complex and quaternion subalgebra vocabularies, and explicit wedge notation
 for exterior algebras.
+
+Indexed conventions support `style="compact"`, `"juxtapose"`, or `"wedge"`.
+Model-specific builders expose that choice when the model's semantic basis
+roles must be retained. For example, a native-null CGA can juxtapose its basis
+vectors while preserving `origin` and `infinity` lookup:
+
+```python
+from galaga import Algebra, null_cga_blade_convention, p_cga
+
+cga = Algebra(
+    config=p_cga(spatial_dim=3),
+    blades=null_cga_blade_convention(3, style="juxtapose"),
+)
+```
+
+Its pseudoscalar is displayed as
+$e_{1} e_{2} e_{3} e_{o} e_{\infty}$. This changes only blade presentation;
+the preset's native-null Gram matrix and model roles remain unchanged.
+
+The `3` in both calls is the Euclidean spatial dimension. Each native-null CGA
+builder adds $e_o$ and $e_\infty$, so the resulting algebra and convention
+both have total dimension five. Passing `5` to the blade builder would create
+a seven-dimensional convention and correctly fail the facade's dimension
+validation when combined with `p_cga(spatial_dim=3)`.
 
 ### Local names and display order remain independent
 
@@ -239,7 +263,7 @@ interleaved async task an isolated effective value.
 
 ```python
 with algebra.use_presentation(teaching_presentation):
-    # Future display() calls resolve to teaching_presentation here.
+    # Display calls resolve to teaching_presentation here.
     ...
 ```
 
@@ -260,21 +284,19 @@ Presentation code must preserve all of these rules:
 ## Validation and tests
 
 The dedicated `tests/presentation` suite covers immutable replacement,
-dimension and collision failures, every convention and preset, signed RGA
-round trips, native coefficient identity, read-only locals, direct config
-construction, nested and exceptional scope restoration, OS-thread isolation,
-async-task isolation, and equality/hash invariance.
+dimension and collision failures, every convention and preset, generated blade
+styles, signed RGA round trips, native coefficient identity, read-only locals,
+direct config construction, nested and exceptional scope restoration,
+OS-thread isolation, async-task isolation, and equality/hash invariance.
 
-With the facade and compatibility contracts included, the Phase 4 validation
-run has 214 passing tests. Branch coverage for the implemented boundary is:
+Run it from the repository root:
 
-| Module | Branch coverage |
-|---|---:|
-| `galaga.names` | 100% |
-| `galaga.blades` | 97% |
-| `galaga.presentation` | 100% |
-| `galaga.presets` | 97% |
-| `galaga.facade._numeric` | 98% |
+```bash
+uv run pytest packages/galaga/tests/presentation -q
+```
+
+Exact historic test counts and coverage percentages are intentionally not part
+of this living guide; release gates measure them from the current tree.
 
 ## Later layers now built on this foundation
 

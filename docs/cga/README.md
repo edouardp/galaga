@@ -31,6 +31,48 @@ $e_\infty$. The stored matrix is exactly its
 [metric](https://conformalgeometricalgebra.org/wiki/index.php?title=Metrics),
 not a presentation-time relabeling.
 
+`spatial_dim` always counts Euclidean dimensions. The conformal preset and its
+model-aware blade-convention builders add the two null vectors themselves:
+
+| Call | Euclidean vectors | Total algebra dimension |
+|---|---:|---:|
+| `p_cga(spatial_dim=2)` | 2 | 4 |
+| `p_cga(spatial_dim=3)` | 3 | 5 |
+| `null_cga_blade_convention(3)` | 3 | 5 |
+
+Passing `5` to `null_cga_blade_convention` would therefore request five
+Euclidean vectors plus $e_o$ and $e_\infty$: a seven-dimensional convention,
+not a convention for ordinary 3D CGA.
+
+## Blade product spelling
+
+The native-null basis roles and the way compound blades are printed are
+independent presentation choices. The default is compact, but the model-aware
+builder also supports juxtaposed and explicit-wedge styles:
+
+```python
+from galaga import (
+    Algebra,
+    DisplayPolicy,
+    null_cga_blade_convention,
+    p_cga,
+)
+
+algebra = Algebra(
+    config=p_cga(spatial_dim=3),
+    blades=null_cga_blade_convention(3, style="juxtapose"),
+    display=DisplayPolicy(content="full"),
+)
+```
+
+The pseudoscalar then renders as $e_1 e_2 e_3 e_o e_\infty$.
+
+With `style="compact"` it renders as $e_{123o\infty}$, and with `style="wedge"` it renders as
+$e_1\wedge e_2\wedge e_3\wedge e_o\wedge e_\infty$.
+
+All three conventions retain the same `euclidean_1` through `euclidean_3`, `origin`,
+and `infinity` roles and the same Gram matrix.
+
 ## Architecture
 
 ```mermaid
@@ -65,8 +107,7 @@ The responsibilities are deliberately separate:
 An arbitrary `Algebra(4, 1)` is not accepted. Neither inertia nor basis names
 identify which directions mean origin, infinity, and Euclidean space. The
 orthogonal `p_cga(frame="orthogonal")` model is also rejected because its last
-two basis vectors really are $e_+$ and $e_-$, not $e_o$ and
-$e_\infty$.
+two basis vectors really are $e_+$ and $e_-$, not $e_o$ and $e_\infty$.
 
 ## Constructing the model
 
@@ -96,11 +137,9 @@ algebra = Algebra(config=p_lengyel_cga())
 cga = ConformalModel(algebra, expr=True)
 ```
 
-The role called `origin` renders as $\mathbf e_4$ and `infinity` renders as
-$\mathbf e_5$. Signed non-ascending labels such as $\mathbf e_{31}$,
-$\mathbf e_{423}$, and $\mathbf e_{4315}$ retain their displayed orientation.
-The top blade satisfies
-
+The role called `origin` renders as $\mathbf e_4$ and `infinity` renders as $\mathbf e_5$.
+Signed non-ascending labels such as $\mathbf e_{31}$, $\mathbf e_{423}$, and $\mathbf e_{4315}$ retain
+their displayed orientation. The top blade satisfies
 $$
 \mathbf e_{12345}=\text{𝟙},
 $$
