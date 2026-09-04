@@ -75,6 +75,20 @@ def test_up_can_show_the_cga_operator_or_the_null_basis_embedding() -> None:
         assert evaluate(point.expr, algebra=compact.algebra) == point
 
 
+def test_variadic_point_coordinates_retain_the_existing_euclidean_vector_provenance() -> None:
+    cga = _model()
+
+    variadic = cga.up(1.0, 2.0, 3.0)
+    sequence = cga.up((1.0, 2.0, 3.0))
+    variadic_round = cga.round_point(1.0, 2.0, 3.0, radius_squared=4.0)
+    sequence_round = cga.round_point((1.0, 2.0, 3.0), radius_squared=4.0)
+
+    assert variadic == sequence
+    assert variadic.expr == sequence.expr
+    assert variadic_round == sequence_round
+    assert variadic_round.expr == sequence_round.expr
+
+
 def test_explicit_expr_false_suppresses_both_expression_forms() -> None:
     cga = _model()
 

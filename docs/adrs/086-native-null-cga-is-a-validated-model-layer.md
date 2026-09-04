@@ -1,6 +1,6 @@
 ---
 status: accepted
-date: 2026-07-21
+date: 2026-08-19
 deciders: edouard
 ---
 
@@ -66,7 +66,12 @@ It deliberately rejects the orthogonal CGA preset and an untyped
 The model owns Euclidean-vector construction, the generalized round-point
 embedding for any declared null-pair scaling, conformal weight,
 homogenization, Euclidean extraction, coordinates, and signed squared-radius
-extraction.
+extraction. `up()` and `round_point()` accept either one real positional
+coordinate per spatial dimension, one coordinate iterable, or one Euclidean
+multivector. Mixed forms and multiple multivectors are rejected rather than
+implicitly combined. All coordinate forms canonicalize to the same Euclidean
+vector expression provenance; preserving the original positional spelling is
+deferred until the generic expression layer has a variadic call contract.
 
 The model also owns validated CGA semantic compositions: dual, antidual,
 attitude, carrier, cocarrier, center, flat center, container, partner,

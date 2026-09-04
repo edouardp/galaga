@@ -186,8 +186,8 @@ class ConformalModel:
 
     def round_point(
         self,
-        position: Iterable[Real] | Multivector,
-        *,
+        position: Real | Iterable[Real] | Multivector,
+        *coordinates: Real,
         radius_squared: Real | float | Multivector = 0.0,
         expr: bool | None = None,
         expression_form: CGAExpressionForm | None = None,
@@ -202,9 +202,15 @@ class ConformalModel:
         scaling.  ``radius_squared=0`` is an ordinary conformal point; signed
         squared radius also represents the wiki's real and imaginary round
         points without introducing complex coefficients.
+
+        Supply the position as one coordinate iterable, one Euclidean
+        multivector, or one real positional argument per spatial dimension.
         """
         tracking = self._resolve_expr(expr)
-        x = self.euclidean_vector(position, expr=tracking)
+        x = self.euclidean_vector(
+            self._position_input(position, coordinates),
+            expr=tracking,
+        )
         radius = self._scalar(radius_squared, expr=tracking)
         eo = self._algebra.blade(self._origin_ref, expr=tracking)
         einf = self._algebra.blade(self._infinity_ref, expr=tracking)
@@ -222,14 +228,17 @@ class ConformalModel:
 
     def up(
         self,
-        position: Iterable[Real] | Multivector,
-        *,
+        position: Real | Iterable[Real] | Multivector,
+        *coordinates: Real,
         expr: bool | None = None,
         expression_form: CGAExpressionForm | None = None,
     ) -> Multivector:
-        """Embed an ordinary conformal point, preserving the ``up`` operation identity."""
+        """Embed a point from positional coordinates, an iterable, or a Euclidean vector."""
         tracking = self._resolve_expr(expr)
-        x = self.euclidean_vector(position, expr=tracking)
+        x = self.euclidean_vector(
+            self._position_input(position, coordinates),
+            expr=tracking,
+        )
         eo = self._algebra.blade(self._origin_ref, expr=tracking)
         einf = self._algebra.blade(self._infinity_ref, expr=tracking)
         result = eo + x + squared(x) * einf / (-2.0 * self._null_pair)
@@ -1099,6 +1108,24 @@ class ConformalModel:
         if not np.isfinite(float(value)):
             raise ValueError("radius_squared must be finite")
         return self._algebra.scalar(value, expr=expr)
+
+    @staticmethod
+    def _position_input(
+        position: Real | Iterable[Real] | Multivector,
+        coordinates: tuple[Real, ...],
+    ) -> Iterable[Real] | Multivector:
+        """Normalize the point-factory input grammar without changing its values."""
+        if not coordinates and not isinstance(position, Real):
+            return cast(Iterable[Real] | Multivector, position)
+
+        values = (position, *coordinates)
+        if any(isinstance(value, (bool, np.bool_)) for value in values):
+            raise TypeError("point coordinates must be real numbers, not booleans")
+        if any(not isinstance(value, Real) for value in values):
+            raise TypeError(
+                "point input must be real positional coordinates, one coordinate iterable, or one Euclidean multivector"
+            )
+        return cast(tuple[Real, ...], values)
 
     def _resolve_expr(self, value: bool | None) -> bool:
         if value is None:

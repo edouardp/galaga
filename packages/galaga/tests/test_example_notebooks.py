@@ -36,7 +36,7 @@ def test_new_example_notebooks_use_v2_facade_teaching_pattern():
         assert "symbolic=True" not in source
         assert "repr_unicode=" not in source
         assert "display_repr=" not in source
-        assert 'gm.md(rt"""' in source or "gm.md(rt'''" in source
+        assert any(marker in source for marker in ('gm.md(t"""', "gm.md(t'''", 'gm.md(rt"""', "gm.md(rt'''"))
         assert "from galaga.notation import" not in source
         assert 'names="gamma"' not in source
         assert migrate_source(source) == source

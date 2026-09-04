@@ -36,6 +36,40 @@ def test_round_point_formula_respects_any_nonzero_null_pair_scaling(null_pair: f
     np.testing.assert_allclose(cga.coordinates(point), (1.0, -2.0, 0.5), rtol=0.0, atol=1e-12)
 
 
+def test_point_factories_accept_equivalent_coordinate_grammars() -> None:
+    cga = ConformalModel(Algebra(config=p_cga()))
+    position = cga.euclidean_vector((1.0, -2.0, 0.5))
+
+    assert cga.up(1.0, -2.0, 0.5) == cga.up((1.0, -2.0, 0.5)) == cga.up(position)
+    assert (
+        cga.round_point(1.0, -2.0, 0.5, radius_squared=2.25)
+        == cga.round_point((1.0, -2.0, 0.5), radius_squared=2.25)
+        == cga.round_point(position, radius_squared=2.25)
+    )
+
+
+def test_one_dimensional_model_accepts_one_positional_coordinate() -> None:
+    cga = ConformalModel(Algebra(config=p_cga(spatial_dim=1)))
+
+    point = cga.up(2.5)
+
+    np.testing.assert_allclose(cga.coordinates(point), (2.5,), rtol=0.0, atol=1e-12)
+
+
+def test_point_factories_reject_wrong_counts_mixed_forms_and_booleans() -> None:
+    cga = ConformalModel(Algebra(config=p_cga()))
+    e1, e2, e3 = cga.euclidean_basis_vectors()
+
+    with pytest.raises(ValueError, match="expected 3 Euclidean coordinates, got 1"):
+        cga.up(1.0)
+    with pytest.raises(TypeError, match="real positional coordinates"):
+        cga.up((1.0, 2.0, 3.0), 4.0)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="real positional coordinates"):
+        cga.up(e1, e2, e3)  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="not booleans"):
+        cga.round_point(True, 2.0, 3.0)  # type: ignore[arg-type]
+
+
 def test_homogenize_down_and_coordinates_are_projectively_invariant() -> None:
     cga = ConformalModel(Algebra(config=p_cga()))
     point = cga.round_point((2.0, -3.0, 4.0), radius_squared=-1.5)

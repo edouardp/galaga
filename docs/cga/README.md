@@ -166,7 +166,7 @@ geometric intent most directly:
 
 ```python
 cga = ConformalModel(algebra, expr=True)  # expression_form="operator"
-p = cga.up((1, 2, 3))                    # up(e1 + 2 e2 + 3 e3)
+p = cga.up(1, 2, 3)                      # up(e1 + 2 e2 + 3 e3)
 carrier = cga.carrier(circle)             # car(C) in Lengyel notation
 ```
 
@@ -221,12 +221,30 @@ $$
 An ordinary conformal point is the zero-radius case:
 
 ```python
-p = cga.round_point((1, 2, 3))
-a = cga.round_point((1, 2, 3), radius_squared=4)
+p = cga.round_point(1, 2, 3)
+a = cga.round_point(1, 2, 3, radius_squared=4)
 
 assert float(p * p) == 0
 assert float(cga.radius_squared(a)) == 4
 ```
+
+Both point factories accept three equivalent input forms:
+
+```python
+x = cga.euclidean_vector((1, 2, 3))
+
+cga.up(1, 2, 3)       # positional Cartesian coordinates
+cga.up((1, 2, 3))     # one coordinate iterable
+cga.up(x)              # one Euclidean multivector
+```
+
+The positional count is checked against `spatial_dim`. Mixed forms and
+multiple multivectors are rejected instead of being implicitly combined.
+All three forms currently retain the same canonical Euclidean-vector
+expression provenance. The
+[`coordinate_first_workflows.py`](../../examples/cga/coordinate_first_workflows.py)
+notebook demonstrates the coordinate-first API through circle construction,
+round-point measurement, and projection onto a plane.
 
 The signed `radius_squared` parameter represents real, zero-radius, and
 imaginary round geometry without introducing complex coefficients. It may be a
@@ -586,6 +604,9 @@ The maintained Marimo gallery includes four native-null CGA notebooks:
   derives plane reflection and sphere inversion from the same odd-versor
   action, verifies inversion is involutive, and shows a line becoming a circle
   through the inversion center.
+
+Additional workflow notebooks cover the coordinate-first point API
+([`coordinate_first_workflows.py`](../../examples/cga/coordinate_first_workflows.py)).
 
 These files are entries in the executable notebook migration ledger. CI
 checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,
