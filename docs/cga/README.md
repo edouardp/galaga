@@ -246,6 +246,36 @@ expression provenance. The
 notebook demonstrates the coordinate-first API through circle construction,
 round-point measurement, and projection onto a plane.
 
+For a reactive planar view, the
+[`interactive_cga2d.py`](../../examples/cga/interactive_cga2d.py) notebook
+passes direct points, lines, and circles to `galaga_anywidget.viz.display()`.
+Dragging its point reconstructs the current immutable `up(x, y)` value. The
+lower-level example uses a complete-values callback to replace explicit
+Marimo state and renders both `P` and `cga.down(P)` live without treating
+JavaScript coordinates as conformal coefficients.
+
+The companion
+[`derived_circle_from_points.py`](../../examples/cga/derived_circle_from_points.py)
+notebook constructs $C=P\wedge Q\wedge R$ in Python, makes the three points
+draggable, and declares the dotted circle read-only and dependent on them.
+The stable view cell constructs and renders `viz.CGA2D(circle_cga)` once. A
+point cell reads the widget's named Euclidean coordinate pairs and constructs
+ordinary values with `circle_cga.up(...)`; the visible algebra cell then
+computes `C = P ^ Q ^ R` directly. A separate reactive cell calls
+`circle_viz.display([P, Q, R], immutable=[C])`. Moving a point updates its
+named coordinate pair, and normal Marimo AnyWidget dependencies recompute the
+ordinary points, `C`, and the scene without custom multivector mutation,
+explicit state, or reconstructing the AnyWidget. The visible Python wedge
+remains the authoritative circle construction.
+
+The
+[`circle_circle_meet.py`](../../examples/cga/circle_circle_meet.py) notebook
+keeps the generic operation `D = meet(C1, C2)` in its own ordinary Python cell.
+In two-dimensional direct CGA that meet is a grade-2 dipole. The persistent
+view renders two real factors, a repeated tangent factor, or an imaginary-pair
+marker according to the dipole's model-derived center radius while draggable
+circle centers continue to flow through Marimo's normal dependency graph.
+
 The signed `radius_squared` parameter represents real, zero-radius, and
 imaginary round geometry without introducing complex coefficients. It may be a
 real number or a scalar multivector carrying a name and expression provenance.
@@ -641,7 +671,13 @@ The core maintained Marimo sequence includes four native-null CGA notebooks:
 Additional workflow notebooks cover the coordinate-first point API
 ([`coordinate_first_workflows.py`](../../examples/cga/coordinate_first_workflows.py)),
 the shared-model OPNS/IPNS conversion and point special case
-([`direct_and_dual_representations.py`](../../examples/cga/direct_and_dual_representations.py)).
+([`direct_and_dual_representations.py`](../../examples/cga/direct_and_dual_representations.py)),
+the persistent 2D renderer
+([`interactive_cga2d.py`](../../examples/cga/interactive_cga2d.py)), a
+read-only circle derived from three movable points
+([`derived_circle_from_points.py`](../../examples/cga/derived_circle_from_points.py)),
+and a circle-circle meet that remains ordinary Python
+([`circle_circle_meet.py`](../../examples/cga/circle_circle_meet.py)).
 
 These files are entries in the executable notebook migration ledger. CI
 checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,
