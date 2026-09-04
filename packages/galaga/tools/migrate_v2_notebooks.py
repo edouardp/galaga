@@ -19,6 +19,7 @@ MIGRATED_NOTEBOOKS = (
     "cga/native_null_foundations.py",
     "cga/expression_forms.py",
     "cga/direct_objects_and_semantics.py",
+    "cga/direct_and_dual_representations.py",
     "cga/coordinate_first_workflows.py",
     "cga/lengyel_cga_transformations.py",
     "cga/reflections_and_inversions.py",

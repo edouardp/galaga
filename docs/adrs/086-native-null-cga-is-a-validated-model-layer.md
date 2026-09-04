@@ -63,6 +63,58 @@ orthogonal to Euclidean space, and their mutual product is finite and nonzero.
 It deliberately rejects the orthogonal CGA preset and an untyped
 `Algebra(4, 1)` even though both have the same inertia.
 
+`ConformalModel` represents one conformal model, not one choice of geometric
+representation. It has no mutable or immutable direct/dual mode. Its
+`origin`, `infinity`, Euclidean basis-vector properties, and canonical `up()`
+embedding are shared by direct/OPNS and dual/IPNS workflows.
+
+Direct and dual are interpretations of ordinary homogeneous multivectors in
+the shared algebra. Changing the interpretation of a calculation does not
+change the metric, basis, stored coefficients, or model. When the same
+geometric locus needs an explicit blade in the complementary representation,
+the conversion is an object-level Hodge dual rather than a model conversion.
+
+For an $n$-dimensional Euclidean space, the conformal vector-space dimension
+is $N=n+2$. Object conversion uses the right Hodge dual $H$ across
+all $N$ conformal dimensions, not a dual taken only within the Euclidean
+subspace. The direct-to-dual map is
+
+$$
+A_{\mathrm{dual}} = H(A_{\mathrm{direct}}).
+$$
+
+On a grade-$k$ direct component, the tested core identity is
+
+$$
+H(H(A_k)) = (-1)^{k(N-k)}\det(G)A_k,
+$$
+
+where $G$ is the algebra's actual Gram matrix. Applying $H$ again returns the
+original homogeneous geometry with the derived factor above. That factor is
+projectively irrelevant for geometric blades; callers requiring exact
+coefficient normalization can divide by it. `ConformalModel.dual(value)` is
+the explicit direct/IPNS conversion spelling and exposes the Hodge operation
+in expression provenance.
+
+The Hodge operation uses the full conformal pseudoscalar
+$I_C=I_E\wedge(e_o\wedge e_\infty)$. With Galaga's right-Hodge convention it
+is equivalently $H(A)=\widetilde A I_C$. The shared values of $e_o$ and
+$e_\infty$ are therefore not replaced between interpretations, but their
+dimensions do participate in object dualization.
+
+Canonical conformal points are a documented special case. The grade-one null
+vector $P(x)=\operatorname{up}(x)$ is the direct point embedding and can also
+be interpreted in IPNS as a zero-radius sphere because
+$X\mathbin{\cdot}P(x)=-\lVert X-x\rVert^2/2$. Its strict complementary-grade
+representation is still $H(P(x))$; the zero-sphere interpretation does not
+make $H(P)=P$.
+
+Raw `Multivector` values remain unbranded. Generic facade operations continue
+to operate on their shared numeric algebra and do not infer or propagate a
+CGA representation tag. Typed geometry or semantic representation wrappers
+remain deferred until they can add useful geometry-kind validation rather
+than merely duplicating a model-level mode.
+
 The model owns Euclidean-vector construction, the generalized round-point
 embedding for any declared null-pair scaling, conformal weight,
 homogenization, Euclidean extraction, coordinates, and signed squared-radius
@@ -78,6 +130,17 @@ attitude, carrier, cocarrier, center, flat center, container, partner,
 expansion, and projection. Descriptive names are primary. The wiki
 abbreviations are exact class aliases and do not create duplicate
 implementations.
+
+Join and meet remain the generic outer and regressive products. In a direct
+workflow the outer product joins point blades; in an IPNS workflow the outer
+product intersects implicit objects. A model-level `join()` or `meet()` would
+need representation provenance that raw multivectors do not carry, so those
+semantic selectors are deferred with the optional interpreted-geometry layer.
+
+The established CGA helper vocabulary retains its documented direct formulas.
+The model does not silently dualize inputs or outputs based on ambient state.
+Users apply `dual()` explicitly before using an IPNS incidence or construction
+formula.
 
 The model owns the role-dependent round-bulk, round-weight, flat-bulk, and
 flat-weight projections. It derives round/flat and CGA bulk/weight families
@@ -104,15 +167,16 @@ nonzero null-pair scale declared by the preset. The wiki's polynomial partner
 identity is defined for `eo·einf == -1`; `partner` validates that normalization
 instead of silently applying it at another scale.
 
-Join, meet, exterior product, geometric product, geometric antiproduct,
-complements, metric maps, and sandwich actions remain the existing generic
-facade operations. Direct point, flat-point, dipole, line, circle, plane, and
-sphere representations are ordinary variadic wedges. Translation, rotation,
-dilation, and transversion remain exponentials followed by generic sandwich
-actions. Plane reflection and sphere inversion remain the ordinary
-odd-versor action $-aXa^{-1}$; inverting a line into a circle likewise needs
-no special numeric operation. No constructors are added merely to hide those
-compositions.
+Exterior product, regressive product, geometric product, geometric
+antiproduct, complements, metric maps, and sandwich actions remain the
+existing generic facade operations. Direct point, flat-point, dipole, line,
+circle, plane, and sphere representations may be written as ordinary variadic
+wedges, and IPNS forms are obtained with explicit object duality or constructed
+from implicit vectors. Translation, rotation, dilation, and transversion
+remain exponentials followed by generic sandwich actions. Plane reflection
+and sphere inversion remain the ordinary odd-versor action $-aXa^{-1}$;
+inverting a line into a circle likewise needs no special numeric operation. No
+constructors are added merely to hide those compositions.
 
 The first model layer validates algebra ownership and homogeneous-grade
 preconditions. It does not introduce typed geometry wrappers or prove every
@@ -166,9 +230,17 @@ other compositional helpers.
 - Good, because operator and expanded forms let teaching material change its
   level of explanation without changing values, algebras, or global display
   state.
+- Good, because direct and dual notebooks use one model and make object-level
+  Hodge conversion visible at the call site.
+- Good, because the dual involves the full conformal metric and its projective
+  round-trip factor is derived from ambient grade and the Gram determinant.
+- Good, because canonical point embedding is not conflated with strict Hodge
+  conversion or a model-level representation mode.
 - Cost, because users explicitly construct `ConformalModel(algebra)` instead
   of receiving an implicit algebra subclass.
 - Cost, because direct geometries remain multivectors; invalid geometric
   coefficient combinations are not yet represented by a distinct type.
+- Cost, because raw multivectors do not record whether callers currently
+  interpret them through OPNS or IPNS incidence and construction rules.
 - Deferred, because comparing native and orthogonal frames through a public
   basis-change object still depends on the planned outermorphism facility.

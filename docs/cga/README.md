@@ -306,6 +306,34 @@ Variadic outer products are lowered to the same associative binary operation,
 so these spellings do not create special constructors or new expression-node
 types.
 
+## Dual/IPNS representations
+
+Direct and dual CGA share one `ConformalModel`, one native basis, and one
+canonical `up()` embedding. They are geometric interpretations of ordinary
+multivectors, not model modes. To convert the same geometric locus from its
+direct/OPNS blade to its strict dual/IPNS blade, apply the model's full
+conformal Hodge dual explicitly:
+
+```python
+C_opns = outer_product(P, Q, R)
+C_ipns = cga.dual(C_opns)
+```
+
+For spatial dimension $n$, the conformal dimension is $N=n+2$, and the dual
+maps grade $k$ to $N-k$. It includes the null plane spanned by $e_o$ and
+$e_\infty$; it is not a spatial-only dual. The native values of `origin` and
+`infinity` nevertheless remain unchanged because the model basis is shared.
+
+The canonical point $P=\operatorname{up}(p)$ is a special case. Its strict
+dual is the complementary-grade blade $P^\star$, but $P$ itself can also be
+read as an IPNS zero-radius sphere because
+$X\mathbin{\cdot}P=-\lVert x-p\rVert^2/2$. This does not make
+$P^\star=P$ and does not change the result of `up()`.
+
+See [CGA_API.md](../../CGA_API.md) for the grade tables, projective
+double-dual factor, incidence contracts, and analytic IPNS circle and plane
+forms.
+
 ## CGA semantic operations
 
 The wiki defines a compact vocabulary built from join, meet, complement, and
@@ -493,7 +521,7 @@ The wiki's
 and [join and meet](https://conformalgeometricalgebra.org/wiki/index.php?title=Join_and_meet)
 map directly to existing Galaga operations:
 
-| CGA term | Galaga operation |
+| Direct/OPNS term | Galaga operation |
 |---|---|
 | join | `outer_product` (`join`, `wedge`, and `op` are aliases) |
 | meet | `regressive_product` (`meet` is an alias) |
@@ -504,6 +532,11 @@ map directly to existing Galaga operations:
 
 Keeping these operations generic preserves one numeric implementation and one
 expression operation ID.
+
+In a dual/IPNS interpretation, the geometric meanings of the outer and
+regressive products exchange: outer product intersects implicit objects and
+regressive product joins them. Their numeric definitions and public aliases
+do not change.
 
 ## Transformations
 
@@ -586,7 +619,7 @@ special case in the numeric core.
 
 ## Executable notebooks
 
-The maintained Marimo gallery includes four native-null CGA notebooks:
+The core maintained Marimo sequence includes four native-null CGA notebooks:
 
 - [`native_null_foundations.py`](../../examples/cga/native_null_foundations.py)
   derives the Gram matrix facts, point embedding, distance identity, and
@@ -606,7 +639,9 @@ The maintained Marimo gallery includes four native-null CGA notebooks:
   through the inversion center.
 
 Additional workflow notebooks cover the coordinate-first point API
-([`coordinate_first_workflows.py`](../../examples/cga/coordinate_first_workflows.py)).
+([`coordinate_first_workflows.py`](../../examples/cga/coordinate_first_workflows.py)),
+the shared-model OPNS/IPNS conversion and point special case
+([`direct_and_dual_representations.py`](../../examples/cga/direct_and_dual_representations.py)).
 
 These files are entries in the executable notebook migration ledger. CI
 checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,

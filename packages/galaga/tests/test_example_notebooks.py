@@ -42,6 +42,22 @@ def test_new_example_notebooks_use_v2_facade_teaching_pattern():
         assert migrate_source(source) == source
 
 
+def test_direct_and_dual_cga_notebook_uses_one_model_and_explicit_duality() -> None:
+    source = (EXAMPLES / "cga/direct_and_dual_representations.py").read_text()
+
+    assert "cga = ConformalModel(conformal_algebra, expr=True)" in source
+    assert "C_opns = outer_product(P, Q, R)" in source
+    assert "C_ipns = cga.dual(C_opns)" in source
+    assert "L_opns = outer_product(P, R, cga.infinity)" in source
+    assert "L_ipns = cga.dual(L_opns)" in source
+    assert "P_strict_dual = cga.dual(P)" in source
+    assert "scalar_product(P, P)" in source
+    assert "conformal_algebra.metric_determinant" in source
+    assert "representation=" not in source
+    assert "with_representation" not in source
+    assert ".convert(" not in source
+
+
 @pytest.mark.skipif(sys.version_info < (3, 14), reason="Marimo t-strings require Python 3.14")
 def test_migrated_notebooks_pass_marimo_dependency_validation() -> None:
     """Reject invalid cross-cell definitions and dependencies in the gallery."""
