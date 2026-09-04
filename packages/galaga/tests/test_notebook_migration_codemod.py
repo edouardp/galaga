@@ -34,7 +34,7 @@ scalar = (norm(x).eval() ** 2).scalar_part
     assert 'LABEL = ".eval() .name() b_sta involute"' in migrated
 
 
-def test_makes_tstring_value_rendering_explicit_without_breaking_python_formats() -> None:
+def test_makes_tstring_value_rendering_explicit_without_changing_string_kind() -> None:
     source = '''\
 gm.md(t"""
 {x} = {x.eval()}
@@ -45,7 +45,7 @@ length = {norm(x).eval():.3f}
 
     migrated = migrate_source(source)
 
-    assert 'gm.md(rt"""' in migrated
+    assert 'gm.md(t"""' in migrated
     assert "{x} = {x:value}" in migrated
     assert "expression = {x:expr}" in migrated
     assert "length = {norm(x):.3f}" in migrated

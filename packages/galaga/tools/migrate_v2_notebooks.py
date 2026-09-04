@@ -254,15 +254,6 @@ class _MigrateNotebook(cst.CSTTransformer):
             return updated_node
         return updated_node.with_changes(format_spec=(cst.TemplatedStringText("value"),))
 
-    def leave_TemplatedString(
-        self,
-        original_node: cst.TemplatedString,
-        updated_node: cst.TemplatedString,
-    ) -> cst.TemplatedString:
-        if original_node.start.startswith("t"):
-            return updated_node.with_changes(start=f"rt{updated_node.start[1:]}")
-        return updated_node
-
 
 def migrate_source(source: str) -> str:
     """Return one mechanically migrated notebook source file."""

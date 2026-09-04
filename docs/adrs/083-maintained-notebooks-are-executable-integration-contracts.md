@@ -37,9 +37,11 @@ non-writing `--check` mode.
 
 A tested, idempotent LibCST transformation moves the ledger to
 `galaga.facade`, eager values with optional expression provenance, immutable
-semantic names, explicit Marimo `:expr`/`:value` content, and raw t-strings.
-Negative-space tests preserve `MatrixRepr`, `QuatMatrixRepr`, and matrix
-conversion naming.
+semantic names, explicit Marimo `:expr`/`:value` content, and t-strings.
+It preserves whether dynamic Markdown used `t` or `rt` rather than rewriting
+new `gm.md(t"""...""")` cells to raw t-strings. Existing raw t-string
+notebooks remain valid. Negative-space tests preserve `MatrixRepr`,
+`QuatMatrixRepr`, and matrix conversion naming.
 
 Semantic changes remain reviewed source edits. Notebooks use complete presets
 where their presentation matters, compose removed geometry helpers from core
