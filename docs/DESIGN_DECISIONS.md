@@ -79,6 +79,7 @@ flowchart TD
     F --> P[Presentation]
     P --> R[Semantic rendering]
     M[galaga-matrix] --> U
+    W[galaga-anywidget] --> U
     J[galaga-marimo] --> U
     D[galaga-mermaid] --> E
 ```

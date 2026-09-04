@@ -234,7 +234,8 @@ and repository.
 | `galaga.rendering.latex` | LaTeX rewrites and emitter |
 | `galaga.display` | Policy for showing a name, expression, value, or teaching equality |
 | `galaga.presets` | Validated bundles of blade, notation, local-name, and display-order choices |
-| `galaga_marimo` | Optional notebook widgets and rich display integration |
+| `galaga_marimo` | Optional t-string Markdown rendering for Marimo |
+| `galaga_anywidget` | Optional interactive notebook visualizations |
 
 Existing Galaga module names can remain compatibility re-exports. The table is
 about ownership and dependency direction, not a requirement to break imports
@@ -630,7 +631,7 @@ still return the selected component when its rendering matches another part.
 
 The public surface should include `str`, `repr`, `format`, `.ascii()`,
 `.unicode()`, `.latex()`, and `_repr_latex_()`. Notebook-specific widgets stay
-in `galaga_marimo`.
+in `galaga_anywidget`; t-string Markdown rendering stays in `galaga_marimo`.
 
 Presentation selection has three override levels:
 

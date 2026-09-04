@@ -398,8 +398,9 @@ parameter handling, a 26-operation Lengyel notation matrix, and the complete
 - Legacy mutable notation and operation-specific renderer adapters remain only
   under `galaga.legacy`; `legacy.render` is retained only as a prerelease
   differential oracle.
-- `galaga_matrix`, `galaga_marimo`, `galaga_mermaid`, and the maintained
-  notebooks now consume the public facade/expression/display protocols.
+- `galaga_matrix`, `galaga_anywidget`, `galaga_marimo`, `galaga_mermaid`, and
+  the maintained notebooks now consume public facade, model, expression, and
+  display protocols.
 
 Those boundaries allowed the Phase 8 top-level type cutover without another
 rendering redesign and allow Phase 9 to delete the oracle without changing the

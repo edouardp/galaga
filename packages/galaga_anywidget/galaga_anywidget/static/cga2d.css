@@ -1,0 +1,112 @@
+.galaga-cga2d-widget {
+  display: block;
+  width: 100%;
+  color: var(--slate-12, #172033);
+  font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.galaga-cga2d-widget * {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.galaga-cga2d-frame {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 10px;
+  background: var(--slate-1, #ffffff);
+  box-shadow: 0 1px 3px rgb(15 23 42 / 8%);
+}
+
+.galaga-cga2d-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 260px;
+  touch-action: none;
+  user-select: none;
+}
+
+.galaga-cga2d-grid line {
+  stroke: color-mix(in srgb, currentColor 9%, transparent);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.galaga-cga2d-axes line {
+  stroke: color-mix(in srgb, currentColor 45%, transparent);
+  stroke-width: 1.25;
+  vector-effect: non-scaling-stroke;
+}
+
+.galaga-cga2d-object {
+  vector-effect: non-scaling-stroke;
+}
+
+.galaga-cga2d-line,
+.galaga-cga2d-circle {
+  fill: none;
+  stroke-width: 2.25;
+}
+
+.galaga-cga2d-dipole-connector {
+  fill: none;
+  opacity: 0.55;
+  stroke-width: 1.75;
+}
+
+.galaga-cga2d-dipole-point {
+  stroke: var(--slate-1, #ffffff);
+  stroke-width: 1.75;
+}
+
+.galaga-cga2d-dipole-imaginary {
+  opacity: 0.8;
+  stroke-width: 2;
+}
+
+.galaga-cga2d-dashed {
+  stroke-dasharray: 8 6;
+}
+
+.galaga-cga2d-dotted {
+  stroke-linecap: round;
+  stroke-dasharray: 1 7;
+}
+
+.galaga-cga2d-point {
+  stroke: var(--slate-1, #ffffff);
+  stroke-width: 2;
+}
+
+.galaga-cga2d-point.is-draggable {
+  cursor: grab;
+}
+
+.galaga-cga2d-point.is-dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 1px 3px rgb(15 23 42 / 35%));
+}
+
+.galaga-cga2d-label {
+  font-size: 13px;
+  font-weight: 600;
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: var(--slate-1, #ffffff);
+  stroke-width: 3px;
+  stroke-linejoin: round;
+}
+
+.galaga-cga2d-status {
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border-top: 1px solid color-mix(in srgb, #dc2626 24%, transparent);
+  background: color-mix(in srgb, #dc2626 8%, transparent);
+  color: #b91c1c;
+  font-size: 0.8rem;
+}

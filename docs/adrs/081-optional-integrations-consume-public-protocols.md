@@ -39,8 +39,10 @@ does not mutate the value.
 `galaga_marimo` 2.0 continues to render any object supporting `.latex()` or
 `_repr_latex_()`. Facade objects additionally support content-oriented t-string
 format specifications through `.display()`. Recognition reads immutable
-`Name.latex` and public coefficients. Marimo alone requires Python 3.14;
-Galaga, galaga-matrix, and galaga-mermaid retain Python 3.11 minima.
+`Name.latex` and public coefficients. `galaga-marimo` alone requires Python
+3.14; Galaga, galaga-anywidget, galaga-matrix, and galaga-mermaid retain Python
+3.11 minima. The AnyWidget integration consumes public `ConformalModel`
+semantics and is separated from the t-string renderer as recorded in ADR-091.
 
 Each optional package declares `galaga>=2.0.0`. Package-internal imports are
 relative. Source tests reject the legacy expression imports and private

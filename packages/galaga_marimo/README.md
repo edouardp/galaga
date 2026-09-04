@@ -63,3 +63,7 @@ with gm.doc(recognize=knowns) as d:
 Labels are taken from each MV's immutable `.name` value, created with
 `.named(..., latex=...)`. Pass any collection (list, tuple, or dict) of named
 multivectors.
+
+Interactive visualizations are intentionally separate from this t-string
+renderer. Install `galaga-anywidget` and import `galaga_anywidget.viz` for the
+persistent 2D CGA widget.

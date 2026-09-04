@@ -1,0 +1,47 @@
+[project]
+name = "galaga-anywidget"
+version = "2.0.0a1"
+description = "Interactive AnyWidget visualizations for Galaga geometric algebra"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "Edouard Poor" }]
+keywords = ["geometric-algebra", "anywidget", "marimo", "visualization", "cga"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "Intended Audience :: Education",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
+dependencies = [
+    "anywidget>=0.9",
+    "galaga>=2.0.0a1",
+    "marimo>=0.23.14,<0.25",
+    "numpy>=1.24",
+    "traitlets>=5.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/edouardp/galaga"
+Repository = "https://github.com/edouardp/galaga"
+Issues = "https://github.com/edouardp/galaga/issues"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["galaga_anywidget"]
+
+[tool.uv.sources]
+galaga = { workspace = true }
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

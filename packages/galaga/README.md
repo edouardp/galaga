@@ -30,7 +30,8 @@ python -m pip install "galaga>=2,<3"
 ```
 
 Galaga requires Python 3.11 or newer and NumPy. The optional
-`galaga-marimo` distribution requires Python 3.14 because it uses t-strings.
+`galaga-anywidget` visualization package also supports Python 3.11, while
+`galaga-marimo` requires Python 3.14 because it uses t-strings.
 
 ## Quick start
 

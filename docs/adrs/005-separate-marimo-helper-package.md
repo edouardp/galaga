@@ -38,3 +38,10 @@ The helper uses t-strings (`gm.md(t"...")`) and auto-detects objects with
 * Good, because the renderer works with any LaTeX-capable object (SymPy, etc.)
 * Good, because t-strings make the API natural: `gm.md(t"Vector: {v}")`
 * Bad, because users need to install a second package for notebooks
+
+## Subsequent evolution
+
+This decision remains specific to t-string Markdown rendering. ADR-091 records
+the later decision to place interactive browser visualizations in the separate
+`galaga-anywidget` distribution, avoiding a dependency from the generic
+renderer onto widget assets and interaction state.
