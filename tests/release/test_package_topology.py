@@ -51,3 +51,10 @@ def test_anywidget_has_a_guarded_standalone_publish_path() -> None:
     assert '--test) PUBLISH_URL="https://test.pypi.org/legacy/"' in script
     assert 'uv build --package galaga-anywidget --out-dir "$PKG/dist"' in script
     assert 'uvx twine check "$PKG/dist"/galaga_anywidget-*' in script
+
+
+def test_python_formatter_leaves_markdown_to_the_markdown_linter() -> None:
+    lint = (ROOT / "scripts" / "lint.sh").read_text()
+
+    assert lint.count("--extend-exclude '*.md'") == 2
+    assert "rumdl" in lint

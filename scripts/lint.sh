@@ -7,10 +7,10 @@ FIX=""
 echo "=== Ruff lint ==="
 if [[ -n "$FIX" ]]; then
     uv run ruff check . --fix
-    uv run ruff format .
+    uv run ruff format --extend-exclude '*.md' .
 else
     uv run ruff check .
-    uv run ruff format --check .
+    uv run ruff format --check --extend-exclude '*.md' .
 fi
 
 echo "=== shellcheck ==="
