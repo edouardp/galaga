@@ -13,6 +13,7 @@ def _():
     from galaga import (
         Algebra,
         DisplayPolicy,
+        Notation,
         antireverse,
         antiwedge,
         exp,
@@ -26,6 +27,7 @@ def _():
     return (
         Algebra,
         DisplayPolicy,
+        Notation,
         RigidModel,
         antireverse,
         antiwedge,
@@ -62,10 +64,10 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, RigidModel, p_pga, p_rga):
-    point_algebra = Algebra(config=p_rga(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, Notation, RigidModel, p_pga, p_rga):
+    point_algebra = Algebra(config=p_rga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
     point_model = RigidModel(point_algebra, expr=True)
-    plane_algebra = Algebra(config=p_pga(), display=DisplayPolicy(content="full"))
+    plane_algebra = Algebra(config=p_pga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
     return plane_algebra, point_model
 
 
@@ -82,7 +84,7 @@ def _(plane_algebra, point_model):
         p_e1 ^ p_e2 ^ p_e0,
         expr=True,
     )
-    return p_E1, p_E2, p_E3, p_e0, p_e1, p_e123, r_e1, r_e2, r_e3, r_e4
+    return p_E1, p_E2, p_E3, p_e0, p_e1, p_e123, r_e2, r_e3
 
 
 @app.cell

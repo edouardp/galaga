@@ -230,6 +230,11 @@ constructs the same translated coordinates through both products.
   support, and explicit transwedge constraint correction.
 - [`dual_approaches_to_pga.py`](../examples/rga/dual_approaches_to_pga.py)
   compares the point-based and plane-based formulations side by side.
+- [`pga_done_right.py`](../examples/rga/pga_done_right.py) derives the same
+  translation from parallel plane reflections in both formulations.
+- [`space_antispace_correspondence.py`](../examples/rga/space_antispace_correspondence.py)
+  relates a regular translation to its inverse-transpose complement
+  transformation in antispace.
 
 ## Primary References
 
@@ -241,4 +246,6 @@ constructs the same translated coordinates through both products.
 - [RGA geometric products](https://rigidgeometricalgebra.org/wiki/index.php?title=Geometric_products)
 - [RGA transwedge products](https://rigidgeometricalgebra.org/wiki/index.php?title=Transwedge_products)
 - [Terathon: The Transwedge Product](https://terathon.com/blog/transwedge-product.html)
+- [Terathon: Projective Geometric Algebra Done Right](https://terathon.com/blog/pga-done-right.html)
+- [Terathon: Space-Antispace Transform Correspondence](https://terathon.com/blog/space-antispace-pga.html)
 - [Terathon: Dual Approaches to Projective Geometric Algebra](https://terathon.com/blog/dual-pga.html)

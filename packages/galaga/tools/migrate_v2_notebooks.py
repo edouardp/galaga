@@ -85,6 +85,8 @@ MIGRATED_NOTEBOOKS = (
     "algebra/rotations_from_bivectors.py",
     "rga/rga_demo.py",
     "rga/dual_approaches_to_pga.py",
+    "rga/pga_done_right.py",
+    "rga/space_antispace_correspondence.py",
     "rga/geometry_and_measurement.py",
 )
 
