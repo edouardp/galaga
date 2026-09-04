@@ -166,6 +166,19 @@ from native exterior blades to a compact representation.
 
 ## Conventions
 
+### Terminology
+
+The matrices assigned to basis vectors are **gamma matrices** or **Clifford
+generators** because they satisfy equation (1). The term **Dirac matrix** is
+reserved for the named gamma-matrix conventions used for
+$\operatorname{Cl}(1,3)$ and $\operatorname{Cl}(3,1)$.
+
+For a general multivector $A$, $\rho(A)$ is a **Clifford matrix
+representation**. In the canonical CGA convention below it may also be called
+a **CGA matrix** or an **extended Vahlen matrix**. An arbitrary $\rho(A)$ is
+not itself a gamma matrix or a Dirac matrix merely because gamma matrices were
+used to construct it.
+
 ### Clifford relation
 
 Generator matrices must obey
@@ -895,6 +908,20 @@ The canonical CGA matrices are worth pinning because they give recognizable
 Vahlen form. The implementation should nevertheless solve the underlying
 problem generally.
 
+Here **general** means any finite real symmetric Gram matrix whose radical is
+zero, including dense, oblique, scaled, indefinite, and native-null metrics.
+Three questions must remain separate:
+
+1. **Algebraic eligibility:** whether the Gram matrix is nondegenerate.
+2. **Numerical suitability:** whether a stable congruence can be computed at
+   the active dtype.
+3. **Representation injectivity:** whether the selected orthogonal compact
+   representation contains every simple summand of the Clifford algebra.
+
+Nondegeneracy answers only the first question. It guarantees an orthogonal
+congruence but does not guarantee that a selected one-summand representation
+of a double Clifford algebra is faithful.
+
 Let $G$ be a real symmetric nondegenerate Gram matrix. Compute a congruence
 
 $$
@@ -968,6 +995,40 @@ This mirrors Galaga core's existing use of compound matrices and minors for
 the exterior extension of the metric. The same mathematical idea should be
 reused here.
 
+### Injectivity and double algebras
+
+For a simple real Clifford algebra, the existing compact representation is
+faithful after the exterior lift. For a double algebra
+
+$$
+\operatorname{Cl}(p,q)\cong A\oplus A,
+$$
+
+a representation of only one irreducible summand remains a valid algebra
+homomorphism but is not injective on the full Clifford algebra. The Gram-basis
+congruence neither creates nor repairs that loss of information.
+
+The actual real rank of the complete exterior-blade matrix system is the
+authoritative injectivity test. The implementation must not infer
+injectivity merely from matrix dimensions, inertia, or the double-algebra
+classification. Existing recursion paths may already realize both summands
+for some signatures while selecting one summand for others.
+
+The supported cases are therefore:
+
+| Selected compact representation | `to_matrix` | `from_matrix` | Automatic default |
+|---|---|---|---|
+| Full real rank | supported | supported after residual check | eligible |
+| Rank deficient | supported as an explicit homomorphism | raises `TypeError` | not eligible |
+| Faithful direct sum of both double-algebra blocks | supported | supported | eligible when implemented |
+
+A faithful compact representation of a double algebra may be added as the
+block-diagonal direct sum of its two irreducible representations. It is still
+normally much smaller than the left-regular representation, but it is a
+different representation plan from the existing one-summand compact mode.
+The representation descriptor must distinguish these plans before both are
+exposed through the same API.
+
 ### Factorization policy
 
 For a generic floating-point Gram matrix:
@@ -1000,6 +1061,35 @@ conditioned for a reliable compact basis transform. In that case:
 - Galaga never silently changes the stored Gram matrix or clips an
   eigenvalue.
 
+### Public dispatch policy
+
+Explicit and automatic conversion have different contracts:
+
+- Explicit `mode="compact"` attempts the congruence construction for every
+  numerically suitable nondegenerate Gram matrix. This includes nonnormalized
+  diagonal metrics and dense nonorthogonal metrics. It preserves the existing
+  strict-inverse rule: a rank-deficient selected representation may be used
+  by `to_matrix()`, while `from_matrix()` raises `TypeError`.
+- Automatic `mode=None` selects a compact plan only when the plan is
+  numerically suitable and has full real rank. Otherwise it selects
+  `left-regular`.
+- The canonical native-null CGA model uses its analytic, faithful compact plan
+  and is therefore automatically eligible.
+- A future faithful direct-sum plan makes a double algebra eligible for
+  automatic compact selection without weakening inverse guarantees.
+
+Automatic dispatch should ultimately be basis-independent: two exactly
+congruent, well-conditioned metrics with the same selected representation
+semantics should not differ merely because one Gram matrix is diagonal.
+Pinned semantic models such as native CGA may choose a recognizable matrix
+basis, but that affects representation convention rather than eligibility.
+
+The current normalized-orthogonal default can select a non-injective compact
+representation for a double algebra. Before this proposed automatic policy is
+accepted, the implementation change must update ADR-005 and its compatibility
+documentation rather than silently changing that behavior as a side effect of
+general-Gram support.
+
 ## Representation metadata
 
 The matrix wrapper must carry enough information to invert and interpret the
@@ -1020,6 +1110,14 @@ Proposed metadata:
 
 Basis names must be centralized constants or typed descriptors, not repeated
 string literals across dispatch, inversion, rendering, and tests.
+
+A generic Gram-matrix plan also needs a stable convention identifier and an
+injectivity flag derived from its real system rank. Raw-array inversion must
+identify the same plan; inertia alone is insufficient because equivalent
+gamma constructions, one-summand selections, and faithful direct sums can
+have different images. The factorization arrays themselves need not become
+public `MatrixRepr` fields when the algebra and convention identifier recover
+the cached immutable plan unambiguously.
 
 The longer-term form may be:
 
@@ -1112,14 +1210,19 @@ Gate:
 
 ### Work unit 2: General native exterior lift
 
-Implement equations (22)--(26) for nondegenerate Gram matrices.
+Implement equations (22)--(26) for nondegenerate Gram matrices and enable the
+resulting plans through explicit `mode="compact"`. Do not change automatic
+dispatch in this work unit.
 
 Gate:
 
 - vector anticommutators reproduce $2G$;
 - every exterior-blade matrix agrees with an antisymmetrization oracle for
   small dimensions;
-- native coefficients round-trip for injective representations; and
+- nonnormalized diagonal and dense nonorthogonal metrics reach the explicit
+  compact path;
+- native coefficients round-trip for injective representations;
+- rank-deficient selected representations preserve strict inverse failure; and
 - oblique-basis results intertwine with an independently transformed
   orthogonal basis.
 
@@ -1184,13 +1287,17 @@ Gate:
 
 After CGA and oblique test fixtures establish the machinery, allow automatic
 compact selection for other well-conditioned nondegenerate Gram matrices
-whose orthogonal compact representation is injective.
+whose selected compact plan has full real rank. Resolve the normalized-double
+compatibility policy and update ADR-005 before enabling the new default.
 
 Gate:
 
 - every supported inertia through the agreed dimension limit passes
   anticommutator, homomorphism, rank, and round-trip tests;
-- double-algebra behavior remains explicit;
+- automatic dispatch is independent of whether a congruent metric is stored
+  diagonally or obliquely;
+- double-algebra one-summand and faithful-direct-sum behavior remains
+  explicit;
 - near-degenerate metrics follow the fallback policy; and
 - compact output is benchmarked against left-regular output.
 
@@ -1255,15 +1362,51 @@ Construct the same algebra in:
 - an orthonormal $\operatorname{Cl}(4,1)$ basis; and
 - at least one rescaled or oblique basis.
 
-For the documented outermorphism $F$ and matrix intertwiner $S_F$, test
+Two comparisons must be kept distinct. When the native representation is
+constructed from the same orthogonal gamma matrices as the test oracle, test
+the exact identity
 
 $$
 \rho_{\text{native}}(A)
-=S_F\rho_{\text{orthogonal}}(F(A))S_F^{-1}.
+=\rho_{\text{orthogonal}}(F(A)).
+$$
+
+When comparing independently pinned matrix conventions, such as the canonical
+CGA Vahlen matrices and a separately selected orthogonal compact basis, first
+derive and validate one fixed matrix intertwiner $T_F$, then test
+
+$$
+\rho_{\text{native}}(A)
+=T_F\rho_{\text{orthogonal}}(F(A))T_F^{-1}.
 $$
 
 The multivector basis transform and matrix similarity transform must be
-independently implemented in the test oracle.
+independently implemented in the second test oracle. The congruence matrix
+$S$ in equation (22) and the representation-space intertwiner $T_F$ are
+different objects and must not share a variable or metadata field.
+
+### General-Gram parameterized tests
+
+For every inertia $(p,q,0)$ with $1\le p+q\le5$:
+
+1. deterministically generate a well-conditioned, dense, invertible matrix
+   $S$ with non-unit scaling;
+2. construct $G=S\eta S^{\mathsf T}$ and pass only $G$ to the implementation;
+3. validate the recovered congruence residual without requiring the recovered
+   factor to equal the generating $S$;
+4. validate all generator anticommutators;
+5. exhaustively validate every basis-blade product against Galaga core;
+6. compare every exterior-blade matrix with an independent minor or fully
+   antisymmetrized oracle; and
+7. compute the real rank and assert the selected representation's documented
+   faithful or one-summand behavior.
+
+Add fixed fixtures for a nonnormalized diagonal metric, a dense oblique
+indefinite metric, the native CGA null Gram matrix, and representative double
+algebras. For dimensions above five through the package's supported compact
+limit, retain exhaustive generator and rank checks and use deterministic
+randomized multivector products when exhaustive blade-pair testing becomes too
+expensive.
 
 ### Quaternion tests
 
@@ -1336,6 +1479,14 @@ Generic Gram factorizations are not unique. Their tests should pin:
 They should not treat arbitrary compact matrix entries as a mathematical
 cross-platform standard.
 
+Normalizing individual eigenvector signs does not fully determine a basis
+inside a repeated eigenspace. The factorization implementation must either
+define a deterministic tie-breaking rule for repeated eigenvalues or document
+that only the cached representation plan, algebra laws, and round-trip
+behavior are stable. Recognized semantic metrics and normalized orthogonal
+metrics should bypass this ambiguity through analytic or existing canonical
+plans.
+
 ### Dtype
 
 The first implementation uses `complex128`, matching current compact and
@@ -1374,6 +1525,7 @@ The implementation must update:
 - `packages/galaga_matrix/README.md`;
 - `packages/galaga_matrix/docs/edge-cases.md`;
 - `packages/galaga_matrix/docs/spinor-conversions.md`;
+- `packages/galaga_matrix/docs/double-algebras.md`;
 - the package ADR index;
 - the matrix example index; and
 - the Galaga CGA documentation where matrix representations are mentioned.
@@ -1387,7 +1539,14 @@ The documentation must state clearly:
    representation;
 5. both logical forms may have $4\times4$ complex backing; and
 6. a matrix representation is not a replacement for geometric type or
-   versor-validity checks.
+   versor-validity checks;
+7. gamma matrices name the vector generators, not arbitrary represented
+   multivectors; and
+8. general nondegenerate Gram matrices are compactly eligible independently
+   of whether their stored basis is orthogonal.
+
+If automatic behavior for a normalized double algebra changes, ADR-005 must
+be updated as part of the same delivery.
 
 ## Acceptance summary
 
@@ -1403,6 +1562,10 @@ The feature is complete when all of the following are true:
   $\operatorname{Cl}(3,0)$ entries;
 - Möbius block actions agree with CGA sandwiches;
 - degenerate metrics retain the left-regular fallback;
+- explicit compact conversion supports every numerically suitable
+  nondegenerate symmetric Gram matrix through the general congruence plan;
+- automatic generic compact conversion is offered only by a full-rank plan;
+- double-algebra one-summand and faithful-direct-sum semantics are explicit;
 - representation construction is cached; and
 - examples and documentation explain the mathematical distinctions.
 
