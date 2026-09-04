@@ -121,18 +121,19 @@ for an already published project/version pair to be replaced.
 |---|---|---|
 | 1. Guard | Resolve the current branch/upstream and check the working tree | Detached HEAD, missing upstream, or dirty repo |
 | 2. Resolve | Calculate a stable bump or validate an exact stable/prerelease version | Invalid or repeated version |
-| 3. Synchronize | Update the three released packages and all companion galaga dependency floors | — |
+| 3. Synchronize | Update the four released packages and all companion galaga dependency floors | — |
 | 4. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
 | 5. Commit | `git commit -m "Release vX.Y.Z"` | Pre-commit hooks fail |
 | 6. Test release workflow | `python -m pytest tests/release/` | Any repository-tooling test failure |
 | 7. Test galaga | `pytest packages/galaga/tests/` | Any test failure |
 | 8. Test galaga-matrix | `pytest packages/galaga_matrix/tests/` | Any test failure |
-| 9. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
-| 10. Build | `uv build` all three released packages | Build failure |
-| 11. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
-| 12. Publish | Publish galaga, then Marimo and matrix companions | Auth failure or version conflict |
-| 13. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
-| 14. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
+| 9. Test galaga-anywidget | `pytest` in a temporary Python 3.11 venv | Any test failure |
+| 10. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
+| 11. Build | `uv build` all four released packages | Build failure |
+| 12. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
+| 13. Publish | Publish galaga, then AnyWidget, Marimo, and matrix companions | Auth failure or version conflict |
+| 14. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
+| 15. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
 If any step fails, the script stops. Nothing is published or tagged until all
 tests and artifact checks pass. Publication itself is sequential rather than
@@ -167,6 +168,7 @@ exact release commit independently of the branch name.
 ### Files Modified by a Release
 
 - `packages/galaga/pyproject.toml` — version bumped
+- `packages/galaga_anywidget/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_marimo/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_matrix/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_mermaid/pyproject.toml` — galaga dep pin updated; its own version is independent
@@ -178,12 +180,14 @@ exact release commit independently of the branch name.
 | Package | PyPI | Import | Python |
 |---|---|---|---|
 | `galaga` | <https://pypi.org/project/galaga/> | `from galaga import Algebra` | ≥ 3.11 |
+| `galaga-anywidget` | <https://pypi.org/project/galaga-anywidget/> | `import galaga_anywidget.viz as viz` | ≥ 3.11 |
 | `galaga-matrix` | <https://pypi.org/project/galaga-matrix/> | `import galaga_matrix` | ≥ 3.11 |
 | `galaga-marimo` | <https://pypi.org/project/galaga-marimo/> | `import galaga_marimo as gm` | ≥ 3.14 |
 
-`galaga` is always published first because both companion packages depend on
-it. `galaga-mermaid` remains experimental and independently versioned; the
-joint release updates its dependency floor but does not publish it.
+`galaga` is always published first because the three jointly released
+companion packages depend on it. `galaga-mermaid` remains experimental and
+independently versioned; the joint release updates its dependency floor but
+does not publish it.
 
 ## Versioning Policy
 
@@ -217,6 +221,7 @@ Before every release, the script enforces:
 - [ ] Repository release-workflow tests pass
 - [ ] All galaga tests pass (release environment, Python ≥3.11)
 - [ ] All galaga-matrix tests pass (Python 3.11+)
+- [ ] All galaga-anywidget tests pass (Python 3.11+)
 - [ ] All galaga-marimo tests pass (Python 3.14)
 - [ ] Pre-commit hooks pass (ruff, shellcheck, bandit, rumdl, checkmake)
 - [ ] Twine check passes (metadata + README render)
@@ -266,7 +271,8 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 |---|---|
 | numpy | Support ≥1.24. Test against latest in CI. Bump minimum only when using new features. |
 | marimo | Track releases. Watch for t-string API changes in `string.templatelib`. |
-| Python | galaga supports 3.11+. galaga-marimo requires 3.14+. Add new versions to CI matrix when released. |
+| anywidget and traitlets | Track synchronized model and packaged asset compatibility in `galaga-anywidget`. |
+| Python | galaga and galaga-anywidget support 3.11+. galaga-marimo requires 3.14+. Add new versions to CI matrix when released. |
 
 ### Monitoring
 

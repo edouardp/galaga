@@ -89,7 +89,7 @@ def test_run_marimo_uses_local_editable_packages_without_notebook_path_mutation(
     command = re.sub(r"\\\n\\s*", " ", result.stdout)
 
     assert "uv run --python 3.14" in command
-    for package in ("galaga", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
+    for package in ("galaga", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
         assert f"--with-editable ./packages/{package}" in command
     assert "marimo edit --no-token examples" in command
     assert "PYTHONPATH" not in command

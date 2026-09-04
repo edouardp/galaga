@@ -13,6 +13,8 @@ how the replacement was carried out; they are not alternate APIs.
   changes and compatibility boundaries.
 - [Native-null CGA](cga/README.md): conformal model, objects, components,
   norms, and transformations.
+- [Interactive CGA visualization](../packages/galaga_anywidget/README.md):
+  synchronized AnyWidget views and Marimo-reactive construction.
 - [Rigid Geometric Algebra](rga-convention-layer.md): Lengyel RGA convention,
   model semantics, measurements, and constraints.
 - [Rotors, generators, and spinors](rotors-generators-spinors.md): mathematical

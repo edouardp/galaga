@@ -167,7 +167,8 @@ The replacement suite must visibly distinguish:
 
 ### Python versions
 
-- Python 3.11 is the required Galaga and `galaga_matrix` release target.
+- Python 3.11 is the required Galaga, `galaga_anywidget`, and `galaga_matrix`
+  release target.
 - Newer supported Python versions should run in CI as available.
 - Python 3.14 is additionally required for `galaga_marimo` and its t-string
   tests; it must not raise the base Galaga requirement.
@@ -1103,6 +1104,7 @@ Required tests:
 
 - executable documentation and example smoke tests;
 - base Galaga imports without optional extras;
+- `galaga_anywidget` passes under Python 3.11;
 - `galaga_marimo` passes under Python 3.14;
 - optional integrations fail gracefully when their dependencies are absent;
   and
@@ -1116,6 +1118,8 @@ Completed so far:
 - `galaga_marimo` 2.0 continues to require Python 3.14 without raising the
   base package requirement, renders through public `.latex()`/`.display()`
   hooks, and recognizes values through immutable public names;
+- `galaga_anywidget` 2.0 owns AnyWidget dependencies and browser assets,
+  consumes public `ConformalModel` semantics, and supports Python 3.11;
 - Marimo content format specifications select `name`, `expr`, `value`, or
   `full` independently of inline/block markdown layout;
 - four maintained Python 3.11 examples execute direct-core, facade,
@@ -1299,6 +1303,7 @@ Required checks:
 
 - Python 3.11 full tests with branch coverage;
 - supported newer-Python Galaga tests;
+- Python 3.11 `galaga_anywidget` tests;
 - Python 3.11 `galaga_matrix` tests;
 - Python 3.14 `galaga_marimo` tests;
 - formatting, lint, type, and Markdown checks;
@@ -1382,6 +1387,7 @@ installed wheels explicitly:
 
 ```bash
 PYTHONPATH=.:packages/galaga_matrix uv run --python 3.11 pytest packages/galaga_matrix/tests -q
+PYTHONPATH=.:packages/galaga_anywidget uv run --python 3.11 pytest packages/galaga_anywidget/tests -q
 PYTHONPATH=.:packages/galaga_marimo uv run --python 3.14 pytest packages/galaga_marimo/tests -q
 ```
 

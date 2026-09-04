@@ -8,12 +8,13 @@ LaTeX rendering.
 
 This repository is a monorepo:
 
-| Package | Purpose | Python |
-|---|---|---:|
-| [`galaga`](packages/galaga/README.md) | Numeric core, public multivectors, expressions, rendering, CGA, and RGA | 3.11+ |
-| [`galaga-matrix`](packages/galaga_matrix/README.md) | Left-regular, compact, quaternion, and spinor representations | 3.11+ |
-| [`galaga-marimo`](packages/galaga_marimo/README.md) | Marimo t-string rendering helpers | 3.14+ |
-| [`galaga-mermaid`](packages/galaga_mermaid/README.md) | Experimental expression-tree diagrams | 3.11+ |
+| Package                                                   | Purpose                                                                 | Python |
+| --------------------------------------------------------- | ----------------------------------------------------------------------- | -----: |
+| [`galaga`](packages/galaga/README.md)                     | Numeric core, public multivectors, expressions, rendering, CGA, and RGA |  3.11+ |
+| [`galaga-anywidget`](packages/galaga_anywidget/README.md) | Interactive synchronized CGA visualizations                             |  3.11+ |
+| [`galaga-matrix`](packages/galaga_matrix/README.md)       | Left-regular, compact, quaternion, and spinor representations           |  3.11+ |
+| [`galaga-marimo`](packages/galaga_marimo/README.md)       | Marimo t-string rendering helpers                                       |  3.14+ |
+| [`galaga-mermaid`](packages/galaga_mermaid/README.md)     | Experimental expression-tree diagrams                                   |  3.11+ |
 
 ## Install Galaga 2
 
@@ -55,5 +56,5 @@ make run-marimo
 ```
 
 `make run-marimo` launches the portable example gallery against editable local
-copies of all four packages. The notebooks themselves contain ordinary package
+copies of all five packages. The notebooks themselves contain ordinary package
 imports, so the same files also run against installed releases.

@@ -34,8 +34,8 @@ Example notebooks contain ordinary package imports and no repository discovery
 or `sys.path` mutation.
 
 From the repository root, `make run-marimo` launches the `examples` gallery
-under Python 3.14. The target supplies `galaga`, `galaga_marimo`,
-`galaga_matrix`, and `galaga_mermaid` to `uv run` through
+under Python 3.14. The target supplies `galaga`, `galaga_anywidget`,
+`galaga_marimo`, `galaga_matrix`, and `galaga_mermaid` to `uv run` through
 `--with-editable`. The imports therefore resolve to the current checkout while
 retaining the same installed-package semantics and metadata used by wheels.
 
@@ -48,7 +48,7 @@ Outside the repository, the same notebooks run unchanged after their required
 packages are installed:
 
 ```shell
-python -m pip install galaga galaga-marimo
+python -m pip install galaga galaga-anywidget galaga-marimo
 marimo edit notebook.py
 ```
 

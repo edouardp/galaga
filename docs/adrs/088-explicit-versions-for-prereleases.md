@@ -79,11 +79,13 @@ mutation, testing, publishing, tagging, and GitHub release creation. The helper
 reports whether the resolved version is a prerelease, and the orchestrator adds
 GitHub's `--prerelease` flag accordingly.
 
-The jointly released `galaga`, `galaga-marimo`, and `galaga-matrix` packages
-receive the exact version. Every companion package, including the independently
-versioned experimental `galaga-mermaid`, receives a `galaga>=<version>`
-dependency floor. `galaga-mermaid` is not added to the joint publication set by
-this decision.
+The jointly released `galaga`, `galaga-anywidget`, `galaga-marimo`, and
+`galaga-matrix` packages receive the exact version. Every companion package,
+including the independently versioned experimental `galaga-mermaid`, receives
+a `galaga>=<version>` dependency floor. `galaga-mermaid` is not added to the
+joint publication set by this decision. `galaga-anywidget` joined the release
+set on 2026-08-21, before its first publication, so the package boundary is
+tested and versioned throughout the Galaga 2 prerelease train.
 
 ## Consequences
 

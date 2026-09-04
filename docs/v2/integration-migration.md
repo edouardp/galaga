@@ -53,6 +53,17 @@ content remains facade policy. Recognition compares public coefficient arrays
 and reads labels from immutable `Name` values; it never reads `_name` or
 `_name_latex`.
 
+## AnyWidget visualization consumer
+
+`galaga_anywidget` owns interactive browser assets and synchronized geometry
+state independently of the t-string renderer. Its 2D CGA view classifies and
+extracts geometry through public `ConformalModel` operations. The browser owns
+semantic point coordinates; ordinary notebook cells construct `up(x, y)` and
+all derived multivectors.
+
+This package supports Python 3.11 and depends on AnyWidget, Marimo, and
+Traitlets. `galaga_marimo` does not depend on or re-export it.
+
 ## Maintained v2 examples
 
 The executable examples under `examples/v2` make the architectural choice
@@ -126,8 +137,8 @@ the eager result, and source architecture tests prohibit both
 
 ## Installed-wheel gate
 
-The local `galaga-mermaid` 0.2 and `galaga-marimo` 2.0 wheels are installed
-with the Galaga 2 wheel into isolated Python 3.11 and Python 3.14 environments,
-respectively. Import and facade-protocol smoke checks run with `python -I` and
-no repository `PYTHONPATH`, preventing a source checkout from hiding missing
-wheel files or incorrect dependency metadata.
+The local `galaga-mermaid` 0.2, `galaga-anywidget` 2.0, and `galaga-marimo` 2.0
+wheels are installed with the Galaga 2 wheel into isolated Python 3.11 and
+Python 3.14 environments as appropriate. Import and facade-protocol smoke
+checks run with `python -I` and no repository `PYTHONPATH`, preventing a source
+checkout from hiding missing wheel files or incorrect dependency metadata.

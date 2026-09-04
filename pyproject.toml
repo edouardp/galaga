@@ -1,5 +1,5 @@
 [tool.uv.workspace]
-members = ["packages/galaga"]
+members = ["packages/galaga", "packages/galaga_anywidget"]
 exclude = ["packages/galaga_marimo"]
 
 [dependency-groups]
@@ -45,7 +45,7 @@ ignore = [
 ]
 
 [tool.ruff.lint.isort]
-known-first-party = ["galaga", "galaga_marimo"]
+known-first-party = ["galaga", "galaga_anywidget", "galaga_marimo"]
 
 [tool.pyrefly]
 search-path = ["packages/galaga"]

@@ -6,6 +6,7 @@
 
 EXCLUDE_NEWER := $(shell date -u -v-7d +%Y-%m-%dT00:00:00Z 2>/dev/null || date -u -d '7 days ago' +%Y-%m-%dT00:00:00Z 2>/dev/null)
 MARIMO_EDITABLES := --with-editable ./packages/galaga \
+	--with-editable ./packages/galaga_anywidget \
 	--with-editable ./packages/galaga_marimo \
 	--with-editable ./packages/galaga_matrix \
 	--with-editable ./packages/galaga_mermaid
@@ -65,7 +66,7 @@ security: ## Run security scans (bandit + pip-audit)
 # ============================================================================
 
 .PHONY: test
-test: test-release test-galaga test-galaga-marimo test-galaga-matrix test-galaga-mermaid ## Run all tests
+test: test-release test-galaga test-galaga-anywidget test-galaga-marimo test-galaga-matrix test-galaga-mermaid ## Run all tests
 
 .PHONY: test-all
 test-all: test ## Alias for test
@@ -84,6 +85,14 @@ test-galaga-marimo: ## Run galaga-marimo tests with Python 3.14
 	uv venv "$$TMPVENV" --python 3.14 && \
 	uv pip install --python "$$TMPVENV/bin/python" -e packages/galaga -e packages/galaga_marimo pytest && \
 	"$$TMPVENV/bin/pytest" packages/galaga_marimo/tests/ -v && \
+	rm -rf "$$TMPVENV"
+
+.PHONY: test-galaga-anywidget
+test-galaga-anywidget: ## Run galaga-anywidget tests with Python 3.11
+	@TMPVENV=$$(mktemp -d)/gaw-test && \
+	uv venv "$$TMPVENV" --python 3.11 && \
+	uv pip install --python "$$TMPVENV/bin/python" -e packages/galaga -e packages/galaga_anywidget pytest && \
+	"$$TMPVENV/bin/pytest" packages/galaga_anywidget/tests/ -v && \
 	rm -rf "$$TMPVENV"
 
 .PHONY: test-galaga-matrix
@@ -117,6 +126,7 @@ update-deps: ## Update dependencies (7-day lag for supply chain protection)
 .PHONY: build
 build: ## Build package distributions
 	cd packages/galaga && uv build
+	uv build --package galaga-anywidget --out-dir packages/galaga_anywidget/dist
 	cd packages/galaga_marimo && uv build
 	cd packages/galaga_matrix && uv build
 	cd packages/galaga_mermaid && uv build
@@ -124,6 +134,7 @@ build: ## Build package distributions
 .PHONY: check
 check: build ## Build and run twine checks
 	uvx twine check dist/galaga-*
+	uvx twine check packages/galaga_anywidget/dist/galaga_anywidget-*
 	uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
 	uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
 	uvx twine check packages/galaga_mermaid/dist/galaga_mermaid-*
