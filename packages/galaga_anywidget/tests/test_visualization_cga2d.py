@@ -3,13 +3,13 @@ from pathlib import Path
 import marimo as mo
 import numpy as np
 import pytest
-from galaga_anywidget import DEFAULT_COLOR_CYCLE, viz
-from galaga_anywidget.cga2d import CGA2DPlot, cga2d
 from marimo._runtime import state as marimo_state
 from marimo._runtime.state import State
 
 from galaga import Algebra, Multivector, meet, outer_product, p_cga
 from galaga.cga import ConformalModel
+from galaga_anywidget import DEFAULT_COLOR_CYCLE, viz
+from galaga_anywidget.cga2d import CGA2DPlot, cga2d
 
 
 @pytest.fixture
