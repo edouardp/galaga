@@ -1,5 +1,81 @@
 # Changelog
 
+## 2.0.0a2 (2026-09-06)
+
+This second Galaga 2 alpha expands the conformal and projective workflows,
+introduces interactive CGA visualization, and makes the maintained examples
+portable outside a source checkout. It also incorporates API, rendering, and
+release-process feedback from the first alpha.
+
+### Added
+
+- **Interactive CGA visualization package** — Introduces
+  `galaga-anywidget`, a Python 3.11+ AnyWidget integration for synchronized 2D
+  conformal points, dipoles, lines, and circles. Browser drags update semantic
+  point coordinates while derived multivectors remain ordinary Python and
+  Marimo computations.
+
+- **Coordinate-first conformal points** — `ConformalModel.up()` and
+  `round_point()` now accept positional Cartesian coordinates or one coordinate
+  iterable in addition to Euclidean multivectors. Validation rejects ambiguous,
+  mixed, and dimensionally invalid forms.
+
+- **Explicit CGA representation workflows** — Adds tested direct and dual
+  construction examples, full-conformal-metric duality checks, and guidance for
+  distinguishing points from dual zero-radius spheres without storing a
+  representation mode on the model.
+
+- **Dual PGA and space-antispace workflows** — Adds executable RGA notebooks
+  and algebra-derived regression tests for dual projective reflections,
+  complementary models, and space-antispace correspondence.
+
+- **Executable CGA constructions** — Adds maintained notebooks for circles
+  through three points, circle-circle meets, coordinate-first construction, and
+  interactive derived geometry. Notebook tests execute these examples as
+  integration contracts.
+
+### Changed
+
+- **Portable example notebooks** — Maintained Marimo notebooks now contain
+  ordinary package imports without repository discovery or `sys.path`
+  mutation. `make run-marimo` supplies editable local packages, while the same
+  files run unchanged against installed distributions.
+
+- **CGA and matrix documentation** — Expands the conformal API guide,
+  representation conventions, native-null blade presentation rules, and the
+  plan for matrix representations over general Gram metrics. Corrects the
+  native-null translator example and marks superseded implementation plans as
+  historical.
+
+- **Release topology** — Adds `galaga-anywidget` to the uv workspace and the
+  coordinated versioning, test, build, artifact-check, and publication
+  workflow. Release-topology tests keep companion versions and Galaga
+  dependency floors synchronized.
+
+- **Release and migration guidance** — Refreshes the package guides,
+  documentation index, Galaga 1-to-2 migration guide, release checklist, and
+  architectural decision records for the current public facade.
+
+### Fixed
+
+- **Stable reactive identity semantics** — Reactive multivectors now use
+  identity equality and hashing, so mutation cannot invalidate dictionary or
+  set membership and value-equal snapshots cannot violate Python's equality
+  and hash contract. Exact and tolerance-based numeric comparisons remain
+  explicit snapshot operations.
+
+- **Notebook template-string preservation** — The migration tooling no longer
+  rewrites template strings as ordinary strings, preserving dynamic Marimo
+  Markdown interpolation.
+
+- **Native-null presentation consistency** — Aligns displayed native-null
+  blade dimensions and juxtaposed basis notation with the underlying conformal
+  metric and configured presentation policy.
+
+- **Lint-tool compatibility** — Keeps Ruff formatting scoped to Python while
+  Rumdl remains responsible for Markdown, preserving a stable full-repository
+  lint gate after the dependency update.
+
 ## 2.0.0a1 (2026-07-25)
 
 This is the first alpha of Galaga 2. It makes the Gram-matrix numeric

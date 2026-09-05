@@ -724,7 +724,7 @@ wheels = [
 
 [[package]]
 name = "galaga"
-version = "2.0.0a1"
+version = "2.0.0a2"
 source = { editable = "packages/galaga" }
 dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
@@ -736,7 +736,7 @@ requires-dist = [{ name = "numpy", specifier = ">=1.24" }]
 
 [[package]]
 name = "galaga-anywidget"
-version = "2.0.0a1"
+version = "2.0.0a2"
 source = { editable = "packages/galaga_anywidget" }
 dependencies = [
     { name = "anywidget" },
