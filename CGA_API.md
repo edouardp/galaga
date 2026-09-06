@@ -207,10 +207,10 @@ $$
 IPNS objects are intersected with the outer product. Thus the same generic
 operation has complementary geometric meanings:
 
-| Interpretation | Outer product | Regressive product |
-|---|---|---|
-| direct/OPNS | join | meet/intersection |
-| dual/IPNS | meet/intersection | join |
+| Interpretation | Outer product     | Regressive product |
+| -------------- | ----------------- | ------------------ |
+| direct/OPNS    | join              | meet/intersection  |
+| dual/IPNS      | meet/intersection | join               |
 
 These remain generic Galaga operations. `ConformalModel` does not provide a
 state-dependent `join()` or `meet()` method while values remain unbranded.
@@ -219,25 +219,25 @@ state-dependent `join()` or `meet()` method while values remain unbranded.
 
 The conformal dimension is (N=4).
 
-| Geometry | Direct/OPNS | Strict dual/IPNS |
-|---|---|---|
-| point | (P), grade 1 | (H(P)), grade 3; also the zero-circle shortcut below |
-| point pair | (P\wedge Q), grade 2 | (H(P\wedge Q)), grade 2 |
-| line | (P\wedge Q\wedge e_\infty), grade 3 | grade 1 line vector |
-| circle | (P\wedge Q\wedge R), grade 3 | grade 1 circle vector |
+| Geometry   | Direct/OPNS                         | Strict dual/IPNS                                     |
+| ---------- | ----------------------------------- | ---------------------------------------------------- |
+| point      | (P), grade 1                        | (H(P)), grade 3; also the zero-circle shortcut below |
+| point pair | (P\wedge Q), grade 2                | (H(P\wedge Q)), grade 2                              |
+| line       | (P\wedge Q\wedge e_\infty), grade 3 | grade 1 line vector                                  |
+| circle     | (P\wedge Q\wedge R), grade 3        | grade 1 circle vector                                |
 
 ### Grades in 3D CGA
 
 The conformal dimension is (N=5).
 
-| Geometry | Direct/OPNS | Strict dual/IPNS |
-|---|---|---|
-| point | grade 1 | grade 4; also the zero-sphere shortcut below |
-| point pair | grade 2 | grade 3 |
-| line | grade 3 | grade 2 |
-| circle | grade 3 | grade 2 |
-| plane | grade 4 | grade 1 |
-| sphere | grade 4 | grade 1 |
+| Geometry   | Direct/OPNS | Strict dual/IPNS                             |
+| ---------- | ----------- | -------------------------------------------- |
+| point      | grade 1     | grade 4; also the zero-sphere shortcut below |
+| point pair | grade 2     | grade 3                                      |
+| line       | grade 3     | grade 2                                      |
+| circle     | grade 3     | grade 2                                      |
+| plane      | grade 4     | grade 1                                      |
+| sphere     | grade 4     | grade 1                                      |
 
 The grade map is always
 
@@ -409,17 +409,17 @@ dualizes to a vector proportional to (e_2).
 `ConformalModel` owns operations that require conformal roles or add validated
 CGA meaning:
 
-| Group | Operations |
-|---|---|
-| model data | `algebra`, `spatial_dim`, `null_pair`, `origin`, `infinity` |
-| Euclidean values | `euclidean_basis_vectors`, `euclidean_vector` |
-| conformal vectors | `round_point`, `up`, `weight`, `homogenize`, `down`, `coordinates`, `radius_squared` |
-| object duality | `dual`, `antidual` |
-| components | round/flat and bulk/weight projections |
-| norms | weighted and normalized center/radius/component norms |
-| direct geometry semantics | `attitude`, `carrier`, `cocarrier`, `center`, `flat_center`, `container`, `partner` |
-| direct binary semantics | `expansion`, `projection` |
-| provenance | `expr`, `expression_form`, `with_expression_form` |
+| Group                     | Operations                                                                           |
+| ------------------------- | ------------------------------------------------------------------------------------ |
+| model data                | `algebra`, `spatial_dim`, `null_pair`, `origin`, `infinity`                          |
+| Euclidean values          | `euclidean_basis_vectors`, `euclidean_vector`                                        |
+| conformal vectors         | `round_point`, `up`, `weight`, `homogenize`, `down`, `coordinates`, `radius_squared` |
+| object duality            | `dual`, `antidual`                                                                   |
+| components                | round/flat and bulk/weight projections                                               |
+| norms                     | weighted and normalized center/radius/component norms                                |
+| direct geometry semantics | `attitude`, `carrier`, `cocarrier`, `center`, `flat_center`, `container`, `partner`  |
+| direct binary semantics   | `expansion`, `projection`                                                            |
+| provenance                | `expr`, `expression_form`, `with_expression_form`                                    |
 
 The established geometry helpers retain their documented direct formulas.
 They do not inspect an ambient representation mode and do not silently
@@ -466,16 +466,16 @@ hidden parameter on model calls.
 
 The model distinguishes these failures:
 
-| Failure | Required behavior |
-|---|---|
-| wrong Python type | `TypeError` |
-| different numeric algebra | `ValueError` identifying algebra ownership |
-| incompatible CGA model | construction-time or operation-time `ValueError` |
-| wrong homogeneous grade | `ValueError` identifying the grade contract |
-| invalid conformal roles or metric | construction-time `ValueError` |
-| zero homogeneous weight | operation-specific `ValueError` |
-| unsupported null-pair normalization | operation-specific `ValueError` |
-| negative real square-root domain | operation-specific `ValueError` |
+| Failure                             | Required behavior                                |
+| ----------------------------------- | ------------------------------------------------ |
+| wrong Python type                   | `TypeError`                                      |
+| different numeric algebra           | `ValueError` identifying algebra ownership       |
+| incompatible CGA model              | construction-time or operation-time `ValueError` |
+| wrong homogeneous grade             | `ValueError` identifying the grade contract      |
+| invalid conformal roles or metric   | construction-time `ValueError`                   |
+| zero homogeneous weight             | operation-specific `ValueError`                  |
+| unsupported null-pair normalization | operation-specific `ValueError`                  |
+| negative real square-root domain    | operation-specific `ValueError`                  |
 
 Raw multivectors do not carry a representation tag, so there is no generic
 "wrong representation" error. A future interpreted wrapper may add one.
@@ -548,14 +548,14 @@ storage system.
 
 ## Accepted decision summary
 
-| ID | Decision |
-|---|---|
-| C1 | `ConformalModel` represents one shared conformal model, not a direct or dual mode. |
-| C2 | `up()`, (e_o), and (e_\infty) are representation-independent. |
-| C3 | The same-locus OPNS/IPNS conversion is `cga.dual(A)`. |
-| C4 | The dual uses all (N=n+2) conformal dimensions. |
-| C5 | Applying the dual twice is projectively involutive with a derived grade/metric factor. |
-| C6 | A point has both a strict complementary-grade dual and a grade-one zero-sphere interpretation. |
-| C7 | Outer and regressive products remain generic; model-level representation-dependent `join()` and `meet()` are deferred. |
-| C8 | Existing CGA helpers retain their direct formulas and never consult hidden representation state. |
-| C9 | `CGA_API.md` is the detailed contract; ADR-086 records the architectural choice. |
+| ID  | Decision                                                                                                               |
+| --- | ---------------------------------------------------------------------------------------------------------------------- |
+| C1  | `ConformalModel` represents one shared conformal model, not a direct or dual mode.                                     |
+| C2  | `up()`, (e_o), and (e_\infty) are representation-independent.                                                          |
+| C3  | The same-locus OPNS/IPNS conversion is `cga.dual(A)`.                                                                  |
+| C4  | The dual uses all (N=n+2) conformal dimensions.                                                                        |
+| C5  | Applying the dual twice is projectively involutive with a derived grade/metric factor.                                 |
+| C6  | A point has both a strict complementary-grade dual and a grade-one zero-sphere interpretation.                         |
+| C7  | Outer and regressive products remain generic; model-level representation-dependent `join()` and `meet()` are deferred. |
+| C8  | Existing CGA helpers retain their direct formulas and never consult hidden representation state.                       |
+| C9  | `CGA_API.md` is the detailed contract; ADR-086 records the architectural choice.                                       |
