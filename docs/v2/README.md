@@ -46,9 +46,9 @@
   records the reusable LibCST, executable-ledger, architecture-fitness,
   guarded-facade, oracle-ownership, and staged-validation methods used by the
   cutover.
-- [Phase 8 performance baseline](phase8-performance.md) separates direct-core,
-  facade, expression-provenance, and retained-v1 costs for representative
-  diagonal operations.
+- [Phase 8 performance baseline](phase8-performance.md) preserves historical
+  direct-core, facade, expression-provenance, and retained-v1 costs. The current
+  benchmark measures v2 layers using independent untimed correctness oracles.
 - [Release process](../RELEASE_PROCESS.md) gives the operational alpha, beta,
   release-candidate, and final Galaga 2 publication train.
 - [Numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
@@ -111,9 +111,12 @@ removals in the migration guide and release changelog. Alpha releases may
 retain the explicit `galaga.legacy` oracle for comparison; the stable release
 must not ship it.
 
-Phase 9 has started with the rendering audit: its live legacy dependency is
-gone, all 73 historical cases remain, and reviewed v2 outputs are pinned even
-for accepted differences. The remaining test and benchmark dependencies,
+Phase 9 has removed the rendering audit's live legacy dependency: all 73
+historical cases remain, and reviewed v2 outputs are pinned even for accepted
+differences. The benchmark now uses independent untimed correctness oracles
+and measures only v2 layers, preserving the historical v1 timing table. Matrix
+conversion's v1 compatibility fallbacks are also removed. Fresh-process tests
+block legacy imports in all three paths. The remaining test dependencies,
 engine deletion, alias retirement, and final release gates are still pending.
 
 The post-cutover native CGA model layer is also implemented. It validates the
@@ -147,6 +150,7 @@ operation; geometric line correction is model-owned and explicit.
 - [ADR-087: RGA semantics are a validated model layer](../adrs/087-rga-semantics-are-a-validated-model-layer.md)
 - [ADR-088: Explicit versions for prereleases](../adrs/088-explicit-versions-for-prereleases.md)
 - [ADR-092: Frozen historical rendering oracles](../adrs/092-frozen-historical-rendering-oracles.md)
+- [ADR-093: Benchmarks use core reference oracles](../adrs/093-benchmarks-use-core-reference-oracles.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

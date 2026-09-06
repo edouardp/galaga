@@ -54,9 +54,16 @@ nondegenerate general Gram matrices explicitly, constructs native blades by
 exterior minors, and validates them against independent antisymmetrization and
 cross-basis oracles.
 
-Until the Phase 8 top-level cutover, matrix tests also exercise Galaga 1 values.
-That compatibility path materializes columns through the public geometric
-product and never reads multiplication tables.
+During Phase 8, a temporary Galaga 1 compatibility path materialized columns
+through the public geometric product without reading multiplication tables.
+That path is now retired in Phase 9. Conversion requires the Galaga 2 public
+`inertia`, `gram`, `left_action`, and `multivector` APIs; it does not infer
+missing metric data from a signature or reconstruct an old multivector type.
+Recovered names use the immutable facade `.named()` operation only.
+
+Representation plans still share the facade's underlying core algebra across
+presentation views. Core metric and action access inside those plans is
+intentional Galaga 2 behavior, not a legacy fallback, and remains tested.
 
 Architecture tests search the implementation for the retired private fields
 and legacy numeric imports. Numeric tests verify multiplication, roundtrip, and
@@ -75,7 +82,8 @@ the generator relation against oblique and native-null Gram matrices.
 - Good, because source checks prevent accidental return to private tables.
 - Neutral, because automatic conversion of a general-Gram matrix continues to
   use the larger left-regular representation unless compact mode is explicit.
-- Cost, because the temporary Galaga 1 fallback computes a product per column.
+- Boundary, because the retired Galaga 1 matrix fallback is no longer available;
+  callers must construct values through the Galaga 2 facade.
 - Follow-up complete in [ADR-082](082-matrix-provenance-is-package-owned.md):
   `MatrixRepr` now owns immutable matrix provenance and consumes only public
   Galaga 2 names, expressions, and presentation objects.

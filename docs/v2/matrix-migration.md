@@ -45,11 +45,15 @@ basis element is the scalar identity. `from_matrix` therefore recovers a value
 without solving a system. It constructs through the public algebra factory, so
 the returned value is a facade `Multivector` over the same algebra.
 
-For the explicit Phase 8 `galaga.legacy` oracle only, a temporary compatibility
-path constructs each matrix column with the public geometric-product operator.
-It is slower but has the same mathematical boundary and contains no legacy
-multiplication-table access. Phase 9 removes that path with the legacy engine;
-ordinary top-level and companion-package tests use only facade values.
+The temporary Phase 8 compatibility path for `galaga.legacy` is now removed.
+Conversion requires the Galaga 2 public metric metadata, left action, and
+multivector factory. It no longer guesses a Gram matrix from a signature,
+materializes fallback columns through products, or discovers an old value
+constructor via a scalar. Use facade values created through `galaga.Algebra`.
+
+The representation cache continues to share a facade's underlying core algebra
+across presentation-only views. Internal core metric, factory, and action
+access remains supported and tested; it is separate from the retired v1 path.
 
 ### Compact exterior lift
 
@@ -118,6 +122,12 @@ The facade matrix contract verifies:
 
 - multiplication through an oblique and a native-null Gram matrix;
 - coefficient-preserving left-regular round trips;
+- one public left-action call per regular conversion without fallback column
+  products, including degenerate metrics;
+- public-factory reconstruction and immutable naming in regular, compact, and
+  quaternion modes;
+- refusal to guess missing Galaga 2 metadata from old signature-only objects;
+- shared facade/core plan identity and conversion with legacy imports blocked;
 - generator anticommutators equal to twice every supplied Gram entry;
 - public basis-blade actions match the materialized representation stack;
 - explicit compact conversion for nonorthogonal and scaled metrics while

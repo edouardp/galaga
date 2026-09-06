@@ -1268,21 +1268,36 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. The first prerequisite is complete: the 73-case
-rendering parity audit uses captured v1 observations instead of importing the
-legacy engine, and independently pins reviewed v2 outputs. A subprocess gate
-blocks legacy imports while executing the complete audit. See
-[ADR-092](../adrs/092-frozen-historical-rendering-oracles.md).
+Status: **in progress**. Three legacy-dependency prerequisites are complete:
+
+- the 73-case rendering parity audit uses captured v1 observations instead of
+  importing the legacy engine, and independently pins reviewed v2 outputs
+  ([ADR-092](../adrs/092-frozen-historical-rendering-oracles.md));
+- the live benchmark measures only v2 layers, validates them against untimed
+  core-reference and exterior-grade oracles, and preserves the historical
+  Phase 8 measurements
+  ([ADR-093](../adrs/093-benchmarks-use-core-reference-oracles.md)); and
+- matrix conversion requires public v2 metric metadata, linear actions,
+  factories, and immutable naming without v1 compatibility fallbacks
+  ([ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md)).
+
+Fresh-process regression gates exercise the audit, benchmark, and matrix
+conversions with legacy imports blocked. Matrix plans continue to share core
+algebras across facade presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
 - preserve or retire the remaining legacy-only and dual-implementation tests
   against the numeric migration inventory;
-- retire the live legacy benchmark path while retaining the historical
-  performance baseline;
-- remove matrix compatibility fallback paths that still accommodate v1;
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
+
+The next dependency group is the shared rendering-contract adapter and its
+three dual-implementation suites, followed by the remaining numeric contract,
+compatibility-manifest introspection, and legacy guards. Preserve their
+permanent v2 assertions and source-derived algebraic coverage rather than
+deleting mixed test files wholesale. The legacy test ledger still contains
+23 files; the migration inventory remains the authority for their ownership.
 
 The notebook-test baseline prerequisite is also complete. Portability checks
 preserve each notebook's generator metadata and validate the actual launcher
@@ -1294,11 +1309,13 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(3,875 passed, 19 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (3,758 passed, 44 skipped), with Python 3.14-only integrations
+(3,904 passed, 19 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (3,787 passed, 44 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
-warning remains. These are test-baseline checks, not completion of the engine
-deletion, artifact, or final release gates.
+warning remains. The Python 3.11 run also measures branch coverage without new
+exclusions: the benchmark module has 95% coverage and matrix conversion has
+91%. These are prerequisite checks, not completion of the engine deletion,
+artifact, or final release gates.
 
 Remove the private legacy oracle only after Phase 8 has passed on the branch
 and in CI. Preserve historical behavior in tests, specifications, and migration

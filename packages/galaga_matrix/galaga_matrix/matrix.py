@@ -25,7 +25,7 @@ Provides two representation modes:
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import TYPE_CHECKING, Any, cast
+from typing import TYPE_CHECKING, Any
 
 import numpy as np
 
@@ -126,27 +126,16 @@ def _representation_plan_cache_info():
 
 
 def _metric_inertia(alg: Algebra) -> tuple[int, int, int]:
-    """Return basis-independent metric inertia, with a Phase 8 oracle fallback."""
-    inertia = getattr(alg, "inertia", None)
-    if inertia is not None:
-        positive, negative, null = inertia
-        return int(positive), int(negative), int(null)
-    signature = alg.signature
-    return (
-        sum(1 for square in signature if square > 0),
-        sum(1 for square in signature if square < 0),
-        sum(1 for square in signature if square == 0),
-    )
+    """Read basis-independent metric inertia from the public Galaga 2 API."""
+    positive, negative, null = alg.inertia
+    return int(positive), int(negative), int(null)
 
 
 def _compact_metric_supported(alg: Algebra) -> bool:
     """Whether compact gamma construction matches the stored exterior basis."""
     if _metric_inertia(alg)[2] != 0:
         return False
-    gram = getattr(alg, "gram", None)
-    if gram is None:  # Galaga 1 compatibility: its signature is normalized.
-        return True
-    matrix = np.asarray(gram, dtype=float)
+    matrix = np.asarray(alg.gram, dtype=float)
     diagonal = np.diag(matrix)
     return bool(np.array_equal(matrix, np.diag(diagonal)) and np.all(np.isin(diagonal, (-1.0, 1.0))))
 
@@ -170,13 +159,8 @@ def _require_normalized_compact_metric(alg: Algebra) -> tuple[int, int]:
 
 
 def _new_multivector(alg: Algebra, data: np.ndarray) -> Multivector:
-    """Construct through the public factory, retaining a Phase 8 oracle fallback."""
-    factory = getattr(alg, "multivector", None)
-    if callable(factory):
-        return cast(Multivector, factory(data))
-    legacy_algebra = cast(Any, alg)
-    legacy_type = type(legacy_algebra.scalar(0.0))
-    return cast(Multivector, legacy_type(alg, data))
+    """Construct through the public Galaga 2 multivector factory."""
+    return alg.multivector(data)
 
 
 def _multivector_name(mv: Multivector) -> Name | None:
@@ -186,20 +170,8 @@ def _multivector_name(mv: Multivector) -> Name | None:
 
 
 def _left_action(mv: Multivector) -> np.ndarray:
-    """Materialize left multiplication without reading multiplication tables."""
-    alg = mv.algebra
-    action = getattr(alg, "left_action", None)
-    if callable(action):
-        return np.asarray(action(mv))
-
-    # Explicit Galaga 1 oracle compatibility until Phase 9: construct columns
-    # through its public geometric-product operator, never private tables.
-    result = np.zeros((alg.dim, alg.dim), dtype=float)
-    for column in range(alg.dim):
-        data = np.zeros(alg.dim, dtype=float)
-        data[column] = 1.0
-        result[:, column] = (mv * _new_multivector(alg, data)).data
-    return result
+    """Materialize the public left action in native coefficient order."""
+    return np.asarray(mv.algebra.left_action(mv))
 
 
 def _left_regular_matrix(alg: Algebra) -> np.ndarray:
@@ -355,12 +327,7 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         ascii_name = f"rho^-1({mat_name.ascii})"
         unicode_name = f"ρ⁻¹({mat_name.unicode})"
         latex_name = rf"\rho^{{-1}}({mat_name.latex})"
-        if isinstance(mv, Multivector):
-            mv = mv.named(ascii_name, unicode=unicode_name, latex=latex_name)
-        else:
-            legacy_name = getattr(mv, "name", None)
-            if callable(legacy_name):
-                mv = cast(Multivector, legacy_name(ascii_name, unicode=unicode_name, latex=latex_name))
+        mv = mv.named(ascii_name, unicode=unicode_name, latex=latex_name)
 
     return mv
 
@@ -686,11 +653,8 @@ def _build_blade_matrices_from_gammas(alg: Algebra, gammas: list[np.ndarray]) ->
 
 
 def _gram_matrix(alg: Algebra) -> np.ndarray:
-    """Return the native real Gram matrix, including the Galaga 1 fallback."""
-    gram = getattr(alg, "gram", None)
-    if gram is None:
-        gram = np.diag(np.asarray(alg.signature, dtype=float))
-    matrix = np.asarray(gram, dtype=float)
+    """Read the native real Gram matrix without inferring it from a signature."""
+    matrix = np.asarray(alg.gram, dtype=float)
     if matrix.shape != (alg.n, alg.n):
         raise ValueError(f"Expected a ({alg.n}, {alg.n}) Gram matrix, got {matrix.shape}")
     return matrix
