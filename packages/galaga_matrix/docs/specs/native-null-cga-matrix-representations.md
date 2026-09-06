@@ -153,9 +153,9 @@ The current compact-mode predicate conflates "not a normalized diagonal
 metric" with "not compactly representable". This specification separates
 those questions.
 
-## Existing package behavior
+## Original package behavior
 
-At the time of this specification:
+At the time this specification was proposed:
 
 - `left-regular` supports every symmetric Gram matrix and preserves native
   coefficients;
@@ -169,6 +169,10 @@ At the time of this specification:
 
 The proposed design keeps those strengths. The missing piece is a correct map
 from native exterior blades to a compact representation.
+
+Work unit 2 now supplies that map for explicit compact conversion of general
+nondegenerate Gram matrices. Automatic dispatch remains unchanged until the
+later promotion work unit.
 
 ## Conventions
 
@@ -1219,6 +1223,9 @@ Gate:
 
 ### Work unit 2: General native exterior lift
 
+Status: implemented 2026-09-06. See
+[ADR-012](../adrs/012-general-gram-compact-exterior-lift.md).
+
 Implement equations (22)--(26) for nondegenerate Gram matrices and enable the
 resulting plans through explicit `mode="compact"`. Do not change automatic
 dispatch in this work unit.
@@ -1278,6 +1285,14 @@ Gate:
 - view operations retain the parent representation provenance.
 
 ### Work unit 6: Geometry-level examples
+
+The current notebooks `cga_via_gram_matrix.py` and
+`cga_complex_and_quaternion.py` already demonstrate the generic complex path
+and a variety of lifted objects. The comparison notebook also derives an
+explicit even-algebra map into the existing auxiliary `Cl(1,3)` quaternion
+mode, and a two-quaternion encoding for mixed parity. These teaching maps do
+not implement the native quaternion API or its proposed provenance contract;
+the specialized representation examples below remain part of this work unit.
 
 Add executable Marimo examples under `examples/matrix/`:
 

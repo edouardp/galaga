@@ -15,3 +15,4 @@ ADRs for the `galaga_matrix` package.
 | [009](009-unified-quaternion-storage.md) | Unified Quaternion Storage — Always Numpy-Backed | Accepted |
 | [010](010-replace-labels-with-names.md) | Replace MatrixRepr Labels with Symbolic Names | Accepted |
 | [011](011-cached-immutable-representation-plans.md) | Cached Immutable Representation Plans | Accepted |
+| [012](012-general-gram-compact-exterior-lift.md) | General-Gram Compact Representations Use an Exterior Lift | Accepted |

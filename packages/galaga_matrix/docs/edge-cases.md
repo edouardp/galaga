@@ -37,31 +37,60 @@ resulting object is a matrix of exterior algebra elements, not a plain matrix.
 
 ### from_matrix compact uses strict least-squares
 
-The coefficient extraction uses `np.linalg.lstsq` on the real/imaginary parts
-of the flattened blade matrices. For simple algebras this is exact (the system
-is full-rank). Rank-deficient systems raise `TypeError`, and matrices outside
-the image of the representation raise `ValueError` after a residual check.
+The coefficient extraction uses `np.linalg.lstsq` on column-normalized
+real/imaginary parts of the flattened blade matrices. Column normalization
+prevents metric units and grade-dependent scaling from creating a false rank
+deficiency; recovered coefficients are rescaled to the native exterior basis.
+For simple algebras the system is full-rank. Rank-deficient systems raise
+`TypeError`, and matrices outside the image raise `ValueError` after a
+scale-aware residual check.
+
+Full rank does not guarantee accurate recovery of every coefficient. Even a
+uniformly scaled metric has different powers of that scale in different
+exterior grades. Small contributions can lose precision when added to larger
+ones during forward conversion; normalizing the inverse system cannot recover
+lost information. A small matrix residual therefore need not imply a small
+native coefficient error. Choose reasonable metric units and inspect recovery
+errors, or use left-regular matrices for direct native coefficient recovery.
+
+### General Gram matrices use an equivalent compact basis
+
+Explicit `mode="compact"` supports scaled diagonal and dense nonorthogonal
+metrics when the core classifies the Gram matrix as nondegenerate. It factors
+`G = S eta S.T`, maps vectors through `S`, and maps higher exterior blades
+through minors of `S`. Automatic mode remains `left-regular` for these metrics.
+
+For a generic dense metric, eigendirections determine the equivalent compact
+basis. Eigenvector signs are normalized deterministically, but repeated
+eigenspaces have no unique frame. Depend on anticommutation, products,
+round-trips, and other algebraic properties rather than exact generic matrix
+entries across platforms.
+
+Spinor-column conversion and named Pauli, Dirac, Weyl, Majorana, and quaternion
+conventions remain normalized-basis APIs. A general-Gram compact matrix does
+not silently opt into those basis labels merely because its shape matches.
 
 ## Known gaps
 
-### No caching of blade matrices
-
-`_build_compact_blade_matrices` rebuilds all 2ⁿ blade matrices on every call
-to `to_matrix` or `from_matrix` in compact mode. For interactive use this is
-fine. For batch conversion of many multivectors in the same algebra, the
-matrices should be cached on the `Algebra` object or in a separate cache.
-
 ### Representation is not unique
 
-The compact gamma matrices depend on the recursion path. Different
-implementations (or different base cases) produce different but equivalent
-representations. The named special cases (Pauli, Dirac) are pinned to the
-standard textbook forms, but general signatures get whatever the recursion
-produces.
+The compact gamma matrices depend on the recursion path and, for a dense Gram
+matrix, the congruence factorization. Different implementations can produce
+different but equivalent representations. The named normalized special cases
+(Pauli, Dirac) are pinned to standard textbook forms, but general signatures
+and Gram bases use the descriptor's generic convention.
 
 This means `to_matrix` output for general signatures should not be compared
 across library versions or against other libraries — only the algebraic
 properties (squares, anticommutation, product homomorphism) are guaranteed.
+
+### Representation plans are process-local cached data
+
+Compact-family conversion plans cache immutable generators, exterior-blade
+matrices, reconstruction systems, ranks, and metric-congruence metadata in a
+bounded process-local LRU. This makes repeated conversion efficient and
+prevents callers from mutating shared arrays. It does not make generic
+eigendecomposition output a public entry-by-entry convention.
 
 ### Limited quaternionic output format
 

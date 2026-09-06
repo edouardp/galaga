@@ -133,11 +133,23 @@ def test_cached_plan_and_all_numeric_arrays_are_immutable() -> None:
         plan.system_matrix[0, 0] = 10
 
 
-def test_general_gram_compact_support_is_not_enabled_by_the_plan_scaffold() -> None:
+def test_general_gram_compact_plan_records_the_metric_congruence() -> None:
     algebra = Algebra(gram=np.array([[2.0, 0.5], [0.5, -1.0]]))
 
-    with pytest.raises(NotImplementedError, match="normalized orthogonal.*left-regular"):
-        _representation_plan(algebra, "compact")
+    plan = _representation_plan(algebra, "compact")
+
+    assert plan.metric_congruence is not None
+    assert plan.descriptor.basis is None
+    assert plan.descriptor.convention == "general-gram-congruence-v1"
+    assert plan.metric_congruence.inertia == algebra.inertia
+    np.testing.assert_allclose(
+        plan.metric_congruence.transform
+        @ plan.metric_congruence.orthogonal_metric
+        @ plan.metric_congruence.transform.T,
+        algebra.gram,
+        rtol=0.0,
+        atol=plan.metric_congruence.tolerance,
+    )
 
 
 def test_matrix_repr_records_and_propagates_the_full_source_domain() -> None:

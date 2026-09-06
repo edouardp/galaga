@@ -609,6 +609,18 @@ class MatrixRepr:
         if mat.shape not in ((4, 4), (4, 1), (1, 4)):
             raise TypeError(f"to_basis({target!r}) requires a 4-dim Dirac representation, got {mat.shape}.")
 
+        if self.algebra is not None:
+            from .matrix import _compact_metric_supported
+
+            inertia = getattr(self.algebra, "inertia", None)
+            if inertia is not None and tuple(inertia) not in ((1, 3, 0), (3, 1, 0)):
+                raise TypeError(f"to_basis({target!r}) requires Cl(1,3) or Cl(3,1), got inertia {tuple(inertia)}.")
+            if not _compact_metric_supported(self.algebra):
+                raise TypeError(
+                    "Named Dirac/Weyl/Majorana basis changes require a normalized orthogonal native basis; "
+                    "a generic Gram representation has no named Dirac basis convention."
+                )
+
         # Determine source basis
         source = self.basis or "dirac"
 

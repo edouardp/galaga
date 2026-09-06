@@ -82,15 +82,18 @@ def test_basis_left_actions_use_the_same_public_representation() -> None:
     "gram",
     (*GENERAL_GRAM_METRICS, np.diag([2.0, -3.0])),
 )
-def test_compact_mode_rejects_metrics_without_a_normalized_orthogonal_basis(
+def test_explicit_compact_accepts_general_gram_while_automatic_mode_stays_regular(
     gram: np.ndarray,
 ) -> None:
     algebra = Algebra(gram=gram)
 
-    with pytest.raises(NotImplementedError, match="normalized orthogonal.*left-regular"):
-        compact_basis(algebra)
-    with pytest.raises(NotImplementedError, match="normalized orthogonal.*left-regular"):
-        to_matrix(algebra.identity, mode="compact")
+    generators = compact_basis(algebra)
+    explicit = to_matrix(algebra.identity, mode="compact")
+    automatic = to_matrix(algebra.identity)
+
+    assert len(generators) == algebra.n
+    assert explicit.mode == "compact"
+    assert automatic.mode == "left-regular"
 
 
 def test_quaternion_mode_rejects_a_general_gram_basis_of_cl13() -> None:

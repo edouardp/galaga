@@ -47,6 +47,60 @@ class RepresentationDescriptor:
 
 
 @dataclass(frozen=True, slots=True, eq=False)
+class MetricCongruence:
+    """Validated factorization ``G = S eta S.T`` for a native Gram basis."""
+
+    gram: NDArray[np.float64]
+    inertia: tuple[int, int, int]
+    transform: NDArray[np.float64]
+    orthogonal_metric: NDArray[np.float64]
+    inverse_transform: NDArray[np.float64]
+    residual: float
+    condition_estimate: float
+    tolerance: float
+    convention: str
+
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "gram", _readonly_array(self.gram).astype(np.float64, copy=False))
+        object.__setattr__(self, "transform", _readonly_array(self.transform).astype(np.float64, copy=False))
+        object.__setattr__(
+            self,
+            "orthogonal_metric",
+            _readonly_array(self.orthogonal_metric).astype(np.float64, copy=False),
+        )
+        object.__setattr__(
+            self,
+            "inverse_transform",
+            _readonly_array(self.inverse_transform).astype(np.float64, copy=False),
+        )
+        for field_name in ("gram", "transform", "orthogonal_metric", "inverse_transform"):
+            getattr(self, field_name).setflags(write=False)
+        if self.gram.ndim != 2 or self.gram.shape[0] != self.gram.shape[1]:
+            raise ValueError("metric-congruence Gram matrix must be square")
+        dimension = self.gram.shape[0]
+        expected_shape = (dimension, dimension)
+        if self.transform.shape != expected_shape:
+            raise ValueError("metric-congruence transform must match the Gram matrix")
+        if self.orthogonal_metric.shape != expected_shape:
+            raise ValueError("metric-congruence orthogonal metric must match the Gram matrix")
+        if self.inverse_transform.shape != expected_shape:
+            raise ValueError("metric-congruence inverse transform must match the Gram matrix")
+        if sum(self.inertia) != dimension or any(value < 0 for value in self.inertia):
+            raise ValueError("metric-congruence inertia must match the Gram-matrix dimension")
+        if (
+            not np.isfinite(self.residual)
+            or not np.isfinite(self.condition_estimate)
+            or not np.isfinite(self.tolerance)
+            or self.residual < 0
+            or self.condition_estimate < 1
+            or self.tolerance <= 0
+        ):
+            raise ValueError("invalid metric-congruence diagnostics")
+        if not self.convention:
+            raise ValueError("metric-congruence convention must not be empty")
+
+
+@dataclass(frozen=True, slots=True, eq=False)
 class MatrixRepresentationPlan:
     """Immutable algebra-derived data shared by repeated conversions.
 
@@ -58,6 +112,7 @@ class MatrixRepresentationPlan:
 
     source_algebra: Any
     descriptor: RepresentationDescriptor
+    metric_congruence: MetricCongruence | None
     matrix_shape: tuple[int, int]
     generators: tuple[NDArray[Any], ...]
     blade_matrices: NDArray[Any] | None

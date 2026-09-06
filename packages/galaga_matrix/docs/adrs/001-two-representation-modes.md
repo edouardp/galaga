@@ -11,6 +11,13 @@ mode is strict on inverse conversion. It raises when the selected compact
 representation is not injective or when a matrix is outside the representation
 image.
 
+Amended by
+[ADR-012](012-general-gram-compact-exterior-lift.md): explicit compact mode
+supports numerically suitable nondegenerate general Gram matrices by lifting a
+validated metric congruence to the native exterior basis. Automatic dispatch
+remains conservative and named Pauli, Dirac, and quaternion conventions still
+require their normalized orthogonal bases.
+
 ## Context and Problem Statement
 
 Every multivector in a Clifford algebra has a matrix representation, but there

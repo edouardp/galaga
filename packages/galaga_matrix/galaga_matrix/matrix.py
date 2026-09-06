@@ -6,7 +6,9 @@ Provides two representation modes:
   Works for any Cl(p,q,r). Faithful and always roundtrips.
 
 - **compact**: Minimal-dimension representation using the classification of
-  real Clifford algebras. Produces complex matrices.
+  real Clifford algebras. Produces complex matrices for every numerically
+  suitable nondegenerate Gram matrix. General native exterior bases are
+  mapped through a validated metric congruence and its exterior-power lift.
 
   Special cases with named basis matrices:
     - Cl(3,0), Cl(0,3): 2×2 complex — Pauli matrices
@@ -30,7 +32,7 @@ import numpy as np
 from galaga.facade import Algebra, Multivector
 from galaga.names import Name
 
-from ._plans import MatrixRepresentationPlan, RepresentationDescriptor, RepresentationDomain
+from ._plans import MatrixRepresentationPlan, MetricCongruence, RepresentationDescriptor, RepresentationDomain
 
 if TYPE_CHECKING:
     from .repr import MatrixRepr
@@ -45,14 +47,15 @@ _MODE_CONVENTIONS = {
     "dirac": "dirac-v1",
     "quaternion": "quaternion-block-v1",
 }
+_GENERAL_GRAM_CONVENTION = "general-gram-congruence-v1"
 
 
-def _default_basis(mode: str, p: int, q: int) -> str | None:
+def _default_basis(alg: Algebra, mode: str, p: int, q: int) -> str | None:
     if mode in ("dirac", "pauli"):
         return mode
-    if mode == "compact" and (p, q) in ((1, 3), (3, 1)):
+    if mode == "compact" and _compact_metric_supported(alg) and (p, q) in ((1, 3), (3, 1)):
         return "dirac"
-    if mode == "compact" and (p, q) in ((3, 0), (0, 3)):
+    if mode == "compact" and _compact_metric_supported(alg) and (p, q) in ((3, 0), (0, 3)):
         return "pauli"
     return None
 
@@ -72,11 +75,14 @@ def _representation_descriptor(
     if mode not in _MODE_CONVENTIONS:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
     dtype = "float64" if mode == "left-regular" else "complex128"
+    convention = _MODE_CONVENTIONS[mode]
+    if mode == "compact" and not _compact_metric_supported(alg):
+        convention = _GENERAL_GRAM_CONVENTION
     return RepresentationDescriptor(
         mode=mode,
         domain=domain,
-        basis=_default_basis(mode, p, q),
-        convention=_MODE_CONVENTIONS[mode],
+        basis=_default_basis(alg, mode, p, q),
+        convention=convention,
         dtype=dtype,
     )
 
@@ -145,14 +151,20 @@ def _compact_metric_supported(alg: Algebra) -> bool:
     return bool(np.array_equal(matrix, np.diag(diagonal)) and np.all(np.isin(diagonal, (-1.0, 1.0))))
 
 
-def _require_compact_metric(alg: Algebra) -> tuple[int, int]:
+def _require_nondegenerate_metric(alg: Algebra) -> tuple[int, int]:
     p, q, r = _metric_inertia(alg)
     if r:
         raise NotImplementedError(f"Compact representation not supported for degenerate algebras (r={r})")
+    return p, q
+
+
+def _require_normalized_compact_metric(alg: Algebra) -> tuple[int, int]:
+    p, q = _require_nondegenerate_metric(alg)
     if not _compact_metric_supported(alg):
         raise NotImplementedError(
-            "Compact representation requires a normalized orthogonal basis; "
-            "use mode='left-regular' for general Gram matrices."
+            "This named matrix convention requires a normalized orthogonal basis; "
+            "use mode='compact' for a general nondegenerate Gram matrix or "
+            "mode='left-regular' for the native regular representation."
         )
     return p, q
 
@@ -213,9 +225,8 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
         mode: One of:
             - ``None`` (default): select ``"compact"`` for normalized
               orthogonal metrics and ``"left-regular"`` otherwise.
-            - ``"compact"``: minimal complex matrix for normalized orthogonal
-              Cl(p,q). General Gram matrices require ``"left-regular"`` until
-              a validated basis transform is available.
+            - ``"compact"``: minimal complex matrix for any nondegenerate
+              Cl(p,q), including nonorthogonal and nonnormalized Gram bases.
             - ``"left-regular"``: 2ⁿ×2ⁿ real matrix (works for all algebras).
             - ``"quaternion"``: quaternion-entry matrix (requires quaternionic algebra).
             - ``"pauli"``: alias for compact, requires Cl(3,0) or Cl(0,3).
@@ -622,13 +633,18 @@ def _tensor_step(
 def compact_basis(alg: Algebra) -> list[np.ndarray]:
     """Return compact gamma matrices for the algebra's generators.
 
+    A normalized orthogonal basis uses the package's existing periodicity
+    convention. Any other nondegenerate Gram basis is mapped by a validated
+    congruence. These are vector images; native higher-grade exterior blades
+    use the plan's exterior lift rather than ordered products of this list.
+
     For simple Clifford algebras this is faithful. For double algebras
     ((q-p) mod 8 in {3, 7}) this may be one irreducible summand and therefore
     may not be faithful on the full algebra. Strict inverse APIs check rank
     before reconstructing coefficients.
     """
-    p, q = _require_compact_metric(alg)
-    return _general_compact_basis(p, q)
+    plan = _representation_plan(alg, "compact")
+    return [np.array(generator, copy=True) for generator in plan.generators]
 
 
 def _build_blade_matrices_from_gammas(alg: Algebra, gammas: list[np.ndarray]) -> np.ndarray:
@@ -669,6 +685,135 @@ def _build_blade_matrices_from_gammas(alg: Algebra, gammas: list[np.ndarray]) ->
     return blade_mats
 
 
+def _gram_matrix(alg: Algebra) -> np.ndarray:
+    """Return the native real Gram matrix, including the Galaga 1 fallback."""
+    gram = getattr(alg, "gram", None)
+    if gram is None:
+        gram = np.diag(np.asarray(alg.signature, dtype=float))
+    matrix = np.asarray(gram, dtype=float)
+    if matrix.shape != (alg.n, alg.n):
+        raise ValueError(f"Expected a ({alg.n}, {alg.n}) Gram matrix, got {matrix.shape}")
+    return matrix
+
+
+def _metric_congruence(alg: Algebra) -> MetricCongruence:
+    """Factor the native metric as ``G = S eta S.T`` deterministically."""
+    p, q = _require_nondegenerate_metric(alg)
+    gram = _gram_matrix(alg)
+    n = alg.n
+    orthogonal_metric = np.diag(np.array([1.0] * p + [-1.0] * q, dtype=float))
+
+    if np.array_equal(gram, np.diag(np.diag(gram))):
+        diagonal = np.diag(gram)
+        positive_indices = [index for index, value in enumerate(diagonal) if value > 0]
+        negative_indices = [index for index, value in enumerate(diagonal) if value < 0]
+        if len(positive_indices) != p or len(negative_indices) != q:
+            raise ValueError("Metric inertia disagrees with the diagonal Gram matrix")
+        ordered_indices = positive_indices + negative_indices
+        transform = np.zeros((n, n), dtype=float)
+        for column, row in enumerate(ordered_indices):
+            transform[row, column] = np.sqrt(abs(diagonal[row]))
+        convention = "signed-diagonal-scale-v1"
+    else:
+        eigenvalues, eigenvectors = np.linalg.eigh(gram)
+        positive_indices = [index for index, value in enumerate(eigenvalues) if value > 0]
+        negative_indices = [index for index, value in enumerate(eigenvalues) if value < 0]
+        if len(positive_indices) != p or len(negative_indices) != q:
+            raise ValueError("Metric inertia disagrees with the symmetric eigendecomposition")
+        ordered_indices = positive_indices + negative_indices
+        transform = np.empty((n, n), dtype=float)
+        for column, source_index in enumerate(ordered_indices):
+            direction = eigenvectors[:, source_index].copy()
+            pivot = int(np.argmax(np.abs(direction)))
+            if direction[pivot] < 0:
+                direction *= -1
+            transform[:, column] = direction * np.sqrt(abs(eigenvalues[source_index]))
+        convention = "symmetric-eigh-positive-first-v1"
+
+    reconstructed = transform @ orthogonal_metric @ transform.T
+    residual = float(np.linalg.norm(gram - reconstructed, ord=np.inf)) if n else 0.0
+    scale = max(float(np.linalg.norm(gram, ord=np.inf)), np.finfo(float).tiny) if n else 1.0
+    tolerance = 64.0 * max(n, 1) * np.finfo(float).eps * scale
+    if residual > tolerance:
+        raise ValueError(
+            "Could not validate the metric congruence "
+            f"G = S eta S.T (residual {residual:.3e}, tolerance {tolerance:.3e})"
+        )
+
+    return MetricCongruence(
+        gram=gram,
+        inertia=(p, q, 0),
+        transform=transform,
+        orthogonal_metric=orthogonal_metric,
+        inverse_transform=np.linalg.inv(transform),
+        residual=residual,
+        condition_estimate=max(1.0, float(np.linalg.cond(transform))),
+        tolerance=tolerance,
+        convention=convention,
+    )
+
+
+def _transform_generators(
+    orthogonal_generators: list[np.ndarray],
+    transform: np.ndarray,
+) -> list[np.ndarray]:
+    """Map native vectors ``e_i = sum_a S[i,a] f_a`` to matrices."""
+    if not orthogonal_generators:
+        return []
+    stacked = np.stack(orthogonal_generators)
+    return [np.tensordot(row, stacked, axes=(0, 0)) for row in transform]
+
+
+def _exterior_lift_blade_matrices(
+    orthogonal_blades: np.ndarray,
+    transform: np.ndarray,
+) -> np.ndarray:
+    """Lift exterior blades by minors of the vector basis transform.
+
+    For equal-grade masks ``I`` and ``A``, the coefficient of ``f_A`` in
+    ``e_I`` is ``det(S[I, A])``. This is deliberately not an ordered product
+    of transformed gamma matrices: for a nonorthogonal basis that product
+    contains lower-grade metric contractions.
+    """
+    n = transform.shape[0]
+    dim = 1 << n
+    masks_by_grade = {grade: [mask for mask in range(dim) if mask.bit_count() == grade] for grade in range(n + 1)}
+    lifted = np.zeros_like(orthogonal_blades)
+    lifted[0] = orthogonal_blades[0]
+
+    for grade in range(1, n + 1):
+        for native_mask in masks_by_grade[grade]:
+            native_indices = [index for index in range(n) if native_mask & (1 << index)]
+            for orthogonal_mask in masks_by_grade[grade]:
+                orthogonal_indices = [index for index in range(n) if orthogonal_mask & (1 << index)]
+                minor = transform[np.ix_(native_indices, orthogonal_indices)]
+                coefficient = float(minor[0, 0]) if grade == 1 else float(np.linalg.det(minor))
+                if coefficient != 0.0:
+                    lifted[native_mask] += coefficient * orthogonal_blades[orthogonal_mask]
+    return lifted
+
+
+def _validate_generator_relations(
+    generators: list[np.ndarray],
+    congruence: MetricCongruence,
+) -> None:
+    """Check the constructed vector matrices against the native metric."""
+    if not generators:
+        return
+    identity = np.eye(generators[0].shape[0], dtype=complex)
+    maximum_error = 0.0
+    for row, left in enumerate(generators):
+        for column, right in enumerate(generators):
+            expected = 2.0 * congruence.gram[row, column] * identity
+            maximum_error = max(maximum_error, float(np.linalg.norm(left @ right + right @ left - expected)))
+    tolerance = 8.0 * congruence.tolerance * np.sqrt(identity.size)
+    if maximum_error > tolerance:
+        raise ValueError(
+            "Compact generators do not reproduce the native Gram matrix "
+            f"(error {maximum_error:.3e}, tolerance {tolerance:.3e})"
+        )
+
+
 def _represented_coefficient_indices(alg: Algebra, domain: RepresentationDomain) -> np.ndarray:
     if domain == "full":
         return np.arange(alg.dim, dtype=np.int64)
@@ -681,6 +826,13 @@ def _real_system_matrix(blade_matrices: np.ndarray, coefficient_indices: np.ndar
     return np.vstack([flat_basis.real.T, flat_basis.imag.T])
 
 
+def _normalize_system_columns(system_matrix: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Normalize represented-blade columns without changing coefficient meaning."""
+    column_scales = np.linalg.norm(system_matrix, axis=0)
+    safe_scales = np.where(column_scales > 0.0, column_scales, 1.0)
+    return system_matrix / safe_scales, safe_scales
+
+
 def _build_representation_plan(
     source_algebra: Algebra,
     descriptor: RepresentationDescriptor,
@@ -691,6 +843,7 @@ def _build_representation_plan(
         return MatrixRepresentationPlan(
             source_algebra=source_algebra,
             descriptor=descriptor,
+            metric_congruence=None,
             matrix_shape=(source_algebra.dim, source_algebra.dim),
             generators=(),
             blade_matrices=None,
@@ -701,24 +854,36 @@ def _build_representation_plan(
             inverse_tolerance=_PLAN_INVERSE_TOLERANCE,
         )
 
+    metric_congruence = None
     if descriptor.mode == "quaternion":
         generators = _quaternion_block_basis(source_algebra)
+        blade_matrices = _build_blade_matrices_from_gammas(source_algebra, generators)
+    elif descriptor.mode == "compact" and not _compact_metric_supported(source_algebra):
+        p, q = _require_nondegenerate_metric(source_algebra)
+        metric_congruence = _metric_congruence(source_algebra)
+        orthogonal_generators = _general_compact_basis(p, q)
+        generators = _transform_generators(orthogonal_generators, metric_congruence.transform)
+        _validate_generator_relations(generators, metric_congruence)
+        orthogonal_blades = _build_blade_matrices_from_gammas(source_algebra, orthogonal_generators)
+        blade_matrices = _exterior_lift_blade_matrices(orthogonal_blades, metric_congruence.transform)
     else:
-        p, q = _require_compact_metric(source_algebra)
+        p, q = _require_normalized_compact_metric(source_algebra)
         generators = _general_compact_basis(p, q)
+        blade_matrices = _build_blade_matrices_from_gammas(source_algebra, generators)
 
-    blade_matrices = _build_blade_matrices_from_gammas(source_algebra, generators)
     system_matrix = _real_system_matrix(blade_matrices, coefficient_indices)
+    normalized_system, _ = _normalize_system_columns(system_matrix)
     matrix_size = blade_matrices.shape[1]
     return MatrixRepresentationPlan(
         source_algebra=source_algebra,
         descriptor=descriptor,
+        metric_congruence=metric_congruence,
         matrix_shape=(matrix_size, matrix_size),
         generators=tuple(generators),
         blade_matrices=blade_matrices,
         coefficient_indices=coefficient_indices,
         system_matrix=system_matrix,
-        real_rank=int(np.linalg.matrix_rank(system_matrix, tol=_PLAN_RANK_TOLERANCE)),
+        real_rank=int(np.linalg.matrix_rank(normalized_system, tol=_PLAN_RANK_TOLERANCE)),
         rank_tolerance=_PLAN_RANK_TOLERANCE,
         inverse_tolerance=_PLAN_INVERSE_TOLERANCE,
     )
@@ -752,14 +917,16 @@ def _from_compact(alg: Algebra, mat: np.ndarray, *, mode: str = "compact") -> Mu
 
     flat_mat = mat.reshape(k * k)
     b = np.concatenate([flat_mat.real, flat_mat.imag])  # (2k²,)
-    coeffs, _, rank, _ = np.linalg.lstsq(plan.reconstruction_system, b, rcond=None)
+    normalized_system, column_scales = _normalize_system_columns(plan.reconstruction_system)
+    scaled_coeffs, _, rank, _ = np.linalg.lstsq(normalized_system, b, rcond=plan.rank_tolerance)
     if plan.real_rank < dim or rank < dim:
         raise TypeError(
             "Compact representation is not injective for this algebra; cannot recover a unique multivector."
         )
+    coeffs = scaled_coeffs / column_scales
 
     err = np.linalg.norm(plan.reconstruction_system @ coeffs - b)
-    if err > plan.inverse_tolerance:
+    if err > plan.inverse_tolerance * max(1.0, float(np.linalg.norm(b))):
         raise ValueError("Matrix is not in the image of this Clifford representation.")
 
     return _new_multivector(alg, coeffs)
@@ -845,7 +1012,7 @@ def _quaternion_block_basis(alg: Algebra) -> list[np.ndarray]:
     This is intentionally separate from compact_basis: the standard Dirac
     matrices used there for Cl(1,3) are not in this block convention.
     """
-    p, q = _require_compact_metric(alg)
+    p, q = _require_normalized_compact_metric(alg)
     etype, _ = _classify(p, q)
     if etype != "quaternion":
         if "quaternion" in etype:
@@ -935,6 +1102,7 @@ def _spinor_reference_vector_from_gammas(gammas: list[np.ndarray]) -> np.ndarray
 
 
 def _spinor_reference_vector(alg: Algebra) -> np.ndarray:
+    _require_normalized_compact_metric(alg)
     return _spinor_reference_vector_from_gammas(list(_representation_plan(alg, "compact").generators))
 
 
@@ -951,6 +1119,7 @@ def _spinor_system_matrix_from_blade_mats(
 
 
 def _spinor_system_matrix(alg: Algebra) -> tuple[np.ndarray, np.ndarray]:
+    _require_normalized_compact_metric(alg)
     plan = _representation_plan(alg, "compact")
     return _spinor_system_matrix_from_blade_mats(
         alg,
@@ -974,6 +1143,11 @@ def _spinor_system_is_full_rank(A: np.ndarray, even_indices: np.ndarray) -> bool
 
 
 def _unsupported_spinor_error(alg: Algebra) -> TypeError:
+    if not _compact_metric_supported(alg):
+        return TypeError(
+            "Spinor-column conversion requires a normalized orthogonal native basis. "
+            "Use to_matrix(mv, mode='compact') for a general nondegenerate Gram matrix."
+        )
     p, q = _signature_pq(alg)
     etype, _ = _classify(p, q)
     return TypeError(

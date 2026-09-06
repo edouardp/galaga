@@ -5,7 +5,9 @@
 `galaga_matrix` now consumes the Galaga 2 numeric facade without inspecting a
 multiplication table. Left-regular matrices work in the algebra's stored basis
 for diagonal, degenerate, oblique, and native-null Gram matrices. Existing
-compact representations remain available for normalized orthogonal metrics.
+compact representations remain available for normalized orthogonal metrics,
+and explicit compact mode now supports numerically suitable nondegenerate
+general Gram matrices through an exterior-lifted congruence.
 
 ## Components
 
@@ -49,19 +51,28 @@ It is slower but has the same mathematical boundary and contains no legacy
 multiplication-table access. Phase 9 removes that path with the legacy engine;
 ordinary top-level and companion-package tests use only facade values.
 
-### Compact boundary
+### Compact exterior lift
 
-The current compact implementation builds canonical gamma matrices and then
+The normalized compact implementation builds canonical gamma matrices and
 multiplies them to represent exterior basis blades. That construction is
-correct in a normalized orthogonal basis. For a general Gram matrix,
+correct in its orthogonal basis. For a general Gram matrix,
 `e_i e_j` includes contraction terms and is not the same coefficient-basis
-element as `e_i wedge e_j`. Silently reusing the compact construction would
-therefore represent the wrong basis.
+element as `e_i wedge e_j`, so ordered products of transformed generators
+would represent the wrong native basis.
 
-Until a validated basis transform is implemented, explicit compact mode raises
-with guidance to use `left-regular`. This includes nonorthogonal metrics and
-orthogonal but non-normalized metrics. Degenerate metrics retain their specific
-unsupported error.
+Explicit compact mode now computes and validates `G = S eta S.T`, transforms
+the vector generators linearly, and maps every grade-$k$ native blade through
+the $k\times k$ minors of $S$. This exterior-power lift preserves native
+coefficients and the product homomorphism for both scaled diagonal and dense
+nonorthogonal metrics. The complete real blade-system rank remains the strict
+inverse criterion. Rank and least-squares checks normalize represented-blade
+columns so a uniform metric scale cannot masquerade as loss of injectivity.
+
+Automatic mode intentionally remains unchanged: normalized orthogonal metrics
+select compact mode, while scaled and dense metrics select left-regular. Named
+Pauli, Dirac, and quaternion modes retain their normalized-orthogonal
+conventions. Genuinely degenerate metrics retain their specific unsupported
+compact error.
 
 ### Presentation compatibility
 
@@ -109,9 +120,14 @@ The facade matrix contract verifies:
 - coefficient-preserving left-regular round trips;
 - generator anticommutators equal to twice every supplied Gram entry;
 - public basis-blade actions match the materialized representation stack;
-- compact rejection for nonorthogonal and scaled metrics;
+- explicit compact conversion for nonorthogonal and scaled metrics while
+  automatic dispatch remains left-regular;
+- all native exterior blades against a fully antisymmetrized product oracle;
+- random-product homomorphism and an independent orthogonal-basis
+  outermorphism check;
+- injective general-Gram round trips and strict rank-deficient inverse failure;
 - compact product compatibility for a normalized diagonal metric;
-- immutable facade naming round trips; and
+- immutable facade naming round trips;
 - frozen matrix expression nodes and read-only leaf snapshots;
 - evaluation parity between matrix provenance and eager results; and
 - absence of private multiplication-table, multivector expression, legacy

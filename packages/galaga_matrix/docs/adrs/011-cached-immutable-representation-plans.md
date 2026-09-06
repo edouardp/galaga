@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-011: Cached Immutable Representation Plans
 
+Extended by
+[ADR-012](012-general-gram-compact-exterior-lift.md): general-Gram compact
+plans now populate the reserved metric-congruence metadata and cache the
+exterior-lifted native blade matrices. The metric-support restriction below
+describes this ADR's first implementation work unit, not the current API.
+
 ## Context and Problem Statement
 
 Compact, Pauli, Dirac, and quaternion conversions repeatedly rebuilt the same
@@ -78,3 +84,6 @@ the measured real ranks for representative simple, double, and quaternionic
 algebras. They verify plan reuse, bounded cache behavior, sharing across facade
 presentation views, frozen descriptors, read-only numeric arrays, domain
 propagation, and continued rejection of unsupported general-Gram compact mode.
+
+ADR-012 replaces the final rejection gate with congruence-factorization,
+antisymmetrization, homomorphism, cross-basis, and strict-inverse tests.

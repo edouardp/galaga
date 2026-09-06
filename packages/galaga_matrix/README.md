@@ -28,7 +28,7 @@ The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
 | Mode | Matrix size | Entries | Works for | Roundtrips |
 |---|---|---|---|---|
 | `left-regular` | 2ⁿ × 2ⁿ | real | any symmetric Gram matrix | always |
-| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | normalized orthogonal Cl(p,q) | only when the selected representation is injective |
+| `compact` | 2^⌊n/2⌋ × 2^⌊n/2⌋ | complex | numerically suitable nondegenerate Gram matrices | only when the selected representation is injective |
 
 ## Quick start
 
@@ -72,6 +72,10 @@ to_matrix(v)  # 8×8 real matrix
 oblique = Algebra(gram=[[2.0, 0.5], [0.5, -1.0]])
 x = oblique.multivector([1.0, 2.0, 3.0, 4.0])
 from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
+
+# Automatic mode stays left-regular for compatibility; compact is explicit
+compact_x = to_matrix(x, mode="compact")  # 2×2 instead of 4×4
+from_matrix(compact_x)  # native exterior-basis coefficients are preserved
 ```
 
 ## Executable examples
@@ -79,8 +83,21 @@ from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 The repository includes a short Marimo series using the Galaga 2 facade:
 
 - [representations and round-trips](https://github.com/edouardp/galaga/blob/main/examples/matrix/representations_and_roundtrips.py);
+- [compact matrices in an oblique basis](https://github.com/edouardp/galaga/blob/main/examples/matrix/general_gram_compact_foundations.py);
+- [a basis-independent compact workflow](https://github.com/edouardp/galaga/blob/main/examples/matrix/general_gram_compact_workflow.py);
+- [CGA from its native-null Gram matrix](https://github.com/edouardp/galaga/blob/main/examples/matrix/cga_via_gram_matrix.py);
+- [CGA objects in complex and quaternion form](https://github.com/edouardp/galaga/blob/main/examples/matrix/cga_complex_and_quaternion.py);
 - [Pauli and Dirac matrices](https://github.com/edouardp/galaga/blob/main/examples/matrix/pauli_and_dirac.py); and
 - [spinor columns](https://github.com/edouardp/galaga/blob/main/examples/matrix/spinor_columns.py).
+
+The CGA comparison notebook covers vectors, lifted points, point pairs, lines,
+circles, spheres, planes, and rotors. It shows their `4×4` compact complex
+matrices and an expandable `32×32` real left-regular view. Its quaternion
+examples explicitly map even CGA into the existing `Cl(1,3)` quaternion mode;
+native CGA quaternion conversion is still planned. A mixed rotor-plus-point
+example teaches the pair `Q(E), Q(B)` in `A = E + B J`, with a computed central
+pseudoscalar `J` satisfying `J² = -1`. This pair is a notebook construction,
+not an additional public representation mode.
 
 Each notebook is compiled, dependency-checked, and executed headlessly by the
 example test ledger.
@@ -142,22 +159,39 @@ The compact representation produces the standard textbook matrices:
 - **Cl(1,3)**: 4×4 Dirac matrices (γ⁰, γ¹, γ², γ³) in the Dirac representation
 - **Cl(3,1)**: 4×4 Dirac matrices in the mostly-plus convention
 
-All other normalized, non-degenerate orthogonal signatures are handled by the
-general periodicity recursion.
+All other nondegenerate signatures are handled by the general periodicity
+recursion. For a nonnormalized or nonorthogonal native basis, `compact` derives
+a metric congruence and lifts it to exterior blades. The named `pauli`,
+`dirac`, and `quaternion` modes remain restricted to their normalized
+orthogonal conventions.
 
 ## Limitations
 
 - **Degenerate algebras** (r > 0): only `left-regular` mode works. `compact` raises `NotImplementedError`.
-- **General Gram matrices**: `left-regular` works in the stored basis and is
-  selected automatically. Compact mode currently rejects nonorthogonal and
-  non-normalized metrics until a validated basis transform is implemented.
+- **General Gram automatic dispatch**: `left-regular` works in the stored basis
+  and remains the automatic choice for nonorthogonal and nonnormalized
+  metrics. Request `mode="compact"` explicitly to use the congruence-based
+  representation.
+- **Generic compact convention**: eigendecomposition determines an equivalent
+  compact basis for a dense Gram matrix. Algebraic behavior is stable, but
+  individual entries are not a named textbook convention and should not be
+  pinned across numerical-library changes.
+- **Numerical recovery**: full rank establishes injectivity, not a uniform
+  coefficient-accuracy guarantee. Extreme metric scaling separates blade
+  magnitudes across grades; column-normalizing the inverse solve cannot undo
+  information lost when those contributions were added in floating point.
+  Rescale units where practical, or use the native left-regular representation
+  when coefficient recovery is the priority.
 - **Double algebras** (Cl(p,q) where (q−p) mod 8 ∈ {3, 7}): `to_matrix`
   compact works, but `from_matrix` compact raises if the selected compact
   representation is not injective. Use `left-regular` for exact inverse
   conversion. See
   [Double Clifford Algebras](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/double-algebras.md).
 - **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
-- **Spinor roundtrip**: spinor conversions are rank-checked for the actual reference-column map. Signatures whose even subalgebra is not injective under that map raise `TypeError`.
+- **Spinor roundtrip**: spinor-column conversions retain their normalized
+  orthogonal native-basis requirement and are rank-checked for the actual
+  reference-column map. Signatures whose even subalgebra is not injective under
+  that map raise `TypeError`.
 - **Bounded plan cache**: repeated conversions reuse immutable generator,
   blade, rank, and reconstruction-system data. The cache key uses numeric
   algebra identity plus the mode, source domain, basis convention, and dtype;

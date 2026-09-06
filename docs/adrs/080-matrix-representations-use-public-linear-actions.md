@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-080: Matrix Representations Use Public Linear Actions
 
+Amended 2026-09-06 by
+[galaga_matrix ADR-012](../../packages/galaga_matrix/docs/adrs/012-general-gram-compact-exterior-lift.md):
+the deferred general-Gram compact transform is now implemented for explicit
+`mode="compact"` using a validated congruence and exterior-power lift.
+Automatic mode remains left-regular for nonorthogonal and nonnormalized Gram
+matrices.
+
 ## Context and problem statement
 
 Galaga 1's matrix package constructs left-regular representations by reading
@@ -40,10 +47,12 @@ A metric receives automatic compact mode only when it is nondegenerate,
 orthogonal, and normalized to vector squares `+1` or `-1`. Every other metric
 uses left-regular mode.
 
-Explicit compact conversion rejects nonorthogonal and non-normalized Gram
-matrices with guidance toward left-regular mode. A compact general-Gram basis
-transform is deferred until it has an independently validated exterior-basis
-mapping and roundtrip oracle.
+At the time of this ADR, explicit compact conversion rejected nonorthogonal and
+non-normalized Gram matrices while the basis transform was deferred. The
+follow-up in `galaga_matrix` ADR-012 now accepts numerically suitable
+nondegenerate general Gram matrices explicitly, constructs native blades by
+exterior minors, and validates them against independent antisymmetrization and
+cross-basis oracles.
 
 Until the Phase 8 top-level cutover, matrix tests also exercise Galaga 1 values.
 That compatibility path materializes columns through the public geometric
@@ -64,8 +73,8 @@ the generator relation against oblique and native-null Gram matrices.
 - Good, because compact behavior remains unchanged where its basis assumptions
   are valid.
 - Good, because source checks prevent accidental return to private tables.
-- Cost, because general-Gram matrices currently use the larger left-regular
-  representation.
+- Neutral, because automatic conversion of a general-Gram matrix continues to
+  use the larger left-regular representation unless compact mode is explicit.
 - Cost, because the temporary Galaga 1 fallback computes a product per column.
 - Follow-up complete in [ADR-082](082-matrix-provenance-is-package-owned.md):
   `MatrixRepr` now owns immutable matrix provenance and consumes only public

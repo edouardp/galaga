@@ -67,8 +67,10 @@ first-class interoperability story.
 `_mul_sign`, classifies algebras through basis-independent inertia, and
 round-trips general-Gram values in the native exterior basis. Auto mode chooses
 the left-regular representation for degenerate, nonorthogonal, and scaled
-metrics. Compact mode retains normalized diagonal behavior and clearly rejects
-general Gram matrices until a validated basis transform exists.
+metrics. Explicit compact mode now supports numerically suitable nondegenerate
+general Gram matrices through a validated metric congruence and exterior-power
+lift; named Pauli, Dirac, and quaternion conventions remain normalized-basis
+operations.
 
 `MatrixRepr` also now owns frozen matrix-domain expression nodes and immutable
 leaf snapshots. Public Galaga names and expressions enter through an explicit
