@@ -39,7 +39,8 @@ under Python 3.14. The target supplies `galaga`, `galaga_anywidget`,
 `--with-editable`. The imports therefore resolve to the current checkout while
 retaining the same installed-package semantics and metadata used by wheels.
 
-The launcher passes `--no-token` to Marimo deliberately. Marimo retains its
+The launcher passes `--watch` so external edits are reflected in the running
+gallery, and `--no-token` deliberately. Marimo retains its
 default loopback host, so this is intended for local development and automation
 only. A developer exposing Marimo on another interface must choose appropriate
 authentication and network controls separately.
@@ -55,6 +56,13 @@ marimo edit notebook.py
 Repository tests scan every Marimo notebook under `examples`, reject
 repository-path cells, validate the launch command, and continue to execute the
 maintained gallery headlessly.
+
+The notebook's nonempty `__generated_with` string records its generator; it is
+not a repository-wide version pin. Preserve that metadata rather than rewriting
+otherwise unchanged notebooks to one version. Dependency and headless-execution
+checks establish compatibility with the installed Marimo runtime. Launcher
+tests inspect shell arguments, including both `--watch` and `--no-token`, rather
+than requiring those flags to occur in one exact textual order.
 
 ## Consequences
 

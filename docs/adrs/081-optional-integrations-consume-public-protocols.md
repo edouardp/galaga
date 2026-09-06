@@ -48,6 +48,15 @@ Each optional package declares `galaga>=2.0.0`. Package-internal imports are
 relative. Source tests reject the legacy expression imports and private
 multivector fields.
 
+The Marimo renderer tests use native `string.templatelib.Template` and
+`Interpolation` objects on Python 3.14+, matching the package's declared
+runtime. On older Python versions those tests are skipped, not simulated by
+replacing a standard-library module. Test collection must not alter
+`sys.modules["string.templatelib"]` or the template types cached by the renderer.
+Fresh-process regressions cover both test-first and runtime-first import order,
+then render a compiler-created t-string in the same process. This keeps the
+renderer suite safe to collect alongside executable notebook tests.
+
 The old notebook gallery and `MatrixRepr` symbolic base were explicitly not
 covered by this decision. Matrix provenance was subsequently migrated by
 [ADR-082](082-matrix-provenance-is-package-owned.md), and the notebook gallery

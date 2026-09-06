@@ -1,46 +1,17 @@
 """Tests for galaga_marimo renderer and API.
 
-These tests mock string.templatelib types so they can run on Python 3.13+.
-The rendering logic is tested via render_value() and render_template()
-with synthetic Template/Interpolation objects.
+These tests use the real string.templatelib types on the package's supported
+Python 3.14+ runtime. Collecting them must not modify the template runtime
+used by other packages or by compiler-created t-strings.
 """
 
-import sys
-import types
-from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
 
 import pytest
 
-# ---------------------------------------------------------------------------
-# Mock string.templatelib for Python < 3.14
-# ---------------------------------------------------------------------------
+pytest.importorskip("string.templatelib", reason="galaga-marimo requires Python 3.14")
 
-
-@dataclass
-class FakeInterpolation:
-    value: Any
-    expression: str = ""
-    conversion: str | None = None
-    format_spec: str = ""
-
-
-class FakeTemplate:
-    """Mimics string.templatelib.Template iteration."""
-
-    def __init__(self, *items):
-        self._items = items
-
-    def __iter__(self):
-        return iter(self._items)
-
-
-# Patch string.templatelib before importing galaga_marimo
-_mock_templatelib = types.ModuleType("string.templatelib")
-_mock_templatelib.Template = FakeTemplate
-_mock_templatelib.Interpolation = FakeInterpolation
-sys.modules["string.templatelib"] = _mock_templatelib
+from string.templatelib import Interpolation, Template
 
 from galaga_marimo.api import Doc, block, block_latex, doc, inline, latex, md, text
 from galaga_marimo.renderer import (
@@ -175,7 +146,7 @@ class TestReprLatexProtocol:
 
     def test_repr_latex_object_in_template(self):
         obj = ReprLatexOnly("$\\sqrt{2}$", "√2")
-        t = FakeTemplate("Value: ", FakeInterpolation(obj))
+        t = Template("Value: ", Interpolation(obj))
         result = render_template(t)
         assert result == "Value: $\\sqrt{2}$"
 
@@ -353,29 +324,29 @@ class TestEscapeMd:
 
 class TestRenderTemplate:
     def test_literal_only(self):
-        t = FakeTemplate("# Hello world")
+        t = Template("# Hello world")
         assert render_template(t) == "# Hello world"
 
     def test_single_latex_interpolation(self):
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate("Vector: ", FakeInterpolation(mv))
+        t = Template("Vector: ", Interpolation(mv))
         result = render_template(t)
         assert result == "Vector: $e_{1}$"
 
     def test_mixed_text_and_latex(self):
         mv = FakeMultivector("e_{12}", "e₁₂")
-        t = FakeTemplate("The bivector ", FakeInterpolation(mv), " is cool")
+        t = Template("The bivector ", Interpolation(mv), " is cool")
         result = render_template(t)
         assert result == "The bivector $e_{12}$ is cool"
 
     def test_plain_value_interpolation(self):
-        t = FakeTemplate("Count: ", FakeInterpolation(42))
+        t = Template("Count: ", Interpolation(42))
         result = render_template(t)
         assert result == "Count: 42"
 
     def test_block_format_spec(self):
         mv = FakeMultivector("R v \\tilde{R}", "RvR̃")
-        t = FakeTemplate("Equation:\n", FakeInterpolation(mv, format_spec="block"))
+        t = Template("Equation:\n", Interpolation(mv, format_spec="block"))
         result = render_template(t)
         assert "$$" in result
         assert "R v \\tilde{R}" in result
@@ -383,33 +354,33 @@ class TestRenderTemplate:
     def test_multiple_interpolations(self):
         v = FakeMultivector("e_{1}", "e₁")
         w = FakeMultivector("e_{2}", "e₂")
-        t = FakeTemplate("", FakeInterpolation(v), " and ", FakeInterpolation(w))
+        t = Template("", Interpolation(v), " and ", Interpolation(w))
         result = render_template(t)
         assert result == "$e_{1}$ and $e_{2}$"
 
     def test_repr_conversion_in_template(self):
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate("Debug: ", FakeInterpolation(mv, conversion="r"))
+        t = Template("Debug: ", Interpolation(mv, conversion="r"))
         result = render_template(t)
         assert "$" not in result  # should not be LaTeX
 
     def test_numeric_format_spec_in_template(self):
-        t = FakeTemplate("Pi ≈ ", FakeInterpolation(3.14159, format_spec=".3f"))
+        t = Template("Pi ≈ ", Interpolation(3.14159, format_spec=".3f"))
         result = render_template(t)
         assert result == "Pi ≈ 3.142"
 
     def test_symbolic_expr(self):
         expr = FakeExpr("R v \\tilde{R}", "RvR̃")
-        t = FakeTemplate("Result: ", FakeInterpolation(expr))
+        t = Template("Result: ", Interpolation(expr))
         result = render_template(t)
         assert result == "Result: $R v \\tilde{R}$"
 
     def test_empty_template(self):
-        t = FakeTemplate()
+        t = Template()
         assert render_template(t) == ""
 
     def test_html_escaping_in_text_values(self):
-        t = FakeTemplate("User: ", FakeInterpolation("<b>admin</b>"))
+        t = Template("User: ", Interpolation("<b>admin</b>"))
         result = render_template(t)
         assert "<b>" not in result
         assert "&lt;b&gt;" in result
@@ -460,7 +431,7 @@ class TestRgaIntegration:
         for mv, operation_latex in expressions:
             generated_latex = mv.latex()
             rendered = render_value(mv, None, "")
-            markdown = render_template(FakeTemplate(FakeInterpolation(mv)))
+            markdown = render_template(Template(Interpolation(mv)))
 
             assert operation_latex in generated_latex
             assert r"\unicode{" not in generated_latex
@@ -508,7 +479,7 @@ class TestWrappers:
     def test_text_wrapper_in_template(self):
         mv = FakeMultivector("e_{1}", "e₁")
         wrapped = text(mv)
-        t = FakeTemplate("Debug: ", FakeInterpolation(wrapped))
+        t = Template("Debug: ", Interpolation(wrapped))
         result = render_template(t)
         assert "$" not in result
         assert "e₁" in result
@@ -525,14 +496,14 @@ class TestApiWithoutMarimo:
     def test_md_produces_correct_markdown(self):
         """md() passes correct markdown to mo.md(); test via render_template."""
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate("Vector: ", FakeInterpolation(mv))
+        t = Template("Vector: ", Interpolation(mv))
         # render_template is what md() uses internally
         result = render_template(t)
         assert result == "Vector: $e_{1}$"
 
     def test_inline_produces_correct_markdown(self):
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate("v = ", FakeInterpolation(mv))
+        t = Template("v = ", Interpolation(mv))
         # inline() wraps everything in $...$
         result = inline(t)
         # If marimo is installed, result is a marimo object; that's fine
@@ -541,25 +512,25 @@ class TestApiWithoutMarimo:
 
     def test_block_produces_correct_markdown(self):
         mv = FakeMultivector("e_{12}", "e₁₂")
-        t = FakeTemplate(FakeInterpolation(mv))
+        t = Template(Interpolation(mv))
         result = block(t)
         assert result is not None
 
     def test_md_calls_render_template(self):
         """Verify md() uses render_template correctly."""
         mv = FakeMultivector("e_{1} + e_{2}", "e₁ + e₂")
-        t = FakeTemplate("Equation:\n", FakeInterpolation(mv, format_spec="block"))
+        t = Template("Equation:\n", Interpolation(mv, format_spec="block"))
         markdown = render_template(t)
         assert "$$" in markdown
         assert "e_{1} + e_{2}" in markdown
 
     def test_md_mixed_content_markdown(self):
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate(
+        t = Template(
             "# Heading\n\nThe vector ",
-            FakeInterpolation(mv),
+            Interpolation(mv),
             " has magnitude ",
-            FakeInterpolation(1.0, format_spec=".1f"),
+            Interpolation(1.0, format_spec=".1f"),
         )
         markdown = render_template(t)
         assert "# Heading" in markdown
@@ -569,7 +540,7 @@ class TestApiWithoutMarimo:
     def test_md_returns_something(self):
         """md() returns either a string or a marimo object."""
         mv = FakeMultivector("e_{1}", "e₁")
-        t = FakeTemplate("Vector: ", FakeInterpolation(mv))
+        t = Template("Vector: ", Interpolation(mv))
         result = md(t)
         assert result is not None
 
@@ -587,7 +558,7 @@ class TestDoc:
     def test_single_md(self):
         mv = FakeMultivector("e_{1}", "e₁")
         d = Doc()
-        d.md(FakeTemplate("Vector: ", FakeInterpolation(mv)))
+        d.md(Template("Vector: ", Interpolation(mv)))
         result = d.render()
         assert result is not None
 
@@ -595,23 +566,23 @@ class TestDoc:
         mv1 = FakeMultivector("e_{1}", "e₁")
         mv2 = FakeMultivector("e_{2}", "e₂")
         d = Doc()
-        d.md(FakeTemplate("First: ", FakeInterpolation(mv1)))
-        d.md(FakeTemplate("Second: ", FakeInterpolation(mv2)))
+        d.md(Template("First: ", Interpolation(mv1)))
+        d.md(Template("Second: ", Interpolation(mv2)))
         assert len(d._parts) == 2
         assert "$e_{1}$" in d._parts[0]
         assert "$e_{2}$" in d._parts[1]
 
     def test_render_joins_with_double_newline(self):
         d = Doc()
-        d.md(FakeTemplate("# Title"))
-        d.md(FakeTemplate("Paragraph"))
+        d.md(Template("# Title"))
+        d.md(Template("Paragraph"))
         markdown = "\n\n".join(d._parts)
         assert "# Title\n\nParagraph" == markdown
 
     def test_context_manager_auto_renders(self):
         mv = FakeMultivector("e_{1}", "e₁")
         with doc() as d:
-            d.md(FakeTemplate("Result: ", FakeInterpolation(mv)))
+            d.md(Template("Result: ", Interpolation(mv)))
         assert d._result is not None
 
     def test_text_appends_raw(self):
@@ -626,9 +597,9 @@ class TestDoc:
             ("Beta", FakeMultivector("\\beta", "β")),
         ]
         d = Doc()
-        d.md(FakeTemplate("# Results"))
+        d.md(Template("# Results"))
         for name, mv in items:
-            d.md(FakeTemplate(f"**{name}:** ", FakeInterpolation(mv)))
+            d.md(Template(f"**{name}:** ", Interpolation(mv)))
         assert len(d._parts) == 3
         assert "# Results" in d._parts[0]
         assert "$\\alpha$" in d._parts[1]
@@ -636,7 +607,7 @@ class TestDoc:
 
     def test_explicit_render_before_exit(self):
         d = Doc()
-        d.md(FakeTemplate("hello"))
+        d.md(Template("hello"))
         result = d.render()
         assert result is not None
         d.__exit__(None, None, None)
@@ -645,13 +616,13 @@ class TestDoc:
     def test_inline_in_builder(self):
         mv = FakeMultivector("e_{1}", "e₁")
         d = Doc()
-        d.inline(FakeTemplate("v = ", FakeInterpolation(mv)))
+        d.inline(Template("v = ", Interpolation(mv)))
         assert "$v = e_{1}$" in d._parts[0]
 
     def test_block_in_builder(self):
         mv = FakeMultivector("e_{12}", "e₁₂")
         d = Doc()
-        d.block(FakeTemplate(FakeInterpolation(mv)))
+        d.block(Template(Interpolation(mv)))
         assert "$$" in d._parts[0]
         assert "e_{12}" in d._parts[0]
 
@@ -670,7 +641,7 @@ class TestDoc:
 
     def test_md_then_line_table(self):
         d = Doc()
-        d.md(FakeTemplate("# Title"))
+        d.md(Template("# Title"))
         d.text("| H1 | H2 |")
         d.line("|---|---|")
         d.line("| a | b |")
@@ -706,7 +677,7 @@ class TestGAIntegration:
     def test_multivector_in_template(self, vga):
         e1, e2, e3 = vga.basis_vectors()
         v = e1 + e2
-        t = FakeTemplate("v = ", FakeInterpolation(v))
+        t = Template("v = ", Interpolation(v))
         result = render_template(t)
         assert result.startswith("v = $")
         assert result.endswith("$")
@@ -745,9 +716,9 @@ class TestGAIntegration:
     def test_full_template_with_ga(self, vga):
         e1, e2, e3 = vga.basis_vectors()
         v = 2 * e1 - e3
-        t = FakeTemplate(
+        t = Template(
             "# Result\n\nThe vector ",
-            FakeInterpolation(v),
+            Interpolation(v),
             " has components in e1 and e3.",
         )
         result = render_template(t)
@@ -784,7 +755,7 @@ class TestRecognize:
         u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv))
+        t = Template(Interpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv \uparrow" in rendered
 
@@ -793,7 +764,7 @@ class TestRecognize:
         e1, e2 = alg.basis_vectors()
         u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
-        t = FakeTemplate(FakeInterpolation(e1))
+        t = Template(Interpolation(e1))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
 
@@ -801,21 +772,21 @@ class TestRecognize:
         """Don't annotate if the MV's own name matches the label."""
         u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
-        t = FakeTemplate(FakeInterpolation(u))
+        t = Template(Interpolation(u))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
 
     def test_recognize_non_mv_value_ignored(self):
         """Non-MV values are not matched."""
         knowns = ["not a multivector"]
-        t = FakeTemplate(FakeInterpolation("hello"))
+        t = Template(Interpolation("hello"))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
 
     def test_recognize_none_is_noop(self, alg):
         """recognize=None produces no annotations."""
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv))
+        t = Template(Interpolation(result_mv))
         rendered = render_template(t, recognize=None)
         assert r"\equiv" not in rendered
 
@@ -824,7 +795,7 @@ class TestRecognize:
         u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = [u]
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv, format_spec="block"))
+        t = Template(Interpolation(result_mv, format_spec="block"))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv \uparrow" in rendered
         assert "$$" in rendered
@@ -834,7 +805,7 @@ class TestRecognize:
         u = alg.scalar(1.0).named("up", latex=r"\uparrow")
         knowns = {"up": u}  # key is irrelevant, label comes from MV
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv))
+        t = Template(Interpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv \uparrow" in rendered
 
@@ -843,7 +814,7 @@ class TestRecognize:
         unnamed = alg.scalar(1.0)  # no .name() called
         knowns = [unnamed]
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv))
+        t = Template(Interpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\equiv" not in rendered
 
@@ -853,7 +824,7 @@ class TestRecognize:
         ket0 = alg.scalar(1.0).named("ket0", latex=r"|0\rangle")
         knowns = [u, ket0]
         result_mv = alg.scalar(1.0)
-        t = FakeTemplate(FakeInterpolation(result_mv))
+        t = Template(Interpolation(result_mv))
         rendered = render_template(t, recognize=knowns)
         assert r"\uparrow" in rendered
         assert r"|0\rangle" in rendered

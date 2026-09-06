@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import re
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -12,7 +13,7 @@ from tools.portable_notebooks import make_notebook_portable, make_path_portable
 ROOT = Path(__file__).resolve().parents[3]
 EXAMPLES = ROOT / "examples"
 _MARIMO_APP_MARKER = "app = marimo.App"
-_MARIMO_GENERATOR = '__generated_with = "0.23.14"'
+_MARIMO_GENERATOR = re.compile(r"""^__generated_with = (["'])[^"'\r\n]+\1$""", re.MULTILINE)
 
 
 def _marimo_notebooks() -> list[Path]:
@@ -66,13 +67,31 @@ def test_path_guard_rejects_non_notebooks_and_paths_outside_examples(tmp_path: P
         make_path_portable(outside, repository=repository, check=False)
 
 
+@pytest.mark.parametrize("version", ("0.23.14", "0.24.0", "0.24.1.dev1"))
+def test_portable_notebooks_preserve_their_own_generator_metadata(version: str) -> None:
+    source = f"import marimo\n\n__generated_with = {version!r}\napp = marimo.App()\n"
+
+    assert _MARIMO_GENERATOR.search(source)
+    assert make_notebook_portable(source) == source
+
+
+@pytest.mark.parametrize(
+    "metadata",
+    ('__generated_with = ""', "__generated_with = 23", '# __generated_with = "0.24.0"', ""),
+)
+def test_generator_metadata_must_be_a_nonempty_string_assignment(metadata: str) -> None:
+    source = f"import marimo\n\n{metadata}\napp = marimo.App()\n"
+
+    assert _MARIMO_GENERATOR.search(source) is None
+
+
 def test_all_marimo_notebooks_are_repository_independent() -> None:
     notebooks = _marimo_notebooks()
 
     assert notebooks
     for notebook in notebooks:
         source = notebook.read_text()
-        assert _MARIMO_GENERATOR in source, notebook
+        assert _MARIMO_GENERATOR.search(source), notebook
         assert "sys.path" not in source, notebook
         assert "Path(__file__)" not in source, notebook
         assert make_notebook_portable(source) == source, notebook
@@ -86,10 +105,15 @@ def test_run_marimo_uses_local_editable_packages_without_notebook_path_mutation(
         capture_output=True,
         text=True,
     )
-    command = re.sub(r"\\\n\\s*", " ", result.stdout)
+    command = shlex.split(result.stdout.replace("\\\n", " "))
+    option_pairs = set(zip(command, command[1:]))
 
-    assert "uv run --python 3.14" in command
+    assert command[:2] == ["uv", "run"]
+    assert ("--python", "3.14") in option_pairs
     for package in ("galaga", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
-        assert f"--with-editable ./packages/{package}" in command
-    assert "marimo edit --no-token examples" in command
-    assert "PYTHONPATH" not in command
+        assert ("--with-editable", f"./packages/{package}") in option_pairs
+    launcher = command[command.index("marimo") :]
+    assert launcher[:2] == ["marimo", "edit"]
+    assert set(launcher[2:-1]) == {"--watch", "--no-token"}
+    assert launcher[-1] == "examples"
+    assert "PYTHONPATH" not in result.stdout

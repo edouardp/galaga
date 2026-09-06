@@ -1276,9 +1276,6 @@ blocks legacy imports while executing the complete audit. See
 
 Remaining before this work unit is complete:
 
-- repair the existing portable-notebook test assumptions exposed by the
-  checkpoint's wider run: the exact Marimo generator-version assertion and
-  launcher assertion that predates `--watch`;
 - preserve or retire the remaining legacy-only and dual-implementation tests
   against the numeric migration inventory;
 - retire the live legacy benchmark path while retaining the historical
@@ -1287,11 +1284,21 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The matrix and Marimo package suites pass separately, as invoked by the
-Makefile. Combining them in one Python 3.14 process exposes another existing
-test-isolation issue: Marimo's test module replaces `string.templatelib` in
-`sys.modules`, breaking later real notebook interpolation. None of these
-notebook checks or fixtures is changed by the rendering-oracle checkpoint.
+The notebook-test baseline prerequisite is also complete. Portability checks
+preserve each notebook's generator metadata and validate the actual launcher
+arguments, including `--watch`. Marimo tests use native template objects
+instead of replacing `string.templatelib` in `sys.modules`; fresh-process
+regressions verify that collecting tests preserves real t-string rendering in
+both import orders. No notebook content or production rendering code changed.
+See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
+and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
+
+The combined package and release-workflow suite passes on Python 3.14
+(3,875 passed, 19 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (3,758 passed, 44 skipped), with Python 3.14-only integrations
+skipped on the older runtime. The existing complex-to-real matrix conversion
+warning remains. These are test-baseline checks, not completion of the engine
+deletion, artifact, or final release gates.
 
 Remove the private legacy oracle only after Phase 8 has passed on the branch
 and in CI. Preserve historical behavior in tests, specifications, and migration
