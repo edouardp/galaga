@@ -35,7 +35,7 @@ install-hooks: ## Install pre-commit git hooks
 .PHONY: run-marimo
 run-marimo: ## Open the example gallery against all local packages
 	uv run --python 3.14 $(MARIMO_EDITABLES) \
-		marimo edit --no-token examples
+		marimo edit --watch --no-token examples
 
 # ============================================================================
 # Code Quality
