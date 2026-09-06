@@ -1,4 +1,8 @@
-"""Measure the Phase 8 diagonal-operation cutover layers reproducibly."""
+"""Measure current Galaga 2 cutover layers without executing the legacy engine.
+
+The historical Phase 8 timings remain in docs/v2/phase8-performance.md. This
+command retains its name for existing callers, but measures only live v2 paths.
+"""
 
 from __future__ import annotations
 
@@ -14,7 +18,6 @@ import numpy as np
 
 import galaga
 import galaga.core as core
-import galaga.legacy as legacy
 
 
 @dataclass(frozen=True, slots=True)
@@ -30,20 +33,15 @@ def _median_microseconds(function: Callable[[], object], *, number: int, repeat:
 
 
 def benchmark(*, number: int = 2_000, repeat: int = 7) -> tuple[BenchmarkResult, ...]:
-    """Benchmark equivalent dense Cl(1,3) operations across all cutover layers."""
+    """Validate and benchmark dense Cl(1,3) operations across the three v2 layers."""
     if number <= 0 or repeat <= 0:
         raise ValueError("number and repeat must be positive")
 
     signature = (1, -1, -1, -1)
-    rng = np.random.default_rng(20260721)
-    left_data = rng.standard_normal(16)
-    right_data = rng.standard_normal(16)
-
-    legacy_algebra = legacy.Algebra(signature)
-    legacy_left = legacy.Multivector(legacy_algebra, left_data)
-    legacy_right = legacy.Multivector(legacy_algebra, right_data)
-
     core_algebra = core.Algebra(signature=signature)
+    rng = np.random.default_rng(20260721)
+    left_data = rng.standard_normal(core_algebra.dim)
+    right_data = rng.standard_normal(core_algebra.dim)
     core_left = core_algebra.multivector(left_data)
     core_right = core_algebra.multivector(right_data)
 
@@ -53,8 +51,14 @@ def benchmark(*, number: int = 2_000, repeat: int = 7) -> tuple[BenchmarkResult,
     tracked_left = facade_left.with_expr()
     tracked_right = facade_right.with_expr()
 
-    expected_product = legacy.geometric_product(legacy_left, legacy_right).data
-    expected_reverse = legacy.reverse(legacy_left).data
+    # An untimed Chevalley left action independently checks the default product
+    # backend and its public operation entry point. Reverse uses its grade law,
+    # not the same implementation or cached signs as the timed operation.
+    reference = core.Algebra(gram=core_algebra.gram, product_backend="reference")
+    expected_product = reference.left_action(reference.multivector(left_data)) @ right_data
+    grades = np.array([mask.bit_count() for mask in range(core_algebra.dim)])
+    reverse_signs = np.where((grades * (grades - 1) // 2) % 2, -1, 1)
+    expected_reverse = reverse_signs * left_data
     for value in (
         core.geometric_product(core_left, core_right),
         galaga.geometric_product(facade_left, facade_right),
@@ -65,11 +69,9 @@ def benchmark(*, number: int = 2_000, repeat: int = 7) -> tuple[BenchmarkResult,
         np.testing.assert_allclose(value.data, expected_reverse, rtol=0.0, atol=1e-12)
 
     cases: tuple[tuple[str, str, Callable[[], object]], ...] = (
-        ("geometric product", "legacy-v1", lambda: legacy.geometric_product(legacy_left, legacy_right)),
         ("geometric product", "direct-core", lambda: core.geometric_product(core_left, core_right)),
         ("geometric product", "facade-untracked", lambda: galaga.geometric_product(facade_left, facade_right)),
         ("geometric product", "facade-tracked", lambda: galaga.geometric_product(tracked_left, tracked_right)),
-        ("reverse", "legacy-v1", lambda: legacy.reverse(legacy_left)),
         ("reverse", "direct-core", lambda: core.reverse(core_left)),
         ("reverse", "facade-untracked", lambda: galaga.reverse(facade_left)),
         ("reverse", "facade-tracked", lambda: galaga.reverse(tracked_left)),
@@ -81,15 +83,19 @@ def benchmark(*, number: int = 2_000, repeat: int = 7) -> tuple[BenchmarkResult,
 
 
 def render_markdown(results: Sequence[BenchmarkResult], *, number: int, repeat: int) -> str:
-    """Render benchmark results with separate core and legacy ratios."""
+    """Report live facade overhead without mixing old and new timing samples."""
     lookup = {(result.operation, result.implementation): result.microseconds for result in results}
     lines = [
-        "# Phase 8 Performance Baseline",
+        "# Galaga 2 Performance Check",
         "",
         "This is a local microbenchmark, not a cross-machine release threshold. It",
         "separates the numeric engine from facade wrapping and optional expression",
-        "provenance. Every timed path is first checked against the same legacy",
-        "Cl(1,3) coefficients.",
+        "provenance. Every timed path is first checked against a forced core",
+        "reference-backend left action for the Cl(1,3) product and the grade-sign",
+        "law for reverse. Reference construction and validation are not timed.",
+        "",
+        "The legacy engine is not imported or timed. Historical v1 measurements",
+        "remain in `docs/v2/phase8-performance.md`; they are not samples from this run.",
         "",
         f"- Python: {platform.python_version()} ({platform.python_implementation()})",
         f"- Platform: {platform.platform()}",
@@ -97,15 +103,14 @@ def render_markdown(results: Sequence[BenchmarkResult], *, number: int, repeat: 
         f"- Samples: median of {repeat} repeats × {number} calls",
         "- Seed: `20260721`",
         "",
-        "| Operation | Implementation | Median µs | vs direct core | vs legacy v1 |",
-        "|---|---|---:|---:|---:|",
+        "| Operation | Implementation | Median µs | vs direct core |",
+        "|---|---|---:|---:|",
     ]
     for result in results:
         core_time = lookup[(result.operation, "direct-core")]
-        legacy_time = lookup[(result.operation, "legacy-v1")]
         lines.append(
             f"| {result.operation} | {result.implementation} | {result.microseconds:.3f} "
-            f"| {result.microseconds / core_time:.2f}× | {result.microseconds / legacy_time:.2f}× |"
+            f"| {result.microseconds / core_time:.2f}× |"
         )
     lines.extend(
         [
@@ -115,25 +120,22 @@ def render_markdown(results: Sequence[BenchmarkResult], *, number: int, repeat: 
             "- `direct-core` measures the Gram-matrix numeric engine without facade work.",
             "- `facade-untracked` isolates public wrapping, coercion, and catalog dispatch.",
             "- `facade-tracked` additionally creates immutable expression provenance.",
-            "- `legacy-v1` is the retained table-engine reference during Phase 8.",
             (
-                "- In this run, direct-core geometric product is "
-                f"{lookup[('geometric product', 'direct-core')] / lookup[('geometric product', 'legacy-v1')]:.2f}× "
-                "the retained diagonal table engine; the untracked facade is "
+                "- In this run, untracked facade geometric product is "
                 f"{lookup[('geometric product', 'facade-untracked')] / lookup[('geometric product', 'direct-core')]:.2f}× "
                 "direct core."
             ),
             (
-                "- Direct-core reverse is "
-                f"{lookup[('reverse', 'direct-core')] / lookup[('reverse', 'legacy-v1')]:.2f}× "
-                "the legacy time; tracked results additionally pay for immutable expression provenance."
+                "- Untracked facade reverse is "
+                f"{lookup[('reverse', 'facade-untracked')] / lookup[('reverse', 'direct-core')]:.2f}× "
+                "direct core; tracked results additionally pay for immutable expression provenance."
             ),
             "",
             "Re-run from the repository root with:",
             "",
             "```shell",
             "PYTHONPATH=packages/galaga uv run --python 3.11 python -m tools.benchmark_phase8 \\",
-            "  --output docs/v2/phase8-performance.md",
+            "  --output /tmp/galaga-performance.md",
             "```",
             "",
         ]

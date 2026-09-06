@@ -1,5 +1,10 @@
 # Phase 8 Performance Baseline
 
+This is an archived measurement from the Phase 8 cutover. The timings below
+are preserved historical observations, not current benchmark results. The live
+benchmark no longer executes Galaga 1; see
+[ADR-093](../adrs/093-benchmarks-use-core-reference-oracles.md).
+
 This is a local microbenchmark, not a cross-machine release threshold. It
 separates the numeric engine from facade wrapping and optional expression
 provenance. Every timed path is first checked against the same legacy
@@ -11,16 +16,16 @@ Cl(1,3) coefficients.
 - Samples: median of 7 repeats × 2000 calls
 - Seed: `20260721`
 
-| Operation | Implementation | Median µs | vs direct core | vs legacy v1 |
-|---|---|---:|---:|---:|
-| geometric product | legacy-v1 | 15.534 | 0.92× | 1.00× |
-| geometric product | direct-core | 16.947 | 1.00× | 1.09× |
-| geometric product | facade-untracked | 18.518 | 1.09× | 1.19× |
-| geometric product | facade-tracked | 20.576 | 1.21× | 1.32× |
-| reverse | legacy-v1 | 3.004 | 1.64× | 1.00× |
-| reverse | direct-core | 1.836 | 1.00× | 0.61× |
-| reverse | facade-untracked | 2.574 | 1.40× | 0.86× |
-| reverse | facade-tracked | 6.832 | 3.72× | 2.27× |
+| Operation         | Implementation   | Median µs | vs direct core | vs legacy v1 |
+| ----------------- | ---------------- | --------: | -------------: | -----------: |
+| geometric product | legacy-v1        |    15.534 |          0.92× |        1.00× |
+| geometric product | direct-core      |    16.947 |          1.00× |        1.09× |
+| geometric product | facade-untracked |    18.518 |          1.09× |        1.19× |
+| geometric product | facade-tracked   |    20.576 |          1.21× |        1.32× |
+| reverse           | legacy-v1        |     3.004 |          1.64× |        1.00× |
+| reverse           | direct-core      |     1.836 |          1.00× |        0.61× |
+| reverse           | facade-untracked |     2.574 |          1.40× |        0.86× |
+| reverse           | facade-tracked   |     6.832 |          3.72× |        2.27× |
 
 ## Interpretation
 
@@ -31,9 +36,10 @@ Cl(1,3) coefficients.
 - In this run, direct-core geometric product is 1.09× the retained diagonal table engine; the untracked facade is 1.09× direct core.
 - Direct-core reverse is 0.61× the legacy time; tracked results additionally pay for immutable expression provenance.
 
-Re-run from the repository root with:
+For a current v2-only measurement, run from the repository root with a separate
+output path. This does not remeasure v1 and must not replace the archived table:
 
 ```shell
 PYTHONPATH=packages/galaga uv run --python 3.11 python -m tools.benchmark_phase8 \
-  --output docs/v2/phase8-performance.md
+  --output /tmp/galaga-performance.md
 ```
