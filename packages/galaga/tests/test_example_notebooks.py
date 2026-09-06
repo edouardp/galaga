@@ -91,6 +91,40 @@ def test_direct_and_dual_cga_notebook_uses_one_model_and_explicit_duality() -> N
     assert ".convert(" not in source
 
 
+def test_general_gram_compact_notebooks_teach_the_algebraic_boundaries() -> None:
+    foundations = (EXAMPLES / "matrix/general_gram_compact_foundations.py").read_text()
+    workflow = (EXAMPLES / "matrix/general_gram_compact_workflow.py").read_text()
+
+    assert "## Why the bivector is not an ordered matrix product" in foundations
+    assert "outer_product(e1_oblique, e2_oblique)" in foundations
+    assert "gamma_1 @ gamma_2 + gamma_2 @ gamma_1" in foundations
+    assert 'gram_matrix = MatrixRepr(gram_2d).name(latex=r"G")' in foundations
+    assert 'to_matrix(sample_value, mode="compact")' in foundations
+    assert "automatic_regular = to_matrix(sample_value)" in foundations
+    assert "recovered_sample = from_matrix(explicit_compact)" in foundations
+
+    assert "dense_gram = basis_transform @ orthogonal_metric @ basis_transform.T" in workflow
+    assert 'dense_gram_matrix = MatrixRepr(dense_gram).name(latex=r"G")' in workflow
+    assert "2.0 * dense_gram[_row, _column]" in workflow
+    assert "geometric_product(dense_left, dense_right)" in workflow
+    assert 'to_matrix(coefficient_sample, mode="compact")' in workflow
+    assert "recovered_coefficients = from_matrix(compact_sample)" in workflow
+
+
+def test_cga_gram_matrix_notebook_connects_metric_geometry_and_compact_matrices() -> None:
+    source = (EXAMPLES / "matrix/cga_via_gram_matrix.py").read_text()
+
+    assert "cga_gram = np.zeros((spatial_dimension + 2, spatial_dimension + 2))" in source
+    assert "cga_gram[spatial_dimension, spatial_dimension + 1] = null_pair_scale" in source
+    assert 'cga_gram_matrix = MatrixRepr(cga_gram).name(latex=r"G_{\\mathrm{CGA}}")' in source
+    assert "ConformalModel(cga_algebra, expr=True)" in source
+    assert 'to_matrix(cga_model.origin, mode="compact")' in source
+    assert "point_matrix @ point_matrix" in source
+    assert "sandwich(translator, conformal_point)" in source
+    assert "translator_matrix @ to_matrix(conformal_point" in source
+    assert "automatic_point_matrix = to_matrix(conformal_point)" in source
+
+
 @pytest.mark.skipif(sys.version_info < (3, 14), reason="Marimo t-strings require Python 3.14")
 def test_migrated_notebooks_pass_marimo_dependency_validation() -> None:
     """Reject invalid cross-cell definitions and dependencies in the gallery."""

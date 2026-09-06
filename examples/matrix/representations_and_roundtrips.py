@@ -51,11 +51,13 @@ def _(mo):
 
     | Mode | Shape | Entries | Applicability |
     |---|---:|---|---|
-    | `compact` | typically $2^{\lfloor n/2\rfloor}$ square | complex | normalized, non-degenerate orthogonal metrics |
+    | `compact` | typically $2^{\lfloor n/2\rfloor}$ square | complex | non-degenerate symmetric Gram matrices |
     | `left-regular` | $2^n \times 2^n$ | real | every symmetric Gram matrix, including degenerate and oblique bases |
 
-    With `mode=None`, `to_matrix` selects compact mode when it is supported and
-    otherwise selects the faithful left-regular representation.
+    With `mode=None`, `to_matrix` conservatively selects compact mode for a
+    normalized orthogonal basis and otherwise selects the faithful
+    left-regular representation. General Gram matrices can request compact
+    mode explicitly.
     """)
     return
 
@@ -205,11 +207,12 @@ def _(compact_roundtrip, gm, recovered_vector):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## General Gram matrices select left-regular mode
+    ## General Gram matrices: conservative default, explicit compact mode
 
-    Compact gamma matrices currently require a normalized orthogonal basis.
-    The left-regular action needs no diagonalization and therefore works
-    directly in the stored oblique basis.
+    For a nondegenerate oblique metric, explicit compact mode constructs a
+    congruent normalized basis and lifts that change of basis to every
+    exterior blade. Automatic mode remains left-regular, so existing code does
+    not silently change representation size or convention.
     """)
     return
 
@@ -230,23 +233,29 @@ def _(Algebra, from_matrix, np, to_matrix):
         expr=True,
     )
     oblique_matrix = to_matrix(oblique_value)
-    oblique_recovered = from_matrix(oblique_matrix)
+    oblique_compact_matrix = to_matrix(oblique_value, mode="compact")
+    oblique_recovered = from_matrix(oblique_compact_matrix)
     oblique_roundtrip = np.allclose(oblique_recovered.data, oblique_value.data)
-    return oblique_matrix, oblique_roundtrip, oblique_value
+    return oblique_compact_matrix, oblique_matrix, oblique_roundtrip, oblique_value
 
 
 @app.cell
-def _(gm, oblique_matrix, oblique_roundtrip, oblique_value):
+def _(gm, oblique_compact_matrix, oblique_matrix, oblique_roundtrip, oblique_value):
     _selected_mode = oblique_matrix.mode
+    _compact_shape = oblique_compact_matrix.shape
+    _regular_shape = oblique_matrix.shape
 
     gm.md(rt"""
     {oblique_value}
 
-    Automatic mode: `{_selected_mode!s}`.
+    Automatic mode: `{_selected_mode!s}`, shape `{_regular_shape!s}`.
 
-    {oblique_matrix:block}
+    Explicit compact shape: `{_compact_shape!s}`.
 
-    Native-basis coefficients round-trip: `{oblique_roundtrip!s}`.
+    {oblique_compact_matrix:block}
+
+    Native exterior-basis coefficients round-trip through the compact matrix:
+    `{oblique_roundtrip!s}`.
     """)
     return
 
@@ -256,10 +265,12 @@ def _(mo):
     mo.md(r"""
     ## Choosing a mode
 
-    - Prefer `compact`, `pauli`, or `dirac` for textbook matrices and small
-      linear-algebra calculations on supported normalized orthogonal metrics.
-    - Prefer `left-regular` for arbitrary Gram matrices, degenerate algebras,
-      exact coefficient round-trips, and public left-action integration.
+    - Prefer explicit `compact` for small matrices over any numerically
+      suitable nondegenerate Gram matrix.
+    - Use `pauli` or `dirac` when you specifically require those named
+      normalized-orthogonal conventions.
+    - Prefer `left-regular` for degenerate algebras, automatic conservative
+      dispatch, and public left-action integration.
     - Keep the `MatrixRepr` wrapper while metadata, names, expressions, or a
       later inverse conversion matter; use `.mat` as the explicit NumPy escape
       hatch.
