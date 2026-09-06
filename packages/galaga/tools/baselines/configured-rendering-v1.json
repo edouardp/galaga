@@ -1,0 +1,1634 @@
+{
+  "schema_version": 1,
+  "source_commit": "af3c167c188f2174fad65948e17d9b2706ee755b",
+  "captured_on": "2026-09-06",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "description": "Historical v1 observations computed and checked before removing the configured-rendering adapter. Live v2 literal expectations remain in the referenced test functions. Coefficients use the recorded native v1 exterior basis; compare only after semantic basis transport.",
+  "maximum_mapped_coefficient_residual": 0,
+  "expressions": [
+    {
+      "test": "test_compound_latex_contract.py::test_simple_wedge_expression",
+      "source": "The minimal full-rendering example.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "e_{1} \\wedge e_{2} \\quad = \\quad e_{12}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_named_negative_vector_is_a_symbolic_boundary",
+      "source": "Naming a negative value keeps its name, rather than leaking its value into syntax.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "1 + v \\quad = \\quad 1 - 0.5 e_{1}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        1,
+        -0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_add_negative_scaled_named_vector",
+      "source": "A negative term added to a sum renders as subtraction, following v1.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "1 - 0.5 v \\quad = \\quad 1 - 0.5 e_{1}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        1,
+        -0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_add_negative_unit_scaled_named_vector",
+      "source": "The v1 oracle suppresses a unit coefficient after absorbing its sign.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "1 - v \\quad = \\quad 1 - e_{1}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_mixed_grade_expression",
+      "source": "From examples/algebra/involutions_and_grade_ops.py.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "x \\quad = \\quad 3 + e_{1} + 2 e_{1} \\wedge e_{2} + e_{1} \\wedge e_{2} \\wedge e_{3} \\quad = \\quad 3 + e_{1} + 2 e_{12} + e_{123}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        3,
+        1,
+        0,
+        2,
+        0,
+        0,
+        0,
+        1
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_exterior_area_expression",
+      "source": "From examples/algebra/exterior_algebra_intuition.py.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "u \\wedge v \\quad = \\quad 3.1 e_{12}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        3.1,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_exterior_volume_expression",
+      "source": "From examples/algebra/exterior_algebra_intuition.py.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "u \\wedge v \\wedge w \\quad = \\quad 3.72 e_{123}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        3.7199999999999998
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_named_vector_norm_is_a_renderable_scalar",
+      "source": null,
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\lVert v \\rVert \\quad = \\quad 5",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_named_bivector_norm_is_a_renderable_scalar",
+      "source": null,
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\lVert B \\rVert \\quad = \\quad 1",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_named_angle_survives_rotor_generator_operations",
+      "source": "A named scalar remains semantic through unary negation, product, division, and exp.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "e^{-\\theta B/2} \\quad = \\quad 0.92388 - 0.382683 e_{12}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0.9238795325112867,
+        0,
+        0,
+        -0.3826834323650898,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_rotor_logarithm_elides_parentheses_around_one_negative_blade_term",
+      "source": "The sign is part of the concrete coefficient, not a grouped product.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\log\\left(e^{-\\theta B/2}\\right) \\quad = \\quad -0.5 e_{12}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        -0.5,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_rotor_sandwich_expression",
+      "source": "From examples/physics/planar_kinematics_lazy.py.",
+      "configuration": "legacy-v1/cl2/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "r' \\quad = \\quad R r \\tilde{R} \\quad = \\quad 0.839999 e_{1} + 1.48809 e_{2}",
+      "basis_vectors": [
+        "e1",
+        "e2"
+      ],
+      "coefficients": [
+        0,
+        0.8399985431784416,
+        1.4880868413698498,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_projection_expression",
+      "source": "From examples/algebra/duality_and_subspaces.py.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\left(v \\;\\lrcorner\\; B\\right) B^{-1} \\quad = \\quad e_{1} + e_{2}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_pga_join_expression",
+      "source": "From examples/algebra/meets_joins_pga.py.",
+      "configuration": "legacy-v1/pga3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "A^{\\complement} \\wedge B^{\\complement} \\quad = \\quad -2 e_{01} - e_{02} - e_{12}",
+      "basis_vectors": [
+        "e0",
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        -2,
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_pga_point_with_negative_coordinate",
+      "source": "The point expression uses subtraction for a negative coordinate.",
+      "configuration": "legacy-v1/pga3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "C \\quad = \\quad i - 0.5 E_1 + 1.5 E_2 \\quad = \\quad -1.5 e_{013} - 0.5 e_{023} + e_{123}",
+      "basis_vectors": [
+        "e0",
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1.5,
+        0,
+        -0.5,
+        1,
+        0
+      ]
+    },
+    {
+      "test": "test_compound_latex_contract.py::test_display_sensitive_expression",
+      "source": "Coefficient zero, unit, cutoff, and precision boundaries.",
+      "configuration": "legacy-v1/cl3/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "x \\quad = \\quad 1.23457 e_{1} + 1.4524 \\times 10^{-16} e_{2} + e_{3} + 0 e_{1} \\wedge e_{2} \\quad = \\quad 1.23457 e_{1} + e_{3}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3"
+      ],
+      "coefficients": [
+        0,
+        1.23456789,
+        1.4524e-16,
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_field_square_expression",
+      "source": "From examples/spacetime/electromagnetism_lazy.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "F^2 \\quad = \\quad 0.8",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0.7999999999999998,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_null_vector_square",
+      "source": "From examples/spacetime/null_geometry_sta.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "k_+^2 \\quad = \\quad k_+ k_+ \\quad = \\quad 0",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_faraday_bivector_assembly",
+      "source": "From examples/spacetime/electromagnetism_lazy.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "F \\quad = \\quad E + B \\quad = \\quad -1.2 \\gamma_{0} \\gamma_{1} + 0.8 \\gamma_{1} \\gamma_{2}",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1.2,
+        0,
+        0,
+        0.8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_boosted_time_axis",
+      "source": "From examples/physics/special_relativity_lazy.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\gamma_0' \\quad = \\quad \\Lambda \\gamma_{0} \\tilde{\\Lambda} \\quad = \\quad 1.18547 \\gamma_{0} - 0.636654 \\gamma_{1}",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        1.1854652182422676,
+        -0.6366535821482412,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_pseudoscalar_times_timelike_plane",
+      "source": "From galaga-marimo-demos/notebooks/sta/pseudoscalar_complex_structure.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "I B_t \\quad = \\quad \\gamma_{2} \\gamma_{3}",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_mixed_bivector_square",
+      "source": "From galaga-marimo-demos/notebooks/sta/pseudoscalar_complex_structure.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "M^2 \\quad = \\quad 2 i",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_parallel_field_pseudoscalar_invariant",
+      "source": "From galaga-marimo-demos/notebooks/sta/em_invariants.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\langle F^2 \\rangle_4 \\quad = \\quad \\langle F^2 \\rangle_{4} \\quad = \\quad 1.92 i",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1.92
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_noncollinear_boost_composition",
+      "source": "From galaga-marimo-demos/notebooks/sta/thomas_wigner_rotation.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "R \\quad = \\quad R_y R_x \\quad = \\quad 1.17122 + 0.39397 \\gamma_{0} \\gamma_{1} + 0.494136 \\gamma_{0} \\gamma_{2} + 0.166215 \\gamma_{1} \\gamma_{2}",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        1.171219557180324,
+        0,
+        0,
+        0.3939696160838895,
+        0,
+        0.49413636610373346,
+        0.1662153891245205,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_sta_latex_contract.py::test_sta_noncollinear_boosted_time_axis",
+      "source": "From galaga-marimo-demos/notebooks/sta/thomas_wigner_rotation.py.",
+      "configuration": "legacy-v1/sta-mostly-minus/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "u \\quad = \\quad R \\gamma_{0} \\tilde{R} \\quad = \\quad 1.79877 \\gamma_{0} - 0.758584 \\gamma_{1} - 1.28845 \\gamma_{2}",
+      "basis_vectors": [
+        "g0",
+        "g1",
+        "g2",
+        "g3"
+      ],
+      "coefficients": [
+        0,
+        1.79876561340698,
+        -0.7585837018395334,
+        0,
+        -1.2884519778706616,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_product_decomposition_expression",
+      "source": "From examples/rga/rga_demo.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "u \\wedge v + u \\mathbin{\\bullet} v \\quad = \\quad -1 + 2 \\mathbf{e}_{23} - \\mathbf{e}_{31} - 3 \\mathbf{e}_{12} + \\mathbf{e}_{41} - \\mathbf{e}_{42} + \\mathbf{e}_{43}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        -1,
+        0,
+        0,
+        -3,
+        0,
+        1,
+        2,
+        0,
+        0,
+        -1,
+        1,
+        0,
+        -1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_coordinate_planes_meet_in_their_common_line",
+      "source": "From the join-and-meet section of examples/rga/rga_demo.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\pi_x \\vee \\pi_y \\quad = \\quad -\\mathbf{e}_{43}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_bulk_and_weight_parts_reconstruct_a_line",
+      "source": "From the metric/antimetric section of examples/rga/rga_demo.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "{L}_{\\text{●}} + {L}_{\\text{○}} \\quad = \\quad 2 \\mathbf{e}_{23} - \\mathbf{e}_{31} + 3 \\mathbf{e}_{41} - \\mathbf{e}_{42}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        2,
+        0,
+        0,
+        -3,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_bulk_and_weight_duals_reconstruct_the_complementary_plane",
+      "source": "Use the complete source-table point from core/test_metric_rga.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "P^{\\text{★}} + P^{\\text{☆}} \\quad = \\quad 2 \\mathbf{e}_{423} - 3 \\mathbf{e}_{431} + 5 \\mathbf{e}_{412} + 7 \\mathbf{e}_{321}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -7,
+        0,
+        0,
+        0,
+        5,
+        0,
+        3,
+        2,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_transwedge_orders_reconstruct_the_geometric_product",
+      "source": "From the transwedge section of examples/rga/rga_demo.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "A \\mathbin{\\underset{0}{\\text{⩓}}} B + A \\mathbin{\\underset{1}{\\text{⩓}}} B - A \\mathbin{\\underset{2}{\\text{⩓}}} B \\quad = \\quad 2 - 2 \\mathbf{e}_{23} + \\mathbf{e}_{31} + \\mathbf{e}_{12} + \\mathbf{e}_{42} - 2 \\mathbf{e}_{43} - 6 \\text{𝟙}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        2,
+        0,
+        0,
+        1,
+        0,
+        -1,
+        -2,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        2,
+        0,
+        0,
+        -6
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_transwedge_antiproduct_orders_reconstruct_the_antiproduct",
+      "source": "From the transwedge-antiproduct section of the RGA demo.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "A \\mathbin{\\underset{0}{\\text{⩔}}} B + A \\mathbin{\\underset{1}{\\text{⩔}}} B - A \\mathbin{\\underset{2}{\\text{⩔}}} B \\quad = \\quad -6 - \\mathbf{e}_{31} + 2 \\mathbf{e}_{12} + 3 \\mathbf{e}_{43}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        -6,
+        0,
+        0,
+        2,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -3,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "test": "test_rga_latex_contract.py::test_rga_nested_complements_meet_and_antireverse_remain_legible",
+      "source": "From the reversed-join identity in core/test_metric_rga.py.",
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "target": "latex",
+      "content": "full",
+      "expected": "\\utilde{\\overline{\\vphantom{Aft^6}u} \\vee \\overline{\\vphantom{Aft^6}v}} \\quad = \\quad \\mathbf{e}_{23} - \\mathbf{e}_{31} + \\mathbf{e}_{12} + 2 \\mathbf{e}_{41} - \\mathbf{e}_{42} - 3 \\mathbf{e}_{43}",
+      "basis_vectors": [
+        "e1",
+        "e2",
+        "e3",
+        "e4"
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        0,
+        -2,
+        1,
+        0,
+        3,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "notation": [
+    {
+      "operation": "geometric_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⟑ b",
+        "latex": "a \\mathbin{\\text{⟑}} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "outer_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a∧b",
+        "latex": "a \\wedge b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "geometric_antiproduct",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⟇ b",
+        "latex": "a \\mathbin{\\text{⟇}} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "metric_inner_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a • b",
+        "latex": "a \\mathbin{\\bullet} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "antidot_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ∘ b",
+        "latex": "a \\mathbin{\\circ} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "antiwedge",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a∨b",
+        "latex": "a \\vee b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "regressive_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a∨b",
+        "latex": "a \\vee b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "left_interior_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⌋ b",
+        "latex": "a \\mathbin{\\rfloor} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "right_interior_product",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⌊ b",
+        "latex": "a \\mathbin{\\lfloor} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "transwedge",
+      "arity": 2,
+      "order": 1,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⩓₁ b",
+        "latex": "a \\mathbin{\\underset{1}{\\text{⩓}}} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "transwedge_antiproduct",
+      "arity": 2,
+      "order": 1,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a ⩔₁ b",
+        "latex": "a \\mathbin{\\underset{1}{\\text{⩔}}} b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "complement",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a̅",
+        "latex": "\\overline{\\vphantom{Aft^6}a}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "operation": "right_complement",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a̅",
+        "latex": "\\overline{\\vphantom{Aft^6}a}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "operation": "left_complement",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a̲",
+        "latex": "\\underline{\\vphantom{gy_7}a}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ]
+    },
+    {
+      "operation": "reverse",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "ã",
+        "latex": "\\tilde{a}"
+      },
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "antireverse",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a̰",
+        "latex": "\\utilde{a}"
+      },
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "right_hodge_dual",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a^★",
+        "latex": "a^{\\text{★}}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "operation": "left_hodge_dual",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a_★",
+        "latex": "{a}_{\\text{★}}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ]
+    },
+    {
+      "operation": "right_weight_dual",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a^☆",
+        "latex": "a^{\\text{☆}}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "left_weight_dual",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a_☆",
+        "latex": "{a}_{\\text{☆}}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "bulk_part",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a_●",
+        "latex": "{a}_{\\text{●}}"
+      },
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "weight_part",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a_○",
+        "latex": "{a}_{\\text{○}}"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "metric_apply",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "Ga",
+        "latex": "\\mathbf{G}a"
+      },
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "antimetric_apply",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "𝔾a",
+        "latex": "\\mathbb{G}a"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "conjugate",
+      "arity": 1,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "conjugate(a)",
+        "latex": "\\operatorname{conjugate}(a)"
+      },
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "operation": "hestenes_inner",
+      "arity": 2,
+      "order": null,
+      "configuration": "legacy-v1/lengyel-rga/full-default",
+      "renderings": {
+        "unicode": "a·b",
+        "latex": "a \\cdot b"
+      },
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

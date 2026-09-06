@@ -10,10 +10,6 @@ from tools.rendering_contract import ExpressionContext
 
 @latex_test(
     testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"F^2 \quad = \quad 0.8",
-    ),
-    testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"F^2 \quad = \quad 0.8",
     ),
@@ -29,10 +25,6 @@ def test_sta_field_square_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"k_+^2 \quad = \quad k_+ k_+ \quad = \quad 0",
-    ),
-    testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"k_+^2 \quad = \quad k_+ k_+ \quad = \quad 0",
     ),
@@ -45,13 +37,6 @@ def test_sta_null_vector_square(context: ExpressionContext) -> Any:
 
 
 @latex_test(
-    testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"""
-        F \quad = \quad E + B \quad = \quad
-        -1.2 \gamma_{0} \gamma_{1} + 0.8 \gamma_{1} \gamma_{2}
-        """,
-    ),
     testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"""
@@ -69,14 +54,6 @@ def test_sta_faraday_bivector_assembly(context: ExpressionContext) -> Any:
 
 
 @latex_test(
-    testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"""
-        \gamma_0' \quad = \quad \Lambda \gamma_{0} \tilde{\Lambda}
-        \quad = \quad
-        1.18547 \gamma_{0} - 0.636654 \gamma_{1}
-        """,
-    ),
     testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"""
@@ -100,10 +77,6 @@ def test_sta_boosted_time_axis(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"I B_t \quad = \quad \gamma_{2} \gamma_{3}",
-    ),
-    testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"I B_t \quad = \quad \gamma_{2} \gamma_{3}",
     ),
@@ -117,10 +90,6 @@ def test_sta_pseudoscalar_times_timelike_plane(context: ExpressionContext) -> An
 
 
 @latex_test(
-    testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"M^2 \quad = \quad 2 i",
-    ),
     testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"M^2 \quad = \quad 2 i",
@@ -136,13 +105,6 @@ def test_sta_mixed_bivector_square(context: ExpressionContext) -> Any:
 
 
 @latex_test(
-    testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"""
-        \langle F^2 \rangle_4 \quad = \quad
-        \langle F^2 \rangle_{4} \quad = \quad 1.92 i
-        """,
-    ),
     testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"""
@@ -169,15 +131,6 @@ def test_sta_parallel_field_pseudoscalar_invariant(context: ExpressionContext) -
 
 @latex_test(
     testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"""
-        R \quad = \quad R_y R_x \quad = \quad
-        1.17122 + 0.39397 \gamma_{0} \gamma_{1}
-        + 0.494136 \gamma_{0} \gamma_{2}
-        + 0.166215 \gamma_{1} \gamma_{2}
-        """,
-    ),
-    testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"""
         R \quad = \quad R_y R_x \quad = \quad
@@ -198,13 +151,6 @@ def test_sta_noncollinear_boost_composition(context: ExpressionContext) -> Any:
 
 
 @latex_test(
-    testcase(
-        "legacy-v1/sta-mostly-minus/full-default",
-        r"""
-        u \quad = \quad R \gamma_{0} \tilde{R} \quad = \quad
-        1.79877 \gamma_{0} - 0.758584 \gamma_{1} - 1.28845 \gamma_{2}
-        """,
-    ),
     testcase(
         "core-facade-v2/sta-mostly-minus/full-default",
         r"""

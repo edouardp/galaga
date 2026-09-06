@@ -732,3 +732,21 @@ duplicate executions of the retired v1 numeric engine, not removal of the
 mathematical contracts. Those contracts are now owned once by direct-core
 tests, exercised through the guarded facade contract, and supplemented by
 explicit v1/v2 differential and correction-ledger cases.
+
+### Phase 9 follow-through: configured rendering
+
+The exact compound, STA, and RGA rendering suites now execute only through the
+facade and have left the legacy-construction ledger. All expression bodies,
+source citations, 34 facade full-LaTeX cases, 26 three-channel RGA notation
+entries, and 16 RGA blade entries remain live. Their pre-retirement v1 outputs
+are archived as development data under
+[ADR-084](../adrs/084-exact-configured-rendering-contracts.md).
+
+The new boundary suite also checks all 32 compound numeric samples against
+captured coefficients after algebraically deriving the semantic exterior
+basis transport; the 26 RGA operation samples retain numeric checks too.
+These are retained representative regressions, not replacements for the
+source-derived core identities above. Fresh-process execution blocks legacy
+imports throughout the three exact suites. Twenty other files remain in the
+legacy ledger; this retires the exact suites' rendering-adapter dependency,
+not the engine or the remaining shared numeric contract.

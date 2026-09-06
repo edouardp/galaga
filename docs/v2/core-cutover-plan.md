@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Three legacy-dependency prerequisites are complete:
+Status: **in progress**. Four legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1276,14 +1276,20 @@ Status: **in progress**. Three legacy-dependency prerequisites are complete:
 - the live benchmark measures only v2 layers, validates them against untimed
   core-reference and exterior-grade oracles, and preserves the historical
   Phase 8 measurements
-  ([ADR-093](../adrs/093-benchmarks-use-core-reference-oracles.md)); and
+  ([ADR-093](../adrs/093-benchmarks-use-core-reference-oracles.md));
 - matrix conversion requires public v2 metric metadata, linear actions,
   factories, and immutable naming without v1 compatibility fallbacks
-  ([ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md)).
+  ([ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md)); and
+- the exact compound, STA, and RGA rendering suites execute only the facade.
+  Their 32 historical compound observations and 26 RGA notation entries are
+  archived, all 34 v2 full-LaTeX cases remain live, and numeric samples are
+  checked after algebraically deriving any semantic basis transport
+  ([ADR-084](../adrs/084-exact-configured-rendering-contracts.md)).
 
-Fresh-process regression gates exercise the audit, benchmark, and matrix
-conversions with legacy imports blocked. Matrix plans continue to share core
-algebras across facade presentation views; that is intentional v2 behavior.
+Fresh-process regression gates exercise the audit, benchmark, matrix
+conversions, and all three exact rendering suites with legacy imports blocked.
+Matrix plans continue to share core algebras across facade presentation views;
+that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1292,12 +1298,12 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency group is the shared rendering-contract adapter and its
-three dual-implementation suites, followed by the remaining numeric contract,
-compatibility-manifest introspection, and legacy guards. Preserve their
-permanent v2 assertions and source-derived algebraic coverage rather than
-deleting mixed test files wholesale. The legacy test ledger still contains
-23 files; the migration inventory remains the authority for their ownership.
+The next dependency group is the shared numeric contract, followed by
+compatibility-manifest introspection, the remaining legacy presentation tests,
+and legacy guards. Preserve their permanent v2 assertions and source-derived
+algebraic coverage rather than deleting mixed test files wholesale. The legacy
+test ledger now contains 20 files, down from 23 before the exact rendering
+retirement; the migration inventory remains the authority for their ownership.
 
 The notebook-test baseline prerequisite is also complete. Portability checks
 preserve each notebook's generator metadata and validate the actual launcher
@@ -1309,13 +1315,16 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(3,904 passed, 19 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (3,787 passed, 44 skipped), with Python 3.14-only integrations
+(3,958 passed, 19 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (3,841 passed, 44 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
-warning remains. The Python 3.11 run also measures branch coverage without new
-exclusions: the benchmark module has 95% coverage and matrix conversion has
-91%. These are prerequisite checks, not completion of the engine deletion,
-artifact, or final release gates.
+warning remains. These runs use the updated dependency lockfile in isolated
+environments; the checkout's Python 3.13 environment is unchanged. The Python
+3.11 run also measures branch coverage without new exclusions: both configured
+rendering helpers have 100% coverage. The preceding benchmark/matrix checkpoint
+measured 95% for the benchmark and 91% for matrix conversion. These are
+prerequisite checks, not completion of the engine deletion, artifact, or final
+release gates.
 
 Remove the private legacy oracle only after Phase 8 has passed on the branch
 and in CI. Preserve historical behavior in tests, specifications, and migration

@@ -8,15 +8,15 @@ named implementation/algebra/display configuration + expression test function
     -> exact LaTeX
 ```
 
-This complements the legacy/facade differential audit. Parity asks whether two
-implementations agree; the golden contract records what each implementation is
-actually required to emit.
+This complements the historical legacy/facade audit. The golden contract
+records what the current facade is required to emit; captured v1 observations
+preserve the comparison evidence without executing the legacy engine.
 
 ## Where the contract lives
 
 - `packages/galaga/tools/rendering_contract.py` contains reusable algebra
-  profiles, display profiles, named complete configurations, and the v1/v2
-  context adapter.
+  profiles, display profiles, named complete configurations, and the public
+  facade context adapter.
 - `packages/galaga/tools/latex_contract.py` contains the small Pytest decorator
   and readable `testcase(...)` value.
 - `packages/galaga/tests/rendering/test_compound_latex_contract.py` contains
@@ -26,15 +26,16 @@ actually required to emit.
 - `packages/galaga/tests/rendering/test_rga_latex_contract.py` contains the
   Lengyel notation matrix, complete RGA blade table, and source-derived RGA
   compound expressions.
+- `packages/galaga/tools/baselines/configured-rendering-v1.json` preserves
+  computed historical outputs, coefficients, basis order, and capture provenance.
+- `packages/galaga/tests/rendering/test_configured_rendering_boundary.py`
+  verifies the facade boundary, historical numeric samples, and execution of
+  all three exact suites with legacy imports blocked.
 
 One test looks like:
 
 ```python
 @latex_test(
-    testcase(
-        "legacy-v1/cl3/full-default",
-        r"e_{1} \wedge e_{2} \quad = \quad e_{12}",
-    ),
     testcase(
         "core-facade-v2/cl3/full-default",
         r"e_{1} \wedge e_{2} \quad = \quad e_{12}",
@@ -69,14 +70,15 @@ emitter comparison generally whitespace-insensitive.
 
 ## Why test functions use a context
 
-The same test body must execute against two public APIs. `ExpressionContext`
-normalizes only the differences needed by the examples:
+`ExpressionContext` selects a fresh, explicit facade configuration for each
+case and supplies a small public vocabulary:
 
 - basis vectors are selected by semantic names;
-- canonical operation IDs are translated to retained v1 spellings where
-  necessary; and
-- immutable v2 naming and non-mutating legacy naming are presented as one
-  helper.
+- canonical operation IDs call the public facade directly; and
+- naming uses the immutable facade operation, preserving shared inputs.
+
+Only `core-facade-v2` configurations execute. Retired `legacy-v1` IDs are
+rejected rather than silently mapped to a different implementation.
 
 Test functions otherwise use normal multivector operators and multi-line
 Python. They do not inject values into `locals()`. Facade
@@ -87,14 +89,13 @@ source notebook.
 
 Python bindings inside a test function disappear when it returns. The returned v2
 multivector retains its algebra, eager numeric value, name, and immutable
-expression graph; the retained legacy value likewise owns its algebra and
-expression. The decorator retains the context and calls the normalized full
+expression graph. The decorator retains the context and calls the public full
 LaTeX path after the expression function returns, so the suite continuously
 checks that rendering has no hidden dependency on a dead builder scope.
 
 ## Current representative matrix
 
-The paired default-display cases cover:
+The live default-display cases cover:
 
 - Euclidean Cl(3): mixed grades, exterior area and volume, and projection;
 - Euclidean Cl(2): rotor construction and sandwich action;
@@ -118,11 +119,33 @@ The STA cases are drawn from maintained notebooks in both `galaga` and
 `galaga-marimo-demos`; their source paths are recorded in each test docstring.
 The RGA compounds are drawn from `examples/rga/rga_demo.py` and the
 source-derived tables in `core/test_metric_rga.py`. The RGA notation matrix
-checks expression rendering through the same context at every channel that v1
-can faithfully expose (Unicode and LaTeX) and all three v2 channels.
+checks expression rendering through the same context in ASCII, Unicode, and
+LaTeX. Historical Unicode and LaTeX outputs are retained separately as data.
 Together the matrix covers exact-zero removal, unit coefficient suppression,
 retained near-zero expression terms, concrete near-zero elision, full-display
 deduplication, target-specific notation, and blade-convention output.
+
+## Historical evidence after legacy retirement
+
+The archive was computed and checked against the original exact expectations
+at commit `af3c167c188f2174fad65948e17d9b2706ee755b`, before removing the adapter.
+It retains 32 compound full-LaTeX observations and the 26 RGA operations'
+Unicode and LaTeX observations, with Python and NumPy capture versions. The
+live suites retain all 34 facade full-LaTeX cases, including additional
+precision settings, and all RGA notation and blade-table assertions.
+
+The numeric samples continue to be checked against current computations. For
+compound cases, the test derives the exterior basis transport from wedge
+products of semantic vectors before comparing coefficients. This preserves
+PGA signs when moving from v1's e0-first storage to v2's e0-last storage. All
+32 capture-time comparisons had zero residual after transport; regression
+checks use `rtol=0, atol=1e-12`, independently of public equality and hashing.
+
+Historical strings do not dictate current rendering: the live literals still
+pin reviewed changes such as floor contraction symbols and wide reverse
+accents. Do not regenerate v1 history from v2 output. New v2-only cases need no
+historical counterpart. See
+[ADR-084](../adrs/084-exact-configured-rendering-contracts.md).
 
 ## Adding a regression
 
@@ -134,11 +157,10 @@ When a notebook or user expression renders incorrectly:
    the result is meaningful;
 3. keep the expression body and exact strings together under `@latex_test`;
 4. compute the numeric result before choosing presentation output;
-5. add a literal expected string for each supported implementation;
+5. add a literal expected string for each relevant facade configuration;
 6. run the exact suite and inspect the complete string diff;
 7. fix the semantic builder, notation, or emitter at its owning layer; and
-8. run both the golden suite and the legacy/facade differential audit.
+8. run both the golden suite and the historical legacy/facade audit.
 
-If a new configuration is not faithfully representable in v1, mark it as an
-explicit facade-only display profile. Do not weaken it into a nominal parity
-case.
+New configurations are facade-only. Preserve their exact expectations without
+weakening them into nominal historical parity cases or adding invented v1 data.

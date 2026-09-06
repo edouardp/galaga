@@ -26,7 +26,8 @@ having a context-free expected rendering.
 
 - Store human-reviewed exact LaTeX rather than relying only on renderer parity.
 - Exercise realistic compound expressions taken from maintained notebooks.
-- Parameterize legacy v1 and facade v2 without copying expression-building code.
+- Preserve cross-version evidence without copying expression-building code or
+  requiring the retired engine to execute.
 - Make algebra and display configuration visible in every failing Pytest ID.
 - Keep tests independent of Marimo cells, dynamic Python locals, and ambient
   presentation context.
@@ -37,13 +38,13 @@ having a context-free expected rendering.
 Galaga keeps an exact configured-rendering contract alongside the differential
 parity audit. A scenario has four independent identifiers:
 
-1. implementation (`legacy-v1` or `core-facade-v2`);
+1. implementation (`core-facade-v2` live, `legacy-v1` in historical evidence);
 2. algebra profile, including its metric and presentation convention;
 3. display profile, including content, zero cutoff, and coefficient precision;
 4. value-returning compound-expression test function.
 
 `tools.rendering_contract` owns immutable algebra profiles, display profiles,
-named complete configurations, and the small v1/v2 context adapter.
+named complete configurations, and the small public-facade context adapter.
 `tools.latex_contract` owns a lightweight `@latex_test(...)` decorator and
 `testcase(...)` values. Each decorated function contains the ordinary
 expression-building code and returns its multivector result. The decorator
@@ -61,8 +62,8 @@ Exact expected strings are grouped by mathematical domain in
 parameterization gives every assertion a stable named-algebra ID underneath
 the human expression test name. The expression body and all exact expected
 strings are adjacent in the test source. A construction check covers every
-named algebra configuration; default notebook scenarios are captured for both
-live implementations.
+named algebra configuration. Default notebook scenarios were captured for both
+implementations before the live v1 path was retired in Phase 9.
 
 For readability, `testcase()` accepts raw triple-quoted LaTeX. It dedents the
 literal, strips the edge whitespace, and joins its physical source lines with
@@ -70,7 +71,7 @@ one space before comparison. Whitespace within each authored line remains
 exact; the facility formats test source rather than making emitted LaTeX
 arbitrarily whitespace-agnostic.
 
-The default paired matrix covers Euclidean Cl(2) and Cl(3), mostly-minus STA,
+The default matrix covers Euclidean Cl(2) and Cl(3), mostly-minus STA,
 three-dimensional PGA, and Lengyel RGA. Notebook-derived test functions cover
 mixed grades, exterior area and volume, rotor sandwiches, projection,
 electromagnetic field construction and invariants, null vectors, STA
@@ -86,7 +87,7 @@ twelve significant-digit policies.
 
 The conventional Galaga 2 contract pins left and right contractions to the
 mirrored LaTeX floor symbols `\mathbin{\rfloor}` and
-`\mathbin{\lfloor}`. The paired legacy expectation intentionally retains its
+`\mathbin{\lfloor}`. The archived legacy expectation intentionally retains its
 historical corner symbol, making this reviewed presentation change explicit
 rather than weakening the exact comparison.
 
@@ -97,8 +98,48 @@ The golden contract and differential audit have distinct authority:
 - notebook execution proves the surrounding integration still runs.
 
 One does not replace either of the others. Configuration combinations with no
-faithful v1 equivalent are explicit facade-only cases rather than artificial
-parity comparisons.
+faithful v1 equivalent are facade-only cases rather than artificial parity
+comparisons.
+
+### Phase 9 retirement of the live v1 adapter
+
+On 2026-09-06, the three exact suites stop constructing v1 contexts and leave
+the legacy-construction allowlist. Their expression bodies, source citations,
+34 v2 full-LaTeX cases, 26 three-channel RGA operation contracts, and complete
+16-blade RGA table remain live. The seven named facade configurations retain
+their existing IDs, including the two additional precision policies.
+
+The development-only
+[configured-rendering archive](../../packages/galaga/tools/baselines/configured-rendering-v1.json)
+preserves the 32 historical full-LaTeX observations and all 26 RGA operations'
+Unicode and LaTeX spellings. Every observation was computed and checked
+against its original literal at commit
+`af3c167c188f2174fad65948e17d9b2706ee755b`, using Python 3.14.4 and NumPy 2.5.2.
+The archive records source-test identity, source descriptions where available,
+configuration, coefficient data, and the old compound cases' native vector order.
+
+Numeric regression tests transport the old compound coefficients into the
+current exterior basis using actual wedge products of semantically matched
+vectors. This matters for PGA's e0-first versus e0-last coefficient storage;
+indices cannot be compared directly or corrected by guessed signs. All 32
+pre-retirement compound comparisons had zero mapped residual on the capture
+run. Ongoing comparisons use `rtol=0, atol=1e-12`; public equality and hashing
+are unaffected. The RGA operation samples also retain coefficient checks.
+These samples supplement, not replace, the direct-core algebraic identities.
+
+Current exact strings stay adjacent to their expression bodies and remain the
+rendering authority, including reviewed differences from v1. The archive must
+not be regenerated from current output. New v2-only tests can be added without
+inventing historical observations; inventory checks require preservation of
+the historical subset, not a permanently frozen live test count.
+
+A fresh process runs all three suites with legacy imports forbidden. It omits
+the parent conftest because that temporary guard itself imports v1 to poison
+constructors; ordinary full-suite runs still use that guard. Context-boundary
+tests also reject retired implementation IDs and malformed semantic vector
+maps and cover public operations, immutable naming, display channels, and
+post-builder rendering. No production engine or rendering implementation is
+changed by this checkpoint.
 
 ## Consequences
 

@@ -31,8 +31,8 @@
   frozen historical oracle, reviewed v2 output gate, executable difference
   ledger, and structured Markdown reports used to review the cutover.
 - [Exact configured rendering contracts](exact-rendering-contracts.md) explain
-  the parameterized algebra/display/expression matrix and reviewed literal
-  LaTeX strings that make rendering decisions permanent unit tests.
+  the facade algebra/display/expression matrix, archived v1 observations, and
+  reviewed literal LaTeX strings that make rendering decisions permanent tests.
 - [Compatibility shims](compatibility-shims.md) records permanent same-object
   aliases, temporary warning adapters, ambiguous-name guidance, and bridge
   retirement policy.
@@ -115,9 +115,12 @@ Phase 9 has removed the rendering audit's live legacy dependency: all 73
 historical cases remain, and reviewed v2 outputs are pinned even for accepted
 differences. The benchmark now uses independent untimed correctness oracles
 and measures only v2 layers, preserving the historical v1 timing table. Matrix
-conversion's v1 compatibility fallbacks are also removed. Fresh-process tests
-block legacy imports in all three paths. The remaining test dependencies,
-engine deletion, alias retirement, and final release gates are still pending.
+conversion's v1 compatibility fallbacks are also removed. The compound, STA,
+and RGA exact-rendering suites now execute only the facade, retaining their
+v2 literal assertions and checking numeric samples against archived v1 data
+after algebraic basis transport where necessary. Fresh-process tests block
+legacy imports in all four paths. The remaining test dependencies, engine
+deletion, alias retirement, and final release gates are still pending.
 
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round

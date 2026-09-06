@@ -46,10 +46,13 @@ configured rendering contracts instead of invented historical outputs.
 
 ## Scope and consequences
 
-This supersedes the live legacy-adapter requirement for the rendering parity
-audit only. Other legacy tests and the benchmark remain until their coverage
-has been preserved. No production engine file or public alias is removed by
-this checkpoint, and Phase 9 is not yet complete.
+This decision originally superseded the live legacy-adapter requirement for
+the rendering parity audit only. The benchmark has since retired its v1 path
+under [ADR-093](093-benchmarks-use-core-reference-oracles.md), and the exact
+configured suites preserve their observations under
+[ADR-084](084-exact-configured-rendering-contracts.md). Other legacy tests
+remain until their coverage has been preserved. No production engine file or
+public alias is removed by these checkpoints, and Phase 9 is not yet complete.
 
 - Good, because historical behavior survives independently of legacy code.
 - Good, because reviewed differences can no longer conceal new regressions.

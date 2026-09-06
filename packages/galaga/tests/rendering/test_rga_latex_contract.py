@@ -9,7 +9,6 @@ import pytest
 from tools.latex_contract import latex_test, testcase
 from tools.rendering_contract import ExpressionContext, context_for
 
-LEGACY_RGA = "legacy-v1/lengyel-rga/full-default"
 FACADE_RGA = "core-facade-v2/lengyel-rga/full-default"
 
 
@@ -19,8 +18,6 @@ class NotationExpectation:
 
     operation: str
     arity: int
-    legacy_unicode: str
-    legacy_latex: str
     facade_ascii: str
     facade_unicode: str
     facade_latex: str
@@ -31,8 +28,6 @@ def notation(
     operation: str,
     arity: int,
     *,
-    legacy_unicode: str,
-    legacy_latex: str,
     facade_ascii: str,
     facade_unicode: str,
     facade_latex: str,
@@ -42,8 +37,6 @@ def notation(
     return NotationExpectation(
         operation,
         arity,
-        legacy_unicode,
-        legacy_latex,
         facade_ascii,
         facade_unicode,
         facade_latex,
@@ -55,8 +48,6 @@ LENGYEL_NOTATION = (
     notation(
         "geometric_product",
         2,
-        legacy_unicode="a ⟑ b",
-        legacy_latex=r"a \mathbin{\text{⟑}} b",
         facade_ascii="gp(a, b)",
         facade_unicode="a ⟑ b",
         facade_latex=r"a \mathbin{\text{⟑}} b",
@@ -64,8 +55,6 @@ LENGYEL_NOTATION = (
     notation(
         "outer_product",
         2,
-        legacy_unicode="a∧b",
-        legacy_latex=r"a \wedge b",
         facade_ascii="a ^ b",
         facade_unicode="a ∧ b",
         facade_latex=r"a \wedge b",
@@ -73,8 +62,6 @@ LENGYEL_NOTATION = (
     notation(
         "geometric_antiproduct",
         2,
-        legacy_unicode="a ⟇ b",
-        legacy_latex=r"a \mathbin{\text{⟇}} b",
         facade_ascii="geometric_antiproduct(a, b)",
         facade_unicode="a ⟇ b",
         facade_latex=r"a \mathbin{\text{⟇}} b",
@@ -82,8 +69,6 @@ LENGYEL_NOTATION = (
     notation(
         "metric_inner_product",
         2,
-        legacy_unicode="a • b",
-        legacy_latex=r"a \mathbin{\bullet} b",
         facade_ascii="metric_inner_product(a, b)",
         facade_unicode="a • b",
         facade_latex=r"a \mathbin{\bullet} b",
@@ -91,8 +76,6 @@ LENGYEL_NOTATION = (
     notation(
         "antidot_product",
         2,
-        legacy_unicode="a ∘ b",
-        legacy_latex=r"a \mathbin{\circ} b",
         facade_ascii="antidot_product(a, b)",
         facade_unicode="a ∘ b",
         facade_latex=r"a \mathbin{\circ} b",
@@ -100,8 +83,6 @@ LENGYEL_NOTATION = (
     notation(
         "antiwedge",
         2,
-        legacy_unicode="a∨b",
-        legacy_latex=r"a \vee b",
         facade_ascii="antiwedge(a, b)",
         facade_unicode="a ∨ b",
         facade_latex=r"a \vee b",
@@ -109,8 +90,6 @@ LENGYEL_NOTATION = (
     notation(
         "regressive_product",
         2,
-        legacy_unicode="a∨b",
-        legacy_latex=r"a \vee b",
         facade_ascii="a vee b",
         facade_unicode="a ∨ b",
         facade_latex=r"a \vee b",
@@ -118,8 +97,6 @@ LENGYEL_NOTATION = (
     notation(
         "left_interior_product",
         2,
-        legacy_unicode="a ⌋ b",
-        legacy_latex=r"a \mathbin{\rfloor} b",
         facade_ascii="left_interior_product(a, b)",
         facade_unicode="a ⌋ b",
         facade_latex=r"a \mathbin{\rfloor} b",
@@ -127,8 +104,6 @@ LENGYEL_NOTATION = (
     notation(
         "right_interior_product",
         2,
-        legacy_unicode="a ⌊ b",
-        legacy_latex=r"a \mathbin{\lfloor} b",
         facade_ascii="right_interior_product(a, b)",
         facade_unicode="a ⌊ b",
         facade_latex=r"a \mathbin{\lfloor} b",
@@ -137,8 +112,6 @@ LENGYEL_NOTATION = (
         "transwedge",
         2,
         order=1,
-        legacy_unicode="a ⩓₁ b",
-        legacy_latex=r"a \mathbin{\underset{1}{\text{⩓}}} b",
         facade_ascii="transwedge(a, b, 1)",
         facade_unicode="a ⩓₁ b",
         facade_latex=r"a \mathbin{\underset{1}{\text{⩓}}} b",
@@ -147,8 +120,6 @@ LENGYEL_NOTATION = (
         "transwedge_antiproduct",
         2,
         order=1,
-        legacy_unicode="a ⩔₁ b",
-        legacy_latex=r"a \mathbin{\underset{1}{\text{⩔}}} b",
         facade_ascii="transwedge_antiproduct(a, b, 1)",
         facade_unicode="a ⩔₁ b",
         facade_latex=r"a \mathbin{\underset{1}{\text{⩔}}} b",
@@ -156,8 +127,6 @@ LENGYEL_NOTATION = (
     notation(
         "complement",
         1,
-        legacy_unicode="a̅",
-        legacy_latex=r"\overline{\vphantom{Aft^6}a}",
         facade_ascii="complement(a)",
         facade_unicode="a̅",
         facade_latex=r"\overline{a}",
@@ -165,8 +134,6 @@ LENGYEL_NOTATION = (
     notation(
         "right_complement",
         1,
-        legacy_unicode="a̅",
-        legacy_latex=r"\overline{\vphantom{Aft^6}a}",
         facade_ascii="right_complement(a)",
         facade_unicode="a̅",
         facade_latex=r"\overline{a}",
@@ -174,8 +141,6 @@ LENGYEL_NOTATION = (
     notation(
         "left_complement",
         1,
-        legacy_unicode="a̲",
-        legacy_latex=r"\underline{\vphantom{gy_7}a}",
         facade_ascii="left_complement(a)",
         facade_unicode="a̲",
         facade_latex=r"\underline{a}",
@@ -183,8 +148,6 @@ LENGYEL_NOTATION = (
     notation(
         "reverse",
         1,
-        legacy_unicode="ã",
-        legacy_latex=r"\tilde{a}",
         facade_ascii="~a",
         facade_unicode="ã",
         facade_latex=r"\widetilde{a}",
@@ -192,8 +155,6 @@ LENGYEL_NOTATION = (
     notation(
         "antireverse",
         1,
-        legacy_unicode="a̰",
-        legacy_latex=r"\utilde{a}",
         facade_ascii="antireverse(a)",
         facade_unicode="a̰",
         facade_latex=r"\utilde{a}",
@@ -201,8 +162,6 @@ LENGYEL_NOTATION = (
     notation(
         "right_hodge_dual",
         1,
-        legacy_unicode="a^★",
-        legacy_latex=r"a^{\text{★}}",
         facade_ascii="right_hodge_dual(a)",
         facade_unicode="a^★",
         facade_latex=r"a^{\text{★}}",
@@ -210,8 +169,6 @@ LENGYEL_NOTATION = (
     notation(
         "left_hodge_dual",
         1,
-        legacy_unicode="a_★",
-        legacy_latex=r"{a}_{\text{★}}",
         facade_ascii="left_hodge_dual(a)",
         facade_unicode="a_★",
         facade_latex=r"a_{\text{★}}",
@@ -219,8 +176,6 @@ LENGYEL_NOTATION = (
     notation(
         "right_weight_dual",
         1,
-        legacy_unicode="a^☆",
-        legacy_latex=r"a^{\text{☆}}",
         facade_ascii="right_weight_dual(a)",
         facade_unicode="a^☆",
         facade_latex=r"a^{\text{☆}}",
@@ -228,8 +183,6 @@ LENGYEL_NOTATION = (
     notation(
         "left_weight_dual",
         1,
-        legacy_unicode="a_☆",
-        legacy_latex=r"{a}_{\text{☆}}",
         facade_ascii="left_weight_dual(a)",
         facade_unicode="a_☆",
         facade_latex=r"a_{\text{☆}}",
@@ -237,8 +190,6 @@ LENGYEL_NOTATION = (
     notation(
         "bulk_part",
         1,
-        legacy_unicode="a_●",
-        legacy_latex=r"{a}_{\text{●}}",
         facade_ascii="bulk_part(a)",
         facade_unicode="a_●",
         facade_latex=r"a_{\text{●}}",
@@ -246,8 +197,6 @@ LENGYEL_NOTATION = (
     notation(
         "weight_part",
         1,
-        legacy_unicode="a_○",
-        legacy_latex=r"{a}_{\text{○}}",
         facade_ascii="weight_part(a)",
         facade_unicode="a_○",
         facade_latex=r"a_{\text{○}}",
@@ -255,8 +204,6 @@ LENGYEL_NOTATION = (
     notation(
         "metric_apply",
         1,
-        legacy_unicode="Ga",
-        legacy_latex=r"\mathbf{G}a",
         facade_ascii="metric_apply(a)",
         facade_unicode="Ga",
         facade_latex=r"\mathbf{G}a",
@@ -264,8 +211,6 @@ LENGYEL_NOTATION = (
     notation(
         "antimetric_apply",
         1,
-        legacy_unicode="𝔾a",
-        legacy_latex=r"\mathbb{G}a",
         facade_ascii="antimetric_apply(a)",
         facade_unicode="𝔾a",
         facade_latex=r"\mathbb{G}a",
@@ -273,8 +218,6 @@ LENGYEL_NOTATION = (
     notation(
         "conjugate",
         1,
-        legacy_unicode="conjugate(a)",
-        legacy_latex=r"\operatorname{conjugate}(a)",
         facade_ascii="conjugate(a)",
         facade_unicode="conjugate(a)",
         facade_latex=r"\operatorname{conjugate}(a)",
@@ -282,8 +225,6 @@ LENGYEL_NOTATION = (
     notation(
         "hestenes_inner",
         2,
-        legacy_unicode="a·b",
-        legacy_latex=r"a \cdot b",
         facade_ascii="hestenes_inner(a, b)",
         facade_unicode="hestenes_inner(a, b)",
         facade_latex=r"\operatorname{hestenes\_inner}(a,\, b)",
@@ -293,10 +234,8 @@ LENGYEL_NOTATION = (
 
 @pytest.mark.parametrize("expectation", LENGYEL_NOTATION, ids=lambda item: item.operation)
 def test_every_lengyel_operation_has_exact_target_rendering(expectation: NotationExpectation) -> None:
-    """Every special rule is asserted through the same cross-version context."""
+    """Every special rule remains an exact facade contract in all three targets."""
     renderings = (
-        (LEGACY_RGA, "unicode", expectation.legacy_unicode),
-        (LEGACY_RGA, "latex", expectation.legacy_latex),
         (FACADE_RGA, "ascii", expectation.facade_ascii),
         (FACADE_RGA, "unicode", expectation.facade_unicode),
         (FACADE_RGA, "latex", expectation.facade_latex),
@@ -403,15 +342,6 @@ def test_rga_subscript_operations_on_a_scripted_blade_emit_legal_latex(
 
 @latex_test(
     testcase(
-        LEGACY_RGA,
-        r"""
-        u \wedge v + u \mathbin{\bullet} v
-        \quad = \quad -1
-        + 2 \mathbf{e}_{23} - \mathbf{e}_{31} - 3 \mathbf{e}_{12}
-        + \mathbf{e}_{41} - \mathbf{e}_{42} + \mathbf{e}_{43}
-        """,
-    ),
-    testcase(
         FACADE_RGA,
         r"""
         u \wedge v + u \mathbin{\bullet} v
@@ -431,13 +361,6 @@ def test_rga_product_decomposition_expression(context: ExpressionContext) -> Any
 
 @latex_test(
     testcase(
-        LEGACY_RGA,
-        r"""
-        \pi_x \vee \pi_y
-        \quad = \quad -\mathbf{e}_{43}
-        """,
-    ),
-    testcase(
         FACADE_RGA,
         r"""
         \pi_x \vee \pi_y
@@ -456,15 +379,6 @@ def test_rga_coordinate_planes_meet_in_their_common_line(
 
 
 @latex_test(
-    testcase(
-        LEGACY_RGA,
-        r"""
-        {L}_{\text{●}} + {L}_{\text{○}}
-        \quad = \quad
-        2 \mathbf{e}_{23} - \mathbf{e}_{31}
-        + 3 \mathbf{e}_{41} - \mathbf{e}_{42}
-        """,
-    ),
     testcase(
         FACADE_RGA,
         r"""
@@ -488,15 +402,6 @@ def test_rga_bulk_and_weight_parts_reconstruct_a_line(
 
 
 @latex_test(
-    testcase(
-        LEGACY_RGA,
-        r"""
-        P^{\text{★}} + P^{\text{☆}}
-        \quad = \quad
-        2 \mathbf{e}_{423} - 3 \mathbf{e}_{431}
-        + 5 \mathbf{e}_{412} + 7 \mathbf{e}_{321}
-        """,
-    ),
     testcase(
         FACADE_RGA,
         r"""
@@ -528,17 +433,6 @@ def _rga_demo_bivectors(context: ExpressionContext) -> tuple[Any, Any]:
 
 @latex_test(
     testcase(
-        LEGACY_RGA,
-        r"""
-        A \mathbin{\underset{0}{\text{⩓}}} B
-        + A \mathbin{\underset{1}{\text{⩓}}} B
-        - A \mathbin{\underset{2}{\text{⩓}}} B
-        \quad = \quad
-        2 - 2 \mathbf{e}_{23} + \mathbf{e}_{31} + \mathbf{e}_{12}
-        + \mathbf{e}_{42} - 2 \mathbf{e}_{43} - 6 \text{𝟙}
-        """,
-    ),
-    testcase(
         FACADE_RGA,
         r"""
         A \mathbin{\underset{0}{\text{⩓}}} B
@@ -564,16 +458,6 @@ def test_rga_transwedge_orders_reconstruct_the_geometric_product(
 
 @latex_test(
     testcase(
-        LEGACY_RGA,
-        r"""
-        A \mathbin{\underset{0}{\text{⩔}}} B
-        + A \mathbin{\underset{1}{\text{⩔}}} B
-        - A \mathbin{\underset{2}{\text{⩔}}} B
-        \quad = \quad
-        -6 - \mathbf{e}_{31} + 2 \mathbf{e}_{12} + 3 \mathbf{e}_{43}
-        """,
-    ),
-    testcase(
         FACADE_RGA,
         r"""
         A \mathbin{\underset{0}{\text{⩔}}} B
@@ -597,15 +481,6 @@ def test_rga_transwedge_antiproduct_orders_reconstruct_the_antiproduct(
 
 
 @latex_test(
-    testcase(
-        LEGACY_RGA,
-        r"""
-        \utilde{\overline{\vphantom{Aft^6}u} \vee \overline{\vphantom{Aft^6}v}}
-        \quad = \quad
-        \mathbf{e}_{23} - \mathbf{e}_{31} + \mathbf{e}_{12}
-        + 2 \mathbf{e}_{41} - \mathbf{e}_{42} - 3 \mathbf{e}_{43}
-        """,
-    ),
     testcase(
         FACADE_RGA,
         r"""
