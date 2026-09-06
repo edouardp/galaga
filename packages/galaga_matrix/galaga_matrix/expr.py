@@ -18,6 +18,8 @@ from galaga.expression import Expr as GalagaExpr
 from galaga.names import Name
 from galaga.presentation import PresentationConfig
 
+from ._plans import normalize_domain
+
 
 class Expr:
     """Base class for immutable matrix expression provenance."""
@@ -291,12 +293,22 @@ class MatrixBasisChange(Expr):
 class MatrixRepresentation(Expr):
     x: Expr
     mode: str
+    domain: str
     basis: str | None
     value: np.ndarray | None
 
-    def __init__(self, x: Any, *, mode: str, basis: str | None = None, value: Any | None = None) -> None:
+    def __init__(
+        self,
+        x: Any,
+        *,
+        mode: str,
+        domain: str = "full",
+        basis: str | None = None,
+        value: Any | None = None,
+    ) -> None:
         object.__setattr__(self, "x", _ensure_expr(x))
         object.__setattr__(self, "mode", mode)
+        object.__setattr__(self, "domain", normalize_domain(domain))
         object.__setattr__(self, "basis", basis)
         object.__setattr__(self, "value", None if value is None else _readonly_array(value))
 
@@ -311,11 +323,20 @@ class MatrixRepresentation(Expr):
 @dataclass(frozen=True, slots=True, eq=False, init=False)
 class SpinorColumnRepresentation(Expr):
     x: Expr
+    domain: str
     basis: str | None
     value: np.ndarray | None
 
-    def __init__(self, x: Any, *, basis: str | None = None, value: Any | None = None) -> None:
+    def __init__(
+        self,
+        x: Any,
+        *,
+        domain: str = "even",
+        basis: str | None = None,
+        value: Any | None = None,
+    ) -> None:
         object.__setattr__(self, "x", _ensure_expr(x))
+        object.__setattr__(self, "domain", normalize_domain(domain))
         object.__setattr__(self, "basis", basis)
         object.__setattr__(self, "value", None if value is None else _readonly_array(value))
 

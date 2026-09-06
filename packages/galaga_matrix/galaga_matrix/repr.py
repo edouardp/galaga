@@ -3,7 +3,7 @@
 Provides ``MatrixRepr``, a wrapper around matrix data that:
 - Supports ``.latex()`` and ``._repr_latex_()`` for notebooks
 - Forwards all arithmetic operations (matmul, add, sub, etc.)
-- Preserves metadata (algebra, mode, basis, kind) through operations
+- Preserves metadata (algebra, mode, domain, basis, kind) through operations
 - Supports Galaga-style ``.name()`` symbolic naming and expression trees
 - Acts as a transparent numpy proxy via ``__array_ufunc__``
 
@@ -20,6 +20,7 @@ import numpy as np
 
 from galaga.names import Name
 
+from ._plans import normalize_domain
 from .expr import (
     Add,
     Adjoint,
@@ -140,6 +141,8 @@ class MatrixRepr:
         algebra: Optional reference to the source Algebra (enables ``.mv``).
         mode: The representation mode (``"left-regular"``, ``"compact"``,
               or ``"quaternion"``).
+        domain: The represented source coefficient domain, ``"full"`` or
+                ``"even"``. Raw matrices default to ``"full"``.
     """
 
     def __init__(
@@ -149,6 +152,7 @@ class MatrixRepr:
         algebra=None,
         mode: str = "left-regular",
         basis: str | None = None,
+        domain: str | None = None,
         kind: str = "operator",
     ):
         self._symbolic_name: Name | None = None
@@ -160,6 +164,7 @@ class MatrixRepr:
             self.algebra = algebra if algebra is not None else data.algebra
             self.mode = mode if mode != "left-regular" else data.mode
             self.basis = basis if basis is not None else data.basis
+            self.domain = data.domain if domain is None else normalize_domain(domain)
             self.kind = kind if kind != "operator" else data.kind
             self._symbolic_name = data._symbolic_name
             self._tracking = data._tracking
@@ -176,10 +181,18 @@ class MatrixRepr:
             self.algebra = algebra
             self.mode = mode
             self.basis = basis
+            self.domain = normalize_domain("full" if domain is None else domain)
             self.kind = kind
 
     def _copy_with_symbolic(self, **overrides) -> MatrixRepr:
-        copy = MatrixRepr(self.mat.copy(), algebra=self.algebra, mode=self.mode, basis=self.basis, kind=self.kind)
+        copy = MatrixRepr(
+            self.mat.copy(),
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=self.basis,
+            domain=self.domain,
+            kind=self.kind,
+        )
         copy._symbolic_name = overrides.get("name", self._symbolic_name)
         copy._tracking = overrides.get("tracking", self._tracking)
         copy._expression = overrides.get("expression", self._expression)
@@ -289,6 +302,7 @@ class MatrixRepr:
         algebra=None,
         mode: str | None = None,
         basis: str | None = None,
+        domain: str | None = None,
         kind: str | None = None,
     ) -> MatrixRepr:
         wrapped = MatrixRepr(
@@ -296,6 +310,7 @@ class MatrixRepr:
             algebra=self.algebra if algebra is None else algebra,
             mode=self.mode if mode is None else mode,
             basis=self.basis if basis is None else basis,
+            domain=self.domain if domain is None else domain,
             kind=self.kind if kind is None else kind,
         )
         wrapped._tracking = True
@@ -303,8 +318,15 @@ class MatrixRepr:
         return wrapped
 
     def _wrap(self, result: np.ndarray) -> MatrixRepr:
-        """Wrap a numpy result in a new MatrixRepr, inheriting algebra/mode/basis/kind."""
-        return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=self.kind)
+        """Wrap a result while inheriting algebra, representation, and kind metadata."""
+        return MatrixRepr(
+            result,
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=self.basis,
+            domain=self.domain,
+            kind=self.kind,
+        )
 
     def _require_mat(self) -> np.ndarray:
         """Get the numpy array."""
@@ -386,6 +408,7 @@ class MatrixRepr:
             algebra=self.algebra,
             mode=self.mode,
             basis=self.basis,
+            domain=self.domain,
             kind="operator",
         ).as_expression()
 
@@ -412,7 +435,14 @@ class MatrixRepr:
                 MatMul(self.as_expression(), self._operand_expr(other)),
                 kind=result_kind,
             )
-        return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=result_kind)
+        return MatrixRepr(
+            result,
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=self.basis,
+            domain=self.domain,
+            kind=result_kind,
+        )
 
     def __rmatmul__(self, other) -> MatrixRepr:
         if self._tracking:
@@ -514,7 +544,14 @@ class MatrixRepr:
             new_kind = "ket"
         if self._tracking:
             return self._symbolic_result(result, Adjoint(self.as_expression()), kind=new_kind)
-        return MatrixRepr(result, algebra=self.algebra, mode=self.mode, basis=self.basis, kind=new_kind)
+        return MatrixRepr(
+            result,
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=self.basis,
+            domain=self.domain,
+            kind=new_kind,
+        )
 
     def conj(self) -> MatrixRepr:
         """Element-wise complex conjugate."""
@@ -594,19 +631,42 @@ class MatrixRepr:
             expression = MatrixBasisChange(self.as_expression(), target, value=new_mat)
             return self._symbolic_result(new_mat, expression, basis=target)
 
-        return MatrixRepr(new_mat, algebra=self.algebra, mode=self.mode, basis=target, kind=self.kind)
+        return MatrixRepr(
+            new_mat,
+            algebra=self.algebra,
+            mode=self.mode,
+            basis=target,
+            domain=self.domain,
+            kind=self.kind,
+        )
 
     # ── Factory methods ──
 
     @classmethod
-    def identity(cls, k: int, *, dtype=complex, algebra=None, mode: str = "compact") -> MatrixRepr:
+    def identity(
+        cls,
+        k: int,
+        *,
+        dtype=complex,
+        algebra=None,
+        mode: str = "compact",
+        domain: str = "full",
+    ) -> MatrixRepr:
         """k×k identity matrix."""
-        return cls(np.eye(k, dtype=dtype), algebra=algebra, mode=mode)
+        return cls(np.eye(k, dtype=dtype), algebra=algebra, mode=mode, domain=domain)
 
     @classmethod
-    def zeros(cls, shape: tuple[int, int], *, dtype=complex, algebra=None, mode: str = "compact") -> MatrixRepr:
+    def zeros(
+        cls,
+        shape: tuple[int, int],
+        *,
+        dtype=complex,
+        algebra=None,
+        mode: str = "compact",
+        domain: str = "full",
+    ) -> MatrixRepr:
         """Zero matrix of given shape."""
-        return cls(np.zeros(shape, dtype=dtype), algebra=algebra, mode=mode)
+        return cls(np.zeros(shape, dtype=dtype), algebra=algebra, mode=mode, domain=domain)
 
     def kron(self, other: MatrixRepr) -> MatrixRepr:
         """Kronecker (tensor) product."""

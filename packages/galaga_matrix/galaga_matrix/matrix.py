@@ -22,6 +22,7 @@ Provides two representation modes:
 
 from __future__ import annotations
 
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any, cast
 
 import numpy as np
@@ -29,8 +30,91 @@ import numpy as np
 from galaga.facade import Algebra, Multivector
 from galaga.names import Name
 
+from ._plans import MatrixRepresentationPlan, RepresentationDescriptor, RepresentationDomain
+
 if TYPE_CHECKING:
     from .repr import MatrixRepr
+
+_PLAN_CACHE_SIZE = 64
+_PLAN_RANK_TOLERANCE = 1e-10
+_PLAN_INVERSE_TOLERANCE = 1e-9
+_MODE_CONVENTIONS = {
+    "left-regular": "native-left-regular-v1",
+    "compact": "orthogonal-compact-v1",
+    "pauli": "pauli-v1",
+    "dirac": "dirac-v1",
+    "quaternion": "quaternion-block-v1",
+}
+
+
+def _default_basis(mode: str, p: int, q: int) -> str | None:
+    if mode in ("dirac", "pauli"):
+        return mode
+    if mode == "compact" and (p, q) in ((1, 3), (3, 1)):
+        return "dirac"
+    if mode == "compact" and (p, q) in ((3, 0), (0, 3)):
+        return "pauli"
+    return None
+
+
+def _representation_descriptor(
+    alg: Algebra,
+    mode: str,
+    *,
+    domain: RepresentationDomain = "full",
+) -> RepresentationDescriptor:
+    """Resolve and validate the stable identity of one representation plan."""
+    p, q = _signature_pq(alg)
+    if mode == "pauli" and (p, q) not in ((3, 0), (0, 3)):
+        raise TypeError(f"mode='pauli' requires Cl(3,0) or Cl(0,3), got Cl({p},{q}).")
+    if mode == "dirac" and (p, q) not in ((1, 3), (3, 1)):
+        raise TypeError(f"mode='dirac' requires Cl(1,3) or Cl(3,1), got Cl({p},{q}).")
+    if mode not in _MODE_CONVENTIONS:
+        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
+    dtype = "float64" if mode == "left-regular" else "complex128"
+    return RepresentationDescriptor(
+        mode=mode,
+        domain=domain,
+        basis=_default_basis(mode, p, q),
+        convention=_MODE_CONVENTIONS[mode],
+        dtype=dtype,
+    )
+
+
+def _plan_cache_algebra(alg: Algebra) -> Any:
+    """Use facade numeric identity so presentation-only views share one plan."""
+    numeric = getattr(alg, "numeric", None)
+    return numeric if numeric is not None else alg
+
+
+@lru_cache(maxsize=_PLAN_CACHE_SIZE)
+def _cached_representation_plan(
+    source_algebra: Any,
+    descriptor: RepresentationDescriptor,
+) -> MatrixRepresentationPlan:
+    return _build_representation_plan(source_algebra, descriptor)
+
+
+def _representation_plan(
+    alg: Algebra,
+    mode: str,
+    *,
+    domain: RepresentationDomain = "full",
+) -> MatrixRepresentationPlan:
+    """Return the immutable cached plan for an algebra and representation."""
+    descriptor = _representation_descriptor(alg, mode, domain=domain)
+    return _cached_representation_plan(_plan_cache_algebra(alg), descriptor)
+
+
+def _representation_plan_cache_clear() -> None:
+    """Clear representation plans; intended for deterministic tests."""
+    _cached_representation_plan.cache_clear()
+
+
+def _representation_plan_cache_info():
+    """Return bounded-cache statistics for diagnostics and tests."""
+    return _cached_representation_plan.cache_info()
+
 
 # ── Left-regular representation ──
 
@@ -150,41 +234,25 @@ def to_matrix(mv: Multivector, mode: str | None = None) -> MatrixRepr:
     if mode is None:
         mode = "compact" if _compact_metric_supported(mv.algebra) else "left-regular"
 
-    p, q = _signature_pq(mv.algebra)
-
-    if mode == "pauli":
-        if (p, q) not in ((3, 0), (0, 3)):
-            raise TypeError(f"mode='pauli' requires Cl(3,0) or Cl(0,3), got Cl({p},{q}).")
-        mat = _to_compact(mv)
-    elif mode == "dirac":
-        if (p, q) not in ((1, 3), (3, 1)):
-            raise TypeError(f"mode='dirac' requires Cl(1,3) or Cl(3,1), got Cl({p},{q}).")
-        mat = _to_compact(mv)
-    elif mode == "compact":
-        mat = _to_compact(mv)
-    elif mode == "left-regular":
+    plan = _representation_plan(mv.algebra, mode)
+    if mode == "left-regular":
         mat = _to_left_regular(mv)
-    elif mode == "quaternion":
-        _quaternion_block_basis(mv.algebra)  # validates algebra is quaternionic
-        mat = _to_quaternion_block_complex(mv)
     else:
-        raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
+        mat = _to_matrix_from_blade_mats(mv, plan.conversion_basis)
 
-    # Set basis for modes that correspond to a named basis
-    basis = None
-    if mode in ("dirac", "pauli"):
-        basis = mode
-    elif mode == "compact" and (p, q) in ((1, 3), (3, 1)):
-        basis = "dirac"
-    elif mode == "compact" and (p, q) in ((3, 0), (0, 3)):
-        basis = "pauli"
-
-    result = MatrixRepr(mat, algebra=mv.algebra, mode=mode, basis=basis)
+    basis = plan.descriptor.basis
+    result = MatrixRepr(mat, algebra=mv.algebra, mode=mode, basis=basis, domain=plan.descriptor.domain)
     from .expr import MatrixRepresentation, multivector_operand
 
     operand = multivector_operand(mv)
     if operand is not None:
-        expression = MatrixRepresentation(operand, mode=mode, basis=basis, value=result.mat)
+        expression = MatrixRepresentation(
+            operand,
+            mode=mode,
+            domain=plan.descriptor.domain,
+            basis=basis,
+            value=result.mat,
+        )
         result._attach_expression(expression)
         if _multivector_name(mv) is not None:
             result.name(
@@ -258,19 +326,16 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
     if mode in ("left-regular",):
         mv = _from_left_regular(alg, mat)
     elif mode in ("compact", "pauli", "dirac"):
-        mv = _from_compact(alg, mat)
+        mv = _from_compact(alg, mat, mode=mode)
     elif mode == "quaternion":
         # Use quaternion-block blade matrices for the inverse
-        blade_mats = _build_quaternion_block_blade_matrices(alg)
-        dim = alg.dim
-        k = blade_mats.shape[1]
+        plan = _representation_plan(alg, "quaternion")
+        k = plan.matrix_shape[0]
         if mat.shape != (k, k):
             raise ValueError(f"Expected ({k}, {k}) matrix for quaternion mode, got {mat.shape}")
-        flat_basis = blade_mats.reshape(dim, k * k)
-        A = np.vstack([flat_basis.real.T, flat_basis.imag.T])
         flat_mat = mat.reshape(k * k)
         b = np.concatenate([flat_mat.real, flat_mat.imag])
-        coeffs, _, _, _ = np.linalg.lstsq(A, b, rcond=None)
+        coeffs, _, _, _ = np.linalg.lstsq(plan.reconstruction_system, b, rcond=None)
         mv = _new_multivector(alg, coeffs)
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
@@ -604,9 +669,65 @@ def _build_blade_matrices_from_gammas(alg: Algebra, gammas: list[np.ndarray]) ->
     return blade_mats
 
 
+def _represented_coefficient_indices(alg: Algebra, domain: RepresentationDomain) -> np.ndarray:
+    if domain == "full":
+        return np.arange(alg.dim, dtype=np.int64)
+    return np.array([index for index in range(alg.dim) if index.bit_count() % 2 == 0], dtype=np.int64)
+
+
+def _real_system_matrix(blade_matrices: np.ndarray, coefficient_indices: np.ndarray) -> np.ndarray:
+    selected = blade_matrices[coefficient_indices]
+    flat_basis = selected.reshape(len(coefficient_indices), -1)
+    return np.vstack([flat_basis.real.T, flat_basis.imag.T])
+
+
+def _build_representation_plan(
+    source_algebra: Algebra,
+    descriptor: RepresentationDescriptor,
+) -> MatrixRepresentationPlan:
+    """Build one immutable plan from the existing validated matrix constructors."""
+    coefficient_indices = _represented_coefficient_indices(source_algebra, descriptor.domain)
+    if descriptor.mode == "left-regular":
+        return MatrixRepresentationPlan(
+            source_algebra=source_algebra,
+            descriptor=descriptor,
+            matrix_shape=(source_algebra.dim, source_algebra.dim),
+            generators=(),
+            blade_matrices=None,
+            coefficient_indices=coefficient_indices,
+            system_matrix=None,
+            real_rank=len(coefficient_indices),
+            rank_tolerance=_PLAN_RANK_TOLERANCE,
+            inverse_tolerance=_PLAN_INVERSE_TOLERANCE,
+        )
+
+    if descriptor.mode == "quaternion":
+        generators = _quaternion_block_basis(source_algebra)
+    else:
+        p, q = _require_compact_metric(source_algebra)
+        generators = _general_compact_basis(p, q)
+
+    blade_matrices = _build_blade_matrices_from_gammas(source_algebra, generators)
+    system_matrix = _real_system_matrix(blade_matrices, coefficient_indices)
+    matrix_size = blade_matrices.shape[1]
+    return MatrixRepresentationPlan(
+        source_algebra=source_algebra,
+        descriptor=descriptor,
+        matrix_shape=(matrix_size, matrix_size),
+        generators=tuple(generators),
+        blade_matrices=blade_matrices,
+        coefficient_indices=coefficient_indices,
+        system_matrix=system_matrix,
+        real_rank=int(np.linalg.matrix_rank(system_matrix, tol=_PLAN_RANK_TOLERANCE)),
+        rank_tolerance=_PLAN_RANK_TOLERANCE,
+        inverse_tolerance=_PLAN_INVERSE_TOLERANCE,
+    )
+
+
 def _build_compact_blade_matrices(alg: Algebra) -> np.ndarray:
     """Build compact matrices for all basis blades."""
-    return _build_blade_matrices_from_gammas(alg, compact_basis(alg))
+    plan = _representation_plan(alg, "compact")
+    return plan.conversion_basis
 
 
 def _to_matrix_from_blade_mats(mv: Multivector, blade_mats: np.ndarray) -> np.ndarray:
@@ -621,31 +742,24 @@ def _to_compact(mv: Multivector) -> np.ndarray:
     return _to_matrix_from_blade_mats(mv, _build_compact_blade_matrices(mv.algebra))
 
 
-def _from_compact(alg: Algebra, mat: np.ndarray) -> Multivector:
-    blade_mats = _build_compact_blade_matrices(alg)
-    dim = alg.dim
-    k = blade_mats.shape[1]
+def _from_compact(alg: Algebra, mat: np.ndarray, *, mode: str = "compact") -> Multivector:
+    plan = _representation_plan(alg, mode)
+    dim = len(plan.coefficient_indices)
+    k = plan.matrix_shape[0]
 
     if mat.shape != (k, k):
         raise ValueError(f"Expected ({k}, {k}) matrix, got {mat.shape}")
 
-    # The MV coefficients are real, but the matrices are complex.
-    # Stack real and imaginary parts to get a real linear system.
-    flat_basis = blade_mats.reshape(dim, k * k)  # (dim, k²) complex
-
-    # A[j, i] = contribution of blade i to matrix entry j
-    # Stack real and imag: A is (2k², dim), b is (2k²,)
-    A = np.vstack([flat_basis.real.T, flat_basis.imag.T])  # (2k², dim)
     flat_mat = mat.reshape(k * k)
     b = np.concatenate([flat_mat.real, flat_mat.imag])  # (2k²,)
-    coeffs, _, rank, _ = np.linalg.lstsq(A, b, rcond=None)
-    if rank < dim:
+    coeffs, _, rank, _ = np.linalg.lstsq(plan.reconstruction_system, b, rcond=None)
+    if plan.real_rank < dim or rank < dim:
         raise TypeError(
             "Compact representation is not injective for this algebra; cannot recover a unique multivector."
         )
 
-    err = np.linalg.norm(A @ coeffs - b)
-    if err > 1e-9:
+    err = np.linalg.norm(plan.reconstruction_system @ coeffs - b)
+    if err > plan.inverse_tolerance:
         raise ValueError("Matrix is not in the image of this Clifford representation.")
 
     return _new_multivector(alg, coeffs)
@@ -766,7 +880,8 @@ def _quaternion_block_basis(alg: Algebra) -> list[np.ndarray]:
 
 
 def _build_quaternion_block_blade_matrices(alg: Algebra) -> np.ndarray:
-    return _build_blade_matrices_from_gammas(alg, _quaternion_block_basis(alg))
+    plan = _representation_plan(alg, "quaternion")
+    return plan.conversion_basis
 
 
 def _to_quaternion_block_complex(mv: Multivector) -> np.ndarray:
@@ -820,7 +935,7 @@ def _spinor_reference_vector_from_gammas(gammas: list[np.ndarray]) -> np.ndarray
 
 
 def _spinor_reference_vector(alg: Algebra) -> np.ndarray:
-    return _spinor_reference_vector_from_gammas(compact_basis(alg))
+    return _spinor_reference_vector_from_gammas(list(_representation_plan(alg, "compact").generators))
 
 
 def _spinor_system_matrix_from_blade_mats(
@@ -836,18 +951,20 @@ def _spinor_system_matrix_from_blade_mats(
 
 
 def _spinor_system_matrix(alg: Algebra) -> tuple[np.ndarray, np.ndarray]:
+    plan = _representation_plan(alg, "compact")
     return _spinor_system_matrix_from_blade_mats(
         alg,
-        _build_compact_blade_matrices(alg),
-        _spinor_reference_vector(alg),
+        plan.conversion_basis,
+        _spinor_reference_vector_from_gammas(list(plan.generators)),
     )
 
 
 def _quaternion_spinor_system_matrix(alg: Algebra) -> tuple[np.ndarray, np.ndarray]:
-    gammas = _quaternion_block_basis(alg)
+    plan = _representation_plan(alg, "quaternion")
+    gammas = list(plan.generators)
     return _spinor_system_matrix_from_blade_mats(
         alg,
-        _build_blade_matrices_from_gammas(alg, gammas),
+        plan.conversion_basis,
         _spinor_reference_vector_from_gammas(gammas),
     )
 
@@ -920,13 +1037,20 @@ def to_spinor_column(mv: Multivector) -> MatrixRepr:
     elif (p, q) in ((3, 0), (0, 3)):
         basis = "pauli"
 
-    result = MatrixRepr(spinor, algebra=mv.algebra, mode="compact", basis=basis, kind="ket")
+    result = MatrixRepr(
+        spinor,
+        algebra=mv.algebra,
+        mode="compact",
+        basis=basis,
+        domain="even",
+        kind="ket",
+    )
 
     from .expr import SpinorColumnRepresentation, multivector_operand
 
     operand = multivector_operand(mv)
     if operand is not None:
-        expression = SpinorColumnRepresentation(operand, basis=basis, value=result.mat)
+        expression = SpinorColumnRepresentation(operand, domain="even", basis=basis, value=result.mat)
         result._attach_expression(expression)
         if _multivector_name(mv) is not None:
             result.name(

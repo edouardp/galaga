@@ -4,6 +4,12 @@
 
 Proposed.
 
+Implementation progress: work unit 1 is complete. The package now has frozen
+representation descriptors, immutable cached plans, explicit full/even source
+domain metadata, and shared compact-family reconstruction systems. Work units
+2--7 remain proposed; no general-Gram compact representation or dispatch
+change is enabled yet.
+
 This document specifies matrix representations for three-dimensional
 conformal geometric algebra in its native null basis. It covers:
 
@@ -1198,6 +1204,9 @@ machine-readable representation descriptor.
 ## Work units and gates
 
 ### Work unit 1: Representation descriptor and cache
+
+Status: implemented 2026-09-06. See
+[ADR-011](../adrs/011-cached-immutable-representation-plans.md).
 
 Implement the internal plan, domain metadata, and cache without changing the
 set of supported metrics.

@@ -94,7 +94,7 @@ example test ledger.
 - **Numpy interop** — `np.add(M, N)`, `np.conj(M)` etc. return `MatrixRepr` via `__array_ufunc__`
 - **Symbolic naming** — `.name()` assigns an immutable, target-aware `symbolic_name`
 - **Immutable provenance** — `.expr` records frozen matrix-domain operations; `.as_expression()` exposes an operand
-- **Metadata propagation** — `algebra`, `mode`, `basis`, and `kind` pass through operations
+- **Metadata propagation** — `algebra`, `mode`, `domain`, `basis`, and `kind` pass through operations
 - **Indexing** — `M[i,j]` for elements, `M[0:2, 0:2]` for submatrices
 - **Rendering** — `.latex()`, `._repr_latex_()` for notebooks
 - **Escape hatch** — `.mat` gives the raw numpy array
@@ -115,6 +115,8 @@ names. Quaternion-block mode uses `ρ_{\mathbb{H}}(name)`.
 `galaga_matrix.expr` owns matrix multiplication, transpose, adjoint, inverse,
 basis-change, Kronecker-product, representation-map, and spinor-column nodes.
 They are frozen and their matrix leaves hold read-only NumPy snapshots.
+Representation-map provenance records the source coefficient domain:
+`"full"` for ordinary matrix conversion and `"even"` for spinor columns.
 
 Galaga's public expression tree remains a geometric-algebra operation tree.
 When a facade value carries provenance, conversion wraps it in a matrix adapter
@@ -156,7 +158,10 @@ general periodicity recursion.
   [Double Clifford Algebras](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/double-algebras.md).
 - **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
 - **Spinor roundtrip**: spinor conversions are rank-checked for the actual reference-column map. Signatures whose even subalgebra is not injective under that map raise `TypeError`.
-- **No caching**: blade matrices are rebuilt on every call. Fine for interactive use, not for hot loops.
+- **Bounded plan cache**: repeated conversions reuse immutable generator,
+  blade, rank, and reconstruction-system data. The cache key uses numeric
+  algebra identity plus the mode, source domain, basis convention, and dtype;
+  presentation state and multivector values never enter it.
 
 ## Architecture decisions
 

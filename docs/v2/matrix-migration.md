@@ -117,6 +117,6 @@ The facade matrix contract verifies:
 - absence of private multiplication-table, multivector expression, legacy
   numeric, and `galaga.symbolic_core` imports.
 
-All 392 Python 3.11 matrix tests pass. The suite remains an independent gate
-for Pauli, Dirac, quaternion, spinor, basis-change, NumPy, provenance, and
-rendering behavior.
+The matrix package suite remains an independent gate for Pauli, Dirac,
+quaternion, spinor, basis-change, NumPy, provenance, rendering, and immutable
+representation-plan behavior.
