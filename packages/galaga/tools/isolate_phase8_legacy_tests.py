@@ -36,7 +36,6 @@ LEGACY_ORACLE_TESTS = (
     "test_symbolic.py",
     "facade/test_numeric_contract.py",
     "rendering/test_compound_latex_contract.py",
-    "rendering/test_legacy_facade_parity.py",
     "rendering/test_rga_latex_contract.py",
     "rendering/test_sta_latex_contract.py",
 )

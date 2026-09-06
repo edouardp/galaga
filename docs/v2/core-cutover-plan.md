@@ -1268,6 +1268,31 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
+Status: **in progress**. The first prerequisite is complete: the 73-case
+rendering parity audit uses captured v1 observations instead of importing the
+legacy engine, and independently pins reviewed v2 outputs. A subprocess gate
+blocks legacy imports while executing the complete audit. See
+[ADR-092](../adrs/092-frozen-historical-rendering-oracles.md).
+
+Remaining before this work unit is complete:
+
+- repair the existing portable-notebook test assumptions exposed by the
+  checkpoint's wider run: the exact Marimo generator-version assertion and
+  launcher assertion that predates `--watch`;
+- preserve or retire the remaining legacy-only and dual-implementation tests
+  against the numeric migration inventory;
+- retire the live legacy benchmark path while retaining the historical
+  performance baseline;
+- remove matrix compatibility fallback paths that still accommodate v1;
+- delete the obsolete engine and its exclusively legacy dependencies; and
+- prove source, wheel-content, coverage, and full-suite deletion gates below.
+
+The matrix and Marimo package suites pass separately, as invoked by the
+Makefile. Combining them in one Python 3.14 process exposes another existing
+test-isolation issue: Marimo's test module replaces `string.templatelib` in
+`sys.modules`, breaking later real notebook interpolation. None of these
+notebook checks or fixtures is changed by the rendering-oracle checkpoint.
+
 Remove the private legacy oracle only after Phase 8 has passed on the branch
 and in CI. Preserve historical behavior in tests, specifications, and migration
 documentation rather than in unreachable production code.

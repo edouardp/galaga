@@ -1,0 +1,3382 @@
+{
+  "schema_version": 1,
+  "source_commit": "d98c9f463ecd532e7d9c5b3bdc82aa471ecad1bc",
+  "python_version": "3.14.4",
+  "numpy_version": "2.5.2",
+  "shared_operations": [
+    "anticommutator",
+    "antidot_product",
+    "antimetric_apply",
+    "antireverse",
+    "bulk_part",
+    "commutator",
+    "complement",
+    "conjugate",
+    "doran_lasenby_inner",
+    "dual",
+    "even_grades",
+    "exp",
+    "geometric_antiproduct",
+    "geometric_product",
+    "grade_involution",
+    "hestenes_inner",
+    "inverse",
+    "jordan_product",
+    "left_contraction",
+    "left_hodge_dual",
+    "left_interior_product",
+    "left_weight_dual",
+    "lie_bracket",
+    "log",
+    "metric_apply",
+    "metric_inner_product",
+    "odd_grades",
+    "outer_product",
+    "outercos",
+    "outerexp",
+    "outersin",
+    "outertan",
+    "regressive_product",
+    "reverse",
+    "right_contraction",
+    "right_hodge_dual",
+    "right_interior_product",
+    "right_weight_dual",
+    "scalar_product",
+    "transwedge",
+    "transwedge_antiproduct",
+    "uncomplement",
+    "undual",
+    "unit",
+    "weight_part"
+  ],
+  "cases": {
+    "default-cl3/add": {
+      "intent": "a + b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a + b",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad a + b \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad a + b \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a + b",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad a + b \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad a + b \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/subtract": {
+      "intent": "a - b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a - b",
+        "value": "e_{1} - e_{2}",
+        "full": "x \\quad = \\quad a - b \\quad = \\quad e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad a - b \\quad = \\quad e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a - b",
+        "value": "e_{1} - e_{2}",
+        "full": "x \\quad = \\quad a - b \\quad = \\quad e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad a - b \\quad = \\quad e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/negate-sum": {
+      "intent": "-(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "-\\left(a + b\\right)",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad -\\left(a + b\\right) \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad -\\left(a + b\\right) \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          -0.0,
+          -1.0,
+          -1.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "-\\left(a + b\\right)",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad -\\left(a + b\\right) \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad -\\left(a + b\\right) \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          -0.0,
+          -1.0,
+          -1.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/scalar-multiply": {
+      "intent": "1.23456789 a",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "1.23457 a",
+        "value": "1.23457 e_{1}",
+        "full": "x \\quad = \\quad 1.23457 a \\quad = \\quad 1.23457 e_{1}",
+        "rich": "$x \\quad = \\quad 1.23457 a \\quad = \\quad 1.23457 e_{1}$",
+        "coefficients": [
+          0.0,
+          1.23456789,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "1.23457 a",
+        "value": "1.23457 e_{1}",
+        "full": "x \\quad = \\quad 1.23457 a \\quad = \\quad 1.23457 e_{1}",
+        "rich": "$x \\quad = \\quad 1.23457 a \\quad = \\quad 1.23457 e_{1}$",
+        "coefficients": [
+          0.0,
+          1.23456789,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/scalar-divide-sum": {
+      "intent": "(a + b) / 3",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\frac{a + b}{3}",
+        "value": "0.333333 e_{1} + 0.333333 e_{2}",
+        "full": "x \\quad = \\quad \\frac{a + b}{3} \\quad = \\quad 0.333333 e_{1} + 0.333333 e_{2}",
+        "rich": "$x \\quad = \\quad \\frac{a + b}{3} \\quad = \\quad 0.333333 e_{1} + 0.333333 e_{2}$",
+        "coefficients": [
+          0.0,
+          0.3333333333333333,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\frac{a + b}{3}",
+        "value": "0.333333 e_{1} + 0.333333 e_{2}",
+        "full": "x \\quad = \\quad \\frac{a + b}{3} \\quad = \\quad 0.333333 e_{1} + 0.333333 e_{2}",
+        "rich": "$x \\quad = \\quad \\frac{a + b}{3} \\quad = \\quad 0.333333 e_{1} + 0.333333 e_{2}$",
+        "coefficients": [
+          0.0,
+          0.3333333333333333,
+          0.3333333333333333,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/power-sum": {
+      "intent": "(a + b)^2",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right)^2",
+        "value": "2",
+        "full": "x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right)^2",
+        "value": "2",
+        "full": "x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/geometric-product": {
+      "intent": "a b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a b",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a b \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a b \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a b",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a b \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a b \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/geometric-product-left-sum": {
+      "intent": "(a + b) b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right) b",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) b \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) b \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right) b",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) b \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) b \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/geometric-product-right-sum": {
+      "intent": "a (a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\left(a + b\\right)",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad a \\left(a + b\\right) \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad a \\left(a + b\\right) \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\left(a + b\\right)",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad a \\left(a + b\\right) \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad a \\left(a + b\\right) \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outer-product": {
+      "intent": "a wedge b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\wedge b",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a \\wedge b \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a \\wedge b \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\wedge b",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a \\wedge b \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a \\wedge b \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outer-product-right-sum": {
+      "intent": "a wedge (a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\wedge \\left(a + b\\right)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a \\wedge \\left(a + b\\right) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a \\wedge \\left(a + b\\right) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\wedge \\left(a + b\\right)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad a \\wedge \\left(a + b\\right) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad a \\wedge \\left(a + b\\right) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/left-contraction": {
+      "intent": "a left-contract (b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\;\\lrcorner\\; \\left(b \\wedge c\\right)",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\;\\lrcorner\\; \\left(b \\wedge c\\right) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\;\\lrcorner\\; \\left(b \\wedge c\\right) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\mathbin{\\rfloor} \\left(b \\wedge c\\right)",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\mathbin{\\rfloor} \\left(b \\wedge c\\right) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\mathbin{\\rfloor} \\left(b \\wedge c\\right) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/right-contraction": {
+      "intent": "(a wedge b) right-contract b",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right) \\;\\llcorner\\; b",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\;\\llcorner\\; b \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\;\\llcorner\\; b \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right) \\mathbin{\\lfloor} b",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\lfloor} b \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\lfloor} b \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/hestenes-inner": {
+      "intent": "(a + b) Hestenes-inner (b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right) \\cdot \\left(b \\wedge c\\right)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right) \\cdot \\left(b \\wedge c\\right)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/doran-lasenby-inner": {
+      "intent": "(a + b) Doran-Lasenby-inner (b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right) \\cdot \\left(b \\wedge c\\right)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right) \\cdot \\left(b \\wedge c\\right)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\cdot \\left(b \\wedge c\\right) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/scalar-product": {
+      "intent": "(a wedge b) scalar-product itself",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right) * \\left(a \\wedge b\\right)",
+        "value": "-1",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) * \\left(a \\wedge b\\right) \\quad = \\quad -1",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) * \\left(a \\wedge b\\right) \\quad = \\quad -1$",
+        "coefficients": [
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right) * \\left(a \\wedge b\\right)",
+        "value": "-1",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) * \\left(a \\wedge b\\right) \\quad = \\quad -1",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) * \\left(a \\wedge b\\right) \\quad = \\quad -1$",
+        "coefficients": [
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/metric-inner-product": {
+      "intent": "(a wedge b) metric-inner-product itself",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b)",
+        "value": "1",
+        "full": "x \\quad = \\quad \\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b) \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b) \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b)",
+        "value": "1",
+        "full": "x \\quad = \\quad \\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b) \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\operatorname{metric\\_inner\\_product}(a \\wedge b,\\, a \\wedge b) \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/antidot-product": {
+      "intent": "antidot_product(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{antidot\\_product}(a,\\, b)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{antidot\\_product}(a,\\, b) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{antidot\\_product}(a,\\, b) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{antidot\\_product}(a,\\, b)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{antidot\\_product}(a,\\, b) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{antidot\\_product}(a,\\, b) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/commutator": {
+      "intent": "commutator(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "[a,\\, b]",
+        "value": "2 e_{12}",
+        "full": "x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}",
+        "rich": "$x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "[a,\\, b]",
+        "value": "2 e_{12}",
+        "full": "x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}",
+        "rich": "$x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/anticommutator": {
+      "intent": "anticommutator(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\{a,\\, b\\}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\{a,\\, b\\} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\{a,\\, b\\} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\{a,\\, b\\}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\{a,\\, b\\} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\{a,\\, b\\} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/lie-bracket": {
+      "intent": "lie_bracket(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\tfrac{1}{2}[a,\\, b]",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\tfrac{1}{2}[a,\\, b] \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\tfrac{1}{2}[a,\\, b] \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "[a,\\, b]",
+        "value": "2 e_{12}",
+        "full": "x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}",
+        "rich": "$x \\quad = \\quad [a,\\, b] \\quad = \\quad 2 e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/jordan-product": {
+      "intent": "jordan_product(a, a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\tfrac{1}{2}\\{a,\\, a\\}",
+        "value": "1",
+        "full": "x \\quad = \\quad \\tfrac{1}{2}\\{a,\\, a\\} \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\tfrac{1}{2}\\{a,\\, a\\} \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\{a,\\, a\\}",
+        "value": "2",
+        "full": "x \\quad = \\quad \\{a,\\, a\\} \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\{a,\\, a\\} \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/geometric-antiproduct": {
+      "intent": "geometric_antiproduct(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{geometric\\_antiproduct}(a,\\, b)",
+        "value": "-e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{geometric\\_antiproduct}(a,\\, b) \\quad = \\quad -e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{geometric\\_antiproduct}(a,\\, b) \\quad = \\quad -e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{geometric\\_antiproduct}(a,\\, b)",
+        "value": "-e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{geometric\\_antiproduct}(a,\\, b) \\quad = \\quad -e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{geometric\\_antiproduct}(a,\\, b) \\quad = \\quad -e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          -1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/regressive-product": {
+      "intent": "(a wedge b) vee (b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right)",
+        "value": "e_{2}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right) \\quad = \\quad e_{2}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right) \\quad = \\quad e_{2}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right)",
+        "value": "e_{2}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right) \\quad = \\quad e_{2}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\vee \\left(b \\wedge c\\right) \\quad = \\quad e_{2}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/left-interior-product": {
+      "intent": "left_interior_product(a, b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_interior\\_product}(a,\\, b \\wedge c) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/right-interior-product": {
+      "intent": "right_interior_product(a wedge b, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b)",
+        "value": "-e_{1}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b) \\quad = \\quad -e_{1}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b) \\quad = \\quad -e_{1}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b)",
+        "value": "-e_{1}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b) \\quad = \\quad -e_{1}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_interior\\_product}(a \\wedge b,\\, b) \\quad = \\quad -e_{1}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/transwedge": {
+      "intent": "transwedge(a, b, 0)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{transwedge}(a,\\, b,\\, 0)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{transwedge}(a,\\, b,\\, 0) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{transwedge}(a,\\, b,\\, 0) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{transwedge}(a,\\, b,\\, 0)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{transwedge}(a,\\, b,\\, 0) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{transwedge}(a,\\, b,\\, 0) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/transwedge-antiproduct": {
+      "intent": "transwedge_antiproduct(a, b, 0)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0)",
+        "value": "0",
+        "full": "x \\quad = \\quad \\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0) \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 0) \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/reverse-atom": {
+      "intent": "reverse(a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\tilde{a}",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\tilde{a} \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\tilde{a} \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\widetilde{a}",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\widetilde{a} \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\widetilde{a} \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/reverse-sum": {
+      "intent": "reverse(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\widetilde{a + b}",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          -0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\widetilde{a + b}",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          -0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          -0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/grade-involution": {
+      "intent": "grade_involution(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\widehat{\\left(a + b\\right)}",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          -1.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\widehat{\\left(a + b\\right)}",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          -1.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/conjugate": {
+      "intent": "conjugate(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\overline{a + b}",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad \\overline{a + b} \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad \\overline{a + b} \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          -1.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\overline{a + b}",
+        "value": "-e_{1} - e_{2}",
+        "full": "x \\quad = \\quad \\overline{a + b} \\quad = \\quad -e_{1} - e_{2}",
+        "rich": "$x \\quad = \\quad \\overline{a + b} \\quad = \\quad -e_{1} - e_{2}$",
+        "coefficients": [
+          0.0,
+          -1.0,
+          -1.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          -0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/dual": {
+      "intent": "dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right)^*",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^* \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^* \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right)^*",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^* \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^* \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/undual": {
+      "intent": "undual(dual(a wedge b))",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}}",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}} \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}} \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}}",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}} \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^*\\right)^{*^{-1}} \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/complement": {
+      "intent": "complement(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/uncomplement": {
+      "intent": "uncomplement(complement(a wedge b))",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}}",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}} \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}} \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}}",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}} \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^{\\complement}\\right)^{\\complement^{-1}} \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/antireverse": {
+      "intent": "antireverse(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{antireverse}(a \\wedge b)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{antireverse}(a \\wedge b) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{antireverse}(a \\wedge b) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{antireverse}(a \\wedge b)",
+        "value": "e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{antireverse}(a \\wedge b) \\quad = \\quad e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{antireverse}(a \\wedge b) \\quad = \\quad e_{12}$",
+        "coefficients": [
+          -0.0,
+          -0.0,
+          -0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/metric-apply": {
+      "intent": "metric_apply(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{metric\\_apply}(a + b)",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\operatorname{metric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\operatorname{metric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{metric\\_apply}(a + b)",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\operatorname{metric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\operatorname{metric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/antimetric-apply": {
+      "intent": "antimetric_apply(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{antimetric\\_apply}(a + b)",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\operatorname{antimetric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\operatorname{antimetric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{antimetric\\_apply}(a + b)",
+        "value": "e_{1} + e_{2}",
+        "full": "x \\quad = \\quad \\operatorname{antimetric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\operatorname{antimetric\\_apply}(a + b) \\quad = \\quad e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/bulk-part": {
+      "intent": "bulk_part(1 + a + a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{bulk\\_part}(1 + a + a \\wedge b)",
+        "value": "1 + e_{1} + e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{bulk\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{bulk\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}$",
+        "coefficients": [
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{bulk\\_part}(1 + a + a \\wedge b)",
+        "value": "1 + e_{1} + e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{bulk\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{bulk\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}$",
+        "coefficients": [
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/weight-part": {
+      "intent": "weight_part(1 + a + a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{weight\\_part}(1 + a + a \\wedge b)",
+        "value": "1 + e_{1} + e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{weight\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{weight\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}$",
+        "coefficients": [
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{weight\\_part}(1 + a + a \\wedge b)",
+        "value": "1 + e_{1} + e_{12}",
+        "full": "x \\quad = \\quad \\operatorname{weight\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}",
+        "rich": "$x \\quad = \\quad \\operatorname{weight\\_part}(1 + a + a \\wedge b) \\quad = \\quad 1 + e_{1} + e_{12}$",
+        "coefficients": [
+          1.0,
+          1.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/right-hodge-dual": {
+      "intent": "right_hodge_dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{right\\_hodge\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{right\\_hodge\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/left-hodge-dual": {
+      "intent": "left_hodge_dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{left\\_hodge\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{left\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{left\\_hodge\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{left\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_hodge\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/right-weight-dual": {
+      "intent": "right_weight_dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{right\\_weight\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{right\\_weight\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{right\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{right\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/left-weight-dual": {
+      "intent": "left_weight_dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\operatorname{left\\_weight\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{left\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{left\\_weight\\_dual}(a \\wedge b)",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\operatorname{left\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\operatorname{left\\_weight\\_dual}(a \\wedge b) \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/unit": {
+      "intent": "unit(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\widehat{\\left(a + b\\right)}",
+        "value": "0.707107 e_{1} + 0.707107 e_{2}",
+        "full": "x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad 0.707107 e_{1} + 0.707107 e_{2}",
+        "rich": "$x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad 0.707107 e_{1} + 0.707107 e_{2}$",
+        "coefficients": [
+          0.0,
+          0.7071067811865475,
+          0.7071067811865475,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\widehat{\\left(a + b\\right)}",
+        "value": "0.707107 e_{1} + 0.707107 e_{2}",
+        "full": "x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad 0.707107 e_{1} + 0.707107 e_{2}",
+        "rich": "$x \\quad = \\quad \\widehat{\\left(a + b\\right)} \\quad = \\quad 0.707107 e_{1} + 0.707107 e_{2}$",
+        "coefficients": [
+          0.0,
+          0.7071067811865475,
+          0.7071067811865475,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/inverse": {
+      "intent": "inverse(2 + 0.25 a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(2 + 0.25 a\\right)^{-1}",
+        "value": "0.507937 - 0.0634921 e_{1}",
+        "full": "x \\quad = \\quad \\left(2 + 0.25 a\\right)^{-1} \\quad = \\quad 0.507937 - 0.0634921 e_{1}",
+        "rich": "$x \\quad = \\quad \\left(2 + 0.25 a\\right)^{-1} \\quad = \\quad 0.507937 - 0.0634921 e_{1}$",
+        "coefficients": [
+          0.5079365079365079,
+          -0.06349206349206349,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(2 + 0.25 a\\right)^{-1}",
+        "value": "0.507937 - 0.0634921 e_{1}",
+        "full": "x \\quad = \\quad \\left(2 + 0.25 a\\right)^{-1} \\quad = \\quad 0.507937 - 0.0634921 e_{1}",
+        "rich": "$x \\quad = \\quad \\left(2 + 0.25 a\\right)^{-1} \\quad = \\quad 0.507937 - 0.0634921 e_{1}$",
+        "coefficients": [
+          0.5079365079365079,
+          -0.06349206349206349,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/even-grades": {
+      "intent": "even_grades(1 + a + a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\langle 1 + a + a \\wedge b \\rangle_{\\text{even}}",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{even}} \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{even}} \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\langle 1 + a + a \\wedge b \\rangle_{\\text{even}}",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{even}} \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{even}} \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/odd-grades": {
+      "intent": "odd_grades(1 + a + a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}}",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}} \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}} \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}}",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}} \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{\\text{odd}} \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/exp": {
+      "intent": "exp(0.25 a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "e^{0.25 a \\wedge b}",
+        "value": "0.968912 + 0.247404 e_{12}",
+        "full": "x \\quad = \\quad e^{0.25 a \\wedge b} \\quad = \\quad 0.968912 + 0.247404 e_{12}",
+        "rich": "$x \\quad = \\quad e^{0.25 a \\wedge b} \\quad = \\quad 0.968912 + 0.247404 e_{12}$",
+        "coefficients": [
+          0.9689124217106447,
+          0.0,
+          0.0,
+          0.24740395925452294,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "e^{0.25 a \\wedge b}",
+        "value": "0.968912 + 0.247404 e_{12}",
+        "full": "x \\quad = \\quad e^{0.25 a \\wedge b} \\quad = \\quad 0.968912 + 0.247404 e_{12}",
+        "rich": "$x \\quad = \\quad e^{0.25 a \\wedge b} \\quad = \\quad 0.968912 + 0.247404 e_{12}$",
+        "coefficients": [
+          0.9689124217106447,
+          0.0,
+          0.0,
+          0.24740395925452294,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/log": {
+      "intent": "log(exp(0.25 a wedge b))",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\log\\left(e^{0.25 a \\wedge b}\\right)",
+        "value": "0.25 e_{12}",
+        "full": "x \\quad = \\quad \\log\\left(e^{0.25 a \\wedge b}\\right) \\quad = \\quad 0.25 e_{12}",
+        "rich": "$x \\quad = \\quad \\log\\left(e^{0.25 a \\wedge b}\\right) \\quad = \\quad 0.25 e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.25,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\log\\left(e^{0.25 a \\wedge b}\\right)",
+        "value": "0.25 e_{12}",
+        "full": "x \\quad = \\quad \\log\\left(e^{0.25 a \\wedge b}\\right) \\quad = \\quad 0.25 e_{12}",
+        "rich": "$x \\quad = \\quad \\log\\left(e^{0.25 a \\wedge b}\\right) \\quad = \\quad 0.25 e_{12}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.25,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outerexp": {
+      "intent": "outerexp(a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": null,
+        "value": null,
+        "full": null,
+        "rich": null,
+        "coefficients": null,
+        "error": "RecursionError: maximum recursion depth exceeded"
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{outerexp}\\left(a\\right)",
+        "value": "1 + e_{1}",
+        "full": "x \\quad = \\quad \\operatorname{outerexp}\\left(a\\right) \\quad = \\quad 1 + e_{1}",
+        "rich": "$x \\quad = \\quad \\operatorname{outerexp}\\left(a\\right) \\quad = \\quad 1 + e_{1}$",
+        "coefficients": [
+          1.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outersin": {
+      "intent": "outersin(a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": null,
+        "value": null,
+        "full": null,
+        "rich": null,
+        "coefficients": null,
+        "error": "RecursionError: maximum recursion depth exceeded"
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{outersin}\\left(a\\right)",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\operatorname{outersin}\\left(a\\right) \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\operatorname{outersin}\\left(a\\right) \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outercos": {
+      "intent": "outercos(a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": null,
+        "value": null,
+        "full": null,
+        "rich": null,
+        "coefficients": null,
+        "error": "RecursionError: maximum recursion depth exceeded"
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{outercos}\\left(a\\right)",
+        "value": "1",
+        "full": "x \\quad = \\quad \\operatorname{outercos}\\left(a\\right) \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\operatorname{outercos}\\left(a\\right) \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/outertan": {
+      "intent": "outertan(a)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": null,
+        "value": null,
+        "full": null,
+        "rich": null,
+        "coefficients": null,
+        "error": "RecursionError: maximum recursion depth exceeded"
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\operatorname{outertan}\\left(a\\right)",
+        "value": "e_{1}",
+        "full": "x \\quad = \\quad \\operatorname{outertan}\\left(a\\right) \\quad = \\quad e_{1}",
+        "rich": "$x \\quad = \\quad \\operatorname{outertan}\\left(a\\right) \\quad = \\quad e_{1}$",
+        "coefficients": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/grade-projection": {
+      "intent": "grade((a + b) c, 1)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\langle \\left(a + b\\right) c \\rangle_{1}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\langle \\left(a + b\\right) c \\rangle_{1} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\langle \\left(a + b\\right) c \\rangle_{1} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\langle \\left(a + b\\right) c \\rangle_{1}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\langle \\left(a + b\\right) c \\rangle_{1} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\langle \\left(a + b\\right) c \\rangle_{1} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/grades": {
+      "intent": "grades(1 + a + a wedge b, [0, 2])",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "x",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\langle 1 + a + a \\wedge b \\rangle_{[0,2]}",
+        "value": "1 + e_{12}",
+        "full": "x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{[0,2]} \\quad = \\quad 1 + e_{12}",
+        "rich": "$x \\quad = \\quad \\langle 1 + a + a \\wedge b \\rangle_{[0,2]} \\quad = \\quad 1 + e_{12}$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/squared": {
+      "intent": "squared(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right)^2",
+        "value": "2",
+        "full": "x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right)^2",
+        "value": "2",
+        "full": "x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right)^2 \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/sqrt": {
+      "intent": "sqrt(exp(0.25 a wedge b))",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\sqrt{e^{0.25 a \\wedge b}}",
+        "value": "0.992198 + 0.124675 e_{12}",
+        "full": "x \\quad = \\quad \\sqrt{e^{0.25 a \\wedge b}} \\quad = \\quad 0.992198 + 0.124675 e_{12}",
+        "rich": "$x \\quad = \\quad \\sqrt{e^{0.25 a \\wedge b}} \\quad = \\quad 0.992198 + 0.124675 e_{12}$",
+        "coefficients": [
+          0.992197667229329,
+          0.0,
+          0.0,
+          0.12467473338522769,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\sqrt{e^{0.25 a \\wedge b}}",
+        "value": "0.992198 + 0.124675 e_{12}",
+        "full": "x \\quad = \\quad \\sqrt{e^{0.25 a \\wedge b}} \\quad = \\quad 0.992198 + 0.124675 e_{12}",
+        "rich": "$x \\quad = \\quad \\sqrt{e^{0.25 a \\wedge b}} \\quad = \\quad 0.992198 + 0.124675 e_{12}$",
+        "coefficients": [
+          0.992197667229329,
+          0.0,
+          0.0,
+          0.12467473338522769,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/norm2": {
+      "intent": "norm2(a + b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\lVert a + b \\rVert^{2}",
+        "value": "2",
+        "full": "x \\quad = \\quad \\lVert a + b \\rVert^{2} \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\lVert a + b \\rVert^{2} \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\lVert a + b \\rVert^{2}",
+        "value": "2",
+        "full": "x \\quad = \\quad \\lVert a + b \\rVert^{2} \\quad = \\quad 2",
+        "rich": "$x \\quad = \\quad \\lVert a + b \\rVert^{2} \\quad = \\quad 2$",
+        "coefficients": [
+          2.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/sandwich": {
+      "intent": "sandwich(exp(0.25 a wedge b), c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad e^{0.25 a \\wedge b} c \\widetilde{e^{0.25 a \\wedge b}} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.9999999999999999,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/metric-regressive-product": {
+      "intent": "metric_regressive_product(a wedge b, b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}}",
+        "value": "-e_{2}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}} \\quad = \\quad -e_{2}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}} \\quad = \\quad -e_{2}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}}",
+        "value": "-e_{2}",
+        "full": "x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}} \\quad = \\quad -e_{2}",
+        "rich": "$x \\quad = \\quad \\left(\\left(a \\wedge b\\right)^* \\wedge \\left(b \\wedge c\\right)^*\\right)^{*^{-1}} \\quad = \\quad -e_{2}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/right-complement-alias": {
+      "intent": "right_complement(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/left-complement-alias": {
+      "intent": "left_complement(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement^{-1}}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement^{-1}} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement^{-1}} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right)^{\\complement^{-1}}",
+        "value": "e_{3}",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement^{-1}} \\quad = \\quad e_{3}",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\complement^{-1}} \\quad = \\quad e_{3}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          1.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/named-literal-deduplication": {
+      "intent": "u := 2 e1 + e2",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "2 e_{1} + e_{2}",
+        "value": "2 e_{1} + e_{2}",
+        "full": "u \\quad = \\quad 2 e_{1} + e_{2}",
+        "rich": "$u \\quad = \\quad 2 e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          2.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "2 e_{1} + e_{2}",
+        "value": "2 e_{1} + e_{2}",
+        "full": "u \\quad = \\quad 2 e_{1} + e_{2}",
+        "rich": "$u \\quad = \\quad 2 e_{1} + e_{2}$",
+        "coefficients": [
+          0.0,
+          2.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/anonymous-expression-value": {
+      "intent": "(a + b) c, anonymous full display",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right) c",
+        "value": "e_{13} + e_{23}",
+        "full": "\\left(a + b\\right) c \\quad = \\quad e_{13} + e_{23}",
+        "rich": "$\\left(a + b\\right) c \\quad = \\quad e_{13} + e_{23}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right) c",
+        "value": "e_{13} + e_{23}",
+        "full": "\\left(a + b\\right) c \\quad = \\quad e_{13} + e_{23}",
+        "rich": "$\\left(a + b\\right) c \\quad = \\quad e_{13} + e_{23}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          1.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/near-zero-value": {
+      "intent": "x := 1 + 1.4524e-16 e1",
+      "channels": [
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "x",
+        "value": "1",
+        "full": "x \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          1.4524e-16,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "1",
+        "value": "1",
+        "full": "x \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          1.4524e-16,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "default-cl3/six-significant-digits": {
+      "intent": "x := 1.23456789 e1",
+      "channels": [
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "x",
+        "value": "1.23457 e_{1}",
+        "full": "x \\quad = \\quad 1.23457 e_{1}",
+        "rich": "$x \\quad = \\quad 1.23457 e_{1}$",
+        "coefficients": [
+          0.0,
+          1.23456789,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "1.23457 e_{1}",
+        "value": "1.23457 e_{1}",
+        "full": "x \\quad = \\quad 1.23457 e_{1}",
+        "rich": "$x \\quad = \\quad 1.23457 e_{1}$",
+        "coefficients": [
+          0.0,
+          1.23456789,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "lengyel-rga/rga-geometric-product": {
+      "intent": "RGA geometric_product(a + b, b wedge c)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right)",
+        "value": "\\mathbf{e}_{3} - \\mathbf{e}_{321}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right) \\quad = \\quad \\mathbf{e}_{3} - \\mathbf{e}_{321}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right) \\quad = \\quad \\mathbf{e}_{3} - \\mathbf{e}_{321}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right)",
+        "value": "\\mathbf{e}_{3} - \\mathbf{e}_{321}",
+        "full": "x \\quad = \\quad \\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right) \\quad = \\quad \\mathbf{e}_{3} - \\mathbf{e}_{321}",
+        "rich": "$x \\quad = \\quad \\left(a + b\\right) \\mathbin{\\text{⟑}} \\left(b \\wedge c\\right) \\quad = \\quad \\mathbf{e}_{3} - \\mathbf{e}_{321}$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "lengyel-rga/rga-metric-inner-product": {
+      "intent": "RGA metric_inner_product(a wedge b, a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right)",
+        "value": "1",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right) \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right) \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right)",
+        "value": "1",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right) \\quad = \\quad 1",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right) \\mathbin{\\bullet} \\left(a \\wedge b\\right) \\quad = \\quad 1$",
+        "coefficients": [
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "lengyel-rga/rga-antidot-product": {
+      "intent": "RGA antidot_product(a, b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\mathbin{\\circ} b",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\mathbin{\\circ} b \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\mathbin{\\circ} b \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\mathbin{\\circ} b",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\mathbin{\\circ} b \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\mathbin{\\circ} b \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "lengyel-rga/rga-right-weight-dual": {
+      "intent": "RGA right_weight_dual(a wedge b)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "\\left(a \\wedge b\\right)^{\\text{☆}}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\text{☆}} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\text{☆}} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "\\left(a \\wedge b\\right)^{\\text{☆}}",
+        "value": "0",
+        "full": "x \\quad = \\quad \\left(a \\wedge b\\right)^{\\text{☆}} \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad \\left(a \\wedge b\\right)^{\\text{☆}} \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          -0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0,
+          -0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    },
+    "lengyel-rga/rga-transwedge": {
+      "intent": "RGA transwedge(a, b, 1)",
+      "channels": [
+        "expression",
+        "value",
+        "full",
+        "rich"
+      ],
+      "legacy": {
+        "implementation": "legacy-v1",
+        "expression": "a \\mathbin{\\underset{1}{\\text{⩓}}} b",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\mathbin{\\underset{1}{\\text{⩓}}} b \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\mathbin{\\underset{1}{\\text{⩓}}} b \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      },
+      "reviewed_facade": {
+        "implementation": "core-facade-v2",
+        "expression": "a \\mathbin{\\underset{1}{\\text{⩓}}} b",
+        "value": "0",
+        "full": "x \\quad = \\quad a \\mathbin{\\underset{1}{\\text{⩓}}} b \\quad = \\quad 0",
+        "rich": "$x \\quad = \\quad a \\mathbin{\\underset{1}{\\text{⩓}}} b \\quad = \\quad 0$",
+        "coefficients": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "error": null
+      }
+    }
+  }
+}

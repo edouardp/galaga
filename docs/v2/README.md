@@ -28,8 +28,8 @@
   the shared render tree, precedence model, immutable notation rules, emitters,
   content policy, rich hooks, and scoped teaching presentations.
 - [Legacy/facade LaTeX rendering parity](rendering-parity.md) explains the
-  dual-algebra audit, executable difference ledger, permanent Pytest gate, and
-  structured Markdown reports used to review the top-level cutover.
+  frozen historical oracle, reviewed v2 output gate, executable difference
+  ledger, and structured Markdown reports used to review the cutover.
 - [Exact configured rendering contracts](exact-rendering-contracts.md) explain
   the parameterized algebra/display/expression matrix and reviewed literal
   LaTeX strings that make rendering decisions permanent unit tests.
@@ -111,6 +111,11 @@ removals in the migration guide and release changelog. Alpha releases may
 retain the explicit `galaga.legacy` oracle for comparison; the stable release
 must not ship it.
 
+Phase 9 has started with the rendering audit: its live legacy dependency is
+gone, all 73 historical cases remain, and reviewed v2 outputs are pinned even
+for accepted differences. The remaining test and benchmark dependencies,
+engine deletion, alias retirement, and final release gates are still pending.
+
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
 points for arbitrary null-pair scaling, and provides the established CGA
@@ -141,6 +146,7 @@ operation; geometric line correction is model-owned and explicit.
 - [ADR-086: Native-null CGA is a validated model layer](../adrs/086-native-null-cga-is-a-validated-model-layer.md)
 - [ADR-087: RGA semantics are a validated model layer](../adrs/087-rga-semantics-are-a-validated-model-layer.md)
 - [ADR-088: Explicit versions for prereleases](../adrs/088-explicit-versions-for-prereleases.md)
+- [ADR-092: Frozen historical rendering oracles](../adrs/092-frozen-historical-rendering-oracles.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

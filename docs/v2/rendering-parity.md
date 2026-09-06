@@ -1,9 +1,17 @@
 # Legacy/Facade LaTeX Rendering Parity
 
-The rendering parity audit runs the retained Galaga v1 algebra and the
-core-backed Galaga 2 facade side by side. It builds equivalent expressions in
-both implementations, compares their observable LaTeX, and writes a structured
-Markdown report for human review.
+The rendering parity audit runs the core-backed Galaga 2 facade and compares
+its output with frozen Galaga v1 observations. It also checks the reviewed v2
+outputs independently, so an accepted v1/v2 difference cannot conceal a new
+regression. The audit no longer imports or executes the legacy engine.
+
+The 73 historical observations were captured from commit
+`d98c9f463ecd532e7d9c5b3bdc82aa471ecad1bc` before removing the live adapter and
+reproduced against that commit's original audit. The fixture records the
+capture's Python and NumPy versions, shared operation inventory, exact LaTeX,
+coefficients, and legacy rendering errors. See the
+[baseline maintenance notes](../../packages/galaga/tools/baselines/README.md)
+and [ADR-092](../adrs/092-frozen-historical-rendering-oracles.md).
 
 This is a migration oracle, not a requirement that Galaga 2 reproduce every
 legacy token forever. An exact match is useful evidence. A difference is a
@@ -24,27 +32,29 @@ PYTHONPATH=packages/galaga python -m tools.audit_rendering_parity \
   --repository . --check
 ```
 
-The command always writes a timestamped report under
-`docs/v2/rendering-parity-reports/`. The `--check` option additionally fails
-when the observed difference IDs do not exactly match the reviewed executable
-ledger. Use an explicit output path for a disposable CI or local run:
+For a valid case inventory, the command writes a timestamped report under
+`docs/v2/rendering-parity-reports/`. The `--check` option fails if the case or
+operation inventory is incomplete, the difference IDs no longer match the
+reviewed ledger, or any facade output differs from its reviewed v2 baseline.
+Use an explicit output path for a disposable CI or local run:
 
 ```shell
 PYTHONPATH=packages/galaga python -m tools.audit_rendering_parity \
   --repository . --output /tmp/galaga-latex-parity.md --check
 ```
 
-The latest checked audit with visual rendering is
+The historical checked audit with visual rendering is
 [LaTeX parity report, 2026-07-19 18:46](rendering-parity-reports/latex-parity-20260719-184624+1200.md).
 
 ## What one case compares
 
-Each implementation-neutral recipe is evaluated against two adapters:
+Each retained recipe is evaluated only against the facade:
 
-| Adapter | Algebra and display contract |
+| Reference or implementation | Algebra and display contract |
 |---|---|
-| Legacy v1 | `galaga.legacy.Algebra` and public `Multivector.display()` |
-| Core facade v2 | `galaga.Algebra` and `DisplayPolicy("full")` |
+| Frozen legacy v1 | Captured `galaga.legacy.Algebra` and `Multivector.display()` outputs |
+| Reviewed v2 reference | Captured and reviewed facade outputs, including accepted corrections |
+| Live core facade v2 | `galaga.Algebra` and `DisplayPolicy("full")` |
 
 The audit compares these channels independently:
 
@@ -55,6 +65,11 @@ The audit compares these channels independently:
 | Full | Teaching form: distinct name, expression, and value |
 | Rich | Notebook `_repr_latex_` wrapper and full-display behavior |
 | Coefficients | Whether a visual difference conceals a numeric difference |
+
+LaTeX channels compare exactly. Coefficients use the existing
+`rtol=1e-12, atol=1e-12` tolerance with equal lengths required; NumPy shape
+broadcasting is not allowed. This is a regression-test tolerance, not a change
+to multivector equality or hashing.
 
 The default profile uses the three-dimensional Euclidean algebra. A separate
 Lengyel RGA profile exercises its signature, blade convention, notation, and
@@ -69,30 +84,34 @@ inventory, and a reporting inventory drifting apart.
 
 The test suite enforces that:
 
-- case keys are unique;
-- all operation IDs shared by the legacy and facade registries are exercised;
+- case keys are unique and match the frozen inventory;
+- captured shared operation IDs remain in the facade catalog and are exercised;
 - exact successes remain exact;
-- every difference is present in `DIFFERENCE_LEDGER`; and
-- every ledger entry is still observed.
+- every difference is present in `DIFFERENCE_LEDGER`;
+- every ledger entry is still observed;
+- all live facade results match the reviewed v2 outputs, including cases where
+  the legacy renderer failed; and
+- a fresh process runs the complete audit with legacy imports blocked.
 
 The ledger maps a stable `profile/case` key to its accepted review decision. A
 new difference therefore fails the check as unclassified. When a v2 change
 resolves a difference, the stale ledger entry also fails the check. The author
-must inspect the newly generated report and deliberately update the ledger;
-regressions and improvements cannot silently change the baseline.
+must inspect the newly generated report and deliberately update the ledger.
+The ledger alone is not permission for arbitrary further changes to that case:
+the separate reviewed-v2 gate pins every compared channel and its coefficients.
 
 Generated reports pre-check **Accept v2** and include the ledger rationale for
-reviewed differences. Unclassified differences retain blank checkboxes and an
-empty notes prompt, so a new regression cannot look reviewed merely because a
-previous report was annotated.
+reviewed differences only when the v2 output still matches its reference.
+Unclassified differences retain blank checkboxes; changed reviewed outputs are
+listed as facade regressions and are not pre-approved.
 
 ## Report structure
 
 Reports are designed for direct review in Typora or another Markdown editor:
 
-1. metadata and a count summary;
+1. metadata, historical source commit, and a count summary;
 2. a compact success list, where each entry says **expression succeeded**;
-3. one detailed section per difference;
+3. a reviewed-facade regression summary and one detailed section per difference;
 4. the expression's mathematical intent;
 5. one display-math block containing the complete v1 and v2 teaching forms;
 6. one source block containing those same complete emitted LaTeX strings;
@@ -108,8 +127,8 @@ comparisons without repeating those channels in the report.
 
 ## Review outcome
 
-The audit exercises 73 expressions, all 45 operation IDs shared by the two
-registered operation catalogs, and 60 operation IDs in total. The initial run
+The audit exercises 73 expressions, all 45 captured shared operation IDs, and
+60 operation IDs in total. The initial run
 had 16 exact matches and 57 differences. After review and remediation, 65
 expressions match exactly and eight differences are explicit Galaga 2
 decisions.
@@ -133,8 +152,13 @@ The remediation:
   - multi-grade projection retains provenance as
     `\langle x \rangle_{[0,2]}`, where v1 discarded the expression.
 
-The latest generated report and executable ledger are authoritative for the
-current tree.
+The subsequent conventional contraction-symbol change added two reviewed
+differences: left and right contraction now use the floor-symbol pair. The
+Phase 9 capture therefore has **63 exact matches and ten accepted differences**.
+All 73 live facade outputs must match their reviewed v2 references.
+
+The generated report, executable ledger, and pinned v2 outputs are authoritative
+for the current tree.
 
 ## Review and retirement workflow
 
@@ -150,9 +174,12 @@ For each difference:
 5. implement a notation or renderer change only when that decision calls for
    one;
 6. rerun the audit and focused parity tests; and
-7. remove or revise the ledger entry only after reviewing the new report.
+7. remove or revise the ledger entry and the affected reviewed v2 observation
+   only after reviewing the new report. Do not rewrite the historical v1
+   observation to match a new implementation.
 
-The legacy adapter is temporary. Phase 9 can retire it with the old engine when
-every retained behavior has either converged or received an explicit Galaga 2
-decision. The implementation-neutral case registry should remain as a semantic
-rendering regression suite after its legacy half is removed.
+The audit's legacy adapter has been retired. Its case registry remains a
+semantic rendering regression suite backed by historical data. Other legacy
+tests, the configured dual-implementation contracts, and the benchmark still
+need retirement before deleting the engine; this checkpoint does not complete
+Phase 9 or change the shipped public API.

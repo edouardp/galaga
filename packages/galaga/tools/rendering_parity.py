@@ -1,29 +1,26 @@
-"""Differential LaTeX rendering audit for the live v1 and v2 algebras.
+"""LaTeX rendering audit against frozen v1 and reviewed v2 outputs.
 
 The case registry is deliberately implementation-neutral.  Each recipe is
-built once against a small adapter, then rendered through the retained legacy
-engine and the core-backed facade.  Pytest and the Markdown audit command both
-consume this module so their inventories and classifications cannot drift.
+built through the core-backed facade and compared with captured historical
+outputs, without importing the old engine. Pytest and the Markdown audit
+command share both the parity ledger and the reviewed-facade regression gate.
 """
 
 from __future__ import annotations
 
+import json
 import subprocess  # nosec B404 - the audit invokes fixed local Git commands only
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
 from pathlib import Path
-from types import ModuleType
+from types import MappingProxyType
 from typing import Any, Literal
 
 import numpy as np
 
 import galaga.facade as facade
-import galaga.legacy as legacy
-from galaga.blade_convention import b_rga
 from galaga.facade.catalog import OPERATIONS
-from galaga.notation import Notation as LegacyNotation
-from galaga.ops import GA_OPS
 
 ImplementationId = Literal["legacy-v1", "core-facade-v2"]
 Recipe = Callable[["RenderingContext"], Any]
@@ -31,7 +28,7 @@ Recipe = Callable[["RenderingContext"], Any]
 
 @dataclass(frozen=True, slots=True)
 class RenderingProfile:
-    """Equivalent legacy and facade algebra construction policy."""
+    """Algebra policy shared by the historical capture and live facade."""
 
     id: str
     description: str
@@ -65,6 +62,62 @@ class RenderedResult:
     rich: str | None = None
     coefficients: tuple[float, ...] | None = None
     error: str | None = None
+
+
+@dataclass(frozen=True, slots=True)
+class BaselineCase:
+    """Historical observations, not executable legacy implementations."""
+
+    intent: str
+    channels: tuple[str, ...]
+    legacy: RenderedResult
+    reviewed_facade: RenderedResult
+
+
+@dataclass(frozen=True, slots=True)
+class RenderingBaseline:
+    """Read-only reference data captured before removing the legacy adapter."""
+
+    source_commit: str
+    shared_operations: frozenset[str]
+    cases: Mapping[str, BaselineCase]
+
+
+def _load_baseline(path: Path) -> RenderingBaseline:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if data["schema_version"] != 1:
+        raise ValueError("unsupported rendering baseline schema")
+
+    def result(fields: dict[str, Any]) -> RenderedResult:
+        coefficients = fields["coefficients"]
+        return RenderedResult(
+            implementation=fields["implementation"],
+            expression=fields["expression"],
+            value=fields["value"],
+            full=fields["full"],
+            rich=fields["rich"],
+            coefficients=None if coefficients is None else tuple(coefficients),
+            error=fields["error"],
+        )
+
+    return RenderingBaseline(
+        source_commit=data["source_commit"],
+        shared_operations=frozenset(data["shared_operations"]),
+        cases=MappingProxyType(
+            {
+                key: BaselineCase(
+                    intent=entry["intent"],
+                    channels=tuple(entry["channels"]),
+                    legacy=result(entry["legacy"]),
+                    reviewed_facade=result(entry["reviewed_facade"]),
+                )
+                for key, entry in data["cases"].items()
+            }
+        ),
+    )
+
+
+BASELINE = _load_baseline(Path(__file__).with_name("baselines") / "rendering-v1-v2.json")
 
 
 @dataclass(frozen=True, slots=True)
@@ -104,52 +157,30 @@ PROFILES: Mapping[str, RenderingProfile] = {
 
 
 class RenderingContext:
-    """Small adapter used by shared expression recipes."""
+    """Facade-only vocabulary used by the retained expression recipes."""
 
     __slots__ = ("algebra", "api", "basis", "implementation", "symbols")
 
-    def __init__(
-        self,
-        implementation: ImplementationId,
-        profile: RenderingProfile,
-    ) -> None:
-        self.implementation = implementation
-        if implementation == "legacy-v1":
-            self.api: ModuleType = legacy
-            if profile.id == "default-cl3":
-                self.algebra = legacy.Algebra((1, 1, 1))
-            elif profile.id == "lengyel-rga":
-                self.algebra = legacy.Algebra(
-                    (1, 1, 1, 0),
-                    blades=b_rga(),
-                    notation=LegacyNotation.lengyel(),
-                )
-            else:  # pragma: no cover - guarded by public profile lookup
-                raise KeyError(profile.id)
-            self.basis = self.algebra.basis_vectors(lazy=True)
-            self.symbols = tuple(
-                value.copy_as(name, latex=name, unicode=name, ascii=name)
-                for value, name in zip(self.basis, ("a", "b", "c", "d"), strict=False)
+    def __init__(self, profile: RenderingProfile) -> None:
+        self.implementation: ImplementationId = "core-facade-v2"
+        self.api = facade
+        if profile.id == "default-cl3":
+            self.algebra = facade.Algebra(
+                (1, 1, 1),
+                display=facade.DisplayPolicy("full"),
+            )
+        elif profile.id == "lengyel-rga":
+            self.algebra = facade.Algebra(
+                config=facade.p_rga(),
+                display=facade.DisplayPolicy("full"),
             )
         else:
-            self.api = facade
-            if profile.id == "default-cl3":
-                self.algebra = facade.Algebra(
-                    (1, 1, 1),
-                    display=facade.DisplayPolicy("full"),
-                )
-            elif profile.id == "lengyel-rga":
-                self.algebra = facade.Algebra(
-                    config=facade.p_rga(),
-                    display=facade.DisplayPolicy("full"),
-                )
-            else:  # pragma: no cover - guarded by public profile lookup
-                raise KeyError(profile.id)
-            self.basis = self.algebra.basis_vectors(expr=True)
-            self.symbols = tuple(
-                value.named(name, latex=name, unicode=name)
-                for value, name in zip(self.basis, ("a", "b", "c", "d"), strict=False)
-            )
+            raise KeyError(profile.id)
+        self.basis = self.algebra.basis_vectors(expr=True)
+        self.symbols = tuple(
+            value.named(name, latex=name, unicode=name)
+            for value, name in zip(self.basis, ("a", "b", "c", "d"), strict=False)
+        )
 
     @property
     def a(self) -> Any:
@@ -184,25 +215,15 @@ class RenderingContext:
         return self.call("exp", 0.25 * self.bivector)
 
     def call(self, operation: str, *args: Any) -> Any:
-        legacy_names = {
-            "geometric_product": "gp",
-            "outer_product": "op",
-            "grade_involution": "involute",
-        }
-        name = legacy_names.get(operation, operation) if self.implementation == "legacy-v1" else operation
-        return getattr(self.api, name)(*args)
+        return getattr(self.api, operation)(*args)
 
     def concrete(self, coefficients: Iterable[float]) -> Any:
         data = np.asarray(tuple(coefficients), dtype=np.float64)
-        if self.implementation == "legacy-v1":
-            return legacy.Multivector(self.algebra, data)
         return self.algebra.multivector(data)
 
     def name_result(self, value: Any, name: str | None) -> Any:
         if name is None:
             return value
-        if self.implementation == "legacy-v1":
-            return value.copy_as(name, latex=name, unicode=name, ascii=name)
         return value.named(name, latex=name, unicode=name)
 
 
@@ -524,14 +545,8 @@ DIFFERENCE_LEDGER: Mapping[str, str] = {
 
 
 def required_shared_operations() -> frozenset[str]:
-    """Return the live legacy registry translated to facade operation IDs."""
-    aliases = {
-        "gp": "geometric_product",
-        "op": "outer_product",
-        "involute": "grade_involution",
-    }
-    translated = {aliases.get(name, name) for name in GA_OPS}
-    return frozenset(translated & set(OPERATIONS))
+    """Return captured shared operation IDs without silently dropping removals."""
+    return BASELINE.shared_operations
 
 
 def covered_operations() -> frozenset[str]:
@@ -539,10 +554,13 @@ def covered_operations() -> frozenset[str]:
 
 
 def audit_case(case: RenderingCase) -> AuditResult:
-    """Build and compare one case without raising on an implementation error."""
+    """Compare a live facade result with its captured legacy observation."""
     profile = PROFILES[case.profile]
-    old = _render(case, RenderingContext("legacy-v1", profile))
-    new = _render(case, RenderingContext("core-facade-v2", profile))
+    baseline = BASELINE.cases[case.key]
+    if case.channels != baseline.channels or case.intent != baseline.intent:
+        raise ValueError(f"{case.key}: case metadata differs from the reviewed rendering baseline")
+    old = baseline.legacy
+    new = _render(case, RenderingContext(profile))
     differences: list[ChannelDifference] = []
     if old.error is not None or new.error is not None:
         differences.append(ChannelDifference("error", old.error or "none", new.error or "none"))
@@ -554,14 +572,7 @@ def audit_case(case: RenderingCase) -> AuditResult:
                 differences.append(ChannelDifference(channel, old_value or "", new_value or ""))
     numeric_match: bool | None = None
     if old.coefficients is not None and new.coefficients is not None:
-        numeric_match = bool(
-            np.allclose(
-                np.asarray(old.coefficients),
-                np.asarray(new.coefficients),
-                rtol=1e-12,
-                atol=1e-12,
-            )
-        )
+        numeric_match = _coefficients_match(old.coefficients, new.coefficients)
         if not numeric_match:
             differences.append(
                 ChannelDifference(
@@ -573,6 +584,26 @@ def audit_case(case: RenderingCase) -> AuditResult:
     return AuditResult(case, old, new, tuple(differences), numeric_match)
 
 
+def _coefficients_match(expected: tuple[float, ...], actual: tuple[float, ...]) -> bool:
+    """Use the existing numeric tolerance, but never broadcast coefficient shapes."""
+    return len(expected) == len(actual) and bool(np.allclose(expected, actual, rtol=1e-12, atol=1e-12))
+
+
+def reviewed_facade_differences(result: AuditResult) -> tuple[str, ...]:
+    """Identify regressions even for cases with accepted v1/v2 differences."""
+    expected = BASELINE.cases[result.case.key].reviewed_facade
+    actual = result.facade
+    channels = (*result.case.channels, "error")
+    differences = [channel for channel in channels if getattr(expected, channel) != getattr(actual, channel)]
+    if expected.coefficients is None or actual.coefficients is None:
+        coefficients_match = expected.coefficients is actual.coefficients
+    else:
+        coefficients_match = _coefficients_match(expected.coefficients, actual.coefficients)
+    if not coefficients_match:
+        differences.append("coefficients")
+    return tuple(differences)
+
+
 def audit_all(cases: Iterable[RenderingCase] = CASES) -> tuple[AuditResult, ...]:
     """Run every registered differential case."""
     return tuple(audit_case(case) for case in cases)
@@ -582,16 +613,10 @@ def _render(case: RenderingCase, context: RenderingContext) -> RenderedResult:
     try:
         value = case.build(context)
         value = context.name_result(value, case.result_name)
-        if context.implementation == "legacy-v1":
-            expression = value.reveal().latex()
-            concrete = value.eval().latex()
-            full = value.display().latex()
-            rich = value.display()._repr_latex_()
-        else:
-            expression = value.latex(content="expr")
-            concrete = value.latex(content="value")
-            full = value.latex()
-            rich = value._repr_latex_()
+        expression = value.latex(content="expr")
+        concrete = value.latex(content="value")
+        full = value.latex()
+        rich = value._repr_latex_()
         coefficients = tuple(float(coefficient) for coefficient in value.data)
         return RenderedResult(
             context.implementation,
@@ -601,7 +626,7 @@ def _render(case: RenderingCase, context: RenderingContext) -> RenderedResult:
             rich=rich,
             coefficients=coefficients,
         )
-    except Exception as error:  # noqa: BLE001 - an audit must report both implementations
+    except Exception as error:  # noqa: BLE001 - an audit must report renderer errors
         return RenderedResult(
             context.implementation,
             error=f"{type(error).__name__}: {error}",
@@ -641,6 +666,7 @@ def render_markdown_report(
     root = repository or Path.cwd()
     succeeded = tuple(result for result in materialized if result.succeeded)
     failed = tuple(result for result in materialized if not result.succeeded)
+    regressions = tuple(result for result in materialized if reviewed_facade_differences(result))
     commit = _git_metadata(root)
     lines = [
         "<!-- rumdl-disable MD013 MD033 -->",
@@ -649,7 +675,9 @@ def render_markdown_report(
         "",
         f"Generated: `{generated.isoformat(timespec='seconds')}`",
         f"Repository state: `{commit}`",
-        'Primary policy: legacy `Multivector.display()` versus facade `DisplayPolicy("full")`.',
+        f"Historical baseline captured at: `{BASELINE.source_commit}`",
+        'Primary policy: frozen legacy `Multivector.display()` versus live facade `DisplayPolicy("full")`.',
+        "The legacy engine is not executed. Reviewed v2 outputs are also checked independently.",
         "",
         "## Summary",
         "",
@@ -658,9 +686,11 @@ def render_markdown_report(
         f"| Expressions audited | {len(materialized)} |",
         f"| Succeeded | {len(succeeded)} |",
         f"| Different or errored | {len(failed)} |",
+        f"| Reviewed facade regressions | {len(regressions)} |",
         "",
         "A success means expression, concrete value, full teaching display, rich",
-        "wrapper, and compatible numeric coefficients all agreed exactly.",
+        "wrapper all agreed exactly; numeric coefficients agreed within",
+        "`rtol=1e-12, atol=1e-12` without shape broadcasting.",
         "",
         "## How to review",
         "",
@@ -678,11 +708,24 @@ def render_markdown_report(
             lines.append(f"- `{result.case.key}` — {result.case.intent} — **expression succeeded**")
     else:
         lines.append("No expression succeeded.")
+    lines.extend(("", "## Reviewed facade regressions", ""))
+    if regressions:
+        for result in regressions:
+            channels = ", ".join(reviewed_facade_differences(result))
+            lines.append(f"- `{result.case.key}` — changed reviewed v2 channels: {channels}")
+    else:
+        lines.append("Every facade result matches its reviewed v2 baseline.")
     lines.extend(("", "## Differences", ""))
     if not failed:
         lines.append("No differences were found.")
     for result in failed:
-        reviewed_reason = DIFFERENCE_LEDGER.get(result.case.key)
+        regression = reviewed_facade_differences(result)
+        reviewed_reason = DIFFERENCE_LEDGER.get(result.case.key) if not regression else None
+        review_note = reviewed_reason or (
+            "Reviewed v2 output regressed; inspect the changed channels above."
+            if regression
+            else "Add review notes here."
+        )
         lines.extend(
             (
                 f"### `{result.case.key}`",
@@ -722,7 +765,7 @@ def render_markdown_report(
                 "",
                 "Reviewer notes:",
                 "",
-                f"> {reviewed_reason or 'Add review notes here.'}",
+                f"> {review_note}",
                 "",
             )
         )
@@ -730,7 +773,7 @@ def render_markdown_report(
         (
             "## Coverage",
             "",
-            f"- Shared registered legacy/facade operations: {len(required_shared_operations())}",
+            f"- Captured shared legacy/facade operations: {len(required_shared_operations())}",
             f"- Shared registered operations exercised: {len(required_shared_operations() & covered_operations())}",
             f"- Total operation IDs exercised, including structural helpers: {len(covered_operations())}",
             "",
@@ -741,6 +784,9 @@ def render_markdown_report(
         lines.append(f"Missing shared operations: `{', '.join(missing)}`")
     else:
         lines.append("Every shared registered expression operation has at least one case.")
+    removed = sorted(required_shared_operations() - set(OPERATIONS))
+    if removed:
+        lines.append(f"Captured shared operations missing from the facade catalog: `{', '.join(removed)}`")
     lines.append("")
     return "\n".join(lines)
 
@@ -796,6 +842,7 @@ def _git_metadata(repository: Path) -> str:
 
 
 __all__ = [
+    "BASELINE",
     "CASES",
     "DIFFERENCE_LEDGER",
     "PROFILES",
@@ -811,6 +858,7 @@ __all__ = [
     "default_report_path",
     "difference_keys",
     "render_markdown_report",
+    "reviewed_facade_differences",
     "required_shared_operations",
     "write_markdown_report",
 ]

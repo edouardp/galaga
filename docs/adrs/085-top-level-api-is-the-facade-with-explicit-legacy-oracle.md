@@ -67,6 +67,13 @@ The Phase 8 test boundary is executable:
   integrations may retain an explicit facade import when that architectural
   dependency is intentional.
 
+Phase 9 refinement: [ADR-092](092-frozen-historical-rendering-oracles.md)
+replaces the rendering parity audit's live legacy adapter with frozen
+historical observations and independently pinned v2 results. That suite no
+longer opts into the legacy-construction ledger. The remaining legacy tests
+and benchmark retain the Phase 8 boundary until their coverage is retired or
+transferred; this refinement does not itself delete the engine.
+
 ## Consequences
 
 - Good, because `from galaga import Algebra` now constructs the Gram-based

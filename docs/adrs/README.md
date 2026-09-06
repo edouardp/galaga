@@ -105,6 +105,7 @@ helps future contributors understand why certain choices were made.
 | [089](089-releases-use-any-clean-tracked-branch.md) | Releases Use Any Clean Tracked Branch | Accepted |
 | [090](090-portable-notebooks-use-a-local-editable-launcher.md) | Portable Notebooks Use a Local Editable Launcher | Accepted |
 | [091](091-cga-anywidget-synchronizes-semantic-coordinates.md) | CGA AnyWidget Synchronizes Semantic Coordinates | Accepted |
+| [092](092-frozen-historical-rendering-oracles.md) | Frozen Historical Rendering Oracles | Accepted |
 
 ## Creating New ADRs
 
