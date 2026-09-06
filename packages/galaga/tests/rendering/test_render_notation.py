@@ -85,6 +85,25 @@ def test_short_functional_notation_covers_the_transwedge_family() -> None:
 
 
 @pytest.mark.parametrize(
+    ("operation_id", "unicode", "latex"),
+    (
+        ("left_contraction", "a ⌋ b", r"a \mathbin{\rfloor} b"),
+        ("right_contraction", "a ⌊ b", r"a \mathbin{\lfloor} b"),
+    ),
+)
+def test_default_contractions_use_the_floor_symbol_pair(
+    operation_id: str,
+    unicode: str,
+    latex: str,
+) -> None:
+    expression = Call(operation_id, (Symbol("a"), Symbol("b")))
+    presentation = default_presentation(1)
+
+    assert render(expression, target="unicode", presentation=presentation) == unicode
+    assert render(expression, target="latex", presentation=presentation) == latex
+
+
+@pytest.mark.parametrize(
     "notation",
     (
         Notation.default(),

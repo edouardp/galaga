@@ -394,12 +394,12 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         ),
         "left_contraction": RenderRule(
             "infix",
-            symbol=Name("_|", "⌋", r"\;\lrcorner\;"),
+            symbol=Name("_|", "⌋", r"\mathbin{\rfloor}"),
             precedence=30,
         ),
         "right_contraction": RenderRule(
             "infix",
-            symbol=Name("|_", "⌊", r"\;\llcorner\;"),
+            symbol=Name("|_", "⌊", r"\mathbin{\lfloor}"),
             precedence=30,
         ),
         "hestenes_inner": compact_function("hestenes_inner"),

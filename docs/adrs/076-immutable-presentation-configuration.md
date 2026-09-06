@@ -50,6 +50,12 @@ Presentation is decomposed into immutable value objects:
 dimension. Its `with_*` operations return new configs and replace exactly one
 component.
 
+The conventional notation uses the mirrored floor-symbol pair for
+contractions: left contraction renders as `⌋` / `\mathbin{\rfloor}` and right
+contraction as `⌊` / `\mathbin{\lfloor}` in Unicode / LaTeX. ASCII retains
+`_|` and `|_`. These presentation choices do not alter either operation's
+grade-selection semantics.
+
 `AlgebraDefinition` contains an immutable validated Gram matrix and numeric
 backend options. `ModelConfig` contains optional semantic roles.
 `AlgebraConfig` combines definition, model, and presentation. Complete preset

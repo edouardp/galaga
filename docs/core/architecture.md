@@ -131,7 +131,7 @@ convert a scalar with `float`, instead.
 Left geometric multiplication by a basis vector is the Chevalley action
 
 $$
-C_i(B)=e_i\wedge B+e_i\mathbin{\lrcorner}B.
+C_i(B)=e_i\wedge B+e_i\mathbin{\rfloor}B.
 $$
 
 On a basis blade, the contraction removes each selected vector in turn and
@@ -143,7 +143,7 @@ For a blade `A = e_i wedge C`, where `i` is the lowest selected basis index,
 the implementation builds its left action by the recurrence
 
 $$
-L_A=C_iL_C-L_{e_i\mathbin{\lrcorner}C}.
+L_A=C_iL_C-L_{e_i\mathbin{\rfloor}C}.
 $$
 
 Every dependency on the right has lower grade. The packed backend evaluates

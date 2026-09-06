@@ -84,6 +84,12 @@ blade labels. A display-sensitive compound vector exercises exact-zero and
 unit-scalar normalization, near-zero cutoff behavior, and three, six, and
 twelve significant-digit policies.
 
+The conventional Galaga 2 contract pins left and right contractions to the
+mirrored LaTeX floor symbols `\mathbin{\rfloor}` and
+`\mathbin{\lfloor}`. The paired legacy expectation intentionally retains its
+historical corner symbol, making this reviewed presentation change explicit
+rather than weakening the exact comparison.
+
 The golden contract and differential audit have distinct authority:
 
 - the golden contract decides the exact output for one complete configuration;

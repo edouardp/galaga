@@ -311,8 +311,8 @@ galaga reflects this split: `commutator(A, B)` computes $AB - BA$ (maths/physics
 | $\hat{A}$ (grade involution)                     | `involute(A)`             |
 | $\bar{A}$ (Clifford conjugate)                   | `conjugate(A)`            |
 | $\langle A \rangle_k$                            | `grade(A, k)`             |
-| $A \lrcorner B$ (left contraction)               | `left_contraction(A, B)`  |
-| $A \llcorner B$ (right contraction)              | `right_contraction(A, B)` |
+| $A \rfloor B$ (left contraction)                 | `left_contraction(A, B)`  |
+| $A \lfloor B$ (right contraction)                | `right_contraction(A, B)` |
 | $A \wedge B$ (outer product)                     | `op(A, B)`                |
 | $AB$ (geometric product)                         | `gp(A, B)`                |
 | $AB - BA$ (commutator)                           | `commutator(A, B)`        |

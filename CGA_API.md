@@ -195,7 +195,7 @@ $$
 and its incidence equation is
 
 $$
-X\mathbin{\lrcorner}A^\star=0.
+X\mathbin{\rfloor}A^\star=0.
 $$
 
 When (A^\star) is a vector, this reduces to
@@ -343,7 +343,7 @@ For real embedded conformal points, this vanishes exactly at (x=p). Hence
 both of the following describe the same point locus:
 
 $$
-X\mathbin{\lrcorner}P^\star=0,
+X\mathbin{\rfloor}P^\star=0,
 \qquad
 X\mathbin{\cdot}P=0.
 $$

@@ -86,6 +86,13 @@ competing inner products visually distinct. The default LaTeX presentation
 deliberately retains Galaga 1's shared dot glyph for the Doran-Lasenby and
 Hestenes products; their expression IDs and functional names remain distinct.
 
+The default conventional contraction notation deliberately differs from the
+legacy renderer. Galaga 2 uses `\mathbin{\rfloor}` for left contraction and
+`\mathbin{\lfloor}` for right contraction, matching its `⌋` / `⌊` Unicode
+pair and the mathematical operation guides. The differential ledger records
+the legacy `\lrcorner` / `\llcorner` spellings as an accepted
+presentation-only difference.
+
 Expression provenance stores optional numeric parameters only when they differ
 from the operation's public default. This keeps tolerances out of ordinary
 mathematical display while preserving non-default parameters for exact

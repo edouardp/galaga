@@ -245,7 +245,7 @@ def test_rotor_sandwich_expression(context: ExpressionContext) -> Any:
     ),
     testcase(
         "core-facade-v2/cl3/full-default",
-        r"\left(v \;\lrcorner\; B\right) B^{-1} \quad = \quad e_{1} + e_{2}",
+        r"\left(v \mathbin{\rfloor} B\right) B^{-1} \quad = \quad e_{1} + e_{2}",
     ),
 )
 def test_projection_expression(context: ExpressionContext) -> Any:

@@ -499,6 +499,12 @@ CASES: tuple[RenderingCase, ...] = (
 # exactly. New regressions and resolved differences both demand an explicit
 # update, while accepted Galaga 2 corrections remain visible and executable.
 DIFFERENCE_LEDGER: Mapping[str, str] = {
+    "default-cl3/left-contraction": (
+        "Accepted Galaga 2 notation: render conventional left contraction with the floor-symbol pair."
+    ),
+    "default-cl3/right-contraction": (
+        "Accepted Galaga 2 notation: render conventional right contraction with the floor-symbol pair."
+    ),
     "default-cl3/lie-bracket": (
         "Accepted Galaga 2 correction: lie_bracket is the unscaled commutator and uses the same bracket notation."
     ),
