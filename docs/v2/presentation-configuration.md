@@ -180,6 +180,23 @@ derived dynamically every time a display label changes. This permits a
 Unicode teaching display while keeping ordinary ASCII notebook variables, or
 changing display labels without renaming local bindings.
 
+`locals()` preserves policy insertion order and returns fresh named values
+in a read-only mapping. Their semantic name is the Python key; request
+`value.display("value/unicode")` to see the blade label instead.
+`LocalNamePolicy.from_convention` selects valid canonical ASCII identifiers,
+excluding scalars and keywords. It does not include aliases or roles,
+sanitize names, or compact products: wedge `v1^v2` is omitted and juxtaposed
+`v1v2` remains unchanged. A separate compact convention can provide `v12`
+without changing display labels.
+
+`locals(expr=True)` gives those values symbol provenance. Replay uses
+`evaluate(expr, algebra=algebra, environment=bindings)`. Without an environment,
+use a literal from `algebra.blade(value, expr=True)` instead.
+`locals(expr=False)` omits initial expression leaves, but the values still
+have names, so subsequent operations record symbolic provenance.
+See the [locals migration recipes](migration-guide.md#migrate-local-bindings)
+and [presentation notebook](../../examples/galaga_v2/presentation_contexts.py).
+
 `DisplayOrder` is a complete permutation of bitmasks. It affects rendering
 order only; coefficient storage, basis enumeration, and numeric equality
 remain native. Its default is ascending mask order. To group grades explicitly:

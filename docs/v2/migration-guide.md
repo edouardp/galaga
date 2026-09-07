@@ -356,6 +356,80 @@ cga_model = ConformalModel(cga, expr=True)
 rga_model = RigidModel(rga, expr=True)
 ```
 
+## Migrate local bindings
+
+V2's `locals()` returns a read-only mapping from an independent
+`LocalNamePolicy`. Replace `grades=` by selecting signed references, and
+`prefix=` or `variable_hints` by explicitly choosing keys. For example:
+
+```python
+from galaga import Algebra, LocalNamePolicy, p_sta
+from galaga.expression import evaluate
+
+sta = Algebra(config=p_sta(sigmas=True))
+g0, g1, g2, g3 = sta.basis_vectors()
+expected = g1 * g0
+bivectors = LocalNamePolicy(
+    sta.n,
+    ((key, ref) for key, ref in sta.presentation.local_names.entries
+     if ref.mask.bit_count() == 2),
+)
+view = sta.with_local_names(bivectors)
+bindings = view.locals(expr=True)
+assert bindings["s1"] == expected
+assert evaluate(bindings["s1"].expr, algebra=view, environment=bindings) == expected
+
+# Retain an old Python key without losing its signed meaning.
+renamed = LocalNamePolicy(
+    sta.n,
+    (("g01" if key == "s1" else key, ref) for key, ref in bivectors.entries),
+)
+old_keys = sta.with_local_names(renamed).locals()
+assert old_keys["g01"] == expected == -sta.blade("g0g1")
+assert sta.basis_blades(2)[0] == -expected
+```
+
+The sign belongs to the reference, not to the letters in the key.
+Changing `blades=` or calling `with_blades` alone does not regenerate locals.
+Preset builders explicitly supply both components.
+
+For compact Python keys with a wedge display, configure the two separately:
+
+```python
+from galaga import Algebra, LocalNamePolicy, indexed_blade_convention
+
+display_labels = indexed_blade_convention(3, prefix="v", style="wedge")
+compact_labels = indexed_blade_convention(3, prefix="v")
+algebra = Algebra(
+    3,
+    blades=display_labels,
+    local_names=LocalNamePolicy.from_convention(compact_labels),
+)
+v12 = algebra.locals()["v12"]
+assert v12 == algebra.blade(1) ^ algebra.blade(2)
+assert v12.display("name/ascii") == "v12"
+assert v12.display("value/unicode") == "v₁∧v₂"
+```
+
+`from_convention` takes canonical ASCII names literally. It skips scalar
+labels, invalid identifiers and keywords; aliases and roles are not included.
+It neither sanitizes names nor compacts products: `v1^v2` is skipped, while
+`v1v2` remains that identifier. Explicit policies may include scalar bindings
+such as `{"one": 0}` or valid Unicode keys. Use explicit axis-key entries for
+the former empty-prefix convenience.
+
+Replace `lazy=True` with `expr=True`. Named locals carry symbols requiring an
+explicit environment for replay; `blade(value, expr=True)` instead creates a
+self-contained signed literal. `locals(expr=False)` omits initial expression
+leaves but keeps names, so later operations still record symbolic provenance.
+For scalar lookup use `blade(0)`, default `blade("1")`, or `scalar(1)`.
+Empty-string parsing is retired. Unknown blade names raise `KeyError`,
+whereas out-of-range integer masks raise `ValueError`.
+
+The [presentation notebook](../../examples/galaga_v2/presentation_contexts.py)
+demonstrates these distinctions without injecting names into Marimo's namespace.
+See [ADR-106](../adrs/106-independent-public-local-name-contracts.md).
+
 ## Migrate blade conventions and STA names
 
 Replace v1's `b_sta(sigmas=True, pseudovectors=True)` with a complete preset:

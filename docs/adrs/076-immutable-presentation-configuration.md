@@ -150,6 +150,12 @@ renderer now consumes it for every facade display route.
   precedence, not expression nodes or final ASCII, Unicode, and LaTeX
   rendering. Those remain Phases 5 and 6.
 
+[ADR-106](106-independent-public-local-name-contracts.md) makes the local-name
+migration boundaries executable: filtering preserves signed references,
+compact keys are configured independently of display styles, and named locals
+replay through explicit symbol environments. `from_convention` is literal
+ASCII-identifier filtering, not prefix rewriting or key sanitization.
+
 ## Superseded legacy behavior
 
 This decision supersedes ADR-028's mutating configuration direction for the

@@ -1108,3 +1108,39 @@ The RGA notebook teaches the signed-mask, numeric-zero, and under-accent
 boundaries with computed examples. The construction ledger falls from nine
 files to eight. Locals/naming and mixed legacy dependencies remain.
 See [ADR-105](../adrs/105-public-rga-contracts-and-underaccent-fallback.md).
+
+### Phase 9 follow-through: independent local-name contracts
+
+All eleven original function identities and twelve cases in `test_locals.py`
+now use the public facade. The archive `tools/baselines/locals-contracts-v1.json`
+retains the complete source and digest, eleven ordered binding tables with
+coefficients and Unicode values, historical STA basis enumeration, scalar
+lookups and exception observations, with source/runtime provenance.
+
+Explicit policies preserve the old keys and signed values without restoring
+`prefix=`, `grades=`, `variable_hints` or `lazy=` factory behavior. Filtering
+preserves signed references; a separate compact vocabulary keeps Python keys
+independent of display styles. Native basis enumeration and gamma aliases
+retain their positive orientations. Empty-string scalar parsing stays retired.
+
+All archived tables replay in both expression modes. Coefficient-first tests
+cover Euclidean, oblique-indefinite and singular-oblique metrics, both signs,
+three styles/targets, and nonzero mixed grades. Named locals require symbol
+environments; literalized blades replay independently. Scoped rebinding,
+immutable snapshots, exact identifier filtering and validation remain live
+contracts. Corruption probes reject altered keys, coefficient shape/finiteness,
+numeric values, spelling, and a factory that drops orientation.
+
+All 73 focused cases pass at 100% line/branch coverage in the three test files.
+All 63 public cases pass directly from the wheel with origins verified and
+legacy imports blocked. Full package/release suites pass 5,972 cases on
+Python 3.11 and 6,089 on Python 3.14, including maintained notebook exports.
+Core/facade coverage, the existing matrix warning, and 295 type errors remain.
+No production code changes.
+
+The presentation-contexts notebook teaches these boundaries with derived signs
+and executable symbol/literal replay; generated display equations are inspected.
+The construction-exemption ledger falls from eight files to seven. Remaining
+mixed legacy suites, namespace/construction guards, engine deletion and final
+release gates are still pending. See
+[ADR-106](../adrs/106-independent-public-local-name-contracts.md).

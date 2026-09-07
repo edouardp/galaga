@@ -11,19 +11,27 @@ def _():
     import galaga_marimo as gm
     from galaga import (
         Algebra,
+        BladeRef,
         DisplayPolicy,
+        LocalNamePolicy,
         Notation,
         geometric_product,
+        indexed_blade_convention,
         norm,
         p_euclidean,
     )
+    from galaga.expression import evaluate
 
     return (
         Algebra,
+        BladeRef,
         DisplayPolicy,
+        LocalNamePolicy,
         Notation,
+        evaluate,
         geometric_product,
         gm,
+        indexed_blade_convention,
         mo,
         norm,
         p_euclidean,
@@ -140,6 +148,98 @@ def _(mo):
     `with_local_names`, `with_display_order`, and `with_display`. The grouped
     `PresentationConfig` also has corresponding `with_*` methods, so one
     concern can be replaced without rebuilding the others.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Python bindings are not blade labels
+
+    A display convention answers “how does this blade look?” A
+    `LocalNamePolicy` answers “which signed blade does this Python key bind?”
+    Changing one does not regenerate the other. `locals()` returns a
+    read-only mapping; unpack it explicitly rather than injecting names into
+    a Marimo cell's namespace.
+
+    Compute $e_2\wedge e_1$ first, then derive its signed reference. We keep
+    compact Python keys even when the blade display uses wedge notation.
+    Grade filtering selects references by their masks and preserves signs.
+    """)
+    return
+
+
+@app.cell
+def _(
+    BladeRef,
+    LocalNamePolicy,
+    algebra,
+    evaluate,
+    gm,
+    indexed_blade_convention,
+):
+    _e1, _e2 = algebra.basis_vectors()
+    _reverse_plane = _e2 ^ _e1
+    (_mask,) = (_index for _index, _coefficient in enumerate(_reverse_plane.data) if _coefficient)
+    _ref = BladeRef(_mask, int(_reverse_plane.data[_mask]))
+    _labels = indexed_blade_convention(algebra.n, prefix="v", style="wedge")
+    _display_view = algebra.with_blades(_labels)
+    assert list(_display_view.locals()) == list(algebra.locals())
+    _policy = LocalNamePolicy(algebra.n, {"x": 1, "y": 2, "plane": _ref})
+    _view = _display_view.with_local_names(_policy)
+    _bindings = _view.locals(expr=True)
+    _x, _y, _plane = (_bindings[_key] for _key in ("x", "y", "plane"))
+    assert _plane == _reverse_plane
+    assert _view.numeric is algebra.numeric
+    _bivectors = LocalNamePolicy(
+        algebra.n,
+        ((_key, _signed) for _key, _signed in _policy.entries if _signed.mask.bit_count() == 2),
+    )
+    assert list(_view.with_local_names(_bivectors).locals()) == ["plane"]
+    assert _view.with_local_names(_bivectors).locals()["plane"] == _reverse_plane
+    _mixed = 2 * _x + 3 * _y + 5 * _plane
+    assert _mixed == 2 * _e1 + 3 * _e2 + 5 * _reverse_plane
+    assert evaluate(_mixed.expr, algebra=_view, environment=_bindings) == _mixed
+    _literal = _view.blade(_plane, expr=True)
+    assert evaluate(_literal.expr, algebra=_view) == _plane
+    _plane_latex = _plane.latex(content="full")
+    _mixed_latex = _mixed.latex(content="full")
+    _literal_latex = _literal.latex(content="full")
+
+    gm.md(rt"""
+    The Python key `plane` binds the computed reversed exterior product:
+
+    $${_plane_latex!s}.$$
+
+    All coefficients are still in the native basis; the wedge display did
+    not change the value:
+
+    $${_mixed_latex!s}.$$
+
+    The symbol `plane` needs an explicit evaluation environment. Literalizing
+    the same value with `blade(value, expr=True)` produces a signed blade
+    leaf that can be replayed without a symbol environment:
+
+    $${_literal_latex!s}.$$
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    `LocalNamePolicy.from_convention(...)` takes valid canonical ASCII
+    identifiers literally. It excludes scalars, keywords, aliases, and
+    roles; it neither sanitizes names nor compacts products. Thus `v1^v2`
+    is omitted, while juxtaposed `v1v2` remains `v1v2`. Use a separate
+    compact convention or explicit entries when you want a key such as `v12`.
+
+    `locals(expr=False)` omits initial expression leaves, but its values
+    still have names: later operations on them record symbolic provenance.
+    In STA, preset local `s1` means $\gamma_1\gamma_0$, while native alias
+    `g0g1` means $\gamma_0\gamma_1$. Renaming a key must preserve its reference,
+    not reinterpret the letters as a product.
     """)
     return
 

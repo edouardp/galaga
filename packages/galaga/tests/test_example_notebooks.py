@@ -138,6 +138,22 @@ def test_construction_notebook_teaches_metric_derived_sta_names_and_signed_looku
     assert "multiple blades or non-unit coefficients" in source
 
 
+def test_presentation_notebook_teaches_signed_locals_and_explicit_symbol_replay() -> None:
+    source = (EXAMPLES / "galaga_v2/presentation_contexts.py").read_text()
+    assert "_reverse_plane = _e2 ^ _e1" in source
+    assert "_ref = BladeRef(_mask, int(_reverse_plane.data[_mask]))" in source
+    assert 'LocalNamePolicy(algebra.n, {"x": 1, "y": 2, "plane": _ref})' in source
+    assert "_signed.mask.bit_count() == 2" in source
+    assert 'assert _view.with_local_names(_bivectors).locals()["plane"] == _reverse_plane' in source
+    assert "evaluate(_mixed.expr, algebra=_view, environment=_bindings) == _mixed" in source
+    assert "evaluate(_literal.expr, algebra=_view) == _plane" in source
+    assert "neither sanitizes names nor compacts products" in source
+    assert "later operations on them record symbolic provenance" in source
+    for name in ("plane", "mixed", "literal"):
+        assert f'_{name}_latex = _{name}.latex(content="full")' in source
+        assert "$${_" + name + "_latex!s}.$$" in source
+
+
 def test_rga_notebook_teaches_signed_storage_zero_grades_and_custom_underaccents() -> None:
     source = (EXAMPLES / "rga/rga_demo.py").read_text()
     assert '_oriented = rga.blade("e31", expr=True)' in source
