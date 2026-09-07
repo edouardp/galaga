@@ -5,6 +5,7 @@ from __future__ import annotations
 import keyword
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from numbers import Real
 from types import MappingProxyType
 
 from .names import Name
@@ -263,15 +264,31 @@ def euclidean_blade_convention(dimension: int) -> BladeConvention:
     return indexed_blade_convention(dimension, roles=roles)
 
 
-def spacetime_blade_convention() -> BladeConvention:
-    """The four-dimensional ``gamma0`` … ``gamma3`` STA convention with pseudoscalar ``i``."""
+def spacetime_blade_convention(
+    *,
+    signature: Sequence[int] | None = None,
+    sigmas: bool = False,
+    pseudovectors: bool = False,
+) -> BladeConvention:
+    """Gamma labels, optionally naming signed STA products in a unit diagonal frame.
+
+    The plain convention needs no metric. Optional ``s1`` … ``s3`` name
+    ``gamma_k gamma_0``, ``is1`` … ``is3`` name ``I gamma_k gamma_0``, and
+    ``ig0`` … ``ig3`` name ``I gamma_k``. Their signs are derived from the
+    explicitly ordered four-entry ±1 ``signature``, never inferred from inertia.
+    Pass the basis squares of the algebra to which these labels will be applied.
+    Original gamma spellings remain aliases for the positive canonical blades.
+    """
+    if not isinstance(sigmas, bool) or not isinstance(pseudovectors, bool):
+        raise TypeError("sigmas and pseudovectors must be booleans")
+    squares = None if signature is None else _sta_signature(signature)
     roles = {
         "time": BladeRef(0b0001),
         "space_1": BladeRef(0b0010),
         "space_2": BladeRef(0b0100),
         "space_3": BladeRef(0b1000),
     }
-    return indexed_blade_convention(
+    plain = indexed_blade_convention(
         4,
         prefix=Name("g", "γ", r"\gamma"),
         start=0,
@@ -279,6 +296,64 @@ def spacetime_blade_convention() -> BladeConvention:
         overrides={0b1111: Name("i")},
         roles=roles,
     )
+    if not sigmas and not pseudovectors:
+        return plain
+
+    if squares is None:
+        raise ValueError("an explicit unit diagonal signature is required for signed STA names")
+    words: list[tuple[Name, tuple[int, ...]]] = []
+    pseudoscalar_word = tuple(range(4))
+    if sigmas:
+        for index in range(1, 4):
+            subscript = _numeric_subscript(index)
+            words.append((Name(f"s{index}", f"σ{subscript.unicode}", rf"\sigma_{{{index}}}"), (index, 0)))
+            words.append(
+                (Name(f"is{index}", f"iσ{subscript.unicode}", rf"i\sigma_{{{index}}}"), (*pseudoscalar_word, index, 0))
+            )
+    if pseudovectors:
+        for index in range(4):
+            subscript = _numeric_subscript(index)
+            words.append(
+                (Name(f"ig{index}", f"iγ{subscript.unicode}", rf"i\gamma_{{{index}}}"), (*pseudoscalar_word, index))
+            )
+
+    labels = list(plain.labels)
+    aliases: dict[str, BladeRef] = {}
+    for name, word in words:
+        ref = _sta_word_ref(word, squares)
+        original = plain.label(ref.mask)
+        for target in ("ascii", "unicode", "latex"):
+            aliases[original.name.for_target(target)] = original.ref
+        labels[ref.mask] = BladeLabel(name, ref)
+    return BladeConvention(4, labels, aliases=aliases, roles=roles)
+
+
+def _sta_signature(signature: Sequence[int]) -> tuple[int, ...]:
+    """Validate the bounded metric grammar used by signed STA word labels."""
+    message = "STA signature must contain four real unit diagonal entries (+1 or -1)"
+    try:
+        squares = tuple(signature)
+    except TypeError as error:
+        raise ValueError(message) from error
+    if len(squares) != 4 or any(
+        isinstance(square, bool) or not isinstance(square, Real) or square not in (-1, 1) for square in squares
+    ):
+        raise ValueError(message)
+    return tuple(int(square) for square in squares)
+
+
+def _sta_word_ref(word: tuple[int, ...], signature: tuple[int, ...]) -> BladeRef:
+    """Reduce an orthogonal unit-vector word to its signed exterior mask."""
+    mask = 0
+    orientation = 1
+    for index in word:
+        # Appending a vector crosses the existing higher-index vectors.
+        if (mask >> (index + 1)).bit_count() % 2:
+            orientation = -orientation
+        if mask & (1 << index):
+            orientation *= signature[index]
+        mask ^= 1 << index
+    return BladeRef(mask, orientation)
 
 
 def pga_blade_convention(spatial_dim: int) -> BladeConvention:

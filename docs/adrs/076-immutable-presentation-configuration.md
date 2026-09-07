@@ -71,7 +71,13 @@ conditional.
 Preset presentation is mathematical vocabulary as well as formatting. The
 spacetime preset therefore names the oriented grade-four pseudoscalar `i`, as
 in the established STA blade convention, while retaining gamma products for
-the other compound blades.
+the other compound blades by default. Opt-in `sigmas` and `pseudovectors`
+derive signed product names from the preset's actual ordered unit-diagonal
+metric. The standalone factory requires that metric explicitly when either
+option is enabled; it does not infer signs from inertia. Gamma aliases retain
+native orientation, while canonical names and generated locals use the
+computed orientation. See
+[ADR-104](104-metric-derived-sta-names-and-public-blade-contracts.md).
 
 The facade constructor accepts complete setup through `config=`:
 

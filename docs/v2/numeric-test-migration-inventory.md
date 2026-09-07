@@ -1033,3 +1033,41 @@ for core/facade numeric modules and 94% for the emitter; the existing matrix
 warning and 295 type errors remain. No production code or notebook content
 changes. See
 [ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md).
+
+### Phase 9 follow-through: blade conventions and metric-derived STA names
+
+All 102 historical method identities and 107 collected cases in
+`test_blade_convention.py` remain live against public immutable conventions
+and facade values. The archive `tools/baselines/blade-convention-contracts-v1.json`
+preserves every method source plus twelve complete v1 STA name/sign tables:
+three ordered metrics and four option combinations, with source/runtime
+provenance. The original literal STA tables remain in the public suite.
+
+Restore opt-in `sigmas` and `pseudovectors` on `p_sta`/`SpacetimePreset`.
+The standalone `spacetime_blade_convention` requires explicit ordered unit
+basis squares for either option. A bounded word reduction derives signs;
+it does not infer them from inertia or import the core into presentation.
+Names describe actual products, with native gamma spellings retained as
+positive-orientation aliases. New tests compute first across all sixteen
+unit-diagonal sign patterns, then verify labels, lookup, rendering, local
+bindings, replay, hashes, and numeric sharing.
+
+Archive replay permits only the explicit ASCII pseudovector change from
+`iy0` … `iy3` to `ig0` … `ig3`. Mutable renaming becomes immutable views or
+scoped presentation; explicit names/masks replace tuple and metric-role
+parsing. Repr, PGA basis order, and actual-null versus display-only CGA naming
+retain established v2 policy. Corruption probes reject wrong signs, names,
+masks, and the old unsigned sigma lookup.
+
+All 739 presentation/blade tests pass. The four blade test files measure
+100% line and branch coverage; both changed production modules measure 98%
+with every new path covered. Fresh-process legacy-import gates pass, and
+all 224 public blade cases pass directly from the wheel with package origins
+verified. Full package/release suites pass 5,620 cases on Python 3.11 and
+5,737 on Python 3.14, including maintained notebook exports. Existing
+core/facade coverage, the matrix warning, and 295 type errors remain.
+
+The construction notebook computes both time-first STA frames and teaches
+signed lookup plus the general-Gram boundary. The construction-exemption
+ledger falls from ten files to nine; RGA and mixed legacy ownership remain.
+See [ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md).

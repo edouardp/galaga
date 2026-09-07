@@ -65,17 +65,21 @@ class EuclideanPreset:
 
 @dataclass(frozen=True, slots=True)
 class SpacetimePreset:
-    """Four-dimensional spacetime algebra with a gamma basis."""
+    """Time-first spacetime algebra with optional metric-derived STA names."""
 
     signature: Literal["mostly-minus", "mostly-plus"] = "mostly-minus"
+    sigmas: bool = False
+    pseudovectors: bool = False
 
     def __post_init__(self) -> None:
         if self.signature not in {"mostly-minus", "mostly-plus"}:
             raise ValueError("spacetime signature must be 'mostly-minus' or 'mostly-plus'")
+        if not isinstance(self.sigmas, bool) or not isinstance(self.pseudovectors, bool):
+            raise TypeError("sigmas and pseudovectors must be booleans")
 
     def build(self) -> AlgebraConfig:
-        blades = spacetime_blade_convention()
         squares = (1, -1, -1, -1) if self.signature == "mostly-minus" else (-1, 1, 1, 1)
+        blades = spacetime_blade_convention(signature=squares, sigmas=self.sigmas, pseudovectors=self.pseudovectors)
         return AlgebraConfig(
             definition=AlgebraDefinition.from_signature(squares, id=f"spacetime-{self.signature}"),
             presentation=_presentation(blades, notation=Notation("spacetime")),
@@ -246,9 +250,12 @@ def p_euclidean(spatial_dim: int = 3) -> EuclideanPreset:
 
 def p_sta(
     signature: Literal["mostly-minus", "mostly-plus"] = "mostly-minus",
+    *,
+    sigmas: bool = False,
+    pseudovectors: bool = False,
 ) -> SpacetimePreset:
-    """Return an inspectable spacetime preset."""
-    return SpacetimePreset(signature)
+    """Return a time-first spacetime preset, optionally naming sigma/dual products."""
+    return SpacetimePreset(signature, sigmas=sigmas, pseudovectors=pseudovectors)
 
 
 def p_pga(spatial_dim: int = 3) -> PGAPreset:

@@ -144,6 +144,35 @@ both have total dimension five. Passing `5` to the blade builder would create
 a seven-dimensional convention and correctly fail the facade's dimension
 validation when combined with `p_cga(spatial_dim=3)`.
 
+### STA product names are derived, not unsigned synonyms
+
+`p_sta(sigmas=True, pseudovectors=True)` computes conventional names from
+its own ordered metric. Defaults remain plain gamma words and pseudoscalar
+`i`. With $I=\gamma_0\gamma_1\gamma_2\gamma_3$, `s1` … `s3` name
+$\gamma_k\gamma_0$, `is1` … `is3` name $I\gamma_k\gamma_0$, and
+`ig0` … `ig3` name $I\gamma_k$.
+
+`p_sta("mostly-plus", ...)` uses $(-,+,+,+)$; it is not the same ordered
+frame as `Algebra(3, 1)`, whose squares are $(+,+,+,-)$.
+The standalone `spacetime_blade_convention` accepts these flags only with an
+explicit ordered four-entry ±1 `signature`. Its bounded word reduction works
+for all sixteen unit-diagonal sign patterns, without assigning physical time
+from inertia. This is not a general-Gram product interface.
+
+Pass `algebra.basis_squares` only when the algebra's frame is orthogonal and
+unit diagonal. A convention does not carry a metric-binding restriction:
+applying labels to a different frame does not re-derive their signs. Prefer
+the complete preset when constructing STA. For oblique, scaled, or degenerate
+frames, name actual computed multivectors instead of treating products as
+signed unit-blade references.
+
+All canonical target spellings resolve to the signed product.
+`blade("s1")` is $\gamma_1\gamma_0$, while the retained alias
+`blade("g0g1")` is the positive native $\gamma_0\gamma_1$.
+Preset locals have the same signed meaning. See
+[ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)
+and the [construction notebook](../../examples/galaga_v2/algebra_construction.py).
+
 ### Local names and display order remain independent
 
 `LocalNamePolicy` maps valid Python identifiers to signed blades. It is not

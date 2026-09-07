@@ -125,6 +125,19 @@ def test_cga_gram_matrix_notebook_connects_metric_geometry_and_compact_matrices(
     assert "automatic_point_matrix = to_matrix(conformal_point)" in source
 
 
+def test_construction_notebook_teaches_metric_derived_sta_names_and_signed_lookup() -> None:
+    source = (EXAMPLES / "galaga_v2/algebra_construction.py").read_text()
+    assert 'p_sta("mostly-minus", sigmas=True, pseudovectors=True)' in source
+    assert 'p_sta("mostly-plus", sigmas=True, pseudovectors=True)' in source
+    assert "_minus_sigma = _m1 * _m0" in source
+    assert "_plus_spatial = _p1 ^ _p2 ^ _p3" in source
+    assert 'assert _minus.blade("g0g1") == _native_bivector == -_minus_sigma' in source
+    assert 'assert _plus.locals()["ig0"] == _plus.I * _p0' in source
+    assert "signature=algebra.basis_squares" in source
+    assert "only for an orthogonal frame" in source
+    assert "multiple blades or non-unit coefficients" in source
+
+
 def test_custom_notation_notebook_teaches_unit_fraction_and_target_consistent_reverse() -> None:
     source = (EXAMPLES / "galaga_v2/custom_functional_notation.py").read_text()
     assert r'Name.from_latex(r"\hat{B}")' in source

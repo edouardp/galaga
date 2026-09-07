@@ -201,6 +201,85 @@ def _(conformal_model, gm, projective_model, rga_model, spacetime_model):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## STA names describe signed products
+
+    The default STA convention keeps gamma words. Opt into `sigmas=True` to
+    name $\sigma_k=\gamma_k\gamma_0$ and $i\sigma_k=I\gamma_k\gamma_0$;
+    `pseudovectors=True` names $i\gamma_k=I\gamma_k$, where
+    $I=\gamma_0\gamma_1\gamma_2\gamma_3$.
+
+    These are definitions of products, not aliases for unsigned storage
+    slots. In particular, $\gamma_0\wedge\gamma_1=-\sigma_1$ in either
+    orthogonal frame below. The sign of the spatial trivector expressed as
+    $i\gamma_0$ changes when the ordered metric changes.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, DisplayPolicy, gm, p_sta):
+    _minus = Algebra(
+        config=p_sta("mostly-minus", sigmas=True, pseudovectors=True),
+        display=DisplayPolicy(content="full"),
+    )
+    _plus = Algebra(
+        config=p_sta("mostly-plus", sigmas=True, pseudovectors=True),
+        display=DisplayPolicy(content="full"),
+    )
+    _m0, _m1, _m2, _m3 = _minus.basis_vectors(expr=True)
+    _p0, _p1, _p2, _p3 = _plus.basis_vectors(expr=True)
+    _minus_sigma = _m1 * _m0
+    _plus_sigma = _p1 * _p0
+    _minus_spatial = _m1 ^ _m2 ^ _m3
+    _plus_spatial = _p1 ^ _p2 ^ _p3
+    _native_bivector = _m0 ^ _m1
+
+    assert _minus.blade("s1") == _minus_sigma
+    assert _plus.blade("s1") == _plus_sigma
+    assert _minus.blade("g0g1") == _native_bivector == -_minus_sigma
+    assert _minus.locals()["ig0"] == _minus.I * _m0
+    assert _plus.locals()["ig0"] == _plus.I * _p0
+
+    gm.md(rt"""
+    Both rows are computed from their own metric:
+
+    | Ordered metric | Relative vector | Spatial trivector |
+    |---|---|---|
+    | $(+,-,-,-)$ | {_minus_sigma} | {_minus_spatial} |
+    | $(-,+,+,+)$ | {_plus_sigma} | {_plus_spatial} |
+
+    The canonical bivector and the named relative vector have opposite
+    orientations: {_native_bivector}.
+
+    `blade("s1")` and `blade("σ₁")` return the relative vector.
+    `blade("g0g1")` retains the positive canonical gamma word; these
+    lookups must not be conflated. The Python local `ig0` is the actual
+    computed product $I\gamma_0$.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    `p_sta` derives the signs from its own time-first metric. If configuring
+    only presentation, use
+    `spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
+    **only for an orthogonal frame whose basis squares are all ±1**.
+    The plain gamma convention needs no metric; the signed options require
+    the actual ordered signature.
+
+    `Algebra(3, 1)` orders its metric $(+,+,+,-)$, so it is not the
+    time-first mostly-plus preset. In a general Gram frame, products can
+    contain multiple blades or non-unit coefficients: keep plain blade
+    labels and give those computed multivectors their own names.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     `config=` already defines the metric, so combining it with `gram=`, a
     signature, or `p/q/r` is deliberately an error. Presentation components
     are different: they may be overridden independently without redefining

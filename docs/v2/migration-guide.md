@@ -322,6 +322,58 @@ cga_model = ConformalModel(cga, expr=True)
 rga_model = RigidModel(rga, expr=True)
 ```
 
+## Migrate blade conventions and STA names
+
+Replace v1's `b_sta(sigmas=True, pseudovectors=True)` with a complete preset:
+
+```python
+from galaga import Algebra, p_sta
+
+sta = Algebra(config=p_sta("mostly-minus", sigmas=True, pseudovectors=True))
+g0, g1, g2, g3 = sta.basis_vectors()
+assert sta.blade("s1") == g1 * g0
+assert sta.blade("g0g1") == g0 * g1 == -sta.blade("s1")
+assert sta.locals()["ig0"] == sta.I * g0
+```
+
+`sigmas` names both $\sigma_k=\gamma_k\gamma_0$ and
+$i\sigma_k=I\gamma_k\gamma_0$; `pseudovectors` names $i\gamma_k=I\gamma_k$.
+ASCII pseudovectors are now `ig0` … `ig3`, not `iy0` … `iy3`.
+Lookup returns the signed product rather than the old unsigned storage slot.
+The default preset still keeps gamma words. Both preset options are opt-in.
+
+`p_sta("mostly-plus")` uses the time-first $(-,+,+,+)$ metric.
+`Algebra(3, 1)` uses $(+,+,+,-)$; these orders cannot share a sign table.
+For presentation-only configuration, pass the actual ordered squares to
+`spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
+only for an orthogonal unit-diagonal frame. Labels do not change or validate
+the metric of an algebra to which they are later applied. In a general Gram
+frame, name computed multivectors instead.
+
+Other blade-convention changes:
+
+- Replace `b_default`, `b_gamma`, `b_sigma`, and custom style/subscript
+  factories with `indexed_blade_convention(dimension, ...)`. Use explicit
+  `Name` objects for target-aware Greek prefixes and letter subscripts.
+- Override native integer masks with strings, `Name`, or signed
+  `BladeLabel` objects. Name tuples and metric-role text such as `"+1-1"`
+  are not parsed; aliases and semantic roles are explicitly declared.
+- Use `algebra.blade_label(mask)` for immutable metadata. To rename, build a
+  new convention and use `with_blades` or a scoped presentation. Replacing
+  local names is an independent `LocalNamePolicy` decision.
+- Unknown lookup names raise `KeyError`. Add `"pss"` as an explicit alias
+  if needed, or use `algebra.I`.
+- PGA presets use Euclidean vectors first and a final null vector. Use an
+  explicit signature and indexed labels to keep historical null-first order.
+  PGA/CGA pseudoscalars are not automatically named `I`.
+- Use `p_cga(frame="null")` for actual null origin/infinity vectors.
+  Merely renaming an orthogonal basis does not change its Gram matrix.
+
+The [construction notebook](../../examples/galaga_v2/algebra_construction.py)
+computes the signs under both STA metric choices. See
+[ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)
+for the archived contracts and validation boundaries.
+
 ## Configure presentation independently
 
 Presets provide coherent defaults, while constructor overrides can replace one

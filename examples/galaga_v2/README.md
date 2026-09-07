@@ -7,7 +7,8 @@ implementation namespace and `galaga.core` the presentation-free engine.
 The recommended reading order is:
 
 1. [Algebra construction](algebra_construction.py) — metric constructors,
-   complete presets, diagnostic options, and presentation overrides.
+   complete presets, diagnostic options, and presentation overrides, including
+   metric-derived STA product names and signed-versus-native blade lookup.
 2. [Eager values and expressions](eager_values_and_expressions.py) — numeric
    values, optional expression provenance, naming, long-form operations,
    variadic products, and checked scalar conversion.

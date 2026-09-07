@@ -144,7 +144,12 @@ compound labels, with independent numeric/replay checks.
 All 141 mixed-precedence rendering tests now use public expressions too,
 with archived bindings and numeric replay. Nonzero mixed-grade compositions
 check scope across three metrics and all three targets without production
-changes. Fresh-process tests block legacy imports in all thirteen paths.
+changes. Blade-convention contracts now retain all 107 cases on the public
+facade, with all 102 method sources and twelve complete STA tables archived.
+Opt-in sigma and pseudovector names derive signs from the ordered metric;
+signed lookup, native aliases, and both time-first presets are tested.
+The construction notebook teaches these distinctions. Fresh-process tests
+block legacy imports in all fourteen paths.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
 
@@ -155,9 +160,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 10 files. Next are the
-blade-convention and mixed legacy suites, followed by namespace/construction guards.
-See [ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md)
+The construction-only legacy ledger is down to 9 files. Next are the
+RGA-convention and mixed legacy suites, followed by namespace/construction guards.
+See [ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

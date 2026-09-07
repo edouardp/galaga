@@ -1,0 +1,1849 @@
+{
+  "schema_version": 1,
+  "source_commit": "a502b30c8c8730c117e7caa64d24d95c888b5b83",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_test": "packages/galaga/tests/test_blade_convention.py",
+  "original_case_count": 107,
+  "tests": [
+    {
+      "id": "TestFactoryDefaults.test_b_default_compact",
+      "source": "def test_b_default_compact(self):\n    \"\"\"b_default: 1-based, compact.\"\"\"\n    alg = Algebra(3)\n    e1, e2, e3 = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"e₁₂\"\n    assert str(e1 ^ e2 ^ e3) == \"e₁₂₃\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_default_latex",
+      "source": "def test_b_default_latex(self):\n    \"\"\"b_default compact produces e_{12} in LaTeX.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    assert \"e_{12}\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_gamma",
+      "source": "def test_b_gamma(self):\n    \"\"\"b_gamma: 0-based, juxtapose.\"\"\"\n    alg = Algebra(1, 3, blades=b_gamma())\n    g0, g1, _, _ = alg.basis_vectors()\n    assert str(g0) == \"γ₀\"\n    assert str(g1) == \"γ₁\"\n    assert str(g0 * g1) == \"γ₀γ₁\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sigma",
+      "source": "def test_b_sigma(self):\n    \"\"\"b_sigma: 1-based, juxtapose.\"\"\"\n    alg = Algebra(3, blades=b_sigma())\n    s1, s2, _ = alg.basis_vectors()\n    assert str(s1) == \"σ₁\"\n    assert str(s2) == \"σ₂\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sigma_xyz",
+      "source": "def test_b_sigma_xyz(self):\n    \"\"\"b_sigma_xyz: letter subscripts.\"\"\"\n    alg = Algebra(3, blades=b_sigma_xyz())\n    sx, sy, sz = alg.basis_vectors()\n    assert str(sx) == \"σₓ\"\n    assert str(sy) == \"σᵧ\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_pga",
+      "source": "def test_b_pga(self):\n    \"\"\"b_pga: 0-based, compact, PSS → I.\"\"\"\n    alg = Algebra(3, 0, 1, blades=b_pga())\n    e0, e1, e2, e3 = alg.basis_vectors()\n    assert str(e0) == \"e₀\"\n    assert str(e0 ^ e1) == \"e₀₁\"\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_basic",
+      "source": "def test_b_sta_basic(self):\n    \"\"\"b_sta: gamma vectors, PSS → i.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta())\n    g0, _, _, _ = alg.basis_vectors()\n    assert str(g0) == \"γ₀\"\n    assert str(alg.pseudoscalar()) == \"i\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_sigmas",
+      "source": "def test_b_sta_sigmas(self):\n    \"\"\"b_sta(sigmas=True): σₖ = γₖγ₀ displays correctly.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(sigmas=True))\n    g0, g1, g2, g3 = alg.basis_vectors()\n    # Canonical STA convention: σₖ = γₖγ₀\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g0 * g1) == \"-σ₁\"\n    # iσ₃ = I·σ₃ = -γ₁γ₂, so γ₁γ₂ = -iσ₃\n    assert str(g1 * g2) == \"-iσ₃\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_pseudovectors",
+      "source": "def test_b_sta_pseudovectors(self):\n    \"\"\"b_sta(pseudovectors=True): names grade-3 trivectors as iγₖ.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))\n    g0, g1, g2, g3 = alg.basis_vectors()\n    trivec = g1 * g2 * g3\n    assert str(trivec) == \"-iγ₀\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_all_blades_plain",
+      "source": "def test_b_sta_all_blades_plain(self):\n    \"\"\"b_sta() complete blade table.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta())\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"γ₀γ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"γ₀γ₂\",\n        0b0110: \"γ₁γ₂\",\n        0b0111: \"γ₀γ₁γ₂\",\n        0b1000: \"γ₃\",\n        0b1001: \"γ₀γ₃\",\n        0b1010: \"γ₁γ₃\",\n        0b1011: \"γ₀γ₁γ₃\",\n        0b1100: \"γ₂γ₃\",\n        0b1101: \"γ₀γ₂γ₃\",\n        0b1110: \"γ₁γ₂γ₃\",\n        0b1111: \"i\",\n    }"
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_all_blades_sigmas",
+      "source": "def test_b_sta_all_blades_sigmas(self):\n    \"\"\"b_sta(sigmas=True) complete blade table — names and signs.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(sigmas=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"σ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"σ₂\",\n        0b0110: \"iσ₃\",\n        0b0111: \"γ₀γ₁γ₂\",\n        0b1000: \"γ₃\",\n        0b1001: \"σ₃\",\n        0b1010: \"iσ₂\",\n        0b1011: \"γ₀γ₁γ₃\",\n        0b1100: \"iσ₁\",\n        0b1101: \"γ₀γ₂γ₃\",\n        0b1110: \"γ₁γ₂γ₃\",\n        0b1111: \"i\",\n    }\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: -1,  # σ₁ = γ₁γ₀ = -γ₀γ₁\n        0b0100: 1,\n        0b0101: -1,  # σ₂ = γ₂γ₀ = -γ₀γ₂\n        0b0110: -1,  # iσ₃ = -γ₁γ₂\n        0b0111: 1,\n        0b1000: 1,\n        0b1001: -1,  # σ₃ = γ₃γ₀ = -γ₀γ₃\n        0b1010: 1,  # iσ₂ = γ₁γ₃\n        0b1011: 1,\n        0b1100: -1,  # iσ₁ = -γ₂γ₃\n        0b1101: 1,\n        0b1110: 1,\n        0b1111: 1,\n    }\n    # Verify rendered products (σₖ = γₖγ₀, i = γ₀γ₁γ₂γ₃)\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g0 * g1) == \"-σ₁\"\n    assert str(g2 * g0) == \"σ₂\"\n    assert str(g3 * g0) == \"σ₃\"\n    assert str(g2 * g3) == \"-iσ₁\"\n    assert str(g1 * g3) == \"iσ₂\"\n    assert str(g1 * g2) == \"-iσ₃\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_all_blades_pseudovectors",
+      "source": "def test_b_sta_all_blades_pseudovectors(self):\n    \"\"\"b_sta(pseudovectors=True) complete blade table — names and signs.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(pseudovectors=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"γ₀γ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"γ₀γ₂\",\n        0b0110: \"γ₁γ₂\",\n        0b0111: \"iγ₃\",\n        0b1000: \"γ₃\",\n        0b1001: \"γ₀γ₃\",\n        0b1010: \"γ₁γ₃\",\n        0b1011: \"iγ₂\",\n        0b1100: \"γ₂γ₃\",\n        0b1101: \"iγ₁\",\n        0b1110: \"iγ₀\",\n        0b1111: \"i\",\n    }\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: 1,\n        0b0100: 1,\n        0b0101: 1,\n        0b0110: 1,\n        0b0111: -1,  # γ₀γ₁γ₂ = -iγ₃\n        0b1000: 1,\n        0b1001: 1,\n        0b1010: 1,\n        0b1011: 1,  # γ₀γ₁γ₃ = +iγ₂\n        0b1100: 1,\n        0b1101: -1,  # γ₀γ₂γ₃ = -iγ₁\n        0b1110: -1,  # γ₁γ₂γ₃ = -iγ₀\n        0b1111: 1,\n    }\n    # Verify rendered products\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g0 * g1 * g2) == \"-iγ₃\"\n    assert str(g0 * g1 * g3) == \"iγ₂\"\n    assert str(g0 * g2 * g3) == \"-iγ₁\"\n    assert str(g1 * g2 * g3) == \"-iγ₀\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta_all_blades_both",
+      "source": "def test_b_sta_all_blades_both(self):\n    \"\"\"b_sta(sigmas=True, pseudovectors=True) complete blade table — names and signs.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(sigmas=True, pseudovectors=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"σ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"σ₂\",\n        0b0110: \"iσ₃\",\n        0b0111: \"iγ₃\",\n        0b1000: \"γ₃\",\n        0b1001: \"σ₃\",\n        0b1010: \"iσ₂\",\n        0b1011: \"iγ₂\",\n        0b1100: \"iσ₁\",\n        0b1101: \"iγ₁\",\n        0b1110: \"iγ₀\",\n        0b1111: \"i\",\n    }\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: -1,  # σ₁\n        0b0100: 1,\n        0b0101: -1,  # σ₂\n        0b0110: -1,  # iσ₃ = -γ₁γ₂\n        0b0111: -1,  # iγ₃\n        0b1000: 1,\n        0b1001: -1,  # σ₃\n        0b1010: 1,  # iσ₂ = γ₁γ₃\n        0b1011: 1,  # iγ₂\n        0b1100: -1,  # iσ₁ = -γ₂γ₃\n        0b1101: -1,  # iγ₁\n        0b1110: -1,  # iγ₀\n        0b1111: 1,\n    }\n    # Verify all named products\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g2 * g0) == \"σ₂\"\n    assert str(g3 * g0) == \"σ₃\"\n    assert str(g2 * g3) == \"-iσ₁\"\n    assert str(g1 * g3) == \"iσ₂\"\n    assert str(g1 * g2) == \"-iσ₃\"\n    assert str(g0 * g1 * g2) == \"-iγ₃\"\n    assert str(g0 * g1 * g3) == \"iγ₂\"\n    assert str(g0 * g2 * g3) == \"-iγ₁\"\n    assert str(g1 * g2 * g3) == \"-iγ₀\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_cga",
+      "source": "def test_b_cga(self):\n    \"\"\"b_cga defaults to metric-consistent e₊, e₋ names.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga())\n    _, _, _, ep, em = alg.basis_vectors()\n    assert str(ep) == \"e₊\"\n    assert str(em) == \"e₋\"\n    assert gp(ep, ep) == alg.scalar(alg.signature[3])\n    assert gp(em, em) == alg.scalar(alg.signature[4])\n    cga_locals = alg.locals()\n    assert cga_locals[\"ep\"] == ep\n    assert cga_locals[\"em\"] == em\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_cga_origin_infinity_is_explicit_display_only",
+      "source": "def test_b_cga_origin_infinity_is_explicit_display_only(self):\n    \"\"\"The legacy eₒ, e∞ labels remain an explicit display option.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga(null_basis=\"origin_infinity\"))\n    es = alg.basis_vectors()\n    assert str(es[3]) == \"eₒ\"\n    assert str(es[4]) == \"e∞\"\n    assert gp(es[3], es[3]) == alg.scalar(alg.signature[3])\n    assert gp(es[4], es[4]) == alg.scalar(alg.signature[4])"
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_cga_null_vectors_are_derived_from_default_frame",
+      "source": "def test_b_cga_null_vectors_are_derived_from_default_frame(self):\n    \"\"\"The documented e₄,e₅ construction is null under the metric.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga())\n    _, _, _, ep, em = alg.basis_vectors()\n    e4 = (em - ep) / 2\n    e5 = em + ep\n    assert gp(e4, e4) == alg.scalar(0)\n    assert gp(e5, e5) == alg.scalar(0)\n    expected_pairing = (alg.signature[4] - alg.signature[3]) / 2\n    assert e4 | e5 == alg.scalar(expected_pairing)"
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_basic",
+      "source": "def test_b_sta31_basic(self):\n    \"\"\"b_sta for Cl(3,1): gamma vectors, PSS → i.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta())\n    g0, _, _, _ = alg.basis_vectors()\n    assert str(g0) == \"γ₀\"\n    assert str(alg.pseudoscalar()) == \"i\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_sigmas",
+      "source": "def test_b_sta31_sigmas(self):\n    \"\"\"b_sta(sigmas=True) for Cl(3,1): σₖ = γₖγ₀ displays correctly.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta(sigmas=True))\n    g0, g1, g2, g3 = alg.basis_vectors()\n\n    # Canonical convention retained: σₖ = γₖγ₀\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g0 * g1) == \"-σ₁\"\n\n    # In Cl(3,1), iσ signs differ from Cl(1,3) due to metric\n    assert str(g2 * g3) == \"iσ₁\"\n    assert str(g1 * g3) == \"-iσ₂\"\n    assert str(g1 * g2) == \"-iσ₃\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_pseudovectors",
+      "source": "def test_b_sta31_pseudovectors(self):\n    \"\"\"b_sta(pseudovectors=True) for Cl(3,1): names grade-3 trivectors as iγₖ.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta(pseudovectors=True))\n    g0, g1, g2, g3 = alg.basis_vectors()\n    trivec = g1 * g2 * g3\n    assert str(trivec) == \"-iγ₀\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_all_blades_plain",
+      "source": "def test_b_sta31_all_blades_plain(self):\n    \"\"\"b_sta() complete blade table for Cl(3,1).\"\"\"\n    alg = Algebra(3, 1, blades=b_sta())\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"γ₀γ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"γ₀γ₂\",\n        0b0110: \"γ₁γ₂\",\n        0b0111: \"γ₀γ₁γ₂\",\n        0b1000: \"γ₃\",\n        0b1001: \"γ₀γ₃\",\n        0b1010: \"γ₁γ₃\",\n        0b1011: \"γ₀γ₁γ₃\",\n        0b1100: \"γ₂γ₃\",\n        0b1101: \"γ₀γ₂γ₃\",\n        0b1110: \"γ₁γ₂γ₃\",\n        0b1111: \"i\",\n    }"
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_all_blades_sigmas",
+      "source": "def test_b_sta31_all_blades_sigmas(self):\n    \"\"\"b_sta(sigmas=True) complete blade table for Cl(3,1) — names and signs.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta(sigmas=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"σ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"σ₂\",\n        0b0110: \"iσ₃\",\n        0b0111: \"γ₀γ₁γ₂\",\n        0b1000: \"γ₃\",\n        0b1001: \"σ₃\",\n        0b1010: \"iσ₂\",\n        0b1011: \"γ₀γ₁γ₃\",\n        0b1100: \"iσ₁\",\n        0b1101: \"γ₀γ₂γ₃\",\n        0b1110: \"γ₁γ₂γ₃\",\n        0b1111: \"i\",\n    }\n\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: -1,  # σ₁ = γ₁γ₀ = -γ₀γ₁\n        0b0100: 1,\n        0b0101: -1,  # σ₂ = γ₂γ₀ = -γ₀γ₂\n        0b0110: -1,  # iσ₃ = -γ₁γ₂\n        0b0111: 1,\n        0b1000: 1,\n        0b1001: -1,  # σ₃ = γ₃γ₀ = -γ₀γ₃\n        0b1010: -1,  # iσ₂ = -γ₁γ₃\n        0b1011: 1,\n        0b1100: 1,  # iσ₁ = γ₂γ₃\n        0b1101: 1,\n        0b1110: 1,\n        0b1111: 1,\n    }\n\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g0 * g1) == \"-σ₁\"\n    assert str(g2 * g0) == \"σ₂\"\n    assert str(g3 * g0) == \"σ₃\"\n    assert str(g2 * g3) == \"iσ₁\"\n    assert str(g1 * g3) == \"-iσ₂\"\n    assert str(g1 * g2) == \"-iσ₃\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_all_blades_pseudovectors",
+      "source": "def test_b_sta31_all_blades_pseudovectors(self):\n    \"\"\"b_sta(pseudovectors=True) complete blade table for Cl(3,1) — names and signs.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta(pseudovectors=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"γ₀γ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"γ₀γ₂\",\n        0b0110: \"γ₁γ₂\",\n        0b0111: \"iγ₃\",\n        0b1000: \"γ₃\",\n        0b1001: \"γ₀γ₃\",\n        0b1010: \"γ₁γ₃\",\n        0b1011: \"iγ₂\",\n        0b1100: \"γ₂γ₃\",\n        0b1101: \"iγ₁\",\n        0b1110: \"iγ₀\",\n        0b1111: \"i\",\n    }\n\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: 1,\n        0b0100: 1,\n        0b0101: 1,\n        0b0110: 1,\n        0b0111: -1,  # iγ₃\n        0b1000: 1,\n        0b1001: 1,\n        0b1010: 1,\n        0b1011: -1,  # iγ₂\n        0b1100: 1,\n        0b1101: 1,  # iγ₁\n        0b1110: -1,  # iγ₀\n        0b1111: 1,\n    }\n\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g0 * g1 * g2) == \"-iγ₃\"\n    assert str(g0 * g1 * g3) == \"-iγ₂\"\n    assert str(g0 * g2 * g3) == \"iγ₁\"\n    assert str(g1 * g2 * g3) == \"-iγ₀\""
+    },
+    {
+      "id": "TestFactoryDefaults.test_b_sta31_all_blades_both",
+      "source": "def test_b_sta31_all_blades_both(self):\n    \"\"\"b_sta(sigmas=True, pseudovectors=True) complete blade table for Cl(3,1) — names and signs.\"\"\"\n    alg = Algebra(3, 1, blades=b_sta(sigmas=True, pseudovectors=True))\n    names = {i: alg._blades[i].unicode_name for i in range(16)}\n    signs = {i: alg._blades[i].sign for i in range(16)}\n\n    assert names == {\n        0b0000: \"1\",\n        0b0001: \"γ₀\",\n        0b0010: \"γ₁\",\n        0b0011: \"σ₁\",\n        0b0100: \"γ₂\",\n        0b0101: \"σ₂\",\n        0b0110: \"iσ₃\",\n        0b0111: \"iγ₃\",\n        0b1000: \"γ₃\",\n        0b1001: \"σ₃\",\n        0b1010: \"iσ₂\",\n        0b1011: \"iγ₂\",\n        0b1100: \"iσ₁\",\n        0b1101: \"iγ₁\",\n        0b1110: \"iγ₀\",\n        0b1111: \"i\",\n    }\n\n    assert signs == {\n        0b0000: 1,\n        0b0001: 1,\n        0b0010: 1,\n        0b0011: -1,  # σ₁\n        0b0100: 1,\n        0b0101: -1,  # σ₂\n        0b0110: -1,  # iσ₃\n        0b0111: -1,  # iγ₃\n        0b1000: 1,\n        0b1001: -1,  # σ₃\n        0b1010: -1,  # iσ₂\n        0b1011: -1,  # iγ₂\n        0b1100: 1,  # iσ₁\n        0b1101: 1,  # iγ₁\n        0b1110: -1,  # iγ₀\n        0b1111: 1,\n    }\n\n    g0, g1, g2, g3 = alg.basis_vectors()\n    assert str(g1 * g0) == \"σ₁\"\n    assert str(g2 * g0) == \"σ₂\"\n    assert str(g3 * g0) == \"σ₃\"\n    assert str(g2 * g3) == \"iσ₁\"\n    assert str(g1 * g3) == \"-iσ₂\"\n    assert str(g1 * g2) == \"-iσ₃\"\n    assert str(g0 * g1 * g2) == \"-iγ₃\"\n    assert str(g0 * g1 * g3) == \"-iγ₂\"\n    assert str(g0 * g2 * g3) == \"iγ₁\"\n    assert str(g1 * g2 * g3) == \"-iγ₀\""
+    },
+    {
+      "id": "TestStyleVariations.test_compact_unicode",
+      "source": "def test_compact_unicode(self):\n    alg = Algebra(3, blades=b_default(style=\"compact\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"e₁₂\""
+    },
+    {
+      "id": "TestStyleVariations.test_compact_ascii",
+      "source": "def test_compact_ascii(self):\n    alg = Algebra(3, blades=b_default(style=\"compact\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert format(e1 ^ e2, \"a\") == \"e12\""
+    },
+    {
+      "id": "TestStyleVariations.test_compact_latex",
+      "source": "def test_compact_latex(self):\n    alg = Algebra(3, blades=b_default(style=\"compact\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert \"e_{12}\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestStyleVariations.test_juxtapose_unicode",
+      "source": "def test_juxtapose_unicode(self):\n    alg = Algebra(3, blades=b_default(style=\"juxtapose\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"e₁e₂\""
+    },
+    {
+      "id": "TestStyleVariations.test_juxtapose_ascii",
+      "source": "def test_juxtapose_ascii(self):\n    alg = Algebra(3, blades=b_default(style=\"juxtapose\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert format(e1 ^ e2, \"a\") == \"e1e2\""
+    },
+    {
+      "id": "TestStyleVariations.test_juxtapose_latex",
+      "source": "def test_juxtapose_latex(self):\n    alg = Algebra(3, blades=b_default(style=\"juxtapose\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert \"e_{1} e_{2}\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestStyleVariations.test_wedge_unicode",
+      "source": "def test_wedge_unicode(self):\n    alg = Algebra(3, blades=b_default(style=\"wedge\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert \"∧\" in str(e1 ^ e2)"
+    },
+    {
+      "id": "TestStyleVariations.test_wedge_ascii",
+      "source": "def test_wedge_ascii(self):\n    alg = Algebra(3, blades=b_default(style=\"wedge\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert \"^\" in format(e1 ^ e2, \"a\")"
+    },
+    {
+      "id": "TestStyleVariations.test_wedge_latex",
+      "source": "def test_wedge_latex(self):\n    alg = Algebra(3, blades=b_default(style=\"wedge\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert r\"\\wedge\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestOverrides.test_pss_override",
+      "source": "def test_pss_override(self):\n    \"\"\"pss key overrides pseudoscalar.\"\"\"\n    alg = Algebra(3, blades=b_default(overrides={\"pss\": \"I\"}))\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestOverrides.test_bivector_override",
+      "source": "def test_bivector_override(self):\n    \"\"\"Metric-role key overrides a bivector.\"\"\"\n    alg = Algebra(3, blades=b_default(overrides={\"+1+2\": \"B\"}))\n    e1, e2, _ = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"B\""
+    },
+    {
+      "id": "TestOverrides.test_override_3tuple",
+      "source": "def test_override_3tuple(self):\n    \"\"\"Override with (ascii, unicode, latex) tuple.\"\"\"\n    alg = Algebra(\n        3,\n        blades=b_default(\n            overrides={\n                \"+1+2\": (\"B12\", \"B₁₂\", r\"B_{12}\"),\n            }\n        ),\n    )\n    e1, e2, _ = alg.basis_vectors()\n    assert format(e1 ^ e2, \"a\") == \"B12\"\n    assert str(e1 ^ e2) == \"B₁₂\"\n    assert \"B_{12}\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestOverrides.test_override_spaces_optional",
+      "source": "def test_override_spaces_optional(self):\n    \"\"\"Spaces in metric-role key are optional.\"\"\"\n    alg1 = Algebra(3, blades=b_default(overrides={\"+1+2\": \"X\"}))\n    alg2 = Algebra(3, blades=b_default(overrides={\"+1 +2\": \"X\"}))\n    e1a, e2a, _ = alg1.basis_vectors()\n    e1b, e2b, _ = alg2.basis_vectors()\n    assert str(e1a ^ e2a) == str(e1b ^ e2b) == \"X\""
+    },
+    {
+      "id": "TestOverrides.test_null_vector_override",
+      "source": "def test_null_vector_override(self):\n    \"\"\"Override with null vector in PGA.\"\"\"\n    alg = Algebra(3, 0, 1, blades=b_pga(overrides={\"_1+1\": \"L\"}))\n    e0, e1, _, _ = alg.basis_vectors()\n    assert str(e0 ^ e1) == \"L\""
+    },
+    {
+      "id": "TestOverrides.test_factory_overrides_merge",
+      "source": "def test_factory_overrides_merge(self):\n    \"\"\"User overrides merge with factory defaults (user wins).\"\"\"\n    alg = Algebra(3, 0, 1, blades=b_pga(overrides={\"_1+1\": \"L\"}))\n    # pss → I from factory should still be there\n    assert str(alg.pseudoscalar()) == \"I\"\n    e0, e1, _, _ = alg.basis_vectors()\n    assert str(e0 ^ e1) == \"L\""
+    },
+    {
+      "id": "TestOverrides.test_user_override_wins_on_conflict",
+      "source": "def test_user_override_wins_on_conflict(self):\n    \"\"\"User override replaces factory default on same key.\"\"\"\n    alg = Algebra(3, 0, 1, blades=b_pga(overrides={\"pss\": \"𝐈\"}))\n    assert str(alg.pseudoscalar()) == \"𝐈\""
+    },
+    {
+      "id": "TestErrors.test_override_nonexistent_vector",
+      "source": "def test_override_nonexistent_vector(self):\n    \"\"\"Override referencing nonexistent vector raises.\"\"\"\n    with pytest.raises(ValueError):\n        Algebra(2, blades=b_default(overrides={\"+3+4\": \"X\"}))"
+    },
+    {
+      "id": "TestErrors.test_override_invalid_key",
+      "source": "def test_override_invalid_key(self):\n    \"\"\"Invalid metric-role string raises.\"\"\"\n    with pytest.raises(ValueError):\n        Algebra(3, blades=b_default(overrides={\"foo\": \"X\"}))"
+    },
+    {
+      "id": "TestErrors.test_incompatible_sta_sigmas",
+      "source": "def test_incompatible_sta_sigmas(self):\n    \"\"\"b_sta(sigmas=True) on 3D algebra raises (needs 4 vectors).\"\"\"\n    with pytest.raises((ValueError, IndexError)):\n        Algebra(3, blades=b_sta(sigmas=True))"
+    },
+    {
+      "id": "TestErrors.test_compact_mixed_prefix_fallback",
+      "source": "def test_compact_mixed_prefix_fallback(self):\n    \"\"\"Compact with mixed prefixes falls back to juxtapose.\"\"\"\n    alg = Algebra(\n        (1, 1),\n        blades=BladeConvention(\n            vector_names=[(\"x\", \"x\", \"x\"), (\"y\", \"y\", \"y\")],\n            style=\"compact\",\n        ),\n    )\n    e1, e2 = alg.basis_vectors()\n    # No common prefix → juxtapose fallback\n    assert str(e1 ^ e2) == \"xy\""
+    },
+    {
+      "id": "TestErrors.test_invalid_blades_type",
+      "source": "def test_invalid_blades_type(self):\n    \"\"\"Non-BladeConvention blades= raises TypeError.\"\"\"\n    with pytest.raises(TypeError):\n        Algebra(3, blades=\"bogus\")"
+    },
+    {
+      "id": "TestErrors.test_too_few_vector_names",
+      "source": "def test_too_few_vector_names(self):\n    \"\"\"Too few vector_names raises ValueError.\"\"\"\n    with pytest.raises(ValueError, match=\"need at least\"):\n        Algebra(3, blades=BladeConvention(vector_names=[(\"a\", \"a\", \"a\")]))"
+    },
+    {
+      "id": "TestBladeLookup.test_metric_role_string",
+      "source": "def test_metric_role_string(self):\n    \"\"\"blade() accepts metric-role string.\"\"\"\n    sta = Algebra(1, 3, blades=b_sta(sigmas=True))\n    g0, g1, _, _ = sta.basis_vectors()\n    assert sta.blade(\"+1-1\") == g0 ^ g1"
+    },
+    {
+      "id": "TestBladeLookup.test_display_name_match",
+      "source": "def test_display_name_match(self):\n    \"\"\"blade() matches display names.\"\"\"\n    sta = Algebra(1, 3, blades=b_sta(sigmas=True))\n    g0, g1, _, _ = sta.basis_vectors()\n    assert sta.blade(\"σ₁\") == g0 ^ g1"
+    },
+    {
+      "id": "TestBladeLookup.test_pss_shorthand",
+      "source": "def test_pss_shorthand(self):\n    \"\"\"blade('pss') returns pseudoscalar.\"\"\"\n    alg = Algebra(3)\n    assert alg.blade(\"pss\") == alg.pseudoscalar()"
+    },
+    {
+      "id": "TestBladeLookup.test_0based_digit_parsing",
+      "source": "def test_0based_digit_parsing(self):\n    \"\"\"blade('e01') works with 0-based indexing.\"\"\"\n    pga = Algebra(3, 0, 1, blades=b_pga())\n    e0, e1, _, _ = pga.basis_vectors()\n    assert pga.blade(\"e01\") == e0 ^ e1"
+    },
+    {
+      "id": "TestBladeLookup.test_1based_digit_parsing",
+      "source": "def test_1based_digit_parsing(self):\n    \"\"\"blade('e12') works with 1-based indexing.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    assert alg.blade(\"e12\") == e1 ^ e2"
+    },
+    {
+      "id": "TestBladeLookup.test_invalid_name_raises",
+      "source": "def test_invalid_name_raises(self):\n    \"\"\"blade() with unknown name raises ValueError.\"\"\"\n    alg = Algebra(3)\n    with pytest.raises(ValueError):\n        alg.blade(\"e99\")"
+    },
+    {
+      "id": "TestBladeLookup.test_nonsense_raises",
+      "source": "def test_nonsense_raises(self):\n    \"\"\"blade() with nonsense raises ValueError.\"\"\"\n    alg = Algebra(3)\n    with pytest.raises(ValueError):\n        alg.blade(\"nonsense\")"
+    },
+    {
+      "id": "TestGetBasisBlade.test_metric_role_string",
+      "source": "def test_metric_role_string(self):\n    \"\"\"get_basis_blade accepts metric-role string.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta())\n    g0, g1, _, _ = alg.basis_vectors()\n    assert alg.get_basis_blade(\"+1-1\") is alg.get_basis_blade(g0 ^ g1)"
+    },
+    {
+      "id": "TestGetBasisBlade.test_bitmask_int",
+      "source": "def test_bitmask_int(self):\n    \"\"\"get_basis_blade accepts bitmask int.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta())\n    g0, g1, _, _ = alg.basis_vectors()\n    assert alg.get_basis_blade(0b0011) is alg.get_basis_blade(g0 ^ g1)"
+    },
+    {
+      "id": "TestGetBasisBlade.test_pss_string",
+      "source": "def test_pss_string(self):\n    \"\"\"get_basis_blade('pss') returns pseudoscalar blade.\"\"\"\n    alg = Algebra(3)\n    assert alg.get_basis_blade(\"pss\") is alg.get_basis_blade(alg.pseudoscalar())"
+    },
+    {
+      "id": "TestRename.test_rename_string",
+      "source": "def test_rename_string(self):\n    \"\"\"rename(str) sets all three formats.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    alg.get_basis_blade(\"+1+2\").rename(\"B\")\n    assert str(e1 ^ e2) == \"B\"\n    assert format(e1 ^ e2, \"a\") == \"B\""
+    },
+    {
+      "id": "TestRename.test_rename_3tuple",
+      "source": "def test_rename_3tuple(self):\n    \"\"\"rename((ascii, unicode, latex)) sets each format.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    alg.get_basis_blade(\"+1+2\").rename((\"B12\", \"B₁₂\", r\"B_{12}\"))\n    assert str(e1 ^ e2) == \"B₁₂\"\n    assert format(e1 ^ e2, \"a\") == \"B12\""
+    },
+    {
+      "id": "TestRename.test_rename_keyword",
+      "source": "def test_rename_keyword(self):\n    \"\"\"rename(unicode=...) sets one format.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    alg.get_basis_blade(\"+1+2\").rename(unicode=\"X\")\n    assert str(e1 ^ e2) == \"X\""
+    },
+    {
+      "id": "TestRename.test_rename_is_live",
+      "source": "def test_rename_is_live(self):\n    \"\"\"Rename affects existing multivectors.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    mv = e1 ^ e2\n    alg.get_basis_blade(\"+1+2\").rename(\"Z\")\n    assert str(mv) == \"Z\""
+    },
+    {
+      "id": "TestReprUnicode.test_repr_unicode_true",
+      "source": "def test_repr_unicode_true(self):\n    \"\"\"repr_unicode=True uses unicode subscripts in repr.\"\"\"\n    alg = Algebra(3, repr_unicode=True)\n    e1, e2, _ = alg.basis_vectors()\n    assert \"₁₂\" in repr(e1 ^ e2)"
+    },
+    {
+      "id": "TestReprUnicode.test_repr_unicode_false",
+      "source": "def test_repr_unicode_false(self):\n    \"\"\"repr_unicode=False uses ascii in repr.\"\"\"\n    alg = Algebra(3, repr_unicode=False)\n    e1, e2, _ = alg.basis_vectors()\n    r = repr(e1 ^ e2)\n    assert \"12\" in r\n    assert \"₁₂\" not in r"
+    },
+    {
+      "id": "TestReprUnicode.test_str_always_unicode",
+      "source": "def test_str_always_unicode(self):\n    \"\"\"str() always uses unicode regardless of repr_unicode.\"\"\"\n    alg = Algebra(3, repr_unicode=False)\n    e1, e2, _ = alg.basis_vectors()\n    assert \"₁₂\" in str(e1 ^ e2)"
+    },
+    {
+      "id": "TestFactoryKeywords.test_prefix",
+      "source": "def test_prefix(self):\n    \"\"\"b_default(prefix='v') uses v prefix.\"\"\"\n    alg = Algebra(3, blades=b_default(prefix=\"v\"))\n    assert str(alg.basis_vectors()[0]) == \"v₁\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_start_0",
+      "source": "def test_start_0(self):\n    \"\"\"b_default(start=0) uses 0-based indexing.\"\"\"\n    alg = Algebra(3, blades=b_default(start=0))\n    assert str(alg.basis_vectors()[0]) == \"e₀\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_gamma_start_1",
+      "source": "def test_gamma_start_1(self):\n    \"\"\"b_gamma(start=1) uses 1-based gamma.\"\"\"\n    alg = Algebra(4, blades=b_gamma(start=1))\n    assert str(alg.basis_vectors()[0]) == \"γ₁\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_pga_custom_pseudoscalar",
+      "source": "def test_pga_custom_pseudoscalar(self):\n    \"\"\"b_pga(pss='𝐈') uses custom PSS name.\"\"\"\n    alg = Algebra(3, 0, 1, blades=b_pga(pss=\"𝐈\"))\n    assert str(alg.pseudoscalar()) == \"𝐈\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_default_pss",
+      "source": "def test_default_pss(self):\n    \"\"\"b_default(pss='I') names the pseudoscalar.\"\"\"\n    alg = Algebra(3, blades=b_default(pss=\"I\"))\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_default_pss_none",
+      "source": "def test_default_pss_none(self):\n    \"\"\"b_default(pss=None) leaves pseudoscalar unnamed.\"\"\"\n    alg = Algebra(3, blades=b_default(pss=None))\n    assert str(alg.pseudoscalar()) == \"e₁₂₃\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_gamma_pss",
+      "source": "def test_gamma_pss(self):\n    \"\"\"b_gamma(pss='I') names the pseudoscalar.\"\"\"\n    alg = Algebra(3, blades=b_gamma(pss=\"I\"))\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_sigma_pss",
+      "source": "def test_sigma_pss(self):\n    \"\"\"b_sigma(pss='I') names the pseudoscalar.\"\"\"\n    alg = Algebra(3, blades=b_sigma(pss=\"I\"))\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_sigma_xyz_pss",
+      "source": "def test_sigma_xyz_pss(self):\n    \"\"\"b_sigma_xyz(pss='ω') names the pseudoscalar.\"\"\"\n    alg = Algebra(3, blades=b_sigma_xyz(pss=\"ω\"))\n    assert str(alg.pseudoscalar()) == \"ω\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_sta_pss_override",
+      "source": "def test_sta_pss_override(self):\n    \"\"\"b_sta(pss='I') overrides the default 'i'.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(pss=\"I\"))\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_sta_pss_default",
+      "source": "def test_sta_pss_default(self):\n    \"\"\"b_sta() defaults to pss='i'.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta())\n    assert str(alg.pseudoscalar()) == \"i\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_cga_pss",
+      "source": "def test_cga_pss(self):\n    \"\"\"b_cga(pss='Ω') names the pseudoscalar.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga(pss=\"Ω\"))\n    assert str(alg.pseudoscalar()) == \"Ω\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_cga_pss_none",
+      "source": "def test_cga_pss_none(self):\n    \"\"\"b_cga(pss=None) leaves pseudoscalar unnamed.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga(pss=None))\n    assert \"e\" in str(alg.pseudoscalar())  # default blade name"
+    },
+    {
+      "id": "TestFactoryKeywords.test_pga_pss_none",
+      "source": "def test_pga_pss_none(self):\n    \"\"\"b_pga(pss=None) leaves pseudoscalar unnamed.\"\"\"\n    alg = Algebra(2, 0, 1, blades=b_pga(pss=None))\n    assert str(alg.pseudoscalar()) != \"I\""
+    },
+    {
+      "id": "TestFactoryKeywords.test_style_override_on_factory",
+      "source": "def test_style_override_on_factory(self):\n    \"\"\"Style can be overridden on any factory.\"\"\"\n    alg = Algebra(3, blades=b_gamma(style=\"compact\"))\n    g1, g2, _ = alg.basis_vectors()\n    assert str(g1 ^ g2) == \"γ₀₁\""
+    },
+    {
+      "id": "TestCrossLibrary.test_clifford_style",
+      "source": "def test_clifford_style(self):\n    \"\"\"clifford: e₁₂ compact.\"\"\"\n    alg = Algebra(3, blades=b_default(style=\"compact\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"e₁₂\""
+    },
+    {
+      "id": "TestCrossLibrary.test_ganja_style",
+      "source": "def test_ganja_style(self):\n    \"\"\"ganja.js / kingdon: e₀₁ 0-based compact.\"\"\"\n    alg = Algebra(3, blades=b_default(start=0, style=\"compact\"))\n    e0, e1, _ = alg.basis_vectors()\n    assert str(e0 ^ e1) == \"e₀₁\""
+    },
+    {
+      "id": "TestCrossLibrary.test_galgebra_style",
+      "source": "def test_galgebra_style(self):\n    \"\"\"galgebra: e₁∧e₂ wedge.\"\"\"\n    alg = Algebra(3, blades=b_default(style=\"wedge\"))\n    e1, e2, _ = alg.basis_vectors()\n    assert \"∧\" in str(e1 ^ e2)"
+    },
+    {
+      "id": "TestCrossLibrary.test_julia_style",
+      "source": "def test_julia_style(self):\n    \"\"\"GeometricAlgebra.jl / Grassmann.jl: v₁₂ compact.\"\"\"\n    alg = Algebra(3, blades=b_default(prefix=\"v\", style=\"compact\"))\n    v1, v2, _ = alg.basis_vectors()\n    assert str(v1 ^ v2) == \"v₁₂\""
+    },
+    {
+      "id": "TestCoverageGaps.test_override_2tuple",
+      "source": "def test_override_2tuple(self):\n    \"\"\"Override with (ascii, unicode) 2-tuple.\"\"\"\n    alg = Algebra(\n        3,\n        blades=b_default(\n            overrides={\n                \"+1+2\": (\"B12\", \"B₁₂\"),\n            }\n        ),\n    )\n    e1, e2, _ = alg.basis_vectors()\n    assert format(e1 ^ e2, \"a\") == \"B12\"\n    assert str(e1 ^ e2) == \"B₁₂\"\n    # latex derived from unicode\n    assert \"B₁₂\" in (e1 ^ e2).latex()"
+    },
+    {
+      "id": "TestCoverageGaps.test_override_invalid_value_type",
+      "source": "def test_override_invalid_value_type(self):\n    \"\"\"Override with invalid value type raises.\"\"\"\n    with pytest.raises(ValueError, match=\"str, 2-tuple, or 3-tuple\"):\n        Algebra(3, blades=b_default(overrides={\"+1+2\": 42}))"
+    },
+    {
+      "id": "TestCoverageGaps.test_override_negative_out_of_range",
+      "source": "def test_override_negative_out_of_range(self):\n    \"\"\"Override referencing too many negative vectors raises.\"\"\"\n    with pytest.raises(ValueError, match=\"Negative vector index\"):\n        Algebra(3, blades=b_default(overrides={\"-1-2\": \"X\"}))"
+    },
+    {
+      "id": "TestCoverageGaps.test_b_sta_with_user_overrides",
+      "source": "def test_b_sta_with_user_overrides(self):\n    \"\"\"b_sta merges user overrides with factory defaults.\"\"\"\n    alg = Algebra(1, 3, blades=b_sta(overrides={\"+1-1\": \"MyBlade\"}))\n    g0, g1, _, _ = alg.basis_vectors()\n    assert str(g0 * g1) == \"MyBlade\"\n    # pss → i from factory still present\n    assert str(alg.pseudoscalar()) == \"i\""
+    },
+    {
+      "id": "TestCoverageGaps.test_b_cga_with_user_overrides",
+      "source": "def test_b_cga_with_user_overrides(self):\n    \"\"\"b_cga merges user overrides.\"\"\"\n    alg = Algebra(4, 1, blades=b_cga(overrides={\"+1+2\": \"Euc12\"}))\n    e1, e2, _, _, _ = alg.basis_vectors()\n    assert str(e1 ^ e2) == \"Euc12\"\n    # pss → I still present\n    assert str(alg.pseudoscalar()) == \"I\""
+    },
+    {
+      "id": "TestCoverageGaps.test_b_cga_invalid_null_basis",
+      "source": "def test_b_cga_invalid_null_basis(self):\n    \"\"\"b_cga with invalid null_basis raises.\"\"\"\n    with pytest.raises(ValueError, match=\"Unknown null_basis\"):\n        b_cga(null_basis=\"bogus\")"
+    },
+    {
+      "id": "TestCoverageGaps.test_rename_2tuple",
+      "source": "def test_rename_2tuple(self):\n    \"\"\"BasisBlade.rename with 2-tuple.\"\"\"\n    alg = Algebra(3)\n    e1, e2, _ = alg.basis_vectors()\n    alg.get_basis_blade(\"+1+2\").rename((\"B12\", \"B₁₂\"))\n    assert format(e1 ^ e2, \"a\") == \"B12\"\n    assert str(e1 ^ e2) == \"B₁₂\""
+    },
+    {
+      "id": "TestCoverageGaps.test_rename_invalid_value",
+      "source": "def test_rename_invalid_value(self):\n    \"\"\"BasisBlade.rename with invalid value raises.\"\"\"\n    alg = Algebra(3)\n    with pytest.raises(ValueError, match=\"str, 2-tuple, or 3-tuple\"):\n        alg.get_basis_blade(\"+1+2\").rename(42)"
+    },
+    {
+      "id": "TestCoverageGaps.test_basis_blade_property_setters",
+      "source": "def test_basis_blade_property_setters(self):\n    \"\"\"BasisBlade property setters work.\"\"\"\n    from galaga.basis_blade import BasisBlade\n\n    bb = BasisBlade(0b011, \"e12\", \"e₁₂\", \"e_{12}\")\n    bb.ascii_name = \"X\"\n    assert bb.ascii_name == \"X\"\n    bb.unicode_name = \"Y\"\n    assert bb.unicode_name == \"Y\"\n    bb.latex_name = \"Z\"\n    assert bb.latex_name == \"Z\""
+    },
+    {
+      "id": "TestCoverageGaps.test_basis_blade_repr",
+      "source": "def test_basis_blade_repr(self):\n    \"\"\"BasisBlade __repr__.\"\"\"\n    from galaga.basis_blade import BasisBlade\n\n    bb = BasisBlade(0b011, \"e12\", \"e₁₂\", \"e_{12}\")\n    assert \"BasisBlade\" in repr(bb)\n    assert \"e12\" in repr(bb)"
+    },
+    {
+      "id": "TestCoverageGaps.test_null_vector_out_of_range",
+      "source": "def test_null_vector_out_of_range(self):\n    \"\"\"Override referencing nonexistent null vector raises.\"\"\"\n    with pytest.raises(ValueError, match=\"Null vector index\"):\n        Algebra(3, blades=b_default(overrides={\"_1\": \"X\"}))"
+    },
+    {
+      "id": "TestSignConsistency.test_named_blade_signs_match_products",
+      "source": "def test_named_blade_signs_match_products(self, sig, conv_fn):\n    \"\"\"For every named blade with a sign, verify sign * canonical == named product.\"\"\"\n    from galaga.blade_convention import NamedBlade\n\n    conv = conv_fn()\n    alg = Algebra(sig, blades=conv)\n\n    for key, val in conv.overrides.items():\n        if not isinstance(val, NamedBlade) or val.vectors is None:\n            continue\n        result = alg.scalar(1.0)\n        for vidx in val.vectors:\n            data = np.zeros(alg.dim)\n            data[1 << vidx] = 1.0\n            vec = Multivector(alg, data)\n            result = gp(result, vec)\n        # The result should be sign * canonical_blade at the bitmask\n        if isinstance(key, tuple):\n            bitmask = 0\n            for idx in key:\n                bitmask |= 1 << idx\n        else:\n            continue  # skip string keys like \"pss\"\n        bb = alg._blades[bitmask]\n        assert np.isclose(result.data[bitmask], bb.sign), (\n            f\"sig={sig}, blade={bb.unicode_name}, bitmask={bitmask:04b}: \"\n            f\"product coeff={result.data[bitmask]}, stored sign={bb.sign}\"\n        )"
+    },
+    {
+      "id": "TestSubscriptsParameter.test_compact_latex",
+      "source": "def test_compact_latex(self):\n    \"\"\"Compact style: subscripts produce e_{xy}, e_{xz}, e_{yz}.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"]))\n    assert alg._blades[0b001].latex_name == \"e_{x}\"\n    assert alg._blades[0b010].latex_name == \"e_{y}\"\n    assert alg._blades[0b011].latex_name == \"e_{xy}\"\n    assert alg._blades[0b101].latex_name == \"e_{xz}\"\n    assert alg._blades[0b110].latex_name == \"e_{yz}\"\n    assert alg._blades[0b111].latex_name == \"e_{xyz}\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_compact_ascii",
+      "source": "def test_compact_ascii(self):\n    \"\"\"Compact style: ASCII names are prefix+subscripts concatenated.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"]))\n    assert alg._blades[0b001].ascii_name == \"ex\"\n    assert alg._blades[0b011].ascii_name == \"exy\"\n    assert alg._blades[0b111].ascii_name == \"exyz\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_wedge_latex",
+      "source": "def test_wedge_latex(self):\n    \"\"\"Wedge style: bivectors use \\\\wedge between full vector names.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"], style=\"wedge\"))\n    assert alg._blades[0b011].latex_name == r\"e_{x} \\wedge e_{y}\"\n    assert alg._blades[0b101].latex_name == r\"e_{x} \\wedge e_{z}\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_juxtapose_latex",
+      "source": "def test_juxtapose_latex(self):\n    \"\"\"Juxtapose style: bivectors are space-separated vector names.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"], style=\"juxtapose\"))\n    assert alg._blades[0b011].latex_name == \"e_{x} e_{y}\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_gamma_prefix",
+      "source": "def test_gamma_prefix(self):\n    \"\"\"Works with gamma prefix.\"\"\"\n    alg = Algebra(4, blades=BladeConvention(prefix=\"γ\", subscripts=[\"t\", \"x\", \"y\", \"z\"]))\n    assert alg._blades[0b0001].latex_name == r\"\\gamma_{t}\"\n    assert alg._blades[0b0011].latex_name == r\"\\gamma_{tx}\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_pss_override",
+      "source": "def test_pss_override(self):\n    \"\"\"PSS override works with subscripts.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"], overrides={\"pss\": \"I\"}))\n    assert alg._blades[0b111].ascii_name == \"I\"\n    assert alg._blades[0b111].latex_name == \"I\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_subscripts_priority_over_vector_names",
+      "source": "def test_subscripts_priority_over_vector_names(self):\n    \"\"\"subscripts takes priority if both are set.\"\"\"\n    alg = Algebra(\n        3,\n        blades=BladeConvention(\n            prefix=\"e\",\n            subscripts=[\"x\", \"y\", \"z\"],\n            vector_names=[\"a\", \"b\", \"c\"],  # ignored\n        ),\n    )\n    assert alg._blades[0b001].latex_name == \"e_{x}\""
+    },
+    {
+      "id": "TestSubscriptsParameter.test_too_few_subscripts_raises",
+      "source": "def test_too_few_subscripts_raises(self):\n    \"\"\"Too few subscripts raises ValueError.\"\"\"\n    with pytest.raises(ValueError, match=\"subscripts\"):\n        Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\"]))"
+    },
+    {
+      "id": "TestSubscriptsParameter.test_computation_unaffected",
+      "source": "def test_computation_unaffected(self):\n    \"\"\"Naming doesn't affect algebra computation.\"\"\"\n    alg = Algebra(3, blades=BladeConvention(prefix=\"e\", subscripts=[\"x\", \"y\", \"z\"]))\n    e = alg.basis_vectors()\n    # e_x * e_x = 1 (Euclidean)\n    assert np.isclose((e[0] * e[0]).scalar_part, 1.0)\n    # e_x * e_y = -e_y * e_x\n    assert np.allclose((e[0] * e[1]).data, -(e[1] * e[0]).data)"
+    }
+  ],
+  "sta_tables": [
+    {
+      "signature": [1,-1,-1,-1],
+      "sigmas": false,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,-1,-1,-1],
+      "sigmas": false,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": -1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": -1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": -1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,-1,-1,-1],
+      "sigmas": true,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": -1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,-1,-1,-1],
+      "sigmas": true,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": -1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": -1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": -1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": -1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [-1,1,1,1],
+      "sigmas": false,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [-1,1,1,1],
+      "sigmas": false,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": -1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [-1,1,1,1],
+      "sigmas": true,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": -1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [-1,1,1,1],
+      "sigmas": true,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": -1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": -1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,1,1,-1],
+      "sigmas": false,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,1,1,-1],
+      "sigmas": false,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": 1,
+          "ascii": "g0g1",
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": 1,
+          "ascii": "g0g2",
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": 1,
+          "ascii": "g1g2",
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "orientation": -1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": 1,
+          "ascii": "g0g3",
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": 1,
+          "ascii": "g1g3",
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "orientation": -1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "g2g3",
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": -1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,1,1,-1],
+      "sigmas": true,
+      "pseudovectors": false,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": 1,
+          "ascii": "g0g1g2",
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": -1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": 1,
+          "ascii": "g0g1g3",
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "g0g2g3",
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "orientation": 1,
+          "ascii": "g1g2g3",
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    },
+    {
+      "signature": [1,1,1,-1],
+      "sigmas": true,
+      "pseudovectors": true,
+      "labels": [
+        {
+          "mask": 0,
+          "orientation": 1,
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "orientation": 1,
+          "ascii": "g0",
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "orientation": 1,
+          "ascii": "g1",
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "orientation": -1,
+          "ascii": "s1",
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 4,
+          "orientation": 1,
+          "ascii": "g2",
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "orientation": -1,
+          "ascii": "s2",
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 6,
+          "orientation": -1,
+          "ascii": "is3",
+          "unicode": "iσ₃",
+          "latex": "i\\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "orientation": -1,
+          "ascii": "iy3",
+          "unicode": "iγ₃",
+          "latex": "i\\gamma_{3}"
+        },
+        {
+          "mask": 8,
+          "orientation": 1,
+          "ascii": "g3",
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "orientation": -1,
+          "ascii": "s3",
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 10,
+          "orientation": -1,
+          "ascii": "is2",
+          "unicode": "iσ₂",
+          "latex": "i\\sigma_{2}"
+        },
+        {
+          "mask": 11,
+          "orientation": -1,
+          "ascii": "iy2",
+          "unicode": "iγ₂",
+          "latex": "i\\gamma_{2}"
+        },
+        {
+          "mask": 12,
+          "orientation": 1,
+          "ascii": "is1",
+          "unicode": "iσ₁",
+          "latex": "i\\sigma_{1}"
+        },
+        {
+          "mask": 13,
+          "orientation": 1,
+          "ascii": "iy1",
+          "unicode": "iγ₁",
+          "latex": "i\\gamma_{1}"
+        },
+        {
+          "mask": 14,
+          "orientation": -1,
+          "ascii": "iy0",
+          "unicode": "iγ₀",
+          "latex": "i\\gamma_{0}"
+        },
+        {
+          "mask": 15,
+          "orientation": 1,
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ]
+    }
+  ]
+}
