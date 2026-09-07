@@ -548,6 +548,87 @@ demonstrates the defining products, native order, conjugation, and a
 Gram-derived counterexample to `i²=-1`. See
 [ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md).
 
+## Migrate transformation helpers
+
+The v1 `project`, `reject`, and `reflect` helpers are not v2 aliases.
+For a vector and an invertible blade, compose the public primitives explicitly:
+
+```python
+import numpy as np
+import galaga as ga
+
+algebra = ga.Algebra(gram=[[2, 0.5, 0], [0.5, -1, 0.25], [0, 0.25, 3]])
+e1, e2, e3 = algebra.basis_vectors(expr=True)
+v = 2 * e1 - e2 + 3 * e3
+B = e1 ^ e2
+projection = ga.left_contraction(v, B) * ga.inverse(B)
+rejection = v - projection
+np.testing.assert_allclose((projection + rejection).data, v.data, rtol=0, atol=1e-12)
+
+# Independent coordinate check using the actual Gram matrix.
+C = np.eye(3)[:, :2]
+G = algebra.gram
+P = C @ np.linalg.solve(C.T @ G @ C, C.T @ G)
+np.testing.assert_allclose(projection.vector_part, P @ v.vector_part, rtol=0, atol=1e-12)
+
+# Reflection in the hyperplane normal to n, not along the mirror's tangent.
+n = 2 * e2
+reflected = -n * v * ga.inverse(n)
+H = np.eye(3) - 2 * np.outer(n.vector_part, n.vector_part @ G) / float(n * n)
+np.testing.assert_allclose(reflected.vector_part, H @ v.vector_part, rtol=0, atol=1e-12)
+```
+
+The Gram matrix restricted to the blade's spanning subspace must be
+nonsingular. The ambient metric can still be degenerate: `e1^e2` is invertible
+in `Algebra(gram=np.diag([1, 1, 0]))`, while `e1^e3` is not.
+A null normal or noninvertible blade raises `ValueError` through `inverse`;
+there is no automatic pseudoinverse.
+
+Rejection also equals `(v ^ B) * inverse(B)` for these vector/blade inputs.
+Reversion is not a replacement for inverse: the normal above has square `-4`.
+`sandwich(R, v)` always means `R*v*reverse(R)`, not `R*v*inverse(R)`.
+Two normal reflections compose in the order `R=n2*n1`; use the inverse
+unless its equality with reverse has been established.
+
+The two-dimensional blade conjugation `B*v*inverse(B)` flips components in
+the blade's **normal span**, giving `(I-2P)v`. In three dimensions, reflecting
+in that plane *as a mirror* instead gives `(2P-I)v`. State which subspace
+represents normals before choosing a formula.
+
+`Algebra.rotor`, `rotor_from_bivector`, and `rotor_from_plane_angle` remain
+retired. For an oriented Euclidean unit plane, compute its square before using
+the familiar angle recipe:
+
+```python
+import numpy as np
+import galaga as ga
+
+algebra = ga.Algebra(2)
+e1, e2 = algebra.basis_vectors(expr=True)
+B = e1 ^ e2
+assert B * B == -1
+theta = np.pi / 2
+R = ga.exp(-theta * B / 2)
+np.testing.assert_allclose((R * ga.reverse(R)).data, algebra.scalar(1).data, rtol=0, atol=1e-12)
+np.testing.assert_allclose(ga.sandwich(R, e1).data, e2.data, rtol=0, atol=1e-12)
+```
+
+For a coordinate bivector, `B*B` equals `G[0,1]**2-G[0,0]*G[1,1]`.
+Negative, positive and zero scalar squares give trigonometric, hyperbolic
+and terminating exponential branches respectively. This is a statement about
+simple bivectors, not arbitrary mixed-grade inputs. Generic `exp` still accepts
+scalars and vectors; it does not validate a rotation plane or guarantee a rotor.
+
+For pseudoscalar provenance, use `pseudoscalar(expr=True)` instead of
+`lazy=True`. Naming it `"I"` attaches a symbol, so explicit replay needs
+`environment={"I": pseudoscalar}`.
+
+The [projector notebook](../../examples/algebra/projectors_ga.py) draws the
+actual computed plane and explains its restricted metric. The
+[reflection notebook](../../examples/algebra/rotors_from_reflections.py)
+distinguishes mirror tangents from normals and plots both computed reflections.
+See [ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).
+
 ## Configure presentation independently
 
 Presets provide coherent defaults, while constructor overrides can replace one

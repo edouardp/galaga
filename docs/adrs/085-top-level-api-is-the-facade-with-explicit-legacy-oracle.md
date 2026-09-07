@@ -78,6 +78,12 @@ test suites leave the legacy-construction ledger. Other legacy tests retain
 the Phase 8 boundary until their coverage is retired or transferred; these
 refinements do not themselves delete the engine.
 
+[ADR-108](108-public-transformation-compositions-and-geometric-notebook-plots.md)
+transfers the remaining low-dimensional and transformation-helper tests to
+explicit public compositions. Their archived inputs and errors remain evidence;
+retiring the import dependency does not restore projection/reflection helpers
+or transfer the retired rotor constructor's validation to generic `exp`.
+
 ## Consequences
 
 - Good, because `from galaga import Algebra` now constructs the Gram-based

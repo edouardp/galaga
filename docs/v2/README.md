@@ -160,7 +160,13 @@ and complex convention cases now use public presets and immutable labels.
 Their archived tables and observations are checked alongside independent
 Hamilton-coordinate and Python complex arithmetic. The notebook teaches
 even-subalgebra, native-order, conjugation, and Gram-metric boundaries.
-All seventeen
+All twenty-six low-dimensional/transformation cases now use explicit public
+compositions, retaining nineteen historical identities and forty seeded
+observations. Coordinate matrix oracles cover oblique/indefinite projection,
+scaled normals, null failures, and metric-dependent bivector exponentials.
+The projector and reflection notebooks now draw the computed subspaces and
+values, with multi-angle runtime regressions for both geometry defects.
+All eighteen
 completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
@@ -172,10 +178,10 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 6 files. Next are the
-low-dimensional/transformation-helper and remaining mixed legacy contracts,
-followed by namespace/construction guards.
-See [ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md)
+The construction-only legacy ledger is down to 4 files: `test_coverage.py`,
+`test_coverage_gaps.py`, `test_redesign.py`, and `test_scalar_helpers.py`.
+These mixed contracts are next, followed by namespace/construction guards.
+See [ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

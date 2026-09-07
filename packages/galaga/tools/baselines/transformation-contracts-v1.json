@@ -1,0 +1,580 @@
+{
+  "schema_version": 1,
+  "source_commit": "7604c238191ebdd04a13b60e0f6fe90c73f34373",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "sources": [
+    {
+      "path": "packages/galaga/tests/test_low_dim.py",
+      "sha256": "27d6dae56c17926a136428f4377edf8385b2d6f547926a5008b6cf28f01bc152",
+      "source": "\"\"\"Low-dimensional facade-helper and legacy expression contracts.\n\nLow-dimensional numeric mathematics now lives in ``core/test_low_dim.py``.\nThese cases remain above core because they exercise optional transformation\nhelpers, the legacy rotor constructor, or legacy expression provenance.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport numpy as np\nimport pytest\n\nfrom galaga.legacy import Algebra, op, project, reflect, reject, sandwich\n\n\nclass TestCl0Helpers:\n    def test_rotor_rejects_scalar(self):\n        algebra = Algebra(())\n\n        with pytest.raises(ValueError, match=\"bivector\"):\n            algebra.rotor(algebra.scalar(1), radians=0.5)\n\n\nclass TestCl1Helpers:\n    @pytest.fixture\n    def cl1(self):\n        return Algebra((1,))\n\n    def test_project_onto_self(self, cl1):\n        (e1,) = cl1.basis_vectors()\n\n        assert np.allclose(project(e1, e1).data, e1.data)\n\n    def test_reject_from_self(self, cl1):\n        (e1,) = cl1.basis_vectors()\n\n        assert np.allclose(reject(e1, e1).data, cl1.scalar(0).data, atol=1e-12)\n\n    def test_reflect_in_self(self, cl1):\n        (e1,) = cl1.basis_vectors()\n\n        assert np.allclose(reflect(e1, e1).data, (-e1).data)\n\n    def test_rotor_rejects_vector(self, cl1):\n        (e1,) = cl1.basis_vectors()\n\n        with pytest.raises(ValueError):\n            cl1.rotor(e1, radians=0.5)\n\n    def test_rotor_rejects_scalar(self, cl1):\n        with pytest.raises(ValueError, match=\"bivector\"):\n            cl1.rotor(cl1.scalar(1), radians=0.5)\n\n\nclass TestCl2Helpers:\n    def test_rotor_constructor_applies_expected_rotation(self):\n        algebra = Algebra((1, 1))\n        e1, e2 = algebra.basis_vectors()\n\n        rotor = algebra.rotor(op(e1, e2), radians=np.pi / 2)\n\n        assert np.allclose(sandwich(rotor, e1).data, e2.data, atol=1e-12)\n\n\nclass TestPseudoscalarLazy:\n    \"\"\"Legacy input to the expression-provenance factory migration.\"\"\"\n\n    def test_default_eager(self):\n        algebra = Algebra((1, 1, 1))\n\n        assert not algebra.pseudoscalar()._is_symbolic\n\n    def test_lazy_flag(self):\n        algebra = Algebra((1, 1, 1))\n\n        assert algebra.pseudoscalar(lazy=True)._is_symbolic\n\n    def test_lazy_in_expression(self):\n        algebra = Algebra((1, 1, 1))\n        e1, _, _ = algebra.basis_vectors(lazy=True)\n        pseudoscalar = algebra.pseudoscalar(lazy=True).name(latex=\"I\")\n\n        expression = e1 * pseudoscalar\n\n        assert expression._is_symbolic\n        assert \"I\" in str(expression)\n\n    def test_lazy_data_matches_eager(self):\n        algebra = Algebra((1, 1, 1))\n\n        assert np.allclose(\n            algebra.pseudoscalar(lazy=True).data,\n            algebra.pseudoscalar().data,\n        )\n",
+      "case_count": 11,
+      "test_ids": [
+        "TestCl0Helpers.test_rotor_rejects_scalar",
+        "TestCl1Helpers.test_project_onto_self",
+        "TestCl1Helpers.test_reject_from_self",
+        "TestCl1Helpers.test_reflect_in_self",
+        "TestCl1Helpers.test_rotor_rejects_vector",
+        "TestCl1Helpers.test_rotor_rejects_scalar",
+        "TestCl2Helpers.test_rotor_constructor_applies_expected_rotation",
+        "TestPseudoscalarLazy.test_default_eager",
+        "TestPseudoscalarLazy.test_lazy_flag",
+        "TestPseudoscalarLazy.test_lazy_in_expression",
+        "TestPseudoscalarLazy.test_lazy_data_matches_eager"
+      ]
+    },
+    {
+      "path": "packages/galaga/tests/test_chisolm_transformations.py",
+      "sha256": "be0a230264596facc6011da451537748678d22ee2230dd32a2f1787e12992690",
+      "source": "\"\"\"Facade-helper tests derived from Chisolm, arXiv:1205.5935v1.\n\nThe source-derived reflection, rotation, rotor, complex, quaternion,\ncross-product, and boost identities live in\n``core/test_chisolm_transformations.py`` and ``core/test_quaternion.py``.\nThis retained suite tests only the optional ``project``, ``reject``, and\n``reflect`` helpers against compositions of numeric primitives.\n\"\"\"\n\nfrom __future__ import annotations\n\nimport numpy as np\nimport pytest\n\nfrom galaga.legacy import Algebra, gp, inverse, is_vector, left_contraction, norm2, op, project, reflect, reject\n\n\n@pytest.fixture\ndef cl3():\n    return Algebra(3)\n\n\n@pytest.fixture(params=((1, 1), (1, 1, 1)), ids=(\"Cl2\", \"Cl3\"))\ndef eucl(request):\n    return Algebra(request.param)\n\n\ndef _rvec(algebra, generator):\n    return algebra.vector(generator.standard_normal(algebra.n))\n\n\ndef _rblade(algebra, generator, blade_grade):\n    if blade_grade == 0:\n        return algebra.scalar(generator.standard_normal())\n    blade = _rvec(algebra, generator)\n    for _ in range(blade_grade - 1):\n        blade = op(blade, _rvec(algebra, generator))\n    return blade\n\n\nclass TestThm15ProjPlusRejEqualsOriginal:\n    \"\"\"Theorem 15 (§7.1): ``project(a, A) + reject(a, A) == a``.\"\"\"\n\n    def test_vector_onto_blade(self, eucl):\n        generator = np.random.default_rng(100)\n        for blade_grade in range(1, eucl.n + 1):\n            vector = _rvec(eucl, generator)\n            blade = _rblade(eucl, generator, blade_grade)\n            if abs(norm2(blade)) < 1e-10:\n                continue\n\n            assert np.allclose((project(vector, blade) + reject(vector, blade)).data, vector.data, atol=1e-10)\n\n\nclass TestProjectionLiesInSubspace:\n    \"\"\"After Theorem 15 (§7.1): ``project(a, A) ^ A == 0``.\"\"\"\n\n    def test_vector_projection(self, eucl):\n        generator = np.random.default_rng(101)\n        for blade_grade in range(1, eucl.n + 1):\n            vector = _rvec(eucl, generator)\n            blade = _rblade(eucl, generator, blade_grade)\n            if abs(norm2(blade)) < 1e-10:\n                continue\n\n            assert np.allclose(op(project(vector, blade), blade).data, 0, atol=1e-10)\n\n\nclass TestRejectionIsOrthogonal:\n    \"\"\"After Theorem 15 (§7.1): ``reject(a, A) << A == 0``.\"\"\"\n\n    def test_vector_rejection(self, eucl):\n        generator = np.random.default_rng(102)\n        for blade_grade in range(1, eucl.n + 1):\n            vector = _rvec(eucl, generator)\n            blade = _rblade(eucl, generator, blade_grade)\n            if abs(norm2(blade)) < 1e-10:\n                continue\n\n            assert np.allclose(left_contraction(reject(vector, blade), blade).data, 0, atol=1e-10)\n\n\nclass TestEq322ReflectionPreservesInnerProduct:\n    \"\"\"Equation 3.22 (§7.2): reflection preserves the vector pairing.\"\"\"\n\n    def test_vector_reflection(self, eucl):\n        generator = np.random.default_rng(103)\n        for _ in range(5):\n            left = _rvec(eucl, generator)\n            right = _rvec(eucl, generator)\n            normal = _rvec(eucl, generator)\n            if abs(norm2(normal)) < 1e-10:\n                continue\n\n            original = gp(left, right).scalar_part\n            transformed = gp(reflect(left, normal), reflect(right, normal)).scalar_part\n            assert original == pytest.approx(transformed, abs=1e-10)\n\n\nclass TestEq128ReflectionFormula:\n    \"\"\"Equation 1.28 (§1.1): ``reflect(v, n) == -n v inverse(n)``.\"\"\"\n\n    def test_matches_primitive_composition(self, eucl):\n        generator = np.random.default_rng(104)\n        for _ in range(5):\n            vector = _rvec(eucl, generator)\n            normal = _rvec(eucl, generator)\n            if abs(norm2(normal)) < 1e-10:\n                continue\n\n            expected = gp(gp(-normal, vector), inverse(normal))\n            assert np.allclose(reflect(vector, normal).data, expected.data, atol=1e-12)\n\n    def test_result_is_vector(self, eucl):\n        generator = np.random.default_rng(105)\n        vector = _rvec(eucl, generator)\n        normal = _rvec(eucl, generator)\n        if abs(norm2(normal)) >= 1e-10:\n            assert is_vector(reflect(vector, normal))\n\n\nclass TestEq324ReflectionInSubspace:\n    \"\"\"Equation 3.24 (§7.2.1), retained for helper decomposition.\"\"\"\n\n    def test_plane_reflection_matches_projection_and_rejection(self, cl3):\n        generator = np.random.default_rng(106)\n        vector = _rvec(cl3, generator)\n        blade = _rblade(cl3, generator, 2)\n        if abs(norm2(blade)) < 1e-10:\n            return\n\n        reflected = gp(gp(blade, vector), inverse(blade))\n        expected = -project(vector, blade) + reject(vector, blade)\n        assert np.allclose(reflected.data, expected.data, atol=1e-10)\n\n\nclass TestRotorProperties:\n    \"\"\"The retained helper case for Hamilton's double-reflection theorem.\"\"\"\n\n    def test_double_reflection_is_rotation(self, eucl):\n        generator = np.random.default_rng(109)\n        first_normal, second_normal = eucl.basis_vectors()[:2]\n        vector = _rvec(eucl, generator)\n\n        twice_reflected = reflect(reflect(vector, first_normal), second_normal)\n        rotor = gp(second_normal, first_normal)\n        rotated = gp(gp(rotor, vector), inverse(rotor))\n\n        assert np.allclose(twice_reflected.data, rotated.data, atol=1e-10)\n",
+      "case_count": 15,
+      "test_ids": [
+        "TestThm15ProjPlusRejEqualsOriginal.test_vector_onto_blade",
+        "TestProjectionLiesInSubspace.test_vector_projection",
+        "TestRejectionIsOrthogonal.test_vector_rejection",
+        "TestEq322ReflectionPreservesInnerProduct.test_vector_reflection",
+        "TestEq128ReflectionFormula.test_matches_primitive_composition",
+        "TestEq128ReflectionFormula.test_result_is_vector",
+        "TestEq324ReflectionInSubspace.test_plane_reflection_matches_projection_and_rejection",
+        "TestRotorProperties.test_double_reflection_is_rotation"
+      ]
+    }
+  ],
+  "seeded_cases": [
+    {
+      "id": "100/Cl2/grade1",
+      "kind": "projection",
+      "n": 2,
+      "seed": 100,
+      "vector": [-1.1575496471201177,0.2897558023277514],
+      "columns": [
+        [0.7808540692250985,0.5439736447085796]
+      ],
+      "blade": [0,0.7808540692250985,0.5439736447085796,0],
+      "projection": [0,-0.6434324957684476,-0.44824037376720377,0],
+      "rejection": [0,-0.51411715135167,0.7379961760949552,0]
+    },
+    {
+      "id": "100/Cl2/grade2",
+      "kind": "projection",
+      "n": 2,
+      "seed": 100,
+      "vector": [-0.9613826412454365,1.071008665601581],
+      "columns": [
+        [0.7014556601104507,0.7049734550988194],
+        [0.7450626026618294,1.1043472383723143]
+      ],
+      "blade": [0,0,0,0.24940126382017624],
+      "projection": [0,-0.9613826412454365,1.071008665601581,0],
+      "rejection": [0,0,0,0]
+    },
+    {
+      "id": "101/Cl2/grade1",
+      "kind": "projection",
+      "n": 2,
+      "seed": 101,
+      "vector": [-0.7901524999630146,-2.0346254818318728],
+      "columns": [
+        [0.6033017469247647,0.7442945298799118]
+      ],
+      "blade": [0,0.6033017469247647,0.7442945298799118,0],
+      "projection": [0,-1.3085833147588628,-1.614401761691906,0],
+      "rejection": [0,0.5184308147958482,-0.4202237201399668,0]
+    },
+    {
+      "id": "101/Cl2/grade2",
+      "kind": "projection",
+      "n": 2,
+      "seed": 101,
+      "vector": [-0.30968679986627135,0.36732137294554024],
+      "columns": [
+        [1.7103942914776449,1.0607978400658138],
+        [0.7076390208060754,0.687749388505445]
+      ],
+      "blade": [0,0,0,0.42566068324958184],
+      "projection": [0,-0.30968679986627135,0.36732137294554024,0],
+      "rejection": [0,0,0,0]
+    },
+    {
+      "id": "102/Cl2/grade1",
+      "kind": "projection",
+      "n": 2,
+      "seed": 102,
+      "vector": [0.6257293982571508,2.164325358952666],
+      "columns": [
+        [0.9555405586957074,-1.0802324230246478]
+      ],
+      "blade": [0,0.9555405586957074,-1.0802324230246478,0],
+      "projection": [0,-0.7993915411185771,0.903706968322335,0],
+      "rejection": [0,1.425120939375728,1.2606183906303312,0]
+    },
+    {
+      "id": "102/Cl2/grade2",
+      "kind": "projection",
+      "n": 2,
+      "seed": 102,
+      "vector": [-0.5936751273756264,0.8612190556690689],
+      "columns": [
+        [-0.04393442340863364,1.1924864710821501],
+        [-1.942232859371308,2.1129201593831803]
+      ],
+      "blade": [0,0,0,2.2232564795805065],
+      "projection": [0,-0.5936751273756264,0.8612190556690689,0],
+      "rejection": [0,0,0,0]
+    },
+    {
+      "id": "103/Cl2/0",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 103,
+      "vector": [1.1033480291669078,-1.2797841239751133],
+      "normal": [1.0718006981155832,-1.5560715349108816],
+      "reflection": [0,-0.8024170543787355,1.4870612456410133,0],
+      "other_vector": [0.6481524460097935,-1.1995804426934285],
+      "other_reflection": [0,-0.8897407283019145,1.0331777524520258,0],
+      "pairing": 2.2503417298947044
+    },
+    {
+      "id": "103/Cl2/1",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 103,
+      "vector": [-0.7105309630341533,-0.6066608632747601],
+      "normal": [-1.551386609743335,-1.3072612121831773],
+      "reflection": [0,0.71835469462545,0.5973760835261944,0],
+      "other_vector": [-2.105322574068118,0.8527737322826466],
+      "other_reflection": [0,-0.48344423984812557,2.2194341274995635,0],
+      "pairing": 0.978552427445533
+    },
+    {
+      "id": "103/Cl2/2",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 103,
+      "vector": [-0.5646963664829329,0.744237447131261],
+      "normal": [-0.024931994583228097,-0.2890524077947491],
+      "reflection": [0,-0.6837951127738403,-0.6365497685005427,0],
+      "other_vector": [-0.8133472171378039,1.9887832560377303],
+      "other_reflection": [0,-1.141882671501715,-1.8201363958906904,0],
+      "pairing": 1.9394211915776403
+    },
+    {
+      "id": "103/Cl2/3",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 103,
+      "vector": [0.4485927312823366,-0.13116896935926167],
+      "normal": [0.1667478627257178,1.5769562892902138],
+      "reflection": [0,0.4661051775837832,0.034448519731732866,0],
+      "other_vector": [-1.057703580212635,-0.549869397158053],
+      "other_reflection": [0,-0.919311808856185,0.7589196371310711,0],
+      "pairing": -0.40235233582727165
+    },
+    {
+      "id": "103/Cl2/4",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 103,
+      "vector": [0.2634458631344247,0.47554186929557557],
+      "normal": [-0.027921524548287956,1.759708974721206],
+      "reflection": [0,0.2784004106291572,-0.46694432603608005,0],
+      "other_vector": [-2.2375499447439555,-0.2677599384484587],
+      "other_reflection": [0,-2.244918574454647,0.19663604433093246,0],
+      "pairing": -0.716804338151704
+    },
+    {
+      "id": "104/Cl2/0",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 104,
+      "vector": [0.5621166546881184,0.5602005194734958],
+      "normal": [-0.6224567253694104,-0.00981504446292902],
+      "reflection": [0,-0.579499554207553,0.5421992458214815,0]
+    },
+    {
+      "id": "104/Cl2/1",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 104,
+      "vector": [0.0005379317968728325,0.05742743529375752],
+      "normal": [2.1827353149228874,-0.2838465851137296],
+      "reflection": [0,0.014167501975861873,0.055655022979069414,0]
+    },
+    {
+      "id": "104/Cl2/2",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 104,
+      "vector": [-0.2918414767913422,-0.45808678224024874],
+      "normal": [1.0360084458012735,-0.41285520482296567],
+      "reflection": [0,-0.10321414451860746,-0.5332558372960099,0]
+    },
+    {
+      "id": "104/Cl2/3",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 104,
+      "vector": [-0.08823860657696682,0.8805672993660527],
+      "normal": [0.7614050620254911,-0.9745347184508436],
+      "reflection": [0,0.8330695806731805,-0.29863002889943824,0]
+    },
+    {
+      "id": "104/Cl2/4",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 104,
+      "vector": [1.8149398181019112,0.2774672661932712],
+      "normal": [0.9508318268926117,0.330994128784945],
+      "reflection": [0,-1.594910364554907,-0.9095359015321496,0]
+    },
+    {
+      "id": "105/Cl2/0",
+      "kind": "reflection",
+      "n": 2,
+      "seed": 105,
+      "vector": [-0.0634542076857541,1.2492131101839494],
+      "normal": [1.9880112028878816,-0.053374981120936464],
+      "reflection": [0,0.13039329836589547,1.2440086088406885,0]
+    },
+    {
+      "id": "109/Cl2",
+      "kind": "double_reflection",
+      "n": 2,
+      "seed": 109,
+      "vector": [0.8331403466843222,1.1177968923068622],
+      "normals": [
+        [1,0],
+        [0,1]
+      ],
+      "rotor": [0,0,0,-1],
+      "result": [0,-0.8331403466843222,-1.1177968923068622,0]
+    },
+    {
+      "id": "100/Cl3/grade1",
+      "kind": "projection",
+      "n": 3,
+      "seed": 100,
+      "vector": [-1.1575496471201177,0.2897558023277514,0.7808540692250985],
+      "columns": [
+        [0.5439736447085796,-0.9613826412454365,1.071008665601581]
+      ],
+      "blade": [0,0.5439736447085796,-0.9613826412454365,0,1.071008665601581,0,0,0],
+      "projection": [0,-0.016531658494459554,0.029216947663127126,0,-0.03254854288725234,0,0,0],
+      "rejection": [0,-1.1410179886256582,0.2605388546646243,0,0.8134026121123508,0,0,0]
+    },
+    {
+      "id": "100/Cl3/grade2",
+      "kind": "projection",
+      "n": 3,
+      "seed": 100,
+      "vector": [0.7014556601104507,0.7049734550988194,0.7450626026618294],
+      "columns": [
+        [1.1043472383723143,2.242972395734681,-0.6114931227230745],
+        [0.04721118309074067,1.7542346824437531,-1.3379798662995022]
+      ],
+      "blade": [0,0,0,1.8313908465711852,0,-1.4487250565700058,-1.9283494622019106,0],
+      "projection": [0,0.91868669826913,0.5417727208886207,0,0.5387540768095247,0,0,5.551115123125783e-17],
+      "rejection": [0,-0.21723103815867928,0.16320073421019865,0,0.20630852585230475,0,0,-5.551115123125783e-17]
+    },
+    {
+      "id": "100/Cl3/grade3",
+      "kind": "projection",
+      "n": 3,
+      "seed": 100,
+      "vector": [0.3255744688871539,-0.6891177159876936,-0.019821809991921974],
+      "columns": [
+        [0.4747532459975647,-1.9311014161570534,-0.992478278066638],
+        [-1.4054710825938028,-0.23109550849022736,-0.6888470849596248],
+        [1.5151057798585295,-0.6031715465509421,1.7136844875562847]
+      ],
+      "blade": [0,0,0,0,0,0,0,-4.2098137306548855],
+      "projection": [0,0.3255744688871539,-0.6891177159876934,0,-0.019821809991921974,0,0,0],
+      "rejection": [0,0,-1.1102230246251565e-16,0,0,0,0,0]
+    },
+    {
+      "id": "101/Cl3/grade1",
+      "kind": "projection",
+      "n": 3,
+      "seed": 101,
+      "vector": [-0.7901524999630146,-2.0346254818318728,0.6033017469247647],
+      "columns": [
+        [0.7442945298799118,-0.30968679986627135,0.36732137294554024]
+      ],
+      "blade": [0,0.7442945298799118,-0.30968679986627135,0,0.36732137294554024,0,0,0],
+      "projection": [0,0.2499895769637609,-0.1040159090008644,0,0.12337389426631848,0,0,0],
+      "rejection": [0,-1.0401420769267755,-1.9306095728310084,0,0.4799278526584462,0,0,0]
+    },
+    {
+      "id": "101/Cl3/grade2",
+      "kind": "projection",
+      "n": 3,
+      "seed": 101,
+      "vector": [1.7103942914776449,1.0607978400658138,0.7076390208060754],
+      "columns": [
+        [0.687749388505445,-0.8635674537523599,0.9640167316735617],
+        [-1.6484628156748702,-0.3320918127686623,-0.4372938409341125]
+      ],
+      "blade": [0,0,0,-1.6519547774971055,0,1.2883971641526522,0.6977747927178553,0],
+      "projection": [0,1.9024824844872104,0.7061191017055958,0,0.25287766878451223,0,0,-1.1102230246251565e-16],
+      "rejection": [0,-0.19208819300956548,0.354678738360218,0,0.4547613520215632,0,0,1.1102230246251565e-16]
+    },
+    {
+      "id": "101/Cl3/grade3",
+      "kind": "projection",
+      "n": 3,
+      "seed": 101,
+      "vector": [-1.7285187058460105,-0.11033888700145329,1.6434550766344018],
+      "columns": [
+        [-0.3401273376251148,-1.2076033402593367,-0.09105371850643591],
+        [0.8539243165009879,0.19321811565038277,-0.0026657164631725457],
+        [-1.4092222584076113,0.5010157424554261,0.4857310867836978]
+      ],
+      "blade": [0,0,0,0,0,0,0,0.40022618535759696],
+      "projection": [0,-1.7285187058460108,-0.1103388870014533,0,1.643455076634402,0,0,0],
+      "rejection": [0,2.220446049250313e-16,1.3877787807814457e-17,0,-2.220446049250313e-16,0,0,0]
+    },
+    {
+      "id": "102/Cl3/grade1",
+      "kind": "projection",
+      "n": 3,
+      "seed": 102,
+      "vector": [0.6257293982571508,2.164325358952666,0.9555405586957074],
+      "columns": [
+        [-1.0802324230246478,-0.5936751273756264,0.8612190556690689]
+      ],
+      "blade": [0,-1.0802324230246478,-0.5936751273756264,0,0.8612190556690689,0,0,0],
+      "projection": [0,0.5436441241891723,0.2987764371775884,0,-0.433422168484156,0,0,0],
+      "rejection": [0,0.0820852740679785,1.8655489217750776,0,1.3889627271798635,0,0,0]
+    },
+    {
+      "id": "102/Cl3/grade2",
+      "kind": "projection",
+      "n": 3,
+      "seed": 102,
+      "vector": [-0.04393442340863364,1.1924864710821501,-1.942232859371308],
+      "columns": [
+        [2.1129201593831803,1.8849826072080755,-1.4481993417672274],
+        [-0.2959681857860406,-0.6036165972136037,-0.36899399285040124]
+      ],
+      "blade": [0,0,0,-0.7174987942972857,0,-1.2082757780242903,-1.5697044174517818,0],
+      "projection": [0,0.9828121260011211,0.4021510601416788,0,-1.4729155770473399,0,0,-1.1102230246251565e-16],
+      "rejection": [0,-1.0267465494097547,0.7903354109404713,0,-0.4693172823239682,0,0,1.1102230246251565e-16]
+    },
+    {
+      "id": "102/Cl3/grade3",
+      "kind": "projection",
+      "n": 3,
+      "seed": 102,
+      "vector": [0.9958378280721536,-0.4863540769292705,-0.8890433114118423],
+      "columns": [
+        [0.7570265703060689,1.4062239157918979,-0.3881492789262264],
+        [0.36029010775778963,-1.3893371328040796,1.0793264421140967],
+        [2.3906730141718127,0.6863955531246578,0.01735527512890846]
+      ],
+      "blade": [0,0,0,0,0,0,0,1.6554083225142862],
+      "projection": [0,0.9958378280721535,-0.4863540769292705,0,-0.8890433114118423,0,0,0],
+      "rejection": [0,1.1102230246251565e-16,0,0,0,0,0,0]
+    },
+    {
+      "id": "103/Cl3/0",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 103,
+      "vector": [1.1033480291669078,-1.2797841239751133,0.6481524460097935],
+      "normal": [-0.7105309630341533,-0.6066608632747601,-2.105322574068118],
+      "reflection": [0,0.7358094744847146,-1.5935934700423293,0,-0.4408742907118782,0,0,0],
+      "other_vector": [-1.1995804426934285,1.0718006981155832,-1.5560715349108816],
+      "other_reflection": [0,-0.26792852469543244,1.8672575976020065,0,1.204438444498361,0,0,0],
+      "pairing": -3.703799806305429
+    },
+    {
+      "id": "103/Cl3/1",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 103,
+      "vector": [0.8527737322826466,-1.551386609743335,-1.3072612121831773],
+      "normal": [1.9887832560377303,-0.024931994583228097,-0.2890524077947491],
+      "reflection": [0,-1.227400485440292,-1.5253089101393242,0,-1.0049259202704186,0,0,2.7755575615628914e-17],
+      "other_vector": [-0.5646963664829329,0.744237447131261,-0.8133472171378039],
+      "other_reflection": [0,0.32793410376999854,0.7330471588071782,0,-0.9430833188041156,0,0,-1.3877787807814457e-17],
+      "pairing": -0.5729009689997222
+    },
+    {
+      "id": "103/Cl3/2",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 103,
+      "vector": [0.4485927312823366,-0.13116896935926167,-1.057703580212635],
+      "normal": [0.2634458631344247,0.47554186929557557,-2.2375499447439555],
+      "reflection": [0,0.20786533639707933,-0.5657020988317767,0,0.986889425406208,0,0,0],
+      "other_vector": [-0.549869397158053,0.1667478627257178,1.5769562892902138],
+      "other_reflection": [0,-0.19271530921909946,0.8114409339484143,0,-1.4564946832350703,0,0,-6.938893903907228e-18],
+      "pairing": -1.9364918730373861
+    },
+    {
+      "id": "103/Cl3/3",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 103,
+      "vector": [-0.2677599384484587,-0.027921524548287956,1.759708974721206],
+      "normal": [-0.06954886958745878,-0.7305801826195146,0.016020440204882764],
+      "reflection": [0,-0.25040950942271667,0.1543370755029097,0,1.755712338796212,0,0,2.7755575615628914e-17],
+      "other_vector": [1.5938564802635404,0.11858043104095156,0.5280378759777387],
+      "other_reflection": [0,1.5450613621687799,-0.39399075092171665,0,0.5392777318713602,0,0,1.3877787807814457e-17],
+      "pairing": 0.4991111298834507
+    },
+    {
+      "id": "103/Cl3/4",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 103,
+      "vector": [-0.3773302060805454,0.3226306016496057,0.6819787070103537],
+      "normal": [0.012803506656349668,0.20074320245316524,-1.837926614363839],
+      "reflection": [0,-0.36838992836636963,0.46280313620085445,0,-0.6013864515916215,0,0,3.469446951953614e-18],
+      "other_vector": [-0.20127622880720827,1.1144819217545403,-1.1311667120858937],
+      "other_reflection": [0,-0.21850631498793158,0.8443354086704014,0,1.3421895964086212,0,0,1.734723475976807e-18],
+      "pairing": -0.33591803788327573
+    },
+    {
+      "id": "104/Cl3/0",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 104,
+      "vector": [0.5621166546881184,0.5602005194734958,-0.6224567253694104],
+      "normal": [-0.00981504446292902,0.0005379317968728325,0.05742743529375752],
+      "reflection": [0,0.32523983808753787,0.5731829947004536,0,0.7635001196861445,0,0,-2.7755575615628914e-17]
+    },
+    {
+      "id": "104/Cl3/1",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 104,
+      "vector": [2.1827353149228874,-0.2838465851137296,-0.2918414767913422],
+      "normal": [-0.45808678224024874,1.0360084458012735,-0.41285520482296567],
+      "reflection": [0,1.4431305058687585,1.3888426485464866,0,-0.9584175640488628,0,0,2.7755575615628914e-17]
+    },
+    {
+      "id": "104/Cl3/2",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 104,
+      "vector": [-0.08823860657696682,0.8805672993660527,0.7614050620254911],
+      "normal": [-0.9745347184508436,1.8149398181019112,0.2774672661932712],
+      "reflection": [0,0.7667895680984155,-0.7118076570482096,0,0.5179634219754267,0,0,-5.551115123125783e-17]
+    },
+    {
+      "id": "104/Cl3/3",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 104,
+      "vector": [0.9508318268926117,0.330994128784945,1.71577917668731],
+      "normal": [-0.3475170991792483,-0.6221306704910322,0.41314764497061],
+      "reflection": [0,1.1275526090395278,0.6473625001439967,0,1.5056836874759907,0,0,-1.1102230246251565e-16]
+    },
+    {
+      "id": "104/Cl3/4",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 104,
+      "vector": [1.3909164217176204,-0.008699663092493629,0.911887441695873],
+      "normal": [1.5732061392170742,-1.4038758246581318,1.3962746946529592],
+      "reflection": [0,-0.31804766128545237,1.5163219482082642,0,-0.6048771091693453,0,0,0]
+    },
+    {
+      "id": "105/Cl3/0",
+      "kind": "reflection",
+      "n": 3,
+      "seed": 105,
+      "vector": [-0.0634542076857541,1.2492131101839494,1.9880112028878816],
+      "normal": [-0.053374981120936464,-0.23915753258471148,1.0620296514037033],
+      "reflection": [0,0.09972839105848239,1.9803861589950986,0,-1.2589175045306709,0,0,1.3877787807814457e-17]
+    },
+    {
+      "id": "109/Cl3",
+      "kind": "double_reflection",
+      "n": 3,
+      "seed": 109,
+      "vector": [0.8331403466843222,1.1177968923068622,0.0007996369858082831],
+      "normals": [
+        [1,0,0],
+        [0,1,0]
+      ],
+      "rotor": [0,0,0,-1,0,0,0,0],
+      "result": [0,-0.8331403466843222,-1.1177968923068622,0,0.0007996369858082831,0,0,0]
+    },
+    {
+      "id": "106/Cl3",
+      "kind": "plane_normal_reflection",
+      "n": 3,
+      "seed": 106,
+      "vector": [0.8826192971400124,0.3242537859615011,0.4921243078878566],
+      "columns": [
+        [-0.16874548542199747,0.9575255425243296,-1.5247462502871534],
+        [1.1298374179734072,-0.2858278465593662,-0.1836727918833634]
+      ],
+      "blade": [0,0,0,-1.0336160278944901,0,1.7537093209142434,-0.6116863269641213,0],
+      "result": [0,-0.4447195966368196,0.9312079638693882,0,0.2478303536732573,0,0,-5.551115123125783e-17]
+    }
+  ],
+  "low_dim": [
+    {
+      "id": "project_self",
+      "n": 1,
+      "data": [0,1]
+    },
+    {
+      "id": "reject_self",
+      "n": 1,
+      "data": [0,0]
+    },
+    {
+      "id": "reflect_self",
+      "n": 1,
+      "data": [0,-1]
+    },
+    {
+      "id": "quarter_turn_rotor",
+      "n": 2,
+      "data": [0.7071067811865476,0,0,-0.7071067811865475]
+    },
+    {
+      "id": "quarter_turn_result",
+      "n": 2,
+      "data": [0,2.220446049250313e-16,1,0]
+    },
+    {
+      "id": "pseudoscalar",
+      "n": 3,
+      "data": [0,0,0,0,0,0,0,1]
+    },
+    {
+      "id": "named_pseudoscalar_product",
+      "n": 3,
+      "data": [0,0,0,0,0,0,1,0],
+      "unicode": "e₁I",
+      "latex": "e_{1} I"
+    }
+  ],
+  "rotor_errors": [
+    {
+      "n": 0,
+      "kind": "scalar",
+      "type": "ValueError",
+      "message": "B must contain a bivector (grade-2) component to define a rotation plane"
+    },
+    {
+      "n": 1,
+      "kind": "scalar",
+      "type": "ValueError",
+      "message": "B must contain a bivector (grade-2) component to define a rotation plane"
+    },
+    {
+      "n": 1,
+      "kind": "vector",
+      "type": "ValueError",
+      "message": "B must be an even multivector, but has odd-grade components: [1]"
+    }
+  ],
+  "skipped_seeded_cases": 0
+}

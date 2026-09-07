@@ -121,6 +121,7 @@ helps future contributors understand why certain choices were made.
 | [105](105-public-rga-contracts-and-underaccent-fallback.md) | Public RGA Contracts and Under-Accent Fallback | Accepted |
 | [106](106-independent-public-local-name-contracts.md) | Independent Public Local-Name Contracts | Accepted |
 | [107](107-public-complex-and-quaternion-convention-contracts.md) | Public Complex and Quaternion Convention Contracts | Accepted |
+| [108](108-public-transformation-compositions-and-geometric-notebook-plots.md) | Public Transformation Compositions and Geometric Notebook Plots | Accepted |
 
 ## Creating New ADRs
 

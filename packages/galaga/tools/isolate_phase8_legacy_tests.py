@@ -15,10 +15,8 @@ import libcst as cst
 from libcst.helpers import get_full_name_for_node
 
 LEGACY_ORACLE_TESTS = (
-    "test_chisolm_transformations.py",
     "test_coverage.py",
     "test_coverage_gaps.py",
-    "test_low_dim.py",
     "test_redesign.py",
     "test_scalar_helpers.py",
 )

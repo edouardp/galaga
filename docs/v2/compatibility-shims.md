@@ -108,6 +108,13 @@ because it can wrap a short composition of existing operations. It must make a
 domain contract materially clearer or validate model metadata. Until that case
 is established, users compose the explicit primitives directly.
 
+The [transformation migration recipes](migration-guide.md#migrate-transformation-helpers)
+spell out invertibility, normal orientation, and metric-dependent exponentials.
+The legacy `Algebra.rotor` constructor and its aliases remain absent; generic
+`exp` does not inherit their plane-angle validation. Historical observations
+and public composition tests are retained in
+[ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).
+
 ## Enforcement
 
 The executable public-surface ledger owns every alias, target, milestone, and

@@ -1185,3 +1185,51 @@ docstrings are corrected to describe the even subalgebra. The construction
 ledger falls from seven files to six. Low-dimensional/transformation-helper
 and other mixed legacy dependencies remain before engine deletion.
 See [ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md).
+
+### Phase 9 follow-through: low-dimensional and transformation compositions
+
+All nineteen historical method identities and twenty-six collected cases in
+`test_low_dim.py` and `test_chisolm_transformations.py` now use the public
+facade. The archive `tools/baselines/transformation-contracts-v1.json` retains
+both complete sources and digests, forty seeded observations with their original
+vectors and spanning columns, seven low-dimensional values, and three retired
+rotor-constructor errors. No seeded case was skipped.
+
+Projection, rejection and reflection use explicit primitive compositions, not
+restored helper aliases. Original rotor-validation identities now check the
+retired constructor boundary and distinguish valid generic scalar/vector
+exponentiation from a plane-angle API. Pseudoscalars use `expr=True` and explicit
+symbol environments, preserving coefficients independently of provenance.
+
+Coordinate projection and normal-reflection matrices independently verify the
+archived observations. New probes cover oblique-indefinite and degenerate
+metrics, restricted-subspace invertibility, blade scaling, negative-square
+normals, null-input failures, both expression modes and all three display
+targets. Gram-derived bivector squares select elliptic, hyperbolic or terminating
+exponentials, checked against a separate vector-action matrix exponential.
+Shape/finiteness, replay and hash checks remain live. Mutation probes reject
+corrupt coefficients, wrong contraction side, inverse-to-reverse substitution
+and reversed exponential orientation.
+
+The 386 focused cases pass with 100% line/branch coverage in the four
+numeric/boundary files. The three public suites also pass all 376 cases from
+the built wheel with origins verified and legacy imports forbidden. Full
+package/release suites pass 6,474 cases (60 skipped) on Python 3.11 and 6,606
+(20 skipped) on Python 3.14, including the maintained gallery exports.
+Core/facade coverage, the existing matrix warning and 295 type errors are
+unchanged; no production package behavior changes.
+
+Two existing notebook plot defects are fixed: the projector draws the rotated
+XZ plane it actually computes, and the reflection notebook uses perpendicular
+normals for its plotted mirrors. All arrows use computed multivectors. Fifteen
+Python 3.14 runtime regressions check multiple slider configurations, surface
+membership and arrow data; restoring either old geometry is rejected.
+The migration guide's two executable recipes and the teaching text explain
+restricted metrics, mirror versus normal-span conventions and inverse versus
+reverse.
+
+The construction ledger falls from six files to four: `test_coverage.py`,
+`test_coverage_gaps.py`, `test_redesign.py` and `test_scalar_helpers.py`.
+Their mixed contracts, namespace/construction guards, engine deletion and final
+release gates remain pending. See
+[ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).

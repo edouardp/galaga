@@ -138,6 +138,19 @@ def test_construction_notebook_teaches_metric_derived_sta_names_and_signed_looku
     assert "multiple blades or non-unit coefficients" in source
 
 
+def test_transformation_notebooks_plot_their_computed_subspaces_and_reflections() -> None:
+    projectors = (EXAMPLES / "algebra/projectors_ga.py").read_text()
+    mirrors = (EXAMPLES / "algebra/rotors_from_reflections.py").read_text()
+    assert "_ax.plot_surface(*plane_mesh" in projectors
+    assert "(R * e1 * ~R).vector_part" in projectors and "(R * e3 * ~R).vector_part" in projectors
+    assert "Gram matrix restricted to its spanning subspace" in " ".join(projectors.split())
+    assert "_n1 = -np.sin(_a) * e1 + np.cos(_a) * e2" in mirrors
+    assert "_n2 = -np.sin(_b) * e1 + np.cos(_b) * e2" in mirrors
+    assert "_y = reflected_twice.vector_part" in mirrors
+    assert "_once = reflected_once.vector_part" in mirrors
+    assert "it does not substitute an inverse" in mirrors
+
+
 def test_quaternion_notebook_teaches_computed_units_even_grades_and_metric_boundaries() -> None:
     source = (EXAMPLES / "basics/complex_and_quaternions.py").read_text()
     assert "_expected_units = (_e2 ^ _e3, _e1 ^ _e3, _e1 ^ _e2)" in source
