@@ -1,0 +1,2127 @@
+{
+  "schema_version": 1,
+  "source_commit": "370a4e10f4b00887637caa29a51adaa71f2719bc",
+  "captured_on": "2026-09-07",
+  "source_test": "packages/galaga/tests/test_render.py",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "signature": [1,1,1],
+  "original_case_count": 141,
+  "tests": [
+    {
+      "id": "TestAtoms.test_sym",
+      "source": "def test_sym(self, syms):\n        \"\"\"Render a named symbol as its name.\"\"\"\n        a, _, _ = syms\n        assert render(a) == \"a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAtoms.test_scalar_int",
+      "source": "def test_scalar_int(self):\n        \"\"\"Scalar int renders as integer.\"\"\"\n        assert render(Scalar(3)) == \"3\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "3",
+          "bindings": {},
+          "coefficients": [3,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAtoms.test_scalar_float",
+      "source": "def test_scalar_float(self):\n        \"\"\"Scalar float renders with decimal.\"\"\"\n        assert render(Scalar(2.5)) == \"2.5\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "2.5",
+          "bindings": {},
+          "coefficients": [2.5,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAtoms.test_scalar_neg",
+      "source": "def test_scalar_neg(self):\n        \"\"\"Negative scalar renders with minus.\"\"\"\n        assert render(Scalar(-1)) == \"-1\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-1",
+          "bindings": {},
+          "coefficients": [-1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNeg.test_neg_atom",
+      "source": "def test_neg_atom(self, syms):\n        \"\"\"Neg of atom: -a.\"\"\"\n        a, _, _ = syms\n        assert render(Neg(a)) == \"-a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNeg.test_neg_sum",
+      "source": "def test_neg_sum(self, syms):\n        \"\"\"Neg of sum wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(Neg(Add(a, b))) == \"-(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNeg.test_neg_product",
+      "source": "def test_neg_product(self, syms):\n        \"\"\"Neg of product: no parens needed.\"\"\"\n        a, b, _ = syms\n        assert render(Neg(Gp(a, b))) == \"-ab\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-ab",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNeg.test_double_neg",
+      "source": "def test_double_neg(self, syms):\n        \"\"\"Double negation: --a.\"\"\"\n        a, _, _ = syms\n        assert render(Neg(Neg(a))) == \"--a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "--a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_mul",
+      "source": "def test_scalar_mul(self, syms):\n        \"\"\"ScalarMul renders as coefficient prefix.\"\"\"\n        a, _, _ = syms\n        assert render(ScalarMul(3, a)) == \"3a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "3a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,3,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_mul_neg1",
+      "source": "def test_scalar_mul_neg1(self, syms):\n        \"\"\"ScalarMul by -1 renders as -a.\"\"\"\n        a, _, _ = syms\n        assert render(ScalarMul(-1, a)) == \"-a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_mul_pos1",
+      "source": "def test_scalar_mul_pos1(self, syms):\n        \"\"\"ScalarMul by +1 suppresses the coefficient.\"\"\"\n        a, _, _ = syms\n        assert render(ScalarMul(1, a)) == \"a\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_mul_sum",
+      "source": "def test_scalar_mul_sum(self, syms):\n        \"\"\"ScalarMul of sum wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(ScalarMul(2, Add(a, b))) == \"2(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "2(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,2,2,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_div",
+      "source": "def test_scalar_div(self, syms):\n        \"\"\"ScalarDiv renders as a/n.\"\"\"\n        a, _, _ = syms\n        assert render(ScalarDiv(a, 2)) == \"a/2\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a/2",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0.5,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestScalarMulDiv.test_scalar_div_sum",
+      "source": "def test_scalar_div_sum(self, syms):\n        \"\"\"ScalarDiv of sum wraps numerator.\"\"\"\n        a, b, _ = syms\n        assert render(ScalarDiv(Add(a, b), 2)) == \"(a + b)/2\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)/2",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0.5,0.5,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_two_atoms",
+      "source": "def test_two_atoms(self, syms):\n        \"\"\"Two atoms juxtaposed: ab.\"\"\"\n        a, b, _ = syms\n        assert render(Gp(a, b)) == \"ab\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ab",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_three_atoms",
+      "source": "def test_three_atoms(self, syms):\n        \"\"\"Three atoms: abc.\"\"\"\n        a, b, c = syms\n        assert render(Gp(Gp(a, b), c)) == \"abc\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "abc",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,1]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_sum_left",
+      "source": "def test_sum_left(self, syms):\n        \"\"\"Sum on left of gp gets parens.\"\"\"\n        a, b, c = syms\n        assert render(Gp(Add(a, b), c)) == \"(a + b)c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_sum_right",
+      "source": "def test_sum_right(self, syms):\n        \"\"\"Sum on right of gp gets parens.\"\"\"\n        a, b, c = syms\n        assert render(Gp(a, Add(b, c))) == \"a(b + c)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a(b + c)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,1,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_sum_both",
+      "source": "def test_sum_both(self, syms):\n        \"\"\"Sums on both sides get parens.\"\"\"\n        a, b, c = syms\n        assert render(Gp(Add(a, b), Add(b, c))) == \"(a + b)(b + c)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)(b + c)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [1,0,0,1,0,1,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_wedge_in_gp",
+      "source": "def test_wedge_in_gp(self, syms):\n        \"\"\"Wedge inside gp needs parens since wedge has lower precedence.\"\"\"\n        a, b, c = syms\n        assert render(Gp(Op(a, b), c)) == \"(a∧b)c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a∧b)c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,1]
+        }
+      ]
+    },
+    {
+      "id": "TestGp.test_gp_of_wedge_right",
+      "source": "def test_gp_of_wedge_right(self, syms):\n        \"\"\"Wedge on right of gp gets parens.\"\"\"\n        a, b, c = syms\n        assert render(Gp(a, Op(b, c))) == \"a(b∧c)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a(b∧c)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,1]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_two_atoms",
+      "source": "def test_two_atoms(self, syms):\n        \"\"\"Two atoms juxtaposed: ab.\"\"\"\n        a, b, _ = syms\n        assert render(Op(a, b)) == \"a∧b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∧b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_sum_in_wedge",
+      "source": "def test_sum_in_wedge(self, syms):\n        \"\"\"Sum in wedge gets parens.\"\"\"\n        a, b, c = syms\n        assert render(Op(Add(a, b), c)) == \"(a + b)∧c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)∧c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_scalar_mul_in_wedge",
+      "source": "def test_scalar_mul_in_wedge(self, syms):\n        \"\"\"ScalarMul in wedge gets parens.\"\"\"\n        a, b, _ = syms\n        assert render(Op(ScalarMul(2, a), b)) == \"(2a)∧b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(2a)∧b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,2,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_scalar_mul_of_wedge",
+      "source": "def test_scalar_mul_of_wedge(self, syms):\n        \"\"\"ScalarMul of wedge: no parens.\"\"\"\n        a, b, _ = syms\n        assert render(ScalarMul(2, Op(a, b))) == \"2a∧b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "2a∧b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,2,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_associative_left",
+      "source": "def test_associative_left(self, syms):\n        \"\"\"Left-nested wedge: no parens.\"\"\"\n        a, b, c = syms\n        assert render(Op(Op(a, b), c)) == \"a∧b∧c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∧b∧c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,1]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_associative_right",
+      "source": "def test_associative_right(self, syms):\n        \"\"\"Right-nested wedge: no parens.\"\"\"\n        a, b, c = syms\n        assert render(Op(a, Op(b, c))) == \"a∧b∧c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∧b∧c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,1]
+        }
+      ]
+    },
+    {
+      "id": "TestOp.test_associative_both",
+      "source": "def test_associative_both(self, syms):\n        \"\"\"Both-nested wedge: no parens.\"\"\"\n        a, b, c = syms\n        d = Sym(syms[0]._mv, \"d\")\n        assert render(Op(Op(a, b), Op(c, d))) == \"a∧b∧c∧d\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∧b∧c∧d",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0],
+            "d": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddSub.test_add",
+      "source": "def test_add(self, syms):\n        \"\"\"Add renders with +.\"\"\"\n        a, b, _ = syms\n        assert render(Add(a, b)) == \"a + b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a + b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddSub.test_sub",
+      "source": "def test_sub(self, syms):\n        \"\"\"Sub renders with -.\"\"\"\n        a, b, _ = syms\n        assert render(Sub(a, b)) == \"a - b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a - b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddSub.test_add_three",
+      "source": "def test_add_three(self, syms):\n        \"\"\"Chained add: a + b + c.\"\"\"\n        a, b, c = syms\n        assert render(Add(Add(a, b), c)) == \"a + b + c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a + b + c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,1,1,0,1,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddSub.test_sub_of_sum",
+      "source": "def test_sub_of_sum(self, syms):\n        \"\"\"Sub of sum wraps RHS in parens.\"\"\"\n        a, b, c = syms\n        # a - (b + c) — the RHS needs parens because subtraction\n        assert render(Sub(a, Add(b, c))) == \"a - (b + c)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a - (b + c)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,-1,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_reverse_atom",
+      "source": "def test_reverse_atom(self, syms):\n        \"\"\"Reverse of atom uses combining tilde.\"\"\"\n        a, _, _ = syms\n        assert render(Reverse(a)) == \"a\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ã",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_reverse_sum",
+      "source": "def test_reverse_sum(self, syms):\n        r\"\"\"Reverse of sum uses \\widetilde.\"\"\"\n        a, b, _ = syms\n        assert render(Reverse(Add(a, b))) == \"~(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_reverse_product",
+      "source": "def test_reverse_product(self, syms):\n        \"\"\"Reverse of product uses ~ prefix.\"\"\"\n        a, b, _ = syms\n        assert render(Reverse(Gp(a, b))) == \"~(ab)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(ab)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_involute_atom",
+      "source": "def test_involute_atom(self, syms):\n        \"\"\"Involute of atom uses combining circumflex.\"\"\"\n        a, _, _ = syms\n        assert render(Involute(a)) == \"a\\u0302\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "â",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_involute_sum",
+      "source": "def test_involute_sum(self, syms):\n        \"\"\"Involute of sum uses inv() fallback.\"\"\"\n        a, b, _ = syms\n        assert render(Involute(Add(a, b))) == \"inv(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "inv(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_conjugate_atom",
+      "source": "def test_conjugate_atom(self, syms):\n        \"\"\"Conjugate of atom uses combining overline.\"\"\"\n        a, _, _ = syms\n        assert render(Conjugate(a)) == \"a\\u0304\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ā",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_conjugate_sum",
+      "source": "def test_conjugate_sum(self, syms):\n        \"\"\"Conjugate of sum uses conj() fallback.\"\"\"\n        a, b, _ = syms\n        assert render(Conjugate(Add(a, b))) == \"conj(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "conj(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_dual_atom",
+      "source": "def test_dual_atom(self, syms):\n        \"\"\"Dual of atom: a⋆.\"\"\"\n        a, _, _ = syms\n        assert render(Dual(a)) == \"a⋆\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⋆",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_dual_sum",
+      "source": "def test_dual_sum(self, syms):\n        \"\"\"Dual of sum wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(Dual(Add(a, b))) == \"(a + b)⋆\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)⋆",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_dual_product",
+      "source": "def test_dual_product(self, syms):\n        \"\"\"Dual of product wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(Dual(Gp(a, b))) == \"(ab)⋆\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)⋆",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,1,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_undual_atom",
+      "source": "def test_undual_atom(self, syms):\n        \"\"\"Undual of atom: a⋆⁻¹.\"\"\"\n        a, _, _ = syms\n        assert render(Undual(a)) == \"a⋆⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⋆⁻¹",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_inverse_atom",
+      "source": "def test_inverse_atom(self, syms):\n        \"\"\"Inverse of atom: a⁻¹.\"\"\"\n        a, _, _ = syms\n        assert render(Inverse(a)) == \"a⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⁻¹",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_inverse_sum",
+      "source": "def test_inverse_sum(self, syms):\n        \"\"\"Inverse of sum wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(Inverse(Add(a, b))) == \"(a + b)⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)⁻¹",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0.5,0.5,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_inverse_product",
+      "source": "def test_inverse_product(self, syms):\n        \"\"\"Inverse of product wraps in \\\\left(\\right).\"\"\"\n        a, b, _ = syms\n        assert render(Inverse(Gp(a, b))) == \"(ab)⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)⁻¹",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_squared_atom",
+      "source": "def test_squared_atom(self, syms):\n        \"\"\"Squared of atom: a².\"\"\"\n        a, _, _ = syms\n        assert render(Squared(a)) == \"a²\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a²",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_squared_sum",
+      "source": "def test_squared_sum(self, syms):\n        \"\"\"Squared of sum wraps in \\\\left(\\right).\"\"\"\n        a, b, _ = syms\n        assert render(Squared(Add(a, b))) == \"(a + b)²\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)²",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [2,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestPostfixUnary.test_squared_product",
+      "source": "def test_squared_product(self, syms):\n        \"\"\"Squared of product wraps in parens.\"\"\"\n        a, b, _ = syms\n        assert render(Squared(Gp(a, b))) == \"(ab)²\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)²",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [-1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_grade",
+      "source": "def test_grade(self, syms):\n        \"\"\"Grade renders with ⟨⟩ and subscript.\"\"\"\n        a, _, _ = syms\n        assert render(Grade(a, 1)) == \"⟨a⟩₁\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "⟨a⟩₁",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_grade_of_sum",
+      "source": "def test_grade_of_sum(self, syms):\n        \"\"\"Grade of sum: no extra parens needed.\"\"\"\n        a, b, _ = syms\n        assert render(Grade(Add(a, b), 2)) == \"⟨a + b⟩₂\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "⟨a + b⟩₂",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_norm",
+      "source": "def test_norm(self, syms):\n        \"\"\"Norm renders with ‖‖.\"\"\"\n        a, _, _ = syms\n        assert render(Norm(a)) == \"‖a‖\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "‖a‖",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_unit_atom",
+      "source": "def test_unit_atom(self, syms):\n        \"\"\"Unit of atom uses combining circumflex.\"\"\"\n        a, _, _ = syms\n        assert render(Unit(a)) == \"a\\u0302\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "â",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_unit_sum",
+      "source": "def test_unit_sum(self, syms):\n        \"\"\"Unit of sum: (x)/‖x‖.\"\"\"\n        a, b, _ = syms\n        assert render(Unit(Add(a, b))) == \"(a + b)/‖a + b‖\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)/‖a + b‖",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0.7071067811865475,0.7071067811865475,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_exp",
+      "source": "def test_exp(self, syms):\n        \"\"\"Exp renders as exp(...).\"\"\"\n        a, _, _ = syms\n        assert render(Exp(a)) == \"exp(a)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "exp(a)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [1.5430806348152437,1.1752011936438014,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestBracketOps.test_exp_sum",
+      "source": "def test_exp_sum(self, syms):\n        \"\"\"Exp of sum: exp(a + b).\"\"\"\n        a, b, _ = syms\n        assert render(Exp(Add(a, b))) == \"exp(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "exp(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [2.178183556608571,1.3682988720085907,1.3682988720085907,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_left_contraction",
+      "source": "def test_left_contraction(self, syms):\n        \"\"\"Left contraction: a⌋b.\"\"\"\n        a, b, _ = syms\n        assert render(Lc(a, b)) == \"a⌋b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⌋b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_right_contraction",
+      "source": "def test_right_contraction(self, syms):\n        \"\"\"Right contraction: a⌊b.\"\"\"\n        a, b, _ = syms\n        assert render(Rc(a, b)) == \"a⌊b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⌊b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_hestenes",
+      "source": "def test_hestenes(self, syms):\n        \"\"\"Hestenes inner: a·b.\"\"\"\n        a, b, _ = syms\n        assert render(Hi(a, b)) == \"a·b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a·b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_doran_lasenby",
+      "source": "def test_doran_lasenby(self, syms):\n        \"\"\"Doran-Lasenby inner: a·b.\"\"\"\n        a, b, _ = syms\n        assert render(Dli(a, b)) == \"a·b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a·b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_scalar_product",
+      "source": "def test_scalar_product(self, syms):\n        \"\"\"Scalar product: a∗b.\"\"\"\n        a, b, _ = syms\n        assert render(Sp(a, b)) == \"a∗b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∗b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestInnerProducts.test_contraction_of_sum",
+      "source": "def test_contraction_of_sum(self, syms):\n        \"\"\"Contraction of sum wraps in parens.\"\"\"\n        a, b, c = syms\n        assert render(Lc(Add(a, b), c)) == \"(a + b)⌋c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)⌋c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCommutators.test_commutator",
+      "source": "def test_commutator(self, syms):\n        \"\"\"Commutator: [a, b].\"\"\"\n        a, b, _ = syms\n        assert render(Commutator(a, b)) == \"[a, b]\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "[a, b]",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,2,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCommutators.test_anticommutator",
+      "source": "def test_anticommutator(self, syms):\n        \"\"\"Anticommutator: {a, b}.\"\"\"\n        a, b, _ = syms\n        assert render(Anticommutator(a, b)) == \"{a, b}\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "{a, b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCommutators.test_lie_bracket",
+      "source": "def test_lie_bracket(self, syms):\n        \"\"\"Lie bracket: ½[a, b].\"\"\"\n        a, b, _ = syms\n        assert render(LieBracket(a, b)) == \"½[a, b]\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "½[a, b]",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCommutators.test_jordan_product",
+      "source": "def test_jordan_product(self, syms):\n        \"\"\"Jordan product: ½{a, b}.\"\"\"\n        a, b, _ = syms\n        assert render(JordanProduct(a, b)) == \"½{a, b}\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "½{a, b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestDiv.test_div_atoms",
+      "source": "def test_div_atoms(self, syms):\n        \"\"\"Div of atoms: a/b.\"\"\"\n        a, b, _ = syms\n        assert render(Div(a, b)) == \"a/b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a/b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestDiv.test_div_sum_numerator",
+      "source": "def test_div_sum_numerator(self, syms):\n        \"\"\"Div with sum numerator wraps it.\"\"\"\n        a, b, c = syms\n        assert render(Div(Add(a, b), c)) == \"(a + b)/c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)/c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestDiv.test_div_sum_denominator",
+      "source": "def test_div_sum_denominator(self, syms):\n        \"\"\"Div with sum denominator wraps it.\"\"\"\n        a, b, c = syms\n        assert render(Div(a, Add(b, c))) == \"a/(b + c)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a/(b + c)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0.5,0,0.5,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestDiv.test_div_product_denominator",
+      "source": "def test_div_product_denominator(self, syms):\n        \"\"\"Div with product denominator wraps it.\"\"\"\n        a, b, c = syms\n        assert render(Div(a, Gp(b, c))) == \"a/(bc)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a/(bc)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,-1]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_sandwich",
+      "source": "def test_sandwich(self, syms):\n        \"\"\"R * v * ~R with R=a, v=b\"\"\"\n        a, b, _ = syms\n        expr = Gp(Gp(a, b), Reverse(a))\n        expected = \"ab\" + \"a\" + \"\\u0303\"\n        assert render(expr) == expected",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "abã",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_sandwich_named",
+      "source": "def test_sandwich_named(self, alg):\n        \"\"\"Named sandwich: RvR̃.\"\"\"\n        e1, e2, _ = alg.basis_vectors()\n        R = Sym(e1 * e2, \"R\")\n        v = Sym(e1, \"v\")\n        expr = Gp(Gp(R, v), Reverse(R))\n        assert render(expr) == \"RvR\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "RvR̃",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_reverse_of_sum_in_product",
+      "source": "def test_reverse_of_sum_in_product(self, syms):\n        \"\"\"~(a+b) * c.\"\"\"\n        a, b, c = syms\n        expr = Gp(Reverse(Add(a, b)), c)\n        assert render(expr) == \"~(a + b)c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(a + b)c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_product_times_reverse_sum",
+      "source": "def test_product_times_reverse_sum(self, syms):\n        \"\"\"c * ~(a+b).\"\"\"\n        a, b, c = syms\n        expr = Gp(c, Reverse(Add(a, b)))\n        assert render(expr) == \"c~(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "c~(a + b)",
+          "bindings": {
+            "c": [0,0,0,0,1,0,0,0],
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,-1,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_sum_sandwich",
+      "source": "def test_sum_sandwich(self, syms):\n        \"\"\"(a+b)c~(a+b).\"\"\"\n        a, b, c = syms\n        expr = Gp(Gp(Add(a, b), c), Reverse(Add(a, b)))\n        assert render(expr) == \"(a + b)c~(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)c~(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,-2,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_scalar_mul_in_exp",
+      "source": "def test_scalar_mul_in_exp(self, syms):\n        \"\"\"exp(-ab/2).\"\"\"\n        a, b, _ = syms\n        expr = Exp(ScalarDiv(Neg(Gp(a, b)), 2))\n        assert render(expr) == \"exp(-ab/2)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "exp(-ab/2)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0.8775825618903728,0,0,-0.479425538604203,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_grade_of_sandwich",
+      "source": "def test_grade_of_sandwich(self, syms):\n        \"\"\"⟨RvR̃⟩₁.\"\"\"\n        a, b, _ = syms\n        R, v = a, b\n        expr = Grade(Gp(Gp(R, v), Reverse(R)), 1)\n        assert render(expr) == \"⟨aba\\u0303⟩₁\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "⟨abã⟩₁",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_nested_reverse",
+      "source": "def test_nested_reverse(self, syms):\n        \"\"\"Reverse of reverse.\"\"\"\n        a, _, _ = syms\n        expr = Reverse(Reverse(a))\n        s = render(expr)\n        assert \"a\" in s",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(ã)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_wedge_plus_scalar_wedge",
+      "source": "def test_wedge_plus_scalar_wedge(self, syms):\n        \"\"\"a∧b + 2b∧c.\"\"\"\n        a, b, c = syms\n        expr = Add(Op(a, b), ScalarMul(2, Op(b, c)))\n        assert render(expr) == \"a∧b + 2b∧c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∧b + 2b∧c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,2,0]
+        }
+      ]
+    },
+    {
+      "id": "TestCompositions.test_neg_scalar_mul_in_product",
+      "source": "def test_neg_scalar_mul_in_product(self, syms):\n        \"\"\"(-a)b.\"\"\"\n        a, b, _ = syms\n        expr = Gp(ScalarMul(-1, a), b)\n        assert render(expr) == \"(-a)b\" or render(expr) == \"-ab\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-ab",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        },
+        {
+          "target": "unicode",
+          "rendered": "-ab",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_sym",
+      "source": "def test_sym(self, syms):\n        \"\"\"Sym renders its name.\"\"\"\n        a, _, _ = syms\n        assert render_latex(a) == \"a\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_gp",
+      "source": "def test_gp(self, syms):\n        \"\"\"Gp renders with space in LaTeX.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Gp(a, b)) == \"a b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_wedge",
+      "source": "def test_wedge(self, syms):\n        r\"\"\"Op renders with \\wedge.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Op(a, b)) == r\"a \\wedge b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a \\wedge b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_add",
+      "source": "def test_add(self, syms):\n        \"\"\"Add renders with +.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Add(a, b)) == \"a + b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a + b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_reverse",
+      "source": "def test_reverse(self, syms):\n        \"\"\"Reverse renders as \\tilde.\"\"\"\n        a, _, _ = syms\n        assert render_latex(Reverse(a)) == r\"\\tilde{a}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\tilde{a}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_reverse_sum",
+      "source": "def test_reverse_sum(self, syms):\n        r\"\"\"Reverse of sum uses \\widetilde.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Reverse(Add(a, b))) == r\"\\widetilde{a + b}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\widetilde{a + b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_grade",
+      "source": "def test_grade(self, syms):\n        \"\"\"Grade renders with ⟨⟩ and subscript.\"\"\"\n        a, _, _ = syms\n        assert render_latex(Grade(a, 1)) == r\"\\langle a \\rangle_{1}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\langle a \\rangle_{1}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_scalar_div",
+      "source": "def test_scalar_div(self, syms):\n        \"\"\"ScalarDiv renders as a/n.\"\"\"\n        a, _, _ = syms\n        assert render_latex(ScalarDiv(a, 2)) == r\"\\frac{a}{2}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\frac{a}{2}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0.5,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_div",
+      "source": "def test_div(self, syms):\n        \"\"\"Div renders as \\frac.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Div(a, b)) == r\"\\frac{a}{b}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\frac{a}{b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_exp",
+      "source": "def test_exp(self, syms):\n        \"\"\"Exp renders as exp(...).\"\"\"\n        a, _, _ = syms\n        assert render_latex(Exp(a)) == r\"e^{a}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "e^{a}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [1.5430806348152437,1.1752011936438014,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_squared",
+      "source": "def test_squared(self, syms):\n        \"\"\"Squared renders as ^2.\"\"\"\n        a, _, _ = syms\n        assert render_latex(Squared(a)) == \"a^2\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a^2",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_squared_sum",
+      "source": "def test_squared_sum(self, syms):\n        \"\"\"Squared of sum wraps in \\\\left(\\right).\"\"\"\n        a, b, _ = syms\n        assert render_latex(Squared(Add(a, b))) == r\"\\left(a + b\\right)^2\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\left(a + b\\right)^2",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [2,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_inverse_product",
+      "source": "def test_inverse_product(self, syms):\n        \"\"\"Inverse of product wraps in \\\\left(\\right).\"\"\"\n        a, b, _ = syms\n        assert render_latex(Inverse(Gp(a, b))) == r\"\\left(a b\\right)^{-1}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\left(a b\\right)^{-1}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestLatex.test_sandwich_latex",
+      "source": "def test_sandwich_latex(self, alg):\n        \"\"\"Sandwich in LaTeX.\"\"\"\n        e1, e2, _ = alg.basis_vectors()\n        R = Sym(e1 * e2, \"R\")\n        v = Sym(e1, \"v\")\n        expr = Gp(Gp(R, v), Reverse(R))\n        assert render_latex(expr) == r\"R v \\tilde{R}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "R v \\tilde{R}",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_in_gp_left",
+      "source": "def test_reverse_in_gp_left(self, syms):\n        \"\"\"~a * b — reverse binds tighter than gp\"\"\"\n        a, b, _ = syms\n        expr = Gp(Reverse(a), b)\n        assert render(expr) == \"a\\u0303b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ãb",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_in_gp_right",
+      "source": "def test_reverse_in_gp_right(self, syms):\n        \"\"\"a * ~b\"\"\"\n        a, b, _ = syms\n        expr = Gp(a, Reverse(b))\n        assert render(expr) == \"ab\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ab̃",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_of_gp",
+      "source": "def test_reverse_of_gp(self, syms):\n        \"\"\"~(a * b) — needs parens\"\"\"\n        a, b, _ = syms\n        expr = Reverse(Gp(a, b))\n        assert render(expr) == \"~(ab)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(ab)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_inverse_in_gp",
+      "source": "def test_inverse_in_gp(self, syms):\n        \"\"\"a⁻¹ * b\"\"\"\n        a, b, _ = syms\n        expr = Gp(Inverse(a), b)\n        assert render(expr) == \"a⁻¹b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⁻¹b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_inverse_of_gp",
+      "source": "def test_inverse_of_gp(self, syms):\n        \"\"\"(ab)⁻¹\"\"\"\n        a, b, _ = syms\n        expr = Inverse(Gp(a, b))\n        assert render(expr) == \"(ab)⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)⁻¹",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_squared_in_gp",
+      "source": "def test_squared_in_gp(self, syms):\n        \"\"\"a² * b\"\"\"\n        a, b, _ = syms\n        expr = Gp(Squared(a), b)\n        assert render(expr) == \"a²b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a²b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_squared_of_gp",
+      "source": "def test_squared_of_gp(self, syms):\n        \"\"\"(ab)²\"\"\"\n        a, b, _ = syms\n        expr = Squared(Gp(a, b))\n        assert render(expr) == \"(ab)²\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)²",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [-1,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_dual_in_wedge",
+      "source": "def test_dual_in_wedge(self, syms):\n        \"\"\"a⋆ ∧ b\"\"\"\n        a, b, _ = syms\n        expr = Op(Dual(a), b)\n        assert render(expr) == \"a⋆∧b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a⋆∧b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_dual_of_wedge",
+      "source": "def test_dual_of_wedge(self, syms):\n        \"\"\"(a∧b)⋆\"\"\"\n        a, b, _ = syms\n        expr = Dual(Op(a, b))\n        assert render(expr) == \"(a∧b)⋆\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a∧b)⋆",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,1,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_in_add",
+      "source": "def test_reverse_in_add(self, syms):\n        \"\"\"~a + b — no parens needed\"\"\"\n        a, b, _ = syms\n        expr = Add(Reverse(a), b)\n        assert render(expr) == \"a\\u0303 + b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "ã + b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_of_add",
+      "source": "def test_reverse_of_add(self, syms):\n        \"\"\"~(a + b) — needs prefix fallback\"\"\"\n        a, b, _ = syms\n        expr = Reverse(Add(a, b))\n        assert render(expr) == \"~(a + b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(a + b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_neg_of_reverse",
+      "source": "def test_neg_of_reverse(self, syms):\n        \"\"\"-~a\"\"\"\n        a, _, _ = syms\n        expr = Neg(Reverse(a))\n        assert render(expr) == \"-a\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "-ã",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_of_neg",
+      "source": "def test_reverse_of_neg(self, syms):\n        \"\"\"~(-a)\"\"\"\n        a, _, _ = syms\n        expr = Reverse(Neg(a))\n        assert render(expr) == \"~(-a)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(-a)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_scalar_mul_of_reverse",
+      "source": "def test_scalar_mul_of_reverse(self, syms):\n        \"\"\"3~a\"\"\"\n        a, _, _ = syms\n        expr = ScalarMul(3, Reverse(a))\n        assert render(expr) == \"3a\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "3ã",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,3,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_reverse_of_scalar_mul",
+      "source": "def test_reverse_of_scalar_mul(self, syms):\n        \"\"\"~(3a)\"\"\"\n        a, _, _ = syms\n        expr = Reverse(ScalarMul(3, a))\n        assert render(expr) == \"~(3a)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "~(3a)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,3,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_inverse_of_sum_in_gp",
+      "source": "def test_inverse_of_sum_in_gp(self, syms):\n        \"\"\"(a + b)⁻¹ * c\"\"\"\n        a, b, c = syms\n        expr = Gp(Inverse(Add(a, b)), c)\n        assert render(expr) == \"(a + b)⁻¹c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)⁻¹c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0.5,0.5,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_gp_of_inverse_sum",
+      "source": "def test_gp_of_inverse_sum(self, syms):\n        \"\"\"c * (a + b)⁻¹\"\"\"\n        a, b, c = syms\n        expr = Gp(c, Inverse(Add(a, b)))\n        assert render(expr) == \"c(a + b)⁻¹\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "c(a + b)⁻¹",
+          "bindings": {
+            "c": [0,0,0,0,1,0,0,0],
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,-0.5,-0.5,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_sandwich_with_reverse",
+      "source": "def test_sandwich_with_reverse(self, alg):\n        \"\"\"R v ~R — the classic sandwich\"\"\"\n        e1, e2, _ = alg.basis_vectors()\n        R = Sym(e1 * e2, \"R\")\n        v = Sym(e1, \"v\")\n        expr = Gp(Gp(R, v), Reverse(R))\n        assert render(expr) == \"RvR\\u0303\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "RvR̃",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_grade_of_sandwich",
+      "source": "def test_grade_of_sandwich(self, alg):\n        \"\"\"⟨RvR̃⟩₁\"\"\"\n        e1, e2, _ = alg.basis_vectors()\n        R = Sym(e1 * e2, \"R\")\n        v = Sym(e1, \"v\")\n        expr = Grade(Gp(Gp(R, v), Reverse(R)), 1)\n        assert render(expr) == \"⟨RvR\\u0303⟩₁\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "⟨RvR̃⟩₁",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_exp_of_neg_product_div",
+      "source": "def test_exp_of_neg_product_div(self, syms):\n        \"\"\"exp(-ab/2)\"\"\"\n        a, b, _ = syms\n        expr = Exp(ScalarDiv(Neg(Gp(a, b)), 2))\n        assert render(expr) == \"exp(-ab/2)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "exp(-ab/2)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0.8775825618903728,0,0,-0.479425538604203,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfix.test_squared_of_sum_in_gp",
+      "source": "def test_squared_of_sum_in_gp(self, syms):\n        \"\"\"(a + b)² * c\"\"\"\n        a, b, c = syms\n        expr = Gp(Squared(Add(a, b)), c)\n        assert render(expr) == \"(a + b)²c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)²c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,2,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfixLatex.test_reverse_of_gp_latex",
+      "source": "def test_reverse_of_gp_latex(self, syms):\n        r\"\"\"~(ab) in LaTeX uses \\widetilde.\"\"\"\n        a, b, _ = syms\n        expr = Reverse(Gp(a, b))\n        assert render_latex(expr) == r\"\\widetilde{a b}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\widetilde{a b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfixLatex.test_inverse_of_gp_latex",
+      "source": "def test_inverse_of_gp_latex(self, syms):\n        \"\"\"(ab)⁻¹ in LaTeX.\"\"\"\n        a, b, _ = syms\n        expr = Inverse(Gp(a, b))\n        assert render_latex(expr) == r\"\\left(a b\\right)^{-1}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\left(a b\\right)^{-1}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfixLatex.test_sandwich_latex",
+      "source": "def test_sandwich_latex(self, alg):\n        \"\"\"Sandwich in LaTeX.\"\"\"\n        e1, e2, _ = alg.basis_vectors()\n        R = Sym(e1 * e2, \"R\")\n        v = Sym(e1, \"v\")\n        expr = Gp(Gp(R, v), Reverse(R))\n        assert render_latex(expr) == r\"R v \\tilde{R}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "R v \\tilde{R}",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfixLatex.test_dual_of_sum_latex",
+      "source": "def test_dual_of_sum_latex(self, syms):\n        \"\"\"(a+b)* in LaTeX.\"\"\"\n        a, b, _ = syms\n        expr = Dual(Add(a, b))\n        assert render_latex(expr) == r\"\\left(a + b\\right)^*\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\left(a + b\\right)^*",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,1,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestMixedInfixPostfixLatex.test_conjugate_of_sum_latex",
+      "source": "def test_conjugate_of_sum_latex(self, syms):\n        r\"\"\"Conjugate of sum in LaTeX uses \\overline.\"\"\"\n        a, b, _ = syms\n        expr = Conjugate(Add(a, b))\n        assert render_latex(expr) == r\"\\overline{a + b}\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\overline{a + b}",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_prefix_unary_dual",
+      "source": "def test_prefix_unary_dual(self, alg):\n        \"\"\"Prefix dual: *v instead of v⋆.\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Dual\", \"unicode\", NotationRule(kind=\"prefix\", symbol=\"*\"))\n        e1, _, _ = alg.basis_vectors()\n        v = Sym(e1, \"v\")\n        assert render(Dual(v), alg.notation) == \"*v\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "*v",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_prefix_unary_dual_latex",
+      "source": "def test_prefix_unary_dual_latex(self, alg):\n        \"\"\"Prefix dual override in LaTeX.\"\"\"\n        from galaga.legacy.render import render_latex\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Dual\", \"latex\", NotationRule(kind=\"prefix\", symbol=\"*\"))\n        e1, _, _ = alg.basis_vectors()\n        v = Sym(e1, \"v\")\n        assert render_latex(Dual(v), alg.notation) == \"*v\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "*v",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,-1,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_postfix_reverse_dagger",
+      "source": "def test_postfix_reverse_dagger(self, alg):\n        \"\"\"Postfix reverse: v† instead of ṽ.\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Reverse\", \"unicode\", NotationRule(kind=\"postfix\", symbol=\"†\"))\n        e1, _, _ = alg.basis_vectors()\n        v = Sym(e1, \"v\")\n        assert render(Reverse(v), alg.notation) == \"v†\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "v†",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_postfix_reverse_compound",
+      "source": "def test_postfix_reverse_compound(self, alg):\n        \"\"\"Postfix reverse on compound: (ab)†.\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Reverse\", \"unicode\", NotationRule(kind=\"postfix\", symbol=\"†\"))\n        e1, e2, _ = alg.basis_vectors()\n        a, b = Sym(e1, \"a\"), Sym(e2, \"b\")\n        assert render(Reverse(Gp(a, b)), alg.notation) == \"(ab)†\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(ab)†",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,-1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_function_unary_reverse",
+      "source": "def test_function_unary_reverse(self, alg):\n        \"\"\"Function-style reverse: rev(v).\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Reverse\", \"unicode\", NotationRule(kind=\"function\", symbol=\"rev\"))\n        e1, _, _ = alg.basis_vectors()\n        v = Sym(e1, \"v\")\n        assert render(Reverse(v), alg.notation) == \"rev(v)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "rev(v)",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_function_binary_wedge",
+      "source": "def test_function_binary_wedge(self, alg):\n        \"\"\"Function-style wedge: wedge(a, b).\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Op\", \"unicode\", NotationRule(kind=\"function\", symbol=\"wedge\"))\n        e1, e2, _ = alg.basis_vectors()\n        a, b = Sym(e1, \"a\"), Sym(e2, \"b\")\n        assert render(Op(a, b), alg.notation) == \"wedge(a, b)\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "wedge(a, b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_function_binary_latex",
+      "source": "def test_function_binary_latex(self, alg):\n        \"\"\"Function-style wedge in LaTeX.\"\"\"\n        from galaga.legacy.render import render_latex\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Op\", \"latex\", NotationRule(kind=\"function\", symbol=\"wedge\"))\n        e1, e2, _ = alg.basis_vectors()\n        a, b = Sym(e1, \"a\"), Sym(e2, \"b\")\n        result = render_latex(Op(a, b), alg.notation)\n        assert r\"\\operatorname{wedge}\" in result",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "\\operatorname{wedge}(a,\\, b)",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_infix_override",
+      "source": "def test_infix_override(self, alg):\n        \"\"\"Override wedge symbol.\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg.notation.set(\"Op\", \"unicode\", NotationRule(kind=\"infix\", separator=\" AND \"))\n        e1, e2, _ = alg.basis_vectors()\n        a, b = Sym(e1, \"a\"), Sym(e2, \"b\")\n        assert render(Op(a, b), alg.notation) == \"a AND b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a AND b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,1,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_hestenes_preset_sandwich",
+      "source": "def test_hestenes_preset_sandwich(self, alg):\n        \"\"\"Hestenes preset: RvR† in sandwich.\"\"\"\n        from galaga.legacy.render import render\n        from galaga.notation import Notation\n\n        n = Notation.hestenes()\n        e1, e2, _ = alg.basis_vectors()\n        R, v = Sym(e1 * e2, \"R\"), Sym(e1, \"v\")\n        expr = Gp(Gp(R, v), Reverse(R))\n        assert render(expr, n) == \"RvR†\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "RvR†",
+          "bindings": {
+            "R": [0,0,0,1,0,0,0,0],
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,-1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestNotationOverrideRendering.test_notation_does_not_leak",
+      "source": "def test_notation_does_not_leak(self):\n        \"\"\"Overriding one algebra's notation doesn't affect another.\"\"\"\n        from galaga.legacy import Algebra\n        from galaga.legacy.render import render\n        from galaga.notation import NotationRule\n\n        alg1 = Algebra((1, 1, 1))\n        alg2 = Algebra((1, 1, 1))\n        alg1.notation.set(\"Reverse\", \"unicode\", NotationRule(kind=\"postfix\", symbol=\"†\"))\n        e1, _, _ = alg1.basis_vectors()\n        v = Sym(e1, \"v\")\n        assert render(Reverse(v), alg1.notation) == \"v†\"\n        assert render(Reverse(v), alg2.notation) != \"v†\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "v†",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        },
+        {
+          "target": "unicode",
+          "rendered": "ṽ",
+          "bindings": {
+            "v": [0,1,0,0,0,0,0,0]
+          },
+          "coefficients": [0,1,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestRegressive.test_regressive_unicode",
+      "source": "def test_regressive_unicode(self, syms):\n        \"\"\"Regressive product: a∨b.\"\"\"\n        from galaga.expr import Regressive\n\n        a, b, _ = syms\n        assert render(Regressive(a, b)) == \"a∨b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∨b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestRegressive.test_regressive_latex",
+      "source": "def test_regressive_latex(self, syms):\n        \"\"\"Regressive in LaTeX: \\vee.\"\"\"\n        from galaga.expr import Regressive\n\n        a, b, _ = syms\n        assert render_latex(Regressive(a, b)) == r\"a \\vee b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a \\vee b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestRegressive.test_regressive_associative",
+      "source": "def test_regressive_associative(self, syms):\n        \"\"\"Regressive is associative: a∨b∨c.\"\"\"\n        from galaga.expr import Regressive\n\n        a, b, c = syms\n        assert render(Regressive(Regressive(a, b), c)) == \"a∨b∨c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a∨b∨c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestRegressive.test_regressive_sum_needs_parens",
+      "source": "def test_regressive_sum_needs_parens(self, syms):\n        \"\"\"Sum in regressive gets parens.\"\"\"\n        from galaga.expr import Regressive\n\n        a, b, c = syms\n        assert render(Regressive(Add(a, b), c)) == \"(a + b)∨c\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "(a + b)∨c",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0],
+            "c": [0,0,0,0,1,0,0,0]
+          },
+          "coefficients": [0,0,0,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_scalar_mul_unicode",
+      "source": "def test_add_neg_scalar_mul_unicode(self, syms):\n        \"\"\"a + (-3)b renders as a - 3b.\"\"\"\n        a, b, _ = syms\n        assert render(Add(a, ScalarMul(-3, b))) == \"a - 3b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a - 3b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-3,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_one_scalar_mul_unicode",
+      "source": "def test_add_neg_one_scalar_mul_unicode(self, syms):\n        \"\"\"a + (-1)b renders as a - b.\"\"\"\n        a, b, _ = syms\n        assert render(Add(a, ScalarMul(-1, b))) == \"a - b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a - b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_node_unicode",
+      "source": "def test_add_neg_node_unicode(self, syms):\n        \"\"\"a + Neg(b) renders as a - b.\"\"\"\n        a, b, _ = syms\n        assert render(Add(a, Neg(b))) == \"a - b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a - b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_positive_unchanged",
+      "source": "def test_add_positive_unchanged(self, syms):\n        \"\"\"a + 3b still renders with +.\"\"\"\n        a, b, _ = syms\n        assert render(Add(a, ScalarMul(3, b))) == \"a + 3b\"",
+      "observations": [
+        {
+          "target": "unicode",
+          "rendered": "a + 3b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,3,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_scalar_mul_latex",
+      "source": "def test_add_neg_scalar_mul_latex(self, syms):\n        \"\"\"a + (-3)b renders as a - 3 b in LaTeX.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Add(a, ScalarMul(-3, b))) == \"a - 3 b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a - 3 b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-3,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_one_scalar_mul_latex",
+      "source": "def test_add_neg_one_scalar_mul_latex(self, syms):\n        \"\"\"a + (-1)b renders as a - b in LaTeX.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Add(a, ScalarMul(-1, b))) == \"a - b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a - b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,0,0,0,0]
+        }
+      ]
+    },
+    {
+      "id": "TestAddNegativeCoeff.test_add_neg_node_latex",
+      "source": "def test_add_neg_node_latex(self, syms):\n        \"\"\"a + Neg(b) renders as a - b in LaTeX.\"\"\"\n        a, b, _ = syms\n        assert render_latex(Add(a, Neg(b))) == \"a - b\"",
+      "observations": [
+        {
+          "target": "latex",
+          "rendered": "a - b",
+          "bindings": {
+            "a": [0,1,0,0,0,0,0,0],
+            "b": [0,0,1,0,0,0,0,0]
+          },
+          "coefficients": [0,1,-1,0,0,0,0,0]
+        }
+      ]
+    }
+  ]
+}

@@ -23,7 +23,6 @@ LEGACY_ORACLE_TESTS = (
     "test_low_dim.py",
     "test_quaternion.py",
     "test_redesign.py",
-    "test_render.py",
     "test_rga_convention_layer.py",
     "test_scalar_helpers.py",
 )

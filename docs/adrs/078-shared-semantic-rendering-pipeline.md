@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The mixed-precedence rendering suite now also has public owners for every
+original test, with archived numeric bindings and independent nonzero
+composition checks. [ADR-103](103-mixed-rendering-contracts-with-numeric-ownership.md)
+records this migration without changing the production renderer.
+
 The legacy LaTeX pipeline suite now also has public owners.
 [ADR-102](102-latex-contracts-and-script-safe-spelling.md) adds bounded
 emitter-owned command separation and script-base protection for explicit

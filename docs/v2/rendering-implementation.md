@@ -393,6 +393,16 @@ The implementation and tests enforce these relationships:
 
 ## Validation ownership
 
+The migrated `test_render.py` retains all 141 historical test identities
+while using public expressions and immutable notation. Its companion
+`test_render_numeric_contract.py` replays every case against captured v1
+symbol bindings and coefficients, with explicit unscaled Lie/Jordan semantics.
+Nonzero mixed-grade probes use a forced core-reference backend, grade-derived
+reverse signs, and linear solves to check ten compositions in three targets
+and three Gram metrics. Boundary tests enforce archive ownership, legacy-import
+isolation, and corruption detection. No production behavior changes here;
+see [ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md).
+
 Phase 6 tests live under `packages/galaga/tests/rendering`:
 
 - `test_tree.py` owns immutability, validation, precedence, and associativity;
@@ -405,8 +415,9 @@ Phase 6 tests live under `packages/galaga/tests/rendering`:
 - `test_display.py` owns every content/target combination, fallback policy,
   public hooks, explicit/scoped/default precedence, and async isolation; and
 - `test_legacy_facade_parity.py` builds the same operation inventory against
-  both live algebras, compares numeric and LaTeX channels, and requires every
-  difference to match the executable review ledger; and
+  captured v1 observations and the public facade, compares numeric and LaTeX
+  channels, and requires every difference to match the executable review
+  ledger; and
 - `test_compound_latex_contract.py`, `test_sta_latex_contract.py`, and
   `test_rga_latex_contract.py` record exact output for the parameterized
   implementation/algebra/display/expression matrix with decorated,

@@ -224,6 +224,20 @@ Use `Call` expressions when you need mathematical structure and replay.
 
 ### Immutable rules
 
+The migrated mixed-precedence suite retains existing v2 defaults, not exact
+v1 typography. Unicode uses spaced infix operators, explicit star-script
+positions, and combining accents on grouped expressions; Hestenes inner
+product has a functional Unicode spelling. Use `Notation.functional()`
+when explicit operation names are preferable. Compound unit normalization
+keeps its default hat unless you select `unit_fraction` below.
+
+Double negation may disappear from the rendered view while remaining in
+stored provenance. Negated products and nested regressive products can keep
+additional parentheses. Multivector division displays multiplication by a
+right inverse, and the unscaled v2 Lie/Jordan definitions omit v1's half.
+The [mixed-rendering contract](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md)
+checks numeric meaning as well as these presentation differences.
+
 Import `Notation` and `RenderRule` from `galaga`. Replace
 `notation.set("Reverse", "latex", ...)` with
 `notation.with_rule("reverse", ..., target="latex")`, keeping the returned

@@ -998,3 +998,38 @@ suites pass 5,241 cases on Python 3.11 and 5,358 on Python 3.14, including
 maintained notebook exports. Only the existing matrix complex-to-real warning
 remains; type checking reports 295 errors, down from 296.
 See [ADR-102](../adrs/102-latex-contracts-and-script-safe-spelling.md).
+
+### Phase 9 follow-through: mixed rendering with numeric ownership
+
+All 141 class/method identifiers from `test_render.py` remain live,
+using public `Call`/`Symbol` expressions and immutable notation views.
+`tools/baselines/render-contracts-v1.json` captures their complete method
+sources and 143 observed renderings, each with the actual symbol bindings
+and evaluated native-mask coefficients. Source commit and runtime provenance
+are retained. The 54 changed expectations are existing v2 policies, not new
+renderer changes; three permissive assertions are strengthened to exact output.
+
+A companion numeric suite executes every original method using those archived
+bindings. Its explicit Lie/Jordan factor-of-two correction is separately
+checked with nonzero mixed grades, because the original orthogonal-vector
+Jordan example was zero. Ten compositions cover brackets, division, products,
+reversal, sandwiches, grade projection, squared sums, and negative addends
+across Euclidean, oblique-indefinite, and native-null metrics in three targets.
+Expected coefficients come from a forced core-reference backend, grade signs,
+and linear solves before any naming or display. A wrong-side inverse is
+explicitly distinguished from correct right division.
+
+Eager values, replay, data, expression identity, hashes, and scoped notation
+remain checked. Corruption probes reject old half scaling, wrong rendering
+or replay, altered archive bindings/results, invalid shapes, and nonfinite
+coefficients. Fresh-process tests prohibit all legacy imports.
+
+The construction ledger falls from eleven files to ten. All 394 focused
+cases pass at 100% line/branch coverage in the three test files. Their 378
+public cases pass directly from the built wheel with package origins verified.
+Full package/release suites pass 5,494 cases on Python 3.11 and 5,611 on
+Python 3.14, including maintained notebook exports. Coverage remains 97%
+for core/facade numeric modules and 94% for the emitter; the existing matrix
+warning and 295 type errors remain. No production code or notebook content
+changes. See
+[ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md).

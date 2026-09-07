@@ -8,6 +8,10 @@ deciders: edouard
 
 ## Context and problem statement
 
+The later [ADR-103](103-mixed-rendering-contracts-with-numeric-ownership.md)
+extends this approach to all 141 cases in `test_render.py`, preserving
+their numeric bindings and adding nonzero mixed-grade scope checks.
+
 The remaining numeric-function expression and parenthesization suites still
 used the legacy engine, private symbolic flags, mutable names, and implicit
 expression rendering. Their 29 cases cover useful numeric and grouping
