@@ -1,154 +1,139 @@
-"""Tests for SPEC-011: Custom Basis Blade Display Ordering."""
+"""Display order changes presentation, never native basis enumeration or data."""
 
-import unittest
+from __future__ import annotations
 
-from galaga.blade_convention import BladeConvention
-from galaga.legacy import Algebra, b_quaternion
+import numpy as np
+import pytest
 
-
-class TestDisplayOrderValidation(unittest.TestCase):
-    """Rule 3: display_order must be a valid permutation of range(dim)."""
-
-    def test_valid_permutation_accepted(self):
-        """A correct permutation is accepted without error."""
-        alg = Algebra(
-            (1, 1),
-            blades=BladeConvention(display_order=(0, 2, 1, 3)),
-        )
-        assert alg._display_order == (0, 2, 1, 3)
-
-    def test_none_gives_grade_sorted_order(self):
-        """None defaults to grade-sorted order."""
-        alg = Algebra(3)
-        # scalar, vectors, bivectors, pseudoscalar
-        assert alg._display_order == (0, 1, 2, 4, 3, 5, 6, 7)
-
-    def test_wrong_length_raises(self):
-        """display_order with wrong length raises ValueError."""
-        with self.assertRaises(ValueError):
-            Algebra((1, 1), blades=BladeConvention(display_order=(0, 1, 2)))
-
-    def test_duplicate_raises(self):
-        """display_order with duplicates raises ValueError."""
-        with self.assertRaises(ValueError):
-            Algebra((1, 1), blades=BladeConvention(display_order=(0, 0, 1, 3)))
-
-    def test_out_of_range_raises(self):
-        """display_order with out-of-range bitmask raises ValueError."""
-        with self.assertRaises(ValueError):
-            Algebra((1, 1), blades=BladeConvention(display_order=(0, 1, 2, 99)))
+from galaga import Algebra, DisplayOrder, DisplayPolicy, p_quaternion
 
 
-class TestDisplayOrderRendering(unittest.TestCase):
-    """Rules 2 and 4: rendering respects display_order."""
-
-    def test_default_order_unchanged(self):
-        """Without display_order, grade-sorted order is used."""
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        mv = e1 + 2 * e2 + 3 * e3
-        assert str(mv) == "e₁ + 2e₂ + 3e₃"
-
-    def test_default_grade_sorted_mixed(self):
-        """Default display groups all vectors before bivectors."""
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        mv = alg.scalar(1) + e1 + e2 + (e1 ^ e2) + e3
-        s = str(mv)
-        # e₃ (grade 1) must appear before e₁₂ (grade 2)
-        assert s.index("e₃") < s.index("e₁₂")
-
-    def test_quaternion_display_order(self):
-        """Quaternion terms display in i, j, k order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-        q = alg.scalar(1) + 2 * i + 3 * j + 4 * k
-        assert str(q) == "1 + 2i + 3j + 4k"
-
-    def test_quaternion_latex_order(self):
-        """Quaternion LaTeX also respects display_order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-        q = alg.scalar(1) + 2 * i + 3 * j + 4 * k
-        lat = q.latex()
-        # i term should come before j, j before k
-        assert lat.index("i") < lat.index("j") < lat.index("k")
-
-    def test_quaternion_format_spec_order(self):
-        """Numeric format spec also respects display_order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-        q = alg.scalar(1) + 2 * i + 3 * j + 4 * k
-        s = format(q, ".1f")
-        assert s.index("i") < s.index("j") < s.index("k")
-
-    def test_negative_terms_display_correctly(self):
-        """Negative coefficients still render with minus sign."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-        q = alg.scalar(1) - 2 * i + 3 * j - 4 * k
-        s = str(q)
-        assert "- 2i" in s
-        assert "3j" in s
-        assert "- 4k" in s
+def _quaternion_units(algebra):
+    e1, e2, e3 = algebra.basis_vectors()
+    units = (e2 ^ e3, e1 ^ e3, e1 ^ e2)
+    # Establish numeric meaning before using the conventional labels.
+    for unit, role in zip(units, ("quaternion_i", "quaternion_j", "quaternion_k"), strict=True):
+        assert unit == algebra.blade(role)
+    return units
 
 
-class TestDisplayOrderBasisBlades(unittest.TestCase):
-    """Rule 5: basis_blades() respects display_order."""
-
-    def test_quaternion_basis_blades_order(self):
-        """basis_blades(k=2) returns i, j, k in that order."""
-        alg = Algebra(3, blades=b_quaternion())
-        blades = alg.basis_blades(k=2)
-        names = [str(b) for b in blades]
-        assert names == ["i", "j", "k"]
-
-    def test_default_basis_blades_unchanged(self):
-        """Without display_order, basis_blades returns bitmask order."""
-        alg = Algebra(3)
-        blades = alg.basis_blades(k=2)
-        names = [str(b) for b in blades]
-        assert names == ["e₁₂", "e₁₃", "e₂₃"]
-
-    def test_grade_0_and_grade_3(self):
-        """display_order works for scalar and pseudoscalar grades too."""
-        alg = Algebra(3, blades=b_quaternion())
-        scalars = alg.basis_blades(k=0)
-        assert len(scalars) == 1
-        trivectors = alg.basis_blades(k=3)
-        assert len(trivectors) == 1
+def test_valid_permutation_is_accepted_without_changing_blade_vocabulary() -> None:
+    algebra = Algebra(2)
+    changed = algebra.with_display_order(DisplayOrder(2, (0, 2, 1, 3)))
+    assert changed.display_order == (0, 2, 1, 3)
+    assert changed.presentation.blades is algebra.presentation.blades
+    assert changed.numeric is algebra.numeric
 
 
-class TestDisplayOrderUnaffected(unittest.TestCase):
-    """Rule 6: computation and data are unaffected."""
-
-    def test_data_array_unchanged(self):
-        """data[] is still indexed by bitmask, not display_order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i = e2 ^ e3  # bitmask 0b110 = 6
-        assert i.data[0b110] == 1.0
-
-    def test_products_unchanged(self):
-        """Geometric products are unaffected by display_order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-        assert i * j == k
-        assert (i * i).scalar_part == -1.0
-
-    def test_basis_vectors_unchanged(self):
-        """basis_vectors() is unaffected by display_order."""
-        alg = Algebra(3, blades=b_quaternion())
-        e1, e2, e3 = alg.basis_vectors()
-        assert str(e1) == "e₁"
-        assert str(e2) == "e₂"
-        assert str(e3) == "e₃"
+def test_default_order_is_native_bitmask_order_and_grade_order_is_explicit() -> None:
+    algebra = Algebra(3)
+    assert algebra.display_order == tuple(range(algebra.dim))
+    grade_order = tuple(sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask)))
+    changed = algebra.with_display_order(DisplayOrder(algebra.n, grade_order))
+    e1, e2, e3 = algebra.basis_vectors()
+    value = 1 + e1 + e2 + (e1 ^ e2) + e3
+    assert str(value) == "1 + e₁ + e₂ + e₁₂ + e₃"
+    assert str(changed.multivector(value.data)) == "1 + e₁ + e₂ + e₃ + e₁₂"
+    assert changed.multivector(value.data) == value
 
 
-if __name__ == "__main__":
-    unittest.main()
+@pytest.mark.parametrize(
+    "masks",
+    ((0, 1, 2), (0, 0, 1, 3), (0, 1, 2, 99), (0, 1, 2, -1), (False, 1, 2, 3), (0, 1, 2, 3.0)),
+    ids=("length", "duplicate", "range", "negative", "boolean", "noninteger"),
+)
+def test_invalid_display_permutations_are_rejected(masks) -> None:
+    with pytest.raises(ValueError, match="every mask"):
+        DisplayOrder(2, masks)
+
+
+def test_display_order_must_match_the_algebra_dimension() -> None:
+    with pytest.raises(ValueError, match="dimensions must match"):
+        Algebra(2, display_order=DisplayOrder(3))
+
+
+def test_default_vector_rendering_is_unchanged() -> None:
+    e1, e2, e3 = Algebra(3).basis_vectors()
+    assert str(e1 + 2 * e2 + 3 * e3) == "e₁ + 2e₂ + 3e₃"
+
+
+@pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
+@pytest.mark.parametrize("negative", (False, True))
+def test_quaternion_rendering_uses_conventional_order_and_preserves_signs(target: str, negative: bool) -> None:
+    algebra = Algebra(config=p_quaternion())
+    i, j, k = _quaternion_units(algebra)
+    value = 1 - 2 * i + 3 * j - 4 * k if negative else 1 + 2 * i + 3 * j + 4 * k
+    expected = "1 - 2i + 3j - 4k" if negative else "1 + 2i + 3j + 4k"
+    if target == "latex":
+        expected = "1 - 2 i + 3 j - 4 k" if negative else "1 + 2 i + 3 j + 4 k"
+    assert value.display(f"value/{target}") == expected
+    assert format(value, f"value/{target}") == expected
+
+
+def test_precision_policy_keeps_quaternion_term_order() -> None:
+    algebra = Algebra(config=p_quaternion(), display=DisplayPolicy(coefficient_precision=3))
+    i, j, k = _quaternion_units(algebra)
+    value = 1 + 2.3456 * i + 3.4567 * j + 4.5678 * k
+    assert str(value) == "1 + 2.35i + 3.46j + 4.57k"
+    assert value.latex() == "1 + 2.35 i + 3.46 j + 4.57 k"
+
+
+@pytest.mark.parametrize("grade", (0, 1, 2, 3))
+@pytest.mark.parametrize("tracked", (False, True))
+def test_basis_blades_remain_native_masks_despite_display_order(grade: int, tracked: bool) -> None:
+    algebra = Algebra(config=p_quaternion())
+    blades = algebra.basis_blades(grade, expr=tracked)
+    masks = [mask for mask in range(algebra.dim) if mask.bit_count() == grade]
+    np.testing.assert_array_equal([blade.data for blade in blades], np.eye(algebra.dim)[masks])
+    assert all((blade.expr is not None) == tracked for blade in blades)
+    if grade == 2:
+        assert [str(blade) for blade in blades] == ["k", "j", "i"]
+        assert [str(algebra.blade(role)) for role in ("quaternion_i", "quaternion_j", "quaternion_k")] == [
+            "i",
+            "j",
+            "k",
+        ]
+
+
+def test_default_basis_blades_retain_native_names() -> None:
+    assert [str(blade) for blade in Algebra(3).basis_blades(2)] == ["e₁₂", "e₁₃", "e₂₃"]
+
+
+def test_quaternion_data_and_products_are_independent_of_display_order() -> None:
+    algebra = Algebra(config=p_quaternion())
+    i, j, k = _quaternion_units(algebra)
+    # Compute products independently through the public numeric left action.
+    for left, right, expected in ((i, j, k), (j, k, i), (k, i, j), (i, i, -algebra.identity)):
+        np.testing.assert_array_equal(left.numeric.algebra.left_action(left.numeric) @ right.data, expected.data)
+        assert left * right == expected
+    for unit, indices in ((i, (1, 2)), (j, (0, 2)), (k, (0, 1))):
+        expected_data = np.zeros(algebra.dim)
+        expected_data[sum(1 << index for index in indices)] = 1.0
+        np.testing.assert_array_equal(unit.data, expected_data)
+
+    changed = algebra.with_display_order(DisplayOrder(algebra.n))
+    value = 1 + 2 * i + 3 * j + 4 * k
+    presented = changed.multivector(value.data)
+    assert str(presented) == "1 + 4k + 3j + 2i"
+    assert value == presented and hash(value) == hash(presented)
+    np.testing.assert_array_equal((value * value).data, (presented * presented).data)
+    assert not presented.data.flags.writeable
+
+
+@pytest.mark.parametrize(
+    "gram", (np.eye(2), np.diag([1.0, 0.0]), [[2.0, 0.5], [0.5, -1.0]], [[0.0, -1.0], [-1.0, 0.0]])
+)
+def test_scoped_order_changes_only_rendering_for_general_metrics(gram) -> None:
+    algebra = Algebra(gram=gram)
+    value = algebra.multivector([1.0, 2.0, 3.0, 4.0]).with_expr()
+    original_data, original_expression, original_hash = value.data.copy(), value.expr, hash(value)
+    product = value * value
+    scoped = algebra.presentation.with_display_order(DisplayOrder(algebra.n, reversed(range(algebra.dim))))
+    with algebra.use_presentation(scoped):
+        assert str(value) == "4e₁₂ + 3e₂ + 2e₁ + 1"
+        assert [str(vector) for vector in algebra.basis_vectors()] == ["e₁", "e₂"]
+        np.testing.assert_array_equal([vector.data for vector in algebra.basis_vectors()], np.eye(algebra.dim)[[1, 2]])
+        assert value * value == product
+    assert str(value) == "1 + 2e₁ + 3e₂ + 4e₁₂"
+    assert value.expr is original_expression and hash(value) == original_hash
+    np.testing.assert_array_equal(value.data, original_data)

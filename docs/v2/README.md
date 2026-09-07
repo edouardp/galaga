@@ -124,7 +124,9 @@ remain checked as historical data alongside core-reference and algebraic
 checks. Compatibility-manifest introspection is also retired: the captured
 v1 API remains checked against its disposition ledger, while current facade
 behavior and the 15 supported v2 module imports remain live contracts.
-Fresh-process tests block legacy imports in all six paths. The
+Concrete display-order and numeric-formatting tests now use the facade too,
+with v1 output preserved as data and existing formatting differences documented
+explicitly. Fresh-process tests block legacy imports in all seven paths. The
 remaining test dependencies, engine deletion, alias retirement, and final
 release gates are still pending.
 
@@ -135,8 +137,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-Next are the remaining legacy presentation tests and namespace/construction
-guards. See [ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md)
+The construction-only legacy ledger is down to 17 files. Next are the remaining
+symbol, notation, and expression tests, followed by namespace/construction
+guards. See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

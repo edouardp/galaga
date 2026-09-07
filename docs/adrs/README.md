@@ -110,6 +110,7 @@ helps future contributors understand why certain choices were made.
 | [094](094-numeric-contracts-outlive-the-legacy-engine.md) | Numeric Contracts Outlive the Legacy Engine | Accepted |
 | [095](095-exact-numeric-equality-and-compatible-hashes.md) | Exact Numeric Equality and Compatible Hashes | Accepted |
 | [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Accepted |
+| [097](097-concrete-display-contracts-outlive-legacy-rendering.md) | Concrete Display Contracts Outlive Legacy Rendering | Accepted |
 
 ## Creating New ADRs
 

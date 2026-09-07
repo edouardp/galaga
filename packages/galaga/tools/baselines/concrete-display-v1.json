@@ -1,0 +1,524 @@
+{
+  "schema_version": 1,
+  "source_commit": "c05d800d4df4b92b7141d6c990a190721cce84c1",
+  "captured_on": "2026-09-07",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_tests": [
+    "packages/galaga/tests/test_display_order.py",
+    "packages/galaga/tests/test_numeric_formatting.py"
+  ],
+  "description": "Observed concrete v1 rendering, display order, and basis enumeration before facade-only test migration. Coefficients use native exterior bitmask order for the recorded diagonal signatures. Fixed-decimal formatting and legacy repr are historical behavior, not promises of v2 compatibility.",
+  "profiles": {
+    "cl3": {
+      "signature": [
+        1,
+        1,
+        1
+      ]
+    },
+    "quaternion": {
+      "signature": [
+        1,
+        1,
+        1
+      ]
+    },
+    "sta": {
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ]
+    }
+  },
+  "values": [
+    {
+      "id": "vectors",
+      "profile": "cl3",
+      "coefficients": [
+        0,
+        1,
+        2,
+        0,
+        3,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "e1 + 2e2 + 3e3",
+        "unicode": "e₁ + 2e₂ + 3e₃",
+        "latex": "e_{1} + 2 e_{2} + 3 e_{3}",
+        "repr": "e₁ + 2e₂ + 3e₃"
+      },
+      "numeric_formats": {}
+    },
+    {
+      "id": "mixed-default",
+      "profile": "cl3",
+      "coefficients": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "1 + e1 + e2 + e3 + e12",
+        "unicode": "1 + e₁ + e₂ + e₃ + e₁₂",
+        "latex": "1 + e_{1} + e_{2} + e_{3} + e_{12}",
+        "repr": "1 + e₁ + e₂ + e₃ + e₁₂"
+      },
+      "numeric_formats": {}
+    },
+    {
+      "id": "quaternion-positive",
+      "profile": "quaternion",
+      "coefficients": [
+        1,
+        0,
+        0,
+        4,
+        0,
+        3,
+        2,
+        0
+      ],
+      "renderings": {
+        "ascii": "1 + 2i + 3j + 4k",
+        "unicode": "1 + 2i + 3j + 4k",
+        "latex": "1 + 2 i + 3 j + 4 k",
+        "repr": "1 + 2i + 3j + 4k"
+      },
+      "numeric_formats": {
+        ".1f": "1.0 + 2.0i + 3.0j + 4.0k"
+      }
+    },
+    {
+      "id": "quaternion-negative",
+      "profile": "quaternion",
+      "coefficients": [
+        1,
+        0,
+        0,
+        -4,
+        0,
+        3,
+        -2,
+        0
+      ],
+      "renderings": {
+        "ascii": "1 - 2i + 3j - 4k",
+        "unicode": "1 - 2i + 3j - 4k",
+        "latex": "1 - 2 i + 3 j - 4 k",
+        "repr": "1 - 2i + 3j - 4k"
+      },
+      "numeric_formats": {}
+    },
+    {
+      "id": "precision",
+      "profile": "cl3",
+      "coefficients": [
+        0,
+        3.14159,
+        2.71828,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "3.14159e1 + 2.71828e2",
+        "unicode": "3.14159e₁ + 2.71828e₂",
+        "latex": "3.14159 e_{1} + 2.71828 e_{2}",
+        "repr": "3.14159e₁ + 2.71828e₂"
+      },
+      "numeric_formats": {
+        ".3f": "3.142e₁ + 2.718e₂",
+        ".1f": "3.1e₁ + 2.7e₂"
+      }
+    },
+    {
+      "id": "scalar",
+      "profile": "cl3",
+      "coefficients": [
+        3.14159,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "3.14159",
+        "unicode": "3.14159",
+        "latex": "3.14159",
+        "repr": "3.14159"
+      },
+      "numeric_formats": {
+        ".2f": "3.14"
+      }
+    },
+    {
+      "id": "zero",
+      "profile": "cl3",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "0",
+        "unicode": "0",
+        "latex": "0",
+        "repr": "0"
+      },
+      "numeric_formats": {
+        ".3f": "0.000"
+      }
+    },
+    {
+      "id": "mixed-signs",
+      "profile": "cl3",
+      "coefficients": [
+        1,
+        2,
+        0,
+        -3,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "1 + 2e1 - 3e12",
+        "unicode": "1 + 2e₁ - 3e₁₂",
+        "latex": "1 + 2 e_{1} - 3 e_{12}",
+        "repr": "1 + 2e₁ - 3e₁₂"
+      },
+      "numeric_formats": {
+        ".0f": "1 + 2e₁ - 3e₁₂"
+      }
+    },
+    {
+      "id": "repr-mixed",
+      "profile": "cl3",
+      "coefficients": [
+        3,
+        2,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "3 + 2e1 - e2",
+        "unicode": "3 + 2e₁ - e₂",
+        "latex": "3 + 2 e_{1} - e_{2}",
+        "repr": "3 + 2e₁ - e₂"
+      },
+      "numeric_formats": {}
+    },
+    {
+      "id": "sta-bivector",
+      "profile": "sta",
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "g0g1",
+        "unicode": "γ₀γ₁",
+        "latex": "\\gamma_{0} \\gamma_{1}",
+        "repr": "γ₀γ₁"
+      },
+      "numeric_formats": {}
+    },
+    {
+      "id": "half-turn",
+      "profile": "cl3",
+      "coefficients": [
+        0,
+        -1,
+        -0.9999999999999998,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-e1 - e2",
+        "unicode": "-e₁ - e₂",
+        "latex": "-e_{1} - e_{2}",
+        "repr": "-e₁ - e₂"
+      },
+      "numeric_formats": {}
+    }
+  ],
+  "orders": {
+    "cl3-default": [
+      0,
+      1,
+      2,
+      4,
+      3,
+      5,
+      6,
+      7
+    ],
+    "quaternion": [
+      0,
+      6,
+      5,
+      3,
+      1,
+      2,
+      4,
+      7
+    ]
+  },
+  "quaternion_basis": {
+    "0": [
+      {
+        "coefficients": [
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unicode": "1"
+      }
+    ],
+    "1": [
+      {
+        "coefficients": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unicode": "e₁"
+      },
+      {
+        "coefficients": [
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unicode": "e₂"
+      },
+      {
+        "coefficients": [
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0
+        ],
+        "unicode": "e₃"
+      }
+    ],
+    "2": [
+      {
+        "coefficients": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0
+        ],
+        "unicode": "i"
+      },
+      {
+        "coefficients": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          1,
+          0,
+          0
+        ],
+        "unicode": "j"
+      },
+      {
+        "coefficients": [
+          0,
+          0,
+          0,
+          1,
+          0,
+          0,
+          0,
+          0
+        ],
+        "unicode": "k"
+      }
+    ],
+    "3": [
+      {
+        "coefficients": [
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          1
+        ],
+        "unicode": "e₁₂₃"
+      }
+    ]
+  },
+  "algebra_reprs": [
+    {
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "repr": "Cl(3,0)"
+    },
+    {
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ],
+      "repr": "Cl(1,3)"
+    },
+    {
+      "signature": [
+        1,
+        1,
+        1,
+        0
+      ],
+      "repr": "Cl(3,0,1)"
+    }
+  ],
+  "quaternion_products": {
+    "ij": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "jk": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0
+    ],
+    "ki": [
+      0,
+      0,
+      0,
+      0,
+      0,
+      1,
+      0,
+      0
+    ],
+    "ii": [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "jj": [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "kk": [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "ijk": [
+      -1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  }
+}

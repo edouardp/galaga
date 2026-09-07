@@ -170,6 +170,38 @@ with algebra.use_presentation(teaching_presentation):
     display(value)
 ```
 
+## Migrate concrete display controls
+
+V2 uses native bitmask order by default. Select a `DisplayOrder` explicitly
+when grade grouping or another presentation order is wanted. This changes
+rendered terms, not `data` or `basis_blades()` enumeration. In particular,
+quaternion bivectors enumerate as `k, j, i`; use semantic roles for conventional
+unpacking:
+
+```python
+from galaga import Algebra, DisplayPolicy, p_quaternion
+
+quaternions = Algebra(config=p_quaternion())
+i, j, k = (quaternions.blade(role) for role in
+           ("quaternion_i", "quaternion_j", "quaternion_k"))
+value = 1 + 2.3456 * i + 3.4567 * j + 4.5678 * k
+precision = quaternions.presentation.with_display(DisplayPolicy(coefficient_precision=3))
+assert value.display("value/unicode", presentation=precision) == "1 + 2.35i + 3.46j + 4.57k"
+```
+
+Multivector `format` specs now select content and target, for example
+`f"{value:value/latex}"`. Numeric specs such as `f"{value:.3f}"` are not
+currently supported. `coefficient_precision` counts significant digits; it
+does not provide fixed decimal places or trailing-zero padding. For an
+individual scalar coefficient, ordinary Python `format(float(grade(value, 0)),
+".3f")` remains available.
+
+Multivector `repr(value)` is ASCII, while `str(value)` is Unicode by default.
+`repr(algebra)` is a diagnostic numeric-owner wrapper, not the old `Cl(p,q,r)`
+summary or a stable serialized format. Use explicit `signature` and `gram`
+metadata for those properties. These are existing v2 differences, not changes
+to arithmetic. See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
+
 ## Use checked conversions
 
 `float(value)` checks that nonscalar coefficients are within the grade

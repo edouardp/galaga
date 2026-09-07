@@ -2,7 +2,16 @@
 
 ## Status
 
-Accepted — implemented.
+Historical Galaga 1 specification. The rules below describe the older API,
+not Galaga 2 constructor or enumeration behavior. See the
+[v2 presentation guide](../v2/presentation-configuration.md#local-names-and-display-order-remain-independent)
+and [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
+
+The late-v1 implementation captured during migration used grade-sorted default
+display, despite Rule 2's original bitmask-order description. V2 defaults to
+native mask order, allows an explicit grade-sorted `DisplayOrder`, and never
+reorders `basis_blades()` according to presentation. Quaternion names should
+be selected by semantic roles rather than assumed from enumeration order.
 
 ## Problem
 
@@ -69,6 +78,7 @@ unpacking like `i, j, k = alg.basis_blades(k=2)` follows the convention.
 ### Rule 6: Unaffected Methods
 
 The following are NOT affected by `display_order`:
+
 - `Algebra.locals()` — returns a dict, ordering is irrelevant
 - `Algebra.basis_vectors()` — always returns vectors in index order
 - `Multivector.data` — always indexed by bitmask

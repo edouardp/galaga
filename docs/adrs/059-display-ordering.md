@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-059: Custom Basis Blade Display Ordering
 
+For Galaga 2, the immutable presentation model in
+[ADR-076](076-immutable-presentation-configuration.md) supersedes the storage
+and enumeration details below. `DisplayOrder` affects rendering only;
+`basis_blades()` remains in native bitmask order. The concrete-display test
+migration and captured late-v1 behavior are documented in
+[ADR-097](097-concrete-display-contracts-outlive-legacy-rendering.md).
+
 ## Context and Problem Statement
 
 Multivector terms display in bitmask order (ascending binary index). This

@@ -127,9 +127,23 @@ derived dynamically every time a display label changes. This permits a
 Unicode teaching display while keeping ordinary ASCII notebook variables, or
 changing display labels without renaming local bindings.
 
-`DisplayOrder` is a complete permutation of bitmasks. It affects future
-rendering order only; coefficient storage and numeric equality remain native
-bitmask order.
+`DisplayOrder` is a complete permutation of bitmasks. It affects rendering
+order only; coefficient storage, basis enumeration, and numeric equality
+remain native. Its default is ascending mask order. To group grades explicitly:
+
+```python
+from galaga import Algebra, DisplayOrder
+
+algebra = Algebra(3)
+masks = sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask))
+grade_sorted = algebra.with_display_order(DisplayOrder(algebra.n, masks))
+```
+
+Quaternion presets select conventional `1, i, j, k` display order, but
+`basis_blades(2)` still returns the native masks, labeled `k, j, i`. Obtain
+semantic units with `blade("quaternion_i")`, `blade("quaternion_j")`, and
+`blade("quaternion_k")`. This differs from v1's presentation-ordered
+enumeration; the underlying quaternion values and products are unchanged.
 
 Both expose immutable tuple storage or read-only mappings.
 
@@ -316,3 +330,8 @@ Its `zero_tolerance` and `coefficient_precision` fields control visible numeric
 noise and significant digits only. Their compatibility defaults are `1e-12`
 and six, respectively; setting the tolerance to zero reveals every nonzero
 stored coefficient.
+
+Precision counts significant digits, not decimal places, and does not pad
+trailing zeros. V2 multivector format specs select content and target, such as
+`value/latex`; legacy numeric specs such as `.3f` currently raise `ValueError`.
+See the [concrete-display migration notes](migration-guide.md#migrate-concrete-display-controls).

@@ -419,6 +419,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 |---|---|
 | `test_blade_convention.py` | blade conventions and presets |
 | `test_display_order.py` | presentation and rendering |
+| `test_numeric_formatting.py` | concrete display policies and semantic format hooks |
 | `test_example_notebooks.py` | examples and integration |
 | `test_examples.py` | example source policy |
 | `facade/test_numeric_facade.py` | facade catalog, wrapping, and direct-core parity |
@@ -808,3 +809,35 @@ and branch coverage in the full Python 3.11 run. The numeric-construction
 ledger remains at nineteen files because this manifest only introspected v1
 and was never ledgered for construction. No production behavior changes.
 See [ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
+
+### Phase 9 follow-through: concrete display ordering and numeric formatting
+
+`test_display_order.py` and `test_numeric_formatting.py` now use the public
+facade and leave the constructor-exemption ledger, reducing it from nineteen
+files to seventeen. Their former 25 tests are replaced by current contracts
+for permutation validation, target-specific term order, significant-digit
+precision, native basis enumeration, repr, semantic format hooks, and
+near-unit display. Scoped order is also checked against Euclidean, degenerate,
+oblique, and native-null metrics without changing numeric values or provenance.
+
+`tools/baselines/concrete-display-v1.json` records eleven sample values with
+coefficients and four rendering observations each, six fixed-decimal outputs,
+three algebra repr outputs, resolved orders, all quaternion basis grades, and
+seven quaternion products. Live samples are recomputed from public operations
+before comparing coefficients and each visible target. Old default grade
+grouping is reproduced explicitly rather than imposed on v2's native default;
+quaternion products also have public left-action checks.
+
+Existing v2 differences are retained and documented, not hidden as parity:
+`basis_blades(2)` enumerates quaternion masks as `k, j, i`; semantic roles
+select `i, j, k`. V2 multivector format specs select content/target, and
+`DisplayPolicy` counts significant digits without fixed-decimal padding.
+Numeric specs such as `.3f` are currently unsupported. Multivector repr is
+ASCII and algebra repr is diagnostic. No production implementation changed.
+
+Fresh-process tests forbid legacy imports while running both entire suites.
+Mutation tests reject incorrect rotor results and rendered strings independently;
+shape, nonfinite-data, and coefficient-drift checks protect the numeric archive
+comparison. All 101 cases across the two suites and their archive/boundary
+tests pass with 100% line and branch coverage in the focused Python 3.11 run.
+See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).

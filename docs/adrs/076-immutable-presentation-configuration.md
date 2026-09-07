@@ -145,3 +145,8 @@ This decision supersedes ADR-028's mutating configuration direction for the
 Galaga 2 facade. It retains the useful separation intended by ADR-057,
 ADR-058, ADR-059, and ADR-070 while replacing their legacy mutable storage and
 process-local assumptions with immutable components and context-local scope.
+
+[ADR-097](097-concrete-display-contracts-outlive-legacy-rendering.md) migrates
+the concrete display-order and numeric-formatting suites to this public
+model. It preserves observed v1 output as data while explicitly testing native
+basis enumeration, presentation-only order, and significant-digit policies.

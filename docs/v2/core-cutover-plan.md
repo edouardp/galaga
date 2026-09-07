@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Six legacy-dependency prerequisites are complete:
+Status: **in progress**. Seven legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1289,18 +1289,24 @@ Status: **in progress**. Six legacy-dependency prerequisites are complete:
   All 146 seeded v1 operation observations remain as captured data, checked
   against both current facade and forced core-reference results. Independent
   left-action and grade-law checks preserve the intentional v2 corrections
-  ([ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md)); and
+  ([ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md));
 - compatibility-manifest completeness uses captured v1 API observations
   instead of importing the old classes or expression module. The full module
   disposition ledger distinguishes 15 live v2 entry points from 21 legacy-only
   paths, while current facade behavior and package-file classification remain
   live checks
-  ([ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md)).
+  ([ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md)); and
+- concrete display-order and numeric-formatting contracts now run against the
+  public facade. Eleven archived samples preserve v1 coefficients and output;
+  current tests distinguish native basis enumeration and significant-digit
+  display policies from legacy-only behavior without changing production code
+  ([ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
-and the surface/deprecation contracts with legacy imports blocked. Matrix
-plans continue to share core algebras across facade presentation views; that
+the surface/deprecation contracts, and both concrete-display suites with
+legacy imports blocked. Matrix plans continue to share core algebras across
+facade presentation views; that
 is intentional v2 behavior.
 
 Remaining before this work unit is complete:
@@ -1315,10 +1321,18 @@ namespace/construction guards. Compatibility-manifest introspection is retired,
 and the independently discovered equality/hash release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 19 files, down from 20 before numeric-contract retirement. The compatibility
-manifest was not in this construction-only list, so retiring its import
-dependency does not change the count. The migration inventory remains the
-authority for ownership.
+ledger now contains 17 files, down from 19 after removing `test_display_order.py`
+and `test_numeric_formatting.py`. The compatibility manifest was never in this
+construction-only list; its earlier import retirement did not change that
+count. The migration inventory remains the authority for ownership.
+
+The concrete-display migration documents existing compatibility limitations:
+numeric multivector format specs such as `.3f` remain unsupported, and
+significant-digit precision is not fixed-decimal formatting or padding.
+`basis_blades()` stays native-mask ordered, multivector repr is ASCII, and
+algebra repr is diagnostic rather than the v1 `Cl(p,q,r)` summary. Restoring
+legacy formatting conveniences would be separate production work; retiring
+the import dependency does not claim those capabilities are implemented.
 
 The notebook-test baseline prerequisite is also complete. Portability checks
 preserve each notebook's generator metadata and validate the actual launcher
@@ -1330,21 +1344,23 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(4,327 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (4,210 passed, 45 skipped), with Python 3.14-only integrations
+(4,403 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (4,286 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
 3.11 run measures branch coverage without new exclusions: the core public
 module remains at 97%, its backend/metric/metadata modules at 100%, and the
-facade numeric module at 96%. The compatibility manifest, surface contract,
-deprecation contract, and new boundary regressions have 100% line and branch
-coverage. Earlier checkpoints measured 100% for both
+facade numeric module improves from 96% to 97%. A focused Python 3.11 run
+passes all 101 concrete-display and boundary cases with 100% line and branch
+coverage in those three files. The preceding compatibility manifest, surface
+contract, deprecation contract, and boundary regressions also measured 100%.
+Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking still has 297 baseline errors, unchanged
-by compatibility-manifest retirement. The preceding equality/hash correction
+by these test migrations. The preceding equality/hash correction
 reduced the earlier count from 298 without adding new type errors.
 
 #### Immediate release blocker: equality/hash consistency
