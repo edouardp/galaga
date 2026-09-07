@@ -102,7 +102,12 @@ is established, users compose the explicit primitives directly.
 ## Enforcement
 
 The executable public-surface ledger owns every alias, target, milestone, and
-warning message. Compatibility tests prove:
+warning message. Historical API completeness is checked against captured v1
+observations; current supported v2 imports and behavior are tested with legacy
+imports forbidden. Historical submodule dispositions are not themselves a
+promise of supported v2 entry points. See
+[ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
+Compatibility tests prove:
 
 - permanent aliases are exact function objects;
 - temporary aliases warn with the ledgered category, text, and caller-facing

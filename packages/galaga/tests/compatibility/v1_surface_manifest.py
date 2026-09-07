@@ -464,7 +464,9 @@ for _node_name in {
     )
 
 
-SUPPORTED_SUBMODULES = {
+# Historical dispositions remain even after their implementations retire.
+# Importability is tested only for the separately classified v2 entry points.
+SUBMODULE_DISPOSITIONS = {
     "galaga.algebra": SurfaceDisposition("compatibility", "privatize", "galaga.facade", "phase-8"),
     "galaga.basis_blade": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.blades", "phase-7"),
     "galaga.blade_convention": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.blades", "phase-7"),
@@ -544,6 +546,55 @@ SUPPORTED_SUBMODULES = {
     "galaga.symbolic_core.naming": SurfaceDisposition("expression", "consolidate", "galaga.expression", "phase-7"),
     "galaga.symbolic_core.render": SurfaceDisposition("rendering", "consolidate", "galaga.rendering", "phase-7"),
 }
+
+
+SUPPORTED_SUBMODULES = {
+    name: SUBMODULE_DISPOSITIONS[name]
+    for name in (
+        "galaga.blades",
+        "galaga.cga",
+        "galaga.core",
+        "galaga.display",
+        "galaga.expression",
+        "galaga.facade",
+        "galaga.facade.catalog",
+        "galaga.gram_bridge",
+        "galaga.gram_bridge.catalog",
+        "galaga.gram_bridge.facade",
+        "galaga.names",
+        "galaga.presentation",
+        "galaga.presets",
+        "galaga.rga",
+        "galaga.rendering",
+    )
+}
+
+
+LEGACY_ONLY_SUBMODULES = frozenset(
+    {
+        "galaga.algebra",
+        "galaga.basis_blade",
+        "galaga.blade_convention",
+        "galaga.expr",
+        "galaga.latex_build",
+        "galaga.latex_emit",
+        "galaga.latex_nodes",
+        "galaga.latex_rewrite",
+        "galaga.latex_symbols",
+        "galaga.lazy",
+        "galaga.legacy",
+        "galaga.legacy.render",
+        "galaga.legacy.simplify",
+        "galaga.notation",
+        "galaga.ops",
+        "galaga.symbolic",
+        "galaga.symbolic_core",
+        "galaga.symbolic_core.domain",
+        "galaga.symbolic_core.expr",
+        "galaga.symbolic_core.naming",
+        "galaga.symbolic_core.render",
+    }
+)
 
 
 TOP_LEVEL_PACKAGE_MODULES = frozenset(

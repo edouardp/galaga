@@ -61,6 +61,13 @@ cross-check exact aliases, warning behavior and stack level, canonical tracked
 operation IDs, ambiguous-name guidance, bridge imports, removal classification,
 and the human migration guide.
 
+[ADR-096](096-compatibility-manifests-use-historical-api-evidence.md) refines
+the completeness check for engine retirement: captured v1 API observations
+replace live legacy introspection, while current facade behavior and supported
+v2 import paths remain live contracts. The full historical submodule ledger
+is distinct from the supported v2 entry-point inventory; this does not change
+the alias or deprecation policy above.
+
 ## Consequences
 
 - Good, because concise notation does not create duplicate implementations.

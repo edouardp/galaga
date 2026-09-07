@@ -7,26 +7,31 @@ contract completed in Phase 1. The executable source of truth is
 [`v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/v1_surface_manifest.py),
 and
 [`test_v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/test_v1_surface_manifest.py)
-compares it with the live Galaga 1 API.
+compares historical names with the independently captured
+[v1 surface archive](../../packages/galaga/tools/baselines/public-surface-v1.json).
+Current v2 behavior is still checked live. See
+[ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
 
 The manifest currently classifies:
 
-- all 99 former top-level names now preserved in `galaga.legacy.__all__`;
-- all 147 promoted names in `galaga.__all__` and `galaga.facade.__all__`;
+- all 99 former top-level names captured from `galaga.legacy.__all__`;
+- all 151 promoted names in `galaga.__all__` and `galaga.facade.__all__`;
 - all 28 public legacy `Algebra` members;
 - all 20 public legacy `Multivector` members;
 - all 22 special methods declared by the legacy `Multivector`;
 - all six legacy multivector formatting and display hooks, including
   `_repr_latex_`;
 - all 59 public legacy expression classes;
-- all 25 non-private top-level package modules and nine relied-upon nested
+- all 27 non-private top-level package modules and nine relied-upon nested
   entry points;
 - four companion-package or example touch points; and
 - four known dependencies on private legacy structures.
 
-Adding or removing a live v1 export without updating the legacy matrix fails
-the compatibility suite. A separate identity contract keeps the promoted
-top-level manifest exactly synchronized with the facade.
+Missing or invented historical dispositions fail the compatibility suite,
+without requiring the old engine to remain importable. A separate identity
+contract keeps the promoted top-level manifest exactly synchronized with the
+facade. Package-file classification remains live: adding or removing a module
+requires an explicit inventory update.
 
 ## Top-level exports
 
@@ -156,7 +161,9 @@ operations.
 
 `scalar_part` is deliberately not a `Multivector` member. The optional
 standalone helper is equivalent to `float(grade(value, 0))`; plain
-`float(value)` rejects every non-scalar value.
+`float(value)` rejects nonscalar coefficients above the inspection tolerance;
+exact equality and hashing do not use that tolerance. See the
+[migration guide](migration-guide.md#use-exact-equality-and-compatible-keys).
 
 ## Expression constructors and supported modules
 
@@ -167,23 +174,24 @@ operation-identified expression node. The durable Galaga 2 model is now
 implemented in `galaga.expression`; the 59 legacy adapters remain Phase 9
 compatibility work.
 
-The supported import inventory covers every non-private top-level module:
-`algebra`, `basis_blade`, `blade_convention`, `blades`, `core`, `expr`,
-`expression`, `facade`, `gram_bridge`, the five `latex_*` modules, `lazy`,
-`legacy`, `names`, `notation`, `ops`, `presentation`, `presets`, `symbolic`,
-and `symbolic_core`. The old `render` and `simplify` modules are now
-`legacy.render` and `legacy.simplify`, preventing collisions with the promoted
-functions. It also records
-`facade.catalog`, both bridge submodules, and the four `symbolic_core`
-submodules used by current tests or companion packages.
+The complete `SUBMODULE_DISPOSITIONS` inventory records 36 transitional import
+paths. It is distinct from `SUPPORTED_SUBMODULES`, whose 15 live v2 entry
+points are `blades`, `cga`, `core`, `display`, `expression`, `facade`,
+`facade.catalog`, `names`, `presentation`, `presets`, `rga`, `rendering`, and
+the three temporary `gram_bridge` paths, all under `galaga`.
 
-`galaga.facade`, `galaga.core`, `galaga.blades`, `galaga.names`,
-`galaga.presentation`, and `galaga.presets` are permanent. Rendering modules,
-the facade catalog, simplification, and symbolic modules have explicit owners
-in Phases 5 through 7 rather than being treated as incidental implementation
-files. Old modules remain compatibility entry points according to their
-recorded milestones; `galaga.legacy` and its nested oracle modules retire in
-Phase 9.
+The other 21 paths belong to the explicit `LEGACY_ONLY_SUBMODULES` inventory:
+the old engine, blade and notation implementation, expression implementation,
+five `latex_*` helpers, symbolic decorators, and legacy oracle paths. Their
+dispositions and current file presence remain checked without importing them.
+Some helpers import successfully in isolation but defer use of v1 until a
+function call; that is not evidence of v2 support.
+
+The supported prerelease oracle is still `galaga.legacy`, with
+`galaga.legacy.render` and `galaga.legacy.simplify` avoiding collisions with
+promoted facade functions. It is intentionally excluded from the v2-only
+import contract, not removed by this test change. Legacy files and their
+remaining tests retire in a separate Phase 9 step.
 
 ## Known private dependencies
 
@@ -191,8 +199,8 @@ The following accidental dependencies are migration requirements, not endorsed
 public APIs:
 
 - `galaga_matrix` no longer reads `Algebra._mul_index` or `_mul_sign`. Phase 7
-  moved left-regular conversion to `Algebra.left_action`, with a table-free
-  public-product fallback only while v1 compatibility tests remain active.
+  moved left-regular conversion to `Algebra.left_action`; Phase 9 has now
+  removed the temporary v1 public-product fallback as well.
 - `galaga_matrix` no longer reads or mutates private multivector expression or
   name state. Phase 7 introduced a package-owned immutable matrix expression
   protocol and a one-way adapter over public facade `name`, `expr`, and

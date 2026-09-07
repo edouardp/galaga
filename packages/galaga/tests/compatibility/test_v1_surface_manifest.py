@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import importlib
 import inspect
+import json
 import re
+from collections.abc import Collection
 from pathlib import Path
 
 import pytest
 
 import galaga
-import galaga.expr as legacy_expr
 import galaga.facade as facade
-import galaga.legacy as legacy
-
-legacy_algebra = legacy
 
 from .v1_surface_manifest import (
     ACCIDENTAL_PRIVATE_DEPENDENCIES,
@@ -25,9 +23,11 @@ from .v1_surface_manifest import (
     COMPANION_TOUCHPOINTS,
     CURATED_OPERATION_ALIASES,
     EXPRESSION_NODE_CLASSES,
+    LEGACY_ONLY_SUBMODULES,
     MULTIVECTOR_FORMATTING_HOOKS,
     MULTIVECTOR_MEMBERS,
     OPERATION_CALL_FORMS,
+    SUBMODULE_DISPOSITIONS,
     SUPPORTED_SUBMODULES,
     TEMPORARY_OPERATION_ALIASES,
     TOP_LEVEL_EXPORTS,
@@ -37,6 +37,19 @@ from .v1_surface_manifest import (
     V2_MULTIVECTOR_PROTOCOL_ADDITIONS,
     V2_MULTIVECTOR_SPECIAL_METHODS,
 )
+
+BASELINE_PATH = Path(__file__).parents[2] / "tools/baselines/public-surface-v1.json"
+BASELINE = json.loads(BASELINE_PATH.read_text())
+HISTORICAL_SURFACES = {
+    "top_level_exports": TOP_LEVEL_EXPORTS,
+    "algebra_members": ALGEBRA_MEMBERS,
+    "multivector_members": MULTIVECTOR_MEMBERS,
+    "algebra_special_methods": ALGEBRA_SPECIAL_METHODS,
+    "multivector_special_methods": V1_MULTIVECTOR_SPECIAL_METHODS,
+    "multivector_formatting_hooks": MULTIVECTOR_FORMATTING_HOOKS,
+    "algebra_constructor_parameters": ALGEBRA_CONSTRUCTOR_PARAMETERS,
+    "expression_node_classes": EXPRESSION_NODE_CLASSES,
+}
 
 _GENERATED_CLASS_ATTRIBUTES = {
     "__dict__",
@@ -49,8 +62,11 @@ _GENERATED_CLASS_ATTRIBUTES = {
 }
 
 
-def _public_members(value: type[object]) -> set[str]:
-    return {name for name, _ in inspect.getmembers(value) if not name.startswith("_")}
+def _assert_classified_names(observed: object, classified: Collection[str], *, label: str) -> None:
+    assert isinstance(observed, list) and observed, f"{label}: expected a nonempty list"
+    assert all(isinstance(name, str) and name for name in observed), f"{label}: invalid name"
+    assert len(observed) == len(set(observed)), f"{label}: duplicate observation"
+    assert set(observed) == set(classified), f"{label}: historical disposition mismatch"
 
 
 def _declared_special_methods(value: type[object]) -> set[str]:
@@ -61,9 +77,33 @@ def _declared_special_methods(value: type[object]) -> set[str]:
     }
 
 
-def test_every_top_level_v1_export_has_exactly_one_disposition() -> None:
-    assert len(legacy.__all__) == len(set(legacy.__all__))
-    assert set(legacy.__all__) == set(TOP_LEVEL_EXPORTS)
+@pytest.mark.parametrize("surface", tuple(HISTORICAL_SURFACES))
+def test_every_observed_v1_name_has_exactly_one_disposition(surface: str) -> None:
+    _assert_classified_names(BASELINE["observed"][surface], HISTORICAL_SURFACES[surface], label=surface)
+
+
+def test_historical_surface_archive_preserves_capture_provenance_and_completeness() -> None:
+    assert BASELINE["schema_version"] == 1
+    assert BASELINE["source_commit"] == "3dad1cf74be2fa60a9cd6bc3c7e87a005a4fba35"
+    assert BASELINE["captured_on"] == "2026-09-07"
+    assert BASELINE["python"] == "3.14.4" and BASELINE["numpy"] == "2.5.2"
+    assert BASELINE["source_test"] == "packages/galaga/tests/compatibility/test_v1_surface_manifest.py"
+    assert {name: len(values) for name, values in BASELINE["observed"].items()} == {
+        "top_level_exports": 99,
+        "algebra_members": 28,
+        "multivector_members": 20,
+        "algebra_special_methods": 2,
+        "multivector_special_methods": 22,
+        "multivector_formatting_hooks": 6,
+        "algebra_constructor_parameters": 7,
+        "expression_node_classes": 59,
+        "top_level_package_modules": 27,
+        "importable_submodules": 36,
+    }
+    for surface in ("top_level_package_modules", "importable_submodules"):
+        observed = BASELINE["observed"][surface]
+        _assert_classified_names(observed, set(observed), label=surface)
+        assert set(observed) <= set(SUBMODULE_DISPOSITIONS)
 
 
 def test_top_level_v2_exports_are_owned_by_the_facade() -> None:
@@ -72,14 +112,9 @@ def test_top_level_v2_exports_are_owned_by_the_facade() -> None:
         assert getattr(galaga, name) is getattr(facade, name)
 
 
-def test_legacy_type_members_and_protocols_are_exhaustively_recorded() -> None:
-    assert _public_members(legacy_algebra.Algebra) == set(ALGEBRA_MEMBERS)
-    assert _public_members(legacy_algebra.Multivector) == set(MULTIVECTOR_MEMBERS)
-    assert _declared_special_methods(legacy_algebra.Algebra) == set(ALGEBRA_SPECIAL_METHODS)
-    assert _declared_special_methods(legacy_algebra.Multivector) == set(V1_MULTIVECTOR_SPECIAL_METHODS)
-
+def test_v2_protocol_and_formatting_hooks_remain_live_contracts() -> None:
     assert V2_MULTIVECTOR_SPECIAL_METHODS == (V1_MULTIVECTOR_SPECIAL_METHODS | V2_MULTIVECTOR_PROTOCOL_ADDITIONS)
-    assert V2_MULTIVECTOR_PROTOCOL_ADDITIONS <= _declared_special_methods(facade.Multivector)
+    assert V2_MULTIVECTOR_SPECIAL_METHODS <= _declared_special_methods(facade.Multivector)
     assert set(MULTIVECTOR_FORMATTING_HOOKS) == {
         "__format__",
         "__repr__",
@@ -88,17 +123,7 @@ def test_legacy_type_members_and_protocols_are_exhaustively_recorded() -> None:
         "display",
         "latex",
     }
-    assert all(hasattr(legacy_algebra.Multivector, name) for name in MULTIVECTOR_FORMATTING_HOOKS)
-
-
-def test_every_public_legacy_expression_node_is_recorded() -> None:
-    public_classes = {
-        name
-        for name, value in inspect.getmembers(legacy_expr, inspect.isclass)
-        if not name.startswith("_") and value.__module__ == legacy_expr.__name__
-    }
-
-    assert public_classes == set(EXPRESSION_NODE_CLASSES)
+    assert all(callable(getattr(facade.Multivector, name, None)) for name in MULTIVECTOR_FORMATTING_HOOKS)
 
 
 def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> None:
@@ -109,7 +134,7 @@ def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> N
         MULTIVECTOR_MEMBERS,
         MULTIVECTOR_FORMATTING_HOOKS,
         EXPRESSION_NODE_CLASSES,
-        SUPPORTED_SUBMODULES,
+        SUBMODULE_DISPOSITIONS,
         COMPANION_TOUCHPOINTS,
         ACCIDENTAL_PRIVATE_DEPENDENCIES,
     )
@@ -126,19 +151,25 @@ def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> N
         assert TOP_LEVEL_EXPORTS[alias].warning
 
 
-def test_supported_package_entry_points_import() -> None:
-    for module_name, disposition in SUPPORTED_SUBMODULES.items():
-        if module_name.startswith("galaga.gram_bridge"):
-            assert disposition.warning is not None
-            with pytest.warns(facade.GalagaDeprecationWarning, match=re.escape(disposition.warning)):
-                module = importlib.reload(importlib.import_module(module_name))
-        else:
-            module = importlib.import_module(module_name)
-        assert module.__name__ == module_name
+@pytest.mark.parametrize("module_name", tuple(SUPPORTED_SUBMODULES))
+def test_supported_package_entry_points_import(module_name: str) -> None:
+    disposition = SUPPORTED_SUBMODULES[module_name]
+    if module_name.startswith("galaga.gram_bridge"):
+        assert disposition.warning is not None
+        with pytest.warns(facade.GalagaDeprecationWarning, match=re.escape(disposition.warning)):
+            module = importlib.reload(importlib.import_module(module_name))
+    else:
+        module = importlib.import_module(module_name)
+    assert module.__name__ == module_name
 
 
-def test_every_nonprivate_top_level_package_module_is_classified() -> None:
-    package_path = Path(galaga.__file__).parent
+def test_current_entry_points_and_legacy_only_modules_form_an_explicit_partition() -> None:
+    assert not (set(SUPPORTED_SUBMODULES) & LEGACY_ONLY_SUBMODULES)
+    assert set(SUPPORTED_SUBMODULES) | LEGACY_ONLY_SUBMODULES == set(SUBMODULE_DISPOSITIONS)
+    assert all(disposition == SUBMODULE_DISPOSITIONS[name] for name, disposition in SUPPORTED_SUBMODULES.items())
+
+
+def _assert_current_module_inventory(package_path: Path) -> None:
     modules = {
         f"galaga.{path.stem}"
         for path in package_path.glob("*.py")
@@ -151,11 +182,24 @@ def test_every_nonprivate_top_level_package_module_is_classified() -> None:
     )
 
     assert modules == set(TOP_LEVEL_PACKAGE_MODULES)
-    assert TOP_LEVEL_PACKAGE_MODULES <= set(SUPPORTED_SUBMODULES)
+    assert TOP_LEVEL_PACKAGE_MODULES <= set(SUBMODULE_DISPOSITIONS)
+
+
+def test_every_nonprivate_top_level_package_module_is_classified() -> None:
+    _assert_current_module_inventory(Path(galaga.__file__).parent)
+
+
+@pytest.mark.parametrize("module_name", tuple(SUBMODULE_DISPOSITIONS))
+def test_classified_nested_and_top_level_modules_exist_without_importing_legacy(module_name: str) -> None:
+    # Presence is a temporary deletion ledger, not a promise of v2 support.
+    # Retired entries stay in SUBMODULE_DISPOSITIONS; update the current
+    # top-level inventory and this existence gate when their files are removed.
+    package_path = Path(galaga.__file__).parent
+    relative = Path(*module_name.split(".")[1:])
+    assert (package_path / relative.with_suffix(".py")).is_file() or (package_path / relative / "__init__.py").is_file()
 
 
 def test_constructor_forms_and_invalid_combinations_are_characterized() -> None:
-    assert set(inspect.signature(legacy_algebra.Algebra).parameters) == set(ALGEBRA_CONSTRUCTOR_PARAMETERS)
     assert set(ALGEBRA_CONSTRUCTION_FORMS) == {
         "legacy-signature-positional",
         "legacy-empty-signature-positional",

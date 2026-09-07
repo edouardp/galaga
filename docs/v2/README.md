@@ -121,7 +121,10 @@ v2 literal assertions and checking numeric samples against archived v1 data
 after algebraic basis transport where necessary. The shared numeric protocol
 contract also runs only the facade; all 146 original seeded operation results
 remain checked as historical data alongside core-reference and algebraic
-checks. Fresh-process tests block legacy imports in all five paths. The
+checks. Compatibility-manifest introspection is also retired: the captured
+v1 API remains checked against its disposition ledger, while current facade
+behavior and the 15 supported v2 module imports remain live contracts.
+Fresh-process tests block legacy imports in all six paths. The
 remaining test dependencies, engine deletion, alias retirement, and final
 release gates are still pending.
 
@@ -132,9 +135,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-Compatibility-manifest introspection is the next legacy-dependency group;
-see the
-[cutover plan](core-cutover-plan.md#immediate-release-blocker-equalityhash-consistency).
+Next are the remaining legacy presentation tests and namespace/construction
+guards. See [ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md)
+and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round

@@ -109,6 +109,7 @@ helps future contributors understand why certain choices were made.
 | [093](093-benchmarks-use-core-reference-oracles.md) | Benchmarks Use Core Reference Oracles | Accepted |
 | [094](094-numeric-contracts-outlive-the-legacy-engine.md) | Numeric Contracts Outlive the Legacy Engine | Accepted |
 | [095](095-exact-numeric-equality-and-compatible-hashes.md) | Exact Numeric Equality and Compatible Hashes | Accepted |
+| [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Accepted |
 
 ## Creating New ADRs
 

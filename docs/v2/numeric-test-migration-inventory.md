@@ -781,3 +781,30 @@ blocker. See [ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.m
 The subsequent [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md)
 correction resolves that blocker with dedicated core and facade regressions;
 it does not change the nineteen-file legacy ledger.
+
+### Phase 9 follow-through: compatibility-manifest introspection
+
+The v1 surface manifest no longer imports legacy classes or expression nodes
+to prove completeness. `tools/baselines/public-surface-v1.json` preserves the
+observed exports, public members, declared protocols, formatting hooks,
+constructor parameters, expression classes, and transitional module inventory
+with source and environment provenance. Historical names still require exact
+disposition coverage; malformed or duplicate observations are rejected.
+
+The complete `SUBMODULE_DISPOSITIONS` ledger is separate from the 15 live
+`SUPPORTED_SUBMODULES` and 21 `LEGACY_ONLY_SUBMODULES`. Current constructor,
+protocol, formatting, namespace, alias, warning, and removal contracts remain
+live. Package files retain non-importing presence and classification checks
+until the explicit engine deletion, so retiring an import test cannot conceal
+an unclassified file. Current namespace and constructor guards outside this
+contract remain later work.
+
+A fresh process runs the entire surface and deprecation contracts with all
+legacy implementation imports forbidden. Mutation tests prove that historical
+disposition drift, broken v2 methods, namespace changes, malformed archives,
+module partition errors, and file-inventory drift fail. The compatibility
+suite passes 144 tests; the manifest and new contract guards have 100% line
+and branch coverage in the full Python 3.11 run. The numeric-construction
+ledger remains at nineteen files because this manifest only introspected v1
+and was never ledgered for construction. No production behavior changes.
+See [ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).

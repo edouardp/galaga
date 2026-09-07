@@ -278,25 +278,31 @@ The fields answer five different questions:
 This is more useful than a checklist of names. It prevents an item from being
 declared “handled” without saying who owns it or what replaces it.
 
-### Completeness is compared with the live system
+### Preserve observed completeness when the old system retires
 
 [`test_v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/test_v1_surface_manifest.py)
-introspects the actual legacy package and checks exact set equality for:
+originally introspected the legacy package. Phase 9 captured those observations
+in a [development archive](../../packages/galaga/tools/baselines/public-surface-v1.json)
+before removing the live dependency. Exact historical-name checks cover:
 
-- names in `galaga.__all__`;
+- former top-level exports, captured from `galaga.legacy.__all__`;
 - public `Algebra` and `Multivector` members;
 - declared special methods and formatting hooks;
-- public expression node classes;
-- non-private package modules and supported nested entry points;
-- companion-package touch points; and
-- known dependencies on private structures.
+- constructor parameter names; and
+- public expression node classes.
 
-If the live surface changes without a ledger decision, the suite fails. The
-ledger helpers also reject overlapping classifications, and retiring rows must
-contain migration guidance.
+The current top-level facade identities, protocols, constructor calls,
+deprecations, and supported v2 imports remain live checks. Package-file
+classification, companion touch points, and private-dependency checks also
+remain; historical module importability does not imply current v2 support.
+The ledger rejects overlapping classifications and requires guidance for
+retiring names. Mutation tests verify that dropping a disposition or breaking
+a current method cannot pass merely because history was archived.
 
-This turns “we believe the inventory is complete” into “the inventory equals
-what Python can currently observe.”
+The important distinction is between preserving what Python observed before
+retirement and requiring the obsolete implementation to keep running forever.
+A fresh process runs the real compatibility contracts with all legacy imports
+forbidden. See [ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
 
 ### Record accidental dependencies, too
 
@@ -305,10 +311,11 @@ multiplication tables and `galaga_mermaid` traversing legacy expression
 internals. These are not endorsed APIs, but ignoring them would make the
 cutover plan incomplete.
 
-Some tests currently assert that these references are still present. That may
-look backwards, but it keeps the debt visible. During Phase 7 those tests will
-be inverted: the migration is complete only when repository searches prove the
-private references are gone.
+Early migration tests recorded these references to keep the debt visible.
+The current manifest contract instead checks that the matrix source no longer
+reads the old multiplication tables and that Mermaid uses the public
+expression protocol. Historical dependency rows remain as ownership evidence,
+not assertions that the old private references must survive.
 
 ### What belongs in prose versus the ledger
 
