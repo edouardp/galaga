@@ -117,15 +117,33 @@ tests are migrated.
 
 ## Equality and hashing
 
-`==` uses exact coefficient-array equality and exact parent-algebra identity.
-Comparison with a real scalar uses exact equality against the corresponding
-scalar multivector.
+Between multivectors, `==` uses exact coefficient-array equality and exact
+parent-algebra identity. Positive and negative zero compare equal; every
+nonzero coefficient, including subnormals, remains significant.
+
+Comparison with a real number requires all nonscalar coefficients to be
+exactly zero and the stored scalar coefficient to equal that number's actual
+value. It must not round the operand through `float64` construction. Python
+and NumPy integers and booleans, floating scalars, and exact fractions obey
+this rule. Comparing with NaN or infinity returns `False`, not an exception.
+Neither equality nor hashing uses tolerance-sensitive grade inspection or
+multivector-to-float conversion.
 
 `almost_equal(other, atol=...)` is the explicit approximate comparison. It
 uses zero relative tolerance and also requires algebra identity.
 
-The hash combines parent-algebra identity with exact coefficient bytes. This
-preserves the Python invariant that equal values have equal hashes.
+An exactly scalar value hashes like its Python float coefficient, ensuring
+compatibility with equal real-number keys. A nonscalar hashes the parent
+algebra identity together with the numeric coefficient tuple. Signed zeros
+must hash alike without modifying their stored bits. Equal values therefore
+have equal hashes; unequal values may collide.
+
+Algebra scope is deliberately retained even for scalars: two scalar
+multivectors from different algebras can each equal the same number while
+remaining unequal to each other. Mixing those keys with native numbers is
+not a transitive equality domain; use explicit `(algebra, value)` keys when
+algebra scope matters. See
+[ADR-095](../../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
 
 ## Representation scope
 

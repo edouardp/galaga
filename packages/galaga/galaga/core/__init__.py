@@ -376,12 +376,25 @@ class Multivector:
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Multivector):
             return self._algebra is other._algebra and bool(np.array_equal(self._data, other._data))
-        if isinstance(other, Real):
-            return bool(np.array_equal(self._data, self._algebra.scalar(float(other))._data))
+        if isinstance(other, (Real, np.bool_)):
+            # Scalarhood here is exact, unlike grade inspection or float(self).
+            if np.any(self._data[1:]):
+                return False
+            coefficient = float(self._data[0])
+            if isinstance(other, (Integral, np.bool_)):
+                # NumPy integer comparison can otherwise round through a float.
+                return coefficient == int(other)
+            if isinstance(other, np.floating):
+                # Avoid both narrow NumPy promotion and loss of wider precision.
+                return bool(np.isfinite(other)) and coefficient.as_integer_ratio() == other.as_integer_ratio()
+            return bool(coefficient == other)
         return False
 
     def __hash__(self) -> int:
-        return hash((id(self._algebra), self._data.tobytes()))
+        if not np.any(self._data[1:]):
+            return hash(float(self._data[0]))
+        # Numeric hashes equate signed zeros while preserving the stored bits.
+        return hash((id(self._algebra), tuple(self._data.tolist())))
 
     def __repr__(self) -> str:
         terms = []

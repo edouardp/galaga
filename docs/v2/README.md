@@ -125,11 +125,15 @@ checks. Fresh-process tests block legacy imports in all five paths. The
 remaining test dependencies, engine deletion, alias retirement, and final
 release gates are still pending.
 
-Numeric-boundary review also reproduced an equality/hash inconsistency:
-signed-zero peers and scalar multivectors equal to Python numbers can have
-different hashes, breaking dictionary lookup. Fixing that is the next
-release-blocking corrective unit; the passing suites do not yet cover or
-resolve it. See the
+The equality/hash release blocker is resolved: signed-zero peers and scalar
+multivectors equal to real numbers now have matching hashes. Comparison also
+preserves large-integer, exact-fraction, and NumPy floating-point distinctions
+without rounding the operand. Core and facade regressions cover dictionary
+and set behavior without introducing a tolerance. Existing cross-algebra
+scalar semantics and their mixed-numeric limitation are documented in
+[ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
+Compatibility-manifest introspection is the next legacy-dependency group;
+see the
 [cutover plan](core-cutover-plan.md#immediate-release-blocker-equalityhash-consistency).
 
 The post-cutover native CGA model layer is also implemented. It validates the

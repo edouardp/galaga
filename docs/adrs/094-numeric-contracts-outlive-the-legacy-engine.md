@@ -83,8 +83,10 @@ to use the parent guard.
 - Boundary, because new v2-only capabilities need their own algebraic tests,
   not invented historical observations.
 - Boundary, because this changes test ownership, not production arithmetic,
-  equality, or hashing. The independently reproduced hash inconsistency is
-  tracked as the next release-blocking correction in the
-  [cutover plan](../v2/core-cutover-plan.md#immediate-release-blocker-equalityhash-consistency).
+  equality, or hashing. The independently reproduced hash inconsistency
+  recorded in the
+  [cutover plan](../v2/core-cutover-plan.md#immediate-release-blocker-equalityhash-consistency)
+  was subsequently resolved by the separate
+  [ADR-095](095-exact-numeric-equality-and-compatible-hashes.md) correction.
 - Pending, because compatibility introspection, other legacy tests, and the
   engine itself still need retirement before the final release.

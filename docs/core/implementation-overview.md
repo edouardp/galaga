@@ -145,6 +145,13 @@ Immutability makes cached basis vectors safe and prevents a coefficient edit
 from invalidating hashes or silently changing a value used elsewhere. Numeric
 operations return new multivectors.
 
+Equality and hashing use numeric coefficient values, not raw bytes: signed
+zeros compare and hash alike. Exactly scalar values hash like their equal
+Python numeric peers; nonscalar hashes also include algebra identity. No
+tolerance enters this policy. The cross-algebra scalar-key boundary is
+documented in
+[SPEC-002](specs/SPEC-002-multivector-representation-and-operators.md#equality-and-hashing).
+
 ## Component 3: shared exterior metadata owns metric-free structure
 
 ### What it does

@@ -94,7 +94,7 @@ v = value.named("v")
 e1, e2, e3 = algebra.basis_vectors(expr=True)
 ```
 
-`named()`, `without_name()`, `with_expr()`, and `without_expr()` return new
+`named()`, `unnamed()`, `with_expr()`, and `without_expr()` return new
 facade values. Numeric coefficients are always computed eagerly; `expr=True`
 adds optional provenance rather than enabling deferred symbolic arithmetic.
 
@@ -172,11 +172,11 @@ with algebra.use_presentation(teaching_presentation):
 
 ## Use checked conversions
 
-`float(value)` succeeds only if the complete multivector is scalar. It never
-silently discards non-scalar grades:
+`float(value)` checks that nonscalar coefficients are within the grade
+inspection tolerance (currently `1e-12`). It is not an exact scalarhood test:
 
 ```python
-coefficient = float(value)              # value itself must be scalar
+coefficient = float(value)              # scalar within the inspection tolerance
 grade_zero = grade(value, 0)             # scalar multivector
 scalar_coefficient = float(grade_zero)
 same = scalar_part(value)                # optional grade-zero helper
@@ -185,6 +185,39 @@ same = scalar_part(value)                # optional grade-zero helper
 `value.data` exposes the read-only NumPy coefficient array. Multivectors do not
 implement `__array__`, `__array_ufunc__`, or `__array_function__`, so
 `np.asarray(value)` is deliberately not a coefficient conversion.
+
+## Use exact equality and compatible keys
+
+`==` compares coefficients exactly within the same algebra object; use
+`almost_equal` when a numerical tolerance is intended. Positive and negative
+zero compare and hash alike, but tiny nonzero coefficients remain significant.
+Names, presentation, and expression tracking do not affect equality or hashes.
+
+An exactly scalar multivector compares and hashes like an equal real number,
+so either can look up the same dictionary entry. This check does not use the
+tolerance allowed by `float(value)`:
+
+```python
+algebra = Algebra(2)
+assert {algebra.identity: "hit"}[1] == "hit"
+assert {1: "hit"}[algebra.identity] == "hit"
+assert algebra.multivector([1.0, 1e-14, 0.0, 0.0]) != 1
+assert algebra.scalar(2**53) != 2**53 + 1
+```
+
+Construction still stores `float64` coefficients, potentially rounding its
+input. Comparison does not round the other operand to force a match: stored
+`0.1` is not equal to exact `Fraction(1, 10)`, and huge integers, NaN, or
+infinities compare unequal without raising. Python and NumPy numeric scalar
+comparisons preserve their actual values, including narrower or wider NumPy
+floating-point precision.
+
+Algebra identity remains part of multivector equality, even for scalars.
+Consequently, scalars from different algebras can each equal `1` while being
+unequal to each other. Mixing those values and native numeric keys can make
+deduplication depend on insertion order; qualify keys explicitly as
+`(algebra, value)` when algebra scope matters. See
+[ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
 
 ## Validate the migration
 

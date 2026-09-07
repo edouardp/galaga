@@ -776,5 +776,8 @@ retained numerical tolerances.
 The contract leaves the legacy ledger, which now has nineteen files. A fresh
 process runs the whole contract with legacy imports blocked. No production
 arithmetic or value semantics change in this checkpoint; the hash inconsistency
-found during boundary review is recorded separately as the next release
+found during boundary review was recorded separately as the next release
 blocker. See [ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md).
+The subsequent [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md)
+correction resolves that blocker with dedicated core and facade regressions;
+it does not change the nineteen-file legacy ledger.

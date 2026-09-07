@@ -40,6 +40,12 @@ Multivector constructors copy and freeze coefficient arrays. Every value holds
 an identity reference to one algebra. Binary operations require identical
 parent algebra objects.
 
+[ADR-095](../../adrs/095-exact-numeric-equality-and-compatible-hashes.md)
+refines equality and hashing: signed zeros are equal numeric coefficients,
+not distinct byte strings, and exactly scalar values hash like their equal
+Python numeric peers. This does not normalize stored bits or remove algebra
+identity from multivector-to-multivector equality.
+
 Metric-independent metadata is cached by vector dimension and shared as
 read-only arrays.
 

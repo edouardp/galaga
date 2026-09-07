@@ -1304,8 +1304,8 @@ Remaining before this work unit is complete:
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
 The next dependency group is compatibility-manifest introspection, followed
-by the remaining legacy presentation tests and guards. First address the
-independently discovered equality/hash release blocker below. Preserve
+by the remaining legacy presentation tests and guards. The independently
+discovered equality/hash release blocker below is now resolved. Preserve
 permanent v2 assertions and source-derived algebraic coverage rather than
 deleting mixed test files wholesale. The legacy test ledger now contains
 19 files, down from 20 before numeric-contract retirement; the migration
@@ -1321,8 +1321,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(4,131 passed, 19 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (4,014 passed, 44 skipped), with Python 3.14-only integrations
+(4,232 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (4,115 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1330,19 +1330,24 @@ environments; the checkout's Python 3.13 environment is unchanged. The Python
 module remains at 97%, its backend/metric/metadata modules at 100%, and the
 facade numeric module at 96%. Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
-conversion. Passing suites do not resolve the separately reproduced hash
-defect below; these are prerequisite checks, not completion of the engine
-deletion, artifact, or final release gates.
+conversion. The additional equality/hash regressions now cover the defect
+below. These checks do not complete engine deletion or the final release
+gates. Repository-wide type checking still has baseline failures: 297 errors
+versus 298 at the preceding commit, with no new errors in the changed modules.
 
 #### Immediate release blocker: equality/hash consistency
 
-Numeric-boundary review reproduced a core defect exposed through the facade:
-equal values need not have equal hashes. The core hash includes raw coefficient
-bytes and algebra identity, while equality treats signed zeros as equal and
-also permits equality with Python real numbers. As a result, dictionary lookup
-by an equal key can fail. This is not fixed by numeric-contract retirement.
+Status: **resolved**, 2026-09-07; see
+[ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
 
-The following reproduces the observed failures without invoking v1:
+Numeric-boundary review reproduced a core defect exposed through the facade:
+equal values could have different hashes. The old hash included raw coefficient
+bytes and algebra identity, while equality treated signed zeros as equal and
+also permitted equality with Python real numbers. Dictionary lookup by an
+equal key could fail. Numeric-contract retirement did not change this behavior;
+the separate corrective unit now fixes it.
+
+The original reproducer now produces successful lookups without invoking v1:
 
 ```python
 from galaga import Algebra
@@ -1353,18 +1358,31 @@ negative_data = positive.data.copy()
 negative_data[1] = -0.0
 negative = algebra.multivector(negative_data)
 
-print(positive == negative, hash(positive) == hash(negative))  # True False
-print(positive == 1, hash(positive) == hash(1))  # True False
-print({positive: "hit"}.get(negative), {1: "hit"}.get(positive))  # None None
+print(positive == negative, hash(positive) == hash(negative))  # True True
+print(positive == 1, hash(positive) == hash(1))  # True True
+print({positive: "hit"}.get(negative), {1: "hit"}.get(positive))  # hit hit
 ```
 
-The next corrective unit must add core and facade regression tests for signed
-zero in scalar and mixed-grade values, equality with Python numeric keys, and
-dictionary/set behavior. Preserve exact coefficient comparison, including
-representable tiny nonzero values; do not introduce approximate equality to
-repair hashing. Review algebra-identity and mixed-numeric comparison boundaries
-and record the chosen consistent policy in an ADR before considering the
-release gate satisfied.
+Exactly scalar values now hash like their Python float coefficient; nonscalars
+hash numeric coefficient tuples with algebra identity. Signed zeros hash alike
+without changing storage. Comparison no longer rounds large integers or exact
+fractions through `float64`, and nonfinite comparisons return `False` without
+raising. NumPy integer, floating-point, and boolean operands have explicit
+exact-value handling.
+
+The new core and facade suites pass 101 regressions, with one additional
+extended-precision test skipped where `longdouble` is no wider than `float64`.
+They exercise both dictionary insertion directions, sets, signed zeros across
+four metric classes, tiny and subnormal coefficients, numeric precision
+boundaries, and presentation independence. No equality/hash tolerance was
+introduced. Algebra identity still scopes multivector equality; the resulting
+nontransitive mixed domain of cross-algebra scalars and native numbers is
+explicitly documented rather than silently changing compatibility policy.
+
+The same 101 regressions also pass against a newly built wheel installed into
+a clean Python 3.14 environment (NumPy 2.5.3), with isolated imports confirmed
+to come from site-packages rather than the checkout. This is a targeted
+artifact check, not a claim that the legacy-free wheel deletion gate is done.
 
 #### Legacy engine deletion gate
 

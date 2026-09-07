@@ -735,7 +735,7 @@ class Multivector:
     def __eq__(self, other: object) -> bool:
         if isinstance(other, Multivector):
             return self._numeric == other._numeric
-        if isinstance(other, Real):
+        if isinstance(other, (Real, np.bool_)):
             return self._numeric == other
         return False
 
