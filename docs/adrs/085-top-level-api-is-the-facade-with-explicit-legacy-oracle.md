@@ -67,12 +67,16 @@ The Phase 8 test boundary is executable:
   integrations may retain an explicit facade import when that architectural
   dependency is intentional.
 
-Phase 9 refinement: [ADR-092](092-frozen-historical-rendering-oracles.md)
-replaces the rendering parity audit's live legacy adapter with frozen
-historical observations and independently pinned v2 results. That suite no
-longer opts into the legacy-construction ledger. The remaining legacy tests
-and benchmark retain the Phase 8 boundary until their coverage is retired or
-transferred; this refinement does not itself delete the engine.
+Phase 9 refinements retire the live comparison paths in stages:
+[ADR-092](092-frozen-historical-rendering-oracles.md) freezes rendering parity
+observations; [ADR-084](084-exact-configured-rendering-contracts.md) preserves
+the exact configured-rendering contracts;
+[ADR-093](093-benchmarks-use-core-reference-oracles.md) removes live v1
+benchmarking; and [ADR-094](094-numeric-contracts-outlive-the-legacy-engine.md)
+preserves the shared numeric contract and seeded observations. The retired
+test suites leave the legacy-construction ledger. Other legacy tests retain
+the Phase 8 boundary until their coverage is retired or transferred; these
+refinements do not themselves delete the engine.
 
 ## Consequences
 

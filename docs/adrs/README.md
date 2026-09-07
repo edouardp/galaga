@@ -107,6 +107,7 @@ helps future contributors understand why certain choices were made.
 | [091](091-cga-anywidget-synchronizes-semantic-coordinates.md) | CGA AnyWidget Synchronizes Semantic Coordinates | Accepted |
 | [092](092-frozen-historical-rendering-oracles.md) | Frozen Historical Rendering Oracles | Accepted |
 | [093](093-benchmarks-use-core-reference-oracles.md) | Benchmarks Use Core Reference Oracles | Accepted |
+| [094](094-numeric-contracts-outlive-the-legacy-engine.md) | Numeric Contracts Outlive the Legacy Engine | Accepted |
 
 ## Creating New ADRs
 

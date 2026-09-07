@@ -118,9 +118,19 @@ and measures only v2 layers, preserving the historical v1 timing table. Matrix
 conversion's v1 compatibility fallbacks are also removed. The compound, STA,
 and RGA exact-rendering suites now execute only the facade, retaining their
 v2 literal assertions and checking numeric samples against archived v1 data
-after algebraic basis transport where necessary. Fresh-process tests block
-legacy imports in all four paths. The remaining test dependencies, engine
-deletion, alias retirement, and final release gates are still pending.
+after algebraic basis transport where necessary. The shared numeric protocol
+contract also runs only the facade; all 146 original seeded operation results
+remain checked as historical data alongside core-reference and algebraic
+checks. Fresh-process tests block legacy imports in all five paths. The
+remaining test dependencies, engine deletion, alias retirement, and final
+release gates are still pending.
+
+Numeric-boundary review also reproduced an equality/hash inconsistency:
+signed-zero peers and scalar multivectors equal to Python numbers can have
+different hashes, breaking dictionary lookup. Fixing that is the next
+release-blocking corrective unit; the passing suites do not yet cover or
+resolve it. See the
+[cutover plan](core-cutover-plan.md#immediate-release-blocker-equalityhash-consistency).
 
 The post-cutover native CGA model layer is also implemented. It validates the
 actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
@@ -154,6 +164,7 @@ operation; geometric line correction is model-owned and explicit.
 - [ADR-088: Explicit versions for prereleases](../adrs/088-explicit-versions-for-prereleases.md)
 - [ADR-092: Frozen historical rendering oracles](../adrs/092-frozen-historical-rendering-oracles.md)
 - [ADR-093: Benchmarks use core reference oracles](../adrs/093-benchmarks-use-core-reference-oracles.md)
+- [ADR-094: Numeric contracts outlive the legacy engine](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md)
 - [Historical v2 issue inventory](../../V2-PLANNING.md)
 
 The historical issue inventory predates the Gram-matrix core. It remains useful

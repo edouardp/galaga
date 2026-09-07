@@ -34,7 +34,6 @@ LEGACY_ORACLE_TESTS = (
     "test_rga_convention_layer.py",
     "test_scalar_helpers.py",
     "test_symbolic.py",
-    "facade/test_numeric_contract.py",
 )
 
 _LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)

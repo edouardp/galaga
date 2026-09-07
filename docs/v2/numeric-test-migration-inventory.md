@@ -629,6 +629,10 @@ After the core ports pass, run the implementation-neutral public numeric
 contract against the facade. This is the evidence required by Phase 3 of the
 cutover plan.
 
+The following records the original overlap checkpoint. Its live v1 adapter
+has since been retired by the
+[Phase 9 follow-through](#phase-9-follow-through-shared-numeric-contract).
+
 Validation:
 
 - collected test IDs visibly include the facade implementation;
@@ -747,6 +751,30 @@ captured coefficients after algebraically deriving the semantic exterior
 basis transport; the 26 RGA operation samples retain numeric checks too.
 These are retained representative regressions, not replacements for the
 source-derived core identities above. Fresh-process execution blocks legacy
-imports throughout the three exact suites. Twenty other files remain in the
-legacy ledger; this retires the exact suites' rendering-adapter dependency,
-not the engine or the remaining shared numeric contract.
+imports throughout the three exact suites. At that checkpoint, twenty other
+files remained in the legacy ledger; it retired the exact suites'
+rendering-adapter dependency, not the engine.
+
+### Phase 9 follow-through: shared numeric contract
+
+The seven public numeric protocol tests now construct the facade directly;
+their v1 execution and construction adapter are removed. The catalogue export
+gate and explicit v2 correction tests remain. All 146 original seeded operation
+results are preserved in `tools/baselines/numeric-contract-v1.json`, with the
+four signatures, seeds, explicit inputs, and capture provenance. Each result is
+now a separate regression case, so the increased collected count is improved
+failure granularity rather than 146 newly invented mathematical requirements.
+
+Both default facade and forced core-reference results must match the captured
+observations independently. Additional checks derive products, reverse signs,
+and corrected bracket scaling from left actions or exterior grades. The
+singular duality boundary, immutable data, and exact equality remain explicit
+contracts. Corruption tests cover matching wrong results in both current
+paths, jointly mis-scaled aliases, wrong shapes, nonfinite data, and the
+retained numerical tolerances.
+
+The contract leaves the legacy ledger, which now has nineteen files. A fresh
+process runs the whole contract with legacy imports blocked. No production
+arithmetic or value semantics change in this checkpoint; the hash inconsistency
+found during boundary review is recorded separately as the next release
+blocker. See [ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md).

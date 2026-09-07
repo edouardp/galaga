@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Four legacy-dependency prerequisites are complete:
+Status: **in progress**. Five legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1279,17 +1279,22 @@ Status: **in progress**. Four legacy-dependency prerequisites are complete:
   ([ADR-093](../adrs/093-benchmarks-use-core-reference-oracles.md));
 - matrix conversion requires public v2 metric metadata, linear actions,
   factories, and immutable naming without v1 compatibility fallbacks
-  ([ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md)); and
+  ([ADR-080](../adrs/080-matrix-representations-use-public-linear-actions.md));
 - the exact compound, STA, and RGA rendering suites execute only the facade.
   Their 32 historical compound observations and 26 RGA notation entries are
   archived, all 34 v2 full-LaTeX cases remain live, and numeric samples are
   checked after algebraically deriving any semantic basis transport
-  ([ADR-084](../adrs/084-exact-configured-rendering-contracts.md)).
+  ([ADR-084](../adrs/084-exact-configured-rendering-contracts.md)); and
+- the seven shared numeric protocol tests now construct the facade directly.
+  All 146 seeded v1 operation observations remain as captured data, checked
+  against both current facade and forced core-reference results. Independent
+  left-action and grade-law checks preserve the intentional v2 corrections
+  ([ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
-conversions, and all three exact rendering suites with legacy imports blocked.
-Matrix plans continue to share core algebras across facade presentation views;
-that is intentional v2 behavior.
+conversions, all three exact rendering suites, and the complete numeric
+contract with legacy imports blocked. Matrix plans continue to share core
+algebras across facade presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1298,12 +1303,13 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency group is the shared numeric contract, followed by
-compatibility-manifest introspection, the remaining legacy presentation tests,
-and legacy guards. Preserve their permanent v2 assertions and source-derived
-algebraic coverage rather than deleting mixed test files wholesale. The legacy
-test ledger now contains 20 files, down from 23 before the exact rendering
-retirement; the migration inventory remains the authority for their ownership.
+The next dependency group is compatibility-manifest introspection, followed
+by the remaining legacy presentation tests and guards. First address the
+independently discovered equality/hash release blocker below. Preserve
+permanent v2 assertions and source-derived algebraic coverage rather than
+deleting mixed test files wholesale. The legacy test ledger now contains
+19 files, down from 20 before numeric-contract retirement; the migration
+inventory remains the authority for their ownership.
 
 The notebook-test baseline prerequisite is also complete. Portability checks
 preserve each notebook's generator metadata and validate the actual launcher
@@ -1315,16 +1321,52 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(3,958 passed, 19 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (3,841 passed, 44 skipped), with Python 3.14-only integrations
+(4,131 passed, 19 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (4,014 passed, 44 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
-3.11 run also measures branch coverage without new exclusions: both configured
-rendering helpers have 100% coverage. The preceding benchmark/matrix checkpoint
-measured 95% for the benchmark and 91% for matrix conversion. These are
-prerequisite checks, not completion of the engine deletion, artifact, or final
-release gates.
+3.11 run measures branch coverage without new exclusions: the core public
+module remains at 97%, its backend/metric/metadata modules at 100%, and the
+facade numeric module at 96%. Earlier checkpoints measured 100% for both
+configured-rendering helpers, 95% for the benchmark, and 91% for matrix
+conversion. Passing suites do not resolve the separately reproduced hash
+defect below; these are prerequisite checks, not completion of the engine
+deletion, artifact, or final release gates.
+
+#### Immediate release blocker: equality/hash consistency
+
+Numeric-boundary review reproduced a core defect exposed through the facade:
+equal values need not have equal hashes. The core hash includes raw coefficient
+bytes and algebra identity, while equality treats signed zeros as equal and
+also permits equality with Python real numbers. As a result, dictionary lookup
+by an equal key can fail. This is not fixed by numeric-contract retirement.
+
+The following reproduces the observed failures without invoking v1:
+
+```python
+from galaga import Algebra
+
+algebra = Algebra(2)
+positive = algebra.identity
+negative_data = positive.data.copy()
+negative_data[1] = -0.0
+negative = algebra.multivector(negative_data)
+
+print(positive == negative, hash(positive) == hash(negative))  # True False
+print(positive == 1, hash(positive) == hash(1))  # True False
+print({positive: "hit"}.get(negative), {1: "hit"}.get(positive))  # None None
+```
+
+The next corrective unit must add core and facade regression tests for signed
+zero in scalar and mixed-grade values, equality with Python numeric keys, and
+dictionary/set behavior. Preserve exact coefficient comparison, including
+representable tiny nonzero values; do not introduce approximate equality to
+repair hashing. Review algebra-identity and mixed-numeric comparison boundaries
+and record the chosen consistent policy in an ADR before considering the
+release gate satisfied.
+
+#### Legacy engine deletion gate
 
 Remove the private legacy oracle only after Phase 8 has passed on the branch
 and in CI. Preserve historical behavior in tests, specifications, and migration

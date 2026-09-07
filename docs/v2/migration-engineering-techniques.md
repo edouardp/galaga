@@ -558,9 +558,10 @@ coverage and ownership remain visible.
 
 ## 6. Parameterize contracts, then add differential tests
 
-`facade/test_numeric_contract.py` defines a small construction adapter and
-runs the same public contract against `legacy-v1` and `core-facade-v2`. The
-pytest IDs make the implementation visible in collected results.
+During the overlap period, `facade/test_numeric_contract.py` defined a small
+construction adapter and ran the same public contract against `legacy-v1` and
+`core-facade-v2`. Pytest IDs made the implementation visible in collected
+results.
 
 This provides stronger evidence than two similar test files because the
 assertion body is identical. Where Galaga 2 intentionally differs, separate
@@ -572,11 +573,20 @@ representative signatures. These are useful transitional oracles, but they do
 not define all future behavior: the legacy implementation cannot be the oracle
 for new oblique or native-null capabilities it never supported.
 
+In Phase 9, the protocol tests construct only the facade. The 146 original
+seeded observations survive as captured data, with explicit inputs and capture
+provenance. Both the current facade and forced core-reference results must
+match that data independently; additional product, reverse, and bracket
+checks use public left actions or grade laws. Corruption tests prove that
+agreement between two wrong current paths is insufficient. See
+[ADR-094](../adrs/094-numeric-contracts-outlive-the-legacy-engine.md).
+
 The resulting hierarchy is:
 
 1. independent mathematical or source-derived oracle where possible;
 2. direct core/facade parity for delegation boundaries;
-3. legacy differential comparison for intentionally compatible domains; and
+3. legacy differential comparison during overlap, then captured observations
+   for intentionally compatible domains; and
 4. explicit correction tests where v2 changes the contract.
 
 ## 7. Keep a correction ledger separate from regressions
@@ -593,9 +603,11 @@ corrections explicitly, including:
 - long operation names as canonical identities; and
 - deterministic binary lowering for the approved variadic products.
 
-Each correction has tests that contrast the old and new meanings. This makes a
-red differential result interpretable: it is either a ledgered correction or
-an unplanned regression.
+Each correction has tests that contrast the old and new meanings, retaining
+old observations as data after retirement. Independent v2 expectations stop
+two incorrectly scaled aliases from validating one another. This makes a red
+differential result interpretable: it is either a ledgered correction or an
+unplanned regression.
 
 General lesson: compatibility and correctness are separate axes. Record which
 one wins for every intentional difference.
