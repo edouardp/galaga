@@ -155,7 +155,12 @@ by nonzero coefficient checks across three metrics, and custom LaTeX
 under-accent fallback is fixed and taught in the RGA notebook. All twelve
 locals cases now use independent public policies, preserving archived bindings
 while testing signed filtering, symbol environments, and native enumeration.
-The presentation notebook teaches these distinctions. All sixteen
+The presentation notebook teaches these distinctions. All fifteen quaternion
+and complex convention cases now use public presets and immutable labels.
+Their archived tables and observations are checked alongside independent
+Hamilton-coordinate and Python complex arithmetic. The notebook teaches
+even-subalgebra, native-order, conjugation, and Gram-metric boundaries.
+All seventeen
 completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
@@ -167,9 +172,10 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 7 files. Next are the
-remaining mixed legacy suites, followed by namespace/construction guards.
-See [ADR-106](../adrs/106-independent-public-local-name-contracts.md)
+The construction-only legacy ledger is down to 6 files. Next are the
+low-dimensional/transformation-helper and remaining mixed legacy contracts,
+followed by namespace/construction guards.
+See [ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

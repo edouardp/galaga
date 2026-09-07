@@ -612,7 +612,7 @@ def complex_blade_convention() -> BladeConvention:
 
 
 def quaternion_blade_convention() -> BladeConvention:
-    """Quaternions as the bivector subalgebra of Euclidean ``Cl(3, 0)``."""
+    """Quaternions as the even subalgebra of Euclidean ``Cl(3, 0)``."""
     return indexed_blade_convention(
         3,
         overrides={

@@ -210,7 +210,7 @@ class ComplexPreset:
 
 @dataclass(frozen=True, slots=True)
 class QuaternionPreset:
-    """Quaternions in the bivector subalgebra of Euclidean ``Cl(3, 0)``."""
+    """Quaternions in the even subalgebra of Euclidean ``Cl(3, 0)``."""
 
     def build(self) -> AlgebraConfig:
         blades = quaternion_blade_convention()

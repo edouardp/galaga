@@ -1,0 +1,336 @@
+{
+  "schema_version": 1,
+  "source_commit": "8f14835fb09856f0439d28bdd08ec5efcd02c20b",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_test": "packages/galaga/tests/test_quaternion.py",
+  "source_sha256": "ecd602810cf31ef2427b51f9d56a551e767b9ebe6577ffb85a46d11dcaf34a58",
+  "source": "\"\"\"Tests for quaternion algebra via Cl(3,0) bivectors with BladeConvention.\n\nThe quaternion units i, j, k are identified with the three bivectors of\nCl(3,0). The correct mapping is:\n\n    i = e₂∧e₃ = e₂₃   (bitmask 0b110)\n    j = e₁∧e₃ = e₁₃   (bitmask 0b101)\n    k = e₁∧e₂ = e₁₂   (bitmask 0b011)\n\nAll BasisBlade signs are +1 because the defining products e_a∧e_b with\na < b match the canonical bitmask ordering.\n\nHamilton's numeric identities are tested independently of these names in\n``core/test_quaternion.py``. This suite owns the quaternion and complex blade\nconventions, lookup, and rendering.\n\"\"\"\n\nimport unittest\n\nimport numpy as np\n\nfrom galaga.legacy import Algebra, b_complex, b_quaternion\n\n\ndef _make_quaternion_algebra(lazy=False):\n    \"\"\"Build Cl(3,0) with quaternion bivector names.\"\"\"\n    alg = Algebra(\n        (1, 1, 1),\n        blades=b_quaternion(),\n    )\n    return alg, alg.basis_vectors(lazy=lazy)\n\n\nclass TestQuaternionSigns(unittest.TestCase):\n    \"\"\"Verify BasisBlade signs are computed correctly from the metric.\"\"\"\n\n    def test_all_signs_are_positive(self):\n        \"\"\"All quaternion bivector signs should be +1 (canonical ordering).\"\"\"\n        alg, _ = _make_quaternion_algebra()\n        assert alg._blades[0b110].sign == 1, \"i (e23) sign\"\n        assert alg._blades[0b101].sign == 1, \"j (e13) sign\"\n        assert alg._blades[0b011].sign == 1, \"k (e12) sign\"\n\n    def test_blade_names(self):\n        \"\"\"Verify the complete blade name table.\"\"\"\n        alg, _ = _make_quaternion_algebra()\n        names = {bm: alg._blades[bm].unicode_name for bm in range(8)}\n        assert names == {\n            0b000: \"1\",\n            0b001: \"e₁\",\n            0b010: \"e₂\",\n            0b011: \"k\",\n            0b100: \"e₃\",\n            0b101: \"j\",\n            0b110: \"i\",\n            0b111: \"e₁₂₃\",\n        }\n\n\nclass TestQuaternionDisplay(unittest.TestCase):\n    \"\"\"Verify that products display with correct names and signs.\"\"\"\n\n    def setUp(self):\n        self.alg, (self.e1, self.e2, self.e3) = _make_quaternion_algebra()\n\n    def test_cyclic_display(self):\n        \"\"\"Cyclic products display as positive named blades.\"\"\"\n        e1, e2, e3 = self.e1, self.e2, self.e3\n        assert str(e2 * e3) == \"i\"\n        assert str(e1 * e3) == \"j\"\n        assert str(e1 * e2) == \"k\"\n\n    def test_anticyclic_display(self):\n        \"\"\"Anti-cyclic products display as negative named blades.\"\"\"\n        e1, e2, e3 = self.e1, self.e2, self.e3\n        assert str(e3 * e2) == \"-i\"\n        assert str(e3 * e1) == \"-j\"\n        assert str(e2 * e1) == \"-k\"\n\n    def test_quaternion_product_display(self):\n        \"\"\"Named bivector products display correctly.\"\"\"\n        i = self.e2 ^ self.e3\n        j = self.e1 ^ self.e3\n        k = self.e1 ^ self.e2\n        assert str(i * j) == \"k\"\n        assert str(j * i) == \"-k\"\n        assert str(j * k) == \"i\"\n        assert str(k * j) == \"-i\"\n        assert str(k * i) == \"j\"\n        assert str(i * k) == \"-j\"\n\n\nclass TestQuaternionBladeLookup(unittest.TestCase):\n    \"\"\"Verify blade() returns canonical basis blades and accepts lazy=.\"\"\"\n\n    def setUp(self):\n        self.alg, (self.e1, self.e2, self.e3) = _make_quaternion_algebra()\n\n    def test_lookup_by_name(self):\n        \"\"\"blade('i') returns the canonical blade at that bitmask.\"\"\"\n        i = self.alg.blade(\"i\")\n        # Quaternion signs are all +1, so canonical = named\n        assert str(i) == \"i\"\n        assert (i * i).scalar_part == -1.0\n\n    def test_lookup_by_metric_role(self):\n        \"\"\"blade('+2+3') returns the same as blade('i').\"\"\"\n        i_name = self.alg.blade(\"i\")\n        i_role = self.alg.blade(\"+2+3\")\n        assert np.allclose(i_name.data, i_role.data)\n\n    def test_lookup_by_multivector(self):\n        \"\"\"blade(mv) returns the canonical blade at that bitmask.\"\"\"\n        bv = self.e2 ^ self.e3\n        i = self.alg.blade(bv)\n        # canonical data=+1, sign=+1, so displays as \"i\"\n        assert str(i) == \"i\"\n\n    def test_lookup_all_quaternion_units(self):\n        \"\"\"All three quaternion units look up correctly.\"\"\"\n        i = self.alg.blade(\"i\")\n        j = self.alg.blade(\"j\")\n        k = self.alg.blade(\"k\")\n        # Hamilton's identity via looked-up blades\n        assert i * j == k\n        assert j * k == i\n        assert k * i == j\n\n    def test_lazy_blade_lookup(self):\n        \"\"\"blade('i', lazy=True) returns a lazy multivector.\"\"\"\n        i = self.alg.blade(\"i\", lazy=True)\n        assert i._is_symbolic\n        assert str(i) == \"i\"\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\n\nclass TestQuaternionVectorNames(unittest.TestCase):\n    def test_custom_vector_names(self):\n        alg = Algebra(3, blades=b_quaternion(vector_names=[\"x\", \"y\", \"z\"]))\n        x, y, z = alg.basis_vectors()\n        self.assertEqual(str(x), \"x\")\n        self.assertEqual(str(y), \"y\")\n        self.assertEqual(str(z), \"z\")\n        # bivector names still work\n        i, j, k = alg.basis_blades(2)\n        self.assertEqual(str(i), \"i\")\n        self.assertEqual(str(j), \"j\")\n        self.assertEqual(str(k), \"k\")\n\n    def test_custom_vector_names_latex(self):\n        \"\"\"Regression: single-char vector names must not produce z_{z} in LaTeX.\"\"\"\n        alg = Algebra(3, blades=b_quaternion(vector_names=[\"x\", \"y\", \"z\"]))\n        x, y, z = alg.basis_vectors()\n        self.assertEqual(z.latex(), \"z\")\n        self.assertEqual(x.latex(), \"x\")\n\n\nclass TestComplexFactory(unittest.TestCase):\n    \"\"\"Verify b_complex() convention for Cl(2,0) even subalgebra.\"\"\"\n\n    def setUp(self):\n        self.alg = Algebra(2, blades=b_complex())\n        e1, e2 = self.alg.basis_vectors()\n        self.i = e1 ^ e2\n\n    def test_display(self):\n        \"\"\"Bivector e12 displays as i.\"\"\"\n        assert str(self.i) == \"i\"\n\n    def test_complex_number_display(self):\n        \"\"\"A scalar plus named bivector uses conventional complex notation.\"\"\"\n        z = self.alg.scalar(3) + 4 * self.i\n\n        assert str(z) == \"3 + 4i\"\n\n    def test_complex_conjugate_via_reverse(self):\n        \"\"\"Reverse acts as complex conjugation for bivectors: ~(a + bi) = a - bi.\"\"\"\n        from galaga.legacy import reverse\n\n        z = self.alg.scalar(3) + 4 * self.i\n        zc = reverse(z)\n        assert str(zc) == \"3 - 4i\"\n",
+  "original_case_count": 15,
+  "test_ids": [
+    "TestQuaternionSigns.test_all_signs_are_positive",
+    "TestQuaternionSigns.test_blade_names",
+    "TestQuaternionDisplay.test_cyclic_display",
+    "TestQuaternionDisplay.test_anticyclic_display",
+    "TestQuaternionDisplay.test_quaternion_product_display",
+    "TestQuaternionBladeLookup.test_lookup_by_name",
+    "TestQuaternionBladeLookup.test_lookup_by_metric_role",
+    "TestQuaternionBladeLookup.test_lookup_by_multivector",
+    "TestQuaternionBladeLookup.test_lookup_all_quaternion_units",
+    "TestQuaternionBladeLookup.test_lazy_blade_lookup",
+    "TestQuaternionVectorNames.test_custom_vector_names",
+    "TestQuaternionVectorNames.test_custom_vector_names_latex",
+    "TestComplexFactory.test_display",
+    "TestComplexFactory.test_complex_number_display",
+    "TestComplexFactory.test_complex_conjugate_via_reverse"
+  ],
+  "tables": [
+    {
+      "id": "quaternion",
+      "signature": [1,1,1],
+      "basis": [
+        {
+          "id": "0",
+          "coefficients": [1,0,0,0,0,0,0,0],
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "id": "1",
+          "coefficients": [0,1,0,0,0,0,0,0],
+          "ascii": "e1",
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "id": "2",
+          "coefficients": [0,0,1,0,0,0,0,0],
+          "ascii": "e2",
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "id": "3",
+          "coefficients": [0,0,0,1,0,0,0,0],
+          "ascii": "k",
+          "unicode": "k",
+          "latex": "k"
+        },
+        {
+          "id": "4",
+          "coefficients": [0,0,0,0,1,0,0,0],
+          "ascii": "e3",
+          "unicode": "e₃",
+          "latex": "e_{3}"
+        },
+        {
+          "id": "5",
+          "coefficients": [0,0,0,0,0,1,0,0],
+          "ascii": "j",
+          "unicode": "j",
+          "latex": "j"
+        },
+        {
+          "id": "6",
+          "coefficients": [0,0,0,0,0,0,1,0],
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        },
+        {
+          "id": "7",
+          "coefficients": [0,0,0,0,0,0,0,1],
+          "ascii": "e123",
+          "unicode": "e₁₂₃",
+          "latex": "e_{123}"
+        }
+      ],
+      "basis_bivectors": [
+        [0,0,0,0,0,0,1,0],
+        [0,0,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0,0]
+      ]
+    },
+    {
+      "id": "complex",
+      "signature": [1,1],
+      "basis": [
+        {
+          "id": "0",
+          "coefficients": [1,0,0,0],
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "id": "1",
+          "coefficients": [0,1,0,0],
+          "ascii": "e1",
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "id": "2",
+          "coefficients": [0,0,1,0],
+          "ascii": "e2",
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "id": "3",
+          "coefficients": [0,0,0,1],
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        }
+      ],
+      "basis_bivectors": [
+        [0,0,0,1]
+      ]
+    },
+    {
+      "id": "xyz",
+      "signature": [1,1,1],
+      "basis": [
+        {
+          "id": "0",
+          "coefficients": [1,0,0,0,0,0,0,0],
+          "ascii": "1",
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "id": "1",
+          "coefficients": [0,1,0,0,0,0,0,0],
+          "ascii": "x",
+          "unicode": "x",
+          "latex": "x"
+        },
+        {
+          "id": "2",
+          "coefficients": [0,0,1,0,0,0,0,0],
+          "ascii": "y",
+          "unicode": "y",
+          "latex": "y"
+        },
+        {
+          "id": "3",
+          "coefficients": [0,0,0,1,0,0,0,0],
+          "ascii": "k",
+          "unicode": "k",
+          "latex": "k"
+        },
+        {
+          "id": "4",
+          "coefficients": [0,0,0,0,1,0,0,0],
+          "ascii": "z",
+          "unicode": "z",
+          "latex": "z"
+        },
+        {
+          "id": "5",
+          "coefficients": [0,0,0,0,0,1,0,0],
+          "ascii": "j",
+          "unicode": "j",
+          "latex": "j"
+        },
+        {
+          "id": "6",
+          "coefficients": [0,0,0,0,0,0,1,0],
+          "ascii": "i",
+          "unicode": "i",
+          "latex": "i"
+        },
+        {
+          "id": "7",
+          "coefficients": [0,0,0,0,0,0,0,1],
+          "ascii": "xyz",
+          "unicode": "xyz",
+          "latex": "x y z"
+        }
+      ],
+      "basis_bivectors": [
+        [0,0,0,0,0,0,1,0],
+        [0,0,0,0,0,1,0,0],
+        [0,0,0,1,0,0,0,0]
+      ]
+    }
+  ],
+  "observations": [
+    {
+      "id": "e2_e3",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "e1_e3",
+      "coefficients": [0,0,0,0,0,1,0,0],
+      "ascii": "j",
+      "unicode": "j",
+      "latex": "j"
+    },
+    {
+      "id": "e1_e2",
+      "coefficients": [0,0,0,1,0,0,0,0],
+      "ascii": "k",
+      "unicode": "k",
+      "latex": "k"
+    },
+    {
+      "id": "e3_e2",
+      "coefficients": [0,0,0,0,0,0,-1,0],
+      "ascii": "-i",
+      "unicode": "-i",
+      "latex": "-i"
+    },
+    {
+      "id": "e3_e1",
+      "coefficients": [0,0,0,0,0,-1,0,0],
+      "ascii": "-j",
+      "unicode": "-j",
+      "latex": "-j"
+    },
+    {
+      "id": "e2_e1",
+      "coefficients": [0,0,0,-1,0,0,0,0],
+      "ascii": "-k",
+      "unicode": "-k",
+      "latex": "-k"
+    },
+    {
+      "id": "i_j",
+      "coefficients": [0,0,0,1,0,0,0,0],
+      "ascii": "k",
+      "unicode": "k",
+      "latex": "k"
+    },
+    {
+      "id": "j_i",
+      "coefficients": [0,0,0,-1,0,0,0,0],
+      "ascii": "-k",
+      "unicode": "-k",
+      "latex": "-k"
+    },
+    {
+      "id": "j_k",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "k_j",
+      "coefficients": [0,0,0,0,0,0,-1,0],
+      "ascii": "-i",
+      "unicode": "-i",
+      "latex": "-i"
+    },
+    {
+      "id": "k_i",
+      "coefficients": [0,0,0,0,0,1,0,0],
+      "ascii": "j",
+      "unicode": "j",
+      "latex": "j"
+    },
+    {
+      "id": "i_k",
+      "coefficients": [0,0,0,0,0,-1,0,0],
+      "ascii": "-j",
+      "unicode": "-j",
+      "latex": "-j"
+    },
+    {
+      "id": "lookup_i",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "lookup_metric_role",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "lookup_multivector",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "lookup_lazy",
+      "coefficients": [0,0,0,0,0,0,1,0],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "imaginary",
+      "coefficients": [0,0,0,1],
+      "ascii": "i",
+      "unicode": "i",
+      "latex": "i"
+    },
+    {
+      "id": "complex_number",
+      "coefficients": [3,0,0,4],
+      "ascii": "3 + 4i",
+      "unicode": "3 + 4i",
+      "latex": "3 + 4 i"
+    },
+    {
+      "id": "complex_reverse",
+      "coefficients": [3,0,0,-4],
+      "ascii": "3 - 4i",
+      "unicode": "3 - 4i",
+      "latex": "3 - 4 i"
+    }
+  ]
+}

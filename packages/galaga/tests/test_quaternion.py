@@ -1,87 +1,79 @@
-"""Tests for quaternion algebra via Cl(3,0) bivectors with BladeConvention.
+"""Public complex/quaternion conventions with historical test identities.
 
-The quaternion units i, j, k are identified with the three bivectors of
-Cl(3,0). The correct mapping is:
-
-    i = e₂∧e₃ = e₂₃   (bitmask 0b110)
-    j = e₁∧e₃ = e₁₃   (bitmask 0b101)
-    k = e₁∧e₂ = e₁₂   (bitmask 0b011)
-
-All BasisBlade signs are +1 because the defining products e_a∧e_b with
-a < b match the canonical bitmask ordering.
-
-Hamilton's numeric identities are tested independently of these names in
-``core/test_quaternion.py``. This suite owns the quaternion and complex blade
-conventions, lookup, and rendering.
+The scalar-plus-bivector even subalgebra of Euclidean Cl(3,0) is quaternionic:
+i=e23, j=e13, k=e12. Compute those products before inspecting names or signs.
+Native basis enumeration and semantic unit lookup are intentionally distinct.
+See ADR-107 and tools/baselines/quaternion-conventions-v1.json.
 """
 
 import unittest
+from dataclasses import replace
 
 import numpy as np
+import pytest
 
-from galaga.legacy import Algebra, b_complex, b_quaternion
+import galaga as ga
+from galaga.expression import BladeLiteral, evaluate
 
 
-def _make_quaternion_algebra(lazy=False):
-    """Build Cl(3,0) with quaternion bivector names."""
-    alg = Algebra(
-        (1, 1, 1),
-        blades=b_quaternion(),
-    )
-    return alg, alg.basis_vectors(lazy=lazy)
+def _make_quaternion_algebra(expr=False):
+    algebra = ga.Algebra(config=ga.p_quaternion())
+    return algebra, algebra.basis_vectors(expr=expr)
+
+
+def _make_xyz_algebra():
+    algebra = ga.Algebra(config=ga.p_quaternion())
+    original = algebra.presentation.blades
+    labels = list(original.labels)
+    for mask, name in ((1, "x"), (2, "y"), (4, "z"), (7, ga.Name("xyz", "xyz", "x y z"))):
+        labels[mask] = replace(labels[mask], name=name if isinstance(name, ga.Name) else ga.Name(name))
+    return algebra.with_blades(ga.BladeConvention(3, labels, aliases=original.aliases, roles=original.roles))
 
 
 class TestQuaternionSigns(unittest.TestCase):
-    """Verify BasisBlade signs are computed correctly from the metric."""
-
     def test_all_signs_are_positive(self):
-        """All quaternion bivector signs should be +1 (canonical ordering)."""
-        alg, _ = _make_quaternion_algebra()
-        assert alg._blades[0b110].sign == 1, "i (e23) sign"
-        assert alg._blades[0b101].sign == 1, "j (e13) sign"
-        assert alg._blades[0b011].sign == 1, "k (e12) sign"
+        algebra, (e1, e2, e3) = _make_quaternion_algebra()
+        for name, product in (("i", e2 ^ e3), ("j", e1 ^ e3), ("k", e1 ^ e2)):
+            (mask,) = np.flatnonzero(product.data)
+            label = algebra.blade_label(int(mask))
+            assert label.ref.orientation == product.coefficient(int(mask)) == 1
+            assert label.name.ascii == name
+            assert algebra.blade(name) == product
+            assert product * product == -1
 
     def test_blade_names(self):
-        """Verify the complete blade name table."""
-        alg, _ = _make_quaternion_algebra()
-        names = {bm: alg._blades[bm].unicode_name for bm in range(8)}
-        assert names == {
-            0b000: "1",
-            0b001: "e₁",
-            0b010: "e₂",
-            0b011: "k",
-            0b100: "e₃",
-            0b101: "j",
-            0b110: "i",
-            0b111: "e₁₂₃",
+        algebra, _ = _make_quaternion_algebra()
+        assert {mask: algebra.blade_label(mask).name.unicode for mask in range(8)} == {
+            0: "1",
+            1: "e₁",
+            2: "e₂",
+            3: "k",
+            4: "e₃",
+            5: "j",
+            6: "i",
+            7: "e₁₂₃",
         }
 
 
 class TestQuaternionDisplay(unittest.TestCase):
-    """Verify that products display with correct names and signs."""
-
     def setUp(self):
         self.alg, (self.e1, self.e2, self.e3) = _make_quaternion_algebra()
 
     def test_cyclic_display(self):
-        """Cyclic products display as positive named blades."""
         e1, e2, e3 = self.e1, self.e2, self.e3
         assert str(e2 * e3) == "i"
         assert str(e1 * e3) == "j"
         assert str(e1 * e2) == "k"
 
     def test_anticyclic_display(self):
-        """Anti-cyclic products display as negative named blades."""
         e1, e2, e3 = self.e1, self.e2, self.e3
         assert str(e3 * e2) == "-i"
         assert str(e3 * e1) == "-j"
         assert str(e2 * e1) == "-k"
 
     def test_quaternion_product_display(self):
-        """Named bivector products display correctly."""
-        i = self.e2 ^ self.e3
-        j = self.e1 ^ self.e3
-        k = self.e1 ^ self.e2
+        i, j, k = self.e2 ^ self.e3, self.e1 ^ self.e3, self.e1 ^ self.e2
+        assert i * j == k and j * k == i and k * i == j
         assert str(i * j) == "k"
         assert str(j * i) == "-k"
         assert str(j * k) == "i"
@@ -91,95 +83,84 @@ class TestQuaternionDisplay(unittest.TestCase):
 
 
 class TestQuaternionBladeLookup(unittest.TestCase):
-    """Verify blade() returns canonical basis blades and accepts lazy=."""
-
     def setUp(self):
         self.alg, (self.e1, self.e2, self.e3) = _make_quaternion_algebra()
 
     def test_lookup_by_name(self):
-        """blade('i') returns the canonical blade at that bitmask."""
         i = self.alg.blade("i")
-        # Quaternion signs are all +1, so canonical = named
         assert str(i) == "i"
-        assert (i * i).scalar_part == -1.0
+        assert ga.scalar_part(i * i) == -1.0
+        assert i == self.e2 ^ self.e3
 
     def test_lookup_by_metric_role(self):
-        """blade('+2+3') returns the same as blade('i')."""
-        i_name = self.alg.blade("i")
-        i_role = self.alg.blade("+2+3")
-        assert np.allclose(i_name.data, i_role.data)
+        assert self.alg.blade("quaternion_i") == self.alg.blade("i")
+        assert self.alg.blade("e23") == self.e2 ^ self.e3
+        # V2 resolves declared roles/aliases, not metric-role text.
+        with pytest.raises(KeyError, match="unknown blade"):
+            self.alg.blade("+2+3")
 
     def test_lookup_by_multivector(self):
-        """blade(mv) returns the canonical blade at that bitmask."""
-        bv = self.e2 ^ self.e3
-        i = self.alg.blade(bv)
-        # canonical data=+1, sign=+1, so displays as "i"
+        computed = (self.e2 ^ self.e3).named("computed").with_expr()
+        i = self.alg.blade(computed)
         assert str(i) == "i"
+        assert i == computed
+        assert i.name is None and i.expr is None
+        assert self.alg.blade(-computed) == -i
 
     def test_lookup_all_quaternion_units(self):
-        """All three quaternion units look up correctly."""
-        i = self.alg.blade("i")
-        j = self.alg.blade("j")
-        k = self.alg.blade("k")
-        # Hamilton's identity via looked-up blades
+        i, j, k = self.alg.blades("i", "j", "k")
         assert i * j == k
         assert j * k == i
         assert k * i == j
+        assert i * j * k == -1
 
     def test_lazy_blade_lookup(self):
-        """blade('i', lazy=True) returns a lazy multivector."""
-        i = self.alg.blade("i", lazy=True)
-        assert i._is_symbolic
+        i = self.alg.blade("i", expr=True)
+        assert i.expr == BladeLiteral(6)
         assert str(i) == "i"
-
-
-if __name__ == "__main__":
-    unittest.main()
+        assert evaluate(i.expr, algebra=self.alg) == self.e2 ^ self.e3
+        with pytest.raises(TypeError, match="lazy"):
+            self.alg.blade("i", lazy=True)
 
 
 class TestQuaternionVectorNames(unittest.TestCase):
     def test_custom_vector_names(self):
-        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
-        x, y, z = alg.basis_vectors()
-        self.assertEqual(str(x), "x")
-        self.assertEqual(str(y), "y")
-        self.assertEqual(str(z), "z")
-        # bivector names still work
-        i, j, k = alg.basis_blades(2)
-        self.assertEqual(str(i), "i")
-        self.assertEqual(str(j), "j")
-        self.assertEqual(str(k), "k")
+        algebra = _make_xyz_algebra()
+        assert [str(value) for value in algebra.basis_vectors()] == ["x", "y", "z"]
+        assert [str(value) for value in algebra.basis_blades(2)] == ["k", "j", "i"]
+        assert [str(value) for value in algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")] == [
+            "i",
+            "j",
+            "k",
+        ]
 
     def test_custom_vector_names_latex(self):
-        """Regression: single-char vector names must not produce z_{z} in LaTeX."""
-        alg = Algebra(3, blades=b_quaternion(vector_names=["x", "y", "z"]))
-        x, y, z = alg.basis_vectors()
-        self.assertEqual(z.latex(), "z")
-        self.assertEqual(x.latex(), "x")
+        algebra = _make_xyz_algebra()
+        x, y, z = algebra.basis_vectors()
+        assert (x.latex(), y.latex(), z.latex()) == ("x", "y", "z")
+        assert (x ^ y ^ z).latex() == "x y z"
+        assert list(algebra.locals()) == ["e1", "e2", "k", "e3", "j", "i", "e123"]
 
 
 class TestComplexFactory(unittest.TestCase):
-    """Verify b_complex() convention for Cl(2,0) even subalgebra."""
-
     def setUp(self):
-        self.alg = Algebra(2, blades=b_complex())
+        self.alg = ga.Algebra(config=ga.p_complex())
         e1, e2 = self.alg.basis_vectors()
         self.i = e1 ^ e2
 
     def test_display(self):
-        """Bivector e12 displays as i."""
         assert str(self.i) == "i"
+        assert self.i == self.alg.blade("imaginary") == self.alg.blade("e12")
+        assert self.i * self.i == -1
 
     def test_complex_number_display(self):
-        """A scalar plus named bivector uses conventional complex notation."""
         z = self.alg.scalar(3) + 4 * self.i
-
         assert str(z) == "3 + 4i"
+        np.testing.assert_array_equal(z.data, [3, 0, 0, 4])
 
     def test_complex_conjugate_via_reverse(self):
-        """Reverse acts as complex conjugation for bivectors: ~(a + bi) = a - bi."""
-        from galaga.legacy import reverse
-
         z = self.alg.scalar(3) + 4 * self.i
-        zc = reverse(z)
+        zc = ga.reverse(z)
         assert str(zc) == "3 - 4i"
+        np.testing.assert_array_equal(zc.data, [3, 0, 0, -4])
+        assert zc == ga.conjugate(z)

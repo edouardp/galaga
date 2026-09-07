@@ -482,6 +482,72 @@ computes the signs under both STA metric choices. See
 [ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)
 for the archived contracts and validation boundaries.
 
+## Migrate complex and quaternion conventions
+
+Use `Algebra(config=p_complex())` or `Algebra(config=p_quaternion())` in
+place of `b_complex` or `b_quaternion`. Their Euclidean even subalgebras
+include the scalar part. In the quaternion convention,
+`i=e23`, `j=e13`, `k=e12` satisfy Hamilton's identities; `j` is not `e31`.
+Select semantic units by roles rather than unpacking native bivector order:
+
+```python
+from galaga import Algebra, p_quaternion
+
+algebra = Algebra(config=p_quaternion())
+e1, e2, e3 = algebra.basis_vectors()
+expected = (e2 ^ e3, e1 ^ e3, e1 ^ e2)
+i, j, k = algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")
+assert (i, j, k) == expected
+assert i * j == k and j * k == i and k * i == j
+assert algebra.basis_blades(2) == (k, j, i)
+assert algebra.blade("e23") == i
+```
+
+Replace metric-role text `"+2+3"` with `"quaternion_i"` or an explicit
+native mask. Replace `lazy=True` with `expr=True`. The existing
+`blade(computed_value, expr=True)` factory creates a self-contained signed
+literal without retaining a previous name or expression.
+
+To replace `vector_names=["x", "y", "z"]`, replace immutable vector labels
+and explicitly choose any compound labels, retaining aliases and roles:
+
+```python
+from dataclasses import replace
+from galaga import Algebra, BladeConvention, Name, p_quaternion
+
+algebra = Algebra(config=p_quaternion())
+original = algebra.presentation.blades
+labels = list(original.labels)
+for index, name in enumerate(("x", "y", "z")):
+    mask = 1 << index
+    labels[mask] = replace(labels[mask], name=Name(name))
+labels[algebra.dim - 1] = replace(
+    labels[algebra.dim - 1], name=Name("xyz", "xyz", "x y z"),
+)
+view = algebra.with_blades(
+    BladeConvention(algebra.n, labels, aliases=original.aliases, roles=original.roles)
+)
+x, y, z = view.basis_vectors()
+assert z.latex() == "z"
+assert view.blade("quaternion_i") == y ^ z
+assert (x ^ y ^ z).latex() == "x y z"
+assert view.numeric is algebra.numeric
+```
+
+Changing labels does not regenerate locals; configure `LocalNamePolicy`
+separately if Python bindings should also change.
+
+The presets supply matching metrics, but `complex_blade_convention()` and
+`quaternion_blade_convention()` only supply vocabulary. On a different Gram
+matrix, compute actual blade squares rather than assuming Hamilton or complex
+identities from names. Reverse and Clifford conjugation agree on even
+elements, not on arbitrary ambient multivectors with odd grades.
+
+The [complex/quaternion notebook](../../examples/basics/complex_and_quaternions.py)
+demonstrates the defining products, native order, conjugation, and a
+Gram-derived counterexample to `i²=-1`. See
+[ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md).
+
 ## Configure presentation independently
 
 Presets provide coherent defaults, while constructor overrides can replace one

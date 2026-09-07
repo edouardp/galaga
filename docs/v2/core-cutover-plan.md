@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Sixteen legacy-dependency prerequisites are complete:
+Status: **in progress**. Seventeen legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1346,15 +1346,21 @@ Status: **in progress**. Sixteen legacy-dependency prerequisites are complete:
   archived bindings and explicit v2 migration boundaries. Coefficient-first
   tests check signed filtering, symbol environments versus literals, snapshots,
   and native enumeration; the presentation notebook teaches these distinctions
-  ([ADR-106](../adrs/106-independent-public-local-name-contracts.md)).
+  ([ADR-106](../adrs/106-independent-public-local-name-contracts.md));
+- all fifteen complex/quaternion convention cases now use public presets
+  and immutable labels. Archived values and tables preserve their history;
+  independent Hamilton and Python complex arithmetic check nonzero products,
+  right division and replay. The notebook teaches native order and the
+  even-subalgebra, conjugation and Gram-metric boundaries
+  ([ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
 the surface/deprecation contracts, both concrete-display suites, and both
 expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
-mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, and locals suites with legacy imports
-blocked. Matrix plans
+mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
+complex/quaternion suites with legacy imports blocked. Matrix plans
 continue to share core algebras across facade presentation views; that is
 intentional v2 behavior.
 
@@ -1365,13 +1371,13 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency groups are the remaining mixed legacy suites,
-followed by namespace/construction guards. Compatibility-manifest
+The next dependency groups are low-dimensional/transformation-helper and
+remaining mixed legacy contracts, followed by namespace/construction guards. Compatibility-manifest
 introspection is retired, and the independently discovered equality/hash
 release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 7 files, down from 8 after removing `test_locals.py`.
+ledger now contains 6 files, down from 7 after removing `test_quaternion.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1394,8 +1400,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(6,089 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (5,972 passed, 45 skipped), with Python 3.14-only integrations
+(6,230 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (6,113 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1458,13 +1464,22 @@ both orientations, and all display styles/targets. Corruption probes reject
 changed keys, coefficients, output, and dropped signs. Production code is
 unchanged. The presentation notebook teaches independent keys and labels,
 sign-preserving grade filtering, and explicit symbol environments.
+The complex/quaternion checkpoint passes 155 focused cases at 100% line and
+branch coverage in its three test files. All 143 public cases pass directly
+from the built wheel with origins verified and legacy imports blocked.
+Nineteen archived observations and three complete basis tables remain live,
+with independent arithmetic and mutation guards for wrong-side division,
+conjugation and native enumeration. The notebook executes the defining
+products before naming and demonstrates odd-grade and Gram-metric boundaries.
+Runtime behavior is unchanged; two docstrings now correctly say “even
+subalgebra” instead of “bivector subalgebra.”
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
-mixed-rendering, blade-convention, RGA, and locals work. The converter's
+mixed-rendering, blade-convention, RGA, locals, and quaternion work. The converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

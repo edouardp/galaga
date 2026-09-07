@@ -215,6 +215,20 @@ semantic units with `blade("quaternion_i")`, `blade("quaternion_j")`, and
 `blade("quaternion_k")`. This differs from v1's presentation-ordered
 enumeration; the underlying quaternion values and products are unchanged.
 
+The quaternion coordinates are `i=e23`, `j=e13`, `k=e12` in Euclidean
+`Cl(3,0)`. Scalars plus bivectors form its even subalgebra; bivectors alone
+are not closed under multiplication. Complex numbers similarly occupy the
+even subalgebra of Euclidean `Cl(2,0)`. Reverse and Clifford conjugation agree
+there, but not on general ambient values with odd grades.
+
+Complete presets supply those Euclidean metrics. Applying only the blade
+convention to a different Gram matrix does not validate or change its numeric
+meaning: a blade labeled `i` need not square to `-1`.
+For custom vector labels, preserve the complete convention's signed references,
+aliases and roles, and explicitly choose any compound names.
+See the [migration recipe](migration-guide.md#migrate-complex-and-quaternion-conventions)
+and [teaching notebook](../../examples/basics/complex_and_quaternions.py).
+
 Both expose immutable tuple storage or read-only mappings.
 
 ### `PresentationConfig`: replace one concern at a time

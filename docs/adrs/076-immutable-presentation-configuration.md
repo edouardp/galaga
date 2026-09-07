@@ -156,6 +156,11 @@ compact keys are configured independently of display styles, and named locals
 replay through explicit symbol environments. `from_convention` is literal
 ASCII-identifier filtering, not prefix rewriting or key sanitization.
 
+[ADR-107](107-public-complex-and-quaternion-convention-contracts.md) preserves
+complex/quaternion convention ownership with independent arithmetic checks.
+These presets describe even subalgebras; blade labels alone neither change
+the metric nor make arbitrary ambient multivectors complex or quaternionic.
+
 ## Superseded legacy behavior
 
 This decision supersedes ADR-028's mutating configuration direction for the

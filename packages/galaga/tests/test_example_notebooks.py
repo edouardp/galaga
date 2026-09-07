@@ -138,6 +138,21 @@ def test_construction_notebook_teaches_metric_derived_sta_names_and_signed_looku
     assert "multiple blades or non-unit coefficients" in source
 
 
+def test_quaternion_notebook_teaches_computed_units_even_grades_and_metric_boundaries() -> None:
+    source = (EXAMPLES / "basics/complex_and_quaternions.py").read_text()
+    assert "_expected_units = (_e2 ^ _e3, _e1 ^ _e3, _e1 ^ _e2)" in source
+    assert "assert (i, j, k) == _expected_units" in source
+    assert "assert i * j == k and j * k == i and k * i == j" in source
+    assert "assert _native == (k, j, i)" in source
+    assert "assert reverse(_z) == conjugate(_z) == 3 - 4 * _i" in source
+    assert "assert _reversed - _conjugated == 10 * _e1" in source
+    assert "_square = _gram[1, 2] ** 2 - _gram[1, 1] * _gram[2, 2]" in source
+    assert "assert _blade * _blade == _square" in source
+    assert "assert _named_i == _blade" in source
+    assert "$${_square_latex!s}.$$" in source
+    assert "the bivectors alone are not closed under multiplication" in source
+
+
 def test_presentation_notebook_teaches_signed_locals_and_explicit_symbol_replay() -> None:
     source = (EXAMPLES / "galaga_v2/presentation_contexts.py").read_text()
     assert "_reverse_plane = _e2 ^ _e1" in source

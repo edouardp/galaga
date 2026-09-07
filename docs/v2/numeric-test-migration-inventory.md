@@ -1144,3 +1144,44 @@ The construction-exemption ledger falls from eight files to seven. Remaining
 mixed legacy suites, namespace/construction guards, engine deletion and final
 release gates are still pending. See
 [ADR-106](../adrs/106-independent-public-local-name-contracts.md).
+
+### Phase 9 follow-through: complex and quaternion convention contracts
+
+All fifteen original class/method identities in `test_quaternion.py` remain
+live on the public facade. The archive `tools/baselines/quaternion-conventions-v1.json`
+preserves the complete source and digest, nineteen observed values in three
+targets, complete quaternion/complex/custom-`xyz` basis tables, signatures
+and legacy presentation-ordered bivectors, with source/runtime provenance.
+
+Use public presets, immutable label replacement, explicit semantic roles
+instead of parsed metric-role text, and signed blade literals with `expr=True`.
+Native enumeration remains `k,j,i` while semantic lookup selects `i,j,k`.
+Custom labels preserve aliases, roles, numeric identity, and independent locals.
+Single-character LaTeX names retain the original regression coverage.
+
+Derive the native Hamilton coordinate embedding from exterior products.
+Independent scalar/dot/cross formulas and Python complex numbers check
+arithmetic, conjugation, inverse, right division and norm in both expression
+modes and all display targets. Noncommuting dense inputs, zeros, scalars,
+pure units and fractional coefficients supplement original examples.
+Grade closure, replay, data shape/finiteness, hashes and rendering stay checked.
+
+Three Gram matrices show why a name does not determine a blade's square.
+Mixed-grade probes distinguish reverse from conjugation outside the even
+subalgebra. Corruption tests reject altered archive data, wrong-side division,
+conjugation substituted for reverse, and display-order numeric enumeration.
+Fresh-process guards forbid the entire legacy engine/rendering import stack.
+
+All 155 focused cases pass with 100% line/branch coverage in the three test
+files. All 143 public cases also pass directly from the built wheel with
+origins verified. Full package/release suites pass 6,113 cases on Python 3.11
+and 6,230 on Python 3.14, including all maintained notebook exports.
+Core/facade coverage, the matrix warning and 295 type errors remain unchanged.
+
+The existing complex/quaternion notebook now computes before naming and
+teaches native order, odd-grade conjugation and a Gram-derived counterexample.
+Generated HTML/TeX is inspected. Runtime code is unchanged; two public
+docstrings are corrected to describe the even subalgebra. The construction
+ledger falls from seven files to six. Low-dimensional/transformation-helper
+and other mixed legacy dependencies remain before engine deletion.
+See [ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md).
