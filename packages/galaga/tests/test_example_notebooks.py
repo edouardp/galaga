@@ -125,6 +125,18 @@ def test_cga_gram_matrix_notebook_connects_metric_geometry_and_compact_matrices(
     assert "automatic_point_matrix = to_matrix(conformal_point)" in source
 
 
+def test_custom_notation_notebook_teaches_unit_fraction_and_target_consistent_reverse() -> None:
+    source = (EXAMPLES / "galaga_v2/custom_functional_notation.py").read_text()
+    assert r'Name.from_latex(r"\hat{B}")' in source
+    assert '"unit", RenderRule("unit_fraction")' in source
+    assert 'display("full/latex", notation=_fraction_notation)' in source
+    assert 'display("expr/latex", notation=Notation.hestenes())' in source
+    assert "assert reverse(_B) == -_B" in source
+    assert 'assert _normalized.expr.operation_id == "unit"' in source
+    assert "non-default normalization tolerance" in source
+    assert "Zero-norm inputs still fail eagerly" in source
+
+
 @pytest.mark.skipif(sys.version_info < (3, 14), reason="Marimo t-strings require Python 3.14")
 def test_migrated_notebooks_pass_marimo_dependency_validation() -> None:
     """Reject invalid cross-cell definitions and dependencies in the gallery."""

@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The notation contracts now also execute without the legacy renderer.
+[ADR-101](101-immutable-notation-contracts-and-unit-fraction-layout.md)
+restores opt-in unit-fraction layout using existing semantic nodes and fixes
+the Hestenes preset's inherited LaTeX tilde override.
+
 The concrete display contracts now execute without the legacy renderer; see
 [ADR-097](097-concrete-display-contracts-outlive-legacy-rendering.md). Their
 historical archive distinguishes retained output from existing v2 differences

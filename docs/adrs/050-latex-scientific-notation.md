@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-050: LaTeX Scientific Notation via LNodes and Notation Setting
 
+This records the v1 configurable style API. V2's semantic emitter retains
+`times` conversion but currently has no `cdot`/`raw` style selector or
+mutable `Notation.scientific`. This limitation is explicitly preserved in
+the notation migration contracts; see
+[ADR-101](101-immutable-notation-contracts-and-unit-fraction-layout.md).
+
 ## Context and Problem Statement
 
 Python's `f"{c:g}"` and `format(c, ".3e")` produce strings like `1.2e-06`.

@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-048: unit_fraction Notation Kind
 
+The v2 equivalent is now `Notation.default().with_rule("unit",
+RenderRule("unit_fraction"))`. It reuses the shared semantic fraction and
+wrapper nodes, keeps unit provenance and eager domain checks, and restricts
+the definition-shaped rule to `unit`. See
+[ADR-101](101-immutable-notation-contracts-and-unit-fraction-layout.md).
+The mutable API below is historical.
+
 ## Context and Problem Statement
 
 The default `unit()` rendering uses a hat accent (`\hat{B}` / `B̂`) for

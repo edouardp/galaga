@@ -22,7 +22,6 @@ LEGACY_ORACLE_TESTS = (
     "test_latex_build.py",
     "test_locals.py",
     "test_low_dim.py",
-    "test_notation.py",
     "test_quaternion.py",
     "test_redesign.py",
     "test_render.py",

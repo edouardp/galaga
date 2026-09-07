@@ -1,0 +1,1271 @@
+{
+  "schema_version": 1,
+  "source_commit": "2174c761ed0bac3cb2744775f5adcadece7dcc3f",
+  "captured_on": "2026-09-07",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_test": "packages/galaga/tests/test_notation.py",
+  "original_tests": [
+    "TestDefaultsExist.test_unicode_rule_exists",
+    "TestDefaultsExist.test_latex_rule_exists",
+    "TestDefaultsExist.test_ascii_rule_exists",
+    "TestAccentDefaults.test_reverse_unicode_atom",
+    "TestAccentDefaults.test_reverse_unicode_fallback",
+    "TestAccentDefaults.test_reverse_latex_atom",
+    "TestAccentDefaults.test_involute_unicode",
+    "TestAccentDefaults.test_conjugate_unicode",
+    "TestAccentDefaults.test_conjugate_latex",
+    "TestPostfixDefaults.test_dual_unicode",
+    "TestPostfixDefaults.test_inverse_unicode",
+    "TestPostfixDefaults.test_squared_unicode",
+    "TestPostfixDefaults.test_dual_latex",
+    "TestPostfixDefaults.test_inverse_latex",
+    "TestPostfixDefaults.test_squared_latex",
+    "TestPrefixDefaults.test_neg_unicode",
+    "TestPrefixDefaults.test_neg_latex",
+    "TestInfixDefaults.test_op_unicode",
+    "TestInfixDefaults.test_op_latex",
+    "TestInfixDefaults.test_add_unicode",
+    "TestInfixDefaults.test_sub_unicode",
+    "TestInfixDefaults.test_lc_unicode",
+    "TestInfixDefaults.test_hi_unicode",
+    "TestInfixDefaults.test_sp_unicode",
+    "TestInfixDefaults.test_div_unicode",
+    "TestJuxtaposition.test_gp_unicode",
+    "TestJuxtaposition.test_gp_latex",
+    "TestWrapDefaults.test_grade_unicode",
+    "TestWrapDefaults.test_norm_unicode",
+    "TestWrapDefaults.test_exp_unicode",
+    "TestWrapDefaults.test_commutator_unicode",
+    "TestWrapDefaults.test_anticommutator_unicode",
+    "TestScalarOps.test_scalar_mul_unicode",
+    "TestScalarOps.test_scalar_div_unicode",
+    "TestOverride.test_override_reverse_unicode",
+    "TestOverride.test_override_does_not_affect_other_formats",
+    "TestOverride.test_override_dual_to_prefix",
+    "TestOverride.test_override_gp_to_infix",
+    "TestOverride.test_set_returns_self",
+    "TestOverride.test_chaining",
+    "TestOverride.test_with_scientific_returns_self",
+    "TestOverride.test_invalid_format_raises",
+    "TestOverride.test_invalid_kind_raises",
+    "TestOverride.test_invalid_scientific_raises",
+    "TestOverride.test_unknown_node_name_accepted",
+    "TestCopy.test_copy_is_independent",
+    "TestPresets.test_default_preset",
+    "TestPresets.test_hestenes_reverse_is_dagger",
+    "TestPresets.test_hestenes_latex_dagger",
+    "TestPresets.test_doran_lasenby_reverse_is_tilde",
+    "TestPresets.test_preset_with_algebra",
+    "TestFunctionStyle.test_wedge_as_function",
+    "TestFunctionStyle.test_reverse_as_function",
+    "TestFunctionStyle.test_function_style_latex",
+    "TestFunctionalPreset.test_gp_unicode",
+    "TestFunctionalPreset.test_gp_latex",
+    "TestFunctionalPreset.test_op_unicode",
+    "TestFunctionalPreset.test_op_latex",
+    "TestFunctionalPreset.test_dli_unicode",
+    "TestFunctionalPreset.test_lc_unicode",
+    "TestFunctionalPreset.test_rc_unicode",
+    "TestFunctionalPreset.test_hi_unicode",
+    "TestFunctionalPreset.test_sp_unicode",
+    "TestFunctionalPreset.test_commutator_unicode",
+    "TestFunctionalPreset.test_anticommutator_unicode",
+    "TestFunctionalPreset.test_lie_bracket_unicode",
+    "TestFunctionalPreset.test_jordan_product_unicode",
+    "TestFunctionalPreset.test_reverse_unicode",
+    "TestFunctionalPreset.test_reverse_latex",
+    "TestFunctionalPreset.test_involute_unicode",
+    "TestFunctionalPreset.test_conjugate_unicode",
+    "TestFunctionalPreset.test_dual_unicode",
+    "TestFunctionalPreset.test_undual_unicode",
+    "TestFunctionalPreset.test_complement_unicode",
+    "TestFunctionalPreset.test_inverse_unicode",
+    "TestFunctionalPreset.test_squared_unicode",
+    "TestFunctionalPreset.test_norm_unicode",
+    "TestFunctionalPreset.test_norm_latex",
+    "TestFunctionalPreset.test_unit_unicode",
+    "TestFunctionalPreset.test_unit_latex",
+    "TestFunctionalPreset.test_exp_unicode",
+    "TestFunctionalPreset.test_exp_latex",
+    "TestFunctionalPreset.test_log_unicode",
+    "TestFunctionalPreset.test_log_latex",
+    "TestFunctionalPreset.test_scalar_sqrt_unicode",
+    "TestFunctionalPreset.test_scalar_sqrt_latex",
+    "TestFunctionalPreset.test_grade_unicode",
+    "TestFunctionalPreset.test_grade_latex",
+    "TestFunctionalPreset.test_even_grades_unicode",
+    "TestFunctionalPreset.test_odd_grades_unicode",
+    "TestFunctionalPreset.test_nested_expression",
+    "TestFunctionalPreset.test_default_not_affected",
+    "TestFunctionalShortPreset.test_gp_unicode",
+    "TestFunctionalShortPreset.test_op_unicode",
+    "TestFunctionalShortPreset.test_lc_unicode",
+    "TestFunctionalShortPreset.test_reverse_short",
+    "TestFunctionalShortPreset.test_gp_latex",
+    "TestUnitFractionNotation.test_unicode",
+    "TestUnitFractionNotation.test_latex",
+    "TestUnitFractionNotation.test_compound_wraps",
+    "TestUnitFractionNotation.test_display_shows_fraction"
+  ],
+  "original_case_count": 239,
+  "signature": [
+    1,
+    1,
+    1
+  ],
+  "inputs": {
+    "a": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "b": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "s": [
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "default_rules": {
+    "Reverse": {
+      "ascii": {
+        "kind": "prefix",
+        "symbol": "~"
+      },
+      "unicode": {
+        "kind": "accent",
+        "combining": "̃",
+        "fallback_prefix": "~"
+      },
+      "latex": {
+        "kind": "accent",
+        "latex_cmd": "\\tilde",
+        "latex_wide_cmd": "\\widetilde"
+      }
+    },
+    "Involute": {
+      "ascii": {
+        "kind": "prefix",
+        "symbol": "inv"
+      },
+      "unicode": {
+        "kind": "accent",
+        "combining": "̂",
+        "fallback_prefix": "inv"
+      },
+      "latex": {
+        "kind": "accent",
+        "latex_cmd": "\\hat",
+        "latex_wide_cmd": "\\widehat"
+      }
+    },
+    "Conjugate": {
+      "ascii": {
+        "kind": "prefix",
+        "symbol": "conj"
+      },
+      "unicode": {
+        "kind": "accent",
+        "combining": "̄",
+        "fallback_prefix": "conj"
+      },
+      "latex": {
+        "kind": "accent",
+        "latex_cmd": "\\bar",
+        "latex_wide_cmd": "\\overline"
+      }
+    },
+    "Dual": {
+      "ascii": {
+        "kind": "postfix",
+        "symbol": "*"
+      },
+      "unicode": {
+        "kind": "postfix",
+        "symbol": "⋆"
+      },
+      "latex": {
+        "kind": "postfix",
+        "symbol": "^*"
+      }
+    },
+    "Undual": {
+      "ascii": {
+        "kind": "postfix",
+        "symbol": "*^-1"
+      },
+      "unicode": {
+        "kind": "postfix",
+        "symbol": "⋆⁻¹"
+      },
+      "latex": {
+        "kind": "postfix",
+        "symbol": "^{*^{-1}}"
+      }
+    },
+    "Inverse": {
+      "ascii": {
+        "kind": "postfix",
+        "symbol": "^-1"
+      },
+      "unicode": {
+        "kind": "postfix",
+        "symbol": "⁻¹"
+      },
+      "latex": {
+        "kind": "postfix",
+        "symbol": "^{-1}"
+      }
+    },
+    "Squared": {
+      "ascii": {
+        "kind": "postfix",
+        "symbol": "^2"
+      },
+      "unicode": {
+        "kind": "postfix",
+        "symbol": "²"
+      },
+      "latex": {
+        "kind": "postfix",
+        "symbol": "^2"
+      }
+    },
+    "Neg": {
+      "ascii": {
+        "kind": "prefix",
+        "symbol": "-"
+      },
+      "unicode": {
+        "kind": "prefix",
+        "symbol": "-"
+      },
+      "latex": {
+        "kind": "prefix",
+        "symbol": "-"
+      }
+    },
+    "ScalarMul": {
+      "ascii": {
+        "kind": "prefix"
+      },
+      "unicode": {
+        "kind": "prefix"
+      },
+      "latex": {
+        "kind": "prefix"
+      }
+    },
+    "ScalarDiv": {
+      "ascii": {
+        "kind": "postfix",
+        "symbol": "/"
+      },
+      "unicode": {
+        "kind": "postfix",
+        "symbol": "/"
+      },
+      "latex": {
+        "kind": "postfix",
+        "symbol": "/"
+      }
+    },
+    "Gp": {
+      "ascii": {
+        "kind": "juxtaposition"
+      },
+      "unicode": {
+        "kind": "juxtaposition"
+      },
+      "latex": {
+        "kind": "juxtaposition",
+        "separator": " "
+      }
+    },
+    "Op": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "^"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "∧"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\wedge "
+      }
+    },
+    "Lc": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "_|"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "⌋"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\;\\lrcorner\\; "
+      }
+    },
+    "Rc": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "|_"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "⌊"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\;\\llcorner\\; "
+      }
+    },
+    "Hi": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "."
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "·"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\cdot "
+      }
+    },
+    "Dli": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "."
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "·"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\cdot "
+      }
+    },
+    "Sp": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "*"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "∗"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " * "
+      }
+    },
+    "MetricInnerProduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "metric_inner_product"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "metric_inner_product"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "metric_inner_product"
+      }
+    },
+    "AntidotProduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "antidot_product"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "antidot_product"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "antidot_product"
+      }
+    },
+    "GeometricAntiproduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "geometric_antiproduct"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "geometric_antiproduct"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "geometric_antiproduct"
+      }
+    },
+    "LeftInteriorProduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "left_interior_product"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "left_interior_product"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "left_interior_product"
+      }
+    },
+    "RightInteriorProduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "right_interior_product"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "right_interior_product"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "right_interior_product"
+      }
+    },
+    "Transwedge": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "transwedge"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "transwedge"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "transwedge"
+      }
+    },
+    "TranswedgeAntiproduct": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "transwedge_antiproduct"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "transwedge_antiproduct"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "transwedge_antiproduct"
+      }
+    },
+    "Div": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "/"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "/"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": "/"
+      }
+    },
+    "Regressive": {
+      "ascii": {
+        "kind": "infix",
+        "separator": "v"
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": "∨"
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " \\vee "
+      }
+    },
+    "Add": {
+      "ascii": {
+        "kind": "infix",
+        "separator": " + "
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": " + "
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " + "
+      }
+    },
+    "Sub": {
+      "ascii": {
+        "kind": "infix",
+        "separator": " - "
+      },
+      "unicode": {
+        "kind": "infix",
+        "separator": " - "
+      },
+      "latex": {
+        "kind": "infix",
+        "separator": " - "
+      }
+    },
+    "Grade": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "<",
+        "close": ">"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "⟨",
+        "close": "⟩"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\langle ",
+        "close": " \\rangle"
+      }
+    },
+    "Norm": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "||",
+        "close": "||"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "‖",
+        "close": "‖"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\lVert ",
+        "close": " \\rVert"
+      }
+    },
+    "Unit": {
+      "ascii": {
+        "kind": "accent",
+        "symbol": ")",
+        "fallback_prefix": "unit("
+      },
+      "unicode": {
+        "kind": "accent",
+        "symbol": "/",
+        "combining": "̂"
+      },
+      "latex": {
+        "kind": "accent",
+        "latex_cmd": "\\hat",
+        "latex_wide_cmd": "\\widehat"
+      }
+    },
+    "Exp": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "exp(",
+        "close": ")"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "exp(",
+        "close": ")"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "e^{",
+        "close": "}"
+      }
+    },
+    "Even": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "⟨",
+        "close": "⟩₊"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "⟨",
+        "close": "⟩₊"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\langle ",
+        "close": " \\rangle_{\\text{even}}"
+      }
+    },
+    "Odd": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "⟨",
+        "close": "⟩₋"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "⟨",
+        "close": "⟩₋"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\langle ",
+        "close": " \\rangle_{\\text{odd}}"
+      }
+    },
+    "Commutator": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "[",
+        "close": "]"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "[",
+        "close": "]"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "[",
+        "close": "]"
+      }
+    },
+    "Anticommutator": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "{",
+        "close": "}"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "{",
+        "close": "}"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\{",
+        "close": "\\}"
+      }
+    },
+    "LieBracket": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "½[",
+        "close": "]"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "½[",
+        "close": "]"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\tfrac{1}{2}[",
+        "close": "]"
+      }
+    },
+    "JordanProduct": {
+      "ascii": {
+        "kind": "wrap",
+        "open": "½{",
+        "close": "}"
+      },
+      "unicode": {
+        "kind": "wrap",
+        "open": "½{",
+        "close": "}"
+      },
+      "latex": {
+        "kind": "wrap",
+        "open": "\\tfrac{1}{2}\\{",
+        "close": "\\}"
+      }
+    },
+    "MetricApply": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "metric_apply"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "metric_apply"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "metric_apply"
+      }
+    },
+    "AntimetricApply": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "antimetric_apply"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "antimetric_apply"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "antimetric_apply"
+      }
+    },
+    "BulkPart": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "bulk_part"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "bulk_part"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "bulk_part"
+      }
+    },
+    "WeightPart": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "weight_part"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "weight_part"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "weight_part"
+      }
+    },
+    "RightHodgeDual": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "right_hodge_dual"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "right_hodge_dual"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "right_hodge_dual"
+      }
+    },
+    "LeftHodgeDual": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "left_hodge_dual"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "left_hodge_dual"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "left_hodge_dual"
+      }
+    },
+    "RightWeightDual": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "right_weight_dual"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "right_weight_dual"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "right_weight_dual"
+      }
+    },
+    "LeftWeightDual": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "left_weight_dual"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "left_weight_dual"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "left_weight_dual"
+      }
+    },
+    "Antireverse": {
+      "ascii": {
+        "kind": "function",
+        "symbol": "antireverse"
+      },
+      "unicode": {
+        "kind": "function",
+        "symbol": "antireverse"
+      },
+      "latex": {
+        "kind": "function",
+        "symbol": "antireverse"
+      }
+    }
+  },
+  "functional_values": {
+    "geometric_product": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "geometric_product(a, b)",
+      "latex": "\\operatorname{geometric\\_product}(a,\\, b)"
+    },
+    "outer_product": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "outer_product(a, b)",
+      "latex": "\\operatorname{outer\\_product}(a,\\, b)"
+    },
+    "doran_lasenby_inner": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "doran_lasenby_inner(a, b)",
+      "latex": "\\operatorname{doran\\_lasenby\\_inner}(a,\\, b)"
+    },
+    "left_contraction": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "left_contraction(a, b)",
+      "latex": "\\operatorname{left\\_contraction}(a,\\, b)"
+    },
+    "right_contraction": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "right_contraction(a, b)",
+      "latex": "\\operatorname{right\\_contraction}(a,\\, b)"
+    },
+    "hestenes_inner": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "hestenes_inner(a, b)",
+      "latex": "\\operatorname{hestenes\\_inner}(a,\\, b)"
+    },
+    "scalar_product": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "scalar_product(a, b)",
+      "latex": "\\operatorname{scalar\\_product}(a,\\, b)"
+    },
+    "commutator": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "commutator(a, b)",
+      "latex": "\\operatorname{commutator}(a,\\, b)"
+    },
+    "anticommutator": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "anticommutator(a, b)",
+      "latex": "\\operatorname{anticommutator}(a,\\, b)"
+    },
+    "lie_bracket": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "lie_bracket(a, b)",
+      "latex": "\\operatorname{lie\\_bracket}(a,\\, b)"
+    },
+    "jordan_product": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "jordan_product(a, b)",
+      "latex": "\\operatorname{jordan\\_product}(a,\\, b)"
+    },
+    "reverse": {
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "reverse(a)",
+      "latex": "\\operatorname{reverse}(a)"
+    },
+    "grade_involution": {
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "involute(a)",
+      "latex": "\\operatorname{involute}(a)"
+    },
+    "conjugate": {
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "conjugate(a)",
+      "latex": "\\operatorname{conjugate}(a)"
+    },
+    "dual": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "unicode": "dual(a)",
+      "latex": "\\operatorname{dual}(a)"
+    },
+    "undual": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "unicode": "undual(a)",
+      "latex": "\\operatorname{undual}(a)"
+    },
+    "complement": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "unicode": "complement(a)",
+      "latex": "\\operatorname{complement}(a)"
+    },
+    "inverse": {
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "inverse(a)",
+      "latex": "\\operatorname{inverse}(a)"
+    },
+    "squared": {
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "squared(a)",
+      "latex": "\\operatorname{squared}(a)"
+    },
+    "norm": {
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "norm(a)",
+      "latex": "\\operatorname{norm}(a)"
+    },
+    "unit": {
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "unit(a)",
+      "latex": "\\operatorname{unit}(a)"
+    },
+    "exp": {
+      "coefficients": [
+        0.5403023058681398,
+        0,
+        0,
+        0.8414709848078965,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "exp(outer_product(a, b))",
+      "latex": "\\operatorname{exp}(\\operatorname{outer\\_product}(a,\\, b))"
+    },
+    "log": {
+      "coefficients": [
+        0,
+        1.5707963267948966,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "log(a)",
+      "latex": "\\operatorname{log}(a)"
+    },
+    "scalar_sqrt": {
+      "coefficients": [
+        1.4142135623730951,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "scalar_sqrt(s)",
+      "latex": "\\operatorname{scalar\\_sqrt}(s)"
+    },
+    "grade": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "grade(geometric_product(a, b), 1)",
+      "latex": "\\operatorname{grade}(\\operatorname{geometric\\_product}(a,\\, b),\\, 1)"
+    },
+    "even_grades": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "even_grades(a)",
+      "latex": "\\operatorname{even\\_grades}(a)"
+    },
+    "odd_grades": {
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "odd_grades(a)",
+      "latex": "\\operatorname{odd\\_grades}(a)"
+    },
+    "nested": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "grade(geometric_product(a, reverse(b)), 1)",
+      "latex": "\\operatorname{grade}(\\operatorname{geometric\\_product}(a,\\, \\operatorname{reverse}(b)),\\, 1)"
+    }
+  },
+  "unit_fraction": {
+    "bivector": {
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "B/‖B‖",
+      "latex": "\\frac{B}{\\lVert B \\rVert}"
+    },
+    "sum": {
+      "coefficients": [
+        0,
+        0.7071067811865475,
+        0.7071067811865475,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "(a + b)/‖a + b‖",
+      "latex": "\\frac{\\left(a + b\\right)}{\\lVert a + b \\rVert}"
+    },
+    "full_latex": "\\hat{B} \\quad = \\quad \\frac{B}{\\lVert B \\rVert} \\quad = \\quad e_{12}"
+  },
+  "scientific_styles": {
+    "times": "1.25 \\times 10^{-7}",
+    "cdot": "1.25 \\cdot 10^{-7}",
+    "raw": "1.25e-07"
+  },
+  "scientific_input": 1.25e-7
+}

@@ -134,8 +134,11 @@ half-scaling and structural-simplification boundaries. The ledgered `bar`,
 `dag`, `inv`, and `sq` properties are implemented as read-only canonical
 delegates. Symbol conversion now uses `galaga.names` and the explicit
 `Name.from_latex` factory, retaining all 108 original tests and correcting
-font mappings with exhaustive Unicode checks. Fresh-process tests block
-legacy imports in all ten paths.
+font mappings with exhaustive Unicode checks. Notation contracts now use
+immutable public rules, preserve evidence for all 239 original cases, restore
+unit-fraction teaching layout, and fix the Hestenes preset's LaTeX dagger.
+The custom-notation notebook demonstrates both presentation capabilities.
+Fresh-process tests block legacy imports in all eleven paths.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
 
@@ -146,9 +149,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 13 files. Next are the remaining
-notation and mixed legacy suites, followed by namespace/construction guards.
-See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md)
+The construction-only legacy ledger is down to 12 files. Next are the remaining
+rendering and mixed legacy suites, followed by namespace/construction guards.
+See [ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

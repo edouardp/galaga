@@ -114,6 +114,7 @@ helps future contributors understand why certain choices were made.
 | [098](098-expression-contracts-outlive-legacy-provenance.md) | Expression Contracts Outlive Legacy Provenance | Accepted |
 | [099](099-symbolic-contracts-and-curated-unary-properties.md) | Symbolic Contracts and Curated Unary Properties | Accepted |
 | [100](100-explicit-bounded-latex-name-conversion.md) | Explicit Bounded LaTeX Name Conversion | Accepted |
+| [101](101-immutable-notation-contracts-and-unit-fraction-layout.md) | Immutable Notation Contracts and Unit-Fraction Layout | Accepted |
 
 ## Creating New ADRs
 

@@ -1,803 +1,454 @@
-"""Tests for the Notation class — write first, implement to pass."""
+"""Public notation contracts with captured legacy ownership and observations."""
 
+import json
+from dataclasses import FrozenInstanceError
+from pathlib import Path
+
+import numpy as np
 import pytest
 
-from galaga.legacy import (
-    Algebra,
-    anticommutator,
-    commutator,
-    complement,
-    conjugate,
-    dual,
-    even_grades,
-    exp,
-    grade,
-    hestenes_inner,
-    inverse,
-    involute,
-    jordan_product,
-    left_contraction,
-    lie_bracket,
-    log,
-    norm,
-    odd_grades,
-    reverse,
-    right_contraction,
-    scalar_product,
-    scalar_sqrt,
-    squared,
-    undual,
-    unit,
+import galaga as ga
+from galaga.expression import Call, Symbol, evaluate
+
+ARCHIVE = json.loads((Path(__file__).parents[1] / "tools/baselines/notation-contracts-v1.json").read_text())
+TARGETS = ("ascii", "unicode", "latex")
+
+# V1 node class names are evidence keys only. Div is now gp(a, inverse(b)),
+# not a new or aliased division operation in the v2 catalog.
+OLD_NODE_OPERATIONS = {
+    "Reverse": "reverse",
+    "Involute": "grade_involution",
+    "Conjugate": "conjugate",
+    "Dual": "dual",
+    "Undual": "undual",
+    "Inverse": "inverse",
+    "Squared": "squared",
+    "Neg": "negate",
+    "ScalarMul": "scalar_multiply",
+    "ScalarDiv": "scalar_divide",
+    "Gp": "geometric_product",
+    "Op": "outer_product",
+    "Lc": "left_contraction",
+    "Rc": "right_contraction",
+    "Hi": "hestenes_inner",
+    "Dli": "doran_lasenby_inner",
+    "Sp": "scalar_product",
+    "MetricInnerProduct": "metric_inner_product",
+    "AntidotProduct": "antidot_product",
+    "GeometricAntiproduct": "geometric_antiproduct",
+    "LeftInteriorProduct": "left_interior_product",
+    "RightInteriorProduct": "right_interior_product",
+    "Transwedge": "transwedge",
+    "TranswedgeAntiproduct": "transwedge_antiproduct",
+    "Div": "geometric_product",
+    "Regressive": "regressive_product",
+    "Add": "add",
+    "Sub": "subtract",
+    "Grade": "grade",
+    "Norm": "norm",
+    "Unit": "unit",
+    "Exp": "exp",
+    "Even": "even_grades",
+    "Odd": "odd_grades",
+    "Commutator": "commutator",
+    "Anticommutator": "anticommutator",
+    "LieBracket": "lie_bracket",
+    "JordanProduct": "jordan_product",
+    "MetricApply": "metric_apply",
+    "AntimetricApply": "antimetric_apply",
+    "BulkPart": "bulk_part",
+    "WeightPart": "weight_part",
+    "RightHodgeDual": "right_hodge_dual",
+    "LeftHodgeDual": "left_hodge_dual",
+    "RightWeightDual": "right_weight_dual",
+    "LeftWeightDual": "left_weight_dual",
+    "Antireverse": "antireverse",
+}
+
+# Reviewed v2 output in target order: ASCII, Unicode, LaTeX.
+DEFAULT_RENDERINGS = {
+    "Reverse": ("~a", "ã", "\\widetilde{a}"),
+    "Involute": ("hat(a)", "â", "\\widehat{a}"),
+    "Conjugate": ("bar(a)", "a̅", "\\overline{a}"),
+    "Dual": ("a^*", "a^★", "a^*"),
+    "Undual": ("a^*^-1", "a^(★⁻¹)", "a^{*^{-1}}"),
+    "Inverse": ("a^-1", "a⁻¹", "a^{-1}"),
+    "Squared": ("a^2", "a²", "a^2"),
+    "Neg": ("-a", "-a", "-a"),
+    "ScalarMul": ("2a", "2a", "2 a"),
+    "ScalarDiv": ("a / 2", "a / 2", "\\frac{a}{2}"),
+    "Gp": ("ab", "ab", "a b"),
+    "Op": ("a ^ b", "a ∧ b", "a \\wedge b"),
+    "Lc": ("a _| b", "a ⌋ b", "a \\mathbin{\\rfloor} b"),
+    "Rc": ("a |_ b", "a ⌊ b", "a \\mathbin{\\lfloor} b"),
+    "Hi": ("hestenes_inner(a, b)", "hestenes_inner(a, b)", "a \\cdot b"),
+    "Dli": ("a | b", "a · b", "a \\cdot b"),
+    "Sp": ("a * b", "a * b", "a * b"),
+    "MetricInnerProduct": (
+        "metric_inner_product(a, b)",
+        "metric_inner_product(a, b)",
+        "\\operatorname{metric\\_inner\\_product}(a,\\, b)",
+    ),
+    "AntidotProduct": ("antidot_product(a, b)", "antidot_product(a, b)", "\\operatorname{antidot\\_product}(a,\\, b)"),
+    "GeometricAntiproduct": (
+        "geometric_antiproduct(a, b)",
+        "geometric_antiproduct(a, b)",
+        "\\operatorname{geometric\\_antiproduct}(a,\\, b)",
+    ),
+    "LeftInteriorProduct": (
+        "left_interior_product(a, b)",
+        "left_interior_product(a, b)",
+        "\\operatorname{left\\_interior\\_product}(a,\\, b)",
+    ),
+    "RightInteriorProduct": (
+        "right_interior_product(a, b)",
+        "right_interior_product(a, b)",
+        "\\operatorname{right\\_interior\\_product}(a,\\, b)",
+    ),
+    "Transwedge": ("transwedge(a, b, 1)", "transwedge(a, b, 1)", "\\operatorname{transwedge}(a,\\, b,\\, 1)"),
+    "TranswedgeAntiproduct": (
+        "transwedge_antiproduct(a, b, 1)",
+        "transwedge_antiproduct(a, b, 1)",
+        "\\operatorname{transwedge\\_antiproduct}(a,\\, b,\\, 1)",
+    ),
+    "Div": ("ab^-1", "ab⁻¹", "a b^{-1}"),
+    "Regressive": ("a vee b", "a ∨ b", "a \\vee b"),
+    "Add": ("a + b", "a + b", "a + b"),
+    "Sub": ("a - b", "a - b", "a - b"),
+    "Grade": ("<a>[1]", "⟨a⟩₁", "\\langle a \\rangle_{1}"),
+    "Norm": ("||a||", "‖a‖", "\\lVert a \\rVert"),
+    "Unit": ("hat(a)", "â", "\\widehat{a}"),
+    "Exp": ("exp(a)", "exp(a)", "e^{a}"),
+    "Even": ("<a>even", "⟨a⟩₊", "\\langle a \\rangle_{\\text{even}}"),
+    "Odd": ("<a>odd", "⟨a⟩₋", "\\langle a \\rangle_{\\text{odd}}"),
+    "Commutator": ("[a, b]", "[a, b]", "[a,\\, b]"),
+    "Anticommutator": ("{a, b}", "{a, b}", "\\{a,\\, b\\}"),
+    "LieBracket": ("[a, b]", "[a, b]", "[a,\\, b]"),
+    "JordanProduct": ("{a, b}", "{a, b}", "\\{a,\\, b\\}"),
+    "MetricApply": ("metric_apply(a)", "metric_apply(a)", "\\operatorname{metric\\_apply}(a)"),
+    "AntimetricApply": ("antimetric_apply(a)", "antimetric_apply(a)", "\\operatorname{antimetric\\_apply}(a)"),
+    "BulkPart": ("bulk_part(a)", "bulk_part(a)", "\\operatorname{bulk\\_part}(a)"),
+    "WeightPart": ("weight_part(a)", "weight_part(a)", "\\operatorname{weight\\_part}(a)"),
+    "RightHodgeDual": ("right_hodge_dual(a)", "right_hodge_dual(a)", "\\operatorname{right\\_hodge\\_dual}(a)"),
+    "LeftHodgeDual": ("left_hodge_dual(a)", "left_hodge_dual(a)", "\\operatorname{left\\_hodge\\_dual}(a)"),
+    "RightWeightDual": ("right_weight_dual(a)", "right_weight_dual(a)", "\\operatorname{right\\_weight\\_dual}(a)"),
+    "LeftWeightDual": ("left_weight_dual(a)", "left_weight_dual(a)", "\\operatorname{left\\_weight\\_dual}(a)"),
+    "Antireverse": ("antireverse(a)", "antireverse(a)", "\\operatorname{antireverse}(a)"),
+}
+
+RECIPES = {
+    "geometric_product": lambda a, b, s: a * b,
+    "outer_product": lambda a, b, s: a ^ b,
+    "doran_lasenby_inner": lambda a, b, s: a | b,
+    "left_contraction": lambda a, b, s: ga.left_contraction(a, b),
+    "right_contraction": lambda a, b, s: ga.right_contraction(a, b),
+    "hestenes_inner": lambda a, b, s: ga.hestenes_inner(a, b),
+    "scalar_product": lambda a, b, s: ga.scalar_product(a, b),
+    "commutator": lambda a, b, s: ga.commutator(a, b),
+    "anticommutator": lambda a, b, s: ga.anticommutator(a, b),
+    "lie_bracket": lambda a, b, s: ga.lie_bracket(a, b),
+    "jordan_product": lambda a, b, s: ga.jordan_product(a, b),
+    "reverse": lambda a, b, s: ga.reverse(a),
+    "grade_involution": lambda a, b, s: ga.grade_involution(a),
+    "conjugate": lambda a, b, s: ga.conjugate(a),
+    "dual": lambda a, b, s: ga.dual(a),
+    "undual": lambda a, b, s: ga.undual(a),
+    "complement": lambda a, b, s: ga.complement(a),
+    "inverse": lambda a, b, s: ga.inverse(a),
+    "squared": lambda a, b, s: ga.squared(a),
+    "norm": lambda a, b, s: ga.norm(a),
+    "unit": lambda a, b, s: ga.unit(a),
+    "exp": lambda a, b, s: ga.exp(a ^ b),
+    "scalar_sqrt": lambda a, b, s: ga.scalar_sqrt(s),
+    "grade": lambda a, b, s: ga.grade(a * b, 1),
+    "even_grades": lambda a, b, s: ga.even_grades(a),
+    "odd_grades": lambda a, b, s: ga.odd_grades(a),
+    "nested": lambda a, b, s: ga.grade(a * ga.reverse(b), 1),
+}
+
+FUNCTIONAL_LATEX = {
+    "geometric_product": "\\operatorname{geometric\\_product}\\left(a, b\\right)",
+    "outer_product": "\\operatorname{outer\\_product}\\left(a, b\\right)",
+    "doran_lasenby_inner": "\\operatorname{doran\\_lasenby\\_inner}\\left(a, b\\right)",
+    "left_contraction": "\\operatorname{left\\_contraction}\\left(a, b\\right)",
+    "right_contraction": "\\operatorname{right\\_contraction}\\left(a, b\\right)",
+    "hestenes_inner": "\\operatorname{hestenes\\_inner}\\left(a, b\\right)",
+    "scalar_product": "\\operatorname{scalar\\_product}\\left(a, b\\right)",
+    "commutator": "\\operatorname{commutator}\\left(a, b\\right)",
+    "anticommutator": "\\operatorname{anticommutator}\\left(a, b\\right)",
+    "lie_bracket": "\\operatorname{lie\\_bracket}\\left(a, b\\right)",
+    "jordan_product": "\\operatorname{jordan\\_product}\\left(a, b\\right)",
+    "reverse": "\\operatorname{reverse}\\left(a\\right)",
+    "grade_involution": "\\operatorname{grade\\_involution}\\left(a\\right)",
+    "conjugate": "\\operatorname{conjugate}\\left(a\\right)",
+    "dual": "\\operatorname{dual}\\left(a\\right)",
+    "undual": "\\operatorname{undual}\\left(a\\right)",
+    "complement": "\\operatorname{complement}\\left(a\\right)",
+    "inverse": "\\operatorname{inverse}\\left(a\\right)",
+    "squared": "\\operatorname{squared}\\left(a\\right)",
+    "norm": "\\operatorname{norm}\\left(a\\right)",
+    "unit": "\\operatorname{unit}\\left(a\\right)",
+    "exp": "\\operatorname{exp}\\left(\\operatorname{outer\\_product}\\left(a, b\\right)\\right)",
+    "scalar_sqrt": "\\operatorname{scalar\\_sqrt}\\left(s\\right)",
+    "grade": "\\operatorname{grade}\\left(\\operatorname{geometric\\_product}\\left(a, b\\right), 1\\right)",
+    "even_grades": "\\operatorname{even\\_grades}\\left(a\\right)",
+    "odd_grades": "\\operatorname{odd\\_grades}\\left(a\\right)",
+    "nested": "\\operatorname{grade}\\left(\\operatorname{geometric\\_product}\\left(a, \\operatorname{reverse}\\left(b\\right)\\right), 1\\right)",
+}
+
+
+def _default_expression(old_node):
+    operation_id = OLD_NODE_OPERATIONS[old_node]
+    if old_node == "Div":
+        return Call("geometric_product", (Symbol("a"), Call("inverse", (Symbol("b"),))))
+    spec = ga.get_operation(operation_id)
+    operands = tuple(Symbol(name) for name in "ab"[: spec.expression_arity])
+    parameters = {
+        parameter.name: {"scalar": 2, "target": 1, "order": 1}[parameter.name]
+        for parameter in spec.parameters
+        if parameter.required
+    }
+    return Call(operation_id, operands, parameters)
+
+
+def _context(notation):
+    algebra = ga.Algebra(3, notation=notation)
+    a, b, _ = (value.named(name) for value, name in zip(algebra.basis_vectors(), "abc", strict=True))
+    return algebra, a, b, algebra.scalar(2).named("s")
+
+
+def _assert_coefficients(actual, expected):
+    actual, expected = np.asarray(actual), np.asarray(expected)
+    assert actual.shape == expected.shape, "coefficient shape changed"
+    assert np.isfinite(actual).all() and np.isfinite(expected).all(), "nonfinite coefficients"
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-12)
+
+
+@pytest.mark.parametrize("old_node", OLD_NODE_OPERATIONS)
+@pytest.mark.parametrize("index, target", tuple(enumerate(TARGETS)))
+def test_default_notation_retains_reviewed_output_for_every_historical_node(old_node, index, target):
+    expression = _default_expression(old_node)
+    assert (
+        ga.render(expression, target=target, presentation=ga.Algebra(3).presentation)
+        == DEFAULT_RENDERINGS[old_node][index]
+    )
+    assert expression == _default_expression(old_node)
+
+
+@pytest.mark.parametrize("case_id", RECIPES)
+@pytest.mark.parametrize("target", TARGETS)
+def test_functional_notation_preserves_history_replay_and_canonical_operation_names(case_id, target):
+    algebra, a, b, s = _context(ga.Notation.functional())
+    result = RECIPES[case_id](a, b, s)
+    expression, data, before_hash = result.expr, result.data.copy(), hash(result)
+    history = ARCHIVE["functional_values"][case_id]
+    # V2 deliberately uses unscaled Lie/Jordan products (ADR-099).
+    scale = 2 if case_id in {"lie_bracket", "jordan_product"} else 1
+    expected = scale * np.asarray(history["coefficients"])
+    _assert_coefficients(data, expected)
+    _assert_coefficients(evaluate(expression, algebra=algebra, environment={"a": a, "b": b, "s": s}).data, expected)
+    text = "grade_involution(a)" if case_id == "grade_involution" else history["unicode"]
+    expected_text = FUNCTIONAL_LATEX[case_id] if target == "latex" else text
+    assert result.display(f"expr/{target}") == expected_text
+    assert result.expr is expression and hash(result) == before_hash
+    np.testing.assert_array_equal(result.data, data)
+
+
+def test_log_symbol_can_render_without_accepting_the_legacy_vector_logarithm():
+    algebra, a, _, _ = _context(ga.Notation.functional())
+    expression = Call("log", (Symbol("a"),))
+    assert (
+        ga.render(expression, target="unicode", presentation=algebra.presentation)
+        == ARCHIVE["functional_values"]["log"]["unicode"]
+    )
+    assert (
+        ga.render(expression, target="latex", presentation=algebra.presentation) == r"\operatorname{log}\left(a\right)"
+    )
+    with pytest.raises(ValueError, match="normalized rotor"):
+        ga.log(a)
+    with pytest.raises(ValueError, match="normalized rotor"):
+        evaluate(expression, algebra=algebra, environment={"a": a})
+    # The old pi/2 times a result is not a logarithm of this positive-square
+    # vector: exponentiating it fails the defining round-trip identity.
+    legacy_log = algebra.multivector(ARCHIVE["functional_values"]["log"]["coefficients"])
+    assert not ga.exp(legacy_log).almost_equal(a)
+
+
+@pytest.mark.parametrize("target", TARGETS)
+def test_log_of_a_valid_rotor_retains_functional_notation_and_numeric_meaning(target):
+    algebra, a, b, _ = _context(ga.Notation.functional())
+    bivector = a.unnamed() ^ b.unnamed()
+    assert float(bivector * bivector) == -np.linalg.det(algebra.gram[:2, :2])
+    rotor = (np.cos(0.4) + np.sin(0.4) * bivector).named("R")
+    result = ga.log(rotor)
+    _assert_coefficients(result.data, 0.4 * bivector.data)
+    _assert_coefficients(evaluate(result.expr, algebra=algebra, environment={"R": rotor}).data, result.data)
+    expected = r"\operatorname{log}\left(R\right)" if target == "latex" else "log(R)"
+    assert result.display(f"expr/{target}") == expected
+
+
+@pytest.mark.parametrize(
+    "preset, expected",
+    (
+        (ga.Notation.default, ("~a", "ã", r"\widetilde{a}")),
+        (ga.Notation.doran_lasenby, ("~a", "ã", r"\widetilde{a}")),
+        (ga.Notation.hestenes, ("adag", "a†", r"a^{\dagger}")),
+    ),
 )
-from galaga.notation import Notation, NotationRule
-
-
-@pytest.fixture
-def n():
-    return Notation()
-
-
-# ============================================================
-# Default rules exist for all node types
-# ============================================================
-
-
-class TestDefaultsExist:
-    """Every node type has rules for all three formats."""
-
-    NODE_TYPES = [
-        "Reverse",
-        "Involute",
-        "Conjugate",
-        "Dual",
-        "Undual",
-        "Inverse",
-        "Squared",
-        "Neg",
-        "ScalarMul",
-        "ScalarDiv",
-        "Gp",
-        "Op",
-        "Lc",
-        "Rc",
-        "Hi",
-        "Dli",
-        "Sp",
-        "MetricInnerProduct",
-        "AntidotProduct",
-        "GeometricAntiproduct",
-        "LeftInteriorProduct",
-        "RightInteriorProduct",
-        "Transwedge",
-        "TranswedgeAntiproduct",
-        "Div",
-        "Regressive",
-        "Add",
-        "Sub",
-        "Grade",
-        "Norm",
-        "Unit",
-        "Exp",
-        "Even",
-        "Odd",
-        "Commutator",
-        "Anticommutator",
-        "LieBracket",
-        "JordanProduct",
-        "MetricApply",
-        "AntimetricApply",
-        "BulkPart",
-        "WeightPart",
-        "RightHodgeDual",
-        "LeftHodgeDual",
-        "RightWeightDual",
-        "LeftWeightDual",
-        "Antireverse",
-    ]
-
-    @pytest.mark.parametrize("name", NODE_TYPES)
-    def test_unicode_rule_exists(self, n, name):
-        """Every node type has a unicode rule."""
-        assert n.get(name, "unicode") is not None
-
-    @pytest.mark.parametrize("name", NODE_TYPES)
-    def test_latex_rule_exists(self, n, name):
-        """Every node type has a latex rule."""
-        assert n.get(name, "latex") is not None
-
-    @pytest.mark.parametrize("name", NODE_TYPES)
-    def test_ascii_rule_exists(self, n, name):
-        """Every node type has an ascii rule."""
-        assert n.get(name, "ascii") is not None
-
-
-# ============================================================
-# Accent rules (reverse, involute, conjugate)
-# ============================================================
-
-
-class TestAccentDefaults:
-    def test_reverse_unicode_atom(self, n):
-        """Reverse uses combining tilde accent."""
-        r = n.get("Reverse", "unicode")
-        assert r.kind == "accent"
-        assert r.combining == "\u0303"
-
-    def test_reverse_unicode_fallback(self, n):
-        """Reverse falls back to ~ prefix for compounds."""
-        r = n.get("Reverse", "unicode")
-        assert r.fallback_prefix == "~"
-
-    def test_reverse_latex_atom(self, n):
-        """Reverse uses \tilde / \\widetilde in LaTeX."""
-        r = n.get("Reverse", "latex")
-        assert r.kind == "accent"
-        assert r.latex_cmd == r"\tilde"
-        assert r.latex_wide_cmd == r"\widetilde"
-
-    def test_involute_unicode(self, n):
-        """Involute uses combining circumflex."""
-        r = n.get("Involute", "unicode")
-        assert r.kind == "accent"
-        assert r.combining == "\u0302"
-
-    def test_conjugate_unicode(self, n):
-        """Conjugate uses combining overline."""
-        r = n.get("Conjugate", "unicode")
-        assert r.kind == "accent"
-        assert r.combining == "\u0304"
-
-    def test_conjugate_latex(self, n):
-        """Conjugate uses \bar / \\overline in LaTeX."""
-        r = n.get("Conjugate", "latex")
-        assert r.latex_cmd == r"\bar"
-        assert r.latex_wide_cmd == r"\overline"
-
-
-# ============================================================
-# Postfix rules (dual, inverse, squared, undual)
-# ============================================================
-
-
-class TestPostfixDefaults:
-    def test_dual_unicode(self, n):
-        """Dual renders as postfix ⋆."""
-        r = n.get("Dual", "unicode")
-        assert r.kind == "postfix"
-        assert r.symbol == "⋆"
-
-    def test_inverse_unicode(self, n):
-        """Inverse renders as postfix ⁻¹."""
-        r = n.get("Inverse", "unicode")
-        assert r.kind == "postfix"
-        assert r.symbol == "⁻¹"
-
-    def test_squared_unicode(self, n):
-        """Squared renders as postfix ²."""
-        r = n.get("Squared", "unicode")
-        assert r.kind == "postfix"
-        assert r.symbol == "²"
-
-    def test_dual_latex(self, n):
-        """Dual renders as ^* in LaTeX."""
-        r = n.get("Dual", "latex")
-        assert r.kind == "postfix"
-        assert r.symbol == "^*"
-
-    def test_inverse_latex(self, n):
-        """Inverse renders as ^{-1} in LaTeX."""
-        r = n.get("Inverse", "latex")
-        assert r.symbol == "^{-1}"
-
-    def test_squared_latex(self, n):
-        """Squared renders as ^2 in LaTeX."""
-        r = n.get("Squared", "latex")
-        assert r.symbol == "^2"
-
-
-# ============================================================
-# Prefix rules (neg)
-# ============================================================
-
-
-class TestPrefixDefaults:
-    def test_neg_unicode(self, n):
-        """Negation is prefix -."""
-        r = n.get("Neg", "unicode")
-        assert r.kind == "prefix"
-        assert r.symbol == "-"
-
-    def test_neg_latex(self, n):
-        """Negation is prefix - in LaTeX."""
-        r = n.get("Neg", "latex")
-        assert r.kind == "prefix"
-        assert r.symbol == "-"
-
-
-# ============================================================
-# Infix rules (binary ops)
-# ============================================================
-
-
-class TestInfixDefaults:
-    def test_op_unicode(self, n):
-        """Wedge uses ∧ separator."""
-        r = n.get("Op", "unicode")
-        assert r.kind == "infix"
-        assert r.separator == "∧"
-
-    def test_op_latex(self, n):
-        r"""Wedge uses \wedge in LaTeX."""
-        r = n.get("Op", "latex")
-        assert r.separator == r" \wedge "
-
-    def test_add_unicode(self, n):
-        """Add uses + separator."""
-        r = n.get("Add", "unicode")
-        assert r.separator == " + "
-
-    def test_sub_unicode(self, n):
-        """Sub uses - separator."""
-        r = n.get("Sub", "unicode")
-        assert r.separator == " - "
-
-    def test_lc_unicode(self, n):
-        """Left contraction uses ⌋."""
-        r = n.get("Lc", "unicode")
-        assert r.separator == "⌋"
-
-    def test_hi_unicode(self, n):
-        """Hestenes inner uses ·."""
-        r = n.get("Hi", "unicode")
-        assert r.separator == "·"
-
-    def test_sp_unicode(self, n):
-        """Scalar product uses ∗."""
-        r = n.get("Sp", "unicode")
-        assert r.separator == "∗"
-
-    def test_div_unicode(self, n):
-        """Division uses /."""
-        r = n.get("Div", "unicode")
-        assert r.separator == "/"
-
-
-# ============================================================
-# Juxtaposition (Gp)
-# ============================================================
-
-
-class TestJuxtaposition:
-    def test_gp_unicode(self, n):
-        """Geometric product uses juxtaposition."""
-        r = n.get("Gp", "unicode")
-        assert r.kind == "juxtaposition"
-
-    def test_gp_latex(self, n):
-        """Geometric product uses space separator in LaTeX."""
-        r = n.get("Gp", "latex")
-        assert r.kind == "juxtaposition"
-        assert r.separator == " "
-
-
-# ============================================================
-# Wrap rules (grade, norm, exp, etc.)
-# ============================================================
-
-
-class TestWrapDefaults:
-    def test_grade_unicode(self, n):
-        """Grade projection uses ⟨⟩ delimiters."""
-        r = n.get("Grade", "unicode")
-        assert r.kind == "wrap"
-        assert r.open == "⟨"
-        assert r.close.startswith("⟩")
-
-    def test_norm_unicode(self, n):
-        """Norm uses ‖‖ delimiters."""
-        r = n.get("Norm", "unicode")
-        assert r.kind == "wrap"
-        assert r.open == "‖"
-        assert r.close == "‖"
-
-    def test_exp_unicode(self, n):
-        """Exp uses exp() wrap."""
-        r = n.get("Exp", "unicode")
-        assert r.kind == "wrap"
-        assert r.open == "exp("
-        assert r.close == ")"
-
-    def test_commutator_unicode(self, n):
-        """Commutator uses [] delimiters."""
-        r = n.get("Commutator", "unicode")
-        assert r.kind == "wrap"
-        assert r.open == "["
-        assert r.close == "]"
-
-    def test_anticommutator_unicode(self, n):
-        """Anticommutator uses {} delimiters."""
-        r = n.get("Anticommutator", "unicode")
-        assert r.open == "{"
-        assert r.close == "}"
-
-
-# ============================================================
-# ScalarMul / ScalarDiv
-# ============================================================
-
-
-class TestScalarOps:
-    def test_scalar_mul_unicode(self, n):
-        """ScalarMul is a prefix rule."""
-        r = n.get("ScalarMul", "unicode")
-        assert r.kind == "prefix"
-
-    def test_scalar_div_unicode(self, n):
-        """ScalarDiv is a postfix rule with /."""
-        r = n.get("ScalarDiv", "unicode")
-        assert r.kind == "postfix"
-        assert "/" in r.symbol
-
-
-# ============================================================
-# Override rules
-# ============================================================
-
-
-class TestOverride:
-    def test_override_reverse_unicode(self, n):
-        """set() overrides a single format."""
-        n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
-        r = n.get("Reverse", "unicode")
-        assert r.kind == "postfix"
-        assert r.symbol == "†"
-
-    def test_override_does_not_affect_other_formats(self, n):
-        """Overriding unicode leaves latex unchanged."""
-        original_latex = n.get("Reverse", "latex")
-        n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
-        assert n.get("Reverse", "latex") == original_latex
-
-    def test_override_dual_to_prefix(self, n):
-        """Dual can be overridden to prefix style."""
-        n.set("Dual", "unicode", NotationRule(kind="prefix", symbol="*"))
-        r = n.get("Dual", "unicode")
-        assert r.kind == "prefix"
-        assert r.symbol == "*"
-
-    def test_override_gp_to_infix(self, n):
-        """Some notations use explicit dot or space for gp."""
-        n.set("Gp", "unicode", NotationRule(kind="infix", separator=" "))
-        r = n.get("Gp", "unicode")
-        assert r.kind == "infix"
-
-    def test_set_returns_self(self, n):
-        """set() returns self for chaining."""
-        result = n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
-        assert result is n
-
-    def test_chaining(self, n):
-        """Multiple set() calls can be chained."""
-        n.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†")).set(
-            "Dual", "unicode", NotationRule(kind="prefix", symbol="*")
+@pytest.mark.parametrize("index, target", tuple(enumerate(TARGETS)))
+def test_reverse_presets_apply_to_actual_algebra_rendering_in_every_target(preset, expected, index, target):
+    algebra, a, _, _ = _context(preset())
+    result = ga.reverse(a)
+    assert result.display(f"expr/{target}") == expected[index]
+    assert result.expr == Call("reverse", (Symbol("a"),))
+    _assert_coefficients(result.data, a.data)
+    assert algebra.numeric is a.numeric.algebra
+
+
+@pytest.mark.parametrize(
+    "kind, symbol, expected",
+    (
+        ("postfix", "†", "a†"),
+        ("prefix", "*", "*a"),
+        ("function", "rev", "rev(a)"),
+    ),
+)
+def test_target_local_reverse_overrides_take_priority_without_mutation(kind, symbol, expected):
+    base = ga.Notation.default()
+    rule = ga.RenderRule(kind, symbol=symbol)
+    custom = base.with_rule("reverse", rule, target="unicode")
+    _, a, _, _ = _context(base)
+    value = ga.reverse(a)
+    assert value.display("expr/unicode", notation=custom) == expected
+    assert value.display("expr/latex", notation=custom) == r"\widetilde{a}"
+    assert custom.rule("reverse", "unicode") is rule
+    assert base == ga.Notation.default() and custom is not base
+    with pytest.raises(FrozenInstanceError):
+        rule.kind = "function"
+    with pytest.raises(FrozenInstanceError):
+        custom.rules = ()
+
+
+def test_generic_rule_replacement_preserves_target_specific_override_precedence():
+    base = ga.Notation.default()
+    generic = ga.RenderRule("function", symbol="rev")
+    custom = base.with_rule("reverse", generic)
+    assert custom.rule("reverse", "unicode") is generic
+    assert custom.rule("reverse", "latex") == base.rule("reverse", "latex")
+    overridden = custom.with_rule("reverse", generic, target="latex")
+    assert overridden.rule("reverse", "latex") is generic
+    assert base == ga.Notation.default()
+
+
+def test_chained_overrides_and_input_containers_are_independently_immutable():
+    rules = {"reverse": ga.RenderRule("function", symbol="rev")}
+    base = ga.Notation("custom", rules=rules)
+    custom = base.with_rule("dual", ga.RenderRule("prefix", symbol="*")).with_rule(
+        "geometric_product", ga.RenderRule("infix", symbol="@", associativity="left")
+    )
+    rules.clear()
+    assert base.rule("reverse").symbol == ga.Name("rev")
+    assert base.rule("dual") is None
+    assert custom.rule("dual").symbol == ga.Name("*")
+    assert custom.rule("geometric_product").symbol == ga.Name("@")
+    assert hash(base) == hash(ga.Notation("custom", rules={"reverse": ga.RenderRule("function", symbol="rev")}))
+
+
+@pytest.mark.parametrize(
+    "target, expected",
+    (
+        ("ascii", "wedge(a, b)"),
+        ("unicode", "wedge(a, b)"),
+        ("latex", r"\operatorname{wedge}\left(a, b\right)"),
+    ),
+)
+def test_binary_function_override_uses_the_public_operation_id(target, expected):
+    notation = ga.Notation.default().with_rule(
+        "outer_product", ga.RenderRule("function", symbol="wedge"), target=target
+    )
+    _, a, b, _ = _context(notation)
+    result = a ^ b
+    assert result.display(f"expr/{target}") == expected
+    assert result.expr == Call("outer_product", (Symbol("a"), Symbol("b")))
+
+
+@pytest.mark.parametrize("target", TARGETS)
+def test_infix_product_override_preserves_values_and_explicit_replay(target):
+    notation = ga.Notation.default().with_rule("geometric_product", ga.RenderRule("infix", symbol="@"), target=target)
+    algebra, a, b, _ = _context(notation)
+    result = a * b
+    expected = algebra.numeric.left_action(a.numeric) @ b.data
+    _assert_coefficients(result.data, expected)
+    assert result.display(f"expr/{target}") == "a @ b"
+    _assert_coefficients(evaluate(result.expr, algebra=algebra, environment={"a": a, "b": b}).data, expected)
+
+
+@pytest.mark.parametrize("target", TARGETS)
+@pytest.mark.parametrize(
+    "operation, short, arity",
+    (
+        ("geometric_product", "gp", 2),
+        ("outer_product", "op", 2),
+        ("left_contraction", "lc", 2),
+        ("reverse", "rev", 1),
+        ("grade_involution", "invol", 1),
+        ("doran_lasenby_inner", "dl_inner", 2),
+        ("hestenes_inner", "h_inner", 2),
+    ),
+)
+def test_short_functional_preset_has_explicit_unambiguous_spelling(operation, short, arity, target):
+    expression = Call(operation, tuple(Symbol(name) for name in "ab"[:arity]))
+    arguments = "a, b" if arity == 2 else "a"
+    expected = f"{short}({arguments})"
+    if target == "latex":
+        escaped = short.replace("_", r"\_")
+        expected = rf"\operatorname{{{escaped}}}\left({arguments}\right)"
+    for notation in (ga.Notation.functional(short=True), ga.Notation.functional_short()):
+        assert (
+            ga.render(expression, target=target, presentation=ga.Algebra(3).presentation.with_notation(notation))
+            == expected
         )
-        assert n.get("Reverse", "unicode").symbol == "†"
-        assert n.get("Dual", "unicode").symbol == "*"
 
-    def test_with_scientific_returns_self(self, n):
-        """with_scientific() returns self for chaining."""
-        result = n.with_scientific("cdot")
-        assert result is n
-        assert n.scientific == "cdot"
 
-    def test_invalid_format_raises(self, n):
-        """set() with unknown format raises ValueError."""
-        with pytest.raises(ValueError, match="format"):
-            n.set("Reverse", "klingon", NotationRule(kind="postfix", symbol="†"))
-
-    def test_invalid_kind_raises(self, n):
-        """set() with unknown kind raises ValueError."""
-        with pytest.raises(ValueError, match="kind"):
-            n.set("Reverse", "unicode", NotationRule(kind="banana", symbol="†"))
-
-    def test_invalid_scientific_raises(self, n):
-        """Invalid scientific style raises ValueError."""
-        with pytest.raises(ValueError):
-            n.scientific = "banana"
-
-    def test_unknown_node_name_accepted(self, n):
-        """Unknown node names are accepted — extensibility."""
-        n.set("CustomOp", "unicode", NotationRule(kind="postfix", symbol="!"))
-        assert n.get("CustomOp", "unicode").symbol == "!"
-
-
-# ============================================================
-# Copy / isolation
-# ============================================================
-
-
-class TestCopy:
-    def test_copy_is_independent(self, n):
-        """copy() produces an independent notation."""
-        n2 = n.copy()
-        n2.set("Reverse", "unicode", NotationRule(kind="postfix", symbol="†"))
-        assert n.get("Reverse", "unicode").kind == "accent"  # original unchanged
-
-
-class TestPresets:
-    def test_default_preset(self):
-        """default() preset uses accent for reverse."""
-        n = Notation.default()
-        assert n.get("Reverse", "unicode").kind == "accent"
-
-    def test_hestenes_reverse_is_dagger(self):
-        """Hestenes preset uses † for reverse."""
-        n = Notation.hestenes()
-        r = n.get("Reverse", "unicode")
-        assert r.kind == "postfix"
-        assert r.symbol == "†"
-
-    def test_hestenes_latex_dagger(self):
-        r"""Hestenes preset uses \dagger in LaTeX."""
-        n = Notation.hestenes()
-        r = n.get("Reverse", "latex")
-        assert "dagger" in r.symbol
-
-    def test_doran_lasenby_reverse_is_tilde(self):
-        """Doran-Lasenby preset uses tilde for reverse."""
-        n = Notation.doran_lasenby()
-        r = n.get("Reverse", "unicode")
-        assert r.kind == "accent"
-        assert r.combining == "\u0303"
-
-    def test_preset_with_algebra(self):
-        """Notation preset integrates with Algebra rendering."""
-        from galaga.legacy import Algebra, reverse
-
-        alg = Algebra((1, 1, 1), notation=Notation.hestenes())
-        e1, _, _ = alg.basis_vectors(lazy=True)
-        v = e1.name("v")
-        assert str(reverse(v)) == "v†"
-
-
-class TestFunctionStyle:
-    def test_wedge_as_function(self):
-        """Op can render as function style: wedge(a, b)."""
-        from galaga.legacy import Algebra
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Op", "unicode", NotationRule(kind="function", symbol="wedge"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        assert str(e1 ^ e2) == "wedge(e₁, e₂)"
-
-    def test_reverse_as_function(self):
-        """Reverse can render as function style: rev(v)."""
-        from galaga.legacy import Algebra, reverse
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Reverse", "unicode", NotationRule(kind="function", symbol="rev"))
-        e1, _, _ = alg.basis_vectors(lazy=True)
-        v = e1.name("v")
-        assert str(reverse(v)) == "rev(v)"
-
-    def test_function_style_latex(self):
-        r"""Function style uses \operatorname in LaTeX."""
-        from galaga.legacy import Algebra
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Op", "latex", NotationRule(kind="function", symbol="wedge"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        result = e1 ^ e2
-        assert r"\operatorname{wedge}" in result.latex()
-
-
-class TestFunctionalPreset:
-    """Notation.functional() renders everything as function calls."""
-
-    @pytest.fixture
-    def fn_alg(self):
-        from galaga.notation import Notation
-
-        return Algebra((1, 1, 1), notation=Notation.functional())
-
-    @pytest.fixture
-    def ab(self, fn_alg):
-        e1, e2, _ = fn_alg.basis_vectors(lazy=True)
-        return e1.name("a"), e2.name("b")
-
-    @pytest.fixture
-    def s(self, fn_alg):
-        return fn_alg.scalar(2.0).name("s")
-
-    # --- Binary operations ---
-
-    def test_gp_unicode(self, ab):
-        """geometric_product(a, b) in unicode."""
-        a, b = ab
-        assert str(a * b) == "geometric_product(a, b)"
-
-    def test_gp_latex(self, ab):
-        """\\operatorname{geometric_product}(a, b) in LaTeX."""
-        a, b = ab
-        assert r"\operatorname{geometric\_product}" in (a * b).latex()
-
-    def test_op_unicode(self, ab):
-        """outer_product(a, b) in unicode."""
-        a, b = ab
-        assert str(a ^ b) == "outer_product(a, b)"
-
-    def test_op_latex(self, ab):
-        """\\operatorname{outer_product}(a, b) in LaTeX."""
-        a, b = ab
-        assert r"\operatorname{outer\_product}" in (a ^ b).latex()
-
-    def test_dli_unicode(self, ab):
-        """doran_lasenby_inner(a, b) in unicode."""
-        a, b = ab
-        assert str(a | b) == "doran_lasenby_inner(a, b)"
-
-    def test_lc_unicode(self, ab):
-        """left_contraction(a, b) in unicode."""
-        a, b = ab
-        assert str(left_contraction(a, b)) == "left_contraction(a, b)"
-
-    def test_rc_unicode(self, ab):
-        """right_contraction(a, b) in unicode."""
-        a, b = ab
-        assert str(right_contraction(a, b)) == "right_contraction(a, b)"
-
-    def test_hi_unicode(self, ab):
-        """hestenes_inner(a, b) in unicode."""
-        a, b = ab
-        assert str(hestenes_inner(a, b)) == "hestenes_inner(a, b)"
-
-    def test_sp_unicode(self, ab):
-        """scalar_product(a, b) in unicode."""
-        a, b = ab
-        assert str(scalar_product(a, b)) == "scalar_product(a, b)"
-
-    def test_commutator_unicode(self, ab):
-        """commutator(a, b) in unicode."""
-        a, b = ab
-        assert str(commutator(a, b)) == "commutator(a, b)"
-
-    def test_anticommutator_unicode(self, ab):
-        """anticommutator(a, b) in unicode."""
-        a, b = ab
-        assert str(anticommutator(a, b)) == "anticommutator(a, b)"
-
-    def test_lie_bracket_unicode(self, ab):
-        """lie_bracket(a, b) in unicode."""
-        a, b = ab
-        assert str(lie_bracket(a, b)) == "lie_bracket(a, b)"
-
-    def test_jordan_product_unicode(self, ab):
-        """jordan_product(a, b) in unicode."""
-        a, b = ab
-        assert str(jordan_product(a, b)) == "jordan_product(a, b)"
-
-    # --- Unary operations ---
-
-    def test_reverse_unicode(self, ab):
-        """reverse(a) in unicode."""
-        a, _ = ab
-        assert str(reverse(a)) == "reverse(a)"
-
-    def test_reverse_latex(self, ab):
-        """\\operatorname{reverse}(a) in LaTeX."""
-        a, _ = ab
-        assert reverse(a).latex() == r"\operatorname{reverse}(a)"
-
-    def test_involute_unicode(self, ab):
-        """involute(a) in unicode."""
-        a, _ = ab
-        assert str(involute(a)) == "involute(a)"
-
-    def test_conjugate_unicode(self, ab):
-        """conjugate(a) in unicode."""
-        a, _ = ab
-        assert str(conjugate(a)) == "conjugate(a)"
-
-    def test_dual_unicode(self, ab):
-        """dual(a) in unicode."""
-        a, _ = ab
-        assert str(dual(a)) == "dual(a)"
-
-    def test_undual_unicode(self, ab):
-        """undual(a) in unicode."""
-        a, _ = ab
-        assert str(undual(a)) == "undual(a)"
-
-    def test_complement_unicode(self, ab):
-        """complement(a) in unicode."""
-        a, _ = ab
-        assert str(complement(a)) == "complement(a)"
-
-    def test_inverse_unicode(self, ab):
-        """inverse(a) in unicode."""
-        a, _ = ab
-        assert str(inverse(a)) == "inverse(a)"
-
-    def test_squared_unicode(self, ab):
-        """squared(a) in unicode."""
-        a, _ = ab
-        assert str(squared(a)) == "squared(a)"
-
-    # --- Wrap operations (were broken before fix) ---
-
-    def test_norm_unicode(self, ab):
-        """norm(a) in unicode."""
-        a, _ = ab
-        assert str(norm(a)) == "norm(a)"
-
-    def test_norm_latex(self, ab):
-        """\\operatorname{norm}(a) in LaTeX."""
-        a, _ = ab
-        assert norm(a).latex() == r"\operatorname{norm}(a)"
-
-    def test_unit_unicode(self, ab):
-        """unit(a) in unicode."""
-        a, _ = ab
-        assert str(unit(a)) == "unit(a)"
-
-    def test_unit_latex(self, ab):
-        """\\operatorname{unit}(a) in LaTeX."""
-        a, _ = ab
-        assert unit(a).latex() == r"\operatorname{unit}(a)"
-
-    def test_exp_unicode(self, ab):
-        """exp(outer_product(a, b)) in unicode."""
-        a, b = ab
-        assert str(exp(a ^ b)) == "exp(outer_product(a, b))"
-
-    def test_exp_latex(self, ab):
-        """\\operatorname{exp}(...) in LaTeX."""
-        a, b = ab
-        assert r"\operatorname{exp}" in exp(a ^ b).latex()
-
-    def test_log_unicode(self, ab):
-        """log(a) in unicode."""
-        a, _ = ab
-        assert str(log(a)) == "log(a)"
-
-    def test_log_latex(self, ab):
-        """\\operatorname{log}(a) in LaTeX."""
-        a, _ = ab
-        assert log(a).latex() == r"\operatorname{log}(a)"
-
-    def test_scalar_sqrt_unicode(self, s):
-        """scalar_sqrt(s) in unicode."""
-        assert str(scalar_sqrt(s)) == "scalar_sqrt(s)"
-
-    def test_scalar_sqrt_latex(self, s):
-        """scalar_sqrt in LaTeX operatorname."""
-        assert scalar_sqrt(s).latex() == r"\operatorname{scalar\_sqrt}(s)"
-
-    def test_grade_unicode(self, ab):
-        """grade(geometric_product(a, b), 1) in unicode."""
-        a, b = ab
-        assert str(grade(a * b, 1)) == "grade(geometric_product(a, b), 1)"
-
-    def test_grade_latex(self, ab):
-        """\\operatorname{grade}(\\operatorname{geometric_product}(a, b), 1) in LaTeX."""
-        a, b = ab
-        latex = grade(a * b, 1).latex()
-        assert r"\operatorname{grade}" in latex
-        assert "1" in latex
-
-    def test_even_grades_unicode(self, ab):
-        """even_grades(a) in unicode."""
-        a, _ = ab
-        assert str(even_grades(a)) == "even_grades(a)"
-
-    def test_odd_grades_unicode(self, ab):
-        """odd_grades(a) in unicode."""
-        a, _ = ab
-        assert str(odd_grades(a)) == "odd_grades(a)"
-
-    # --- Composition ---
-
-    def test_nested_expression(self, ab):
-        """Nested: grade(geometric_product(a, reverse(b)), 1)."""
-        a, b = ab
-        result = str(grade(a * reverse(b), 1))
-        assert "grade(" in result
-        assert "geometric_product(" in result
-        assert "reverse(" in result
-
-    # --- Default not affected ---
-
-    def test_default_not_affected(self):
-        """Default notation still uses juxtaposition."""
-        alg = Algebra((1, 1, 1))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        a, b = e1.name("a"), e2.name("b")
-        assert str(a * b) == "ab"
-
-
-class TestFunctionalShortPreset:
-    """Notation.functional_short() uses short-form function names."""
-
-    @pytest.fixture
-    def fn_alg(self):
-        return Algebra((1, 1, 1), notation=Notation.functional_short())
-
-    @pytest.fixture
-    def ab(self, fn_alg):
-        e1, e2, _ = fn_alg.basis_vectors(lazy=True)
-        return e1.name("a"), e2.name("b")
-
-    def test_gp_unicode(self, ab):
-        """gp(a, b) in unicode."""
-        a, b = ab
-        assert str(a * b) == "gp(a, b)"
-
-    def test_op_unicode(self, ab):
-        """op(a, b) in unicode."""
-        a, b = ab
-        assert str(a ^ b) == "op(a, b)"
-
-    def test_lc_unicode(self, ab):
-        """lc(a, b) in unicode."""
-        a, b = ab
-        assert str(left_contraction(a, b)) == "lc(a, b)"
-
-    def test_reverse_short(self, ab):
-        """Short form uses rev() not reverse()."""
-        a, _ = ab
-        assert str(reverse(a)) == "rev(a)"
-
-    def test_gp_latex(self, ab):
-        """\\operatorname{gp} in LaTeX."""
-        a, b = ab
-        assert r"\operatorname{gp}" in (a * b).latex()
-
-
-class TestUnitFractionNotation:
-    """unit_fraction notation kind renders as x/‖x‖."""
-
-    def test_unicode(self):
-        """B/‖B‖ in unicode."""
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Unit", "unicode", NotationRule(kind="unit_fraction"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        B = (e1 ^ e2).name("B")
-        assert str(unit(B)) == "B/‖B‖"
-
-    def test_latex(self):
-        r"""\\frac{B}{\\lVert B \\rVert} in LaTeX."""
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Unit", "latex", NotationRule(kind="unit_fraction"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        B = (e1 ^ e2).name("B")
-        assert unit(B).latex() == r"\frac{B}{\lVert B \rVert}"
-
-    def test_compound_wraps(self):
-        """Compound expression gets parenthesised in numerator."""
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Unit", "unicode", NotationRule(kind="unit_fraction"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        a, b = e1.name("a"), e2.name("b")
-        assert str(unit(a + b)) == "(a + b)/‖a + b‖"
-
-    def test_display_shows_fraction(self):
-        """display() shows fraction form distinct from hat name."""
-        from galaga.notation import NotationRule
-
-        alg = Algebra((1, 1, 1))
-        alg.notation.set("Unit", "latex", NotationRule(kind="unit_fraction"))
-        e1, e2, _ = alg.basis_vectors(lazy=True)
-        B = (e1 ^ e2).name("B")
-        Bhat = unit(B).name(latex=r"\hat{B}")
-        d = Bhat.display().latex()
-        assert r"\hat{B}" in d
-        assert r"\frac{B}" in d
+def test_unknown_rule_metadata_does_not_register_an_operation_or_silently_render_it():
+    notation = ga.Notation("extension", rules={"custom": ga.RenderRule("function", symbol="custom")})
+    assert notation.rule("custom").symbol == ga.Name("custom")
+    assert notation.rule("missing") is None
+    with pytest.raises(ValueError, match="unknown expression operation"):
+        ga.render(
+            Call("custom", (Symbol("a"),)),
+            target="unicode",
+            presentation=ga.Algebra(1).presentation.with_notation(notation),
+        )
+
+
+@pytest.mark.parametrize(
+    "factory, error, message",
+    (
+        (
+            lambda: ga.Notation.default().with_rule(
+                "reverse", ga.RenderRule("function", symbol="rev"), target="klingon"
+            ),
+            ValueError,
+            "target",
+        ),
+        (lambda: ga.Notation.default().rule("reverse", "klingon"), ValueError, "target"),
+        (lambda: ga.RenderRule("banana", symbol="!"), ValueError, "kind"),
+        (lambda: ga.Notation("bad", rules={"reverse": "not a rule"}), TypeError, "RenderRule"),
+    ),
+)
+def test_invalid_notation_configuration_fails_at_construction(factory, error, message):
+    with pytest.raises(error, match=message):
+        factory()
+
+
+def test_scientific_number_formatting_has_an_explicit_current_boundary():
+    notation = ga.Notation.default()
+    algebra = ga.Algebra(1, notation=notation)
+    assert algebra.scalar(ARCHIVE["scientific_input"]).latex() == ARCHIVE["scientific_styles"]["times"]
+    assert len(set(ARCHIVE["scientific_styles"].values())) == 3
+    # Scientific styling belongs to the numeric emitter, not operation rules.
+    # V2 currently has no cdot/raw style switch; do not claim parity with v1.
+    assert not hasattr(notation, "with_scientific") and not hasattr(notation, "scientific")
+    with pytest.raises(TypeError):
+        ga.Notation(scientific="cdot")

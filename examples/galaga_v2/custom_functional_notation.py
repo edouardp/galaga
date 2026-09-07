@@ -12,6 +12,7 @@ def _():
     from galaga import (
         Algebra,
         DisplayPolicy,
+        Name,
         Notation,
         RenderRule,
         doran_lasenby_inner,
@@ -19,14 +20,17 @@ def _():
         hestenes_inner,
         metric_inner_product,
         p_euclidean,
+        reverse,
         scalar_product,
         transwedge,
         transwedge_antiproduct,
+        unit,
     )
 
     return (
         Algebra,
         DisplayPolicy,
+        Name,
         Notation,
         RenderRule,
         doran_lasenby_inner,
@@ -36,9 +40,11 @@ def _():
         metric_inner_product,
         mo,
         p_euclidean,
+        reverse,
         scalar_product,
         transwedge,
         transwedge_antiproduct,
+        unit,
     )
 
 
@@ -313,6 +319,57 @@ def _(mo):
     That local import alias does not affect rendering. Conversely, the custom
     rendering rule does not add a new public `galaga.facade.hestenes_ip`
     function. Both routes still create a `hestenes_inner` expression node.
+    """)
+    return
+
+
+@app.cell
+def _(Name, Notation, RenderRule, custom_algebra, e12, gm, reverse, unit):
+    # Derive the bivector square from the actual two-vector Gram minor.
+    _B = e12.unnamed().named("B")
+    _G = custom_algebra.gram
+    _expected_square = _G[0, 1] ** 2 - _G[0, 0] * _G[1, 1]
+    assert float(_B * _B) == _expected_square
+    assert reverse(_B) == -_B
+    _normalized = unit(_B).named(Name.from_latex(r"\hat{B}"))
+    _fraction_notation = Notation.default().with_rule(
+        "unit", RenderRule("unit_fraction")
+    )
+    _fraction_latex = _normalized.display("full/latex", notation=_fraction_notation)
+    _dagger_latex = reverse(_B).display("expr/latex", notation=Notation.hestenes())
+    assert _normalized.numeric == _B.numeric
+    assert _normalized.expr.operation_id == "unit"
+    assert _dagger_latex == r"B^{\dagger}"
+
+    gm.md(rt"""
+    ## Show the definition without changing the operation
+
+    A hat name and a hat expression can look identical. The optional
+    `RenderRule("unit_fraction")` makes normalization a separate teaching step:
+
+    $$
+    {_fraction_latex!s}
+    $$
+
+    `Name.from_latex` derives the three spellings of our hat name explicitly.
+    The stored operation is still `unit`, and its numeric result was computed
+    before rendering. The fraction is only a display of $B/\lVert B\rVert$.
+    Its denominator means Galaga's metric norm
+    $\sqrt{{|\langle B\widetilde{{B}}\rangle_0|}}$, not an assumption that
+    every metric is positive definite.
+
+    Use `target="latex"` in `with_rule` to change only that output target.
+    With a non-default normalization tolerance, the renderer uses a function
+    call to keep that control visible. Zero-norm inputs still fail eagerly.
+
+    A different preset changes reverse to a dagger:
+
+    $$
+    \widetilde{{B}} = {_dagger_latex!s} = -B.
+    $$
+
+    Here dagger means **reverse**, not a separately defined Hermitian adjoint.
+    The Hestenes preset now makes the same choice in Unicode and LaTeX.
     """)
     return
 

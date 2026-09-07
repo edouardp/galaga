@@ -217,10 +217,19 @@ silently recording `a + 1`, even though both eager values are equal.
   annotation.
 
 Supported kinds are function, infix, juxtaposition, prefix, postfix, accent,
-underaccent, wrapper, fraction, subscript, superscript, reverse sandwich, and
-metric-regressive definition layout. The last two are semantic compositions,
-not preformatted strings: the builder produces ordinary product, accent,
-power, and grouping nodes for every emitter.
+underaccent, wrapper, wrapper fraction, fraction, subscript, superscript,
+reverse sandwich, metric-regressive definition layout, and unit fraction.
+Definition-shaped layouts are semantic compositions, not preformatted strings:
+the builder produces existing tree nodes for every emitter.
+
+The opt-in `RenderRule("unit_fraction")` applies only to `unit` and
+shows `x / ||x||`, `x / ‖x‖`, or the corresponding LaTeX fraction. Its
+denominator uses fixed conventional norm delimiters, not a recursive lookup of
+a customized `norm` rule. It builds a `Fraction` and `Wrapper` without
+evaluating a norm, changing the stored operation, or relaxing normalization
+domain checks. A supplied non-default tolerance remains visible through the
+ordinary functional fallback. See the
+[notation migration example](migration-guide.md#migrate-custom-notation-with-immutable-rules).
 
 `Notation` maps a stable catalog operation ID to a generic rule and may add a
 target-specific override. Target-specific structure is reserved for honest

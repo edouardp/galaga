@@ -167,6 +167,18 @@ Both expose immutable tuple storage or read-only mappings.
 
 ### `PresentationConfig`: replace one concern at a time
 
+Operation notation is an immutable `Notation` with `RenderRule` values
+keyed by stable IDs. `with_rule` replaces one generic or target-specific
+rule without mutating shared presets. Existing target-specific rules still
+take priority over a generic replacement; pass `target=` to replace one
+explicitly.
+
+`RenderRule("unit_fraction")` is an opt-in `unit` layout for the teaching
+step $x/\lVert x\rVert$, with unchanged eager values and provenance.
+The [custom-notation notebook](../../examples/galaga_v2/custom_functional_notation.py)
+demonstrates it alongside functional overrides and the Hestenes dagger preset.
+See the [migration example](migration-guide.md#migrate-custom-notation-with-immutable-rules).
+
 `PresentationConfig` groups:
 
 ```text

@@ -24,6 +24,7 @@ _RULE_KINDS = {
     "subscript",
     "superscript",
     "underaccent",
+    "unit_fraction",
     "wrapper",
     "wrapper_fraction",
 }
@@ -40,6 +41,7 @@ _DEFAULT_PRECEDENCE = {
     "superscript": 50,
     "prefix": 40,
     "fraction": 30,
+    "unit_fraction": 30,
     "infix": 30,
     "juxtaposition": 30,
     "metric_regressive": 30,
@@ -63,6 +65,11 @@ class RenderRule:
     rules are useful when a notation has no honest plain-text equivalent for a
     compact mathematical glyph.  The rule still produces format-neutral tree
     nodes; escaping and final glyph emission remain emitter concerns.
+
+    The opt-in "unit_fraction" kind is defined only for the "unit" operation.
+    It shows x divided by fixed norm delimiters, without evaluating a norm or
+    changing expression provenance. Non-default controls remain visible via
+    the ordinary functional fallback.
     """
 
     kind: str
@@ -227,6 +234,8 @@ class Notation:
                 raise ValueError("notation rule target must be 'ascii', 'unicode', or 'latex'")
             if not isinstance(rule, RenderRule):
                 raise TypeError("notation rules must be RenderRule values")
+            if rule.kind == "unit_fraction" and operation_id != "unit":
+                raise ValueError("unit_fraction notation is defined only for the 'unit' operation")
             normalized_key = (operation_id, target)
             if normalized_key in rule_keys:
                 raise ValueError(f"duplicate notation rule for {operation_id!r} and target {target!r}")
@@ -252,7 +261,11 @@ class Notation:
         *,
         target: str | None = None,
     ) -> Notation:
-        """Return a notation with one generic or target-specific rule replaced."""
+        """Return a notation with one generic or target-specific rule replaced.
+
+        Replacing a generic rule preserves existing target-specific overrides.
+        Pass target explicitly when replacing one of those overrides.
+        """
         key: str | tuple[str, str]
         if target is None:
             key = operation_id
@@ -308,6 +321,9 @@ class Notation:
         """Hestenes teaching notation; competing inner products stay named."""
         rules = _conventional_rules()
         rules["reverse"] = RenderRule("postfix", symbol=Name("dag", "†", r"^{\dagger}"))
+        # The conventional target-specific accent would otherwise shadow the
+        # preset's dagger rule only in LaTeX.
+        rules.pop(("reverse", "latex"), None)
         rules["hestenes_inner"] = RenderRule(
             "infix",
             symbol=Name("dot", "·", r"\cdot"),

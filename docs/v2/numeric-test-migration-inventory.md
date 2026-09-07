@@ -426,7 +426,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 | `test_latex_build.py` | semantic LaTeX pipeline |
 | `test_latex_symbols.py` | bounded symbol conversion and immutable presentation names |
 | `test_latex_tree.py` | LaTeX tree and rewrites |
-| `test_notation.py` | notation and presentation |
+| `test_notation.py` | immutable operation-ID notation, configured rendering, and teaching layouts |
 | `test_numeric_function_expressions.py` | eager facade functions and replayable expression provenance |
 | `test_precedence.py` | expression rendering precedence |
 | `test_render.py` | rendering |
@@ -931,3 +931,37 @@ wheel with legacy imports prohibited and package origins verified.
 The full Python 3.11 and 3.14 package/release suites pass 5,092 and 5,209 tests
 respectively, with only the existing complex-to-real matrix warning.
 See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).
+
+### Phase 9 follow-through: immutable notation contracts
+
+The 239 cases from `test_notation.py` now have public v2 owners. The
+historical archive `tools/baselines/notation-contracts-v1.json` preserves
+all 101 original method identifiers, 47 default rule families in three
+targets, 28 functional value/rendering observations, normalization-fraction
+examples, and scientific-style outputs with explicit inputs and provenance.
+
+The live suite pins exact reviewed output for every default family and checks
+functional values, replay, stable IDs, target overrides, immutable sharing,
+and actual preset rendering. V1's mutable fields and class-name dispatch stay
+historical. Existing unscaled brackets and functional-name changes remain
+explicit. The old positive-square-vector logarithm is not accepted numeric
+parity: its exponential fails to recover the input. A valid rotor probe
+checks the v2 logarithm domain separately. V2 still has no configurable
+`cdot`/`raw` scientific-number selector; that limitation is documented.
+
+Two missing presentation responsibilities are implemented: opt-in
+`RenderRule("unit_fraction")` builds existing fraction/wrapper nodes for
+`unit` without numeric evaluation, and the Hestenes preset no longer
+inherits a LaTeX tilde that shadows its dagger. Independent metric/grade-law
+checks cover normalization, mixed grades, null/near-zero errors, tolerances,
+and presentation/provenance invariance. The custom-notation notebook teaches
+both capabilities with executable assertions.
+
+The legacy construction ledger falls from thirteen files to twelve after
+removing `test_notation.py`. Fresh-process tests prohibit all legacy imports.
+The three focused suites pass 338 cases at 100% line/branch coverage;
+their two public suites pass 324 cases directly from the built wheel.
+The full package/release suites pass 5,192 cases on Python 3.11 and 5,309
+on Python 3.14, including maintained notebook exports, with only the existing
+complex-to-real conversion warning. Type checking remains at 296 errors.
+See [ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.md).

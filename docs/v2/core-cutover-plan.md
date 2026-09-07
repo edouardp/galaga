@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Ten legacy-dependency prerequisites are complete:
+Status: **in progress**. Eleven legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1310,20 +1310,25 @@ Status: **in progress**. Ten legacy-dependency prerequisites are complete:
   structural simplification. Its representative v1 observations remain as
   data; nonzero probes distinguish old half-scaled Lie/Jordan products from
   v2. The four ledgered unary properties are now implemented and tested
-  ([ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md)); and
+  ([ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md));
 - the symbol-conversion suite retains all 108 original tests using the public
   `galaga.names` converter and an explicit `Name.from_latex` factory.
   Exhaustive Unicode checks correct font offsets and reject unsupported
   input; naming is checked against Gram-derived products and explicit replay
-  ([ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md)).
+  ([ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md)); and
+- notation contracts now exercise immutable public rules and actual facade
+  rendering. The original 239 cases retain captured ownership and evidence;
+  unit-fraction teaching layout is restored, and the Hestenes preset's
+  LaTeX dagger override is fixed
+  ([ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
 the surface/deprecation contracts, both concrete-display suites, and both
 expression-function/grouping suites, the symbolic/unary-property suites, and
-the symbol-conversion suites with legacy imports blocked. Matrix plans continue
-to share core algebras across facade presentation views; that is intentional
-v2 behavior.
+the symbol-conversion and notation/unit-fraction suites with legacy imports
+blocked. Matrix plans continue to share core algebras across facade presentation
+views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1337,7 +1342,7 @@ namespace/construction guards. Compatibility-manifest introspection is retired,
 and the independently discovered equality/hash release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 13 files, down from 14 after removing `test_latex_symbols.py`.
+ledger now contains 12 files, down from 13 after removing `test_notation.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1360,8 +1365,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(5,209 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (5,092 passed, 45 skipped), with Python 3.14-only integrations
+(5,309 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (5,192 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1381,11 +1386,18 @@ The symbol-conversion checkpoint passes 556 focused tests, including existing
 the converter, and all three symbol/conversion/boundary test files.
 Its two public suites also pass all 540 tests directly from the built wheel,
 with legacy imports prohibited and package origins verified.
+The notation checkpoint passes 338 focused cases at 100% line and branch
+coverage in its three test files; both public suites pass 324 cases directly
+from the wheel with legacy imports prohibited. New production paths are
+covered, with the semantic builder's broader coverage at 89% and emitters at
+92%. The custom-notation notebook now demonstrates the unit-fraction teaching
+equality and Hestenes reverse in LaTeX, with executable algebraic assertions.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
-gates. Repository-wide type checking still has 296 errors: the converter's
+gates. Repository-wide type checking still has 296 errors, unchanged by the
+notation work: the converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

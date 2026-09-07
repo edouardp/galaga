@@ -198,6 +198,55 @@ does not strip whitespace. The old `galaga.latex_symbols` import is only
 a temporary same-object shim scheduled for removal before stable `2.0.0`.
 See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).
 
+## Migrate custom notation with immutable rules
+
+Import `Notation` and `RenderRule` from `galaga`. Replace
+`notation.set("Reverse", "latex", ...)` with
+`notation.with_rule("reverse", ..., target="latex")`, keeping the returned
+value. The old mutable `galaga.notation.NotationRule` is not the v2 API.
+Preset values can be shared safely without calling `copy()`.
+
+Generic rules are fallbacks: an existing target-specific rule still wins.
+For example, replacing a generic reverse rule does not remove its LaTeX
+override; replace that target explicitly when changing its appearance.
+`Notation.hestenes()` now selects its dagger in both Unicode and LaTeX;
+the default and Doran-Lasenby presets retain tilde.
+
+To show normalization as a distinct step between a hat name and its value:
+
+```python
+from galaga import Algebra, Name, Notation, RenderRule, unit
+
+algebra = Algebra(3)
+B = algebra.blade(3).named("B")
+Bhat = unit(B).named(Name.from_latex(r"\hat{B}"))
+teaching = Notation.default().with_rule("unit", RenderRule("unit_fraction"))
+
+assert Bhat.display("full/latex", notation=teaching) == (
+    r"\hat{B} \quad = \quad \frac{B}{\lVert B \rVert} \quad = \quad e_{12}"
+)
+assert Bhat.expr.operation_id == "unit"
+```
+
+Add `target="latex"` to `with_rule` to change just that target.
+The denominator denotes Galaga's metric norm
+$\sqrt{|\langle B\widetilde{B}\rangle_0|}$; the display does not assume a
+positive-definite metric or evaluate anything. Zero/near-zero norms still
+fail eagerly. Non-default tolerances retain a functional display so the
+numeric control is not hidden. The default hat layout is unchanged.
+
+Long functional notation uses canonical IDs such as `grade_involution`.
+Short functional names are presentation only: `invol`, `dl_inner`, and
+`h_inner` keep involution and competing inner products distinguishable.
+Unknown rule metadata does not register a new operation.
+
+One legacy convenience remains unavailable: the mutable
+`Notation.scientific`/`with_scientific` selectors. V2 currently renders
+scientific LaTeX numbers with `\times`; there is no `cdot`/`raw` switch.
+See [ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.md)
+and the executable
+[custom-notation notebook](../../examples/galaga_v2/custom_functional_notation.py).
+
 ## Construct metrics and models explicitly
 
 Signatures remain concise:

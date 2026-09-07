@@ -402,6 +402,13 @@ def _operation_tree(
     if decoration is not None or len(arguments) != 1:
         return _functional_tree(operation_id, operands, parameters)
     operand = arguments[0]
+    if rule.kind == "unit_fraction":
+        # A definition-shaped display of unit(x), not new expression provenance
+        # or a numeric norm evaluation. Reuse the same semantic operand twice.
+        return Fraction(
+            operand,
+            Wrapper(operand, Name("||", "‖", r"\lVert "), Name("||", "‖", r" \rVert"), scalable=False),
+        )
     if rule.kind == "prefix":
         symbol = rule.symbol
         if symbol is None:  # pragma: no cover - RenderRule validation

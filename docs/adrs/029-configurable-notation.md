@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-029: Configurable Notation System
 
+The mutable API below records v1 behavior. V2 uses immutable operation-ID
+rules from ADR-076/ADR-078; the preserved public contracts and migration
+boundaries are recorded in
+[ADR-101](101-immutable-notation-contracts-and-unit-fraction-layout.md).
+
 ## Context and Problem Statement
 
 Geometric algebra has many competing notations. Reverse alone can be
