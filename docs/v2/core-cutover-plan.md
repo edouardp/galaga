@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Fourteen legacy-dependency prerequisites are complete:
+Status: **in progress**. Fifteen legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1330,20 +1330,25 @@ Status: **in progress**. Fourteen legacy-dependency prerequisites are complete:
   expressions. Their archived bindings and numeric results remain live replay
   contracts; nonzero mixed-grade compositions check all three targets with
   reference-backend and grade-law oracles, without production changes
-  ([ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md)); and
+  ([ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md));
 - all 107 blade-convention cases now use the public facade, retaining every
   historical method identity and complete STA name/sign tables. Optional sigma
   and pseudovector vocabulary derives signs from ordered unit-diagonal metrics;
   signed lookup, native aliases, locals, replay, and the general-Gram boundary
   are tested and taught in the construction notebook
-  ([ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)).
+  ([ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)); and
+- all eleven RGA convention cases now use the public facade, retaining their
+  source identities, oriented basis data, and observed outputs. Nonzero
+  coefficient oracles check three metrics, dual sides, transwedge orders, and
+  replay; custom LaTeX under-accent fallback is fixed and taught in the RGA demo
+  ([ADR-105](../adrs/105-public-rga-contracts-and-underaccent-fallback.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
 the surface/deprecation contracts, both concrete-display suites, and both
 expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
-mixed-rendering/numeric and blade-convention/STA suites with legacy imports
+mixed-rendering/numeric, blade-convention/STA, and RGA/under-accent suites with legacy imports
 blocked. Matrix plans
 continue to share core algebras across facade presentation views; that is
 intentional v2 behavior.
@@ -1355,13 +1360,13 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency groups are the RGA-convention and mixed legacy suites,
+The next dependency groups are the locals/naming and mixed legacy suites,
 followed by namespace/construction guards. Compatibility-manifest
 introspection is retired, and the independently discovered equality/hash
 release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 9 files, down from 10 after removing `test_blade_convention.py`.
+ledger now contains 8 files, down from 9 after removing `test_rga_convention_layer.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1384,8 +1389,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(5,737 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (5,620 passed, 45 skipped), with Python 3.14-only integrations
+(6,027 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (5,910 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1432,13 +1437,21 @@ origins verified. Every original method remains, with archived STA tables,
 actual-product sign checks across sixteen metrics, and corruption guards.
 The construction notebook demonstrates both time-first metric choices and
 the difference between signed product names and positive canonical masks.
+The RGA convention checkpoint passes 300 focused cases at 100% line and
+branch coverage in its four test files. All 288 public cases pass from the
+wheel with legacy imports prohibited and origins verified. Gram minors,
+exterior permutations, and a forced reference product backend supply nonzero
+numeric oracles; transwedge order and dual-side corruption probes prevent the
+old zero examples from hiding regressions. The LaTeX under-accent fallback is
+fixed, with all new paths covered and overall emitter coverage rising to 95%.
+The RGA notebook teaches that fallback, signed storage, and numeric-zero grades.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
-mixed-rendering and blade-convention work. The converter's
+mixed-rendering, blade-convention, and RGA work. The converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

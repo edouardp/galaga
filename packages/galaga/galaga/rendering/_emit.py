@@ -31,6 +31,9 @@ from .tree import (
 _SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 _SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
 _POSITIONAL_MARKERS = frozenset("★☆●○■□")
+_LATEX_UNDERACCENT_COMMANDS = frozenset(
+    {r"\underline", r"\utilde", r"\underbrace", r"\underleftarrow", r"\underrightarrow", r"\underleftrightarrow"}
+)
 _LATEX_TOKEN = re.compile(r"\\[A-Za-z]+|\\[\s\S]|[^\\]")
 _LATEX_INFIX = frozenset({"+", "-", "/", "=", r"\wedge", r"\vee", r"\cdot", r"\times", r"\mathbin"})
 _LATEX_ESCAPE = str.maketrans(
@@ -278,10 +281,11 @@ def _accent(node: Accent, target: str, *, compact_fractions: bool = False) -> st
     body = _emit(node.body, target, compact_fractions=compact_fractions)
     accent = node.accent.for_target(target)
     if target == "latex":
+        if node.position == "under" and accent not in _LATEX_UNDERACCENT_COMMANDS:
+            return rf"\underset{{{accent}}}{{{body}}}"
         if accent.startswith("\\"):
             return rf"{accent}{{{body}}}"
-        command = "underaccent" if node.position == "under" else "overset"
-        return rf"\{command}{{{accent}}}{{{body}}}"
+        return rf"\overset{{{accent}}}{{{body}}}"
     if target == "unicode" and accent and all(unicodedata.combining(character) for character in accent):
         return f"{body}{accent}"
     if target == "ascii" and accent in {"~", "-", "_", "^"}:

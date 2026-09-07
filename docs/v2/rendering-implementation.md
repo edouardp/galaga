@@ -228,6 +228,16 @@ reverse sandwich, metric-regressive definition layout, and unit fraction.
 Definition-shaped layouts are semantic compositions, not preformatted strings:
 the builder produces existing tree nodes for every emitter.
 
+For LaTeX under-accents, `\underline`, `\utilde`, `\underbrace`,
+`\underleftarrow`, `\underrightarrow`, and `\underleftrightarrow` remain
+one-argument commands. Other symbols, including `\sim` or a plain `*`,
+become `\underset{symbol}{body}`. A leading backslash alone does not identify
+an accent command. Annotations must be valid TeX; custom accent macros need
+an explicit wrapper rule rather than macro-name inference.
+The default Lengyel forms, over-accents, and other output targets are
+unchanged. See the
+[under-accent migration example](migration-guide.md#custom-under-accents).
+
 The opt-in `RenderRule("unit_fraction")` applies only to `unit` and
 shows `x / ||x||`, `x / ‖x‖`, or the corresponding LaTeX fraction. Its
 denominator uses fixed conventional norm delimiters, not a recursive lookup of

@@ -1,0 +1,400 @@
+{
+  "schema_version": 1,
+  "source_commit": "48f5d0fd82f15225d22e4069cc8341d4760eec97",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_test": "packages/galaga/tests/test_rga_convention_layer.py",
+  "original_case_count": 11,
+  "signature": [1,1,1,0],
+  "bindings": {
+    "e1": [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+    "e2": [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0]
+  },
+  "tests": [
+    {
+      "id": "test_rga_basis_metric_orientation_names_and_display_order",
+      "source": "def test_rga_basis_metric_orientation_names_and_display_order():\n    \"\"\"The RGA convention attaches source roles without changing wedge signs.\"\"\"\n    algebra = Algebra((1, 1, 1, 0), blades=b_rga())\n    values = algebra.locals()\n    e1, e2, e3, e4 = algebra.basis_vectors()\n    factorizations = {\n        \"e23\": (e2, e3),\n        \"e31\": (e3, e1),\n        \"e12\": (e1, e2),\n        \"e41\": (e4, e1),\n        \"e42\": (e4, e2),\n        \"e43\": (e4, e3),\n        \"e423\": (e4, e2, e3),\n        \"e431\": (e4, e3, e1),\n        \"e412\": (e4, e1, e2),\n        \"e321\": (e3, e2, e1),\n        \"I\": (e1, e2, e3, e4),\n    }\n\n    assert algebra.signature == (1, 1, 1, 0)\n    assert gp(e4, e4) == algebra.scalar(0)\n    for name, vectors in factorizations.items():\n        assert values[name] == _wedge(vectors)\n        assert algebra.blade(name) == algebra.blade(values[name])\n    assert complement(e1) == values[\"e423\"]\n\n    displayed = [str(blade) for grade in range(algebra.n + 1) for blade in algebra.basis_blades(grade)]\n    assert displayed == [\n        \"1\",\n        \"e₁\",\n        \"e₂\",\n        \"e₃\",\n        \"e₄\",\n        \"e₂₃\",\n        \"e₃₁\",\n        \"e₁₂\",\n        \"e₄₁\",\n        \"e₄₂\",\n        \"e₄₃\",\n        \"e₄₂₃\",\n        \"e₄₃₁\",\n        \"e₄₁₂\",\n        \"e₃₂₁\",\n        \"𝟙\",\n    ]"
+    },
+    {
+      "id": "test_rga_projective_roles_have_the_source_grades",
+      "source": "def test_rga_projective_roles_have_the_source_grades():\n    \"\"\"Point, line, plane, and pseudoscalar local roles remain discoverable.\"\"\"\n    algebra = Algebra((1, 1, 1, 0), blades=b_rga())\n    values = algebra.locals()\n\n    assert {name: values[name].homogeneous_grade() for name in (\"e1\", \"e23\", \"e423\", \"I\")} == {\n        \"e1\": 1,\n        \"e23\": 2,\n        \"e423\": 3,\n        \"I\": 4,\n    }"
+    },
+    {
+      "id": "test_rga_operations_preserve_symbolic_trees_values_and_grades",
+      "source": "def test_rga_operations_preserve_symbolic_trees_values_and_grades():\n    \"\"\"Every convention-layer operation follows Galaga's symbolic contract.\"\"\"\n    algebra = Algebra((1, 1, 1, 0), blades=b_rga(), notation=Notation.lengyel())\n    e1, e2, _, _ = algebra.basis_vectors(symbolic=True)\n    numeric_e1, numeric_e2 = e1.eval(), e2.eval()\n    unary = (\n        metric_apply,\n        antimetric_apply,\n        bulk_part,\n        weight_part,\n        right_hodge_dual,\n        left_hodge_dual,\n        right_weight_dual,\n        left_weight_dual,\n        antireverse,\n    )\n    binary = (\n        metric_inner_product,\n        antidot_product,\n        geometric_antiproduct,\n        left_interior_product,\n        right_interior_product,\n    )\n\n    for operation in unary:\n        result = operation(e1)\n        assert result._is_symbolic\n        assert np.allclose(result.data, operation(numeric_e1).data)\n        assert np.allclose(result._expr.eval().data, result.data)\n    for operation in binary:\n        result = operation(e1, e2)\n        assert result._is_symbolic\n        assert np.allclose(result.data, operation(numeric_e1, numeric_e2).data)\n        assert np.allclose(result._expr.eval().data, result.data)\n    for operation in (transwedge, transwedge_antiproduct):\n        result = operation(e1, e2, 1)\n        assert result._is_symbolic\n        assert result._grade is not None\n        assert np.allclose(result.data, operation(numeric_e1, numeric_e2, 1).data)\n        assert np.allclose(result._expr.eval().data, result.data)\n        assert simplify(result._expr).k == 1\n\n    assert GA_OPS[\"transwedge\"].arity == 3\n    assert GA_OPS[\"transwedge_antiproduct\"].arity == 3"
+    },
+    {
+      "id": "test_lengyel_notation_rendering_snapshot",
+      "source": "def test_lengyel_notation_rendering_snapshot():\n    \"\"\"The preset renders KaTeX-safe RGA symbols without changing semantics.\"\"\"\n    algebra = Algebra((1, 1, 1, 0), blades=b_rga(), notation=Notation.lengyel())\n    e1, e2, _, _ = algebra.basis_vectors(symbolic=True)\n\n    assert str(gp(e1, e2)) == \"e₁ ⟑ e₂\"\n    assert str(geometric_antiproduct(e1, e2)) == \"e₁ ⟇ e₂\"\n    assert str(metric_inner_product(e1, e2)) == \"e₁ • e₂\"\n    assert str(antidot_product(e1, e2)) == \"e₁ ∘ e₂\"\n    assert str(transwedge(e1, e2, 1)) == \"e₁ ⩓₁ e₂\"\n    assert str(transwedge_antiproduct(e1, e2, 1)) == \"e₁ ⩔₁ e₂\"\n    assert str(right_hodge_dual(e1)) == \"e₁^★\"\n    assert str(left_hodge_dual(e1)) == \"e₁_★\"\n    assert str(complement(e1)) == \"e₁̅\"\n    assert str(left_complement(e1)) == \"e₁̲\"\n    assert str(reverse(e1)) == \"e₁̃\"\n    assert str(conjugate(e1)) == \"conjugate(e₁)\"\n    assert gp(e1, e2).latex() == r\"\\mathbf{e}_{1} \\mathbin{\\text{⟑}} \\mathbf{e}_{2}\"\n    assert complement(e1).latex() == r\"\\overline{\\vphantom{Aft^6}\\mathbf{e}_{1}}\"\n    assert left_complement(e1).latex() == r\"\\underline{\\vphantom{gy_7}\\mathbf{e}_{1}}\"\n    assert right_hodge_dual(e1).latex() == r\"\\mathbf{e}_{1}^{\\text{★}}\"\n    assert antireverse(e1).latex() == r\"\\utilde{\\mathbf{e}_{1}}\"\n    assert antireverse(antiwedge(complement(e1), complement(e2))).latex() == (\n        r\"\\utilde{\\overline{\\vphantom{Aft^6}\\mathbf{e}_{1}} \\vee \"\n        r\"\\overline{\\vphantom{Aft^6}\\mathbf{e}_{2}}}\"\n    )\n    assert algebra.I.latex() == r\"\\text{𝟙}\"\n\n    fallback_notation = Notation.lengyel()\n    fallback_notation.set(\"Antireverse\", \"latex\", NotationRule(kind=\"underaccent\", symbol=r\"\\sim\"))\n    fallback_algebra = Algebra((1, 1, 1, 0), blades=b_rga(), notation=fallback_notation)\n    fallback_e1, _, _, _ = fallback_algebra.basis_vectors(symbolic=True)\n    assert antireverse(fallback_e1).latex() == r\"\\underset{\\sim}{\\mathbf{e}_{1}}\"\n\n    katex_rendered = (\n        gp(e1, e2),\n        geometric_antiproduct(e1, e2),\n        metric_inner_product(e1, e2),\n        antidot_product(e1, e2),\n        left_interior_product(e1, e2),\n        right_interior_product(e1, e2),\n        transwedge(e1, e2, 1),\n        transwedge_antiproduct(e1, e2, 1),\n        right_hodge_dual(e1),\n        left_hodge_dual(e1),\n        right_weight_dual(e1),\n        left_weight_dual(e1),\n        bulk_part(e1),\n        weight_part(e1),\n        antireverse(e1),\n    )\n    assert all(r\"\\unicode{\" not in value.latex() for value in katex_rendered)\n\n    default_algebra = Algebra((1, 1, 1, 0), blades=b_rga())\n    d1, d2, _, _ = default_algebra.basis_vectors(symbolic=True)\n    assert str(metric_inner_product(d1, d2)) == \"metric_inner_product(e₁, e₂)\""
+    },
+    {
+      "id": "test_binary_rga_operations_reject_mixed_algebras",
+      "source": "def test_binary_rga_operations_reject_mixed_algebras(operation):\n    left = Algebra(2).basis_vectors()[0]\n    right = Algebra(3).basis_vectors()[0]\n    arguments = (left, right, 0) if operation in (transwedge, transwedge_antiproduct) else (left, right)\n\n    with pytest.raises(ValueError, match=\"different algebras\"):\n        operation(*arguments)"
+    }
+  ],
+  "observations": [
+    {
+      "kind": "operation",
+      "operation": "metric_apply",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "Ge₁",
+      "unicode": "Ge₁",
+      "latex": "\\mathbf{G}\\mathbf{e}_{1}"
+    },
+    {
+      "kind": "operation",
+      "operation": "antimetric_apply",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "𝔾e₁",
+      "unicode": "𝔾e₁",
+      "latex": "\\mathbb{G}\\mathbf{e}_{1}"
+    },
+    {
+      "kind": "operation",
+      "operation": "bulk_part",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁_●",
+      "unicode": "e₁_●",
+      "latex": "{\\mathbf{e}_{1}}_{\\text{●}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "weight_part",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁_○",
+      "unicode": "e₁_○",
+      "latex": "{\\mathbf{e}_{1}}_{\\text{○}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "right_hodge_dual",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+      "ascii": "e₁^★",
+      "unicode": "e₁^★",
+      "latex": "\\mathbf{e}_{1}^{\\text{★}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "left_hodge_dual",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0],
+      "ascii": "e₁_★",
+      "unicode": "e₁_★",
+      "latex": "{\\mathbf{e}_{1}}_{\\text{★}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "right_weight_dual",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁^☆",
+      "unicode": "e₁^☆",
+      "latex": "\\mathbf{e}_{1}^{\\text{☆}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "left_weight_dual",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁_☆",
+      "unicode": "e₁_☆",
+      "latex": "{\\mathbf{e}_{1}}_{\\text{☆}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "antireverse",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁̰",
+      "unicode": "e₁̰",
+      "latex": "\\utilde{\\mathbf{e}_{1}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "complement",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+      "ascii": "e₁̅",
+      "unicode": "e₁̅",
+      "latex": "\\overline{\\vphantom{Aft^6}\\mathbf{e}_{1}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "left_complement",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0],
+      "ascii": "e₁̲",
+      "unicode": "e₁̲",
+      "latex": "\\underline{\\vphantom{gy_7}\\mathbf{e}_{1}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "reverse",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁̃",
+      "unicode": "e₁̃",
+      "latex": "\\tilde{\\mathbf{e}_{1}}"
+    },
+    {
+      "kind": "operation",
+      "operation": "conjugate",
+      "arity": 1,
+      "order": null,
+      "coefficients": [0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "conjugate(e₁)",
+      "unicode": "conjugate(e₁)",
+      "latex": "\\operatorname{conjugate}(\\mathbf{e}_{1})"
+    },
+    {
+      "kind": "operation",
+      "operation": "metric_inner_product",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ • e₂",
+      "unicode": "e₁ • e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\bullet} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "antidot_product",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ∘ e₂",
+      "unicode": "e₁ ∘ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\circ} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "geometric_antiproduct",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⟇ e₂",
+      "unicode": "e₁ ⟇ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\text{⟇}} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "left_interior_product",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⌋ e₂",
+      "unicode": "e₁ ⌋ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\rfloor} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "right_interior_product",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⌊ e₂",
+      "unicode": "e₁ ⌊ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\lfloor} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "transwedge",
+      "arity": 3,
+      "order": 1,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⩓₁ e₂",
+      "unicode": "e₁ ⩓₁ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\underset{1}{\\text{⩓}}} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "transwedge_antiproduct",
+      "arity": 3,
+      "order": 1,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⩔₁ e₂",
+      "unicode": "e₁ ⩔₁ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\underset{1}{\\text{⩔}}} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "geometric_product",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁ ⟑ e₂",
+      "unicode": "e₁ ⟑ e₂",
+      "latex": "\\mathbf{e}_{1} \\mathbin{\\text{⟑}} \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "operation",
+      "operation": "antiwedge",
+      "arity": 2,
+      "order": null,
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁∨e₂",
+      "unicode": "e₁∨e₂",
+      "latex": "\\mathbf{e}_{1} \\vee \\mathbf{e}_{2}"
+    },
+    {
+      "kind": "nested",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0],
+      "ascii": "antireverse(e₁̅∨e₂̅)",
+      "unicode": "antireverse(e₁̅∨e₂̅)",
+      "latex": "\\utilde{\\overline{\\vphantom{Aft^6}\\mathbf{e}_{1}} \\vee \\overline{\\vphantom{Aft^6}\\mathbf{e}_{2}}}"
+    },
+    {
+      "kind": "pseudoscalar",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      "ascii": "I",
+      "unicode": "𝟙",
+      "latex": "\\text{𝟙}"
+    },
+    {
+      "kind": "fallback",
+      "coefficients": [0,-1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e₁̰",
+      "unicode": "e₁̰",
+      "latex": "\\underset{\\sim}{\\mathbf{e}_{1}}"
+    },
+    {
+      "kind": "default",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "metric_inner_product(e₁, e₂)",
+      "unicode": "metric_inner_product(e₁, e₂)",
+      "latex": "\\operatorname{metric\\_inner\\_product}(\\mathbf{e}_{1},\\, \\mathbf{e}_{2})"
+    }
+  ],
+  "basis": [
+    {
+      "kind": "basis",
+      "coefficients": [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "1",
+      "unicode": "1",
+      "latex": "1"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e1",
+      "unicode": "e₁",
+      "latex": "\\mathbf{e}_{1}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e2",
+      "unicode": "e₂",
+      "latex": "\\mathbf{e}_{2}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e3",
+      "unicode": "e₃",
+      "latex": "\\mathbf{e}_{3}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0],
+      "ascii": "e4",
+      "unicode": "e₄",
+      "latex": "\\mathbf{e}_{4}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0],
+      "ascii": "e23",
+      "unicode": "e₂₃",
+      "latex": "\\mathbf{e}_{23}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,-1,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e31",
+      "unicode": "e₃₁",
+      "latex": "\\mathbf{e}_{31}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0],
+      "ascii": "e12",
+      "unicode": "e₁₂",
+      "latex": "\\mathbf{e}_{12}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0,0],
+      "ascii": "e41",
+      "unicode": "e₄₁",
+      "latex": "\\mathbf{e}_{41}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,-1,0,0,0,0,0],
+      "ascii": "e42",
+      "unicode": "e₄₂",
+      "latex": "\\mathbf{e}_{42}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0,0],
+      "ascii": "e43",
+      "unicode": "e₄₃",
+      "latex": "\\mathbf{e}_{43}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0],
+      "ascii": "e423",
+      "unicode": "e₄₂₃",
+      "latex": "\\mathbf{e}_{423}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,-1,0,0],
+      "ascii": "e431",
+      "unicode": "e₄₃₁",
+      "latex": "\\mathbf{e}_{431}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0],
+      "ascii": "e412",
+      "unicode": "e₄₁₂",
+      "latex": "\\mathbf{e}_{412}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,-1,0,0,0,0,0,0,0,0],
+      "ascii": "e321",
+      "unicode": "e₃₂₁",
+      "latex": "\\mathbf{e}_{321}"
+    },
+    {
+      "kind": "basis",
+      "coefficients": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+      "ascii": "I",
+      "unicode": "𝟙",
+      "latex": "\\text{𝟙}"
+    }
+  ]
+}

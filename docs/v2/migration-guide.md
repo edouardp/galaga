@@ -285,6 +285,40 @@ See [ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.
 and the executable
 [custom-notation notebook](../../examples/galaga_v2/custom_functional_notation.py).
 
+### Custom under-accents
+
+Replace mutable under-accent rules with a target-specific immutable override:
+
+```python
+from galaga import Algebra, Name, Notation, RenderRule, antireverse, p_rga
+
+algebra = Algebra(config=p_rga())
+value = algebra.blade(1).named("A")
+notation = Notation.lengyel().with_rule(
+    "antireverse",
+    RenderRule("underaccent", symbol=Name("sim", "\u0330", r"\sim")),
+    target="latex",
+)
+assert antireverse(value).display("expr/latex", notation=notation) == (
+    r"\underset{\sim}{A}"
+)
+```
+
+A glyph such as `\sim` is an annotation, not a one-argument accent command.
+The emitter places it under the complete grouped body. Built-in `\utilde`
+and `\underline` remain direct commands; ASCII and Unicode are unaffected
+by a LaTeX-only rule. Custom command macros are not inferred from a leading
+backslash. See the [rendering command boundary](rendering-implementation.md#notation-is-presentation-data)
+and [ADR-105](../adrs/105-public-rga-contracts-and-underaccent-fallback.md).
+
+The [RGA demo](../../examples/rga/rga_demo.py) computes antireverse signs by
+antigrade and displays the same mixed-grade value with both presentations.
+It also distinguishes signed blade names from native masks and explains why
+zero reports `homogeneous_grade() is None` even when transwedge retains an
+explicit `order` parameter in its expression. Bulk/weight reconstruction is
+a property of the standard PGA metric, not a universal identity for arbitrary
+Gram matrices.
+
 ## Construct metrics and models explicitly
 
 Signatures remain concise:

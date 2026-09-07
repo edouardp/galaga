@@ -138,6 +138,19 @@ def test_construction_notebook_teaches_metric_derived_sta_names_and_signed_looku
     assert "multiple blades or non-unit coefficients" in source
 
 
+def test_rga_notebook_teaches_signed_storage_zero_grades_and_custom_underaccents() -> None:
+    source = (EXAMPLES / "rga/rga_demo.py").read_text()
+    assert '_oriented = rga.blade("e31", expr=True)' in source
+    assert "_native = rga.blade(0b0101, expr=True)" in source
+    assert "assert _oriented == -_native" in source
+    assert "rga.n - _mask.bit_count()" in source
+    assert "assert _result == _expected" in source
+    assert 'RenderRule("underaccent", symbol=Name("sim", "\\u0330", r"\\sim"))' in source
+    assert '_result.display("full/latex", notation=_fallback)' in source
+    assert "assert _zero.homogeneous_grade() is None" in source
+    assert 'assert _zero.expr.parameters == (("order", 1),)' in source
+
+
 def test_custom_notation_notebook_teaches_unit_fraction_and_target_consistent_reverse() -> None:
     source = (EXAMPLES / "galaga_v2/custom_functional_notation.py").read_text()
     assert r'Name.from_latex(r"\hat{B}")' in source

@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The RGA convention suite now has public owners and nonzero coefficient
+checks. [ADR-105](105-public-rga-contracts-and-underaccent-fallback.md)
+fixes LaTeX under-accent fallback: native one-argument under-accent commands
+remain direct, while ordinary glyphs use `\underset{glyph}{body}`.
+Other targets, grouping, values, and provenance are unchanged.
+
 The mixed-precedence rendering suite now also has public owners for every
 original test, with archived numeric bindings and independent nonzero
 composition checks. [ADR-103](103-mixed-rendering-contracts-with-numeric-ownership.md)

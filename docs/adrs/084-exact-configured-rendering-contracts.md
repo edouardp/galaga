@@ -143,6 +143,13 @@ changed by this checkpoint.
 
 ## Consequences
 
+The remaining RGA convention-layer source suite is also migrated in
+[ADR-105](105-public-rga-contracts-and-underaccent-fallback.md). Its separate
+archive retains all original identities, oriented basis values, and observed
+outputs. Nonzero coefficient oracles complement this exact spelling matrix;
+the custom under-accent fallback is fixed without changing default Lengyel
+output or the existing exact configured-rendering contracts.
+
 - Good, because two renderers can no longer agree on a wrong string silently.
 - Good, because a failure names the complete configuration that produced it.
 - Good, because notebook examples become reusable unit-level rendering inputs.

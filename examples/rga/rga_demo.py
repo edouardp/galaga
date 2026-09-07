@@ -12,6 +12,9 @@ def _():
     from galaga import (
         Algebra,
         DisplayPolicy,
+        Name,
+        Notation,
+        RenderRule,
         antidot_product,
         antimetric_apply,
         antireverse,
@@ -41,6 +44,9 @@ def _():
     return (
         Algebra,
         DisplayPolicy,
+        Name,
+        Notation,
+        RenderRule,
         antidot_product,
         antimetric_apply,
         antireverse,
@@ -654,6 +660,82 @@ def _(e1, gm, inverse_dual_message, rga_bulk_dual):
     - `right_hodge_dual(e1)` remains well-defined:
 
     {rga_bulk_dual}
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Presentation is not storage or grade inference
+
+    A name such as $e_{31}$ describes the oriented product $e_3\wedge e_1$,
+    not the positive native mask for $e_1\wedge e_3$. Basis enumeration stays
+    in native mask order; the configured display order arranges printed terms.
+
+    Antireverse acts on each component of grade $r$ with the sign
+    $(-1)^{(4-r)(3-r)/2}$. We compute those signs before naming a mixed-grade
+    example. A custom under-accent can then change its presentation without
+    changing the value or the recorded operation.
+
+    Zero is a separate point: `homogeneous_grade()` reports `None` for a zero
+    value, even when an operation's grade-selection formula predicts one
+    possible grade. The transwedge order remains recorded in its expression.
+    """)
+    return
+
+
+@app.cell
+def _(Name, Notation, RenderRule, antireverse, e1, e2, e23, e423, gm, rga, transwedge):
+    _source = rga.scalar(2) + e1 + e23 + e423
+    _expected = rga.multivector([
+        (-1) ** ((rga.n - _mask.bit_count()) * (rga.n - _mask.bit_count() - 1) // 2) * _coefficient
+        for _mask, _coefficient in enumerate(_source.data)
+    ])
+    _result = antireverse(_source.named("M"))
+    assert _result == _expected
+
+    _fallback = Notation.lengyel().with_rule(
+        "antireverse",
+        RenderRule("underaccent", symbol=Name("sim", "\u0330", r"\sim")),
+        target="latex",
+    )
+    _standard_latex = _result.display("full/latex")
+    _fallback_latex = _result.display("full/latex", notation=_fallback)
+    assert _result == _expected
+    assert _result.expr.operation_id == "antireverse"
+
+    _oriented = rga.blade("e31", expr=True)
+    _native = rga.blade(0b0101, expr=True)
+    assert _oriented == -_native
+    _zero = transwedge(e1, e2, 1)
+    assert _zero == rga.scalar(0)
+    assert _zero.homogeneous_grade() is None
+    assert _zero.expr.parameters == (("order", 1),)
+
+    gm.md(rt"""
+    The same computed antireverse, with two LaTeX presentations:
+
+    $$
+    {_standard_latex!s}
+    $$
+
+    $$
+    {_fallback_latex!s}
+    $$
+
+    The built-in under-tilde takes one argument. A glyph such as `\sim`
+    instead uses `\underset` to place it below the whole expression.
+    The override is immutable and specific to LaTeX.
+
+    Signed name lookup gives {_oriented}; positive native-mask lookup gives
+    {_native}. They are negatives, despite sharing a storage slot.
+
+    This example computes zero, not a nonzero scalar:
+
+    {_zero}
+
+    Its numeric grade is `None`, but its expression still records `order=1`.
     """)
     return
 

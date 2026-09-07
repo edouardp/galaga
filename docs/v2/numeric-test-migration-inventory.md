@@ -1071,3 +1071,40 @@ The construction notebook computes both time-first STA frames and teaches
 signed lookup plus the general-Gram boundary. The construction-exemption
 ledger falls from ten files to nine; RGA and mixed legacy ownership remain.
 See [ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md).
+
+### Phase 9 follow-through: RGA conventions and under-accent fallback
+
+The five original function identities and eleven cases in
+`test_rga_convention_layer.py` now use public presets, signed blade references,
+generic expressions, explicit replay, and immutable notation. The archive
+`tools/baselines/rga-convention-contracts-v1.json` retains every source test,
+twenty-six observed value/rendering cases, all sixteen oriented basis values,
+and source/runtime provenance.
+
+Eleven of the original sixteen operation samples evaluate to zero. Keep them,
+but add nonzero mixed-grade inputs across standard RGA, oblique-indefinite,
+and singular-oblique metrics. Derive coefficient expectations from Gram
+minors, exterior permutations, grade signs, and the forced core-reference
+product tensor, before naming or rendering. All three targets, replay, grades,
+hashes, scoped notation, and transwedge orders zero through four remain live
+contracts. Corruption probes reject swapped dual sides, antiproduct sign
+errors, lost order parameters, and invalid archived coefficients/output.
+
+Explicit v2 differences include native basis enumeration, signed names,
+numeric zero's absent homogeneous grade, ASCII functional fallback, wide
+reverse accents, floor contractions, and removal of legacy phantom padding.
+The custom LaTeX under-accent fallback is a real fix: non-command annotations
+now use `\underset`, while recognized one-argument commands and other targets
+remain unchanged. Regression cases also preserve over-accent behavior.
+
+All 300 focused cases pass at 100% line and branch coverage in the four test
+files. All 288 public cases pass from the wheel with origins verified and
+legacy imports blocked. Every new emitter path is covered; its full-suite
+coverage rises from 94% to 95%. Full package/release runs pass 5,910 cases on
+Python 3.11 and 6,027 on Python 3.14, including maintained notebook exports.
+Core/facade coverage, the existing matrix warning, and 295 type errors remain.
+
+The RGA notebook teaches the signed-mask, numeric-zero, and under-accent
+boundaries with computed examples. The construction ledger falls from nine
+files to eight. Locals/naming and mixed legacy dependencies remain.
+See [ADR-105](../adrs/105-public-rga-contracts-and-underaccent-fallback.md).
