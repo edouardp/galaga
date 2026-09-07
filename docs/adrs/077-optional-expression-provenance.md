@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-077: Optional Expression Provenance over Eager Facade Values
 
+The numeric-function expression and grouping contracts now run without the
+legacy engine, retaining captured observations and independent numeric replay
+checks; see [ADR-098](098-expression-contracts-outlive-legacy-provenance.md).
+
 ## Context and problem statement
 
 Galaga's legacy expression design combined eager coefficients, mutable naming,

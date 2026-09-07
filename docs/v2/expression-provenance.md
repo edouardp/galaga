@@ -239,6 +239,15 @@ preservation and idempotence.
 
 ## Validation ownership
 
+The migrated `test_numeric_function_expressions.py` and `test_precedence.py`
+also run only against the public facade. They retain all 29 original
+scenarios as archived v1 observations, with explicit eager-value, replay,
+and three-target rendering checks. Rotor roots additionally use independent
+closed forms derived from the actual Gram matrix in elliptic, nilpotent,
+oblique, and native-null cases. The fresh-process and corruption gates live
+in `tests/expression/test_expression_contract_boundary.py`; see
+[ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
+
 Phase 5 tests live under `packages/galaga/tests/expression`:
 
 - `test_nodes.py` owns node validation, structural equality, hashing, and

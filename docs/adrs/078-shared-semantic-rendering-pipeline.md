@@ -11,6 +11,11 @@ The concrete display contracts now execute without the legacy renderer; see
 historical archive distinguishes retained output from existing v2 differences
 in ordering, repr, and numeric format specifications.
 
+The expression-function and parenthesization suites have also retired their
+live legacy dependency; [ADR-098](098-expression-contracts-outlive-legacy-provenance.md)
+records the exact three-target grouping contracts and existing spelling
+differences, including the conventional unit/involution hat ambiguity.
+
 ## Context and problem statement
 
 Galaga's legacy renderer has separate structural paths for text and LaTeX,

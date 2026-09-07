@@ -111,6 +111,7 @@ helps future contributors understand why certain choices were made.
 | [095](095-exact-numeric-equality-and-compatible-hashes.md) | Exact Numeric Equality and Compatible Hashes | Accepted |
 | [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Accepted |
 | [097](097-concrete-display-contracts-outlive-legacy-rendering.md) | Concrete Display Contracts Outlive Legacy Rendering | Accepted |
+| [098](098-expression-contracts-outlive-legacy-provenance.md) | Expression Contracts Outlive Legacy Provenance | Accepted |
 
 ## Creating New ADRs
 

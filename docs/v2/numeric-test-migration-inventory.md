@@ -427,6 +427,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 | `test_latex_symbols.py` | symbol rendering |
 | `test_latex_tree.py` | LaTeX tree and rewrites |
 | `test_notation.py` | notation and presentation |
+| `test_numeric_function_expressions.py` | eager facade functions and replayable expression provenance |
 | `test_precedence.py` | expression rendering precedence |
 | `test_render.py` | rendering |
 | `test_scalar_helpers.py` | facade constants and coefficient rendering |
@@ -841,3 +842,31 @@ shape, nonfinite-data, and coefficient-drift checks protect the numeric archive
 comparison. All 101 cases across the two suites and their archive/boundary
 tests pass with 100% line and branch coverage in the focused Python 3.11 run.
 See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
+
+### Phase 9 follow-through: numeric-function provenance and grouping
+
+`test_numeric_function_expressions.py` and `test_precedence.py` now use the
+public facade and leave the construction ledger, reducing it from seventeen
+files to fifteen. All 29 original scenarios survive in
+`tools/baselines/expression-contracts-v1.json`, with explicit inputs,
+coefficients, formatted outputs, and capture provenance.
+
+The 25 grouping recipes each have exact ASCII, Unicode, and LaTeX contracts,
+independent historical coefficient checks, explicit replay checks, and
+rendering immutability checks. The four numeric-function cases retain rotor
+roots, scalar roots, named compound energy, and squared-norm notation.
+Additional cases cover all four name/tracking states, eager negative-root
+errors, environment substitution, and Gram-derived elliptic, nilpotent,
+oblique, and native-null rotor roots with default and custom tolerances.
+
+Existing spelling and display-policy differences are documented separately
+from numerical agreement. Unit normalization and grade involution retain
+their conventional shared hat; functional notation disambiguates them.
+No production behavior changes, and the larger symbol-parser, notation, and
+mixed expression suites remain separate work.
+
+All 131 cases across the two suites and their archive/boundary gates pass
+with 100% line and branch coverage in a focused Python 3.11 run.
+Fresh-process checks prohibit legacy imports, while corruption tests reject
+wrong eager values, replay values, or rendered grouping independently.
+See [ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).

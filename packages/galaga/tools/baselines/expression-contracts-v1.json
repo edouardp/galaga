@@ -1,0 +1,612 @@
+{
+  "schema_version": 1,
+  "source_commit": "f20a082ea077073285b73b23ac46543d57128300",
+  "captured_on": "2026-09-07",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_tests": [
+    "packages/galaga/tests/test_precedence.py",
+    "packages/galaga/tests/test_numeric_function_expressions.py"
+  ],
+  "inputs": {
+    "signature": [
+      1,
+      1,
+      1
+    ],
+    "vectors": {
+      "a": 1,
+      "b": 2,
+      "c": 4,
+      "v": 1
+    },
+    "scalars": {
+      "s": 9,
+      "m": 3,
+      "p": 4
+    },
+    "rotor_angle": 0.7
+  },
+  "observations": [
+    {
+      "id": "reverse-sum",
+      "source": "reverse(a + b)",
+      "coefficients": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "~(a + b)",
+        "unicode": "~(a + b)",
+        "latex": "\\widetilde{a + b}"
+      },
+      "full_latex": "\\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}"
+    },
+    {
+      "id": "involute-sum",
+      "source": "grade_involution(a + b)",
+      "coefficients": [
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "inv(a + b)",
+        "unicode": "inv(a + b)",
+        "latex": "\\widehat{\\left(a + b\\right)}"
+      },
+      "full_latex": "\\widehat{\\left(a + b\\right)} \\quad = \\quad -e_{1} - e_{2}"
+    },
+    {
+      "id": "conjugate-sum",
+      "source": "conjugate(a + b)",
+      "coefficients": [
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "conj(a + b)",
+        "unicode": "conj(a + b)",
+        "latex": "\\overline{a + b}"
+      },
+      "full_latex": "\\overline{a + b} \\quad = \\quad -e_{1} - e_{2}"
+    },
+    {
+      "id": "dual-sum",
+      "source": "dual(a + b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        -1,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)⋆",
+        "unicode": "(a + b)⋆",
+        "latex": "\\left(a + b\\right)^*"
+      },
+      "full_latex": "\\left(a + b\\right)^* \\quad = \\quad e_{13} - e_{23}"
+    },
+    {
+      "id": "inverse-sum",
+      "source": "inverse(a + b)",
+      "coefficients": [
+        0,
+        0.5,
+        0.5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)⁻¹",
+        "unicode": "(a + b)⁻¹",
+        "latex": "\\left(a + b\\right)^{-1}"
+      },
+      "full_latex": "\\left(a + b\\right)^{-1} \\quad = \\quad 0.5 e_{1} + 0.5 e_{2}"
+    },
+    {
+      "id": "reverse-product",
+      "source": "reverse(a * b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "~(ab)",
+        "unicode": "~(ab)",
+        "latex": "\\widetilde{a b}"
+      },
+      "full_latex": "\\widetilde{a b} \\quad = \\quad -e_{12}"
+    },
+    {
+      "id": "inverse-product",
+      "source": "inverse(a * b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(ab)⁻¹",
+        "unicode": "(ab)⁻¹",
+        "latex": "\\left(a b\\right)^{-1}"
+      },
+      "full_latex": "\\left(a b\\right)^{-1} \\quad = \\quad -e_{12}"
+    },
+    {
+      "id": "dual-product",
+      "source": "dual(a * b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(ab)⋆",
+        "unicode": "(ab)⋆",
+        "latex": "\\left(a b\\right)^*"
+      },
+      "full_latex": "\\left(a b\\right)^* \\quad = \\quad e_{3}"
+    },
+    {
+      "id": "squared-product",
+      "source": "squared(a * b)",
+      "coefficients": [
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(ab)²",
+        "unicode": "(ab)²",
+        "latex": "\\left(a b\\right)^2"
+      },
+      "full_latex": "\\left(a b\\right)^2 \\quad = \\quad -1"
+    },
+    {
+      "id": "reverse-name",
+      "source": "reverse(a)",
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "ã",
+        "unicode": "ã",
+        "latex": "\\tilde{a}"
+      },
+      "full_latex": "\\tilde{a} \\quad = \\quad e_{1}"
+    },
+    {
+      "id": "inverse-name",
+      "source": "inverse(a)",
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a⁻¹",
+        "unicode": "a⁻¹",
+        "latex": "a^{-1}"
+      },
+      "full_latex": "a^{-1} \\quad = \\quad e_{1}"
+    },
+    {
+      "id": "dual-name",
+      "source": "dual(a)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "renderings": {
+        "ascii": "a⋆",
+        "unicode": "a⋆",
+        "latex": "a^*"
+      },
+      "full_latex": "a^* \\quad = \\quad -e_{23}"
+    },
+    {
+      "id": "squared-name",
+      "source": "squared(a)",
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a²",
+        "unicode": "a²",
+        "latex": "a^2"
+      },
+      "full_latex": "a^2 \\quad = \\quad 1"
+    },
+    {
+      "id": "negate-sum",
+      "source": "-(a + b)",
+      "coefficients": [
+        0,
+        -1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-(a + b)",
+        "unicode": "-(a + b)",
+        "latex": "-\\left(a + b\\right)"
+      },
+      "full_latex": "-\\left(a + b\\right) \\quad = \\quad -e_{1} - e_{2}"
+    },
+    {
+      "id": "negate-product",
+      "source": "-(a * b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-ab",
+        "unicode": "-ab",
+        "latex": "-a b"
+      },
+      "full_latex": "-a b \\quad = \\quad -e_{12}"
+    },
+    {
+      "id": "negate-name",
+      "source": "-a",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-a",
+        "unicode": "-a",
+        "latex": "-a"
+      },
+      "full_latex": "-a \\quad = \\quad -e_{1}"
+    },
+    {
+      "id": "reverse-left",
+      "source": "~(a + b) * c",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        0
+      ],
+      "renderings": {
+        "ascii": "~(a + b)c",
+        "unicode": "~(a + b)c",
+        "latex": "\\widetilde{a + b} c"
+      },
+      "full_latex": "\\widetilde{a + b} c \\quad = \\quad e_{13} + e_{23}"
+    },
+    {
+      "id": "reverse-right",
+      "source": "c * ~(a + b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        -1,
+        0
+      ],
+      "renderings": {
+        "ascii": "c~(a + b)",
+        "unicode": "c~(a + b)",
+        "latex": "c \\widetilde{a + b}"
+      },
+      "full_latex": "c \\widetilde{a + b} \\quad = \\quad -e_{13} - e_{23}"
+    },
+    {
+      "id": "sum-sandwich",
+      "source": "(a + b) * c * ~(a + b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        -2,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)c~(a + b)",
+        "unicode": "(a + b)c~(a + b)",
+        "latex": "\\left(a + b\\right) c \\widetilde{a + b}"
+      },
+      "full_latex": "\\left(a + b\\right) c \\widetilde{a + b} \\quad = \\quad -2 e_{3}"
+    },
+    {
+      "id": "double-reverse",
+      "source": "~~a",
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "~(ã)",
+        "unicode": "~(ã)",
+        "latex": "\\widetilde{\\tilde{a}}"
+      },
+      "full_latex": "\\widetilde{\\tilde{a}} \\quad = \\quad e_{1}"
+    },
+    {
+      "id": "divide-sum",
+      "source": "(a + b) / 2",
+      "coefficients": [
+        0,
+        0.5,
+        0.5,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)/2",
+        "unicode": "(a + b)/2",
+        "latex": "\\frac{a + b}{2}"
+      },
+      "full_latex": "\\frac{a + b}{2} \\quad = \\quad 0.5 e_{1} + 0.5 e_{2}"
+    },
+    {
+      "id": "scale-inside-wedge",
+      "source": "(2 * a) ^ b",
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(2a)∧b",
+        "unicode": "(2a)∧b",
+        "latex": "\\left(2 a\\right) \\wedge b"
+      },
+      "full_latex": "\\left(2 a\\right) \\wedge b \\quad = \\quad 2 e_{12}"
+    },
+    {
+      "id": "scale-outside-wedge",
+      "source": "2 * (a ^ b)",
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "2a∧b",
+        "unicode": "2a∧b",
+        "latex": "2 a \\wedge b"
+      },
+      "full_latex": "2 a \\wedge b \\quad = \\quad 2 e_{12}"
+    },
+    {
+      "id": "unit-sum",
+      "source": "unit(a + b)",
+      "coefficients": [
+        0,
+        0.7071067811865475,
+        0.7071067811865475,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)/‖a + b‖",
+        "unicode": "(a + b)/‖a + b‖",
+        "latex": "\\widehat{\\left(a + b\\right)}"
+      },
+      "full_latex": "\\widehat{\\left(a + b\\right)} \\quad = \\quad 0.707107 e_{1} + 0.707107 e_{2}"
+    },
+    {
+      "id": "exp-sum",
+      "source": "exp(a + b)",
+      "coefficients": [
+        2.178183556608571,
+        1.3682988720085907,
+        1.3682988720085907,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "exp(a + b)",
+        "unicode": "exp(a + b)",
+        "latex": "e^{a + b}"
+      },
+      "full_latex": "e^{a + b} \\quad = \\quad 2.17818 + 1.3683 e_{1} + 1.3683 e_{2}"
+    },
+    {
+      "id": "rotor-root",
+      "source": "sqrt(exp(0.7 * (e1 ^ e2)))",
+      "coefficients": [
+        0.939372712847379,
+        0,
+        0,
+        0.3428978074554513,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "√(exp(0.7e₁∧e₂))",
+        "unicode": "√(exp(0.7e₁∧e₂))",
+        "latex": "\\sqrt{e^{0.7 e_{1} \\wedge e_{2}}}"
+      },
+      "full_latex": "\\sqrt{e^{0.7 e_{1} \\wedge e_{2}}} \\quad = \\quad 0.939373 + 0.342898 e_{12}"
+    },
+    {
+      "id": "scalar-root",
+      "source": "scalar_sqrt(s)",
+      "coefficients": [
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "√(s)",
+        "unicode": "√(s)",
+        "latex": "\\sqrt{s}"
+      },
+      "full_latex": "\\sqrt{s} \\quad = \\quad 3"
+    },
+    {
+      "id": "energy",
+      "source": "scalar_sqrt(m**2 + p**2).named('E')",
+      "coefficients": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "E",
+        "unicode": "E",
+        "latex": "E"
+      },
+      "full_latex": "E \\quad = \\quad \\sqrt{m^2 + p^2} \\quad = \\quad 5"
+    },
+    {
+      "id": "norm2",
+      "source": "norm2(v)",
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "‖v‖²",
+        "unicode": "‖v‖²",
+        "latex": "\\lVert v \\rVert^{2}"
+      },
+      "full_latex": "\\lVert v \\rVert^{2} \\quad = \\quad 1"
+    }
+  ]
+}

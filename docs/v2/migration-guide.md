@@ -98,6 +98,41 @@ e1, e2, e3 = algebra.basis_vectors(expr=True)
 facade values. Numeric coefficients are always computed eagerly; `expr=True`
 adds optional provenance rather than enabling deferred symbolic arithmetic.
 
+Naming alone does not create an expression on that value. An operation on a
+named or tracked operand does create provenance, so a named scalar needs no
+extra tracking call:
+
+```python
+from galaga import Algebra, scalar_sqrt
+from galaga.expression import evaluate
+
+algebra = Algebra(3)
+mass = algebra.scalar(3).named("m")
+momentum = algebra.scalar(4).named("p")
+energy = scalar_sqrt(mass**2 + momentum**2).named("E")
+
+assert mass.expr is None
+assert float(energy) == 5
+assert energy.display("expr/latex") == r"\sqrt{m^2 + p^2}"
+assert energy.display("full/latex") == r"E \quad = \quad \sqrt{m^2 + p^2} \quad = \quad 5"
+assert float(evaluate(energy.expr, algebra=algebra, environment={"m": 5, "p": 12})) == 13
+assert float(energy) == 5  # replay does not mutate the eagerly computed value
+```
+
+Use explicit `expr` content when you want the derivation. Tracking alone does
+not replace an anonymous value's concrete default display; a named value's
+default display is a teaching equality. Standalone replay requires an
+environment for symbols, rather than a legacy `.eval()` call with hidden
+bindings.
+
+Expression spelling is target-specific: ASCII is now ASCII-safe, Unicode
+uses combining accents, and some parentheses and spacing differ from v1.
+The conventional hat still serves both `unit` and `grade_involution`; use
+`notation=Notation.functional()` with `Notation` imported from `galaga` when
+those operations must be visibly distinguished. Their numeric meanings and
+stored operation IDs are always separate. See
+[ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
+
 ## Construct metrics and models explicitly
 
 Signatures remain concise:

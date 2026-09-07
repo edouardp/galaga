@@ -1,213 +1,126 @@
-"""Tests for symbolic rendering precedence — parenthesization.
+"""Public expression grouping contracts with independently captured v1 values."""
 
-Each test constructs a lazy expression and checks that the string
-representation has correct parentheses for mathematical precedence.
-"""
+from __future__ import annotations
 
+import json
+from pathlib import Path
+
+import numpy as np
 import pytest
 
-from galaga.legacy import (
-    Algebra,
-    conjugate,
-    dual,
-    exp,
-    inverse,
-    involute,
-    reverse,
-    squared,
-    unit,
-)
+import galaga as ga
+from galaga.expression import evaluate
+
+ARCHIVE = json.loads((Path(__file__).parents[1] / "tools/baselines/expression-contracts-v1.json").read_text())
+HISTORY = {row["id"]: row for row in ARCHIVE["observations"]}
+
+# Every recipe corresponds to one original test. Expected v2 strings are literal,
+# reviewed contracts, not outputs obtained by rendering the current expression.
+RECIPES = {
+    "reverse-sum": lambda a, b, c: ga.reverse(a + b),
+    "involute-sum": lambda a, b, c: ga.grade_involution(a + b),
+    "conjugate-sum": lambda a, b, c: ga.conjugate(a + b),
+    "dual-sum": lambda a, b, c: ga.dual(a + b),
+    "inverse-sum": lambda a, b, c: ga.inverse(a + b),
+    "reverse-product": lambda a, b, c: ga.reverse(a * b),
+    "inverse-product": lambda a, b, c: ga.inverse(a * b),
+    "dual-product": lambda a, b, c: ga.dual(a * b),
+    "squared-product": lambda a, b, c: ga.squared(a * b),
+    "reverse-name": lambda a, b, c: ga.reverse(a),
+    "inverse-name": lambda a, b, c: ga.inverse(a),
+    "dual-name": lambda a, b, c: ga.dual(a),
+    "squared-name": lambda a, b, c: ga.squared(a),
+    "negate-sum": lambda a, b, c: -(a + b),
+    "negate-product": lambda a, b, c: -(a * b),
+    "negate-name": lambda a, b, c: -a,
+    "reverse-left": lambda a, b, c: ~(a + b) * c,
+    "reverse-right": lambda a, b, c: c * ~(a + b),
+    "sum-sandwich": lambda a, b, c: (a + b) * c * ~(a + b),
+    "double-reverse": lambda a, b, c: ~~a,
+    "divide-sum": lambda a, b, c: (a + b) / 2,
+    "scale-inside-wedge": lambda a, b, c: (2 * a) ^ b,
+    "scale-outside-wedge": lambda a, b, c: 2 * (a ^ b),
+    "unit-sum": lambda a, b, c: ga.unit(a + b),
+    "exp-sum": lambda a, b, c: ga.exp(a + b),
+}
+
+# Target order: ASCII, Unicode, LaTeX. See ADR-098 for retained differences.
+RENDERINGS = {
+    "reverse-sum": ("~(a + b)", "(a + b)̃", "\\widetilde{a + b}"),
+    "involute-sum": ("hat((a + b))", "(a + b)̂", "\\widehat{\\left(a + b\\right)}"),
+    "conjugate-sum": ("bar((a + b))", "(a + b)̅", "\\overline{a + b}"),
+    "dual-sum": ("(a + b)^*", "(a + b)^★", "\\left(a + b\\right)^*"),
+    "inverse-sum": ("(a + b)^-1", "(a + b)⁻¹", "\\left(a + b\\right)^{-1}"),
+    "reverse-product": ("~(ab)", "(ab)̃", "\\widetilde{a b}"),
+    "inverse-product": ("(ab)^-1", "(ab)⁻¹", "\\left(a b\\right)^{-1}"),
+    "dual-product": ("(ab)^*", "(ab)^★", "\\left(a b\\right)^*"),
+    "squared-product": ("(ab)^2", "(ab)²", "\\left(a b\\right)^2"),
+    "reverse-name": ("~a", "ã", "\\widetilde{a}"),
+    "inverse-name": ("a^-1", "a⁻¹", "a^{-1}"),
+    "dual-name": ("a^*", "a^★", "a^*"),
+    "squared-name": ("a^2", "a²", "a^2"),
+    "negate-sum": ("-(a + b)", "-(a + b)", "-\\left(a + b\\right)"),
+    "negate-product": ("-(ab)", "-(ab)", "-\\left(a b\\right)"),
+    "negate-name": ("-a", "-a", "-a"),
+    "reverse-left": ("~(a + b)c", "(a + b)̃c", "\\widetilde{a + b} c"),
+    "reverse-right": ("c~(a + b)", "c(a + b)̃", "c \\widetilde{a + b}"),
+    "sum-sandwich": ("(a + b)c~(a + b)", "(a + b)c(a + b)̃", "\\left(a + b\\right) c \\widetilde{a + b}"),
+    "double-reverse": ("~(~a)", "(ã)̃", "\\widetilde{\\widetilde{a}}"),
+    "divide-sum": ("(a + b) / 2", "(a + b) / 2", "\\frac{a + b}{2}"),
+    "scale-inside-wedge": ("(2a) ^ b", "(2a) ∧ b", "\\left(2 a\\right) \\wedge b"),
+    "scale-outside-wedge": ("2a ^ b", "2a ∧ b", "2 a \\wedge b"),
+    "unit-sum": ("hat((a + b))", "(a + b)̂", "\\widehat{\\left(a + b\\right)}"),
+    "exp-sum": ("exp(a + b)", "exp(a + b)", "e^{a + b}"),
+}
 
 
-@pytest.fixture
-def lazy3():
-    alg = Algebra((1, 1, 1))
-    e1, e2, e3 = alg.basis_vectors(lazy=True)
-    a = e1.name("a")
-    b = e2.name("b")
-    c = e3.name("c")
-    return alg, a, b, c
+def _assert_coefficients(actual, expected) -> None:
+    actual, expected = np.asarray(actual), np.asarray(expected)
+    assert actual.shape == expected.shape, "coefficient shape changed"
+    assert np.isfinite(actual).all() and np.isfinite(expected).all(), "nonfinite coefficient"
+    np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-12)
 
 
-class TestPostfixUnaryOnSums:
-    """Postfix unary ops (reverse, involute, conjugate, dual, inverse)
-    must wrap sums in parens: (a + b)̃ not a + b̃."""
-
-    def test_reverse_of_sum(self, lazy3):
-        """Reverse of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(reverse(a + b)) == "~(a + b)"
-
-    def test_involute_of_sum(self, lazy3):
-        """Involute of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(involute(a + b)) == "inv(a + b)"
-
-    def test_conjugate_of_sum(self, lazy3):
-        """Conjugate of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(conjugate(a + b)) == "conj(a + b)"
-
-    def test_dual_of_sum(self, lazy3):
-        """Dual of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(dual(a + b)) == "(a + b)⋆"
-
-    def test_inverse_of_sum(self, lazy3):
-        """Inverse of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(inverse(a + b)) == "(a + b)⁻¹"
+@pytest.mark.parametrize("case_id", tuple(RECIPES))
+@pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
+def test_grouping_preserves_historical_value_replay_and_reviewed_rendering(case_id: str, target: str) -> None:
+    algebra = ga.Algebra(3)
+    a, b, c = [value.named(name) for value, name in zip(algebra.basis_vectors(), "abc", strict=True)]
+    # Names start provenance when an operation is applied; naming alone is not
+    # lazy evaluation, nor does it need a redundant with_expr() call.
+    assert all(value.expr is None for value in (a, b, c))
+    result = RECIPES[case_id](a, b, c)
+    expression, coefficients = result.expr, result.data.copy()
+    assert expression is not None
+    _assert_coefficients(result.data, HISTORY[case_id]["coefficients"])
+    replayed = evaluate(expression, algebra=algebra, environment={"a": a, "b": b, "c": c})
+    _assert_coefficients(replayed.data, HISTORY[case_id]["coefficients"])
+    assert result.display(f"expr/{target}") == RENDERINGS[case_id][("ascii", "unicode", "latex").index(target)]
+    assert result.expr is expression
+    np.testing.assert_array_equal(result.data, coefficients)
 
 
-class TestPostfixUnaryOnProducts:
-    """Postfix unary ops on products should NOT add parens:
-    ab̃ is fine (reverse applies to b only in rendering, but
-    actually the Reverse wraps the whole Gp node)."""
-
-    def test_reverse_of_product(self, lazy3):
-        """Reverse of a product wraps in parens with prefix ~."""
-        _, a, b, _ = lazy3
-        # Reverse of (a*b) — the tilde applies to the whole product
-        # Needs prefix ~ for compound: ~(ab)
-        assert str(reverse(a * b)) == "~(ab)"
-
-    def test_inverse_of_product(self, lazy3):
-        """Inverse of a product wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(inverse(a * b)) == "(ab)⁻¹"
-
-    def test_dual_of_product(self, lazy3):
-        """Dual of a product wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(dual(a * b)) == "(ab)⋆"
-
-    def test_squared_of_product(self, lazy3):
-        """Squared of a product wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(squared(a * b)) == "(ab)²"
+def test_squaring_a_product_must_not_look_like_squaring_its_last_factor() -> None:
+    algebra = ga.Algebra(3)
+    a, b, _ = [value.named(name) for value, name in zip(algebra.basis_vectors(), "abc", strict=True)]
+    whole_product = ga.squared(a * b)
+    last_factor = a * ga.squared(b)
+    # Compute the values first: these are different algebraic expressions.
+    assert whole_product == -1
+    assert last_factor == a
+    assert whole_product.expr != last_factor.expr
+    assert whole_product.display("expr/latex") == r"\left(a b\right)^2"
+    assert last_factor.display("expr/latex") == r"a b^2"
 
 
-class TestPostfixUnaryOnSingleName:
-    """Single named values need no parens."""
-
-    def test_reverse_of_name(self, lazy3):
-        """Reverse of a single name uses combining tilde, no parens."""
-        _, a, _, _ = lazy3
-        assert str(reverse(a)) == "a\u0303"
-
-    def test_inverse_of_name(self, lazy3):
-        """Inverse of a single name needs no parens."""
-        _, a, _, _ = lazy3
-        assert str(inverse(a)) == "a⁻¹"
-
-    def test_dual_of_name(self, lazy3):
-        """Dual of a single name needs no parens."""
-        _, a, _, _ = lazy3
-        assert str(dual(a)) == "a⋆"
-
-    def test_squared_of_name(self, lazy3):
-        """Squared of a single name needs no parens."""
-        _, a, _, _ = lazy3
-        assert str(squared(a)) == "a²"
-
-
-class TestNegation:
-    """Negation of sums needs parens: -(a + b) not -a + b."""
-
-    def test_neg_of_sum(self, lazy3):
-        """Negation of a sum wraps in parens."""
-        _, a, b, _ = lazy3
-        assert str(-(a + b)) == "-(a + b)"
-
-    def test_neg_of_product(self, lazy3):
-        """Negation of a product needs no parens."""
-        _, a, b, _ = lazy3
-        assert str(-(a * b)) == "-ab"
-
-    def test_neg_of_name(self, lazy3):
-        """Negation of a single name needs no parens."""
-        _, a, _, _ = lazy3
-        assert str(-a) == "-a"
-
-
-class TestReverseInProduct:
-    """~(a + b) inside a product needs parens."""
-
-    def test_reverse_sum_times_c(self, lazy3):
-        """Reversed sum on the left of a product keeps parens."""
-        _, a, b, c = lazy3
-        assert str(~(a + b) * c) == "~(a + b)c"
-
-    def test_c_times_reverse_sum(self, lazy3):
-        """Reversed sum on the right of a product keeps parens."""
-        _, a, b, c = lazy3
-        assert str(c * ~(a + b)) == "c~(a + b)"
-
-
-class TestSandwichLike:
-    """Sandwich patterns with sums."""
-
-    def test_sum_sandwich(self, lazy3):
-        """Sandwich product with sums preserves parens on both sides."""
-        _, a, b, c = lazy3
-        expr = (a + b) * c * ~(a + b)
-        s = str(expr)
-        assert "(a + b)" in s
-        assert "~(a + b)" in s
-
-
-class TestDoubleReverse:
-    """Double reverse should show nested tildes or simplify."""
-
-    def test_double_reverse(self, lazy3):
-        """Double reverse renders without crashing."""
-        _, a, _, _ = lazy3
-        # ~~a — the inner reverse is ã, outer wraps it
-        s = str(~~a)
-        # Should be parseable — either ã̃ or (ã)̃
-        assert "a" in s
-
-
-class TestScalarDivOfSum:
-    """(a + b) / 2 should keep parens."""
-
-    def test_sum_div_scalar(self, lazy3):
-        """Sum divided by scalar wraps numerator in parens."""
-        _, a, b, _ = lazy3
-        assert str((a + b) / 2) == "(a + b)/2"
-
-
-class TestScalarMulInWedge:
-    """ScalarMul inside wedge must be distinguishable."""
-
-    def test_scalar_mul_wedge_left(self, lazy3):
-        """Scalar-multiplied operand in wedge gets parens to avoid ambiguity."""
-        _, a, b, _ = lazy3
-        # (2a) ^ b should show parens to distinguish from 2(a^b)
-        assert str((2 * a) ^ b) == "(2a)∧b"
-
-    def test_scalar_mul_wedge_vs_outer(self, lazy3):
-        """Scalar times a wedge product needs no inner parens."""
-        _, a, b, _ = lazy3
-        # 2(a^b) should NOT have inner parens
-        assert str(2 * (a ^ b)) == "2a∧b"
-
-
-class TestUnitOfSum:
-    """unit(a + b) should show parens in the hat notation."""
-
-    def test_unit_of_sum(self, lazy3):
-        """Unit of a sum includes parens around the sum."""
-        _, a, b, _ = lazy3
-        s = str(unit(a + b))
-        # Should have parens around a + b
-        assert "(a + b)" in s
-
-
-class TestExpOfSum:
-    """exp already wraps in exp(...) so parens are implicit."""
-
-    def test_exp_of_sum(self, lazy3):
-        """exp() renders with function notation, parens implicit."""
-        _, a, b, _ = lazy3
-        assert str(exp(a + b)) == "exp(a + b)"
+def test_unit_and_involution_keep_distinct_ids_even_when_conventional_hats_match() -> None:
+    algebra = ga.Algebra(3)
+    a, b, _ = [value.named(name) for value, name in zip(algebra.basis_vectors(), "abc", strict=True)]
+    normalized, involuted = ga.unit(a + b), ga.grade_involution(a + b)
+    assert ga.squared(normalized).almost_equal(algebra.identity)
+    assert ga.squared(involuted) == 2
+    assert normalized.expr.operation_id == "unit"
+    assert involuted.expr.operation_id == "grade_involution"
+    assert normalized.display("expr/latex") == involuted.display("expr/latex") == r"\widehat{\left(a + b\right)}"
+    assert normalized.display("expr/ascii", notation=ga.Notation.functional()) == "unit(add(a, b))"
+    assert involuted.display("expr/ascii", notation=ga.Notation.functional()) == "grade_involution(add(a, b))"

@@ -24,8 +24,6 @@ LEGACY_ORACLE_TESTS = (
     "test_locals.py",
     "test_low_dim.py",
     "test_notation.py",
-    "test_numeric_function_expressions.py",
-    "test_precedence.py",
     "test_quaternion.py",
     "test_redesign.py",
     "test_render.py",

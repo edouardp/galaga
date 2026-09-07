@@ -6,6 +6,14 @@ deciders: edouard
 
 # ADR-023: Parenthesization in Squared Rendering
 
+Historical decision: the product example below is superseded by the shared
+grouping model in [ADR-078](078-shared-semantic-rendering-pipeline.md).
+Current rendering uses `(ab)^2`, not `ab^2`, when squaring a product.
+These expressions have different computed values even for orthonormal
+Euclidean basis vectors. The regression is now facade-owned under
+[ADR-098](098-expression-contracts-outlive-legacy-provenance.md); this note
+corrects the historical example without changing production rendering.
+
 ## Context and Problem Statement
 
 The `Squared` expression node renders `x²`. When `x` is a sum like
@@ -18,7 +26,7 @@ The `Squared` node wraps its operand in parentheses when it is an `Add`
 or `Sub` node. Single-term expressions (names, products, scalars) are
 not wrapped.
 
-```
+```text
 squared(v)       →  v²
 squared(a + b)   →  (a + b)²
 squared(a - b)   →  (a - b)²
