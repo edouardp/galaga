@@ -19,7 +19,6 @@ LEGACY_ORACLE_TESTS = (
     "test_chisolm_transformations.py",
     "test_coverage.py",
     "test_coverage_gaps.py",
-    "test_latex_build.py",
     "test_locals.py",
     "test_low_dim.py",
     "test_quaternion.py",

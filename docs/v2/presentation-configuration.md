@@ -80,6 +80,12 @@ for supported forms and unsupported-input examples.
 This object is deliberately smaller than notation. A blade called `e31` and
 an operation rendered with `×` are separate concerns.
 
+LaTeX superscripts and subscripts protect existing scripts and recognized
+outer operators in explicit labels; see the
+[scripted-label example](migration-guide.md#scripted-and-compound-labels).
+This is a bounded emission guard, not name conversion or expression parsing.
+Supply explicitly grouped spellings for more complex opaque labels.
+
 ### `BladeRef`: signed lookup without a basis change
 
 The numeric core stores exterior blades in ascending bit order. A

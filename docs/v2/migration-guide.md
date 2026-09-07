@@ -200,6 +200,30 @@ See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).
 
 ## Migrate custom notation with immutable rules
 
+### Scripted and compound labels
+
+Use explicit spellings for compound labels. Appending a LaTeX script now
+protects the complete label, including an existing superscript:
+
+```python
+from galaga import Algebra, Name, dual, inverse
+
+value = Algebra(2).blade(1)
+area_label = value.named(Name("area", latex=r"a \wedge b"))
+square_label = value.named(Name("square", latex="x^2"))
+assert dual(area_label).display("expr/latex") == r"\left(a \wedge b\right)^*"
+assert inverse(square_label).display("expr/latex") == r"{x^2}^{-1}"
+assert area_label.numeric is value.numeric
+```
+
+These are labels, not claims that the value equals an outer product or a
+square. No binding or numeric evaluation is inferred from them.
+The [bounded LaTeX guard](rendering-implementation.md#latex-script-spelling-safety)
+is not a general TeX parser; explicitly group more complex opaque labels.
+Use `Call` expressions when you need mathematical structure and replay.
+
+### Immutable rules
+
 Import `Notation` and `RenderRule` from `galaga`. Replace
 `notation.set("Reverse", "latex", ...)` with
 `notation.with_rule("reverse", ..., target="latex")`, keeping the returned

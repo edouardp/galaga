@@ -31,6 +31,8 @@ from .tree import (
 _SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 _SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
 _POSITIONAL_MARKERS = frozenset("★☆●○■□")
+_LATEX_TOKEN = re.compile(r"\\[A-Za-z]+|\\[\s\S]|[^\\]")
+_LATEX_INFIX = frozenset({"+", "-", "/", "=", r"\wedge", r"\vee", r"\cdot", r"\times", r"\mathbin"})
 _LATEX_ESCAPE = str.maketrans(
     {
         "&": r"\&",
@@ -106,8 +108,7 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
             compact_fractions=target == "latex" or compact_fractions,
         )
         if target == "latex":
-            if isinstance(node.base, Power):
-                base = "{" + base + "}"
+            base = _latex_script_base(node.base, base, "^")
             if re.fullmatch(r"[A-Za-z0-9*]", exponent):
                 return f"{base}^{exponent}"
             return rf"{base}^{{{exponent}}}"
@@ -123,12 +124,7 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         base = _emit(node.base, target, compact_fractions=compact_fractions)
         subscript = _emit(node.subscript, target, compact_fractions=compact_fractions)
         if target == "latex":
-            # A configured identifier may already contain a subscript, as in
-            # the RGA blade ``\mathbf{e}_{1}``. Group that existing scripted
-            # atom before adding another semantic subscript; ordinary atomic
-            # bases retain the conventional compact ``x_i`` spelling.
-            if _latex_subscript_base_requires_group(node.base):
-                base = "{" + base + "}"
+            base = _latex_script_base(node.base, base, "_")
             return rf"{base}_{{{subscript}}}"
         if target == "unicode":
             compact = _unicode_script(subscript, superscript=False)
@@ -154,6 +150,8 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
     if isinstance(node, Prefix):
         operator = node.operator.for_target(target)
         operand = _emit(node.operand, target, compact_fractions=compact_fractions)
+        if target == "latex" and re.search(r"(?<!\\)(?:\\\\)*\\[A-Za-z]+$", operator):
+            operator += " "
         return f"{operator}{operand}"
     if isinstance(node, Postfix):
         return f"{_emit(node.operand, target, compact_fractions=compact_fractions)}{node.operator.for_target(target)}"
@@ -238,11 +236,36 @@ def _latex_function(value: str) -> str:
     return rf"\operatorname{{{_escape_text(value, 'latex')}}}"
 
 
-def _latex_subscript_base_requires_group(node: Node) -> bool:
-    """Return whether another subscript would create an illegal TeX atom."""
-    if isinstance(node, Subscript):
-        return True
-    return isinstance(node, Identifier) and re.search(r"(?<!\\)_", node.name.latex) is not None
+def _latex_script_base(node: Node, rendered: str, marker: str) -> str:
+    """Protect visible compound names and already-scripted TeX atoms.
+
+    This is a bounded spelling guard, not an expression or TeX parser.
+    Brace contents, escaped characters, and one-token script arguments
+    cannot supply outer operators. Semantic grouping remains builder-owned.
+    """
+    if isinstance(node, Group):
+        return rendered
+    depth = 0
+    script_argument = False
+    outer: set[str] = set()
+    for match in _LATEX_TOKEN.finditer(rendered):
+        lexeme = match.group()
+        if lexeme == "{":
+            depth += 1
+            script_argument = False
+        elif lexeme == "}":
+            depth -= 1
+        elif depth == 0 and not lexeme.isspace():
+            if script_argument:
+                script_argument = False
+            else:
+                outer.add(lexeme)
+                script_argument = lexeme in {"^", "_"}
+    if isinstance(node, (Identifier, Literal)) and outer & _LATEX_INFIX:
+        return rf"\left({rendered}\right)"
+    if marker in outer:
+        return "{" + rendered + "}"
+    return rendered
 
 
 def _escape_text(value: str, target: str) -> str:

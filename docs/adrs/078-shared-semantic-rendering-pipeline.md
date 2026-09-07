@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The legacy LaTeX pipeline suite now also has public owners.
+[ADR-102](102-latex-contracts-and-script-safe-spelling.md) adds bounded
+emitter-owned command separation and script-base protection for explicit
+names, exponentials, and scientific literals without changing expression
+precedence or evaluation.
+
 The notation contracts now also execute without the legacy renderer.
 [ADR-101](101-immutable-notation-contracts-and-unit-fraction-layout.md)
 restores opt-in unit-fraction layout using existing semantic nodes and fixes

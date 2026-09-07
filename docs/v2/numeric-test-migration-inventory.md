@@ -965,3 +965,36 @@ The full package/release suites pass 5,192 cases on Python 3.11 and 5,309
 on Python 3.14, including maintained notebook exports, with only the existing
 complex-to-real conversion warning. Type checking remains at 296 errors.
 See [ADR-101](../adrs/101-immutable-notation-contracts-and-unit-fraction-layout.md).
+
+### Phase 9 follow-through: LaTeX pipeline contracts
+
+`test_latex_build.py` now constructs public expressions and semantic
+nodes rather than the old expression/build/rewrite/emission pipeline.
+The historical archive `tools/baselines/latex-build-contracts-v1.json`
+preserves all 112 original identifiers, complete method sources, and actual
+helper-observed output with source commit and runtime provenance. Every
+historical class has a checked live owner.
+
+Regressions reproduced merged command prefixes, invalid double superscripts,
+and ambiguous scripts on compound names. A bounded LaTeX emitter guard now
+separates control words, protects existing scripts, and groups recognized
+outer operators in names and scientific literals. It respects braces, escapes,
+and script arguments without parsing arbitrary TeX or changing expression
+precedence. Existing wide accents, floor contractions, fraction grouping,
+constant folding, and unavailable scientific-style selectors remain explicit.
+
+Independent Gram-determinant rotor/logarithm checks include an oblique metric;
+complement is checked against the exterior-product law. Naming, expression
+identity, numeric data, hashes, explicit replay, and missing-binding errors
+remain live contracts. Corruption probes independently reject wrong numeric
+values, replay, and display.
+
+The construction ledger falls from twelve files to eleven. All 161 focused
+cases pass with 100% line/branch coverage in the three test files; all new
+emitter paths are covered, with overall emitter coverage increasing to 94%.
+Fresh-process legacy-import bans pass, and the 154 public cases also pass
+against the built wheel with verified package origins. Full package/release
+suites pass 5,241 cases on Python 3.11 and 5,358 on Python 3.14, including
+maintained notebook exports. Only the existing matrix complex-to-real warning
+remains; type checking reports 295 errors, down from 296.
+See [ADR-102](../adrs/102-latex-contracts-and-script-safe-spelling.md).

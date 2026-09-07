@@ -137,6 +137,12 @@ precedence.
 
 ## Building values and expressions
 
+Explicit LaTeX names remain opaque presentation data, not expression trees.
+When attaching a script, the emitter protects already-scripted bases and a
+bounded set of visible outer operators; see
+[script spelling safety](#latex-script-spelling-safety). That target-local
+guard does not alter the semantic precedence model above.
+
 ### Concrete values
 
 `value_tree()` reads `.data`, the active `DisplayOrder`, and the active
@@ -285,6 +291,28 @@ LaTeX script context is structural: `Power` exponents and wrappers marked
 that is only one factor of a larger script is parenthesized, so `e^{a/2}` and
 `e^{\left(a/2\right)B}` remain both compact and unambiguous. Ordinary fractions
 outside scripts retain a full fraction bar.
+
+### LaTeX script spelling safety
+
+An outer script must apply to the complete displayed operand. Exponentials
+and scripted names therefore render as `{e^{a}}^*` and `{x^2}^{-1}`,
+while a compound name can render as `\left(a \wedge b\right)^*`.
+Powers of scientific literals protect both mantissa and exponent.
+
+A bounded lexical guard recognizes braces, escapes, and script arguments.
+Outer `+`, `-`, `/`, `=`, `\wedge`, `\vee`, `\cdot`,
+`\times`, and `\mathbin` trigger parentheses for names and numeric
+literals. An existing script of the same kind triggers braces; scripts
+inside an accent or another brace group do not. Builder-selected `Group`
+nodes remain unchanged. Prefix control words receive a separating space,
+preventing `\tilde` plus `a` from becoming `\tildea`.
+
+This does not parse arbitrary TeX, expand macros, validate label syntax, or
+infer algebra from a name. Supply valid, explicitly grouped LaTeX for opaque
+compound labels outside this vocabulary; prefer expression or semantic nodes
+when mathematical structure matters. ASCII/Unicode spellings and expression
+identity are unchanged. See
+[ADR-102](../adrs/102-latex-contracts-and-script-safe-spelling.md).
 
 ## Display policy and public API
 

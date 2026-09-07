@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-067: Strip Whitespace from LaTeX Names in .name()
 
+This records the v1 mutable naming implementation. In v2,
+[ADR-100](100-explicit-bounded-latex-name-conversion.md) specifies the
+opt-in name factory's whitespace handling, while
+[ADR-102](102-latex-contracts-and-script-safe-spelling.md) protects outer
+LaTeX scripts with a brace/escape-aware emitter guard. V2 does not restore
+`Sym.is_compound` or infer expression structure from a name.
+
 ## Context and Problem Statement
 
 The `.name()` method accepts a `latex` keyword for custom LaTeX rendering.

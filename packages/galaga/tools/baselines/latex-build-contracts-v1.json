@@ -1,0 +1,735 @@
+{
+  "schema_version": 1,
+  "source_commit": "813eb6047a97753f207ea356164e104664df3c61",
+  "captured_on": "2026-09-07",
+  "source_test": "packages/galaga/tests/test_latex_build.py",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "original_case_count": 112,
+  "tests": [
+    {
+      "id": "TestAtoms.test_sym",
+      "source": "def test_sym(self):\n        \"\"\"Sym renders its name.\"\"\"\n        assert _latex(a) == \"a\"",
+      "latex_observations": [
+        "a"
+      ]
+    },
+    {
+      "id": "TestAtoms.test_sym_latex_name",
+      "source": "def test_sym_latex_name(self):\n        \"\"\"Sym with latex name uses it.\"\"\"\n        assert _latex(theta) == r\"\\theta\"",
+      "latex_observations": [
+        "\\theta"
+      ]
+    },
+    {
+      "id": "TestAtoms.test_scalar",
+      "source": "def test_scalar(self):\n        \"\"\"Scalar renders as number.\"\"\"\n        assert _latex(Scalar(3.14)) == \"3.14\"",
+      "latex_observations": [
+        "3.14"
+      ]
+    },
+    {
+      "id": "TestAtoms.test_scalar_int",
+      "source": "def test_scalar_int(self):\n        \"\"\"Integer scalar renders without decimal.\"\"\"\n        assert _latex(Scalar(2)) == \"2\"",
+      "latex_observations": [
+        "2"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_add",
+      "source": "def test_add(self):\n        \"\"\"Add renders with +.\"\"\"\n        assert _latex(Add(a, b)) == \"a + b\"",
+      "latex_observations": [
+        "a + b"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_sub",
+      "source": "def test_sub(self):\n        \"\"\"Sub renders with -.\"\"\"\n        assert _latex(Sub(a, b)) == \"a - b\"",
+      "latex_observations": [
+        "a - b"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_neg",
+      "source": "def test_neg(self):\n        \"\"\"Neg renders with prefix -.\"\"\"\n        assert _latex(Neg(a)) == \"-a\"",
+      "latex_observations": [
+        "-a"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_neg_add",
+      "source": "def test_neg_add(self):\n        \"\"\"Neg of sum wraps in parens.\"\"\"\n        assert _latex(Neg(Add(a, b))) == r\"-\\left(a + b\\right)\"",
+      "latex_observations": [
+        "-\\left(a + b\\right)"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_scalar_mul",
+      "source": "def test_scalar_mul(self):\n        \"\"\"ScalarMul renders as coefficient.\"\"\"\n        assert _latex(ScalarMul(3, a)) == \"3 a\"",
+      "latex_observations": [
+        "3 a"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_scalar_mul_neg1",
+      "source": "def test_scalar_mul_neg1(self):\n        \"\"\"ScalarMul by -1 renders as -a.\"\"\"\n        assert _latex(ScalarMul(-1, a)) == \"-a\"",
+      "latex_observations": [
+        "-a"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_scalar_mul_pos1",
+      "source": "def test_scalar_mul_pos1(self):\n        \"\"\"ScalarMul by +1 suppresses the coefficient.\"\"\"\n        assert _latex(ScalarMul(1, a)) == \"a\"",
+      "latex_observations": [
+        "a"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_scalar_div",
+      "source": "def test_scalar_div(self):\n        \"\"\"ScalarDiv renders as \\frac.\"\"\"\n        assert _latex(ScalarDiv(a, 2)) == r\"\\frac{a}{2}\"",
+      "latex_observations": [
+        "\\frac{a}{2}"
+      ]
+    },
+    {
+      "id": "TestArithmetic.test_div",
+      "source": "def test_div(self):\n        \"\"\"Div renders as \\frac.\"\"\"\n        assert _latex(Div(a, b)) == r\"\\frac{a}{b}\"",
+      "latex_observations": [
+        "\\frac{a}{b}"
+      ]
+    },
+    {
+      "id": "TestProducts.test_gp",
+      "source": "def test_gp(self):\n        \"\"\"Gp renders as juxtaposition with space.\"\"\"\n        assert _latex(Gp(a, b)) == \"a b\"",
+      "latex_observations": [
+        "a b"
+      ]
+    },
+    {
+      "id": "TestProducts.test_op",
+      "source": "def test_op(self):\n        r\"\"\"Op renders with \\wedge.\"\"\"\n        assert _latex(Op(a, b)) == r\"a \\wedge b\"",
+      "latex_observations": [
+        "a \\wedge b"
+      ]
+    },
+    {
+      "id": "TestProducts.test_lc",
+      "source": "def test_lc(self):\n        r\"\"\"Lc renders with \\lrcorner.\"\"\"\n        assert _latex(Lc(a, b)) == r\"a \\;\\lrcorner\\; b\"",
+      "latex_observations": [
+        "a \\;\\lrcorner\\; b"
+      ]
+    },
+    {
+      "id": "TestProducts.test_rc",
+      "source": "def test_rc(self):\n        r\"\"\"Rc renders with \\llcorner.\"\"\"\n        assert _latex(Rc(a, b)) == r\"a \\;\\llcorner\\; b\"",
+      "latex_observations": [
+        "a \\;\\llcorner\\; b"
+      ]
+    },
+    {
+      "id": "TestProducts.test_regressive",
+      "source": "def test_regressive(self):\n        \"\"\"Regressive renders with \\vee.\"\"\"\n        assert _latex(Regressive(a, b)) == r\"a \\vee b\"",
+      "latex_observations": [
+        "a \\vee b"
+      ]
+    },
+    {
+      "id": "TestUnary.test_reverse",
+      "source": "def test_reverse(self):\n        \"\"\"Reverse renders as \\tilde.\"\"\"\n        assert _latex(Reverse(a)) == r\"\\tilde{a}\"",
+      "latex_observations": [
+        "\\tilde{a}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_reverse_compound",
+      "source": "def test_reverse_compound(self):\n        r\"\"\"Reverse of compound uses \\widetilde.\"\"\"\n        assert _latex(Reverse(Add(a, b))) == r\"\\widetilde{a + b}\"",
+      "latex_observations": [
+        "\\widetilde{a + b}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_involute",
+      "source": "def test_involute(self):\n        r\"\"\"Involute renders as \\hat.\"\"\"\n        assert _latex(Involute(a)) == r\"\\hat{a}\"",
+      "latex_observations": [
+        "\\hat{a}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_conjugate",
+      "source": "def test_conjugate(self):\n        \"\"\"Conjugate renders as \\bar.\"\"\"\n        assert _latex(Conjugate(a)) == r\"\\bar{a}\"",
+      "latex_observations": [
+        "\\bar{a}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_conjugate_compound",
+      "source": "def test_conjugate_compound(self):\n        r\"\"\"Conjugate of compound uses \\overline.\"\"\"\n        assert _latex(Conjugate(Add(a, b))) == r\"\\overline{a + b}\"",
+      "latex_observations": [
+        "\\overline{a + b}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_dual",
+      "source": "def test_dual(self):\n        \"\"\"Dual renders as ^*.\"\"\"\n        assert _latex(Dual(a)) == \"a^*\"",
+      "latex_observations": [
+        "a^*"
+      ]
+    },
+    {
+      "id": "TestUnary.test_undual",
+      "source": "def test_undual(self):\n        \"\"\"Undual renders as ^{*^{-1}}.\"\"\"\n        assert _latex(Undual(a)) == \"a^{*^{-1}}\"",
+      "latex_observations": [
+        "a^{*^{-1}}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_complement",
+      "source": "def test_complement(self):\n        r\"\"\"Complement renders as ^{\\complement}.\"\"\"\n        assert _latex(Complement(a)) == r\"a^{\\complement}\"",
+      "latex_observations": [
+        "a^{\\complement}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_uncomplement",
+      "source": "def test_uncomplement(self):\n        r\"\"\"Uncomplement renders as ^{\\complement^{-1}}.\"\"\"\n        assert _latex(Uncomplement(a)) == r\"a^{\\complement^{-1}}\"",
+      "latex_observations": [
+        "a^{\\complement^{-1}}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_inverse",
+      "source": "def test_inverse(self):\n        \"\"\"Inverse renders as ^{-1}.\"\"\"\n        assert _latex(Inverse(a)) == \"a^{-1}\"",
+      "latex_observations": [
+        "a^{-1}"
+      ]
+    },
+    {
+      "id": "TestUnary.test_squared",
+      "source": "def test_squared(self):\n        \"\"\"Squared renders as ^2.\"\"\"\n        assert _latex(Squared(a)) == \"a^2\"",
+      "latex_observations": [
+        "a^2"
+      ]
+    },
+    {
+      "id": "TestPostfixOnPostfix.test_undual_of_dual",
+      "source": "def test_undual_of_dual(self):\n        \"\"\"Undual of dual wraps inner in parens.\"\"\"\n        assert _latex(Undual(Dual(a))) == r\"\\left(a^*\\right)^{*^{-1}}\"",
+      "latex_observations": [
+        "\\left(a^*\\right)^{*^{-1}}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnPostfix.test_inverse_of_dual",
+      "source": "def test_inverse_of_dual(self):\n        \"\"\"Inverse of dual wraps inner in parens.\"\"\"\n        assert _latex(Inverse(Dual(a))) == r\"\\left(a^*\\right)^{-1}\"",
+      "latex_observations": [
+        "\\left(a^*\\right)^{-1}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnPostfix.test_dual_of_inverse",
+      "source": "def test_dual_of_inverse(self):\n        \"\"\"Dual of inverse wraps inner in parens.\"\"\"\n        assert _latex(Dual(Inverse(a))) == r\"\\left(a^{-1}\\right)^*\"",
+      "latex_observations": [
+        "\\left(a^{-1}\\right)^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSup.test_postfix_dagger_on_exp",
+      "source": "def test_postfix_dagger_on_exp(self):\n        \"\"\"reverse(exp(a)) with dagger notation: {e^{a}}^{\\\\dagger}\"\"\"\n        from galaga.notation import Notation, NotationRule\n\n        n = Notation()\n        n.set(\"Reverse\", \"latex\", NotationRule(kind=\"superscript\", symbol=r\"\\dagger\"))\n        from galaga.latex_build import build\n        from galaga.latex_emit import emit\n        from galaga.latex_rewrite import rewrite\n\n        tree = build(Reverse(Exp(a)), n)\n        result = emit(rewrite(tree))\n        assert result == r\"{e^{a}}^{\\dagger}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestPostfixOnSup.test_superscript_on_simple",
+      "source": "def test_superscript_on_simple(self):\n        \"\"\"reverse(a) with superscript dagger: a^{\\\\dagger}\"\"\"\n        from galaga.notation import Notation, NotationRule\n\n        n = Notation()\n        n.set(\"Reverse\", \"latex\", NotationRule(kind=\"superscript\", symbol=r\"\\dagger\"))\n        from galaga.latex_build import build\n        from galaga.latex_emit import emit\n        from galaga.latex_rewrite import rewrite\n\n        tree = build(Reverse(a), n)\n        result = emit(rewrite(tree))\n        assert result == r\"a^{\\dagger}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestPostfixOnSup.test_postfix_star_on_exp",
+      "source": "def test_postfix_star_on_exp(self):\n        \"\"\"dual(exp(a)): {e^{a}}^*\"\"\"\n        result = _latex(Dual(Exp(a)))\n        assert result == r\"{e^{a}}^*\"",
+      "latex_observations": [
+        "{e^{a}}^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSup.test_postfix_inverse_on_exp",
+      "source": "def test_postfix_inverse_on_exp(self):\n        \"\"\"inverse(exp(a)): {e^{a}}^{-1}\"\"\"\n        result = _latex(Inverse(Exp(a)))\n        assert result == r\"{e^{a}}^{-1}\"",
+      "latex_observations": [
+        "{e^{a}}^{-1}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSup.test_postfix_squared_on_exp",
+      "source": "def test_postfix_squared_on_exp(self):\n        \"\"\"squared(exp(a)): {e^{a}}^2\"\"\"\n        result = _latex(Squared(Exp(a)))\n        assert result == r\"{e^{a}}^2\"",
+      "latex_observations": [
+        "{e^{a}}^2"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSup.test_postfix_on_non_sup_no_braces",
+      "source": "def test_postfix_on_non_sup_no_braces(self):\n        \"\"\"Postfix on a non-Sup node should NOT add extra braces.\"\"\"\n        result = _latex(Dual(a))\n        assert result == \"a^*\"\n        assert \"{a}\" not in result",
+      "latex_observations": [
+        "a^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSup.test_complement_on_exp",
+      "source": "def test_complement_on_exp(self):\n        \"\"\"Complement of exp brace-wraps.\"\"\"\n        result = _latex(Complement(Exp(a)))\n        assert result == r\"{e^{a}}^{\\complement}\"",
+      "latex_observations": [
+        "{e^{a}}^{\\complement}"
+      ]
+    },
+    {
+      "id": "TestWrap.test_grade",
+      "source": "def test_grade(self):\n        \"\"\"Grade renders with \\\\langle \\rangle.\"\"\"\n        assert _latex(Grade(a, 1)) == r\"\\langle a \\rangle_{1}\"",
+      "latex_observations": [
+        "\\langle a \\rangle_{1}"
+      ]
+    },
+    {
+      "id": "TestWrap.test_norm",
+      "source": "def test_norm(self):\n        r\"\"\"Norm renders with \\lVert.\"\"\"\n        assert _latex(Norm(a)) == r\"\\lVert a \\rVert\"",
+      "latex_observations": [
+        "\\lVert a \\rVert"
+      ]
+    },
+    {
+      "id": "TestWrap.test_even",
+      "source": "def test_even(self):\n        \"\"\"Even renders with \\text{even} subscript.\"\"\"\n        assert _latex(Even(a)) == r\"\\langle a \\rangle_{\\text{even}}\"",
+      "latex_observations": [
+        "\\langle a \\rangle_{\\text{even}}"
+      ]
+    },
+    {
+      "id": "TestWrap.test_odd",
+      "source": "def test_odd(self):\n        \"\"\"Odd renders with \\text{odd} subscript.\"\"\"\n        assert _latex(Odd(a)) == r\"\\langle a \\rangle_{\\text{odd}}\"",
+      "latex_observations": [
+        "\\langle a \\rangle_{\\text{odd}}"
+      ]
+    },
+    {
+      "id": "TestWrap.test_unit_atom",
+      "source": "def test_unit_atom(self):\n        r\"\"\"Unit of atom renders as \\hat.\"\"\"\n        assert _latex(Unit(a)) == r\"\\hat{a}\"",
+      "latex_observations": [
+        "\\hat{a}"
+      ]
+    },
+    {
+      "id": "TestWrap.test_unit_compound",
+      "source": "def test_unit_compound(self):\n        r\"\"\"Unit of compound uses \\widehat.\"\"\"\n        result = _latex(Unit(Add(a, b)))\n        # Unit of compound uses wide hat accent\n        assert r\"\\widehat\" in result",
+      "latex_observations": [
+        "\\widehat{\\left(a + b\\right)}"
+      ]
+    },
+    {
+      "id": "TestExp.test_simple",
+      "source": "def test_simple(self):\n        \"\"\"Exp renders as e^{...}.\"\"\"\n        assert _latex(Exp(a)) == \"e^{a}\"",
+      "latex_observations": [
+        "e^{a}"
+      ]
+    },
+    {
+      "id": "TestExp.test_exp_with_frac_uses_tfrac",
+      "source": "def test_exp_with_frac_uses_tfrac(self):\n        \"\"\"The key test: frac inside exp superscript becomes inline slash.\"\"\"\n        expr = Exp(ScalarDiv(theta, 2))\n        assert _latex(expr) == r\"e^{\\theta/2}\"",
+      "latex_observations": [
+        "e^{\\theta/2}"
+      ]
+    },
+    {
+      "id": "TestExp.test_exp_with_product_and_frac",
+      "source": "def test_exp_with_product_and_frac(self):\n        \"\"\"Exp with product and frac uses slash, not \\\\frac.\"\"\"\n        expr = Exp(Gp(ScalarDiv(Neg(theta), 2), b))\n        result = _latex(expr)\n        assert \"/\" in result\n        assert r\"\\frac\" not in result",
+      "latex_observations": [
+        "e^{-\\theta/2 b}"
+      ]
+    },
+    {
+      "id": "TestLog.test_simple",
+      "source": "def test_simple(self):\n        \"\"\"Exp renders as e^{...}.\"\"\"\n        assert _latex(Log(a)) == r\"\\log\\left(a\\right)\"",
+      "latex_observations": [
+        "\\log\\left(a\\right)"
+      ]
+    },
+    {
+      "id": "TestLog.test_log_of_exp",
+      "source": "def test_log_of_exp(self):\n        \"\"\"Log of exp: \\\\log(e^{a}).\"\"\"\n        assert _latex(Log(Exp(a))) == r\"\\log\\left(e^{a}\\right)\"",
+      "latex_observations": [
+        "\\log\\left(e^{a}\\right)"
+      ]
+    },
+    {
+      "id": "TestCommutator.test_commutator",
+      "source": "def test_commutator(self):\n        \"\"\"Commutator renders with brackets.\"\"\"\n        assert _latex(Commutator(a, b)) == r\"[a,\\, b]\"",
+      "latex_observations": [
+        "[a,\\, b]"
+      ]
+    },
+    {
+      "id": "TestCommutator.test_anticommutator",
+      "source": "def test_anticommutator(self):\n        \"\"\"Anticommutator renders with braces.\"\"\"\n        result = _latex(Anticommutator(a, b))\n        # Should have braces or similar\n        assert \"a\" in result and \"b\" in result",
+      "latex_observations": [
+        "\\{a,\\, b\\}"
+      ]
+    },
+    {
+      "id": "TestPrecedence.test_add_in_gp",
+      "source": "def test_add_in_gp(self):\n        \"\"\"Sum in gp gets parenthesized.\"\"\"\n        expr = Gp(Add(a, b), a)\n        assert _latex(expr) == r\"\\left(a + b\\right) a\"",
+      "latex_observations": [
+        "\\left(a + b\\right) a"
+      ]
+    },
+    {
+      "id": "TestPrecedence.test_gp_in_add",
+      "source": "def test_gp_in_add(self):\n        \"\"\"Product in sum needs no parens.\"\"\"\n        expr = Add(Gp(a, b), a)\n        assert _latex(expr) == \"a b + a\"",
+      "latex_observations": [
+        "a b + a"
+      ]
+    },
+    {
+      "id": "TestPrecedence.test_nested_frac_outside_sup_stays_frac",
+      "source": "def test_nested_frac_outside_sup_stays_frac(self):\n        \"\"\"Frac not inside Sup should remain \\\\frac.\"\"\"\n        expr = ScalarDiv(a, 2)\n        assert _latex(expr) == r\"\\frac{a}{2}\"",
+      "latex_observations": [
+        "\\frac{a}{2}"
+      ]
+    },
+    {
+      "id": "TestPrefixSpacing.test_latex_command_gets_space",
+      "source": "def test_latex_command_gets_space(self):\n        \"\"\"LaTeX command prefix gets trailing space.\"\"\"\n        from galaga.notation import Notation, NotationRule\n\n        n = Notation()\n        n.set(\"Reverse\", \"latex\", NotationRule(kind=\"prefix\", symbol=r\"\\tilde\"))\n        from galaga.latex_build import build\n        from galaga.latex_emit import emit\n        from galaga.latex_rewrite import rewrite\n\n        assert emit(rewrite(build(Reverse(a), n))) == r\"\\tilde a\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestPrefixSpacing.test_latex_command_compound_gets_space",
+      "source": "def test_latex_command_compound_gets_space(self):\n        \"\"\"LaTeX command prefix before parens gets space.\"\"\"\n        from galaga.notation import Notation, NotationRule\n\n        n = Notation()\n        n.set(\"Reverse\", \"latex\", NotationRule(kind=\"prefix\", symbol=r\"\\tilde\"))\n        from galaga.latex_build import build\n        from galaga.latex_emit import emit\n        from galaga.latex_rewrite import rewrite\n\n        assert emit(rewrite(build(Reverse(Add(a, b)), n))) == r\"\\tilde \\left(a + b\\right)\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestPrefixSpacing.test_non_command_prefix_no_space",
+      "source": "def test_non_command_prefix_no_space(self):\n        \"\"\"Prefix '-' should NOT get a space.\"\"\"\n        assert _latex(Neg(a)) == \"-a\"",
+      "latex_observations": [
+        "-a"
+      ]
+    },
+    {
+      "id": "TestPrefixSpacing.test_prefix_ending_in_brace_no_space",
+      "source": "def test_prefix_ending_in_brace_no_space(self):\n        \"\"\"Prefix ending in } has no space.\"\"\"\n        from galaga.notation import Notation, NotationRule\n\n        n = Notation()\n        n.set(\"Reverse\", \"latex\", NotationRule(kind=\"prefix\", symbol=r\"{\\sim}\"))\n        from galaga.latex_build import build\n        from galaga.latex_emit import emit\n        from galaga.latex_rewrite import rewrite\n\n        assert emit(rewrite(build(Reverse(a), n))) == r\"{\\sim}a\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSuperscriptKind.test_simple_atom",
+      "source": "def test_simple_atom(self):\n        \"\"\"Superscript on atom: a^{symbol}.\"\"\"\n        assert self._render(Reverse(a), r\"\\dagger\") == r\"a^{\\dagger}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSuperscriptKind.test_compound",
+      "source": "def test_compound(self):\n        \"\"\"Superscript on compound wraps in parens.\"\"\"\n        result = self._render(Reverse(Add(a, b)), r\"\\dagger\")\n        assert result == r\"\\left(a + b\\right)^{\\dagger}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSuperscriptKind.test_on_exp_braces",
+      "source": "def test_on_exp_braces(self):\n        \"\"\"Sup-on-Sup must brace-wrap.\"\"\"\n        result = self._render(Reverse(Exp(a)), r\"\\dagger\")\n        assert result == r\"{e^{a}}^{\\dagger}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSuperscriptKind.test_custom_symbol",
+      "source": "def test_custom_symbol(self):\n        \"\"\"Custom superscript symbol.\"\"\"\n        assert self._render(Reverse(a), \"R\") == \"a^{R}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestEndToEndLatex.test_exp_frac_slash",
+      "source": "def test_exp_frac_slash(self):\n        \"\"\"exp(-θ/2 B) uses slash not frac in superscript.\"\"\"\n        from galaga.legacy import Algebra, exp\n\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        th = alg.scalar(np.radians(45)).name(latex=r\"\\theta\")\n        B = (e1 * e2).name(\"B\")\n        R = exp((-th / 2) * B)\n        latex = R.latex()\n        assert \"/\" in latex\n        assert r\"\\frac\" not in latex",
+      "latex_observations": []
+    },
+    {
+      "id": "TestEndToEndLatex.test_neg_hoisted_in_exp",
+      "source": "def test_neg_hoisted_in_exp(self):\n        \"\"\"Negation hoists before slash in superscript.\"\"\"\n        from galaga.legacy import Algebra, exp\n\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        th = alg.scalar(1.0).name(latex=r\"\\theta\")\n        B = (e1 * e2).name(\"B\")\n        latex = exp((-th / 2) * B).latex()\n        assert latex.startswith(\"e^{-\")",
+      "latex_observations": []
+    },
+    {
+      "id": "TestEndToEndLatex.test_complement_lazy",
+      "source": "def test_complement_lazy(self):\n        \"\"\"complement() stays symbolic on lazy MVs.\"\"\"\n        from galaga.legacy import Algebra, complement\n\n        alg = Algebra((1, 1, 1))\n        e1, _, _ = alg.basis_vectors(lazy=True)\n        v = e1.name(\"v\")\n        c = complement(v)\n        assert c._is_symbolic\n        assert r\"\\complement\" in c.latex()",
+      "latex_observations": []
+    },
+    {
+      "id": "TestEndToEndLatex.test_log_lazy",
+      "source": "def test_log_lazy(self):\n        \"\"\"log() stays symbolic on lazy MVs.\"\"\"\n        from galaga.legacy import Algebra, exp, log\n\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        B = (e1 * e2).name(\"B\")\n        R = exp(B)\n        latex = log(R).latex()\n        assert r\"\\log\" in latex",
+      "latex_observations": []
+    },
+    {
+      "id": "TestAccentWidth.test_single_char_narrow",
+      "source": "def test_single_char_narrow(self):\n        \"\"\"Single letter uses \\\\tilde.\"\"\"\n        assert _latex(Reverse(a)) == r\"\\tilde{a}\"",
+      "latex_observations": [
+        "\\tilde{a}"
+      ]
+    },
+    {
+      "id": "TestAccentWidth.test_multi_char_wide",
+      "source": "def test_multi_char_wide(self):\n        \"\"\"Multi-letter name uses \\\\widetilde.\"\"\"\n        ab = _sym(\"AB\")\n        assert _latex(Reverse(ab)) == r\"\\widetilde{AB}\"",
+      "latex_observations": [
+        "\\widetilde{AB}"
+      ]
+    },
+    {
+      "id": "TestAccentWidth.test_latex_command_narrow",
+      "source": "def test_latex_command_narrow(self):\n        \"\"\"LaTeX command like \\\\theta is a single glyph — uses \\\\tilde.\"\"\"\n        assert _latex(Reverse(theta)) == r\"\\tilde{\\theta}\"",
+      "latex_observations": [
+        "\\tilde{\\theta}"
+      ]
+    },
+    {
+      "id": "TestAccentWidth.test_compound_expr_wide",
+      "source": "def test_compound_expr_wide(self):\n        \"\"\"Compound expression uses \\\\widetilde.\"\"\"\n        assert _latex(Reverse(Add(a, b))) == r\"\\widetilde{a + b}\"",
+      "latex_observations": [
+        "\\widetilde{a + b}"
+      ]
+    },
+    {
+      "id": "TestAccentWidth.test_conjugate_single_narrow",
+      "source": "def test_conjugate_single_narrow(self):\n        \"\"\"Conjugate single char uses \\\\bar.\"\"\"\n        assert _latex(Conjugate(a)) == r\"\\bar{a}\"",
+      "latex_observations": [
+        "\\bar{a}"
+      ]
+    },
+    {
+      "id": "TestAccentWidth.test_conjugate_multi_wide",
+      "source": "def test_conjugate_multi_wide(self):\n        \"\"\"Conjugate multi-char uses \\\\overline.\"\"\"\n        ab = _sym(\"AB\")\n        assert _latex(Conjugate(ab)) == r\"\\overline{AB}\"",
+      "latex_observations": [
+        "\\overline{AB}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSuperscriptName.test_undual_of_named_dual",
+      "source": "def test_undual_of_named_dual(self):\n        \"\"\"undual(B^\\\\star) brace-wraps: {B^\\\\star}^{*^{-1}}.\"\"\"\n        from galaga.expr import Sym, Undual\n\n        _alg2 = Algebra((1, 1, 1))\n        _b = _alg2.basis_vectors()[0]\n        b_star = Sym(_b, \"B*\", name_latex=r\"B^\\star\")\n        result = _latex(Undual(b_star))\n        assert result == r\"{B^\\star}^{*^{-1}}\"",
+      "latex_observations": [
+        "{B^\\star}^{*^{-1}}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSuperscriptName.test_inverse_of_named_superscript",
+      "source": "def test_inverse_of_named_superscript(self):\n        \"\"\"inverse(x^2) brace-wraps: {x^2}^{-1}.\"\"\"\n        x_sq = _sym(\"x²\", latex=\"x^2\")\n        result = _latex(Inverse(x_sq))\n        assert result == r\"{x^2}^{-1}\"",
+      "latex_observations": [
+        "{x^2}^{-1}"
+      ]
+    },
+    {
+      "id": "TestPostfixOnSuperscriptName.test_postfix_on_plain_name_no_braces",
+      "source": "def test_postfix_on_plain_name_no_braces(self):\n        \"\"\"dual(a) has no extra braces: a^*.\"\"\"\n        result = _latex(Dual(a))\n        assert result == \"a^*\"",
+      "latex_observations": [
+        "a^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnCompoundName.test_dual_of_wedge_name",
+      "source": "def test_dual_of_wedge_name(self):\n        r\"\"\"Dual of 'a \\wedge b' wraps: \\left(a \\wedge b\\right)^*.\"\"\"\n        wedge_sym = _sym(\"a∧b\", latex=r\"a \\wedge b\")\n        result = _latex(Dual(wedge_sym))\n        assert r\"\\left(a \\wedge b\\right)^*\" == result",
+      "latex_observations": [
+        "\\left(a \\wedge b\\right)^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnCompoundName.test_dual_of_simple_name_no_parens",
+      "source": "def test_dual_of_simple_name_no_parens(self):\n        \"\"\"Dual of simple name: B^*.\"\"\"\n        result = _latex(Dual(a))\n        assert result == \"a^*\"",
+      "latex_observations": [
+        "a^*"
+      ]
+    },
+    {
+      "id": "TestPostfixOnCompoundName.test_complement_of_wedge_name",
+      "source": "def test_complement_of_wedge_name(self):\n        r\"\"\"Complement of 'a \\wedge b' wraps.\"\"\"\n        wedge_sym = _sym(\"a∧b\", latex=r\"a \\wedge b\")\n        result = _latex(Complement(wedge_sym))\n        assert r\"\\left(a \\wedge b\\right)\" in result",
+      "latex_observations": [
+        "\\left(a \\wedge b\\right)^{\\complement}"
+      ]
+    },
+    {
+      "id": "TestSymProperties.test_simple_name_not_compound",
+      "source": "def test_simple_name_not_compound(self):\n        \"\"\"Single-letter name is not compound.\"\"\"\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        B = (e1 ^ e2).name(\"B\")\n        s = B._to_expr()\n        assert not s.is_compound",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_wedge_name_is_compound",
+      "source": "def test_wedge_name_is_compound(self):\n        \"\"\"Name with wedge operator is compound.\"\"\"\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        area = (e1.name(\"a\") ^ e2.name(\"b\")).name(latex=r\"a \\wedge b\")\n        s = area._to_expr()\n        assert s.is_compound",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_sum_name_is_compound",
+      "source": "def test_sum_name_is_compound(self):\n        \"\"\"Name with + is compound.\"\"\"\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        v = (e1.name(\"a\") + e2.name(\"b\")).name(latex=\"a + b\")\n        s = v._to_expr()\n        assert s.is_compound",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_no_inner_expr_not_compound",
+      "source": "def test_no_inner_expr_not_compound(self):\n        \"\"\"Sym without inner_expr and simple name is not compound.\"\"\"\n        s = _sym(\"B\")\n        assert not s.is_compound",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_no_inner_expr_wedge_name_compound",
+      "source": "def test_no_inner_expr_wedge_name_compound(self):\n        \"\"\"Sym without inner_expr but compound name falls back to string check.\"\"\"\n        s = _sym(\"a∧b\", latex=r\"a \\wedge b\")\n        assert s.is_compound",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_has_superscript",
+      "source": "def test_has_superscript(self):\n        \"\"\"Name with ^ has superscript.\"\"\"\n        s = _sym(\"B*\", latex=r\"B^\\star\")\n        assert s.has_superscript",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_no_superscript",
+      "source": "def test_no_superscript(self):\n        \"\"\"Simple name has no superscript.\"\"\"\n        s = _sym(\"B\")\n        assert not s.has_superscript",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_inner_expr_preserved",
+      "source": "def test_inner_expr_preserved(self):\n        \"\"\"_to_expr() preserves inner expression tree.\"\"\"\n        alg = Algebra((1, 1, 1))\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        area = (e1.name(\"a\") ^ e2.name(\"b\")).name(\"B\")\n        s = area._to_expr()\n        assert s._inner_expr is not None\n        assert hasattr(s._inner_expr, \"a\")",
+      "latex_observations": []
+    },
+    {
+      "id": "TestSymProperties.test_eager_no_inner_expr",
+      "source": "def test_eager_no_inner_expr(self):\n        \"\"\"Eager MV has no inner expr.\"\"\"\n        alg = Algebra((1, 1, 1))\n        e1, _, _ = alg.basis_vectors()\n        s = e1._to_expr()\n        assert s._inner_expr is None",
+      "latex_observations": []
+    },
+    {
+      "id": "TestFracNoParens.test_frac_in_gp",
+      "source": "def test_frac_in_gp(self):\n        r\"\"\"\\\\frac{1}{2} e_{1} — no parens around fraction.\"\"\"\n        result = _latex(Gp(Div(Scalar(1), Scalar(2)), a))\n        assert r\"\\left(\" not in result\n        assert r\"\\frac{1}{2}\" in result",
+      "latex_observations": [
+        "\\frac{1}{2} a"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_frac_in_add",
+      "source": "def test_frac_in_add(self):\n        r\"\"\"\\\\frac{1}{2} + a — no parens.\"\"\"\n        result = _latex(Add(Div(Scalar(1), Scalar(2)), a))\n        assert r\"\\left(\" not in result",
+      "latex_observations": [
+        "\\frac{1}{2} + a"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_scalar_div_in_gp",
+      "source": "def test_scalar_div_in_gp(self):\n        r\"\"\"\\\\frac{a}{2} b — no parens around scalar div.\"\"\"\n        result = _latex(Gp(ScalarDiv(a, 2), b))\n        assert r\"\\left(\" not in result\n        assert r\"\\frac{a}{2}\" in result",
+      "latex_observations": [
+        "\\frac{a}{2} b"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_frac_squared_brace_wrapped",
+      "source": "def test_frac_squared_brace_wrapped(self):\n        r\"\"\"{\\\\frac{1}{2}}^2 — brace-wrapped for superscript.\"\"\"\n        result = _latex(Squared(Div(Scalar(1), Scalar(2))))\n        assert result == r\"{\\frac{1}{2}}^2\"",
+      "latex_observations": [
+        "{\\frac{1}{2}}^2"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_frac_inverse_brace_wrapped",
+      "source": "def test_frac_inverse_brace_wrapped(self):\n        r\"\"\"{\\\\frac{a}{b}}^{-1} — brace-wrapped for superscript.\"\"\"\n        result = _latex(Inverse(Div(a, b)))\n        assert result == r\"{\\frac{a}{b}}^{-1}\"",
+      "latex_observations": [
+        "{\\frac{a}{b}}^{-1}"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_frac_dual_brace_wrapped",
+      "source": "def test_frac_dual_brace_wrapped(self):\n        r\"\"\"{\\\\frac{a}{b}}^* — brace-wrapped for superscript.\"\"\"\n        result = _latex(Dual(Div(a, b)))\n        assert result == r\"{\\frac{a}{b}}^*\"",
+      "latex_observations": [
+        "{\\frac{a}{b}}^*"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_scalar_div_in_exp_becomes_slash",
+      "source": "def test_scalar_div_in_exp_becomes_slash(self):\n        r\"\"\"e^{a/2} — frac becomes slash inside exp superscript.\"\"\"\n        result = _latex(Exp(ScalarDiv(a, 2)))\n        assert result == r\"e^{a/2}\"",
+      "latex_observations": [
+        "e^{a/2}"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_product_div_in_exp",
+      "source": "def test_product_div_in_exp(self):\n        r\"\"\"e^{a b/2} — product with scalar div in exp.\"\"\"\n        result = _latex(Exp(ScalarDiv(Gp(a, b), 2)))\n        assert \"/\" in result\n        assert r\"\\frac\" not in result",
+      "latex_observations": [
+        "e^{a b/2}"
+      ]
+    },
+    {
+      "id": "TestFracNoParens.test_frac_times_frac",
+      "source": "def test_frac_times_frac(self):\n        r\"\"\"\\\\frac{1}{2} \\\\frac{1}{3} — no parens on either.\"\"\"\n        result = _latex(Gp(Div(Scalar(1), Scalar(2)), Div(Scalar(1), Scalar(3))))\n        assert r\"\\left(\" not in result",
+      "latex_observations": [
+        "\\frac{1}{2} \\frac{1}{3}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_standalone_no_parens",
+      "source": "def test_standalone_no_parens(self):\n        \"\"\"e^{a/2} — standalone slash, no parens needed.\"\"\"\n        result = _latex(Exp(ScalarDiv(a, 2)))\n        assert result == r\"e^{a/2}\"",
+      "latex_observations": [
+        "e^{a/2}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_with_sibling_gets_parens",
+      "source": "def test_with_sibling_gets_parens(self):\n        \"\"\"e^{(a/2) b} — slash with sibling, wrapped.\"\"\"\n        result = _latex(Exp(Gp(ScalarDiv(a, 2), b)))\n        assert r\"\\left(a/2\\right)\" in result",
+      "latex_observations": [
+        "e^{\\left(a/2\\right) b}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_sibling_on_left_gets_parens",
+      "source": "def test_sibling_on_left_gets_parens(self):\n        \"\"\"e^{a (b/2)} — slash on right with sibling.\"\"\"\n        result = _latex(Exp(Gp(a, ScalarDiv(b, 2))))\n        assert r\"\\left(b/2\\right)\" in result",
+      "latex_observations": [
+        "e^{a \\left(b/2\\right)}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_two_fracs_both_wrapped",
+      "source": "def test_two_fracs_both_wrapped(self):\n        \"\"\"e^{(a/2) (b/3)} — both slashes wrapped.\"\"\"\n        result = _latex(Exp(Gp(ScalarDiv(a, 2), ScalarDiv(b, 3))))\n        assert result.count(r\"\\left(\") == 2",
+      "latex_observations": [
+        "e^{\\left(a/2\\right) \\left(b/3\\right)}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_neg_prefix_no_wrap",
+      "source": "def test_neg_prefix_no_wrap(self):\n        \"\"\"e^{-a/2} — neg prefix doesn't trigger wrapping.\"\"\"\n        result = _latex(Exp(ScalarDiv(Neg(a), 2)))\n        assert r\"\\left(\" not in result\n        assert result == r\"e^{-a/2}\"",
+      "latex_observations": [
+        "e^{-a/2}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_product_as_numerator_no_wrap",
+      "source": "def test_product_as_numerator_no_wrap(self):\n        \"\"\"e^{-B θ/2} — product in numerator, single slash, no wrap.\"\"\"\n        _B = _sym(\"B\")\n        _th = _sym(\"θ\", latex=r\"\\theta\")\n        result = _latex(Exp(ScalarDiv(Neg(Gp(_B, _th)), 2)))\n        assert r\"\\left(\" not in result",
+      "latex_observations": [
+        "e^{-B \\theta/2}"
+      ]
+    },
+    {
+      "id": "TestSlashFracAmbiguity.test_normal_context_no_change",
+      "source": "def test_normal_context_no_change(self):\n        r\"\"\"\\\\frac{a}{2} b — normal context, no parens.\"\"\"\n        result = _latex(Gp(ScalarDiv(a, 2), b))\n        assert r\"\\left(\" not in result\n        assert r\"\\frac{a}{2}\" in result",
+      "latex_observations": [
+        "\\frac{a}{2} b"
+      ]
+    },
+    {
+      "id": "TestScientificNotation.test_scalar_small_number",
+      "source": "def test_scalar_small_number(self):\n        \"\"\"Scalar with |c| < 1e-6 renders as scientific notation.\"\"\"\n        result = self._latex_with(Scalar(1.2e-7))\n        assert result == r\"1.2 \\times 10^{-7}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalar_normal_number",
+      "source": "def test_scalar_normal_number(self):\n        \"\"\"Scalar with |c| >= 1e-6 renders without scientific notation.\"\"\"\n        result = self._latex_with(Scalar(3.14))\n        assert result == \"3.14\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalar_cdot_style",
+      "source": "def test_scalar_cdot_style(self):\n        \"\"\"Scalar with cdot style uses \\\\cdot.\"\"\"\n        result = self._latex_with(Scalar(1.2e-7), style=\"cdot\")\n        assert result == r\"1.2 \\cdot 10^{-7}\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalar_raw_style",
+      "source": "def test_scalar_raw_style(self):\n        \"\"\"Scalar with raw style passes through Python format.\"\"\"\n        result = self._latex_with(Scalar(1.2e-7), style=\"raw\")\n        assert result == \"1.2e-07\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalarmul_small_coeff",
+      "source": "def test_scalarmul_small_coeff(self):\n        \"\"\"ScalarMul with small coefficient renders scientific notation.\"\"\"\n        result = self._latex_with(ScalarMul(5.5e-8, a))\n        assert r\"\\times 10^{-8}\" in result\n        assert \"5.5\" in result",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalarmul_normal_coeff",
+      "source": "def test_scalarmul_normal_coeff(self):\n        \"\"\"ScalarMul with normal coefficient renders plain number.\"\"\"\n        result = self._latex_with(ScalarMul(2.5, a))\n        assert result == \"2.5 a\"",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalardiv_small_denominator",
+      "source": "def test_scalardiv_small_denominator(self):\n        \"\"\"ScalarDiv with small denominator renders scientific notation in frac.\"\"\"\n        result = self._latex_with(ScalarDiv(a, 1.2e-7))\n        assert r\"\\times 10^{-7}\" in result\n        assert r\"\\frac\" in result",
+      "latex_observations": []
+    },
+    {
+      "id": "TestScientificNotation.test_scalar_mantissa_one_suppressed",
+      "source": "def test_scalar_mantissa_one_suppressed(self):\n        \"\"\"Scalar 1e-10 suppresses mantissa.\"\"\"\n        result = self._latex_with(Scalar(1e-10))\n        assert result == r\"10^{-10}\"",
+      "latex_observations": []
+    }
+  ]
+}
