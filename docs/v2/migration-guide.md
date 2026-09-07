@@ -158,6 +158,46 @@ and raises the same error for a singular value; call `inverse(value, ...)`
 for non-default controls. See
 [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
+## Derive a name from LaTeX explicitly
+
+Replace v1's `value.name(latex=...)` with an immutable name:
+
+```python
+from galaga import Algebra, Name
+
+value = Algebra(3).blade(1)
+normal = value.named(Name.from_latex(r"\hat{n}"))
+assert normal.display("name/ascii") == "hat_n"
+assert normal.display("name/unicode") == "n\u0302"
+assert normal.display("name/latex") == r"\hat{n}"
+assert normal.numeric is value.numeric
+
+# Nested TeX is outside the converter's grammar: supply explicit spellings.
+theta = value.named(Name.from_latex(r"\hat{\theta}", ascii="hat_theta", unicode="θ̂"))
+```
+
+This is an opt-in lookup, not a general TeX parser. It retains the explicit
+Greek/common-symbol/operator/relation/arrow mappings, five math fonts
+(`\mathbf`, `\mathit`, `\mathcal`, `\mathfrak`, `\mathbb`) on one
+ASCII Latin letter, bold/double-struck ASCII digits, and six accents
+(`\hat`, `\tilde`, `\bar`, `\vec`, `\dot`, `\ddot`) on one ASCII
+letter or digit. Lowercase script/double-struck mappings and Unicode gaps
+are corrected; unsupported characters no longer produce unrelated symbols.
+
+Explicit `ascii=` and `unicode=` win over derived spellings.
+`Name.from_latex` strips surrounding whitespace, rejects blank/non-string
+input, and raises `ValueError` for unsupported text unless `ascii=` is
+provided. With that fallback, missing Unicode uses the ASCII spelling.
+Nonempty target validation is unchanged. Plain `Name("x")` remains the
+right choice for an ordinary name; `Name(r"\alpha")` still stores that
+literal string in all three targets rather than inferring Greek.
+
+For low-level lookup, import `LatexSymbols` from `galaga.names`.
+`lookup` returns `(unicode, ascii)` or `None` and, unlike the factory,
+does not strip whitespace. The old `galaga.latex_symbols` import is only
+a temporary same-object shim scheduled for removal before stable `2.0.0`.
+See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).
+
 ## Construct metrics and models explicitly
 
 Signatures remain concise:

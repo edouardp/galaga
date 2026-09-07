@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import cast
 
+from ._latex_symbols import LatexSymbols
+
 
 @dataclass(frozen=True, slots=True)
 class Name:
@@ -26,6 +28,32 @@ class Name:
         object.__setattr__(self, "unicode", unicode)
         object.__setattr__(self, "latex", latex)
 
+    @classmethod
+    def from_latex(cls, latex: str, *, ascii: str | None = None, unicode: str | None = None) -> Name:
+        """Explicitly derive spellings for a supported single LaTeX symbol.
+
+        Surrounding whitespace is stripped. Explicit overrides win over
+        lookup results. Unsupported text requires an ``ascii=`` fallback;
+        its Unicode spelling then defaults to ASCII unless also supplied.
+        This opt-in helper does not change ordinary Name construction.
+        """
+        if not isinstance(latex, str):
+            raise TypeError("LaTeX input must be a string")
+        latex = latex.strip()
+        if not latex:
+            raise ValueError("a LaTeX name must be a non-empty string")
+        derived = LatexSymbols().lookup(latex)
+        if derived is None:
+            if ascii is None:
+                raise ValueError("unsupported LaTeX symbol; provide ascii= explicitly")
+            return cls(ascii, unicode, latex)
+        derived_unicode, derived_ascii = derived
+        return cls(
+            derived_ascii if ascii is None else ascii,
+            derived_unicode if unicode is None else unicode,
+            latex,
+        )
+
     @property
     def variants(self) -> tuple[str, str, str]:
         """The ASCII, Unicode, and LaTeX spellings in target order."""
@@ -45,4 +73,4 @@ class Name:
         return cast(str, self.unicode)
 
 
-__all__ = ["Name"]
+__all__ = ["LatexSymbols", "Name"]

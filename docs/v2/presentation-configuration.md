@@ -59,6 +59,24 @@ the blade convention or renderer to infer one from another. Missing Unicode
 falls back to ASCII; missing LaTeX falls back to Unicode. `for_target()` is the
 single target-selection operation.
 
+When the LaTeX spelling is known first, opt into bounded conversion:
+
+```python
+from galaga import Name
+from galaga.names import LatexSymbols
+
+normal = Name.from_latex(r"\hat{n}")
+assert normal.variants == ("hat_n", "n\u0302", r"\hat{n}")
+assert LatexSymbols().lookup(r"\mathbb{a}") == ("𝕒", "a")
+```
+
+`Name.from_latex` accepts explicit `ascii=` and `unicode=` overrides.
+It strips surrounding whitespace and requires `ascii=` for unsupported
+LaTeX; the Unicode fallback then uses that ASCII spelling. Plain `Name`
+construction and `named(...)` keep their existing non-inferential behavior.
+See the [migration guide](migration-guide.md#derive-a-name-from-latex-explicitly)
+for supported forms and unsupported-input examples.
+
 This object is deliberately smaller than notation. A blade called `e31` and
 an operation rendered with `×` are separate concerns.
 

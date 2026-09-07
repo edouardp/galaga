@@ -424,7 +424,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 | `test_examples.py` | example source policy |
 | `facade/test_numeric_facade.py` | facade catalog, wrapping, and direct-core parity |
 | `test_latex_build.py` | semantic LaTeX pipeline |
-| `test_latex_symbols.py` | symbol rendering |
+| `test_latex_symbols.py` | bounded symbol conversion and immutable presentation names |
 | `test_latex_tree.py` | LaTeX tree and rewrites |
 | `test_notation.py` | notation and presentation |
 | `test_numeric_function_expressions.py` | eager facade functions and replayable expression provenance |
@@ -900,3 +900,34 @@ also pass all 305 tests when importing Galaga directly from the built wheel,
 with legacy imports prohibited and package origins verified. The archive
 and test utilities remain outside the wheel.
 See [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
+
+### Phase 9 follow-through: explicit symbol conversion
+
+`test_latex_symbols.py` now imports `galaga.names.LatexSymbols`.
+All 108 original test identifiers and valid literal mappings remain; only
+the canonical import and final naming integration change. The integration
+uses the facade with `Name.from_latex`, removing this file from the legacy
+construction ledger and reducing the count from fourteen to thirteen.
+
+This migration preserves conversion, not just already-supplied spellings.
+The converter has one private, standard-library-only implementation, with a
+temporary same-object re-export at the old path. The opt-in name factory
+derives supported spellings and requires explicit ASCII fallback for unknown
+TeX; ordinary `Name` and `named` semantics remain unchanged.
+
+Regression probes demonstrated wrong lowercase script/double-struck offsets,
+unassigned codepoints, and even emoji from Unicode input treated as Latin.
+Independent Unicode-name checks now cover all 260 font letters and all 50
+font/digit pairs; six accent tests each exercise every ASCII letter and
+digit. Malformed input, exact matching, override validation, and fallback
+rules are covered. Gram-derived products across four metric families check
+that naming preserves numeric identity, equality, hashes, and replay.
+
+The conversion and boundary suites pass 543 tests; including the existing
+`Name` configuration suite gives 556 focused cases and 100% line/branch
+coverage in `Name`, the converter, and all three conversion-related test
+files. All 540 public conversion cases also pass directly from the built
+wheel with legacy imports prohibited and package origins verified.
+The full Python 3.11 and 3.14 package/release suites pass 5,092 and 5,209 tests
+respectively, with only the existing complex-to-real matrix warning.
+See [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).

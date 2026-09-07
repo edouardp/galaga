@@ -82,6 +82,15 @@ namespace re-exports the current implementation but now warns on import:
 The bridge contains no implementation and must not become a second public
 architecture.
 
+`galaga.latex_symbols.LatexSymbols` is also a temporary same-object
+re-export, now owned by `galaga.names`. It contains no implementation and
+stays warning-free while legacy internal consumers remain. The old path is
+scheduled for Phase 9 removal before stable `2.0.0`; new code uses
+`galaga.names.LatexSymbols` or `Name.from_latex(...)`. It remains a
+historical path in the retirement inventory, not a supported v2 entry point.
+The corrected converter works without the shim or any legacy engine imports;
+see [ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md).
+
 Legacy `galaga.lazy`, `galaga.symbolic`, `galaga.expr`, `galaga.notation`, and
 related v1 internals remain temporary implementation paths. The supported
 prerelease oracle entry point is `galaga.legacy`; its renderer and simplifier

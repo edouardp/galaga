@@ -46,6 +46,11 @@ Presentation is decomposed into immutable value objects:
 - `Notation` owns stable operation-token choices; and
 - `DisplayPolicy` owns default content and output-target choices.
 
+`Name.from_latex(...)` is the explicit conversion factory described in
+[ADR-100](100-explicit-bounded-latex-name-conversion.md). Ordinary `Name`
+construction still stores spellings without inference; neither the core nor
+the renderer derives names.
+
 `PresentationConfig` groups those components and validates their common vector
 dimension. Its `with_*` operations return new configs and replace exactly one
 component.

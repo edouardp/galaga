@@ -509,7 +509,7 @@ SUBMODULE_DISPOSITIONS = {
     "galaga.latex_emit": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
     "galaga.latex_nodes": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
     "galaga.latex_rewrite": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
-    "galaga.latex_symbols": SurfaceDisposition("rendering", "compatibility-reexport", "galaga.rendering", "phase-7"),
+    "galaga.latex_symbols": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.names", "phase-9"),
     "galaga.lazy": SurfaceDisposition(
         "compatibility",
         "deprecated-reexport",
@@ -570,6 +570,9 @@ SUPPORTED_SUBMODULES = {
 }
 
 
+# Historical-path retirement inventory, not a claim that each path still owns
+# legacy implementation. latex_symbols is now a temporary same-object shim;
+# canonical v2 consumers import names and must work with the old path blocked.
 LEGACY_ONLY_SUBMODULES = frozenset(
     {
         "galaga.algebra",

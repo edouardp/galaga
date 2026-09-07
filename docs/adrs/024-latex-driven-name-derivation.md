@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-024: LaTeX-Driven Name Derivation
 
+For Galaga 2, the implicit naming and unknown-command fallback below are
+superseded by
+[ADR-100](100-explicit-bounded-latex-name-conversion.md).
+Use `value.named(Name.from_latex(...))` for explicit conversion;
+`Name(...)` itself does not infer spellings. The original decision below
+records the v1 behavior.
+
 ## Context and Problem Statement
 
 When naming a multivector with `.name()`, users often know the LaTeX form

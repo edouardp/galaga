@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Nine legacy-dependency prerequisites are complete:
+Status: **in progress**. Ten legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1305,19 +1305,25 @@ Status: **in progress**. Nine legacy-dependency prerequisites are complete:
   public facade. All 29 original scenarios retain archived v1 observations;
   exact three-target grouping, explicit replay, and Gram-derived rotor roots
   are tested without changing production behavior
-  ([ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md)); and
+  ([ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md));
 - the remaining symbolic suite uses facade values, explicit replay, and
   structural simplification. Its representative v1 observations remain as
   data; nonzero probes distinguish old half-scaled Lie/Jordan products from
   v2. The four ledgered unary properties are now implemented and tested
-  ([ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md)).
+  ([ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md)); and
+- the symbol-conversion suite retains all 108 original tests using the public
+  `galaga.names` converter and an explicit `Name.from_latex` factory.
+  Exhaustive Unicode checks correct font offsets and reject unsupported
+  input; naming is checked against Gram-derived products and explicit replay
+  ([ADR-100](../adrs/100-explicit-bounded-latex-name-conversion.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
 the surface/deprecation contracts, both concrete-display suites, and both
-expression-function/grouping suites, and the symbolic/unary-property suites
-with legacy imports blocked. Matrix plans continue to share core algebras
-across facade presentation views; that is intentional v2 behavior.
+expression-function/grouping suites, the symbolic/unary-property suites, and
+the symbol-conversion suites with legacy imports blocked. Matrix plans continue
+to share core algebras across facade presentation views; that is intentional
+v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1331,7 +1337,7 @@ namespace/construction guards. Compatibility-manifest introspection is retired,
 and the independently discovered equality/hash release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 14 files, down from 15 after removing `test_symbolic.py`.
+ledger now contains 13 files, down from 14 after removing `test_latex_symbols.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1354,8 +1360,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(4,774 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (4,657 passed, 45 skipped), with Python 3.14-only integrations
+(5,209 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (5,092 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1370,13 +1376,18 @@ expression-function/grouping suites passed 131 cases at 100%, and the
 concrete-display suites passed 101 cases at 100%; the compatibility manifest,
 surface contract, deprecation contract, and boundary regressions also
 measured 100%.
+The symbol-conversion checkpoint passes 556 focused tests, including existing
+`Name` configuration tests, with 100% line and branch coverage for `Name`,
+the converter, and all three symbol/conversion/boundary test files.
+Its two public suites also pass all 540 tests directly from the built wheel,
+with legacy imports prohibited and package origins verified.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
-gates. Repository-wide type checking still has 297 baseline errors, unchanged
-by these test migrations. The preceding equality/hash correction
-reduced the earlier count from 298 without adding new type errors.
+gates. Repository-wide type checking still has 296 errors: the converter's
+consolidated tuple lookup removes one of the previous 297 errors. The preceding
+equality/hash correction had reduced the earlier count from 298.
 
 #### Immediate release blocker: equality/hash consistency
 

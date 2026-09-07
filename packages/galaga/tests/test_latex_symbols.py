@@ -2,7 +2,7 @@
 
 import pytest
 
-from galaga.latex_symbols import LatexSymbols
+from galaga.names import LatexSymbols
 
 
 @pytest.fixture
@@ -565,10 +565,12 @@ class TestAccents:
 
     def test_hat_in_name(self):
         """Maps \\hat_in_name accent."""
-        from galaga.legacy import Algebra
+        from galaga import Algebra, Name
 
         alg = Algebra((1, 1, 1))
         e1, _, _ = alg.basis_vectors()
-        n = e1.name(latex=r"\hat{n}")
-        assert "n" in str(n)
-        assert n._name == "hat_n"
+        n = e1.named(Name.from_latex(r"\hat{n}"))
+        assert n.numeric is e1.numeric
+        assert n.display("name/unicode") == "n\u0302"
+        assert n.display("name/ascii") == "hat_n"
+        assert n.display("name/latex") == r"\hat{n}"
