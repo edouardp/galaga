@@ -35,6 +35,13 @@ Eight established concise names (`dorst_inner`, `gp`, `join`, `meet`, `op`,
 `rev`, `sw`, and `wedge`) remain permanent exact-object aliases. They have no
 separate catalog entries or evaluators.
 
+The four ledgered unary conveniences are now implemented as read-only facade
+properties: `bar` delegates to `grade_involution`, `dag` to `reverse`, `inv`
+to `inverse`, and `sq` to `squared`. They add no separate operation IDs or
+numeric paths. `bar` does not mean Clifford conjugation, and `inv` uses the
+canonical default controls. See
+[ADR-099](099-symbolic-contracts-and-curated-unary-properties.md).
+
 Six Galaga 1 spellings (`involute`, `mag2`, `magnitude_squared`, `normalise`,
 `normalize`, and `norm_squared`) are explicit warning adapters. An immutable
 manifest maps each spelling to its canonical operation. The adapters issue

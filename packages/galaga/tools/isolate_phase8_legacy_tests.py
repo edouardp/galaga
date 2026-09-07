@@ -29,7 +29,6 @@ LEGACY_ORACLE_TESTS = (
     "test_render.py",
     "test_rga_convention_layer.py",
     "test_scalar_helpers.py",
-    "test_symbolic.py",
 )
 
 _LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)

@@ -126,6 +126,20 @@ def test_v2_protocol_and_formatting_hooks_remain_live_contracts() -> None:
     assert all(callable(getattr(facade.Multivector, name, None)) for name in MULTIVECTOR_FORMATTING_HOOKS)
 
 
+@pytest.mark.parametrize("member", ("bar", "dag", "inv", "sq"))
+def test_curated_unary_conveniences_are_implemented_as_read_only_canonical_operations(member: str) -> None:
+    disposition = MULTIVECTOR_MEMBERS[member]
+    assert disposition.action == "curated-convenience"
+    descriptor = getattr(facade.Multivector, member)
+    assert isinstance(descriptor, property) and descriptor.fset is None
+    operation = disposition.target.rsplit(".", 1)[1]
+    value = facade.Algebra(2).multivector([2, 0.1, -0.2, 0.05]).named("X")
+    expected = getattr(facade, operation)(value)
+    result = getattr(value, member)
+    assert result.almost_equal(expected)
+    assert result.same_expression(expected)
+
+
 def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> None:
     groups = (
         TOP_LEVEL_EXPORTS,

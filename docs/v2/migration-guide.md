@@ -76,8 +76,17 @@ half_commutator(a, b)        # (ab - ba) / 2
 half_anticommutator(a, b)    # (ab + ba) / 2
 ```
 
-Code that relied on Galaga 1's scaled `commutator` or `anticommutator` must
-select the corresponding `half_...` operation explicitly.
+The captured Galaga 1 implementation already had unscaled `commutator` and
+`anticommutator`, but its `lie_bracket` and `jordan_product` included one
+half. Migrate uses of those old half-scaled Lie/Jordan conventions to
+`half_commutator` and `half_anticommutator` explicitly. Naming or tracking
+does not change any v2 operation's scale.
+
+The v2 simplifier also does not rewrite Jordan products to Hestenes inner.
+For vectors, `half_anticommutator(a, b)` equals their metric pairing;
+`jordan_product(a, b)` is twice that pairing. A saved symbolic call remains
+valid when replayed with different grades, so simplification cannot assume
+the original bindings are always vectors.
 
 ## Replace mutable naming with immutable values
 
@@ -132,6 +141,22 @@ The conventional hat still serves both `unit` and `grade_involution`; use
 those operations must be visibly distinguished. Their numeric meanings and
 stored operation IDs are always separate. See
 [ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
+
+The curated unary shortcuts remain available as read-only properties:
+
+| Shorthand | Equivalent function |
+|---|---|
+| `value.bar` | `grade_involution(value)` |
+| `value.dag` | `reverse(value)` |
+| `value.inv` | `inverse(value)` |
+| `value.sq` | `squared(value)` |
+
+They return eager facade values and preserve canonical operation provenance.
+`bar` means grade involution, not Clifford conjugation; `dag` means reverse,
+not a separate Hermitian-adjoint operation. `inv` uses the default controls
+and raises the same error for a singular value; call `inverse(value, ...)`
+for non-default controls. See
+[ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
 ## Construct metrics and models explicitly
 

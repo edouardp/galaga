@@ -6,6 +6,14 @@ deciders: edouard
 
 # ADR-008: Commutator Family — Four Named Functions, No Flags
 
+Historical v1 decision: v2 uses unscaled `lie_bracket` and `jordan_product`,
+with `half_commutator` and `half_anticommutator` for the half-scaled forms.
+The v2 structural simplifier does not perform the grade-aware Jordan-to-inner
+rewrite below. [ADR-099](099-symbolic-contracts-and-curated-unary-properties.md)
+records computed v1 evidence and the current regression contracts; see also
+[ADR-074](074-long-operation-names-are-canonical.md) and
+[ADR-077](077-optional-expression-provenance.md).
+
 ## Context and Problem Statement
 
 The original `commutator(a, b)` returned `½(ab - ba)` — the half-commutator

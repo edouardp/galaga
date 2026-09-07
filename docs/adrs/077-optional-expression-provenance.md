@@ -81,6 +81,12 @@ Simplification is a fixed-point pass restricted to structural identities and
 scalar-literal folding. It never reorders operands, flattens nonassociative
 operations, or attempts general geometric-algebra simplification.
 
+The migrated symbolic suite explicitly preserves this boundary for Jordan
+products: symbols do not carry inferred grades, and a saved call must remain
+valid under a new environment. The old vector-only rewrite is not part of
+v2 simplification; see
+[ADR-099](099-symbolic-contracts-and-curated-unary-properties.md).
+
 ## Consequences
 
 - Good, because every tracked value still owns a complete eager numeric

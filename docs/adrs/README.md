@@ -112,6 +112,7 @@ helps future contributors understand why certain choices were made.
 | [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Accepted |
 | [097](097-concrete-display-contracts-outlive-legacy-rendering.md) | Concrete Display Contracts Outlive Legacy Rendering | Accepted |
 | [098](098-expression-contracts-outlive-legacy-provenance.md) | Expression Contracts Outlive Legacy Provenance | Accepted |
+| [099](099-symbolic-contracts-and-curated-unary-properties.md) | Symbolic Contracts and Curated Unary Properties | Accepted |
 
 ## Creating New ADRs
 

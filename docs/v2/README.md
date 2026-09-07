@@ -129,9 +129,12 @@ with v1 output preserved as data and existing formatting differences documented
 explicitly. Numeric-function provenance and parenthesization contracts also
 run on the facade, retaining all 29 original observations and adding explicit
 replay, three-target grouping, and Gram-derived rotor-root checks.
-Fresh-process tests block legacy imports in all eight paths. The
-remaining test dependencies, engine deletion, alias retirement, and final
-release gates are still pending.
+The remaining symbolic suite now runs on the facade too, with explicit
+half-scaling and structural-simplification boundaries. The ledgered `bar`,
+`dag`, `inv`, and `sq` properties are implemented as read-only canonical
+delegates. Fresh-process tests block legacy imports in all nine paths.
+The remaining test dependencies, engine deletion, alias retirement, and
+final release gates are still pending.
 
 The equality/hash release blocker is resolved: signed-zero peers and scalar
 multivectors equal to real numbers now have matching hashes. Comparison also
@@ -140,9 +143,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 15 files. Next are the remaining
-symbol, notation, and mixed expression tests, followed by namespace/construction
-guards. See [ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md)
+The construction-only legacy ledger is down to 14 files. Next are the remaining
+symbol, notation, and mixed legacy suites, followed by namespace/construction
+guards. See [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

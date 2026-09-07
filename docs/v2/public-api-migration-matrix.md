@@ -155,9 +155,12 @@ behavior.
 Names, expression state, and old `lazy`/`symbolic` mutation-style methods move
 to the immutable expression-provenance design in Phase 5. `display` and
 `latex`, together with `ascii`, `unicode`, `format`, `str`, `repr`, and the rich
-LaTeX hook, are implemented through the Phase 6 semantic renderer. `bar`,
-`dag`, `inv`, and `sq` remain possible Phase 7 conveniences over named
-operations.
+LaTeX hook, are implemented through the Phase 6 semantic renderer. The four
+curated read-only properties are now implemented: `bar` calls
+`grade_involution`, `dag` calls `reverse`, `inv` calls `inverse`, and `sq`
+calls `squared`. They share canonical provenance and errors. `bar` is not
+Clifford conjugation; use `inverse(value, ...)` for non-default controls.
+See [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
 `scalar_part` is deliberately not a `Multivector` member. The optional
 standalone helper is equivalent to `float(grade(value, 0))`; plain

@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Eight legacy-dependency prerequisites are complete:
+Status: **in progress**. Nine legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1300,19 +1300,24 @@ Status: **in progress**. Eight legacy-dependency prerequisites are complete:
   public facade. Eleven archived samples preserve v1 coefficients and output;
   current tests distinguish native basis enumeration and significant-digit
   display policies from legacy-only behavior without changing production code
-  ([ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md)); and
+  ([ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md));
 - numeric-function provenance and parenthesization contracts now use the
   public facade. All 29 original scenarios retain archived v1 observations;
   exact three-target grouping, explicit replay, and Gram-derived rotor roots
   are tested without changing production behavior
-  ([ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md)).
+  ([ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md)); and
+- the remaining symbolic suite uses facade values, explicit replay, and
+  structural simplification. Its representative v1 observations remain as
+  data; nonzero probes distinguish old half-scaled Lie/Jordan products from
+  v2. The four ledgered unary properties are now implemented and tested
+  ([ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
 the surface/deprecation contracts, both concrete-display suites, and both
-expression-function/grouping suites with legacy imports blocked. Matrix plans
-continue to share core algebras across facade presentation views; that is
-intentional v2 behavior.
+expression-function/grouping suites, and the symbolic/unary-property suites
+with legacy imports blocked. Matrix plans continue to share core algebras
+across facade presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1326,10 +1331,10 @@ namespace/construction guards. Compatibility-manifest introspection is retired,
 and the independently discovered equality/hash release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 15 files, down from 17 after removing `test_precedence.py`
-and `test_numeric_function_expressions.py`. The compatibility manifest was
-never in this construction-only list; its earlier import retirement did not
-change that count. The migration inventory remains the authority for ownership.
+ledger now contains 14 files, down from 15 after removing `test_symbolic.py`.
+The compatibility manifest was never in this construction-only list; its
+earlier import retirement did not change that count. The migration inventory
+remains the authority for ownership.
 
 The concrete-display migration documents existing compatibility limitations:
 numeric multivector format specs such as `.3f` remain unsupported, and
@@ -1349,18 +1354,22 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(4,505 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (4,388 passed, 45 skipped), with Python 3.14-only integrations
+(4,774 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (4,657 passed, 45 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
 3.11 run measures branch coverage without new exclusions: the core public
 module remains at 97%, its backend/metric/metadata modules at 100%, and the
-facade numeric module remains at 97%. A focused Python 3.11 run passes all 131
-expression-function, grouping, and boundary cases with 100% line and branch
-coverage in those three files. The preceding concrete-display suites passed
-101 cases at 100%; the compatibility manifest, surface contract, deprecation
-contract, and boundary regressions also measured 100%.
+facade numeric module remains at 97%, including coverage of every new unary
+property. A focused Python 3.11 run passes all 322 symbolic, unary-property,
+and boundary cases with 100% line and branch coverage in those three files.
+All 305 tests in the two public suites also pass against the built wheel,
+with legacy imports prohibited and package origins verified. The preceding
+expression-function/grouping suites passed 131 cases at 100%, and the
+concrete-display suites passed 101 cases at 100%; the compatibility manifest,
+surface contract, deprecation contract, and boundary regressions also
+measured 100%.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect

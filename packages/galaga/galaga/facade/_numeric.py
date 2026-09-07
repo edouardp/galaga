@@ -621,6 +621,26 @@ class Multivector:
     def grade(self, value: int) -> Multivector:
         return grade(self, value)
 
+    @property
+    def bar(self) -> Multivector:
+        """Grade involution; shorthand for ``grade_involution(self)``."""
+        return grade_involution(self)
+
+    @property
+    def dag(self) -> Multivector:
+        """Reverse; shorthand for ``reverse(self)``, not an additional adjoint."""
+        return reverse(self)
+
+    @property
+    def inv(self) -> Multivector:
+        """Inverse with the canonical default tolerance; use ``inverse`` for controls."""
+        return inverse(self)
+
+    @property
+    def sq(self) -> Multivector:
+        """Geometric square; shorthand for ``squared(self)``."""
+        return squared(self)
+
     def _coerce_additive(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Multivector):
             return other

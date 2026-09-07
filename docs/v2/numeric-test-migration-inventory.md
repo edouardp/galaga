@@ -431,7 +431,7 @@ These files are wholly, or overwhelmingly, owned above the core:
 | `test_precedence.py` | expression rendering precedence |
 | `test_render.py` | rendering |
 | `test_scalar_helpers.py` | facade constants and coefficient rendering |
-| `test_symbolic.py` | legacy expression behavior and v2 migration input |
+| `test_symbolic.py` | facade named-value, replay, bracket, and structural simplification contracts |
 | `test_symbolic_core.py` | expression model, despite its historical name |
 
 The current `test_symbolic_core.py` is not a numeric-core test. Its module name
@@ -870,3 +870,33 @@ with 100% line and branch coverage in a focused Python 3.11 run.
 Fresh-process checks prohibit legacy imports, while corruption tests reject
 wrong eager values, replay values, or rendered grouping independently.
 See [ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
+
+### Phase 9 follow-through: symbolic contracts and unary conveniences
+
+The remaining `test_symbolic.py` suite now uses only the public facade,
+reducing the construction ledger from fifteen files to fourteen. Its 57
+legacy tests covered named rendering, replay, numeric-only fallback, unary
+properties, bracket scaling, and simplification. Those responsibilities now
+have exact public contracts backed by 36 representative v1 value observations,
+eight nonzero tracked/untracked bracket probes, and two historical
+simplification observations in `tools/baselines/symbolic-contracts-v1.json`.
+
+Migration exposed the missing curated `bar`, `dag`, `inv`, and `sq`
+properties. They are now read-only delegates to the ledgered canonical
+functions, with no new core arithmetic or expression IDs. Independent
+grade-sign, left-action, and linear-solve checks cover all four
+name/tracking states across four metric families. The live surface contract
+also verifies their implementation, rather than only their classification.
+
+V1's half-scaled Lie/Jordan products remain historical evidence; v2's
+unscaled definitions and explicit half operations are checked independently.
+Nonzero probes and mixed-grade examples prevent vacuous scaling tests or an
+unsafe Jordan-to-inner rewrite. Production simplification and rendering do
+not change.
+
+The symbolic, unary-property, and boundary suites pass 322 tests at 100%
+line and branch coverage in the focused Python 3.11 run. Both public suites
+also pass all 305 tests when importing Galaga directly from the built wheel,
+with legacy imports prohibited and package origins verified. The archive
+and test utilities remain outside the wheel.
+See [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).

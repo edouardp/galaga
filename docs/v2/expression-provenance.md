@@ -248,6 +248,16 @@ oblique, and native-null cases. The fresh-process and corruption gates live
 in `tests/expression/test_expression_contract_boundary.py`; see
 [ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
 
+`test_symbolic.py` now owns the remaining public named-value recipes,
+including sandwich association, replay with new bindings, numeric-only
+fallback, and explicit bracket scaling. It retains v1 observations as data,
+not imports. The curated `bar`, `dag`, `inv`, and `sq` properties pass through
+canonical dispatch, with separate facade tests for values, provenance,
+read-only access, and singular errors. Jordan-product simplification tests
+protect the structural-only boundary against nonzero vector, bivector, and
+mixed-grade examples. See
+[ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
+
 Phase 5 tests live under `packages/galaga/tests/expression`:
 
 - `test_nodes.py` owns node validation, structural equality, hashing, and

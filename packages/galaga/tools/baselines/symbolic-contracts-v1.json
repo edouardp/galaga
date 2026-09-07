@@ -1,0 +1,1202 @@
+{
+  "schema_version": 1,
+  "source_commit": "ee9f69b6beeb3be121acbbf30ff27142b1f7b43f",
+  "captured_on": "2026-09-07",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_test": "packages/galaga/tests/test_symbolic.py",
+  "original_tests": [
+    "TestSymRendering.test_sym_str",
+    "TestSymRendering.test_gp_str",
+    "TestSymRendering.test_sandwich_str",
+    "TestSymRendering.test_grade_str",
+    "TestSymRendering.test_wedge_str",
+    "TestSymRendering.test_left_contraction_str",
+    "TestSymRendering.test_right_contraction_str",
+    "TestSymRendering.test_hestenes_inner_str",
+    "TestSymRendering.test_scalar_product_str",
+    "TestSymRendering.test_reverse_str",
+    "TestSymRendering.test_involute_str",
+    "TestSymRendering.test_conjugate_str",
+    "TestSymRendering.test_dual_str",
+    "TestSymRendering.test_undual_str",
+    "TestSymRendering.test_norm_str",
+    "TestSymRendering.test_unit_str",
+    "TestSymRendering.test_inverse_str",
+    "TestSymRendering.test_dag_str",
+    "TestSymRendering.test_sq_str",
+    "TestSymRendering.test_add_str",
+    "TestSymRendering.test_sub_str",
+    "TestSymRendering.test_neg_str",
+    "TestSymRendering.test_scalar_mul_str",
+    "TestSymRendering.test_parens_in_product",
+    "TestSymEval.test_gp_eval",
+    "TestSymEval.test_sandwich_eval",
+    "TestSymEval.test_grade_eval",
+    "TestSymEval.test_wedge_eval",
+    "TestSymEval.test_left_contraction_eval",
+    "TestSymEval.test_reverse_eval",
+    "TestSymEval.test_inverse_eval",
+    "TestSymEval.test_add_eval",
+    "TestSymEval.test_sub_eval",
+    "TestSymEval.test_neg_eval",
+    "TestSymEval.test_scalar_mul_eval",
+    "TestSymEval.test_norm_eval",
+    "TestSymEval.test_dual_eval",
+    "TestSymFallback.test_gp_numeric",
+    "TestSymFallback.test_grade_numeric",
+    "TestSymFallback.test_reverse_numeric",
+    "TestCommutatorSymbolic.test_commutator_builds_tree",
+    "TestCommutatorSymbolic.test_commutator_str",
+    "TestCommutatorSymbolic.test_commutator_latex",
+    "TestCommutatorSymbolic.test_commutator_eval",
+    "TestCommutatorSymbolic.test_anticommutator_builds_tree",
+    "TestCommutatorSymbolic.test_anticommutator_str",
+    "TestCommutatorSymbolic.test_lie_bracket_builds_tree",
+    "TestCommutatorSymbolic.test_lie_bracket_eval",
+    "TestCommutatorSymbolic.test_jordan_product_builds_tree",
+    "TestCommutatorSymbolic.test_jordan_product_str",
+    "TestCommutatorSymbolic.test_jordan_product_latex",
+    "TestCommutatorSymbolic.test_jordan_product_eval",
+    "TestCommutatorSymbolic.test_jordan_simplifies_to_inner_for_vectors",
+    "TestCommutatorSymbolic.test_jordan_no_simplify_for_bivectors",
+    "TestCommutatorSymbolic.test_commutator_numeric_fallback",
+    "TestCommutatorSymbolic.test_lie_bracket_numeric_fallback",
+    "TestCommutatorSymbolic.test_jordan_product_numeric_fallback"
+  ],
+  "signature": [
+    1,
+    1,
+    1
+  ],
+  "inputs": {
+    "a": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "b": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "c": [
+      0,
+      1,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "A": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "B": [
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "R": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ],
+    "v": [
+      0,
+      1,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "w": [
+      0,
+      2,
+      0,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "u": [
+      0,
+      3,
+      4,
+      0,
+      0,
+      0,
+      0,
+      0
+    ],
+    "contraction_B": [
+      0,
+      0,
+      0,
+      1,
+      0,
+      0,
+      0,
+      0
+    ]
+  },
+  "values": [
+    {
+      "id": "name",
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "R",
+        "unicode": "R",
+        "latex": "R"
+      },
+      "node": "Sym"
+    },
+    {
+      "id": "product",
+      "coefficients": [
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "Rv",
+        "unicode": "Rv",
+        "latex": "R v"
+      },
+      "node": "Gp"
+    },
+    {
+      "id": "sandwich",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "RvR̃",
+        "unicode": "RvR̃",
+        "latex": "R v \\tilde{R}"
+      },
+      "node": "Gp"
+    },
+    {
+      "id": "grade-0",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "⟨RvR̃⟩₀",
+        "unicode": "⟨RvR̃⟩₀",
+        "latex": "\\langle R v \\tilde{R} \\rangle_{0}"
+      },
+      "node": "Grade"
+    },
+    {
+      "id": "grade-1",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "⟨RvR̃⟩₁",
+        "unicode": "⟨RvR̃⟩₁",
+        "latex": "\\langle R v \\tilde{R} \\rangle_{1}"
+      },
+      "node": "Grade"
+    },
+    {
+      "id": "grade-2",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "⟨RvR̃⟩₂",
+        "unicode": "⟨RvR̃⟩₂",
+        "latex": "\\langle R v \\tilde{R} \\rangle_{2}"
+      },
+      "node": "Grade"
+    },
+    {
+      "id": "wedge",
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a∧b",
+        "unicode": "a∧b",
+        "latex": "a \\wedge b"
+      },
+      "node": "Op"
+    },
+    {
+      "id": "left-contraction",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a⌋b",
+        "unicode": "a⌋b",
+        "latex": "a \\;\\lrcorner\\; b"
+      },
+      "node": "Lc"
+    },
+    {
+      "id": "right-contraction",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a⌊b",
+        "unicode": "a⌊b",
+        "latex": "a \\;\\llcorner\\; b"
+      },
+      "node": "Rc"
+    },
+    {
+      "id": "hestenes-inner",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "A·B",
+        "unicode": "A·B",
+        "latex": "A \\cdot B"
+      },
+      "node": "Hi"
+    },
+    {
+      "id": "scalar-product",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "A∗B",
+        "unicode": "A∗B",
+        "latex": "A * B"
+      },
+      "node": "Sp"
+    },
+    {
+      "id": "reverse",
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "R̃",
+        "unicode": "R̃",
+        "latex": "\\tilde{R}"
+      },
+      "node": "Reverse"
+    },
+    {
+      "id": "involution",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "v̂",
+        "unicode": "v̂",
+        "latex": "\\hat{v}"
+      },
+      "node": "Involute"
+    },
+    {
+      "id": "conjugate",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "v̄",
+        "unicode": "v̄",
+        "latex": "\\bar{v}"
+      },
+      "node": "Conjugate"
+    },
+    {
+      "id": "dual",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0
+      ],
+      "renderings": {
+        "ascii": "v⋆",
+        "unicode": "v⋆",
+        "latex": "v^*"
+      },
+      "node": "Dual"
+    },
+    {
+      "id": "undual",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0
+      ],
+      "renderings": {
+        "ascii": "v⋆⁻¹",
+        "unicode": "v⋆⁻¹",
+        "latex": "v^{*^{-1}}"
+      },
+      "node": "Undual"
+    },
+    {
+      "id": "norm",
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "‖v‖",
+        "unicode": "‖v‖",
+        "latex": "\\lVert v \\rVert"
+      },
+      "node": "Norm"
+    },
+    {
+      "id": "unit",
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "v̂",
+        "unicode": "v̂",
+        "latex": "\\hat{v}"
+      },
+      "node": "Unit"
+    },
+    {
+      "id": "inverse",
+      "coefficients": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "v⁻¹",
+        "unicode": "v⁻¹",
+        "latex": "v^{-1}"
+      },
+      "node": "Inverse"
+    },
+    {
+      "id": "dag",
+      "coefficients": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "R̃",
+        "unicode": "R̃",
+        "latex": "\\tilde{R}"
+      },
+      "node": "Reverse"
+    },
+    {
+      "id": "sq",
+      "coefficients": [
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "R²",
+        "unicode": "R²",
+        "latex": "R^2"
+      },
+      "node": "Squared"
+    },
+    {
+      "id": "add",
+      "coefficients": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a + b",
+        "unicode": "a + b",
+        "latex": "a + b"
+      },
+      "node": "Add"
+    },
+    {
+      "id": "subtract",
+      "coefficients": [
+        0,
+        1,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a - b",
+        "unicode": "a - b",
+        "latex": "a - b"
+      },
+      "node": "Sub"
+    },
+    {
+      "id": "negate",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-a",
+        "unicode": "-a",
+        "latex": "-a"
+      },
+      "node": "Neg"
+    },
+    {
+      "id": "scale",
+      "coefficients": [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "2a",
+        "unicode": "2a",
+        "latex": "2 a"
+      },
+      "node": "ScalarMul"
+    },
+    {
+      "id": "minus-unit-scale",
+      "coefficients": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "-a",
+        "unicode": "-a",
+        "latex": "-a"
+      },
+      "node": "ScalarMul"
+    },
+    {
+      "id": "grouped-product",
+      "coefficients": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "(a + b)c",
+        "unicode": "(a + b)c",
+        "latex": "\\left(a + b\\right) c"
+      },
+      "node": "Gp"
+    },
+    {
+      "id": "grade-product",
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "⟨AB⟩₂",
+        "unicode": "⟨AB⟩₂",
+        "latex": "\\langle A B \\rangle_{2}"
+      },
+      "node": "Grade"
+    },
+    {
+      "id": "vector-bivector-contraction",
+      "coefficients": [
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "a⌋B",
+        "unicode": "a⌋B",
+        "latex": "a \\;\\lrcorner\\; B"
+      },
+      "node": "Lc"
+    },
+    {
+      "id": "inverse-identity",
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "ww⁻¹",
+        "unicode": "ww⁻¹",
+        "latex": "w w^{-1}"
+      },
+      "node": "Gp"
+    },
+    {
+      "id": "triple-scale",
+      "coefficients": [
+        0,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "3a",
+        "unicode": "3a",
+        "latex": "3 a"
+      },
+      "node": "ScalarMul"
+    },
+    {
+      "id": "norm-345",
+      "coefficients": [
+        5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "‖u‖",
+        "unicode": "‖u‖",
+        "latex": "\\lVert u \\rVert"
+      },
+      "node": "Norm"
+    },
+    {
+      "id": "commutator",
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "[a, b]",
+        "unicode": "[a, b]",
+        "latex": "[a,\\, b]"
+      },
+      "node": "Commutator"
+    },
+    {
+      "id": "anticommutator",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "{a, b}",
+        "unicode": "{a, b}",
+        "latex": "\\{a,\\, b\\}"
+      },
+      "node": "Anticommutator"
+    },
+    {
+      "id": "lie-bracket",
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "½[a, b]",
+        "unicode": "½[a, b]",
+        "latex": "\\tfrac{1}{2}[a,\\, b]"
+      },
+      "node": "LieBracket"
+    },
+    {
+      "id": "jordan-product",
+      "coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "renderings": {
+        "ascii": "½{a, b}",
+        "unicode": "½{a, b}",
+        "latex": "\\tfrac{1}{2}\\{a,\\, b\\}"
+      },
+      "node": "JordanProduct"
+    }
+  ],
+  "brackets": [
+    {
+      "operation": "commutator",
+      "tracked": false,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "2e₁₂",
+      "latex": "2 e_{12}"
+    },
+    {
+      "operation": "anticommutator",
+      "tracked": false,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "2",
+      "latex": "2"
+    },
+    {
+      "operation": "lie_bracket",
+      "tracked": false,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "e₁₂",
+      "latex": "e_{12}"
+    },
+    {
+      "operation": "jordan_product",
+      "tracked": false,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "1",
+      "latex": "1"
+    },
+    {
+      "operation": "commutator",
+      "tracked": true,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "[a, b]",
+      "latex": "[a,\\, b]"
+    },
+    {
+      "operation": "anticommutator",
+      "tracked": true,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "{a, b}",
+      "latex": "\\{a,\\, b\\}"
+    },
+    {
+      "operation": "lie_bracket",
+      "tracked": true,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "½[a, b]",
+      "latex": "\\tfrac{1}{2}[a,\\, b]"
+    },
+    {
+      "operation": "jordan_product",
+      "tracked": true,
+      "left": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "right": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "coefficients": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "½{a, b}",
+      "latex": "\\tfrac{1}{2}\\{a,\\, b\\}"
+    }
+  ],
+  "simplification": [
+    {
+      "kind": "vectors",
+      "before": "JordanProduct",
+      "after": "Hi",
+      "before_coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "after_coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "kind": "bivectors",
+      "before": "JordanProduct",
+      "after": "JordanProduct",
+      "before_coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "after_coefficients": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}
