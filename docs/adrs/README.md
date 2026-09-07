@@ -122,6 +122,7 @@ helps future contributors understand why certain choices were made.
 | [106](106-independent-public-local-name-contracts.md) | Independent Public Local-Name Contracts | Accepted |
 | [107](107-public-complex-and-quaternion-convention-contracts.md) | Public Complex and Quaternion Convention Contracts | Accepted |
 | [108](108-public-transformation-compositions-and-geometric-notebook-plots.md) | Public Transformation Compositions and Geometric Notebook Plots | Accepted |
+| [109](109-public-scalar-compositions-and-small-value-contracts.md) | Public Scalar Compositions and Small-Value Contracts | Accepted |
 
 ## Creating New ADRs
 

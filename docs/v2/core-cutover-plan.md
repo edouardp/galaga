@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Eighteen legacy-dependency prerequisites are complete:
+Status: **in progress**. Nineteen legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1352,13 +1352,18 @@ Status: **in progress**. Eighteen legacy-dependency prerequisites are complete:
   independent Hamilton and Python complex arithmetic check nonzero products,
   right division and replay. The notebook teaches native order and the
   even-subalgebra, conjugation and Gram-metric boundaries
-  ([ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md)); and
+  ([ADR-107](../adrs/107-public-complex-and-quaternion-convention-contracts.md));
 - all twenty-six low-dimensional/transformation cases now use explicit public
   compositions. Forty seeded observations retain their history; coordinate
   matrices check projection, normal reflection and bivector exponentials
   across general metrics. The two teaching notebooks now plot their computed
   geometry, with multi-angle regression tests. No helper API is restored
-  ([ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md)).
+  ([ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md)); and
+- all 51 scalar-helper identities use public compositions and semantic
+  rendering, retaining complete source evidence and observed values. Strict
+  tiny-value regressions cover subnormals, display thresholds and named replay;
+  the eager-values notebook teaches fraction and precision boundaries
+  ([ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1366,7 +1371,8 @@ the surface/deprecation contracts, both concrete-display suites, and both
 expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
-complex/quaternion and low-dimensional/transformation suites with legacy imports blocked. Matrix plans
+complex/quaternion, low-dimensional/transformation, and scalar suites with
+legacy imports blocked. Matrix plans
 continue to share core algebras across facade presentation views; that is
 intentional v2 behavior.
 
@@ -1383,9 +1389,9 @@ introspection is retired, and the independently discovered equality/hash
 release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 4 files, down from 6 after removing `test_low_dim.py` and
-`test_chisolm_transformations.py`. The remaining entries are `test_coverage.py`,
-`test_coverage_gaps.py`, `test_redesign.py`, and `test_scalar_helpers.py`.
+ledger now contains 3 files, down from 4 after removing `test_scalar_helpers.py`.
+The remaining entries are `test_coverage.py`, `test_coverage_gaps.py`, and
+`test_redesign.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1408,8 +1414,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(6,606 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (6,474 passed, 60 skipped), with Python 3.14-only integrations
+(6,828 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (6,695 passed, 61 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1489,13 +1495,24 @@ with origins verified and legacy imports blocked. Fifteen Python 3.14 notebook
 execution cases verify actual plot geometry and reject both original defects.
 Projection/rejection/reflection and rotor constructors remain retired helpers;
 the migration guide documents explicit compositions and their domains.
+The scalar checkpoint passes 273 focused cases on Python 3.14 with 100% line
+and branch coverage in its three files. All 260 public cases pass directly
+from the wheel with origins verified and legacy imports blocked. The 51
+historical identities remain live; archived values and renderings preserve
+intentional compatibility boundaries. Zero-absolute-tolerance checks reject
+erased tiny values, and subnormal/threshold tests separate storage, exact
+equality and display filtering. The eager-values notebook teaches small
+coefficients, literal versus named fractions and explicit replay. No
+production package behavior changes. The negative-unit scientific regression
+raises the full-suite emitter coverage to 96%.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
 below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
-mixed-rendering, blade-convention, RGA, locals, quaternion, and transformation work. The converter's
+mixed-rendering, blade-convention, RGA, locals, quaternion, transformation,
+and scalar work. The converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

@@ -281,5 +281,79 @@ def _(gm, grade, uv):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Small numbers, fractions, and names
+
+    A display tolerance is not numeric equality. By default, coefficients with
+    magnitude smaller than $10^{-12}$ are hidden in the **value** display. For a
+    calculation involving tiny values, explicitly select
+    `DisplayPolicy(zero_tolerance=0)`. This changes presentation, not storage.
+
+    Scalar division still uses floating-point arithmetic: a displayed fraction
+    is not an exact rational type. Literal arithmetic may simplify to a decimal.
+    A named numerator instead remains symbolic; replay then needs its value
+    supplied in an explicit environment.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, DisplayPolicy, gm):
+    from fractions import Fraction
+    from galaga.expression import evaluate
+
+    _scalar_algebra = Algebra(1)
+    small_scalar = _scalar_algebra.scalar(1.2e-34, expr=True).named("epsilon", latex=r"\epsilon")
+    small_default_latex = small_scalar.latex(content="value")
+    _visible = _scalar_algebra.presentation.with_display(DisplayPolicy(zero_tolerance=0))
+    small_visible_latex = small_scalar.display("value/latex", presentation=_visible)
+    assert float(small_scalar) == 1.2e-34
+    assert small_scalar != 0
+
+    third_literal = _scalar_algebra.scalar(1, expr=True) / 3
+    _numerator = _scalar_algebra.scalar(1, expr=True).named("a")
+    third_named = _numerator / 3
+    third_replayed = evaluate(third_named.expr, algebra=_scalar_algebra, environment={"a": _numerator})
+    assert third_replayed == third_named
+    assert Fraction(float(third_literal)) != Fraction(1, 3)
+    _literal_latex = third_literal.latex(content="full")
+    _named_latex = third_named.latex(content="full")
+
+    gm.md(rt"""
+    The stored small coefficient is `{float(small_scalar):.2e}`, and it is
+    **not equal to zero**. Its default value display is ${small_default_latex!s}$;
+    with the display tolerance disabled it is ${small_visible_latex!s}$.
+    Do not interpret a tolerance-filtered display as an exact equality.
+
+    Literal division:
+
+    $$
+    {_literal_latex!s}
+    $$
+
+    Named-numerator division, replayed with an explicit value for `a`:
+
+    $$
+    {_named_latex!s}
+    $$
+
+    `.named(...)` does not enable expression tracking or create a physical
+    constant. Here `expr=True` was requested explicitly. Supply values and
+    units from the domain of your application. Scientific LaTeX currently
+    uses `\times`; `coefficient_precision` sets significant digits, not
+    fixed-decimal padding.
+    """)
+    return (
+        small_default_latex,
+        small_scalar,
+        small_visible_latex,
+        third_literal,
+        third_named,
+        third_replayed,
+    )
+
+
 if __name__ == "__main__":
     app.run()

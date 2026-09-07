@@ -1,0 +1,451 @@
+{
+  "schema_version": 1,
+  "source_commit": "83a89f40db5503d32ba40fe40de4a47dbc302ce7",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_path": "packages/galaga/tests/test_scalar_helpers.py",
+  "source": "\"\"\"Tests for Algebra scalar helpers: fraction(), pi, e_constant, hbar, etc.\"\"\"\n\nimport numpy as np\nimport pytest\n\nfrom galaga.legacy import Algebra\n\n\n@pytest.fixture\ndef alg():\n    return Algebra((1, 1, 1))\n\n\nclass TestFraction:\n    \"\"\"Algebra.fraction() and .frac() alias.\"\"\"\n\n    def test_half_value(self, alg):\n        \"\"\"fraction(1, 2) has value 0.5.\"\"\"\n        assert np.isclose(alg.fraction(1, 2).eval().scalar_part, 0.5)\n\n    def test_half_latex(self, alg):\n        \"\"\"fraction(1, 2) renders as \\\\frac{1}{2}.\"\"\"\n        assert alg.fraction(1, 2).latex() == r\"\\frac{1}{2}\"\n\n    def test_half_display(self, alg):\n        \"\"\"fraction(1, 2) is lazy with expression tree.\"\"\"\n        f = alg.fraction(1, 2)\n        assert f._is_symbolic\n\n    def test_third(self, alg):\n        \"\"\"fraction(1, 3) has value 1/3.\"\"\"\n        assert np.isclose(alg.fraction(1, 3).eval().scalar_part, 1 / 3)\n\n    def test_negative_numerator(self, alg):\n        \"\"\"fraction(-1, 2) has value -0.5.\"\"\"\n        f = alg.fraction(-1, 2)\n        assert np.isclose(f.eval().scalar_part, -0.5)\n\n    def test_negative_denominator(self, alg):\n        \"\"\"fraction(1, -2) has value -0.5.\"\"\"\n        f = alg.fraction(1, -2)\n        assert np.isclose(f.eval().scalar_part, -0.5)\n\n    def test_zero_numerator(self, alg):\n        \"\"\"fraction(0, 3) has value 0.\"\"\"\n        f = alg.fraction(0, 3)\n        assert np.isclose(f.eval().scalar_part, 0.0)\n\n    def test_zero_denominator_raises(self, alg):\n        \"\"\"fraction(1, 0) raises ValueError.\"\"\"\n        with pytest.raises(ValueError, match=\"zero\"):\n            alg.fraction(1, 0)\n\n    def test_large_numbers(self, alg):\n        \"\"\"fraction(355, 113) ≈ π.\"\"\"\n        f = alg.fraction(355, 113)\n        assert np.isclose(f.eval().scalar_part, 355 / 113)\n\n    def test_frac_alias(self, alg):\n        \"\"\"frac() is an alias for fraction().\"\"\"\n        assert np.isclose(alg.frac(1, 2).eval().scalar_part, 0.5)\n\n    def test_in_expression(self, alg):\n        \"\"\"fraction works in lazy expressions.\"\"\"\n        e1, _, _ = alg.basis_vectors(lazy=True)\n        result = alg.frac(1, 2) * e1\n        assert result._is_symbolic\n        assert np.isclose(result.eval().data[1], 0.5)\n\n    def test_in_exp(self, alg):\n        \"\"\"fraction in exp renders with slash in superscript.\"\"\"\n        from galaga.legacy import exp\n\n        e1, e2, _ = alg.basis_vectors(lazy=True)\n        B = (e1 ^ e2).name(\"B\")\n        R = exp(-B * alg.frac(1, 2))\n        latex = R.latex()\n        assert \"/\" in latex or r\"\\frac\" in latex\n\n\nclass TestScalarConstants:\n    \"\"\"Algebra.pi, .e_constant, .tau, .h, .hbar, .c.\"\"\"\n\n    def test_pi_value(self, alg):\n        \"\"\"pi has value π.\"\"\"\n        assert np.isclose(alg.pi.eval().scalar_part, np.pi)\n\n    def test_pi_latex(self, alg):\n        \"\"\"pi renders as \\\\pi.\"\"\"\n        assert alg.pi.latex() == r\"\\pi\"\n\n    def test_pi_lazy(self, alg):\n        \"\"\"pi is lazy.\"\"\"\n        assert alg.pi._is_symbolic\n\n    def test_e_value(self, alg):\n        \"\"\"e_constant has value e.\"\"\"\n        assert np.isclose(alg.e.eval().scalar_part, np.e)\n\n    def test_e_latex(self, alg):\n        \"\"\"e_constant renders as e.\"\"\"\n        assert alg.e.latex() == \"e\"\n\n    def test_tau_value(self, alg):\n        \"\"\"tau has value 2π.\"\"\"\n        assert np.isclose(alg.tau.eval().scalar_part, 2 * np.pi)\n\n    def test_tau_latex(self, alg):\n        \"\"\"tau renders as \\\\tau.\"\"\"\n        assert alg.tau.latex() == r\"\\tau\"\n\n    def test_sqrt2_value(self, alg):\n        \"\"\"sqrt2 has value √2.\"\"\"\n        assert np.isclose(alg.sqrt2.eval().scalar_part, np.sqrt(2))\n\n    def test_sqrt2_latex(self, alg):\n        \"\"\"sqrt2 renders as \\\\sqrt{2}.\"\"\"\n        assert alg.sqrt2.latex() == r\"\\sqrt{2}\"\n\n    def test_sqrt2_lazy(self, alg):\n        \"\"\"sqrt2 is lazy.\"\"\"\n        assert alg.sqrt2._is_symbolic\n\n    def test_h_value(self, alg):\n        \"\"\"h has Planck constant value.\"\"\"\n        assert np.isclose(alg.h.eval().scalar_part, 6.62607015e-34)\n\n    def test_h_latex(self, alg):\n        \"\"\"h renders as h.\"\"\"\n        assert alg.h.latex() == \"h\"\n\n    def test_hbar_value(self, alg):\n        \"\"\"hbar has reduced Planck constant value.\"\"\"\n        assert np.isclose(alg.hbar.eval().scalar_part, 1.054571817e-34)\n\n    def test_hbar_latex(self, alg):\n        \"\"\"hbar renders as \\\\hbar.\"\"\"\n        assert alg.hbar.latex() == r\"\\hbar\"\n\n    def test_c_value(self, alg):\n        \"\"\"c has speed of light value.\"\"\"\n        assert np.isclose(alg.c.eval().scalar_part, 299792458.0)\n\n    def test_c_latex(self, alg):\n        \"\"\"c renders as c.\"\"\"\n        assert alg.c.latex() == \"c\"\n\n    def test_constants_in_expressions(self, alg):\n        \"\"\"Constants work in lazy expressions.\"\"\"\n        E = alg.hbar * alg.c\n        assert E._is_symbolic\n        assert np.isclose(E.eval().scalar_part, 1.054571817e-34 * 299792458.0)\n\n    def test_pi_in_fraction(self, alg):\n        \"\"\"pi/2 renders symbolically.\"\"\"\n        half_pi = alg.pi / alg.scalar(2).name(\"2\")\n        assert r\"\\pi\" in half_pi.latex()\n\n\nclass TestScientificNotationStyle:\n    \"\"\"Notation.scientific controls LaTeX scientific notation rendering.\"\"\"\n\n    def test_default_is_times(self, alg):\n        \"\"\"Default style is 'times'.\"\"\"\n        assert alg.notation.scientific == \"times\"\n\n    def test_times_style(self, alg):\n        \"\"\"'times' renders as \\\\times.\"\"\"\n        e1, _, _ = alg.basis_vectors()\n        result = (1.2e-7 * e1).latex()\n        assert r\"\\times 10^{-7}\" in result\n\n    def test_cdot_style(self, alg):\n        \"\"\"'cdot' renders as \\\\cdot.\"\"\"\n        alg.notation.scientific = \"cdot\"\n        e1, _, _ = alg.basis_vectors()\n        result = (1.2e-7 * e1).latex()\n        assert r\"\\cdot 10^{-7}\" in result\n\n    def test_raw_style(self, alg):\n        \"\"\"'raw' passes through Python notation.\"\"\"\n        alg.notation.scientific = \"raw\"\n        e1, _, _ = alg.basis_vectors()\n        result = (1.2e-7 * e1).latex()\n        assert \"e-07\" in result\n\n    def test_invalid_style_raises(self, alg):\n        \"\"\"Unknown style raises ValueError.\"\"\"\n        with pytest.raises(ValueError):\n            alg.notation.scientific = \"invalid\"\n\n    def test_non_scientific_unaffected(self, alg):\n        \"\"\"Normal coefficients are not affected.\"\"\"\n        e1, _, _ = alg.basis_vectors()\n        assert (0.5 * e1).latex() == \"0.5 e_{1}\"\n\n    def test_coeff_format_respects_style(self, alg):\n        \"\"\"coeff_format also uses the notation style.\"\"\"\n        mv = alg.scalar(1.2e-7)\n        result = mv.latex(coeff_format=\".3e\")\n        assert r\"\\times 10^{-7}\" in result\n\n\nclass TestSciLnode:\n    \"\"\"_sci_lnode produces correct LNode trees for scientific notation.\"\"\"\n\n    def test_times_style(self):\n        \"\"\"1.2e-06 → Seq with Sup(10, -6).\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"1.200e-06\", \"times\")\n        assert emit(node) == r\"1.200 \\times 10^{-6}\"\n\n    def test_cdot_style(self):\n        \"\"\"1.2e-06 with cdot → \\\\cdot.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"1.200e-06\", \"cdot\")\n        assert emit(node) == r\"1.200 \\cdot 10^{-6}\"\n\n    def test_raw_style(self):\n        \"\"\"raw style passes through unchanged.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"1.200e-06\", \"raw\")\n        assert emit(node) == \"1.200e-06\"\n\n    def test_mantissa_one(self):\n        \"\"\"1e-34 → 10^{-34} (no mantissa).\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"1e-34\", \"times\")\n        assert emit(node) == \"10^{-34}\"\n\n    def test_positive_exponent(self):\n        \"\"\"3e+08 → 3 \\\\times 10^{8}.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"3e+08\", \"times\")\n        assert emit(node) == r\"3 \\times 10^{8}\"\n\n    def test_negative_mantissa(self):\n        \"\"\"-1.2e-06 → -1.2 \\\\times 10^{-6}.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"-1.200e-06\", \"times\")\n        assert emit(node) == r\"-1.200 \\times 10^{-6}\"\n\n    def test_non_scientific_passthrough(self):\n        \"\"\"Plain number passes through as Text.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"42\", \"times\")\n        assert emit(node) == \"42\"\n\n    def test_decimal_passthrough(self):\n        \"\"\"Decimal number passes through as Text.\"\"\"\n        from galaga.algebra import _sci_lnode\n        from galaga.latex_emit import emit\n\n        node = _sci_lnode(\"0.5\", \"times\")\n        assert emit(node) == \"0.5\"\n\n\nclass TestCoeffLnode:\n    \"\"\"_coeff_lnode produces correct LNode trees for coefficient × blade terms.\"\"\"\n\n    def test_simple_coeff(self):\n        \"\"\"0.5 e_{1}.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(0.5, \"e_{1}\", None, \"times\")\n        assert emit(node) == \"0.5 e_{1}\"\n\n    def test_unit_coeff_suppressed(self):\n        \"\"\"Coefficient 1.0 suppressed: e_{1} not 1 e_{1}.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(1.0, \"e_{1}\", None, \"times\")\n        assert emit(node) == \"e_{1}\"\n\n    def test_neg_unit_coeff(self):\n        \"\"\"Coefficient -1.0: -e_{1}.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(-1.0, \"e_{1}\", None, \"times\")\n        assert emit(node) == \"-e_{1}\"\n\n    def test_scientific_coeff(self):\n        \"\"\"1.2e-7 e_{1} with \\\\times.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(1.2e-7, \"e_{1}\", None, \"times\")\n        result = emit(node)\n        assert r\"\\times 10^{-7}\" in result\n        assert \"e_{1}\" in result\n\n    def test_scalar_no_blade(self):\n        \"\"\"Pure scalar: just the number.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(3.14, \"\", None, \"times\")\n        assert emit(node) == \"3.14\"\n\n    def test_coeff_format(self):\n        \"\"\"Explicit coeff_format.\"\"\"\n        from galaga.algebra import _coeff_lnode\n        from galaga.latex_emit import emit\n\n        node = _coeff_lnode(1.2e-6, \"e_{1}\", \".3e\", \"times\")\n        result = emit(node)\n        assert \"1.200\" in result\n        assert r\"\\times 10^{-6}\" in result\n",
+  "sha256": "4555c0b2b1f22b7000577a372af6ea495eda4b1e7e54d8166d3e8b19c9b3c5bc",
+  "test_ids": [
+    "TestFraction.test_half_value",
+    "TestFraction.test_half_latex",
+    "TestFraction.test_half_display",
+    "TestFraction.test_third",
+    "TestFraction.test_negative_numerator",
+    "TestFraction.test_negative_denominator",
+    "TestFraction.test_zero_numerator",
+    "TestFraction.test_zero_denominator_raises",
+    "TestFraction.test_large_numbers",
+    "TestFraction.test_frac_alias",
+    "TestFraction.test_in_expression",
+    "TestFraction.test_in_exp",
+    "TestScalarConstants.test_pi_value",
+    "TestScalarConstants.test_pi_latex",
+    "TestScalarConstants.test_pi_lazy",
+    "TestScalarConstants.test_e_value",
+    "TestScalarConstants.test_e_latex",
+    "TestScalarConstants.test_tau_value",
+    "TestScalarConstants.test_tau_latex",
+    "TestScalarConstants.test_sqrt2_value",
+    "TestScalarConstants.test_sqrt2_latex",
+    "TestScalarConstants.test_sqrt2_lazy",
+    "TestScalarConstants.test_h_value",
+    "TestScalarConstants.test_h_latex",
+    "TestScalarConstants.test_hbar_value",
+    "TestScalarConstants.test_hbar_latex",
+    "TestScalarConstants.test_c_value",
+    "TestScalarConstants.test_c_latex",
+    "TestScalarConstants.test_constants_in_expressions",
+    "TestScalarConstants.test_pi_in_fraction",
+    "TestScientificNotationStyle.test_default_is_times",
+    "TestScientificNotationStyle.test_times_style",
+    "TestScientificNotationStyle.test_cdot_style",
+    "TestScientificNotationStyle.test_raw_style",
+    "TestScientificNotationStyle.test_invalid_style_raises",
+    "TestScientificNotationStyle.test_non_scientific_unaffected",
+    "TestScientificNotationStyle.test_coeff_format_respects_style",
+    "TestSciLnode.test_times_style",
+    "TestSciLnode.test_cdot_style",
+    "TestSciLnode.test_raw_style",
+    "TestSciLnode.test_mantissa_one",
+    "TestSciLnode.test_positive_exponent",
+    "TestSciLnode.test_negative_mantissa",
+    "TestSciLnode.test_non_scientific_passthrough",
+    "TestSciLnode.test_decimal_passthrough",
+    "TestCoeffLnode.test_simple_coeff",
+    "TestCoeffLnode.test_unit_coeff_suppressed",
+    "TestCoeffLnode.test_neg_unit_coeff",
+    "TestCoeffLnode.test_scientific_coeff",
+    "TestCoeffLnode.test_scalar_no_blade",
+    "TestCoeffLnode.test_coeff_format"
+  ],
+  "case_count": 51,
+  "fractions": [
+    {
+      "numerator": 1,
+      "denominator": 2,
+      "data": [
+        0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{1}{2}",
+      "symbolic": true
+    },
+    {
+      "numerator": 1,
+      "denominator": 3,
+      "data": [
+        0.3333333333333333,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{1}{3}",
+      "symbolic": true
+    },
+    {
+      "numerator": -1,
+      "denominator": 2,
+      "data": [
+        -0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{-1}{2}",
+      "symbolic": true
+    },
+    {
+      "numerator": 1,
+      "denominator": -2,
+      "data": [
+        -0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{1}{-2}",
+      "symbolic": true
+    },
+    {
+      "numerator": 0,
+      "denominator": 3,
+      "data": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{0}{3}",
+      "symbolic": true
+    },
+    {
+      "numerator": 355,
+      "denominator": 113,
+      "data": [
+        3.1415929203539825,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{355}{113}",
+      "symbolic": true
+    }
+  ],
+  "constants": [
+    {
+      "key": "pi",
+      "names": {
+        "ascii": "pi",
+        "unicode": "π",
+        "latex": "\\pi"
+      },
+      "data": [
+        3.141592653589793,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\pi",
+      "symbolic": true
+    },
+    {
+      "key": "e",
+      "names": {
+        "ascii": "e",
+        "unicode": "e",
+        "latex": "e"
+      },
+      "data": [
+        2.718281828459045,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "e",
+      "symbolic": true
+    },
+    {
+      "key": "tau",
+      "names": {
+        "ascii": "tau",
+        "unicode": "τ",
+        "latex": "\\tau"
+      },
+      "data": [
+        6.283185307179586,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\tau",
+      "symbolic": true
+    },
+    {
+      "key": "sqrt2",
+      "names": {
+        "ascii": null,
+        "unicode": null,
+        "latex": null
+      },
+      "data": [
+        1.4142135623730951,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\sqrt{2}",
+      "symbolic": true
+    },
+    {
+      "key": "h",
+      "names": {
+        "ascii": "h",
+        "unicode": "h",
+        "latex": "h"
+      },
+      "data": [
+        6.62607015e-34,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "h",
+      "symbolic": true
+    },
+    {
+      "key": "hbar",
+      "names": {
+        "ascii": "hbar",
+        "unicode": "ℏ",
+        "latex": "\\hbar"
+      },
+      "data": [
+        1.054571817e-34,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\hbar",
+      "symbolic": true
+    },
+    {
+      "key": "c",
+      "names": {
+        "ascii": "c",
+        "unicode": "c",
+        "latex": "c"
+      },
+      "data": [
+        299792458,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "c",
+      "symbolic": true
+    }
+  ],
+  "compositions": {
+    "half_vector": {
+      "data": [
+        0,
+        0.5,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{1}{2} e_{1}",
+      "symbolic": true
+    },
+    "rotor": {
+      "data": [
+        0.8775825618903728,
+        0,
+        0,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "e^{-B \\left(1/2\\right)}",
+      "symbolic": true
+    },
+    "hbar_c": {
+      "data": [
+        3.161526771559562e-26,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\hbar c",
+      "symbolic": true
+    },
+    "half_pi": {
+      "data": [
+        1.5707963267948966,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "latex": "\\frac{\\pi}{2}",
+      "symbolic": true
+    }
+  },
+  "scientific_nodes": [
+    {
+      "text": "1.200e-06",
+      "style": "times",
+      "latex": "1.200 \\times 10^{-6}"
+    },
+    {
+      "text": "1.200e-06",
+      "style": "cdot",
+      "latex": "1.200 \\cdot 10^{-6}"
+    },
+    {
+      "text": "1.200e-06",
+      "style": "raw",
+      "latex": "1.200e-06"
+    },
+    {
+      "text": "1e-34",
+      "style": "times",
+      "latex": "10^{-34}"
+    },
+    {
+      "text": "3e+08",
+      "style": "times",
+      "latex": "3 \\times 10^{8}"
+    },
+    {
+      "text": "-1.200e-06",
+      "style": "times",
+      "latex": "-1.200 \\times 10^{-6}"
+    },
+    {
+      "text": "42",
+      "style": "times",
+      "latex": "42"
+    },
+    {
+      "text": "0.5",
+      "style": "times",
+      "latex": "0.5"
+    }
+  ],
+  "coefficient_nodes": [
+    {
+      "value": 0.5,
+      "blade": "e_{1}",
+      "format": null,
+      "latex": "0.5 e_{1}"
+    },
+    {
+      "value": 1,
+      "blade": "e_{1}",
+      "format": null,
+      "latex": "e_{1}"
+    },
+    {
+      "value": -1,
+      "blade": "e_{1}",
+      "format": null,
+      "latex": "-e_{1}"
+    },
+    {
+      "value": 1.2e-7,
+      "blade": "e_{1}",
+      "format": null,
+      "latex": "1.2 \\times 10^{-7} e_{1}"
+    },
+    {
+      "value": 3.14,
+      "blade": "",
+      "format": null,
+      "latex": "3.14"
+    },
+    {
+      "value": 0.0000012,
+      "blade": "e_{1}",
+      "format": ".3e",
+      "latex": "1.200 \\times 10^{-6} e_{1}"
+    }
+  ],
+  "scientific_styles": {
+    "times": "1.2 \\times 10^{-7} e_{1}",
+    "cdot": "1.2 \\cdot 10^{-7} e_{1}",
+    "raw": "1.2e-07 e_{1}"
+  },
+  "zero_denominator_error": {
+    "type": "ValueError",
+    "message": "Denominator cannot be zero"
+  }
+}

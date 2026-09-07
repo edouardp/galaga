@@ -84,6 +84,11 @@ explicit public compositions. Their archived inputs and errors remain evidence;
 retiring the import dependency does not restore projection/reflection helpers
 or transfer the retired rotor constructor's validation to generic `exp`.
 
+[ADR-109](109-public-scalar-compositions-and-small-value-contracts.md)
+transfers the scalar-helper suite to public compositions and semantic
+rendering, with archived v1 observations and strict tiny-value regressions.
+The fraction and constant convenience members remain retired.
+
 ## Consequences
 
 - Good, because `from galaga import Algebra` now constructs the Gram-based

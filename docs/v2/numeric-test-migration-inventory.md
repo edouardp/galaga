@@ -1233,3 +1233,49 @@ The construction ledger falls from six files to four: `test_coverage.py`,
 Their mixed contracts, namespace/construction guards, engine deletion and final
 release gates remain pending. See
 [ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).
+
+### Phase 9 follow-through: scalar compositions and small-value contracts
+
+All 51 original method identities in `test_scalar_helpers.py` now execute
+the public facade. The archive `tools/baselines/scalar-helpers-v1.json`
+retains the complete source and digest, six fraction observations, seven
+constants, four compositions, eight scientific-node and six coefficient-node
+observations, three scientific styles and the old zero-denominator error.
+
+Fraction and constant convenience members stay retired. Use public scalar
+construction, division, explicit names and `scalar_sqrt`. Generic division
+raises `ZeroDivisionError` for either signed zero. Literal arithmetic may
+simplify in rendering; a fraction layout does not add exact rational storage.
+Named operands in tracked expressions require explicit replay environments.
+The supplied historical rounded `hbar` is preserved as data, not silently
+replaced by `h/(2*pi)` or promoted into a new constants catalogue.
+
+The original tiny-value assertions accepted zero under NumPy's default absolute
+tolerance. Regression probes demonstrate that weakness and require the new
+assertions to reject erased values. Archived numeric observations replay with
+zero absolute tolerance, alongside Python fraction/float arithmetic, derived
+rotor coefficients and an independent scientific-number parser. Corruption
+probes reject malformed/nonfinite coefficients and changed constant magnitudes.
+
+Additional coverage checks display-threshold neighbors, signed subnormals,
+negative unit mantissas and tiny mixed-grade values under oblique-indefinite
+and degenerate metrics. Display filtering is explicitly separate from exact
+storage, equality and hashing. `zero_tolerance=0` exposes small coefficients;
+significant-digit precision does not preserve fixed-decimal padding, and
+legacy `cdot`/`raw` LaTeX switches remain unsupported.
+
+All 273 focused cases pass on Python 3.14 with 100% line/branch coverage in
+their three files. Both public suites pass all 260 cases directly from the
+built wheel with origins verified and legacy imports blocked. Full suites
+pass 6,695 cases (61 skipped) on Python 3.11 and 6,828 (20 skipped) on Python
+3.14. Core/facade coverage is unchanged; emitter coverage rises to 96%.
+The existing matrix warning and 295 type errors remain.
+
+The eager-values notebook now teaches tiny-value display tolerance and literal
+versus named fractions. A runtime test checks numeric coefficients, explicit
+replay and actual generated math. The migration recipe also executes.
+No production package behavior changes. The construction ledger falls from
+four files to three: `test_coverage.py`, `test_coverage_gaps.py` and
+`test_redesign.py`. Their mixed contracts, namespace/construction guards,
+engine deletion and final release gates remain pending. See
+[ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).

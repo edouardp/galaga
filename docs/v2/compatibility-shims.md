@@ -115,6 +115,12 @@ The legacy `Algebra.rotor` constructor and its aliases remain absent; generic
 and public composition tests are retained in
 [ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).
 
+Fraction and constant members likewise remain retired. Use explicit scalar
+construction, division and names; neither a fraction layout nor a symbolic
+label changes the floating-point numeric domain. See the
+[scalar migration recipes](migration-guide.md#migrate-scalar-helpers) and
+[ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).
+
 ## Enforcement
 
 The executable public-surface ledger owns every alias, target, milestone, and

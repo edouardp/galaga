@@ -6,6 +6,16 @@ deciders: edouard
 
 # ADR-051: Algebra Scalar Constants and Fractions
 
+## Galaga 2 supersession
+
+[ADR-109](109-public-scalar-compositions-and-small-value-contracts.md)
+supersedes these convenience members for Galaga 2: use explicit scalar
+construction, division, naming and `scalar_sqrt`. Historical observations
+remain archived. The late v1 `sqrt2` implementation used a square-root
+expression, unlike the original leaf-only description below.
+Small supplied constants require nonvacuous numeric checks and an explicit
+display tolerance when their coefficients should remain visible.
+
 ## Context and Problem Statement
 
 Users building physics notebooks need named scalar values (π, ℏ, c) that

@@ -629,6 +629,67 @@ actual computed plane and explains its restricted metric. The
 distinguishes mirror tangents from normals and plots both computed reflections.
 See [ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md).
 
+## Migrate scalar helpers
+
+Replace `algebra.fraction(p, q)` / `frac(p, q)` with
+`algebra.scalar(p, expr=True) / q` when provenance is wanted. Replace
+`algebra.pi` and the other constant properties with explicitly supplied values,
+for example `algebra.scalar(math.pi, expr=True).named("pi", latex=r"\pi")`.
+Use `scalar_sqrt(algebra.scalar(2, expr=True))` for a square-root expression.
+The convenience members remain absent.
+
+Names are presentation metadata, not a constants library or a unit system.
+`.named(...)` does not turn on expression tracking; request `expr=True` or
+`.with_expr()` explicitly. A named operand in a tracked operation becomes a
+symbol, so replay needs the corresponding environment.
+
+```python
+from fractions import Fraction
+import galaga as ga
+from galaga.expression import evaluate
+
+algebra = ga.Algebra(1)
+third = algebra.scalar(1, expr=True) / 3
+assert third.latex(content="expr") == "0.333333"
+assert Fraction(float(third)) != Fraction(1, 3)
+
+a = algebra.scalar(1, expr=True).named("a")
+named_third = a / 3
+assert named_third.latex(content="expr") == r"\frac{a}{3}"
+assert evaluate(named_third.expr, algebra=algebra, environment={"a": a}) == named_third
+
+small = algebra.scalar(1.2e-34, expr=True)
+assert float(small) == 1.2e-34 and small != 0
+assert small.latex(content="value") == "0"  # Default display filtering only.
+visible = algebra.presentation.with_display(ga.DisplayPolicy(zero_tolerance=0))
+assert small.display("value/latex", presentation=visible) == r"1.2 \times 10^{-34}"
+assert float(small) == 1.2e-34  # Rendering did not change the coefficient.
+```
+
+Literal arithmetic may simplify during rendering; provenance is not a promise
+to preserve the original fraction spelling. If only a fraction layout is
+needed, `galaga.rendering.tree.Fraction(Literal(p), Literal(q))` provides one;
+this is a different class from Python's `fractions.Fraction`.
+Neither that layout nor a symbolic name creates exact rational arithmetic.
+Scalar division by either signed zero raises `ZeroDivisionError`, replacing
+the retired fraction constructor's `ValueError`.
+
+The default value renderer hides coefficients with magnitude below `1e-12`.
+Set `zero_tolerance=0` to show every stored nonzero coefficient, including
+subnormals. This remains independent of exact equality and hashing. A
+tolerance-filtered display or teaching equality is not an exact numeric claim.
+Likewise, tests for tiny values must use zero absolute tolerance or exact
+coefficient checks; the default `np.isclose(0, 1e-34)` is true.
+
+Scientific LaTeX currently uses `\times`. The old `cdot`/`raw` selectors and
+`latex(coeff_format=...)` remain unsupported. `coefficient_precision` controls
+significant digits, without trailing-zero padding. For fixed numeric output,
+convert a scalar explicitly, for example `format(float(small), ".3e")`.
+
+The [eager-values notebook](../../examples/galaga_v2/eager_values_and_expressions.py)
+executes the small-value and named-fraction examples. See
+[ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).
+
 ## Configure presentation independently
 
 Presets provide coherent defaults, while constructor overrides can replace one

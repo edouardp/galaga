@@ -11,7 +11,8 @@ The recommended reading order is:
    metric-derived STA product names and signed-versus-native blade lookup.
 2. [Eager values and expressions](eager_values_and_expressions.py) — numeric
    values, optional expression provenance, naming, long-form operations,
-   variadic products, and checked scalar conversion.
+   variadic products, checked scalar conversion, tiny-value display tolerance,
+   and literal versus named fractions with explicit replay.
 3. [Presentation contexts](presentation_contexts.py) — content selection,
    immutable presentation views, scoped changes, explicit render overrides,
    and numeric display policy.

@@ -18,7 +18,6 @@ LEGACY_ORACLE_TESTS = (
     "test_coverage.py",
     "test_coverage_gaps.py",
     "test_redesign.py",
-    "test_scalar_helpers.py",
 )
 
 _LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)
