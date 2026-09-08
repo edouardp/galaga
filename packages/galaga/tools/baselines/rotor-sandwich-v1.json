@@ -1,0 +1,2015 @@
+{
+  "schema_version": 1,
+  "source_commit": "fe6d88ae126ef1a5ab8f21757bd53da9da1e7410",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_path": "packages/galaga/tests/test_coverage.py",
+  "public_owner": "facade/test_rotor_sandwich_contracts.py",
+  "sha256": "798026ecd51400c85cb8f08710bcb9af819ce16c5c9132b198eaa26c1b0963a1",
+  "source": "\"\"\"Coverage gap tests for algebra.py and symbolic.py.\"\"\"\n\nimport numpy as np\nimport pytest\n\nfrom galaga.expr import sym\nfrom galaga.legacy import (\n    Algebra,\n    is_even,\n    is_rotor,\n    sandwich,\n)\nfrom galaga.legacy import sandwich as ssandwich\nfrom galaga.legacy import sw as ssw_alias\n\n\n@pytest.fixture\ndef cl3():\n    return Algebra((1, 1, 1))\n\n\n# ============================================================\n# algebra.py coverage gaps\n# ============================================================\n\n\n# Naming-preset identities now live in presentation/test_naming_preset_contracts.py.\n# Historical source and observations: tools/baselines/naming-presets-v1.json.\n\n\n# Architectural identities now live in facade/test_architecture_contracts.py.\n# Historical source and registries: tools/baselines/architecture-contracts-v1.json.\n\n\n# Inner-product identities now live in facade/test_inner_product_contracts.py.\n\n\n# Eager operation/provenance identities now live in facade/test_eager_operation_contracts.py.\n# Historical source and observations: tools/baselines/eager-operation-edges-v1.json.\n\n\nclass TestRotorFromPlaneAngle:\n    def test_90_degree_rotation(self, cl3):\n        \"\"\"90° rotor rotates e1 to e2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi / 2)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e2.data, atol=1e-12)\n\n    def test_180_degree_rotation(self, cl3):\n        \"\"\"180° rotor rotates e1 to -e1.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, (-e1).data, atol=1e-12)\n\n    def test_zero_rotation(self, cl3):\n        \"\"\"0° rotor is identity.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=0)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e1.data, atol=1e-12)\n\n    def test_rotor_is_rotor(self, cl3):\n        \"\"\"rotor() output passes is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=1.23)\n        assert is_rotor(R)\n\n\nclass TestRotorValidation:\n    def test_rejects_vector(self, cl3):\n        \"\"\"rotor() rejects odd-grade input.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1, radians=0.5)\n\n    def test_rejects_trivector(self, cl3):\n        \"\"\"rotor() rejects trivector input.\"\"\"\n        e1, e2, e3 = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1 ^ e2 ^ e3, radians=0.5)\n\n    def test_accepts_bivector(self, cl3):\n        \"\"\"rotor() accepts bivector input.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=0.5)\n        assert is_rotor(R)\n\n    def test_rejects_scalar(self, cl3):\n        \"\"\"Scalars have no rotation plane — rotor() should reject them.\"\"\"\n        with pytest.raises(ValueError, match=\"bivector\"):\n            cl3.rotor(cl3.scalar(1.0), radians=0.5)\n\n    def test_normalizes_non_unit_bivector(self, cl3):\n        \"\"\"rotor() auto-normalizes the bivector.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=0.5)\n        R2 = cl3.rotor(3 * (e1 ^ e2), radians=0.5)\n        assert np.allclose(R1.data, R2.data)\n\n    def test_sta_pseudoscalar_u1(self):\n        \"\"\"rotor() accepts STA pseudoscalar — U(1) phase.\"\"\"\n        sta = Algebra((1, -1, -1, -1))\n        I = sta.I\n        R = sta.rotor(I, radians=0.5)\n        assert is_even(R)\n\n    def test_scaled_rotor_not_rotor(self, cl3):\n        \"\"\"Scaled rotor fails is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)\n        assert not is_rotor(2 * R)\n\n\n# Grade projection/inspection identities now live in facade/test_grade_simplification_contracts.py.\n# Historical source and observations: tools/baselines/grade-simplification-v1.json.\n\n\n# TestLatex now lives in rendering/test_coverage_latex_contracts.py.\n\n\nclass TestSandwich:\n    \"\"\"Tests for sandwich(r, x) / sw(r, x).\"\"\"\n\n    def test_symbolic_sandwich(self, cl3):\n        \"\"\"Symbolic sandwich builds Gp tree.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        expr = ssandwich(R, v)\n        assert str(expr) == \"RvR̃\"\n        assert expr.latex() == r\"R v \\tilde{R}\"\n\n    def test_symbolic_sandwich_eval(self, cl3):\n        \"\"\"Symbolic sandwich evaluates correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        expr = ssandwich(sym(R, \"R\"), sym(e1, \"v\"))\n        result = expr.eval()\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_symbolic_sw_alias(self, cl3):\n        \"\"\"Symbolic sw() is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        assert str(ssw_alias(R, v)) == \"RvR̃\"\n\n\n# TestSimplify now lives in facade/test_grade_simplification_contracts.py.\n\n\n# TestMultivectorLatex now lives in rendering/test_coverage_latex_contracts.py.\n\n\nclass TestCoverageGaps:\n    \"\"\"Tests targeting specific uncovered lines.\"\"\"\n\n    # Display identities now live in rendering/test_coverage_latex_contracts.py.\n    # Historical source and observations: tools/baselines/coverage-latex-v1.json.\n\n    # Expression-helper identities now live in facade/test_expression_helper_contracts.py.\n    # Historical source and observations: tools/baselines/expression-helpers-v1.json.\n\n    # algebra.py: rotor_from_plane_angle degrees= and error\n    def test_rotor_from_plane_degrees(self, cl3):\n        \"\"\"rotor(degrees=) works.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_rad = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_deg = cl3.rotor_from_plane_angle(e1 ^ e2, degrees=90)\n        assert np.allclose(R_rad.data, R_deg.data)\n\n    def test_rotor_from_plane_angle_error(self, cl3):\n        \"\"\"rotor() with both radians and degrees raises.\"\"\"\n        import pytest\n\n        e1, e2, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2)\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2, radians=1.0, degrees=90)\n\n    def test_rotor_from_plane_angle_positional(self, cl3):\n        \"\"\"rotor() requires keyword args for angle.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_kw = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_pos = cl3.rotor_from_plane_angle(e1 ^ e2, np.pi / 2)\n        assert np.allclose(R_kw.data, R_pos.data)\n\n    def test_rotor_canonical_name(self, cl3):\n        \"\"\"rotor() is the canonical name.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        result = sandwich(R, e1)\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_rotor_degrees(self, cl3):\n        \"\"\"rotor(degrees=90) matches radians=π/2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, degrees=90)\n        R2 = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        assert np.allclose(R.data, R2.data)\n\n    def test_rotor_from_bivector_alias(self, cl3):\n        \"\"\"rotor_from_bivector is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=1.0)\n        R2 = cl3.rotor_from_bivector(e1 ^ e2, radians=1.0)\n        assert np.allclose(R1.data, R2.data)\n",
+  "test_ids": [
+    "TestRotorFromPlaneAngle.test_90_degree_rotation",
+    "TestRotorFromPlaneAngle.test_180_degree_rotation",
+    "TestRotorFromPlaneAngle.test_zero_rotation",
+    "TestRotorFromPlaneAngle.test_rotor_is_rotor",
+    "TestRotorValidation.test_rejects_vector",
+    "TestRotorValidation.test_rejects_trivector",
+    "TestRotorValidation.test_accepts_bivector",
+    "TestRotorValidation.test_rejects_scalar",
+    "TestRotorValidation.test_normalizes_non_unit_bivector",
+    "TestRotorValidation.test_sta_pseudoscalar_u1",
+    "TestRotorValidation.test_scaled_rotor_not_rotor",
+    "TestSandwich.test_symbolic_sandwich",
+    "TestSandwich.test_symbolic_sandwich_eval",
+    "TestSandwich.test_symbolic_sw_alias",
+    "TestCoverageGaps.test_rotor_from_plane_degrees",
+    "TestCoverageGaps.test_rotor_from_plane_angle_error",
+    "TestCoverageGaps.test_rotor_from_plane_angle_positional",
+    "TestCoverageGaps.test_rotor_canonical_name",
+    "TestCoverageGaps.test_rotor_degrees",
+    "TestCoverageGaps.test_rotor_from_bivector_alias"
+  ],
+  "rotations": [
+    {
+      "id": "rotor_zero",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 0,
+      "scale": 1,
+      "data": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_quarter",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_half",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 3.141592653589793,
+      "scale": 1,
+      "data": [
+        6.123233995736766e-17,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        -1,
+        1.2246467991473532e-16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_predicate",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 1.23,
+      "scale": 1,
+      "data": [
+        0.8167734469008229,
+        0,
+        0,
+        -0.5769585222853968,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.33423772712450267,
+        0.9424888019316975,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_normalized",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": 3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        -0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_negative",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": -3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_alias",
+      "method": "rotor",
+      "form": "radians",
+      "theta": 1,
+      "scale": 1,
+      "data": [
+        0.8775825618903728,
+        0,
+        0,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.5403023058681398,
+        0.8414709848078965,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_degrees",
+      "method": "rotor",
+      "form": "degrees",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_positional",
+      "method": "rotor",
+      "form": "positional",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_zero",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 0,
+      "scale": 1,
+      "data": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_quarter",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_half",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 3.141592653589793,
+      "scale": 1,
+      "data": [
+        6.123233995736766e-17,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        -1,
+        1.2246467991473532e-16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_predicate",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 1.23,
+      "scale": 1,
+      "data": [
+        0.8167734469008229,
+        0,
+        0,
+        -0.5769585222853968,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.33423772712450267,
+        0.9424888019316975,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_normalized",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": 3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        -0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_negative",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": -3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_alias",
+      "method": "rotor_from_plane_angle",
+      "form": "radians",
+      "theta": 1,
+      "scale": 1,
+      "data": [
+        0.8775825618903728,
+        0,
+        0,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.5403023058681398,
+        0.8414709848078965,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_degrees",
+      "method": "rotor_from_plane_angle",
+      "form": "degrees",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_plane_angle_positional",
+      "method": "rotor_from_plane_angle",
+      "form": "positional",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_zero",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 0,
+      "scale": 1,
+      "data": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_quarter",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_half",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 3.141592653589793,
+      "scale": 1,
+      "data": [
+        6.123233995736766e-17,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        -1,
+        1.2246467991473532e-16,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_predicate",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 1.23,
+      "scale": 1,
+      "data": [
+        0.8167734469008229,
+        0,
+        0,
+        -0.5769585222853968,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.33423772712450267,
+        0.9424888019316975,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_normalized",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": 3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        -0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_negative",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 0.5,
+      "scale": -3,
+      "data": [
+        0.9689124217106447,
+        0,
+        0,
+        0.24740395925452294,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        0.9999999999999999,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.8775825618903726,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_alias",
+      "method": "rotor_from_bivector",
+      "form": "radians",
+      "theta": 1,
+      "scale": 1,
+      "data": [
+        0.8775825618903728,
+        0,
+        0,
+        -0.479425538604203,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        0.5403023058681398,
+        0.8414709848078965,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_degrees",
+      "method": "rotor_from_bivector",
+      "form": "degrees",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "rotor_from_bivector_positional",
+      "method": "rotor_from_bivector",
+      "form": "positional",
+      "theta": 1.5707963267948966,
+      "scale": 1,
+      "data": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse_product": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "is_even": true,
+      "is_rotor": true,
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "sandwich": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "id": "vector",
+      "input": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arguments": {
+        "radians": 0.5
+      },
+      "type": "ValueError",
+      "message": "B must be an even multivector, but has odd-grade components: [1]"
+    },
+    {
+      "id": "trivector",
+      "input": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "arguments": {
+        "radians": 0.5
+      },
+      "type": "ValueError",
+      "message": "B must be an even multivector, but has odd-grade components: [3]"
+    },
+    {
+      "id": "scalar",
+      "input": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arguments": {
+        "radians": 0.5
+      },
+      "type": "ValueError",
+      "message": "B must contain a bivector (grade-2) component to define a rotation plane"
+    },
+    {
+      "id": "missing_angle",
+      "input": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arguments": {},
+      "type": "ValueError",
+      "message": "Specify radians= or degrees="
+    },
+    {
+      "id": "two_angles",
+      "input": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "arguments": {
+        "radians": 1,
+        "degrees": 90
+      },
+      "type": "ValueError",
+      "message": "Specify radians= or degrees=, not both"
+    }
+  ],
+  "domains": [
+    {
+      "id": "elliptic",
+      "signature": [
+        1,
+        1
+      ],
+      "theta": 0.5,
+      "generator": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "square": [
+        -1,
+        0,
+        0,
+        0
+      ],
+      "reverse": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "result": {
+        "data": [
+          0.9689124217106447,
+          0,
+          0,
+          -0.24740395925452294
+        ],
+        "reverse_product": [
+          0.9999999999999999,
+          0,
+          0,
+          0
+        ],
+        "is_even": true,
+        "is_rotor": true,
+        "input": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "sandwich": [
+          0,
+          0.8775825618903726,
+          0.479425538604203,
+          0
+        ]
+      }
+    },
+    {
+      "id": "hyperbolic",
+      "signature": [
+        1,
+        -1
+      ],
+      "theta": 0.5,
+      "generator": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "square": [
+        1,
+        0,
+        0,
+        0
+      ],
+      "reverse": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "result": {
+        "data": [
+          0.9689124217106447,
+          0,
+          0,
+          -0.24740395925452294
+        ],
+        "reverse_product": [
+          0.8775825618903726,
+          0,
+          0,
+          0
+        ],
+        "is_even": true,
+        "is_rotor": false,
+        "input": [
+          0,
+          1,
+          0,
+          0
+        ],
+        "sandwich": [
+          0,
+          0.9999999999999999,
+          0.479425538604203,
+          0
+        ]
+      }
+    },
+    {
+      "id": "null",
+      "signature": [
+        1,
+        0
+      ],
+      "theta": 0.5,
+      "generator": [
+        0,
+        0,
+        0,
+        1
+      ],
+      "square": [
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse": [
+        0,
+        0,
+        0,
+        -1
+      ],
+      "error": {
+        "type": "ValueError",
+        "message": "Cannot normalize near-zero multivector"
+      }
+    },
+    {
+      "id": "sta_phase",
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ],
+      "theta": 0.5,
+      "generator": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "square": [
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "reverse": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "result": {
+        "data": [
+          0.9689124217106447,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.24740395925452294
+        ],
+        "reverse_product": [
+          0.8775825618903726,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.479425538604203
+        ],
+        "is_even": true,
+        "is_rotor": false,
+        "input": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "sandwich": [
+          0,
+          0.9999999999999999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    },
+    {
+      "id": "nonsimple",
+      "signature": [
+        1,
+        1,
+        1,
+        1
+      ],
+      "theta": 0.5,
+      "generator": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0
+      ],
+      "square": [
+        -2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        2
+      ],
+      "reverse": [
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        -1,
+        0,
+        0,
+        0
+      ],
+      "result": {
+        "data": [
+          0.9689124217106447,
+          0,
+          0,
+          -0.17494101728127345,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.17494101728127345,
+          0,
+          0,
+          0
+        ],
+        "reverse_product": [
+          0.9999999999999999,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          -0.061208719054813635
+        ],
+        "is_even": true,
+        "is_rotor": true,
+        "input": [
+          0,
+          1,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ],
+        "sandwich": [
+          0,
+          0.9387912809451863,
+          0.3390050494210448,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0,
+          0
+        ]
+      }
+    }
+  ],
+  "sandwiches": [
+    {
+      "id": "plane_sandwich",
+      "method": "sandwich",
+      "rotor": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "RvR̃",
+      "latex": "R v \\tilde{R}",
+      "data": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "plane_sw",
+      "method": "sw",
+      "rotor": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "RvR̃",
+      "latex": "R v \\tilde{R}",
+      "data": [
+        0,
+        -1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "quarter_sandwich",
+      "method": "sandwich",
+      "rotor": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "RvR̃",
+      "latex": "R v \\tilde{R}",
+      "data": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "id": "quarter_sw",
+      "method": "sw",
+      "rotor": [
+        0.7071067811865476,
+        0,
+        0,
+        -0.7071067811865475,
+        0,
+        0,
+        0,
+        0
+      ],
+      "vector": [
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "unicode": "RvR̃",
+      "latex": "R v \\tilde{R}",
+      "data": [
+        0,
+        2.220446049250313e-16,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ]
+}

@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Twenty-seven legacy-dependency prerequisites are complete:
+Status: **in progress**. Twenty-eight legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1405,12 +1405,19 @@ Status: **in progress**. Twenty-seven legacy-dependency prerequisites are comple
   bindings and old typography. Public tests pin current spelling, explicit
   content/wrappers and nonzero general-Gram compositions; the notebook teaches
   ambiguous accents and computed contraction signs
-  ([ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md)); and
+  ([ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md));
 - the nine remaining naming-preset identities have public owners. Complete
   source, 44 native labels, 132 evaluated lookups and validation errors are
   archived. General-Gram tests and the construction notebook distinguish
   exterior labels from geometric words and preserve independent Python locals
-  ([ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md)).
+  ([ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md)); and
+- all twenty remaining mixed-suite rotor/sandwich identities have public
+  owners. Complete source and actual v1 domain observations remain archived;
+  metric-derived exponentials, compound grade-four terms, explicit replay,
+  reverse-versus-inverse sandwiches and even STA phases are tested and taught
+  in the exponential notebook. The mixed coverage file is now an import-free
+  ownership record, not a legacy construction exemption
+  ([ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1420,7 +1427,7 @@ the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
 complex/quaternion, low-dimensional/transformation, scalar, factory/display
 and architecture/inner-product/eager-operation/grade-simplification and
-expression-helper/coverage-LaTeX/naming-preset suites with legacy imports
+expression-helper/coverage-LaTeX/naming-preset/rotor-sandwich suites with legacy imports
 blocked. Matrix plans continue to share core algebras across facade
 presentation views; that is intentional v2 behavior.
 
@@ -1431,21 +1438,30 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency groups are the remaining mixed legacy contracts, followed
-by namespace/construction guards. Compatibility-manifest
+The next dependency groups are the remaining mixed contracts in
+`test_redesign.py`, followed by namespace/construction guards. Compatibility-manifest
 introspection is retired, and the independently discovered equality/hash
 release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 2 files, down from 3 after removing `test_coverage_gaps.py`.
-Extracting the architecture, inner-product, eager-operation, grade/simplification
-and expression-helper/coverage-LaTeX/naming-preset subgroups does not remove
-the mixed coverage suite from that ledger: its other twenty rotor/sandwich
-methods retain their existing owners.
-The remaining entries are `test_coverage.py` and `test_redesign.py`.
+ledger now contains 1 file, down from 2 after completing `test_coverage.py`.
+Its architecture, inner-product, eager-operation, grade/simplification,
+expression-helper, coverage-LaTeX, naming-preset and rotor/sandwich subgroups
+all have permanent public owners. Keep that path as an import-free ownership
+record for historical migration guards.
+The sole remaining construction exemption is `test_redesign.py`; its
+presentation/expression contracts are not yet fully migrated.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
+
+Release follow-up from the rotor migration: the documented `is_rotor`
+predicate tests evenness and a unit whole reverse product, not preservation
+of the vector space in arbitrary dimensions. A six-dimensional pseudoscalar
+exponential passes it but mixes vector/grade-five components under sandwich.
+Decide explicitly whether to strengthen that predicate or add a separate
+strict validator; current behavior is recorded, not changed, in
+[ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md).
 
 The concrete-display migration documents existing compatibility limitations:
 numeric multivector format specs such as `.3f` remain unsupported, and

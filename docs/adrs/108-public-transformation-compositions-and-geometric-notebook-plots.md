@@ -66,6 +66,11 @@ These decisions preserve the existing
 [helper policy](../v2/compatibility-shims.md#helpers-are-not-aliases) and
 [public facade boundary](085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md).
 
+[ADR-118](118-public-rotor-recipes-and-sandwich-contracts.md) completes the
+mixed-suite rotor/sandwich migration. It records explicit plane normalization,
+the nonsimple v1 false positive, STA phase versus rotor boundaries and
+whole-reverse-product predicates without extending the production API.
+
 ### Test independent numeric evidence and actual teaching geometry
 
 Replay every seeded observation against both archived coefficients and

@@ -1633,3 +1633,71 @@ No production behavior changes. Only twenty rotor/sandwich methods remain in
 the mixed suite. Both construction-ledger files remain; namespace guards,
 engine deletion and release gates are pending. See
 [ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md).
+
+### Phase 9 follow-through: public rotor recipes and sandwich contracts
+
+All twenty remaining `test_coverage.py` identities now live in
+`facade/test_rotor_sandwich_contracts.py`. They passed intact on v1 before
+migration. The complete source/digest, twenty IDs, 27 rotation observations,
+five constructor errors, five domain probes and four named sandwich
+observations are retained in `tools/baselines/rotor-sandwich-v1.json`.
+The archive includes actual coefficients, inputs, reverse products, predicate
+results and typography, not inferred historical behavior.
+
+| Historical group | Identities | Public responsibility |
+|---|---|---|
+| `TestRotorFromPlaneAngle` | 4 | Explicit exponential orientation, zero/quarter/half turns and reverse norm |
+| `TestRotorValidation` | 7 | Retired constructor versus generic exponentials, explicit normalization, scaled rotors and STA phases |
+| `TestSandwich` | 3 | Eager coefficients, named call provenance, changed-binding replay and `sw` |
+| `TestCoverageGaps` rotor methods | 6 | Explicit degree conversion and retained alias/error/positional-angle evidence |
+
+Generic `exp` accepts scalar/vector/trivector input without the old plane-angle
+validation. A simple negative-square plane can be normalized explicitly;
+positive-square planes use rapidity, while null planes retain their original
+scale. Gram-derived coordinate matrices verify all three branches in
+Euclidean, oblique positive/indefinite and degenerate frames. Three-target
+rendering and replay preserve coefficients and hashes in both expression modes.
+
+Nonsimple exponentials are checked against commuting-plane factorization and
+a series of forced-reference linear actions across three signatures. Keep
+the grade-four cross term and the whole reverse product. The archive records
+v1's false positive for a trigonometric nonsimple construction; the current
+predicate correctly rejects it. The existing logarithm's narrower
+Study-number domain remains explicit.
+
+STA phases are even but need not satisfy `P*reverse(P)==1`. Their reverse
+sandwiches can fix vectors while inverse conjugation mixes grades. Scaled,
+mixed-grade sandwich cases verify that `sandwich`/`sw` always use reverse,
+not inverse. No production algorithm, API or equality semantics change.
+
+The existing exponential notebook now teaches these distinctions with
+`MatrixRepr` Gram displays, explicit degree conversion and computed values.
+Four runtime cases check zero/55/90/180-degree slider settings, coordinate
+actions, compound residuals and actual rendered coefficients.
+
+All 153 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both new files. Corruption and mutation controls reject wrong coefficients,
+orientation, the old scalar-only predicate and inverse substitution.
+All 132 public cases pass from the built wheel with legacy imports blocked
+and all 26 loaded Galaga module origins verified.
+
+Full suites pass 8,960 cases (77 skipped) on Python 3.11 and 9,109 (20 skipped)
+on Python 3.14. The line and arc sets for all nineteen measured core/facade/
+expression/rendering files are identical to the previous checkpoint.
+Ruff lint, Python formatting and changed-file Markdown lint pass. The type
+baseline remains 295 errors and 18 warnings. The existing matrix conversion
+warning and Markdown code-block formatting debt remain separate work.
+
+An explicit six-dimensional counterexample records that `is_rotor` is a
+unit-even predicate, not a general vector-preservation certificate.
+Strengthening it or introducing a strict validator remains a release decision.
+Both executable guide recipes and all 297 local file-link targets in the
+eight changed Markdown files are checked.
+
+`test_coverage.py` is now an import-free ownership record, kept for historical
+migration guards. It collects no duplicate tests and is no longer exempt
+from the legacy-construction guard or writable by the isolation codemod.
+The construction ledger falls from two files to one: `test_redesign.py`.
+Its substantial remaining presentation/expression contracts come next, before
+namespace/construction guards, obsolete engine deletion and release gates.
+See [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md).

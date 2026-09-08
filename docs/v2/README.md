@@ -186,7 +186,13 @@ grade-selection oracles distinguish scalar handling, contraction direction
 and higher-grade signs. The existing inner-product notebook compares six
 operand pairs under four selectable metrics, displaying its Gram matrix
 with `MatrixRepr`. No mode dispatcher is restored.
-All twenty-two completed dependency groups have fresh-process legacy-import gates.
+The remaining eager-operation, grade/simplification, expression-helper,
+coverage-LaTeX and naming-preset groups also have permanent public owners.
+All twenty final mixed-coverage rotor/sandwich identities now use public
+exponentials and explicit replay. Their complete historical evidence includes
+the old nonsimple-rotor false positive. The exponential notebook teaches
+metric-dependent branches, compound grade-four terms and even STA phases.
+All twenty-eight completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
 
@@ -197,10 +203,10 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 2 files: `test_coverage.py`
-and `test_redesign.py`.
-The remaining mixed contracts are next, followed by namespace/construction guards.
-See [ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md)
+The construction-only legacy ledger is down to 1 file: `test_redesign.py`.
+`test_coverage.py` is now an import-free ownership record.
+The remaining redesign contracts are next, followed by namespace/construction guards.
+See [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

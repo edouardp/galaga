@@ -905,6 +905,43 @@ and terminating exponential branches respectively. This is a statement about
 simple bivectors, not arbitrary mixed-grade inputs. Generic `exp` still accepts
 scalars and vectors; it does not validate a rotation plane or guarantee a rotor.
 
+For a nonunit simple plane with negative scalar square, normalize explicitly:
+
+```python
+plane = 3 * (e1 ^ e2)
+square = float(plane * plane)
+assert square < 0
+unit_plane = plane / np.sqrt(-square)
+R = ga.exp(-np.deg2rad(90) * unit_plane / 2)
+np.testing.assert_allclose(ga.sandwich(R, e1).data, e2.data, rtol=0, atol=1e-12)
+assert not ga.exp(-theta * plane / 2).almost_equal(R)
+```
+
+This division is not a general normalization for arbitrary even multivectors.
+A positive-square plane uses hyperbolic functions and rapidity; a null plane
+keeps its original scale. For a nonsimple bivector, let `exp` compute the full
+result, including grade-four cross terms. The old sine/cosine constructor
+could omit those terms and incorrectly accept the result as a rotor.
+The current Study-number `log` domain does not include every valid rotor.
+
+In STA with signature `(1, -1, -1, -1)`, the pseudoscalar has `I*I == -1`
+but `reverse(I) == I`. Thus `P=exp(-I/4)` is even without being a rotor:
+`P*reverse(P)` is not one. Its reverse sandwich happens to fix vectors,
+whereas inverse conjugation mixes vector and trivector grades.
+`is_rotor` checks evenness and the whole reverse product against one with
+an absolute tolerance; it is not a general high-dimensional proof of
+vector-space preservation. Scaling a true rotor by two scales its reverse
+sandwich by four, while inverse conjugation is scale invariant.
+
+For named sandwich provenance, use `R.named("R").with_expr()` and
+`v.named("v").with_expr()`, then replay with
+`evaluate(result.expr, algebra=algebra, environment={"R": R, "v": v})`.
+The original numeric result does not change when replay bindings change.
+`sw` is an alias of `sandwich`; both use reverse.
+The [exponential notebook](../../examples/algebra/exp_log_rotors.py)
+teaches all these cases with displayed Gram matrices and computed values.
+See [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md).
+
 For pseudoscalar provenance, use `pseudoscalar(expr=True)` instead of
 `lazy=True`. Naming it `"I"` attaches a symbol, so explicit replay needs
 `environment={"I": pseudoscalar}`.

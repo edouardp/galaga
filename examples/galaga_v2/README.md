@@ -53,3 +53,9 @@ Continue the expression lesson with
 [involutions and grades](../algebra/involutions_and_grade_ops.py): selectable
 Gram matrices, grade decomposition, involution signs, symbol rebinding and
 why a nonsimple bivector can have a nonzero wedge square.
+
+Then explore [exponentials, logarithms and rotors](../algebra/exp_log_rotors.py):
+explicit angle units and plane normalization, displayed Gram matrices for
+elliptic/hyperbolic/null generators, compound grade-four terms, and why an
+even STA phase need not be a rotor. The lesson distinguishes reversion from
+inverse conjugation and explains the current logarithm's narrower domain.
