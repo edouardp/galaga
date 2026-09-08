@@ -64,7 +64,10 @@ No production code or display policy changes in this work unit:
   without changing stored provenance.
 - Negated products and nested regressive products retain the shared
   builder's conservative parentheses.
-- Multivector division remains a geometric product with a right inverse.
+- At this checkpoint multivector division remains a geometric product with a
+  right inverse. [ADR-119](119-division-provenance-and-exact-scalar-dispatch.md)
+  subsequently preserves a two-operand division call and fraction rendering;
+  the numeric right-division oracle below remains unchanged.
 - Lie and Jordan products retain their documented unscaled v2 definitions.
   Removing the printed half is not merely a typography change.
 

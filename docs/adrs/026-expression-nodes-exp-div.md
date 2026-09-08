@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-026: Expression Nodes for Exp, Div, ScalarDiv
 
+V2 follow-up: [ADR-119](119-division-provenance-and-exact-scalar-dispatch.md)
+replaces the lazy division mechanism with eager two-operand provenance and
+exact scalar dispatch. [ADR-120](120-complete-redesign-contract-migration.md)
+records the remaining state/power API replacements. The original v1 decision
+below remains historical context.
+
 ## Context and Problem Statement
 
 `exp()`, multivector division, and scalar division were evaluating eagerly
@@ -16,9 +22,9 @@ would compute a numeric rotor instead of showing the symbolic expression.
 
 Three new expression nodes:
 
-- `Exp(x)` — renders as `exp(x)` / `e^{x}` in LaTeX
-- `Div(a, b)` — renders as `a/b` / `\frac{a}{b}` in LaTeX
-- `ScalarDiv(x, k)` — renders as `x/k` / `\frac{x}{k}` in LaTeX
+* `Exp(x)` — renders as `exp(x)` / `e^{x}` in LaTeX
+* `Div(a, b)` — renders as `a/b` / `\frac{a}{b}` in LaTeX
+* `ScalarDiv(x, k)` — renders as `x/k` / `\frac{x}{k}` in LaTeX
 
 All module-level functions (`exp`, `gp`, `op`, `reverse`, `involute`,
 `conjugate`, `grade`, `dual`, `undual`, `unit`, `inverse`, `even_grades`,

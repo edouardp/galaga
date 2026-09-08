@@ -14,7 +14,7 @@ from pathlib import Path
 import libcst as cst
 from libcst.helpers import get_full_name_for_node
 
-LEGACY_ORACLE_TESTS = ("test_redesign.py",)
+LEGACY_ORACLE_TESTS: tuple[str, ...] = ()
 
 _LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)
 

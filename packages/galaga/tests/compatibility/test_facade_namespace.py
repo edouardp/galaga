@@ -2,11 +2,17 @@
 
 from __future__ import annotations
 
+import ast
+import runpy
 import subprocess
 import sys
+from importlib.resources import files
 from pathlib import Path
 
 import pytest
+from tools.legacy_import_boundary import is_legacy_module
+
+ARCHITECTURE = runpy.run_path(str(Path(__file__).parents[1] / "facade/test_architecture_contracts.py"))
 
 
 @pytest.mark.parametrize(
@@ -19,10 +25,13 @@ import pytest
 )
 def test_core_facade_and_bridge_import_in_either_order(imports: str) -> None:
     program = f"""
+from tools.legacy_import_boundary import install_import_guard, assert_no_legacy_modules
+install_import_guard()
 {imports}
 assert galaga.gram_bridge.Algebra is galaga.facade.Algebra
 assert galaga.gram_bridge.OPERATIONS is galaga.facade.OPERATIONS
 assert galaga.facade.Algebra(2).numeric.__class__ is galaga.core.Algebra
+assert_no_legacy_modules()
 """
 
     result = subprocess.run(
@@ -30,70 +39,29 @@ assert galaga.facade.Algebra(2).numeric.__class__ is galaga.core.Algebra
         check=False,
         capture_output=True,
         text=True,
+        timeout=30,
     )
 
     assert result.returncode == 0, result.stderr
 
 
 def test_facade_implementation_has_no_outer_layer_imports() -> None:
-    import ast
-
-    import galaga.facade as facade_package
-
-    forbidden = {"expr", "notation", "render", "symbolic"}
-    imported: set[str] = set()
-    package_path = Path(facade_package.__file__).parent
-    for source_path in package_path.glob("*.py"):
-        tree = ast.parse(source_path.read_text())
-        imported.update(
-            alias.name.removeprefix("galaga.").split(".")[0]
-            for node in ast.walk(tree)
-            if isinstance(node, ast.Import)
-            for alias in node.names
-        )
-        for node in ast.walk(tree):
-            if not isinstance(node, ast.ImportFrom):
-                continue
-            if node.module:
-                imported.add(node.module.removeprefix("galaga.").split(".")[0])
-            else:
-                imported.update(alias.name.split(".")[0] for alias in node.names)
-
-    assert forbidden.isdisjoint(imported)
+    """Planned v2 presentation/expression imports are allowed; retired layers are not."""
+    sources = list(ARCHITECTURE["python_sources"](files("galaga.facade"), "galaga.facade"))
+    assert sources
+    for module, package, source in sources:
+        forbidden = [
+            (line, name) for line, name in ARCHITECTURE["galaga_imports"](source, package) if is_legacy_module(name)
+        ]
+        assert not forbidden, (module, forbidden)
 
 
 def test_facade_does_not_read_private_core_product_tables() -> None:
-    import galaga.facade as facade_package
-
-    package_path = Path(facade_package.__file__).parent
-    implementation = "\n".join(path.read_text() for path in package_path.glob("*.py"))
-
-    assert "._mul_index" not in implementation
-    assert "._mul_sign" not in implementation
+    for module, _package, source in ARCHITECTURE["python_sources"](files("galaga.facade"), "galaga.facade"):
+        attributes = {node.attr for node in ast.walk(ast.parse(source)) if isinstance(node, ast.Attribute)}
+        assert attributes.isdisjoint({"_mul_index", "_mul_sign"}), module
 
 
 def test_core_has_no_import_edge_to_any_outer_galaga_layer() -> None:
-    import ast
-
-    import galaga.core as core_package
-
-    forbidden = {"algebra", "expr", "facade", "gram_bridge", "notation", "render", "symbolic"}
-    violations: list[str] = []
-    package_path = Path(core_package.__file__).parent
-    for source_path in package_path.glob("*.py"):
-        tree = ast.parse(source_path.read_text())
-        for node in ast.walk(tree):
-            if isinstance(node, ast.Import):
-                for alias in node.names:
-                    parts = alias.name.split(".")
-                    if len(parts) > 1 and parts[0] == "galaga" and parts[1] in forbidden:
-                        violations.append(f"{source_path.name}:{alias.name}")
-            elif isinstance(node, ast.ImportFrom):
-                if node.level >= 2:
-                    violations.append(f"{source_path.name}:relative-level-{node.level}")
-                elif node.module and node.module.startswith("galaga."):
-                    owner = node.module.split(".")[1]
-                    if owner in forbidden:
-                        violations.append(f"{source_path.name}:{node.module}")
-
-    assert violations == []
+    for _module, package, source in ARCHITECTURE["python_sources"](files("galaga.core"), "galaga.core"):
+        ARCHITECTURE["assert_core_only_imports"](source, package)

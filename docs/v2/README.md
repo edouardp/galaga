@@ -192,9 +192,9 @@ All twenty final mixed-coverage rotor/sandwich identities now use public
 exponentials and explicit replay. Their complete historical evidence includes
 the old nonsimple-rotor false positive. The exponential notebook teaches
 metric-dependent branches, compound grade-four terms and even STA phases.
-All twenty-eight completed dependency groups have fresh-process legacy-import gates.
-The remaining test dependencies, engine deletion, alias retirement, and
-final release gates are still pending.
+All thirty completed dependency groups have fresh-process legacy-import gates.
+The full suite now also rejects retired imports during collection and execution.
+Engine deletion, alias retirement, and final release gates are still pending.
 
 The equality/hash release blocker is resolved: signed-zero peers and scalar
 multivectors equal to real numbers now have matching hashes. Comparison also
@@ -203,10 +203,17 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 1 file: `test_redesign.py`.
-`test_coverage.py` is now an import-free ownership record.
-The remaining redesign contracts are next, followed by namespace/construction guards.
-See [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md)
+The construction-only legacy ledger is empty. `test_redesign.py` and
+`test_coverage.py` are import-free ownership records. All 279 redesign identities
+have an explicit public-owner crosswalk; unique state/workflow/display tests
+complement the existing operation contracts. Division now preserves denominator
+provenance and tiny stored grades, including finite subnormal quotients.
+Namespace/construction guards are complete: no guard needs live v1 classes,
+and retired markers cannot reintroduce exemptions. The remaining shared-symbolic
+and low-level LaTeX-tree contracts have public owners and archived evidence.
+Obsolete engine deletion is next; the old files still ship in the wheel.
+See [ADR-120](../adrs/120-complete-redesign-contract-migration.md),
+[ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md),
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

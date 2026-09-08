@@ -1,63 +1,40 @@
-"""Phase 8 test boundary between the public facade and explicit v1 oracle."""
+"""Phase 9 tests reject retired imports before collection and during execution."""
 
 from __future__ import annotations
 
-from functools import wraps
-from pathlib import Path
-from typing import Any
-
 import pytest
 from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
-
-_TEST_ROOT = Path(__file__).parent
-_LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)
+from tools.legacy_import_boundary import assert_no_legacy_modules, install_import_guard, remove_import_guard
 
 
 def pytest_configure(config: pytest.Config) -> None:
+    if LEGACY_ORACLE_TESTS:
+        raise pytest.UsageError("Phase 9 requires an empty legacy-construction ledger")
+    guard = install_import_guard()
+    config.add_cleanup(lambda: remove_import_guard(guard))
     config.addinivalue_line(
         "markers",
-        "legacy_oracle: deliberately executes the Galaga 1 implementation during the Phase 8 shadow cutover",
+        "legacy_oracle: retired Phase 8 marker; its use now fails collection",
     )
 
 
 def pytest_collection_modifyitems(items: list[pytest.Item]) -> None:
-    for item in items:
-        path = Path(str(item.path)).resolve()
-        try:
-            relative = path.relative_to(_TEST_ROOT.resolve()).as_posix()
-        except ValueError:
-            continue
-        if relative in _LEGACY_ORACLE_TEST_SET:
-            item.add_marker(pytest.mark.legacy_oracle)
+    marked = [item.nodeid for item in items if item.get_closest_marker("legacy_oracle") is not None]
+    if marked:
+        raise pytest.UsageError(f"legacy_oracle markers are retired: {', '.join(marked)}")
+
+
+def pytest_collection_finish(session: pytest.Session) -> None:
+    assert_no_legacy_modules()
 
 
 @pytest.fixture(autouse=True)
-def reject_unledgered_legacy_numeric_construction(
-    request: pytest.FixtureRequest,
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    """Make new tests facade-only unless the executable ledger opts them in."""
-    if request.node.get_closest_marker("legacy_oracle") is not None:
-        return
+def reject_cached_legacy_modules():
+    """Check both sides of each test, including dependent fixture teardown."""
+    assert_no_legacy_modules()
+    yield
+    assert_no_legacy_modules()
 
-    import galaga.legacy as legacy
 
-    original_algebra_init = legacy.Algebra.__init__
-    original_multivector_init = legacy.Multivector.__init__
-
-    @wraps(original_algebra_init)
-    def reject_algebra(*args: Any, **kwargs: Any) -> None:
-        raise AssertionError(
-            "unledgered test constructed a Galaga 1 numeric object; "
-            "use the public Galaga 2 API or add a reviewed legacy-oracle ledger entry"
-        )
-
-    @wraps(original_multivector_init)
-    def reject_multivector(*args: Any, **kwargs: Any) -> None:
-        raise AssertionError(
-            "unledgered test constructed a Galaga 1 numeric object; "
-            "use the public Galaga 2 API or add a reviewed legacy-oracle ledger entry"
-        )
-
-    monkeypatch.setattr(legacy.Algebra, "__init__", reject_algebra)
-    monkeypatch.setattr(legacy.Multivector, "__init__", reject_multivector)
+def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
+    assert_no_legacy_modules()

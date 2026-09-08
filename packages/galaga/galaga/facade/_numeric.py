@@ -696,19 +696,12 @@ class Multivector:
         if isinstance(other, Real):
             return _invoke("scalar_divide", self, other)
         if isinstance(other, Multivector):
-            if other.numeric.algebra is not self._numeric.algebra:
-                raise ValueError("cannot mix multivectors from different algebras")
-            if is_scalar(other):
-                divisor = other.coefficient(0)
-                if divisor == 0:
-                    raise ZeroDivisionError("cannot divide by a zero scalar multivector")
-                return _invoke("scalar_divide", self, divisor)
-            return geometric_product(self, inverse(other))
+            return _invoke("divide", self, other)
         return NotImplemented
 
     def __rtruediv__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return geometric_product(self._algebra.scalar(other), inverse(self))
+            return _invoke("divide", self._algebra.scalar(other), self)
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:

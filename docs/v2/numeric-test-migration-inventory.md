@@ -1701,3 +1701,156 @@ The construction ledger falls from two files to one: `test_redesign.py`.
 Its substantial remaining presentation/expression contracts come next, before
 namespace/construction guards, obsolete engine deletion and release gates.
 See [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md).
+
+### Phase 9 follow-through: final redesign construction exemption
+
+All 279 `test_redesign.py` identities now have explicit collected public owners.
+Every original test passed before migration. The complete source, SHA-256,
+ordered identities, final local observations and object aliases remain in
+[redesign-v1.json](../../packages/galaga/tools/baselines/redesign-v1.json),
+with 189 deduplicated snapshots. The
+[v2 crosswalk](../../packages/galaga/tools/baselines/redesign-v2-owners.json)
+assigns each historical identity exactly once to one of 27 responsibility
+groups, documenting retained, replaced and retired behavior.
+
+Following this inventory's consolidation policy, overlapping operations reuse
+existing stronger mixed-grade/general-Gram, expression, scalar, inner-product,
+rendering and rotor owners. Unique contracts have these public homes:
+
+| Public tests | Responsibility |
+|---|---|
+| `presentation/test_redesign_state_contracts.py` | Immutable names, independent state transitions, complete blade labels and 9D/10D lookup |
+| `facade/test_redesign_workflows.py` | All ten archived workflow results, corrected exponential rotation, rebound grades and explicit nodes |
+| `rendering/test_redesign_display_contracts.py` | Content snapshots, reveal replacement, whole-operand powers, spacing and precision |
+| `core/test_division_contracts.py` | Exact stored scalar support, tiny grades, subnormal quotients and right-division semantics |
+| `facade/test_division_provenance.py` | Both denominator histories, changed-binding replay and fraction rendering |
+| `facade/test_redesign_boundary.py` | Complete collected ownership, archive/crosswalk negative controls, legacy-free execution and teaching |
+
+V1 naming mutated ordinary values but copied protected basis values. V2 uses
+immutable wrappers throughout. `unnamed` removes a name; `without_expr` removes
+provenance. A named operand can track again in subsequent arithmetic. Remove
+both for a full numeric snapshot. Name conversion is explicit, whitespace is
+preserved in plain variants, and complete labels replace high-dimensional
+digit parsing. Display returns strings with explicit content/target selection,
+not a lazy display-result object. Precision can affect displayed expression
+literals without changing their stored values.
+
+The old seventh “rotor” recipe omitted exponentiation. Its actual scaled
+generator and sandwich result are archived and replayed honestly; a separate
+public test verifies the exponential, reverse norm and rotation orientation.
+Old `R * reverse(R)` simplification cannot rely on cached grade/rotor facts
+when new bindings are supplied. No high-dimensional predicate change is made.
+
+The migration exposed division defects, fixed with approval:
+
+- multivector denominators retain both expression operands rather than a
+  cached scalar parameter;
+- exact scalar arithmetic dispatch never discards tiny nonscalar grades;
+- direct scalar division avoids an overflowing reciprocal for finite
+  subnormal quotients; and
+- reflected scalar zero division now consistently raises `ZeroDivisionError`.
+
+All 46 new division cases pass; 26 failed before the fix. Existing independent
+right-inverse action oracles retain their numeric checks and now expect a
+fraction display. CGA expanded homogenization/radius expressions also retain
+their weight denominators. Six additional model regressions rebind coordinates,
+positive/negative/fractional weights and zero/nonzero radii.
+
+The eager-values notebook teaches rebindable denominator products, supplied
+rounded physical inputs, and finite subnormal division. Headless execution
+checks actual values, expressions, display thresholds and changed bindings.
+The migration guide and ADRs document accepted API/presentation differences.
+
+Validation at this checkpoint:
+
+- 231 cases across the six new files pass with **100% line and branch coverage**
+  in those files (660 statements, 84 branches).
+- All 2,808 cases in sixteen public owner/CGA/division files pass from the
+  newly built wheel with legacy imports blocked; all 27 loaded Galaga module
+  origins resolve to that wheel.
+- Full suites pass **8,921 cases, 78 skipped on Python 3.11**, and
+  **9,071 cases, 20 skipped on Python 3.14**. The lower total reflects reviewed
+  consolidation, not unowned historical tests.
+- Comparing nineteen measured production files through source-line mapping
+  loses no previously covered surviving line. The only old arc replaced is
+  the catalog sequence now passing through the new `divide` entry; changed
+  arithmetic lines are covered and an additional emitter line is exercised.
+  Combined production line/branch coverage remains 95%.
+- Ruff lint/format, changed-file Markdown lint, notebook compile/teaching
+  guards and the notebook/isolation codemod check modes pass. The type
+  baseline remains **295 errors and 18 warnings**, not a clean type check.
+  The existing matrix complex-to-real warning remains unchanged.
+- All 310 local Markdown file-link targets in the ten changed documentation
+  files resolve, and the new division guide recipe executes successfully.
+
+The construction ledger is **empty**. `test_redesign.py` is an import-free
+ownership record collecting no duplicates, and neither check nor write mode
+can re-isolate it. Namespace/construction guards, obsolete engine deletion
+and release gates are next. The high-dimensional `is_rotor` limitation remains
+a separate release decision.
+
+See [ADR-119](../adrs/119-division-provenance-and-exact-scalar-dispatch.md) and
+[ADR-120](../adrs/120-complete-redesign-contract-migration.md).
+
+### Phase 9 follow-through: deletion-ready namespace and import guards
+
+The test guard no longer imports the constructors it disables. A shared
+test-only finder rejects fifteen retired roots and their descendants,
+covering the manifest's twenty-one legacy paths. Pytest installs it before
+collection; cache checks cover preloading, collection, tests and session
+teardown without evicting modules. Retired `legacy_oracle` markers and any
+nonempty construction ledger fail explicitly. Optional `ImportError` fallbacks
+cannot swallow the guard's assertion error.
+
+Seven selected source records retain twenty-nine historical identities in
+[namespace-boundaries-v1.json](../../packages/galaga/tools/baselines/namespace-boundaries-v1.json).
+Namespace, ownership, alias, facade and shared-symbolic tests now depend only
+on public v2. Five renamed identities have an explicit crosswalk; the eleven
+shared-symbolic identities retain their names and document accepted v2
+semantics. Explicit names, immutable symbols/literals and catalog calls
+replace private fields, implicit normalization and the mutable domain registry.
+Products are checked against the actual Gram matrix, including oblique and
+native-null cases.
+
+The first guarded full-suite collection discovered `test_latex_tree.py` still
+importing the old renderer. Constructor poisoning could not detect that
+dependency because the suite constructs no algebras. All forty-five original
+cases were executed and their source, digest, tree/output observations and
+identities archived in
+[latex-tree-v1.json](../../packages/galaga/tools/baselines/latex-tree-v1.json).
+Every identity now has an immutable semantic-tree owner. The suite explicitly
+documents existing v2 differences in escaped text versus mathematical names,
+separator spacing, script braces, ordinary/compact fractions and preservation
+of explicit grouping, negative numerators and denominators of one.
+
+Recursive source-resource checks work with source directories and zipped
+wheels. They reject outward core dependencies, retired facade imports,
+private product-table access and inactive direct imports in tests/tools.
+Negative controls cover nested scopes, source/owner corruption, cache
+sentinels, finder ordering/cleanup and actual isolated pytest lifecycle
+failures. The bridge remains an allowed same-object warning adapter.
+
+Validation at this checkpoint:
+
+- All **267 focused cases** pass. The ten measured changed test/helper files
+  have **100% line and branch coverage** (814 statements, 54 branches).
+- All **192 public cases** in seven migrated files pass from a fresh wheel
+  with the shared guard installed before importing Galaga; all **28 loaded
+  Galaga module origins** resolve to that wheel.
+- Full suites pass **9,002 cases, 78 skipped on Python 3.11**, and
+  **9,152 cases, 20 skipped on Python 3.14**, under the new collection guard.
+- Compared with the immediately preceding redesign checkpoint, nineteen
+  measured production files lose no covered line or arc; one additional line
+  and three arcs execute. Combined production line/branch coverage remains 95%.
+- Ruff lint, configured Python formatting and changed-file Markdown lint pass.
+  All 335 local Markdown file links in the thirteen changed documents resolve.
+  The existing type baseline remains **295 errors and 18 warnings**, and the
+  matrix complex-to-real warning and Markdown code-block formatting debt remain.
+
+No production code or notebook content changes in this unit. The migration
+guide explains the accepted API differences; existing expression/presentation
+lessons remain the teaching owners. There are no remaining live test-side
+legacy imports, but the legacy files still ship. Physical engine deletion,
+alias retirement and final release gates are next. The high-dimensional
+`is_rotor` decision remains separate. See
+[ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md).

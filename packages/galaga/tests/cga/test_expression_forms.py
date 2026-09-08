@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 
+import numpy as np
 import pytest
 
 from galaga import Algebra, DisplayPolicy, Multivector, outer_product, p_lengyel_cga
@@ -202,8 +203,12 @@ def test_expanded_point_measurements_preserve_their_defining_formulas() -> None:
 
     cases = (
         (expanded.weight(point), r"\frac{Q * \mathbf{e}_{5}}{-1}"),
-        (expanded.homogenize(point), r"\frac{Q}{3}"),
-        (expanded.radius_squared(point), r"\frac{-Q^2}{9}"),
+        (expanded.homogenize(point), r"\frac{Q}{\frac{Q * \mathbf{e}_{5}}{-1}}"),
+        (
+            expanded.radius_squared(point),
+            r"\frac{-Q^2}{\left(\frac{Q * \mathbf{e}_{5}}{-1}\right)"
+            r" \mathbin{\text{⟑}} \left(\frac{Q * \mathbf{e}_{5}}{-1}\right)}",
+        ),
     )
 
     for result, expected_latex in cases:
@@ -220,3 +225,25 @@ def test_expanded_point_measurements_preserve_their_defining_formulas() -> None:
     down = expanded.down(point)
     assert isinstance(down.expr, Call)
     assert down.expr.operation_id == "down"
+
+
+@pytest.mark.parametrize("weight", (1.0, -2.0, 0.25))
+@pytest.mark.parametrize("radius_squared", (0.0, 9.0))
+def test_expanded_point_division_recomputes_weight_after_rebinding(weight, radius_squared):
+    compact = _model()
+    expanded = compact.with_expression_form("expanded")
+    original = (3 * compact.round_point((1, 2, 3), radius_squared=4)).named("Q")
+    replacement = weight * compact.round_point((2, -1, 0), radius_squared=radius_squared)
+    for operation in ("homogenize", "radius_squared"):
+        value = getattr(expanded, operation)(original)
+        before = value.data.copy(), hash(value)
+        assert isinstance(value.expr, Call) and value.expr.operation_id == "divide"
+        rebound = evaluate(value.expr, algebra=compact.algebra, environment={"Q": replacement})
+        expected = getattr(compact, operation)(replacement)
+        np.testing.assert_allclose(rebound.data, expected.data, rtol=0, atol=2e-13)
+        if operation == "homogenize":
+            np.testing.assert_allclose(rebound.data, (replacement / weight).data, rtol=0, atol=2e-13)
+        else:
+            assert float(rebound) == pytest.approx(radius_squared, rel=0, abs=2e-13)
+        np.testing.assert_array_equal(value.data, before[0])
+        assert hash(value) == before[1]

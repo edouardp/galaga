@@ -237,6 +237,7 @@ def _structural_operations() -> tuple[OperationSpec, ...]:
     return (
         OperationSpec("add", 2, lambda left, right: left + right, operator="+"),
         OperationSpec("subtract", 2, lambda left, right: left - right, operator="-"),
+        OperationSpec("divide", 2, lambda left, right: left / right, operator="/"),
         OperationSpec("negate", 1, lambda value: -value, operator="unary -"),
         OperationSpec(
             "scalar_multiply",

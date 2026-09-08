@@ -132,6 +132,9 @@ helps future contributors understand why certain choices were made.
 | [116](116-public-latex-coverage-and-content-contracts.md) | Public LaTeX Coverage and Content Contracts | Accepted |
 | [117](117-public-naming-presets-and-exterior-word-contracts.md) | Public Naming Presets and Exterior-Word Contracts | Accepted |
 | [118](118-public-rotor-recipes-and-sandwich-contracts.md) | Public Rotor Recipes and Sandwich Contracts | Accepted |
+| [119](119-division-provenance-and-exact-scalar-dispatch.md) | Division Provenance and Exact Scalar Dispatch | Accepted |
+| [120](120-complete-redesign-contract-migration.md) | Complete Redesign Contract Migration | Accepted |
+| [121](121-deletion-ready-namespace-and-import-guards.md) | Deletion-Ready Namespace and Import Guards | Accepted |
 
 ## Creating New ADRs
 

@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Twenty-eight legacy-dependency prerequisites are complete:
+Status: **in progress**. Thirty legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1417,7 +1417,18 @@ Status: **in progress**. Twenty-eight legacy-dependency prerequisites are comple
   reverse-versus-inverse sandwiches and even STA phases are tested and taught
   in the exponential notebook. The mixed coverage file is now an import-free
   ownership record, not a legacy construction exemption
-  ([ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md)).
+  ([ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md)); and
+- all 279 redesign identities have explicit collected public owners in a
+  reviewed crosswalk. Complete historical source and observations remain
+  archived; unique immutable state, display and workflow tests complement
+  existing stronger operation suites. Division preserves both histories and
+  exact stored scalar support. The final construction exemption is removed
+  ([ADR-120](../adrs/120-complete-redesign-contract-migration.md)); and
+- namespace/construction guards no longer load v1. Collection and execution
+  reject retired imports, cached modules, markers and ledger additions.
+  Twenty-nine namespace/shared-symbolic identities and forty-five low-level
+  LaTeX-tree identities retain archived evidence and public owners
+  ([ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1427,33 +1438,44 @@ the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
 complex/quaternion, low-dimensional/transformation, scalar, factory/display
 and architecture/inner-product/eager-operation/grade-simplification and
-expression-helper/coverage-LaTeX/naming-preset/rotor-sandwich suites with legacy imports
-blocked. Matrix plans continue to share core algebras across facade
+expression-helper/coverage-LaTeX/naming-preset/rotor-sandwich/redesign and
+namespace/shared-symbolic/LaTeX-tree suites with legacy imports blocked.
+The full package/release test runs now install the shared guard before Galaga
+test collection; static test/tool checks also reject inactive direct imports.
+Matrix plans continue to share core algebras across facade
 presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
-- preserve or retire the remaining legacy-only and dual-implementation tests
-  against the numeric migration inventory;
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next dependency groups are the remaining mixed contracts in
-`test_redesign.py`, followed by namespace/construction guards. Compatibility-manifest
-introspection is retired, and the independently discovered equality/hash
-release blocker below is
-resolved. Preserve permanent v2 assertions and source-derived algebraic
-coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 1 file, down from 2 after completing `test_coverage.py`.
-Its architecture, inner-product, eager-operation, grade/simplification,
+The next work unit is physical engine deletion. Compatibility-manifest
+introspection and all remaining live test-side legacy imports are retired;
+the independently discovered equality/hash release blocker below is resolved.
+Preserve permanent v2 assertions and source-derived algebraic coverage rather
+than deleting migrated test files wholesale. The legacy test ledger is empty,
+and constructor poisoning is replaced by a guard that never imports v1.
+The former `test_coverage.py` architecture, inner-product, eager-operation, grade/simplification,
 expression-helper, coverage-LaTeX, naming-preset and rotor/sandwich subgroups
-all have permanent public owners. Keep that path as an import-free ownership
+all have permanent public owners. Keep `test_coverage.py` as an import-free ownership
 record for historical migration guards.
-The sole remaining construction exemption is `test_redesign.py`; its
-presentation/expression contracts are not yet fully migrated.
+`test_redesign.py` is also an import-free ownership record; its 279 historical
+identities are covered by an explicit public-owner crosswalk, including
+documented replacements for mutable/lazy behavior. Both retired paths are
+protected against isolation-codemod rewrites.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
+
+The namespace/guard checkpoint passes 267 focused cases with 100% line and
+branch coverage across its ten measured test/helper files. A fresh wheel
+passes 192 public cases with all 28 loaded Galaga module origins verified.
+Full suites pass 9,002 cases (78 skipped) on Python 3.11 and 9,152 (20 skipped)
+on Python 3.14. No previously covered line or arc is lost across nineteen
+measured production files; combined coverage remains 95%. Type checking
+retains the existing 295 errors and 18 warnings. These are dependency-removal
+checks, not proof that the wheel no longer contains the old engine.
 
 Release follow-up from the rotor migration: the documented `is_rotor`
 predicate tests evenness and a unit whole reverse product, not preservation

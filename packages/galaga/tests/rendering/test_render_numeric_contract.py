@@ -68,7 +68,8 @@ def test_every_original_rendering_case_keeps_its_archived_numeric_contract(row, 
 COMPOSITIONS = {
     "lie": ("[a, b]", "[a, b]", r"[a,\, b]"),
     "jordan": ("{a, b}", "{a, b}", r"\{a,\, b\}"),
-    "division": ("a(b + c)^-1", "a(b + c)⁻¹", r"a \left(b + c\right)^{-1}"),
+    # ADR-119 preserves division as a two-operand call, including its scope.
+    "division": ("a / (b + c)", "a / (b + c)", r"\frac{a}{b + c}"),
     "negative_product": ("-(ab)", "-(ab)", r"-\left(a b\right)"),
     "reverse_product": ("~(ab)", "(ab)̃", r"\widetilde{a b}"),
     "reverse_sum_left": ("~(a + b)c", "(a + b)̃c", r"\widetilde{a + b} c"),

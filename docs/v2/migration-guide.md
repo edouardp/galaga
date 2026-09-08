@@ -183,6 +183,22 @@ default display is a teaching equality. Standalone replay requires an
 environment for symbols, rather than a legacy `.eval()` call with hidden
 bindings.
 
+`unnamed()` removes the outer name, not its expression; `without_expr()`
+removes the expression, not its name. A named operand can generate provenance
+again in subsequent arithmetic. Use `value.unnamed().without_expr()` for a
+full numeric snapshot. `with_expr()` uses the current name as a symbol when
+named; otherwise it keeps existing provenance or records a literal snapshot.
+None of these calls mutates the original, including ordinary arithmetic values.
+
+Use `display("expr/latex")` to reveal a derivation and `display("value/latex")`
+for coefficients. There is no deferred evaluation step, mutating `reveal`,
+`copy_as` helper or display-result object. Display returns a string snapshot.
+Plain `Name` variants preserve whitespace as supplied; strip fields explicitly
+if desired. Only opt-in `Name.from_latex` conversion strips outer LaTeX whitespace.
+Complete default labels also make ten-dimensional `algebra.blade("e110")` a
+valid lookup; digit parsing is not involved.
+See [ADR-120](../adrs/120-complete-redesign-contract-migration.md).
+
 Expression spelling is target-specific: ASCII is now ASCII-safe, Unicode
 uses combining accents, and some parentheses and spacing differ from v1.
 The conventional hat still serves both `unit` and `grade_involution`; use
@@ -343,6 +359,10 @@ and [ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests
 Galaga 2 has no per-operation expression class or symbolic-handler registration
 step. Inspect `Call.operation_id`, `operands` and immutable `parameters`;
 `get_operation` resolves the shared schema used by construction and replay.
+The private v1 `SymbolicDomain` registry and arbitrary `Expr` subclasses are
+not supported extension APIs. A `Symbol` owns its identifier/name, not a
+cached value or the old `_value`/`_mv` attributes. Bind values explicitly in
+`evaluate`; rebinding does not mutate a saved node or eager result.
 Do not equate evaluator arity with the number of expression operands:
 
 ```python
@@ -450,10 +470,45 @@ keeps its default hat unless you select `unit_fraction` below.
 
 Double negation may disappear from the rendered view while remaining in
 stored provenance. Negated products and nested regressive products can keep
-additional parentheses. Multivector division displays multiplication by a
-right inverse, and the unscaled v2 Lie/Jordan definitions omit v1's half.
+additional parentheses. Multivector division now displays a fraction while
+retaining right-division semantics; the unscaled v2 Lie/Jordan definitions
+omit v1's half. Plain-text geometric products juxtapose multicharacter names
+too; choose an explicit infix `RenderRule` when a separator improves clarity.
+Powers group whole products: `(a*b)**2` is not `a*(b**2)`.
 The [mixed-rendering contract](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md)
 checks numeric meaning as well as these presentation differences.
+
+### Division retains the denominator
+
+A multivector divisor contributes a second `divide` operand even when its
+current value is scalar. A Python real-number divisor instead becomes a
+fixed `scalar_divide` parameter:
+
+```python
+from galaga import Algebra, evaluate
+
+algebra = Algebra(2)
+a, b = algebra.scalar(6).named("a"), algebra.scalar(3).named("b")
+quotient = a / b
+assert quotient.latex(content="expr") == r"\frac{a}{b}"
+assert evaluate(quotient.expr, algebra=algebra, environment={"a": 6, "b": 2}) == 3
+assert quotient == 2
+assert evaluate(quotient.expr, algebra=algebra, environment={"a": 6, "b": 2 * algebra.blade(1)}) == 3 * algebra.blade(1)
+```
+
+`hbar / (mass * speed)` likewise preserves the product in its denominator.
+Rebinding does not mutate the eagerly computed quotient. For nonscalar
+divisors, `a / b` means `a * inverse(b)`, not `inverse(b) * a`.
+Exact scalar division avoids an unnecessary reciprocal, allowing finite
+subnormal quotients. Every nonzero nonscalar coefficient participates in
+arithmetic even below the diagnostic/display tolerance.
+
+Exact scalar zero divisors raise `ZeroDivisionError`, including `1 / scalar(0)`;
+noninvertible nonscalar divisors raise `ValueError`. The general inverse solver
+and its numerical limitations are unchanged. See
+[ADR-119](../adrs/119-division-provenance-and-exact-scalar-dispatch.md).
+
+### Customizing immutable rules
 
 Import `Notation` and `RenderRule` from `galaga`. Replace
 `notation.set("Reverse", "latex", ...)` with
@@ -997,6 +1052,18 @@ Neither that layout nor a symbolic name creates exact rational arithmetic.
 Scalar division by either signed zero raises `ZeroDivisionError`, replacing
 the retired fraction constructor's `ValueError`.
 
+For low-level layout, use `galaga.rendering.tree` and the target emitter,
+not `galaga.latex_nodes` or `galaga.latex_rewrite`. `Text` escapes literal
+text, including backslashes and underscores; mathematical names belong in
+`Identifier(Name.from_latex(...))` or explicit `Name` variants. Semantic
+`Sum`/`Product` nodes replace untyped sequences. There is no `small=True`
+fraction flag or separate rewrite pass: LaTeX emission uses ordinary fraction
+bars outside scripts and compact slashes inside exponents. Explicit nested
+groups, negative numerators and denominators of one remain as requested by
+the layout tree; this differs from simplifying expression provenance before
+building a rendering view. See
+[ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md).
+
 The default value renderer hides coefficients with magnitude below `1e-12`.
 Set `zero_tolerance=0` to show every stored nonzero coefficient, including
 subnormals. This remains independent of exact equality and hashing. A
@@ -1006,11 +1073,12 @@ coefficient checks; the default `np.isclose(0, 1e-34)` is true.
 
 Scientific LaTeX currently uses `\times`. The old `cdot`/`raw` selectors and
 `latex(coeff_format=...)` remain unsupported. `coefficient_precision` controls
-significant digits, without trailing-zero padding. For fixed numeric output,
+significant digits, including numeric literals in expression rendering,
+without changing their stored values or adding trailing-zero padding. For fixed numeric output,
 convert a scalar explicitly, for example `format(float(small), ".3e")`.
 
 The [eager-values notebook](../../examples/galaga_v2/eager_values_and_expressions.py)
-executes the small-value and named-fraction examples. See
+executes small-value, named-fraction and denominator-rebinding examples. See
 [ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).
 
 ## Configure presentation independently

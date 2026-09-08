@@ -373,6 +373,7 @@ def test_numeric_contract_has_left_the_legacy_construction_allowlist() -> None:
 def test_every_cataloged_numeric_operation_has_a_public_facade_callable() -> None:
     structural_operator_ids = {
         "add",
+        "divide",
         "negate",
         "power",
         "scalar_divide",

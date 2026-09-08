@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The final low-level LaTeX-tree suite now also has public semantic-tree owners.
+[ADR-121](121-deletion-ready-namespace-and-import-guards.md) archives all
+forty-five historical cases and documents escaping, explicit grouping and
+emitter-owned fraction layout without restoring a separate rewrite pass.
+
 The remaining mixed-coverage LaTeX contracts now have public owners.
 [ADR-116](116-public-latex-coverage-and-content-contracts.md) records exact
 strings plus numeric replay, explicit content/wrapper behavior and teaching

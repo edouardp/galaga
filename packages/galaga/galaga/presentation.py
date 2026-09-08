@@ -389,6 +389,7 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
             argument_order=(1, 0),
         ),
         "scalar_divide": RenderRule("fraction"),
+        "divide": RenderRule("fraction"),
         "power": RenderRule("superscript", associativity="right"),
         "geometric_product": RenderRule(
             "juxtaposition",

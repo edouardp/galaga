@@ -6,6 +6,7 @@ from collections.abc import Callable
 
 import numpy as np
 import pytest
+from tools.legacy_import_boundary import assert_no_legacy_modules
 
 import galaga.facade as facade
 from galaga import core
@@ -24,22 +25,13 @@ from galaga.facade import (
 )
 
 
-@pytest.fixture(autouse=True)
-def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Make every direct facade test fail if it falls back to the v1 engine."""
-    import galaga.legacy as legacy
-
-    def reject(*args: object, **kwargs: object) -> None:
-        raise AssertionError("core-backed facade test constructed galaga.legacy.Algebra")
-
-    monkeypatch.setattr(legacy.Algebra, "__init__", reject)
-
-
-def test_legacy_numeric_constructor_guard_is_active() -> None:
-    import galaga.legacy as legacy
-
-    with pytest.raises(AssertionError, match="core-backed facade test constructed"):
-        legacy.Algebra(2)
+def test_numeric_values_use_core_storage_without_importing_legacy() -> None:
+    algebra = Algebra(gram=((2, 0.5), (0.5, -1)))
+    a, b = algebra.basis_vectors()
+    assert type(a.numeric) is core.Multivector
+    assert (a * b).numeric.algebra is algebra.numeric
+    np.testing.assert_array_equal((a * b).data, [0.5, 0, 0, 1])
+    assert_no_legacy_modules()
 
 
 def native_cga_gram() -> np.ndarray:
@@ -585,6 +577,7 @@ class TestCatalogAndParity:
         assert all(EXCLUDED_PUBLIC_NAMES.values())
         assert set(OPERATIONS) - core_public == {
             "add",
+            "divide",
             "negate",
             "power",
             "scalar_divide",

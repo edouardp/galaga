@@ -17,7 +17,7 @@ import galaga as ga
 import galaga.core as core
 from galaga.facade import EXCLUDED_PUBLIC_NAMES, OPERATIONS, LeftFoldCall, get_operation
 
-STRUCTURAL = {"add", "subtract", "negate", "scalar_multiply", "scalar_divide", "power"}
+STRUCTURAL = {"add", "subtract", "divide", "negate", "scalar_multiply", "scalar_divide", "power"}
 PARAMETERS = {
     "scalar": 2,
     "exponent": 3,

@@ -284,7 +284,8 @@ class Multivector:
             return Multivector(self._algebra, self._data / divisor)
         if isinstance(other, Multivector):
             self._check_same(other)
-            if is_scalar(other):
+            # A tolerance-based predicate must not discard stored grades.
+            if not np.any(other._data[1:]):
                 divisor = other.scalar_part
                 if divisor == 0:
                     raise ZeroDivisionError("cannot divide by a zero scalar multivector")
@@ -294,7 +295,8 @@ class Multivector:
 
     def __rtruediv__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return float(other) * inverse(self)
+            # Direct scalar division may be finite when 1 / self overflows.
+            return self._algebra.scalar(other) / self
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:

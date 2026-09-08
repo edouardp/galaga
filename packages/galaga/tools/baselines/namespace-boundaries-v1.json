@@ -1,0 +1,219 @@
+{
+  "schema_version": 1,
+  "source_commit": "0499fa49800950503467cac60eb9d199231458c0",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "sources": {
+    "compatibility/test_phase8_namespace.py": {
+      "source": "\"\"\"Public, facade, and legacy namespace contracts for the Phase 8 cutover.\"\"\"\n\nfrom __future__ import annotations\n\nimport subprocess\nimport sys\n\nimport pytest\n\nimport galaga\nimport galaga.facade as facade\nimport galaga.legacy as legacy\n\n\ndef test_top_level_manifest_and_objects_are_exact_facade_reexports() -> None:\n    assert galaga.__all__ == facade.__all__\n    for name in facade.__all__:\n        assert getattr(galaga, name) is getattr(facade, name)\n\n\ndef test_plain_import_does_not_load_the_legacy_engine() -> None:\n    program = \"\"\"\nimport sys\nimport galaga\nassert galaga.Algebra.__module__ == 'galaga.facade._numeric'\nassert 'galaga.legacy' not in sys.modules\nassert 'galaga.algebra' not in sys.modules\nassert 'galaga.expr' not in sys.modules\n\"\"\"\n    result = subprocess.run([sys.executable, \"-c\", program], check=False, capture_output=True, text=True)\n\n    assert result.returncode == 0, result.stderr\n\n\n@pytest.mark.legacy_oracle\ndef test_explicit_legacy_namespace_preserves_a_coherent_v1_domain() -> None:\n    algebra = legacy.Algebra(2)\n    e1, e2 = algebra.basis_vectors()\n\n    assert legacy.Algebra.__module__ == \"galaga.algebra\"\n    assert legacy.Multivector.__module__ == \"galaga.algebra\"\n    assert legacy.geometric_product(e1, e2) == e1 * e2\n    assert galaga.Algebra is not legacy.Algebra\n    assert galaga.Multivector is not legacy.Multivector\n\n\ndef test_unledgered_tests_poison_legacy_construction() -> None:\n    with pytest.raises(AssertionError, match=\"unledgered test\"):\n        legacy.Algebra(2)\n\n\n@pytest.mark.legacy_oracle\ndef test_v1_and_v2_values_do_not_mix_implicitly() -> None:\n    v2_e1, _ = galaga.Algebra(2).basis_vectors()\n    v1_e1, _ = legacy.Algebra(2).basis_vectors()\n\n    with pytest.raises(TypeError):\n        galaga.geometric_product(v2_e1, v1_e1)\n\n\n@pytest.mark.parametrize(\"name\", (\"inner_product\", \"ip\"))\ndef test_ambiguous_v1_inner_product_names_have_top_level_migration_guidance(name: str) -> None:\n    with pytest.raises(AttributeError, match=\"does not select an ambiguous inner product\"):\n        getattr(galaga, name)\n",
+      "sha256": "93544ed1a6552862ee0366bd329c6f2b0dc54b844237580eb4bc7e940a73301b",
+      "test_ids": [
+        "test_top_level_manifest_and_objects_are_exact_facade_reexports",
+        "test_plain_import_does_not_load_the_legacy_engine",
+        "test_explicit_legacy_namespace_preserves_a_coherent_v1_domain",
+        "test_unledgered_tests_poison_legacy_construction",
+        "test_v1_and_v2_values_do_not_mix_implicitly",
+        "test_ambiguous_v1_inner_product_names_have_top_level_migration_guidance"
+      ]
+    },
+    "compatibility/test_facade_namespace.py": {
+      "source": "\"\"\"Namespace and import-boundary contracts during the facade promotion.\"\"\"\n\nfrom __future__ import annotations\n\nimport subprocess\nimport sys\nfrom pathlib import Path\n\nimport pytest\n\n\n@pytest.mark.parametrize(\n    \"imports\",\n    (\n        \"import galaga.core; import galaga.facade; import galaga.gram_bridge\",\n        \"import galaga.gram_bridge; import galaga.facade; import galaga.core\",\n    ),\n    ids=(\"core-facade-bridge\", \"bridge-facade-core\"),\n)\ndef test_core_facade_and_bridge_import_in_either_order(imports: str) -> None:\n    program = f\"\"\"\n{imports}\nassert galaga.gram_bridge.Algebra is galaga.facade.Algebra\nassert galaga.gram_bridge.OPERATIONS is galaga.facade.OPERATIONS\nassert galaga.facade.Algebra(2).numeric.__class__ is galaga.core.Algebra\n\"\"\"\n\n    result = subprocess.run(\n        [sys.executable, \"-c\", program],\n        check=False,\n        capture_output=True,\n        text=True,\n    )\n\n    assert result.returncode == 0, result.stderr\n\n\ndef test_facade_implementation_has_no_outer_layer_imports() -> None:\n    import ast\n\n    import galaga.facade as facade_package\n\n    forbidden = {\"expr\", \"notation\", \"render\", \"symbolic\"}\n    imported: set[str] = set()\n    package_path = Path(facade_package.__file__).parent\n    for source_path in package_path.glob(\"*.py\"):\n        tree = ast.parse(source_path.read_text())\n        imported.update(\n            alias.name.removeprefix(\"galaga.\").split(\".\")[0]\n            for node in ast.walk(tree)\n            if isinstance(node, ast.Import)\n            for alias in node.names\n        )\n        for node in ast.walk(tree):\n            if not isinstance(node, ast.ImportFrom):\n                continue\n            if node.module:\n                imported.add(node.module.removeprefix(\"galaga.\").split(\".\")[0])\n            else:\n                imported.update(alias.name.split(\".\")[0] for alias in node.names)\n\n    assert forbidden.isdisjoint(imported)\n\n\ndef test_facade_does_not_read_private_core_product_tables() -> None:\n    import galaga.facade as facade_package\n\n    package_path = Path(facade_package.__file__).parent\n    implementation = \"\\n\".join(path.read_text() for path in package_path.glob(\"*.py\"))\n\n    assert \"._mul_index\" not in implementation\n    assert \"._mul_sign\" not in implementation\n\n\ndef test_core_has_no_import_edge_to_any_outer_galaga_layer() -> None:\n    import ast\n\n    import galaga.core as core_package\n\n    forbidden = {\"algebra\", \"expr\", \"facade\", \"gram_bridge\", \"notation\", \"render\", \"symbolic\"}\n    violations: list[str] = []\n    package_path = Path(core_package.__file__).parent\n    for source_path in package_path.glob(\"*.py\"):\n        tree = ast.parse(source_path.read_text())\n        for node in ast.walk(tree):\n            if isinstance(node, ast.Import):\n                for alias in node.names:\n                    parts = alias.name.split(\".\")\n                    if len(parts) > 1 and parts[0] == \"galaga\" and parts[1] in forbidden:\n                        violations.append(f\"{source_path.name}:{alias.name}\")\n            elif isinstance(node, ast.ImportFrom):\n                if node.level >= 2:\n                    violations.append(f\"{source_path.name}:relative-level-{node.level}\")\n                elif node.module and node.module.startswith(\"galaga.\"):\n                    owner = node.module.split(\".\")[1]\n                    if owner in forbidden:\n                        violations.append(f\"{source_path.name}:{node.module}\")\n\n    assert violations == []\n",
+      "sha256": "7d4b4bc3f1a2a875f86d6af643a784969639cca15b8bce8ed795eeb56e6d5482",
+      "test_ids": [
+        "test_core_facade_and_bridge_import_in_either_order",
+        "test_facade_implementation_has_no_outer_layer_imports",
+        "test_facade_does_not_read_private_core_product_tables",
+        "test_core_has_no_import_edge_to_any_outer_galaga_layer"
+      ]
+    },
+    "compatibility/test_numeric_aliases.py": {
+      "source": "\"\"\"Compatibility aliases kept outside numeric mathematics tests.\"\"\"\n\nfrom __future__ import annotations\n\nimport importlib\n\nimport pytest\n\nimport galaga\nimport galaga.facade as facade\nimport galaga.legacy as legacy\n\n\ndef test_top_level_numeric_aliases_are_the_facade_objects() -> None:\n    for alias, canonical in facade.OPERATION_ALIASES.items():\n        assert getattr(galaga, alias) is getattr(facade, canonical)\n\n\ndef test_explicit_v1_numeric_aliases_remain_the_same_function_objects() -> None:\n    assert legacy.geometric_product is legacy.gp\n    assert legacy.wedge is legacy.op\n    assert legacy.join is legacy.op\n    assert legacy.meet is legacy.regressive_product\n    assert legacy.rev is legacy.reverse\n    assert legacy.antiwedge is legacy.regressive_product\n\n\ndef test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value() -> None:\n    algebra = facade.Algebra(3)\n    e1, e2, e3 = algebra.basis_vectors()\n    left = e1 ^ e2\n    right = e2 ^ e3\n\n    assert facade.antiwedge is not facade.regressive_product\n    assert facade.antiwedge(left, right) == facade.regressive_product(left, right)\n\n\ndef test_gram_bridge_reexports_the_facade_objects_without_a_fork() -> None:\n    import galaga.facade.catalog as facade_catalog\n\n    with pytest.warns(facade.GalagaDeprecationWarning, match=\"gram_bridge is deprecated\"):\n        bridge = importlib.reload(importlib.import_module(\"galaga.gram_bridge\"))\n    with pytest.warns(facade.GalagaDeprecationWarning, match=\"gram_bridge.catalog is deprecated\"):\n        bridge_catalog = importlib.reload(importlib.import_module(\"galaga.gram_bridge.catalog\"))\n\n    assert bridge.Algebra is facade.Algebra\n    assert bridge.Multivector is facade.Multivector\n    assert bridge.OPERATIONS is facade.OPERATIONS\n    assert bridge.geometric_product is facade.geometric_product\n    assert bridge_catalog.OperationSpec is facade_catalog.OperationSpec\n",
+      "sha256": "8ff086c7c8deb8b27cfaa53166834c7d278f0b48dff55e63bac7d1e34b514f51",
+      "test_ids": [
+        "test_top_level_numeric_aliases_are_the_facade_objects",
+        "test_explicit_v1_numeric_aliases_remain_the_same_function_objects",
+        "test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value",
+        "test_gram_bridge_reexports_the_facade_objects_without_a_fork"
+      ]
+    },
+    "core/test_migration_boundary.py": {
+      "source": "\"\"\"Architectural guards for the additive numeric-core migration.\"\"\"\n\nfrom __future__ import annotations\n\nimport ast\nfrom importlib.metadata import requires\nfrom pathlib import Path\n\nimport galaga.core as core\nimport galaga.facade as facade\nimport galaga.legacy as legacy\nfrom galaga import Algebra as PublicAlgebra\n\n\ndef test_top_level_algebra_is_the_promoted_facade() -> None:\n    \"\"\"Phase 8 makes the core-backed facade the ordinary public API.\"\"\"\n    assert PublicAlgebra is not core.Algebra\n    assert PublicAlgebra is facade.Algebra\n    assert PublicAlgebra is not legacy.Algebra\n    assert PublicAlgebra.__module__ == \"galaga.facade._numeric\"\n    assert core.Algebra.__module__ == \"galaga.core\"\n\n\ndef test_core_source_does_not_import_outer_galaga_modules() -> None:\n    \"\"\"The numeric core may import within its package but never outward.\"\"\"\n    core_directory = Path(core.__file__).parent\n\n    for source_path in core_directory.glob(\"*.py\"):\n        tree = ast.parse(source_path.read_text(), filename=str(source_path))\n        for node in ast.walk(tree):\n            if isinstance(node, ast.Import):\n                imported = [alias.name for alias in node.names]\n                assert not any(name == \"galaga\" or name.startswith(\"galaga.\") for name in imported), (\n                    f\"{source_path.name} imports outward: {imported}\"\n                )\n            elif isinstance(node, ast.ImportFrom):\n                assert node.level <= 1, (\n                    f\"{source_path.name} escapes galaga.core with {'.' * node.level}{node.module or ''}\"\n                )\n                assert not (\n                    node.level == 0\n                    and node.module is not None\n                    and (node.module == \"galaga\" or node.module.startswith(\"galaga.\"))\n                ), f\"{source_path.name} imports outward from {node.module}\"\n\n\ndef test_distribution_has_no_external_gram_dependency() -> None:\n    \"\"\"The core is part of Galaga's distribution rather than another package.\"\"\"\n    requirements = requires(\"galaga\") or []\n    assert not any(requirement.lower().startswith(\"gram\") for requirement in requirements)\n",
+      "sha256": "0ab4374ae038ed356521811dfd7157737357441abec3161e245b70358f4d5017",
+      "test_ids": [
+        "test_top_level_algebra_is_the_promoted_facade",
+        "test_core_source_does_not_import_outer_galaga_modules",
+        "test_distribution_has_no_external_gram_dependency"
+      ]
+    },
+    "test_symbolic_core.py": {
+      "source": "\"\"\"Tests for shared symbolic naming and expression helpers.\"\"\"\n\nimport pytest\n\nfrom galaga.symbolic_core import Add, Scalar, ScalarDiv, ScalarMul, Sym, normalize_name\nfrom galaga.symbolic_core.domain import SymbolicDomain\nfrom galaga.symbolic_core.expr import Expr\n\n\nclass ToyMul(Expr):\n    def __init__(self, a, b):\n        self.a = a\n        self.b = b\n\n    def eval(self):\n        return self.a.eval() * self.b.eval()\n\n\ndef test_normalize_name_matches_multivector_label_style():\n    parts = normalize_name(\"  v  \")\n\n    assert parts.ascii == \"v\"\n    assert parts.unicode == \"v\"\n    assert parts.latex == \"v\"\n\n\ndef test_normalize_name_latex_derives_greek_unicode_ascii():\n    parts = normalize_name(latex=r\"\\theta\")\n\n    assert parts.ascii == \"theta\"\n    assert parts.unicode == \"θ\"\n    assert parts.latex == r\"\\theta\"\n\n\ndef test_normalize_name_latex_derives_mathbf_unicode_ascii():\n    parts = normalize_name(latex=r\"\\mathbf{v}\")\n\n    assert parts.ascii == \"v\"\n    assert parts.unicode == \"𝐯\"\n    assert parts.latex == r\"\\mathbf{v}\"\n\n\ndef test_normalize_name_unknown_latex_falls_back():\n    parts = normalize_name(latex=r\"\\weirdthing\")\n\n    assert parts.ascii == r\"\\weirdthing\"\n    assert parts.unicode == r\"\\weirdthing\"\n    assert parts.latex == r\"\\weirdthing\"\n\n\ndef test_normalize_name_requires_label_or_latex():\n    with pytest.raises(ValueError, match=\"At least one\"):\n        normalize_name()\n\n\ndef test_explicit_unicode_ascii_override_derived_values():\n    parts = normalize_name(latex=r\"\\theta\", unicode=\"theta-u\", ascii=\"theta-a\")\n\n    assert parts.ascii == \"theta-a\"\n    assert parts.unicode == \"theta-u\"\n    assert parts.latex == r\"\\theta\"\n\n\ndef test_sym_keeps_compatibility_attributes():\n    sym = Sym(3, \"α\", name_latex=r\"\\alpha\", name_ascii=\"alpha\")\n\n    assert sym._value == 3\n    assert sym._mv == 3\n    assert sym._name == \"α\"\n    assert sym._name_latex == r\"\\alpha\"\n    assert sym._name_ascii == \"alpha\"\n    assert sym.eval() == 3\n\n\ndef test_scalar_keeps_value_attribute():\n    scalar = Scalar(2)\n\n    assert scalar._value == 2\n    assert scalar.eval() == 2\n\n\ndef test_structural_add_scalar_mul_and_scalar_div_eval():\n    x = Sym(4, \"x\")\n\n    assert isinstance(x + 2, Add)\n    assert (x + 2).eval() == 6\n    assert isinstance(3 * x, ScalarMul)\n    assert (3 * x).eval() == 12\n    assert isinstance(x / 2, ScalarDiv)\n    assert (x / 2).eval() == 2\n\n\ndef test_domain_operator_maps_to_registered_node():\n    domain = SymbolicDomain(\"toy\")\n    domain.register_operator(\"mul\", ToyMul)\n\n    expr = domain.build_operator(\"mul\", Sym(2, \"a\"), Sym(5, \"b\"))\n\n    assert isinstance(expr, ToyMul)\n    assert expr.eval() == 10\n\n\ndef test_missing_domain_operator_raises_type_error():\n    domain = SymbolicDomain(\"toy\")\n\n    with pytest.raises(TypeError, match=\"no symbolic operator\"):\n        domain.build_operator(\"mul\", Sym(2, \"a\"), Sym(5, \"b\"))\n",
+      "sha256": "41cae92a62e2a9d88793cf6da44707202941da379439c78051f8116cb0b4a79a",
+      "test_ids": [
+        "test_normalize_name_matches_multivector_label_style",
+        "test_normalize_name_latex_derives_greek_unicode_ascii",
+        "test_normalize_name_latex_derives_mathbf_unicode_ascii",
+        "test_normalize_name_unknown_latex_falls_back",
+        "test_normalize_name_requires_label_or_latex",
+        "test_explicit_unicode_ascii_override_derived_values",
+        "test_sym_keeps_compatibility_attributes",
+        "test_scalar_keeps_value_attribute",
+        "test_structural_add_scalar_mul_and_scalar_div_eval",
+        "test_domain_operator_maps_to_registered_node",
+        "test_missing_domain_operator_raises_type_error"
+      ]
+    },
+    "conftest.py": {
+      "source": "\"\"\"Phase 8 test boundary between the public facade and explicit v1 oracle.\"\"\"\n\nfrom __future__ import annotations\n\nfrom functools import wraps\nfrom pathlib import Path\nfrom typing import Any\n\nimport pytest\nfrom tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS\n\n_TEST_ROOT = Path(__file__).parent\n_LEGACY_ORACLE_TEST_SET = frozenset(LEGACY_ORACLE_TESTS)\n\n\ndef pytest_configure(config: pytest.Config) -> None:\n    config.addinivalue_line(\n        \"markers\",\n        \"legacy_oracle: deliberately executes the Galaga 1 implementation during the Phase 8 shadow cutover\",\n    )\n\n\ndef pytest_collection_modifyitems(items: list[pytest.Item]) -> None:\n    for item in items:\n        path = Path(str(item.path)).resolve()\n        try:\n            relative = path.relative_to(_TEST_ROOT.resolve()).as_posix()\n        except ValueError:\n            continue\n        if relative in _LEGACY_ORACLE_TEST_SET:\n            item.add_marker(pytest.mark.legacy_oracle)\n\n\n@pytest.fixture(autouse=True)\ndef reject_unledgered_legacy_numeric_construction(\n    request: pytest.FixtureRequest,\n    monkeypatch: pytest.MonkeyPatch,\n) -> None:\n    \"\"\"Make new tests facade-only unless the executable ledger opts them in.\"\"\"\n    if request.node.get_closest_marker(\"legacy_oracle\") is not None:\n        return\n\n    import galaga.legacy as legacy\n\n    original_algebra_init = legacy.Algebra.__init__\n    original_multivector_init = legacy.Multivector.__init__\n\n    @wraps(original_algebra_init)\n    def reject_algebra(*args: Any, **kwargs: Any) -> None:\n        raise AssertionError(\n            \"unledgered test constructed a Galaga 1 numeric object; \"\n            \"use the public Galaga 2 API or add a reviewed legacy-oracle ledger entry\"\n        )\n\n    @wraps(original_multivector_init)\n    def reject_multivector(*args: Any, **kwargs: Any) -> None:\n        raise AssertionError(\n            \"unledgered test constructed a Galaga 1 numeric object; \"\n            \"use the public Galaga 2 API or add a reviewed legacy-oracle ledger entry\"\n        )\n\n    monkeypatch.setattr(legacy.Algebra, \"__init__\", reject_algebra)\n    monkeypatch.setattr(legacy.Multivector, \"__init__\", reject_multivector)\n",
+      "sha256": "9b7736966b5800e9f4303025696bbee1f1572dbacb71e0891583fd72c5c1c757",
+      "test_ids": []
+    },
+    "facade/test_numeric_facade.py": {
+      "source": "def forbid_legacy_numeric_construction(monkeypatch: pytest.MonkeyPatch) -> None:\n    \"\"\"Make every direct facade test fail if it falls back to the v1 engine.\"\"\"\n    import galaga.legacy as legacy\n\n    def reject(*args: object, **kwargs: object) -> None:\n        raise AssertionError(\"core-backed facade test constructed galaga.legacy.Algebra\")\n\n    monkeypatch.setattr(legacy.Algebra, \"__init__\", reject)\n\ndef test_legacy_numeric_constructor_guard_is_active() -> None:\n    import galaga.legacy as legacy\n\n    with pytest.raises(AssertionError, match=\"core-backed facade test constructed\"):\n        legacy.Algebra(2)\n",
+      "sha256": "e0a8fc372e2038de35f14648a874aa71fc0cb459dfa892f6e7e4db5f7bb4a178",
+      "test_ids": [
+        "test_legacy_numeric_constructor_guard_is_active"
+      ],
+      "selection": "guard functions only; numeric parity tests remain live"
+    }
+  },
+  "legacy_domain": {
+    "algebra_module": "galaga.algebra",
+    "multivector_module": "galaga.algebra",
+    "basis": [
+      [
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        1,
+        0
+      ]
+    ],
+    "product": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "mixed_error": {
+      "type": "TypeError",
+      "message": "geometric_product expects two Multivectors"
+    }
+  },
+  "aliases": [
+    {
+      "left": "geometric_product",
+      "right": "gp",
+      "identical": true
+    },
+    {
+      "left": "wedge",
+      "right": "op",
+      "identical": true
+    },
+    {
+      "left": "join",
+      "right": "op",
+      "identical": true
+    },
+    {
+      "left": "meet",
+      "right": "regressive_product",
+      "identical": true
+    },
+    {
+      "left": "rev",
+      "right": "reverse",
+      "identical": true
+    },
+    {
+      "left": "antiwedge",
+      "right": "regressive_product",
+      "identical": true
+    }
+  ],
+  "names": [
+    {
+      "inputs": {
+        "label": "  v  "
+      },
+      "variants": [
+        "v",
+        "v",
+        "v"
+      ]
+    },
+    {
+      "inputs": {
+        "latex": "\\theta"
+      },
+      "variants": [
+        "theta",
+        "θ",
+        "\\theta"
+      ]
+    },
+    {
+      "inputs": {
+        "latex": "\\mathbf{v}"
+      },
+      "variants": [
+        "v",
+        "𝐯",
+        "\\mathbf{v}"
+      ]
+    },
+    {
+      "inputs": {
+        "latex": "\\weirdthing"
+      },
+      "variants": [
+        "\\weirdthing",
+        "\\weirdthing",
+        "\\weirdthing"
+      ]
+    },
+    {
+      "inputs": {
+        "latex": "\\theta",
+        "unicode": "theta-u",
+        "ascii": "theta-a"
+      },
+      "variants": [
+        "theta-a",
+        "theta-u",
+        "\\theta"
+      ]
+    }
+  ],
+  "missing_name": {
+    "type": "ValueError",
+    "message": "At least one of label or latex must be provided"
+  },
+  "symbol": {
+    "value": 3,
+    "name": [
+      "alpha",
+      "α",
+      "\\alpha"
+    ]
+  },
+  "scalar": 2,
+  "arithmetic": {
+    "add": 6,
+    "scalar_multiply": 12,
+    "scalar_divide": 2
+  },
+  "domain": {
+    "registered_product": 10,
+    "missing_error": {
+      "type": "TypeError",
+      "message": "Domain 'toy' has no symbolic operator 'mul'"
+    }
+  }
+}

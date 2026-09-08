@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-075: Promote the Core-Backed Facade Namespace
 
+The Phase 9 namespace tests now require only the public implementation.
+[ADR-121](121-deletion-ready-namespace-and-import-guards.md) replaces live v1
+domain assertions and constructor poisoning with deletion-ready import guards,
+while retaining core ownership and recursive dependency-direction checks.
+The bridge remains the existing warning adapter pending its retirement.
+
 ## Context and problem statement
 
 ADR-073 moved the Gram-native numeric engine into `galaga.core` while leaving

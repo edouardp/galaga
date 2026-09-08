@@ -1,0 +1,548 @@
+{
+  "schema_version": 1,
+  "archive": "redesign-v1.json",
+  "source_sha256": "c61490dbb7ed8e3ed6dc6b2574198cc28a4d54fc918cec9ad8c44664117e1b6a",
+  "groups": {
+    "names": {
+      "decision": "Explicit Name variants or opt-in Name.from_latex replace implicit conversion.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_archived_names_use_explicit_variants_or_opt_in_latex_conversion",
+        "presentation/test_redesign_state_contracts.py::test_plain_names_preserve_whitespace_and_latex_does_not_implicitly_derive_spellings"
+      ],
+      "tests": [
+        "TestNameMethod.test_name_sets_all_variants",
+        "TestNameMethod.test_name_with_overrides",
+        "TestNameMethod.test_name_ascii_kwarg",
+        "TestNameAutoDerive.test_greek_auto_derive",
+        "TestNameAutoDerive.test_mathbf_auto_derive",
+        "TestNameAutoDerive.test_hbar_auto_derive",
+        "TestNameAutoDerive.test_user_unicode_overrides",
+        "TestNameAutoDerive.test_user_ascii_overrides",
+        "TestNameAutoDerive.test_both_overrides",
+        "TestNameAutoDerive.test_unknown_latex_uses_label",
+        "TestNameAutoDerive.test_no_latex_uses_label",
+        "TestNameLatexOnly.test_latex_only_greek",
+        "TestNameLatexOnly.test_latex_only_mathbf",
+        "TestNameLatexOnly.test_latex_only_unknown_uses_latex_as_fallback",
+        "TestNameLatexOnly.test_no_args_raises"
+      ]
+    },
+    "whitespace": {
+      "decision": "Plain names preserve supplied whitespace; conversion strips outer LaTeX whitespace only. Callers may strip fields explicitly.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_plain_names_preserve_whitespace_and_latex_does_not_implicitly_derive_spellings"
+      ],
+      "tests": [
+        "TestNameStripsWhitespace.test_label_stripped",
+        "TestNameStripsWhitespace.test_latex_outer_whitespace_stripped",
+        "TestNameStripsWhitespace.test_unicode_stripped",
+        "TestNameStripsWhitespace.test_ascii_stripped",
+        "TestNameStripsWhitespace.test_internal_brace_space_no_rendering_difference"
+      ]
+    },
+    "immutable_names": {
+      "decision": "All values use immutable named wrappers sharing numeric storage, with no protected-basis/in-place-arithmetic split.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_all_factories_and_arithmetic_values_have_the_same_immutable_naming_contract",
+        "presentation/test_redesign_state_contracts.py::test_archived_names_use_explicit_variants_or_opt_in_latex_conversion"
+      ],
+      "tests": [
+        "TestBasisProtection.test_name_returns_copy_for_basis_vector",
+        "TestBasisProtection.test_basis_vector_unchanged_after_name",
+        "TestBasisProtection.test_named_copy_has_correct_name",
+        "TestBasisProtection.test_named_copy_not_protected",
+        "TestBasisProtection.test_basis_blades_protected",
+        "TestBasisProtection.test_locals_protected",
+        "TestBasisProtection.test_pseudoscalar_protected",
+        "TestBasisProtection.test_blade_lookup_protected",
+        "TestBasisProtection.test_arithmetic_result_not_protected",
+        "TestBasisProtection.test_named_copy_preserves_value",
+        "TestCopyAs.test_returns_new_object",
+        "TestCopyAs.test_original_unchanged",
+        "TestCopyAs.test_copy_is_named",
+        "TestCopyAs.test_latex_kwarg",
+        "TestCopyAs.test_same_data",
+        "TestCopyAs.test_preserves_laziness"
+      ]
+    },
+    "state": {
+      "decision": "Always-eager values; named/unnamed and with_expr/without_expr change independent metadata. Full numeric snapshots remove both.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_explicit_state_transitions_preserve_values_and_change_only_the_selected_outer_state",
+        "presentation/test_redesign_state_contracts.py::test_named_operands_can_track_again_after_without_expr_but_full_snapshots_do_not",
+        "presentation/test_redesign_state_contracts.py::test_v1_state_mutators_and_lazy_flags_are_not_reintroduced"
+      ],
+      "tests": [
+        "TestNameMethod.test_name_makes_lazy",
+        "TestNameMethod.test_name_preserves_value",
+        "TestAnonMethod.test_anon_clears_name",
+        "TestAnonMethod.test_anon_preserves_lazy",
+        "TestAnonMethod.test_anon_on_anonymous_is_noop",
+        "TestLazyEagerMethods.test_lazy_on_eager",
+        "TestLazyEagerMethods.test_eager_on_lazy",
+        "TestLazyEagerMethods.test_eager_with_name",
+        "TestLazyEagerMethods.test_eval_is_eager",
+        "TestLazyEagerMethods.test_chaining_name_eager",
+        "TestLazyEagerMethods.test_idempotence_lazy",
+        "TestLazyEagerMethods.test_idempotence_eager",
+        "TestLazyEagerMethods.test_idempotence_anon",
+        "TestExprOperatorCoverage.test_is_symbolic_lazy_mv",
+        "TestExprOperatorCoverage.test_is_symbolic_eager_mv"
+      ]
+    },
+    "display": {
+      "decision": "Explicit content/target selection returns a string snapshot, not a lazy display object. Auto shows full named values and concrete anonymous values.",
+      "owners": [
+        "rendering/test_redesign_display_contracts.py::test_display_content_is_explicit_and_rendering_is_an_immutable_snapshot",
+        "rendering/test_redesign_display_contracts.py::test_legacy_display_controls_are_replaced_by_explicit_policy_and_python_scalar_formatting"
+      ],
+      "tests": [
+        "TestDisplayRules.test_named_prints_name",
+        "TestDisplayRules.test_named_eager_prints_name",
+        "TestDisplayRules.test_anon_lazy_prints_expr",
+        "TestDisplayRules.test_anon_eager_prints_format",
+        "TestDisplayRules.test_latex_named",
+        "TestDisplayRules.test_latex_anon_eager",
+        "TestAdditionalCoverage.test_format_unicode_named",
+        "TestAdditionalCoverage.test_format_ascii_named",
+        "TestAdditionalCoverage.test_format_unicode_lazy_anon",
+        "TestAdditionalCoverage.test_format_ascii_lazy_anon",
+        "TestAdditionalCoverage.test_str_fallback_to_name",
+        "TestAdditionalCoverage.test_latex_named_no_latex_name",
+        "TestAdditionalCoverage.test_latex_lazy_anon",
+        "TestAdditionalCoverage.test_sym_latex_rendering",
+        "TestDisplay.test_named_lazy_with_expr",
+        "TestDisplay.test_named_eager_no_expr",
+        "TestDisplay.test_anonymous_eager_single_value",
+        "TestDisplay.test_anonymous_lazy_expr_and_value",
+        "TestDisplay.test_no_duplicate_parts",
+        "TestDisplay.test_has_latex_method",
+        "TestDisplay.test_compact_uses_plain_equals",
+        "TestDisplay.test_default_uses_quad",
+        "TestDisplay.test_coeff_format_applies_to_eval_only",
+        "TestDisplay.test_coeff_format_preserves_expression"
+      ]
+    },
+    "reveal": {
+      "decision": "Content selection or immutable unnaming reveals provenance; evaluating is never required to obtain coefficients.",
+      "owners": [
+        "rendering/test_redesign_display_contracts.py::test_reveal_is_content_selection_or_unnaming_not_an_evaluation_step",
+        "presentation/test_redesign_state_contracts.py::test_explicit_state_transitions_preserve_values_and_change_only_the_selected_outer_state"
+      ],
+      "tests": [
+        "TestReveal.test_named_vector_shows_components",
+        "TestReveal.test_does_not_mutate_original",
+        "TestReveal.test_preserves_laziness",
+        "TestReveal.test_eval_forces_eager",
+        "TestReveal.test_eager_named_reveals_components",
+        "TestReveal.test_named_expression_reveals_inner_expr",
+        "TestReveal.test_unnamed_lazy_unchanged",
+        "TestReveal.test_reveal_on_rotor_shows_exp",
+        "TestReveal.test_reveal_same_data",
+        "TestReveal.test_reveal_scalar_stays_lazy",
+        "TestReveal.test_reveal_returns_new_object",
+        "TestReveal.test_reveal_of_reveal"
+      ]
+    },
+    "basis": {
+      "decision": "Factories return unnamed eager values with configurable blade labels; expr=True is optional metadata, not lazy=True.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_all_factories_and_arithmetic_values_have_the_same_immutable_naming_contract",
+        "presentation/test_redesign_state_contracts.py::test_v1_state_mutators_and_lazy_flags_are_not_reintroduced",
+        "rendering/test_redesign_display_contracts.py::test_display_content_is_explicit_and_rendering_is_an_immutable_snapshot",
+        "rendering/test_coverage_latex_contracts.py::TestMultivectorLatex::test_gamma_names"
+      ],
+      "tests": [
+        "TestBasisBlades.test_basis_named_eager",
+        "TestBasisBlades.test_basis_str",
+        "TestBasisBlades.test_basis_anon",
+        "TestBasisBlades.test_basis_rename",
+        "TestBasisBlades.test_pseudoscalar_named",
+        "TestBasisBlades.test_blade_lookup_named",
+        "TestBasisBlades.test_custom_names",
+        "TestBasisVectorsLazy.test_default_is_eager",
+        "TestBasisVectorsLazy.test_lazy_flag",
+        "TestBasisVectorsLazy.test_lazy_ops_build_trees",
+        "TestBasisVectorsLazy.test_lazy_eval_gives_concrete",
+        "TestBasisVectorsLazy.test_lazy_preserves_names"
+      ]
+    },
+    "symbol": {
+      "decision": "Named numeric values or explicit Symbol/Call with bindings replace Sym/sym and grade promises.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_symbolic_shorthand_means_named_values_or_explicit_nodes_not_grade_promises",
+        "presentation/test_redesign_state_contracts.py::test_explicit_state_transitions_preserve_values_and_change_only_the_selected_outer_state",
+        "facade/test_expression_helper_contracts.py::test_explicit_nodes_retain_context_checks_instead_of_a_private_coercion_helper"
+      ],
+      "tests": [
+        "TestSymAlias.test_sym_returns_multivector",
+        "TestSymAlias.test_sym_grade_detection",
+        "TestSymAlias.test_sym_explicit_grade",
+        "TestSymAlias.test_sym_eval",
+        "TestAdditionalCoverage.test_to_expr_anonymous_eager",
+        "TestAdditionalCoverage.test_ensure_expr_lazy_mv_with_expr",
+        "TestAdditionalCoverage.test_ensure_expr_named_eager_mv",
+        "TestExprOperatorCoverage.test_coerce_mv_with_name",
+        "TestSymNoName.test_sym_no_name",
+        "TestSymNoName.test_sym_no_name_chain",
+        "TestCoverageGaps.test_sym_explicit_grade",
+        "TestCoverageGaps.test_coerce_named_mv"
+      ]
+    },
+    "workflows": {
+      "decision": "Each of the ten recipes replays archived coefficients with explicit public state choices. The old rotor recipe is retained as a scaled generator and corrected separately.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_ten_archived_workflows_keep_numeric_results_with_explicit_state_choices",
+        "facade/test_redesign_workflows.py::test_a_scaled_generator_is_not_the_exponentiated_rotor_in_the_old_spec"
+      ],
+      "tests": [
+        "TestSpecUseCases.test_use_case_1_plain_numeric",
+        "TestSpecUseCases.test_use_case_2_named_symbolic_bivector",
+        "TestSpecUseCases.test_use_case_3_reveal_structure",
+        "TestSpecUseCases.test_use_case_4_evaluate_keep_name",
+        "TestSpecUseCases.test_use_case_5_rename",
+        "TestSpecUseCases.test_use_case_6_lazy_unnamed",
+        "TestSpecUseCases.test_use_case_7_rotor_workflow",
+        "TestSpecUseCases.test_use_case_8_basis_basis_blade_rename",
+        "TestSpecUseCases.test_use_case_9_symbolic_shorthand",
+        "TestSpecUseCases.test_use_case_10_evaluate_without_losing_labels"
+      ]
+    },
+    "eager_ops": {
+      "decision": "Operators calculate now, retain tracked operand structure and require explicit replay environments. Existing stronger mixed-grade/Gram cases consolidate duplicates.",
+      "owners": [
+        "facade/test_eager_operation_contracts.py::test_eager_results_and_replay_respect_provenance_and_metric_domains",
+        "expression/test_propagation.py::test_every_catalog_operation_has_declared_expression_behavior",
+        "facade/test_eager_operation_contracts.py::TestRemainingSymbolicGaps::test_expr_or_operator"
+      ],
+      "tests": [
+        "TestLazyPropagation.test_lazy_plus_eager",
+        "TestLazyPropagation.test_eager_plus_eager_stays_eager",
+        "TestLazyPropagation.test_lazy_mul",
+        "TestLazyPropagation.test_scalar_mul_lazy",
+        "TestLazyPropagation.test_names_dont_propagate",
+        "TestLazyPropagation.test_eager_result_concrete",
+        "TestAdditionalCoverage.test_lazy_add_scalar",
+        "TestAdditionalCoverage.test_lazy_sub_scalar",
+        "TestAdditionalCoverage.test_lazy_rsub_scalar",
+        "TestAdditionalCoverage.test_lazy_radd_scalar",
+        "TestAdditionalCoverage.test_lazy_neg",
+        "TestAdditionalCoverage.test_lazy_div",
+        "TestAdditionalCoverage.test_lazy_xor",
+        "TestAdditionalCoverage.test_lazy_or",
+        "TestAdditionalCoverage.test_lazy_invert",
+        "TestAdditionalCoverage.test_lazy_mul_two_lazy",
+        "TestAdditionalCoverage.test_lazy_add_two_lazy",
+        "TestAdditionalCoverage.test_lazy_sub_two_lazy",
+        "TestAdditionalCoverage.test_symbolic_reverse_lazy_mv",
+        "TestAdditionalCoverage.test_symbolic_squared_lazy_mv",
+        "TestLazyBladesFullWorkflow.test_wedge_symbolic",
+        "TestLazyBladesFullWorkflow.test_gp_symbolic",
+        "TestLazyBladesFullWorkflow.test_add_symbolic",
+        "TestSymNoName.test_norm_lazy",
+        "TestCoverageGaps.test_neg_eval",
+        "TestCoverageGaps.test_add_eval",
+        "TestCoverageGaps.test_sub_eval",
+        "TestCoverageGaps.test_scalar_mul_eval"
+      ]
+    },
+    "bare_ops": {
+      "decision": "Numeric values perform operator arithmetic; bare nodes require Call. inv/dag/sq convenience properties are retired in favor of named functions.",
+      "owners": [
+        "facade/test_eager_operation_contracts.py::test_bare_nodes_require_explicit_calls_not_numeric_operator_coercion",
+        "facade/test_eager_operation_contracts.py::TestSymbolicConvenienceProps::test_inv_property",
+        "facade/test_eager_operation_contracts.py::TestSymbolicConvenienceProps::test_dag_property",
+        "facade/test_eager_operation_contracts.py::TestSymbolicConvenienceProps::test_sq_property",
+        "facade/test_eager_operation_contracts.py::test_eager_results_and_replay_respect_provenance_and_metric_domains",
+        "facade/test_division_provenance.py::test_plain_real_division_retains_the_scalar_parameter_contract_and_operator_fallbacks"
+      ],
+      "tests": [
+        "TestExprOperatorCoverage.test_expr_add",
+        "TestExprOperatorCoverage.test_expr_radd",
+        "TestExprOperatorCoverage.test_expr_sub",
+        "TestExprOperatorCoverage.test_expr_rsub",
+        "TestExprOperatorCoverage.test_expr_neg",
+        "TestExprOperatorCoverage.test_expr_mul_scalar",
+        "TestExprOperatorCoverage.test_expr_rmul_scalar",
+        "TestExprOperatorCoverage.test_expr_mul_expr",
+        "TestExprOperatorCoverage.test_expr_xor",
+        "TestExprOperatorCoverage.test_expr_or",
+        "TestExprOperatorCoverage.test_expr_invert",
+        "TestExprOperatorCoverage.test_expr_truediv",
+        "TestExprOperatorCoverage.test_expr_truediv_non_scalar",
+        "TestExprOperatorCoverage.test_expr_inv_property",
+        "TestExprOperatorCoverage.test_expr_dag_property",
+        "TestExprOperatorCoverage.test_expr_sq_property"
+      ]
+    },
+    "functions": {
+      "decision": "Public canonical functions compute all grades with provenance; involute is grade_involution, Lie/Jordan are unscaled, and no separate lazy dispatcher survives.",
+      "owners": [
+        "expression/test_propagation.py::test_every_catalog_operation_has_declared_expression_behavior",
+        "facade/test_numeric_contract.py::TestFacadeNumericContract::test_named_products_obey_their_defining_conventions",
+        "facade/test_numeric_contract.py::TestV2CorrectionLedger::test_bracket_scaling_is_an_explicit_legacy_difference",
+        "facade/test_grade_simplification_contracts.py::test_grade_inspection_uses_computed_values_not_operation_or_symbol_assumptions",
+        "facade/test_eager_operation_contracts.py::test_eager_results_and_replay_respect_provenance_and_metric_domains",
+        "rendering/test_render_numeric_contract.py::test_mixed_grade_compositions_preserve_numeric_scope_and_all_targets"
+      ],
+      "tests": [
+        "TestSymbolicDropInWithLazyMV.test_involute_lazy",
+        "TestSymbolicDropInWithLazyMV.test_conjugate_lazy",
+        "TestSymbolicDropInWithLazyMV.test_dual_lazy",
+        "TestSymbolicDropInWithLazyMV.test_undual_lazy",
+        "TestSymbolicDropInWithLazyMV.test_norm_lazy",
+        "TestSymbolicDropInWithLazyMV.test_unit_lazy",
+        "TestSymbolicDropInWithLazyMV.test_inverse_lazy",
+        "TestSymbolicDropInWithLazyMV.test_left_contraction_lazy",
+        "TestSymbolicDropInWithLazyMV.test_right_contraction_lazy",
+        "TestSymbolicDropInWithLazyMV.test_hestenes_inner_lazy",
+        "TestSymbolicDropInWithLazyMV.test_doran_lasenby_inner_lazy",
+        "TestSymbolicDropInWithLazyMV.test_scalar_product_lazy",
+        "TestSymbolicDropInWithLazyMV.test_commutator_lazy",
+        "TestSymbolicDropInWithLazyMV.test_anticommutator_lazy",
+        "TestSymbolicDropInWithLazyMV.test_lie_bracket_lazy",
+        "TestSymbolicDropInWithLazyMV.test_jordan_product_lazy",
+        "TestSymbolicDropInWithLazyMV.test_even_grades_lazy",
+        "TestSymbolicDropInWithLazyMV.test_odd_grades_lazy",
+        "TestLazyBladesFullWorkflow.test_all_module_functions_lazy",
+        "TestAllBinaryOpsLazy.test_gp_lazy",
+        "TestAllBinaryOpsLazy.test_op_lazy",
+        "TestAllBinaryOpsLazy.test_left_contraction_lazy",
+        "TestAllBinaryOpsLazy.test_right_contraction_lazy",
+        "TestAllBinaryOpsLazy.test_hestenes_inner_lazy",
+        "TestAllBinaryOpsLazy.test_doran_lasenby_inner_lazy",
+        "TestAllBinaryOpsLazy.test_scalar_product_lazy",
+        "TestAllBinaryOpsLazy.test_commutator_lazy",
+        "TestAllBinaryOpsLazy.test_anticommutator_lazy",
+        "TestAllBinaryOpsLazy.test_lie_bracket_lazy",
+        "TestAllBinaryOpsLazy.test_jordan_product_lazy",
+        "TestRegressiveProduct.test_symbolic_rendering",
+        "TestRegressiveProduct.test_symbolic_eval"
+      ]
+    },
+    "inner": {
+      "decision": "Replace mode-based ip with explicit product names; pipe has the fixed Doran-Lasenby meaning.",
+      "owners": [
+        "facade/test_inner_product_contracts.py::test_every_grade_pair_and_mixed_values_match_metric_and_reference_oracles",
+        "facade/test_inner_product_contracts.py::test_named_functions_reject_mode_flags_foreign_algebras_and_bare_expression_operands",
+        "facade/test_inner_product_contracts.py::test_pipe_and_local_alias_have_one_fixed_meaning_even_for_scalar_inputs"
+      ],
+      "tests": [
+        "TestAdditionalCoverage.test_symbolic_ip_lazy_mv",
+        "TestSymbolicDropInWithLazyMV.test_ip_modes_lazy"
+      ]
+    },
+    "sandwich": {
+      "decision": "Sandwich remains reverse multiplication for all grades and scales; sw is an alias, and named operands rebind explicitly.",
+      "owners": [
+        "facade/test_rotor_sandwich_contracts.py::test_sandwich_preserves_all_input_grades_and_uses_reverse_even_when_scaled",
+        "facade/test_rotor_sandwich_contracts.py::test_archived_named_sandwiches_replay_with_explicit_bindings",
+        "facade/test_rotor_sandwich_contracts.py::TestSandwich::test_symbolic_sw_alias"
+      ],
+      "tests": [
+        "TestAdditionalCoverage.test_symbolic_sandwich_lazy_mv",
+        "TestSandwichLazy.test_sandwich_lazy_rotor",
+        "TestSandwichLazy.test_sandwich_lazy_concrete_correct",
+        "TestSandwichLazy.test_sandwich_eager_stays_eager",
+        "TestSandwichLazy.test_sandwich_one_lazy_operand",
+        "TestSandwichLazy.test_sw_alias_lazy"
+      ]
+    },
+    "small": {
+      "decision": "Stored floats remain nonzero below display tolerance. Use zero_tolerance/coefficient_precision, and float conversion for fixed-decimal formatting; names do not provide constants or units.",
+      "owners": [
+        "facade/test_scalar_contracts.py::test_display_threshold_and_subnormal_values_do_not_change_storage_or_equality",
+        "facade/test_scalar_contracts.py::test_public_literals_preserve_scientific_magnitudes_without_legacy_string_padding",
+        "rendering/test_redesign_display_contracts.py::test_legacy_display_controls_are_replaced_by_explicit_policy_and_python_scalar_formatting",
+        "facade/test_division_provenance.py::test_division_preserves_an_unnamed_denominator_expression_and_tiny_numeric_values"
+      ],
+      "tests": [
+        "TestSmallValueDisplay.test_format_spec_shows_small_values",
+        "TestSmallValueDisplay.test_format_spec_shows_small_negative",
+        "TestSmallValueDisplay.test_str_suppresses_small_values",
+        "TestSmallValueDisplay.test_latex_default_suppresses_small",
+        "TestSmallValueDisplay.test_latex_coeff_format_shows_small",
+        "TestSmallValueDisplay.test_latex_coeff_format_electron_mass",
+        "TestSmallValueDisplay.test_latex_coeff_format_planck",
+        "TestSmallValueDisplay.test_latex_coeff_format_compton",
+        "TestSmallValueDisplay.test_format_spec_zero_is_exact_zero",
+        "TestSmallValueDisplay.test_physical_constants_division",
+        "TestSmallValueDisplay.test_physical_constants_format_in_latex"
+      ]
+    },
+    "division": {
+      "decision": "A multivector divisor remains the second divide operand even when scalar; a Python Real remains a fixed scalar_divide parameter. Replay may change the denominator's value or grade.",
+      "owners": [
+        "facade/test_division_provenance.py::test_scalar_multivector_division_preserves_both_operand_expressions",
+        "facade/test_division_provenance.py::test_named_scalar_denominator_remains_a_rebindable_operand",
+        "facade/test_division_provenance.py::test_division_preserves_an_unnamed_denominator_expression_and_tiny_numeric_values",
+        "facade/test_division_provenance.py::test_plain_real_division_retains_the_scalar_parameter_contract_and_operator_fallbacks"
+      ],
+      "tests": [
+        "TestDivExprNode.test_div_preserves_names",
+        "TestDivExprNode.test_div_latex",
+        "TestDivExprNode.test_div_eval_correct",
+        "TestDivExprNode.test_div_product_in_denominator",
+        "TestDivExprNode.test_div_eager_by_eager_stays_eager",
+        "TestDivExprNode.test_div_lazy_by_eager",
+        "TestDivExprNode.test_div_eager_by_lazy",
+        "TestDivExprNode.test_scalar_div_still_works",
+        "TestLazyBladesFullWorkflow.test_scalar_div_symbolic",
+        "TestLazyBladesFullWorkflow.test_division_symbolic",
+        "TestCoverageGaps.test_scalar_div_eval",
+        "TestCoverageGaps.test_div_eval"
+      ]
+    },
+    "exp": {
+      "decision": "Use public exp with an explicit scale and named scalar leaves; a recorded exponential replays without hidden bindings.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_a_scaled_generator_is_not_the_exponentiated_rotor_in_the_old_spec",
+        "expression/test_propagation.py::test_named_scalar_survives_unary_negation_before_a_tracked_rotor_expression",
+        "facade/test_rotor_sandwich_contracts.py::test_metric_and_generator_scale_determine_angle_rapidity_or_null_parameter"
+      ],
+      "tests": [
+        "TestDivExprNode.test_exp_node",
+        "TestDivExprNode.test_exp_eval",
+        "TestLazyBladesFullWorkflow.test_exp_symbolic",
+        "TestLazyBladesFullWorkflow.test_rotor_workflow",
+        "TestLazyBladesFullWorkflow.test_named_scalar_in_expr"
+      ]
+    },
+    "square": {
+      "decision": "Integer power uses a power Call, distinct from squared. Sums and products are grouped as whole operands; v1's ungrouped product square is not retained.",
+      "owners": [
+        "rendering/test_redesign_display_contracts.py::test_squares_group_the_entire_operand_and_preserve_numeric_scope",
+        "rendering/test_redesign_display_contracts.py::test_powers_use_the_shared_integer_power_contract"
+      ],
+      "tests": [
+        "TestSquaredParens.test_squared_single_term_no_parens",
+        "TestSquaredParens.test_squared_add_gets_parens",
+        "TestSquaredParens.test_squared_sub_gets_parens",
+        "TestSquaredParens.test_squared_product_no_parens",
+        "TestSquaredParens.test_squared_latex_add_gets_parens",
+        "TestSquaredParens.test_squared_latex_single_no_parens",
+        "TestPowSquared.test_pow2_lazy_renders_squared",
+        "TestPowSquared.test_pow2_eager",
+        "TestPowSquared.test_pow2_sum",
+        "TestPowSquared.test_pow3_not_squared",
+        "TestPowSquared.test_pow0"
+      ]
+    },
+    "high_dimension": {
+      "decision": "Complete immutable labels replace digit parsing; the default 10D e110 label now resolves. Ambiguity is rejected at convention construction.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_high_dimension_lookup_resolves_complete_labels_without_digit_parsing"
+      ],
+      "tests": [
+        "TestBladeHighDimension.test_blade_works_for_9d",
+        "TestBladeHighDimension.test_blade_errors_for_10d_default_names",
+        "TestBladeHighDimension.test_blade_works_for_10d_custom_names"
+      ]
+    },
+    "simplify": {
+      "decision": "Simplify context-free structure, not facts from a cached binding. Scalars require ScalarLiteral and norm(unit(v)) retains domain checks.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_scalar_simplification_requires_an_explicit_context_free_literal",
+        "facade/test_grade_simplification_contracts.py::TestSimplify::test_norm_unit",
+        "facade/test_grade_simplification_contracts.py::test_simplification_is_valid_under_new_grades_and_metric_bindings"
+      ],
+      "tests": [
+        "TestSimplifyEdgeCases.test_simplify_float",
+        "TestSimplifyEdgeCases.test_simplify_int",
+        "TestSimplifyEdgeCases.test_simplify_norm_unit"
+      ]
+    },
+    "rotor_simplify": {
+      "decision": "Do not replace R reverse(R) with one based on an old binding; new scalar, grade and scale bindings must recompute.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_symbolic_rotor_norm_cannot_be_simplified_using_one_old_binding"
+      ],
+      "tests": [
+        "TestExprOperatorCoverage.test_simplify_rotor_norm"
+      ]
+    },
+    "spacing": {
+      "decision": "Default plain-text geometric products juxtapose names; no identifier-length parser remains. Set an explicit infix rule for a visible separator.",
+      "owners": [
+        "rendering/test_redesign_display_contracts.py::test_product_spacing_is_not_an_identifier_parser"
+      ],
+      "tests": [
+        "TestGpSpacing.test_single_char_no_space",
+        "TestGpSpacing.test_multi_char_has_space",
+        "TestGpSpacing.test_mixed_has_space",
+        "TestGpSpacing.test_subscript_counts_as_single",
+        "TestGpSpacing.test_combining_char_counts_as_single"
+      ]
+    },
+    "blade_names": {
+      "decision": "Replace mutable BasisBlade setters/get_basis_blade with complete immutable BladeConvention/BladeLabel views or explicit presentation scopes.",
+      "owners": [
+        "presentation/test_redesign_state_contracts.py::test_blade_renaming_uses_immutable_views_or_explicit_scopes_and_preserves_exterior_values"
+      ],
+      "tests": [
+        "TestBasisBladeRename.test_get_basis_blade_by_mv",
+        "TestBasisBladeRename.test_get_basis_blade_by_index",
+        "TestBasisBladeRename.test_rename_affects_rendering",
+        "TestBasisBladeRename.test_rename_pseudoscalar",
+        "TestBasisBladeRename.test_rename_basis_vector",
+        "TestBasisBladeRename.test_get_non_blade_raises",
+        "TestBasisBladeRename.test_rename_chaining",
+        "TestBasisBladeRename.test_rename_updates_existing_mv",
+        "TestCoverageGaps.test_get_basis_blade_bad_type",
+        "TestCoverageGaps.test_basis_blade_setters"
+      ]
+    },
+    "grade": {
+      "decision": "Separate explicit projections from inspection of computed support; no grade promises on Symbol.",
+      "owners": [
+        "facade/test_grade_simplification_contracts.py::TestSymbolicGradeEvenOdd::test_sym_grade_even",
+        "facade/test_grade_simplification_contracts.py::TestSymbolicGradeEvenOdd::test_sym_grade_odd",
+        "facade/test_grade_simplification_contracts.py::test_grade_inspection_uses_computed_values_not_operation_or_symbol_assumptions",
+        "facade/test_redesign_workflows.py::test_symbolic_shorthand_means_named_values_or_explicit_nodes_not_grade_promises"
+      ],
+      "tests": [
+        "TestAdditionalCoverage.test_symbolic_grade_lazy_mv",
+        "TestCoverageGaps.test_grade_lazy_even_odd"
+      ]
+    },
+    "helpers": {
+      "decision": "Public immutable node equality, parameters, simplify and rebound value inspection replace private _eq/_known_grade helpers.",
+      "owners": [
+        "facade/test_redesign_workflows.py::test_private_node_helpers_are_replaced_by_structure_and_rebound_numeric_inspection",
+        "facade/test_expression_helper_contracts.py::test_numeric_equality_and_identical_rendering_do_not_imply_equal_histories"
+      ],
+      "tests": [
+        "TestExprOperatorCoverage.test_eq_neg",
+        "TestExprOperatorCoverage.test_eq_grade",
+        "TestCoverageGaps.test_eq_scalar_div",
+        "TestCoverageGaps.test_eq_fallback_false",
+        "TestCoverageGaps.test_known_grade_scalar_div",
+        "TestCoverageGaps.test_simplify_scalar_div"
+      ]
+    },
+    "wrap": {
+      "decision": "Render nodes explicitly; numeric wrappers expose explicit content and LaTeX wrapping without mutation.",
+      "owners": [
+        "rendering/test_coverage_latex_contracts.py::test_wrapping_and_rich_hooks_preserve_selected_content_and_scoped_notation",
+        "facade/test_eager_operation_contracts.py::TestRemainingSymbolicGaps::test_expr_repr_delegates_to_str",
+        "facade/test_eager_operation_contracts.py::TestRemainingSymbolicGaps::test_sym_repr"
+      ],
+      "tests": [
+        "TestExprOperatorCoverage.test_expr_latex_wrap_dollar",
+        "TestExprOperatorCoverage.test_expr_latex_wrap_display",
+        "TestExprOperatorCoverage.test_expr_repr_latex",
+        "TestExprOperatorCoverage.test_sym_repr_ascii"
+      ]
+    },
+    "scalar_context": {
+      "decision": "ScalarLiteral has no implicit algebra; evaluate requires an explicit context.",
+      "owners": [
+        "facade/test_eager_operation_contracts.py::TestScalarExpr::test_scalar_eval_raises",
+        "facade/test_redesign_workflows.py::test_scalar_simplification_requires_an_explicit_context_free_literal"
+      ],
+      "tests": [
+        "TestExprOperatorCoverage.test_scalar_eval_raises"
+      ]
+    }
+  }
+}

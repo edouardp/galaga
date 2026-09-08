@@ -15,7 +15,8 @@ The recommended reading order is:
    variadic products, checked scalar conversion, tiny-value display tolerance,
    literal versus named fractions, mixed-input snapshots versus symbol
    rebinding, diagnostic nodes versus mathematical rendering, and numeric,
-   structural and rendered equality with exact floating-point key semantics.
+   structural and rendered equality with exact floating-point key semantics,
+   rebindable denominator products and finite subnormal division.
 3. [Presentation contexts](presentation_contexts.py) — content selection,
    immutable presentation views, scoped changes, explicit render overrides,
    numeric display policy, and rendered-string snapshots versus new scoped

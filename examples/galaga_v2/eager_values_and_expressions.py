@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.14"
+__generated_with = "0.24.0"
 app = marimo.App()
 
 
@@ -158,8 +158,8 @@ def _(mo):
 
     - `.named(...)` returns a new wrapper with a semantic `Name`.
     - `.unnamed()` removes only that name.
-    - `.with_expr()` attaches an inferred literal expression when provenance
-      was not requested at construction.
+    - `.with_expr()` uses the name as a symbol when named; otherwise it keeps
+      existing provenance or attaches a literal snapshot.
     - `.without_expr()` removes only provenance.
 
     A named value becomes a symbolic leaf when it participates in a tracked
@@ -346,14 +346,67 @@ def _(Algebra, DisplayPolicy, gm):
     uses `\times`; `coefficient_precision` sets significant digits, not
     fixed-decimal padding.
     """)
-    return (
-        small_default_latex,
-        small_scalar,
-        small_visible_latex,
-        third_literal,
-        third_named,
-        third_replayed,
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## The denominator is part of the explanation
+
+    Dividing by a multivector records **both operands**, even if the current
+    denominator happens to be scalar. Replay can change its value without
+    changing the already-computed quotient. In contrast, `a / 3` records the
+    Python number `3` as a fixed scalar parameter.
+
+    The rounded inputs below illustrate `hbar / (mass * speed)`; they are
+    supplied values, not a physical-constants database or a units system.
+    Doubling the mass should halve the quotient. Inspect the fraction before
+    reading the numeric check.
+    """)
+    return
+
+
+@app.cell
+def _(algebra, gm):
+    import numpy as _np
+
+    from galaga import Name as _Name
+    from galaga import evaluate as _evaluate
+
+    quotient_hbar = algebra.scalar(1.055e-34).named(_Name("hbar", "ℏ", r"\hbar"))
+    quotient_mass = algebra.scalar(9.109e-31).named(_Name("mass", latex=r"m_e"))
+    quotient_speed = algebra.scalar(3e8).named("c")
+    physical_quotient = quotient_hbar / (quotient_mass * quotient_speed)
+    quotient_rebound = _evaluate(
+        physical_quotient.expr,
+        algebra=algebra,
+        environment={"hbar": quotient_hbar, "mass": 2 * quotient_mass, "c": quotient_speed},
     )
+    _fraction = physical_quotient.display("expr/latex")
+    _tiny = float(_np.nextafter(0.0, 1.0))
+    subnormal_quotient = _tiny / algebra.scalar(_tiny, expr=True)
+    assert subnormal_quotient == 1
+
+    gm.md(rt"""
+    The denominator's product remains visible:
+
+    $$
+    {_fraction!s}.
+    $$
+
+    Original quotient: `{float(physical_quotient):.6e}`.
+    Replayed with twice the mass: `{float(quotient_rebound):.6e}`.
+    The original value has not changed.
+
+    Floating-point arithmetic needs care even when the answer is simple.
+    The smallest positive stored float divided by itself is
+    `{float(subnormal_quotient):g}`. Direct scalar division avoids first
+    forming its unrepresentably large reciprocal. A tiny **nonzero vector
+    component** in a divisor must also be retained: a tolerant scalar
+    predicate is not permission to discard stored grades.
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -382,6 +435,7 @@ def _(algebra, geometric_product, gm):
     literal_history = geometric_product(_plane, history_source.with_expr())
     named_history = geometric_product(_plane, history_source.named("a"))
     literal_replay = _evaluate(literal_history.expr, algebra=algebra)
+    assert literal_replay == literal_history
     named_replay = _evaluate(named_history.expr, algebra=algebra, environment={"a": history_replacement})
     _literal_expression = literal_history.display("expr/latex")
     _named_expression = named_history.display("expr/latex")
@@ -416,7 +470,7 @@ def _(algebra, geometric_product, gm):
     `literal_replay` still equals the original value. `named_history` also
     keeps its original coefficients; replay returns a new value.
     """)
-    return history_replacement, history_source, literal_history, literal_replay, named_history, named_replay
+    return (history_replacement,)
 
 
 @app.cell(hide_code=True)
@@ -452,6 +506,7 @@ def _(algebra, gm, history_replacement):
     reflected_node = _Call("subtract", (scalar_node, _Symbol("a")))
     reflected_replay = _evaluate(reflected_node, algebra=algebra, environment={"a": history_replacement})
     scalar_node_value = _evaluate(scalar_node, algebra=algebra)
+    assert scalar_node_value == 3
     _diagnostic = repr(reflected_node)
     _math = _render(reflected_node, presentation=algebra.presentation, target="latex")
 
@@ -467,7 +522,7 @@ def _(algebra, gm, history_replacement):
 
     {reflected_replay}
     """)
-    return reflected_node, reflected_replay, scalar_node, scalar_node_value
+    return
 
 
 @app.cell(hide_code=True)
@@ -542,18 +597,7 @@ def _(algebra, gm):
     `{signed_zero_lookup!s}`. These rules concern stored numbers, not display
     rounding or a chosen tolerance.
     """)
-    return (
-        adjacent_literals,
-        adjacent_literals_equal,
-        identity_histories_equal,
-        identity_left,
-        identity_rebound,
-        identity_renderings_equal,
-        identity_right,
-        identity_values_equal,
-        signed_zero_literals,
-        signed_zero_lookup,
-    )
+    return
 
 
 if __name__ == "__main__":

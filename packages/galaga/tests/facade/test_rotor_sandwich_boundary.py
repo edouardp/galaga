@@ -52,7 +52,7 @@ def test_twenty_historical_identities_have_full_evidence_and_public_owners():
     assert len(tree.body) == 1 and isinstance(tree.body[0], ast.Expr)
     assert ast.get_docstring(tree)
     assert not {PUBLIC_FILE, "test_coverage.py"} & set(LEGACY_ORACLE_TESTS)
-    assert "test_redesign.py" in LEGACY_ORACLE_TESTS
+    assert not LEGACY_ORACLE_TESTS
 
 
 def test_complete_archive_keeps_old_errors_aliases_and_false_positive():

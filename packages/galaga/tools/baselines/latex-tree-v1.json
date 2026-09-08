@@ -1,0 +1,420 @@
+{
+  "schema_version": 1,
+  "source_commit": "0499fa49800950503467cac60eb9d199231458c0",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "source_path": "packages/galaga/tests/test_latex_tree.py",
+  "source": "\"\"\"Tests for the LaTeX intermediate render tree.\"\"\"\n\nfrom galaga.latex_emit import emit\nfrom galaga.latex_nodes import Command, Frac, Parens, Seq, Sup, Text\nfrom galaga.latex_rewrite import rewrite\n\n# ── emit: Text ──\n\n\nclass TestEmitText:\n    def test_plain(self):\n        \"\"\"Text node emits its content.\"\"\"\n        assert emit(Text(\"x\")) == \"x\"\n\n    def test_latex_command(self):\n        \"\"\"Text node preserves LaTeX commands.\"\"\"\n        assert emit(Text(r\"\\alpha\")) == r\"\\alpha\"\n\n    def test_empty(self):\n        \"\"\"Empty Text emits empty string.\"\"\"\n        assert emit(Text(\"\")) == \"\"\n\n\n# ── emit: Seq ──\n\n\nclass TestEmitSeq:\n    def test_two_children(self):\n        \"\"\"Seq concatenates children.\"\"\"\n        assert emit(Seq([Text(\"a\"), Text(\"b\")])) == \"ab\"\n\n    def test_separator(self):\n        \"\"\"Seq uses separator between children.\"\"\"\n        assert emit(Seq([Text(\"a\"), Text(\"b\")], sep=\" + \")) == \"a + b\"\n\n    def test_three_children(self):\n        \"\"\"Seq handles three children with separator.\"\"\"\n        assert emit(Seq([Text(\"a\"), Text(\"b\"), Text(\"c\")], sep=\", \")) == \"a, b, c\"\n\n    def test_single_child(self):\n        \"\"\"Seq with one child emits just that child.\"\"\"\n        assert emit(Seq([Text(\"x\")])) == \"x\"\n\n    def test_empty(self):\n        \"\"\"Empty Text emits empty string.\"\"\"\n        assert emit(Seq([])) == \"\"\n\n    def test_nested(self):\n        \"\"\"Nested Seq nodes compose correctly.\"\"\"\n        inner = Seq([Text(\"x\"), Text(\"y\")], sep=\" \")\n        assert emit(Seq([inner, Text(\"z\")], sep=\"+\")) == \"x y+z\"\n\n\n# ── emit: Frac ──\n\n\nclass TestEmitFrac:\n    def test_simple(self):\n        \"\"\"Frac emits \\frac{num}{den}.\"\"\"\n        assert emit(Frac(Text(\"a\"), Text(\"b\"))) == r\"\\frac{a}{b}\"\n\n    def test_small(self):\n        \"\"\"Small frac emits \\tfrac.\"\"\"\n        assert emit(Frac(Text(\"a\"), Text(\"b\"), small=True)) == r\"\\tfrac{a}{b}\"\n\n    def test_nested_num(self):\n        \"\"\"Frac with compound numerator.\"\"\"\n        inner = Seq([Text(\"x\"), Text(\"+\"), Text(\"y\")])\n        assert emit(Frac(inner, Text(\"2\"))) == r\"\\frac{x+y}{2}\"\n\n\n# ── emit: Sup ──\n\n\nclass TestEmitSup:\n    def test_simple(self):\n        \"\"\"Frac emits \\frac{num}{den}.\"\"\"\n        assert emit(Sup(Text(\"e\"), Text(\"x\"))) == \"e^{x}\"\n\n    def test_complex_base(self):\n        \"\"\"Sup with parenthesized base.\"\"\"\n        base = Parens(Text(\"a+b\"))\n        assert emit(Sup(base, Text(\"2\"))) == r\"\\left(a+b\\right)^{2}\"\n\n    def test_complex_exp(self):\n        \"\"\"Sup with compound exponent.\"\"\"\n        exp = Seq([Text(\"-\"), Text(r\"\\theta\")])\n        assert emit(Sup(Text(\"e\"), exp)) == r\"e^{-\\theta}\"\n\n    def test_sup_on_sup_braces(self):\n        \"\"\"Sup(Sup(e, x), dagger) → {e^{x}}^{dagger}\"\"\"\n        inner = Sup(Text(\"e\"), Text(\"x\"))\n        outer = Sup(inner, Text(r\"\\dagger\"))\n        assert emit(outer) == r\"{e^{x}}^{\\dagger}\"\n\n    def test_sup_on_non_sup_no_braces(self):\n        \"\"\"Sup(Text, symbol) — no extra braces.\"\"\"\n        assert emit(Sup(Text(\"a\"), Text(\"2\"))) == \"a^{2}\"\n\n\n# ── emit: Parens ──\n\n\nclass TestEmitParens:\n    def test_simple(self):\n        \"\"\"Frac emits \\frac{num}{den}.\"\"\"\n        assert emit(Parens(Text(\"x\"))) == r\"\\left(x\\right)\"\n\n    def test_nested(self):\n        \"\"\"Nested Seq nodes compose correctly.\"\"\"\n        inner = Parens(Text(\"a\"))\n        assert emit(Parens(inner)) == r\"\\left(\\left(a\\right)\\right)\"\n\n\n# ── emit: Command ──\n\n\nclass TestEmitCommand:\n    def test_tilde(self):\n        \"\"\"Command emits \\tilde{x}.\"\"\"\n        assert emit(Command(r\"\\tilde\", Text(\"x\"))) == r\"\\tilde{x}\"\n\n    def test_widetilde(self):\n        r\"\"\"Command emits \\widetilde{...}.\"\"\"\n        assert emit(Command(r\"\\widetilde\", Text(\"a+b\"))) == r\"\\widetilde{a+b}\"\n\n    def test_hat(self):\n        r\"\"\"Command emits \\hat{v}.\"\"\"\n        assert emit(Command(r\"\\hat\", Text(\"v\"))) == r\"\\hat{v}\"\n\n    def test_operatorname(self):\n        r\"\"\"Command emits \\operatorname{...}.\"\"\"\n        assert emit(Command(r\"\\operatorname\", Text(\"rev\"))) == r\"\\operatorname{rev}\"\n\n\n# ── emit: deep nesting ──\n\n\nclass TestEmitDeepNesting:\n    def test_frac_in_sup(self):\n        \"\"\"Before rewrite: frac inside sup.\"\"\"\n        f = Frac(Text(r\"\\theta\"), Text(\"2\"))\n        s = Sup(Text(\"e\"), f)\n        assert emit(s) == r\"e^{\\frac{\\theta}{2}}\"\n\n    def test_command_around_frac(self):\n        \"\"\"Command wrapping a Frac.\"\"\"\n        f = Frac(Text(\"a\"), Text(\"b\"))\n        c = Command(r\"\\widetilde\", f)\n        assert emit(c) == r\"\\widetilde{\\frac{a}{b}}\"\n\n\n# ── rewrite: frac→tfrac in superscripts ──\n\n\nclass TestRewriteFracInSup:\n    def test_frac_becomes_slash_in_sup(self):\n        \"\"\"Rewrite converts frac to slash in superscripts.\"\"\"\n        f = Frac(Text(r\"\\theta\"), Text(\"2\"))\n        s = Sup(Text(\"e\"), f)\n        result = rewrite(s)\n        assert emit(result) == r\"e^{\\theta/2}\"\n\n    def test_frac_outside_sup_unchanged(self):\n        \"\"\"Frac outside Sup is not rewritten.\"\"\"\n        f = Frac(Text(\"a\"), Text(\"b\"))\n        result = rewrite(f)\n        assert emit(result) == r\"\\frac{a}{b}\"\n\n    def test_nested_frac_in_sup(self):\n        \"\"\"Frac inside a Seq inside a Sup — wraps slash to avoid ambiguity.\"\"\"\n        f = Frac(Text(r\"-\\theta\"), Text(\"2\"))\n        body = Seq([f, Text(\" B\")])\n        s = Sup(Text(\"e\"), body)\n        result = rewrite(s)\n        assert emit(result) == r\"e^{\\left(-\\theta/2\\right) B}\"\n\n    def test_frac_in_sup_in_frac_outer_unchanged(self):\n        \"\"\"Outer frac stays full-size, inner frac in sup becomes slash.\"\"\"\n        inner_frac = Frac(Text(\"a\"), Text(\"2\"))\n        sup = Sup(Text(\"e\"), inner_frac)\n        outer_frac = Frac(sup, Text(\"b\"))\n        result = rewrite(outer_frac)\n        assert emit(result) == r\"\\frac{e^{a/2}}{b}\"\n\n    def test_already_small_in_sup_becomes_slash(self):\n        \"\"\"Small frac in sup also becomes slash.\"\"\"\n        f = Frac(Text(\"a\"), Text(\"b\"), small=True)\n        s = Sup(Text(\"e\"), f)\n        result = rewrite(s)\n        assert emit(result) == r\"e^{a/b}\"\n\n    def test_deeply_nested_sup(self):\n        \"\"\"Frac inside Parens inside Sup.\"\"\"\n        f = Frac(Text(\"x\"), Text(\"y\"))\n        p = Parens(f)\n        s = Sup(Text(\"e\"), p)\n        result = rewrite(s)\n        assert emit(result) == r\"e^{\\left(x/y\\right)}\"\n\n    def test_no_sup_no_change(self):\n        \"\"\"Complex tree with no Sup — nothing changes.\"\"\"\n        tree = Seq(\n            [\n                Frac(Text(\"a\"), Text(\"b\")),\n                Text(\" + \"),\n                Command(r\"\\tilde\", Text(\"x\")),\n            ]\n        )\n        result = rewrite(tree)\n        assert emit(result) == r\"\\frac{a}{b} + \\tilde{x}\"\n\n\n# ── rewrite: collapse nested Parens ──\n\n\nclass TestRewriteNestedParens:\n    def test_double_parens(self):\n        \"\"\"Nested Parens collapse to single.\"\"\"\n        tree = Parens(Parens(Text(\"a\")))\n        assert emit(rewrite(tree)) == r\"\\left(a\\right)\"\n\n    def test_triple_parens(self):\n        \"\"\"Triple-nested Parens collapse to single.\"\"\"\n        tree = Parens(Parens(Parens(Text(\"x\"))))\n        assert emit(rewrite(tree)) == r\"\\left(x\\right)\"\n\n    def test_parens_around_non_parens_unchanged(self):\n        \"\"\"Single Parens is not collapsed.\"\"\"\n        tree = Parens(Text(\"a+b\"))\n        assert emit(rewrite(tree)) == r\"\\left(a+b\\right)\"\n\n    def test_parens_in_seq_collapsed(self):\n        \"\"\"Nested Parens inside Seq collapse.\"\"\"\n        tree = Seq([Parens(Parens(Text(\"a\"))), Text(\"+\"), Text(\"b\")])\n        assert emit(rewrite(tree)) == r\"\\left(a\\right)+b\"\n\n\n# ── rewrite: hoist negation out of fractions ──\n\n\nclass TestRewriteHoistNeg:\n    def test_neg_num_hoisted(self):\n        \"\"\"\\\\frac{-a}{b} → -\\\\frac{a}{b}\"\"\"\n        tree = Frac(Seq([Text(\"-\"), Text(\"a\")]), Text(\"b\"))\n        result = rewrite(tree)\n        assert emit(result) == r\"-\\frac{a}{b}\"\n\n    def test_neg_text_hoisted(self):\n        \"\"\"\\\\frac{-a}{2} where num is Text('-a') — no hoist (can't split Text).\"\"\"\n        tree = Frac(Text(\"-a\"), Text(\"2\"))\n        # Text node starting with - is not a structured negation, no hoist\n        assert emit(rewrite(tree)) == r\"\\frac{-a}{2}\"\n\n    def test_no_neg_unchanged(self):\n        \"\"\"Frac without negation is unchanged.\"\"\"\n        tree = Frac(Text(\"a\"), Text(\"b\"))\n        assert emit(rewrite(tree)) == r\"\\frac{a}{b}\"\n\n    def test_neg_in_sup_frac_hoisted_before_slash(self):\n        \"\"\"In superscript: frac becomes slash, neg hoists: -(a/b)? No — should be -a/b.\"\"\"\n        tree = Sup(Text(\"e\"), Frac(Seq([Text(\"-\"), Text(\"a\")]), Text(\"2\")))\n        assert emit(rewrite(tree)) == r\"e^{-a/2}\"\n\n\n# ── rewrite: simplify frac with 1 ──\n\n\nclass TestRewriteFracOne:\n    def test_frac_over_1(self):\n        \"\"\"\\\\frac{a}{1} → a\"\"\"\n        tree = Frac(Text(\"a\"), Text(\"1\"))\n        assert emit(rewrite(tree)) == \"a\"\n\n    def test_frac_complex_over_1(self):\n        \"\"\"Compound numerator over 1 simplifies.\"\"\"\n        tree = Frac(Seq([Text(\"a\"), Text(\"+\"), Text(\"b\")]), Text(\"1\"))\n        assert emit(rewrite(tree)) == \"a+b\"\n\n    def test_frac_over_1_in_sup(self):\n        \"\"\"In superscript, frac/1 simplifies before slash conversion.\"\"\"\n        tree = Sup(Text(\"e\"), Frac(Text(\"x\"), Text(\"1\")))\n        assert emit(rewrite(tree)) == \"e^{x}\"\n\n    def test_frac_normal_denom_unchanged(self):\n        \"\"\"Frac with non-1 denominator is unchanged.\"\"\"\n        tree = Frac(Text(\"a\"), Text(\"2\"))\n        assert emit(rewrite(tree)) == r\"\\frac{a}{2}\"\n\n\n# ── rewrite: idempotent ──\n\n\nclass TestRewriteIdempotent:\n    def test_double_rewrite(self):\n        \"\"\"Rewrite is idempotent.\"\"\"\n        f = Frac(Text(r\"\\theta\"), Text(\"2\"))\n        s = Sup(Text(\"e\"), f)\n        r1 = rewrite(s)\n        r2 = rewrite(r1)\n        assert emit(r1) == emit(r2)\n",
+  "sha256": "34d40e0869e956a18c7ffb4d423a5cb724b02a4d077002c3f3323696ed6877ff",
+  "tests": [
+    {
+      "id": "TestEmitText.test_plain",
+      "emissions": [
+        {
+          "tree": "Text(text='x')",
+          "latex": "x"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitText.test_latex_command",
+      "emissions": [
+        {
+          "tree": "Text(text='\\\\alpha')",
+          "latex": "\\alpha"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitText.test_empty",
+      "emissions": [
+        {
+          "tree": "Text(text='')",
+          "latex": ""
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_two_children",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='a'), Text(text='b')], sep='')",
+          "latex": "ab"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_separator",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='a'), Text(text='b')], sep=' + ')",
+          "latex": "a + b"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_three_children",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='a'), Text(text='b'), Text(text='c')], sep=', ')",
+          "latex": "a, b, c"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_single_child",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='x')], sep='')",
+          "latex": "x"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_empty",
+      "emissions": [
+        {
+          "tree": "Seq(children=[], sep='')",
+          "latex": ""
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSeq.test_nested",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Seq(children=[Text(text='x'), Text(text='y')], sep=' '), Text(text='z')], sep='+')",
+          "latex": "x y+z"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitFrac.test_simple",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='a'), den=Text(text='b'), small=False)",
+          "latex": "\\frac{a}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitFrac.test_small",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='a'), den=Text(text='b'), small=True)",
+          "latex": "\\tfrac{a}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitFrac.test_nested_num",
+      "emissions": [
+        {
+          "tree": "Frac(num=Seq(children=[Text(text='x'), Text(text='+'), Text(text='y')], sep=''), den=Text(text='2'), small=False)",
+          "latex": "\\frac{x+y}{2}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSup.test_simple",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Text(text='x'))",
+          "latex": "e^{x}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSup.test_complex_base",
+      "emissions": [
+        {
+          "tree": "Sup(base=Parens(child=Text(text='a+b')), exp=Text(text='2'))",
+          "latex": "\\left(a+b\\right)^{2}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSup.test_complex_exp",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Seq(children=[Text(text='-'), Text(text='\\\\theta')], sep=''))",
+          "latex": "e^{-\\theta}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSup.test_sup_on_sup_braces",
+      "emissions": [
+        {
+          "tree": "Sup(base=Sup(base=Text(text='e'), exp=Text(text='x')), exp=Text(text='\\\\dagger'))",
+          "latex": "{e^{x}}^{\\dagger}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitSup.test_sup_on_non_sup_no_braces",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='a'), exp=Text(text='2'))",
+          "latex": "a^{2}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitParens.test_simple",
+      "emissions": [
+        {
+          "tree": "Parens(child=Text(text='x'))",
+          "latex": "\\left(x\\right)"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitParens.test_nested",
+      "emissions": [
+        {
+          "tree": "Parens(child=Parens(child=Text(text='a')))",
+          "latex": "\\left(\\left(a\\right)\\right)"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitCommand.test_tilde",
+      "emissions": [
+        {
+          "tree": "Command(cmd='\\\\tilde', child=Text(text='x'))",
+          "latex": "\\tilde{x}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitCommand.test_widetilde",
+      "emissions": [
+        {
+          "tree": "Command(cmd='\\\\widetilde', child=Text(text='a+b'))",
+          "latex": "\\widetilde{a+b}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitCommand.test_hat",
+      "emissions": [
+        {
+          "tree": "Command(cmd='\\\\hat', child=Text(text='v'))",
+          "latex": "\\hat{v}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitCommand.test_operatorname",
+      "emissions": [
+        {
+          "tree": "Command(cmd='\\\\operatorname', child=Text(text='rev'))",
+          "latex": "\\operatorname{rev}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitDeepNesting.test_frac_in_sup",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Frac(num=Text(text='\\\\theta'), den=Text(text='2'), small=False))",
+          "latex": "e^{\\frac{\\theta}{2}}"
+        }
+      ]
+    },
+    {
+      "id": "TestEmitDeepNesting.test_command_around_frac",
+      "emissions": [
+        {
+          "tree": "Command(cmd='\\\\widetilde', child=Frac(num=Text(text='a'), den=Text(text='b'), small=False))",
+          "latex": "\\widetilde{\\frac{a}{b}}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_frac_becomes_slash_in_sup",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=SlashFrac(num=Text(text='\\\\theta'), den=Text(text='2')))",
+          "latex": "e^{\\theta/2}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_frac_outside_sup_unchanged",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='a'), den=Text(text='b'), small=False)",
+          "latex": "\\frac{a}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_nested_frac_in_sup",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Seq(children=[Parens(child=SlashFrac(num=Text(text='-\\\\theta'), den=Text(text='2'))), Text(text=' B')], sep=''))",
+          "latex": "e^{\\left(-\\theta/2\\right) B}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_frac_in_sup_in_frac_outer_unchanged",
+      "emissions": [
+        {
+          "tree": "Frac(num=Sup(base=Text(text='e'), exp=SlashFrac(num=Text(text='a'), den=Text(text='2'))), den=Text(text='b'), small=False)",
+          "latex": "\\frac{e^{a/2}}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_already_small_in_sup_becomes_slash",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=SlashFrac(num=Text(text='a'), den=Text(text='b')))",
+          "latex": "e^{a/b}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_deeply_nested_sup",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Parens(child=SlashFrac(num=Text(text='x'), den=Text(text='y'))))",
+          "latex": "e^{\\left(x/y\\right)}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracInSup.test_no_sup_no_change",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Frac(num=Text(text='a'), den=Text(text='b'), small=False), Text(text=' + '), Command(cmd='\\\\tilde', child=Text(text='x'))], sep='')",
+          "latex": "\\frac{a}{b} + \\tilde{x}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteNestedParens.test_double_parens",
+      "emissions": [
+        {
+          "tree": "Parens(child=Text(text='a'))",
+          "latex": "\\left(a\\right)"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteNestedParens.test_triple_parens",
+      "emissions": [
+        {
+          "tree": "Parens(child=Text(text='x'))",
+          "latex": "\\left(x\\right)"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteNestedParens.test_parens_around_non_parens_unchanged",
+      "emissions": [
+        {
+          "tree": "Parens(child=Text(text='a+b'))",
+          "latex": "\\left(a+b\\right)"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteNestedParens.test_parens_in_seq_collapsed",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Parens(child=Text(text='a')), Text(text='+'), Text(text='b')], sep='')",
+          "latex": "\\left(a\\right)+b"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteHoistNeg.test_neg_num_hoisted",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='-'), Frac(num=Text(text='a'), den=Text(text='b'), small=False)], sep='')",
+          "latex": "-\\frac{a}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteHoistNeg.test_neg_text_hoisted",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='-a'), den=Text(text='2'), small=False)",
+          "latex": "\\frac{-a}{2}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteHoistNeg.test_no_neg_unchanged",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='a'), den=Text(text='b'), small=False)",
+          "latex": "\\frac{a}{b}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteHoistNeg.test_neg_in_sup_frac_hoisted_before_slash",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Seq(children=[Text(text='-'), SlashFrac(num=Text(text='a'), den=Text(text='2'))], sep=''))",
+          "latex": "e^{-a/2}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracOne.test_frac_over_1",
+      "emissions": [
+        {
+          "tree": "Text(text='a')",
+          "latex": "a"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracOne.test_frac_complex_over_1",
+      "emissions": [
+        {
+          "tree": "Seq(children=[Text(text='a'), Text(text='+'), Text(text='b')], sep='')",
+          "latex": "a+b"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracOne.test_frac_over_1_in_sup",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=Text(text='x'))",
+          "latex": "e^{x}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteFracOne.test_frac_normal_denom_unchanged",
+      "emissions": [
+        {
+          "tree": "Frac(num=Text(text='a'), den=Text(text='2'), small=False)",
+          "latex": "\\frac{a}{2}"
+        }
+      ]
+    },
+    {
+      "id": "TestRewriteIdempotent.test_double_rewrite",
+      "emissions": [
+        {
+          "tree": "Sup(base=Text(text='e'), exp=SlashFrac(num=Text(text='\\\\theta'), den=Text(text='2')))",
+          "latex": "e^{\\theta/2}"
+        },
+        {
+          "tree": "Sup(base=Text(text='e'), exp=SlashFrac(num=Text(text='\\\\theta'), den=Text(text='2')))",
+          "latex": "e^{\\theta/2}"
+        }
+      ]
+    }
+  ]
+}
