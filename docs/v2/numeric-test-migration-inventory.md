@@ -1546,3 +1546,44 @@ No production package behavior changes. Both mixed suites remain in the
 construction ledger. The remaining display/naming/rotor tests, namespace
 guards, engine deletion and release gates are still pending. See
 [ADR-115](../adrs/115-public-expression-identity-and-helper-contracts.md).
+
+### Phase 9 follow-through: public mixed-coverage LaTeX contracts
+
+All 43 remaining rendering identities in `test_coverage.py` now live in
+`rendering/test_coverage_latex_contracts.py`. The other 29 methods and
+unrelated code are unchanged. The archive `tools/baselines/coverage-latex-v1.json`
+retains complete source/digest, all 72 source identities, selected ownership
+and 55 actual rendering calls with coefficients, bindings, signatures,
+names, nodes, wrapping and old LaTeX.
+
+Each public historical rendering retains exact spelling and numeric replay.
+Permissive vector/custom-label assertions are now exact. Current wide accents,
+overlines and floor contractions remain accepted v2 policy, not new defaults.
+Naming without provenance, explicit symbol leaves, content selection, wrapper
+validation and rich hooks are checked separately.
+
+Twenty compositions cover all three targets in Euclidean, oblique-indefinite
+and degenerate metrics. Reference product/grade/minor oracles check nonzero
+contractions, accents, products, inverses, parity and grouping. Degenerate
+dual/undual domain failures remain explicit. Mutation controls reject
+corrupted archives, missing rendering calls, reversed products, stale replay
+and rich hooks that ignore content.
+
+The presentation notebook shows its Gram matrix through `MatrixRepr` and
+teaches the shared normalization/involution hat alongside computed values and
+opposite nonzero contraction directions. A runtime regression verifies both
+mathematics and teaching output. All 329 focused cases pass on Python 3.14
+with 100% line/branch coverage in both files.
+
+All 313 public cases pass from the wheel with module origins verified and
+legacy imports blocked. Full suites pass 8,732 cases (72 skipped) on Python
+3.11 and 8,876 (20 skipped) on Python 3.14. Core, facade, expression and
+rendering coverage are unchanged. Ruff lint, configured Python formatting
+and changed-file Markdown lint pass; the guide recipe executes and all 246
+local links in the seven changed Markdown files resolve. The existing matrix
+warning, 295 type errors and Markdown code-block formatting debt remain.
+
+No production behavior changes. Nine naming and twenty rotor/sandwich tests
+remain in the mixed suite; both construction-ledger files remain. Namespace
+guards, engine deletion and release gates are pending. See
+[ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md).

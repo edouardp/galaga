@@ -129,6 +129,7 @@ helps future contributors understand why certain choices were made.
 | [113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md) | Eager Operation Contracts Outlive Mixed Symbolic Tests | Accepted |
 | [114](114-grade-inspection-and-bounded-simplification-contracts.md) | Grade Inspection and Bounded Simplification Contracts | Accepted |
 | [115](115-public-expression-identity-and-helper-contracts.md) | Public Expression Identity and Helper Contracts | Accepted |
+| [116](116-public-latex-coverage-and-content-contracts.md) | Public LaTeX Coverage and Content Contracts | Accepted |
 
 ## Creating New ADRs
 

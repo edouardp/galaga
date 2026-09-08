@@ -443,5 +443,79 @@ def _(gm, norm, x):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Read the operation, not just the accent
+
+    Mathematical notation can be ambiguous without context. By default both
+    unit normalization and grade involution use a hat. A vector's grade
+    involution negates it; normalization divides by its metric-dependent
+    magnitude. Their expressions can look identical while their values differ.
+
+    Functional notation makes the operation explicit. Left and right
+    contractions also deserve care: their floor symbols indicate different
+    operand orderings. Compute the products before interpreting their signs.
+
+    A name is separate from a stored expression. Use
+    `value.named("a").with_expr()` when you want an explicit symbol leaf,
+    then request `content="expr"` to display that provenance. Naming alone
+    preserves the previous provenance, which may be absent.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, Notation, gm):
+    from galaga_matrix import MatrixRepr
+
+    import galaga as _ga
+
+    comparison_algebra = Algebra(gram=((2, 0.5), (0.5, -1)))
+    comparison_gram = MatrixRepr(comparison_algebra.gram).name(latex="G")
+    comparison_a = comparison_algebra.vector((2, 1)).named("a")
+    comparison_b = comparison_algebra.vector((-1, 3)).named("b")
+    comparison_plane = (comparison_a ^ comparison_b).named("B")
+    comparison_left = _ga.left_contraction(comparison_a, comparison_plane)
+    comparison_right = _ga.right_contraction(comparison_plane, comparison_a)
+    comparison_unit = _ga.unit(comparison_a)
+    comparison_involution = _ga.grade_involution(comparison_a)
+    comparison_shared_hat = comparison_unit.latex(content="expr")
+    comparison_functional_unit = comparison_unit.latex(content="expr", notation=Notation.functional())
+    comparison_functional_involution = comparison_involution.latex(content="expr", notation=Notation.functional())
+    _magnitude = _ga.norm(comparison_a)
+    _left_formula = comparison_left.latex(content="full")
+    _right_formula = comparison_right.latex(content="full")
+    _unit_value = comparison_unit.latex(content="value")
+    _involution_value = comparison_involution.latex(content="value")
+
+    gm.md(rt"""
+    Work in this non-orthogonal, indefinite metric:
+
+    {comparison_gram}
+
+    Our inputs are {comparison_a:full}, {comparison_b:full}, and
+    {comparison_plane:full}. The computed magnitude is {_magnitude:full}.
+
+    Both unary histories display as ${comparison_shared_hat!s}$, but:
+
+    | Operation | Explicit history | Computed value |
+    |---|---|---|
+    | Unit normalization | ${comparison_functional_unit!s}$ | ${_unit_value!s}$ |
+    | Grade involution | ${comparison_functional_involution!s}$ | ${_involution_value!s}$ |
+
+    The two contractions give opposite vectors for this vector/bivector pair:
+
+    $${_left_formula!s},\qquad {_right_formula!s}.$$
+
+    These signs come from the algebra, not from choosing a floor glyph.
+    Changing notation does not change coefficients or expression identity.
+    `latex(content="expr", wrap="$")` adds inline math delimiters to the
+    selected expression; it does not select different content. The rich
+    notebook hook likewise wraps whichever content the current policy selects.
+    """)
+    return
+
+
 if __name__ == "__main__":
     app.run()

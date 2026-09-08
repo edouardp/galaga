@@ -18,7 +18,7 @@ The recommended reading order is:
 3. [Presentation contexts](presentation_contexts.py) — content selection,
    immutable presentation views, scoped changes, explicit render overrides,
    numeric display policy, and rendered-string snapshots versus new scoped
-   rendering calls.
+   rendering calls, ambiguous accents, and metric-derived contraction signs.
 4. [Custom functional notation](custom_functional_notation.py) — constructing
    an algebra with custom short forms such as `metric_ip` and `hestenes_ip`,
    extending built-in short notation, and keeping Python aliases separate from
@@ -26,6 +26,7 @@ The recommended reading order is:
 5. [Numeric core](numeric_core.py) — the presentation-free engine beneath the
    facade and the boundary between the two packages.
 
+The presentation lesson also uses `galaga_matrix` to display its Gram matrix.
 The notebooks require Python 3.14 because Marimo's dynamic Markdown examples
 use t-strings. From the repository root, open the local example gallery with:
 

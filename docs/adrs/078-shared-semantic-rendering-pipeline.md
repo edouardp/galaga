@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-078: Shared Semantic Rendering Pipeline
 
+The remaining mixed-coverage LaTeX contracts now have public owners.
+[ADR-116](116-public-latex-coverage-and-content-contracts.md) records exact
+strings plus numeric replay, explicit content/wrapper behavior and teaching
+examples for ambiguous accents and metric-derived contraction signs.
+
 The RGA convention suite now has public owners and nonzero coefficient
 checks. [ADR-105](105-public-rga-contracts-and-underaccent-fallback.md)
 fixes LaTeX under-accent fallback: native one-argument under-accent commands

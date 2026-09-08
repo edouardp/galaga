@@ -1042,6 +1042,46 @@ The [presentation notebook](../../examples/galaga_v2/presentation_contexts.py)
 executes the snapshot/scope distinction. See
 [ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).
 
+### Choose expression content before adding LaTeX delimiters
+
+Naming and attaching provenance are different operations. `named(...)`
+preserves the previous expression, which may be absent. To migrate an explicit
+v1 symbol, attach a public leaf and request its expression content:
+
+```python
+from galaga import Algebra, Notation, grade_involution, unit
+
+algebra = Algebra(gram=((2, 0.5), (0.5, -1)))
+named = algebra.vector((2, 1)).named("a")
+assert named.expr is None
+assert named.latex(content="name") == "a"
+assert named.latex(content="expr") == named.latex(content="value")
+symbolic = named.with_expr()
+assert symbolic.latex(content="expr", wrap="$") == "$a$"
+
+normalized, involuted = unit(named), grade_involution(named)
+assert normalized.latex(content="expr") == involuted.latex(content="expr")
+assert normalized != involuted and normalized.expr != involuted.expr
+functional = Notation.functional()
+assert normalized.latex(content="expr", notation=functional) != involuted.latex(
+    content="expr", notation=functional
+)
+```
+
+The shared hat is a notation convention, not an equality rule. Current v2
+defaults also use wide tildes, overlines and `\rfloor`/`\lfloor` contractions.
+Functional notation identifies the operation when a conventional glyph is
+ambiguous. Neither rendering a node nor choosing its glyph establishes that
+its evaluation is defined: dual and undual still require an invertible
+pseudoscalar.
+
+`wrap="$"` and `wrap="$$"` only add delimiters; invalid wrappers raise
+`ValueError`. The rich hook wraps the active content policy, not necessarily
+the name or expression. The
+[presentation notebook](../../examples/galaga_v2/presentation_contexts.py)
+computes these distinctions under a displayed Gram matrix; see
+[ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md).
+
 ## Use checked conversions
 
 `float(value)` checks that nonscalar coefficients are within the grade

@@ -14,22 +14,8 @@ from galaga.legacy import (
     is_rotor,
     sandwich,
 )
-from galaga.legacy import conjugate as sconjugate
-from galaga.legacy import dual as sdual
-from galaga.legacy import even_grades as seven
-from galaga.legacy import hestenes_inner as shi
-from galaga.legacy import inverse as sinverse
-from galaga.legacy import involute as sinvolute
-from galaga.legacy import left_contraction as slc
-from galaga.legacy import norm as snorm
-from galaga.legacy import odd_grades as sodd
-from galaga.legacy import right_contraction as src
 from galaga.legacy import sandwich as ssandwich
-from galaga.legacy import scalar_product as ssp
-from galaga.legacy import squared as ssq
 from galaga.legacy import sw as ssw_alias
-from galaga.legacy import undual as sundual
-from galaga.legacy import unit as sunit
 
 
 @pytest.fixture
@@ -200,191 +186,7 @@ class TestRotorValidation:
 # Historical source and observations: tools/baselines/grade-simplification-v1.json.
 
 
-class TestLatex:
-    """Tests for .latex() output on all expression types."""
-
-    def test_sym(self, cl3):
-        """Sym LaTeX renders its latex name."""
-        e1, _, _ = cl3.basis_vectors()
-        assert sym(e1, "v").latex() == "v"
-
-    def test_gp(self, cl3):
-        """Gp LaTeX renders with space."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        v = sym(e1, "v")
-        assert (R * v).latex() == "R v"
-
-    def test_sandwich_grade(self, cl3):
-        """Grade of sandwich renders correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        from galaga.legacy import grade as sgrade
-
-        R = sym(e1 * e2, "R")
-        v = sym(e1, "v")
-        assert sgrade(R * v * ~R, 1).latex() == r"\langle R v \tilde{R} \rangle_{1}"
-
-    def test_wedge(self, cl3):
-        r"""Op LaTeX renders with \wedge."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        assert (a ^ b).latex() == r"a \wedge b"
-
-    def test_left_contraction(self, cl3):
-        r"""Lc LaTeX renders with \lrcorner."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        assert slc(a, b).latex() == r"a \;\lrcorner\; b"
-
-    def test_right_contraction(self, cl3):
-        r"""Rc LaTeX renders with \llcorner."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        assert src(a, b).latex() == r"a \;\llcorner\; b"
-
-    def test_hestenes_inner(self, cl3):
-        r"""Hi LaTeX renders with \cdot."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "A"), sym(e2, "B")
-        assert shi(a, b).latex() == r"A \cdot B"
-
-    def test_scalar_product(self, cl3):
-        """Sp LaTeX renders with *."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "A"), sym(e2, "B")
-        assert ssp(a, b).latex() == "A * B"
-
-    def test_reverse(self, cl3):
-        """Reverse LaTeX renders with \tilde."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        assert (~R).latex() == r"\tilde{R}"
-
-    def test_involute(self, cl3):
-        r"""Involute LaTeX renders with \hat."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sinvolute(v).latex() == r"\hat{v}"
-
-    def test_conjugate(self, cl3):
-        """Conjugate LaTeX renders with \bar."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sconjugate(v).latex() == r"\bar{v}"
-
-    def test_dual(self, cl3):
-        """Dual LaTeX renders with ^*."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sdual(v).latex() == "v^*"
-
-    def test_undual(self, cl3):
-        """Undual LaTeX renders with ^{*^{-1}}."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sundual(v).latex() == "v^{*^{-1}}"
-
-    def test_norm(self, cl3):
-        r"""Norm LaTeX renders with \lVert."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert snorm(v).latex() == r"\lVert v \rVert"
-
-    def test_unit(self, cl3):
-        r"""Unit LaTeX renders with \hat."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sunit(v).latex() == r"\hat{v}"
-
-    def test_inverse(self, cl3):
-        """Inverse LaTeX renders with ^{-1}."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sinverse(v).latex() == "v^{-1}"
-
-    def test_squared(self, cl3):
-        """Squared LaTeX renders with ^2."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        assert ssq(R).latex() == "R^2"
-
-    def test_even(self, cl3):
-        """Even LaTeX renders with \text{even}."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert seven(v).latex() == r"\langle v \rangle_{\text{even}}"
-
-    def test_odd(self, cl3):
-        """Odd LaTeX renders with \text{odd}."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert sodd(v).latex() == r"\langle v \rangle_{\text{odd}}"
-
-    def test_add(self, cl3):
-        """Add LaTeX renders with +."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        assert (a + b).latex() == "a + b"
-
-    def test_sub(self, cl3):
-        """Sub LaTeX renders with -."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        assert (a - b).latex() == "a - b"
-
-    def test_neg(self, cl3):
-        """Neg LaTeX renders with -."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert (-a).latex() == "-a"
-
-    def test_scalar_mul(self, cl3):
-        """ScalarMul LaTeX renders as coefficient."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert (3 * a).latex() == "3 a"
-        assert (-1 * a).latex() == "-a"
-
-    def test_parens(self, cl3):
-        """Parens in LaTeX use \\left(\right)."""
-        e1, e2, _ = cl3.basis_vectors()
-        a, b = sym(e1, "a"), sym(e2, "b")
-        R = sym(e1 * e2, "R")
-        assert ((a + b) * R).latex() == r"\left(a + b\right) R"
-
-    def test_repr_latex(self, cl3):
-        """MV._repr_latex_() wraps in $."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert v._repr_latex_() == "$v$"
-        assert (~v)._repr_latex_() == r"$\tilde{v}$"
-
-    def test_multivector_latex_bare(self, cl3):
-        """MV.latex() returns raw LaTeX."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = 3 * e1 + 4 * e2
-        assert v.latex() == "3 e_{12}" or "e_{1}" in v.latex()  # just check it returns a string
-        assert "$" not in v.latex()
-
-    def test_multivector_latex_wrap_inline(self, cl3):
-        """MV.latex(wrap='$') wraps inline."""
-        e1, _, _ = cl3.basis_vectors()
-        v = 3 * e1
-        raw = v.latex()
-        assert v.latex(wrap="$") == f"${raw}$"
-
-    def test_multivector_latex_wrap_display(self, cl3):
-        """MV.latex(wrap='$$') wraps display."""
-        e1, _, _ = cl3.basis_vectors()
-        v = 3 * e1
-        raw = v.latex()
-        assert v.latex(wrap="$$") == f"$$\n{raw}\n$$"
-
-    def test_multivector_latex_wrap_none(self, cl3):
-        """MV.latex(wrap=None) returns raw."""
-        e1, _, _ = cl3.basis_vectors()
-        v = 3 * e1
-        assert v.latex(wrap=None) == v.latex()
+# TestLatex now lives in rendering/test_coverage_latex_contracts.py.
 
 
 class TestSandwich:
@@ -418,96 +220,14 @@ class TestSandwich:
 # TestSimplify now lives in facade/test_grade_simplification_contracts.py.
 
 
-class TestMultivectorLatex:
-    """Tests for Multivector.latex() and _repr_latex_()."""
-
-    def test_scalar(self, cl3):
-        """Scalar MV LaTeX renders as number."""
-        assert cl3.scalar(5).latex() == "5"
-
-    def test_zero(self, cl3):
-        """vector_part/scalar_part of zero MV."""
-        assert cl3.scalar(0).latex() == "0"
-
-    def test_vector(self, cl3):
-        """Vector MV LaTeX renders with basis names."""
-        e1, e2, e3 = cl3.basis_vectors()
-        assert (3 * e1 + 4 * e2).latex() == "3 e_{1} + 4 e_{2}"
-
-    def test_coeff_one_suppressed(self, cl3):
-        """Coefficient ±1 is suppressed in LaTeX."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert e1.latex() == "e_{1}"
-        assert (-e2).latex() == "-e_{2}"
-
-    def test_bivector(self, cl3):
-        """Bivector MV LaTeX renders correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert (e1 ^ e2).latex() == "e_{12}"
-
-    def test_pseudoscalar(self, cl3):
-        """Pseudoscalar MV LaTeX renders correctly."""
-        assert cl3.I.latex() == "e_{123}"
-
-    def test_mixed(self, cl3):
-        """Mixed-grade MV LaTeX renders all terms."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = cl3.scalar(1) + 2 * e1 + 3 * (e1 ^ e2)
-        assert mv.latex() == "1 + 2 e_{1} + 3 e_{12}"
-
-    def test_negative_terms(self, cl3):
-        """Negative terms use - not + -."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert (e1 - e2).latex() == "e_{1} - e_{2}"
-
-    def test_gamma_names(self):
-        """Gamma-named algebra uses γ in LaTeX."""
-        sta = Algebra((1, -1, -1, -1), blades=b_gamma())
-        g0, g1, _, _ = sta.basis_vectors()
-        assert g0.latex() == "\\gamma_{0}"
-        assert (g0 * g1).latex() == "\\gamma_{0} \\gamma_{1}"
-
-    def test_sigma_names(self):
-        """Sigma-named algebra uses σ in LaTeX."""
-        pauli = Algebra((1, 1, 1), blades=b_sigma())
-        s1, s2, _ = pauli.basis_vectors()
-        assert s1.latex() == "\\sigma_{1}"
-        assert (s1 * s2).latex() == "\\sigma_{1} \\sigma_{2}"
-
-    def test_repr_latex(self, cl3):
-        """MV._repr_latex_() wraps in $."""
-        e1, _, _ = cl3.basis_vectors()
-        assert e1._repr_latex_() == "$e_{1}$"
-
-    def test_repr_latex_mixed(self, cl3):
-        """Mixed MV _repr_latex_() wraps correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = cl3.scalar(1) + e1
-        assert mv._repr_latex_() == "$1 + e_{1}$"
+# TestMultivectorLatex now lives in rendering/test_coverage_latex_contracts.py.
 
 
 class TestCoverageGaps:
     """Tests targeting specific uncovered lines."""
 
-    # algebra.py: _blade_latex fallback with custom names, no latex_names (lines 322-324)
-    def test_blade_latex_custom_names_no_latex(self):
-        """Custom names with explicit latex use the latex variant."""
-        alg = Algebra(
-            (1, 1, 1), blades=BladeConvention(vector_names=[("a", "𝐚", "𝐚"), ("b", "𝐛", "𝐛"), ("c", "𝐜", "𝐜")])
-        )
-        e1, e2, _ = alg.basis_vectors()
-        mv = e1 ^ e2
-        latex = mv.latex()
-        assert "𝐚" in latex and "𝐛" in latex
-
-    # symbolic.py: Expr.latex(wrap='$') and wrap='$$' (lines 138, 140)
-    def test_expr_latex_wrap(self, cl3):
-        """Expr.latex(wrap='$') wraps in $."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        raw = v.latex()
-        assert v.latex(wrap="$") == f"${raw}$"
-        assert v.latex(wrap="$$") == f"$$\n{raw}\n$$"
+    # Display identities now live in rendering/test_coverage_latex_contracts.py.
+    # Historical source and observations: tools/baselines/coverage-latex-v1.json.
 
     # Expression-helper identities now live in facade/test_expression_helper_contracts.py.
     # Historical source and observations: tools/baselines/expression-helpers-v1.json.
