@@ -8,7 +8,8 @@ The recommended reading order is:
 
 1. [Algebra construction](algebra_construction.py) — metric constructors,
    complete presets, diagnostic options, and presentation overrides, including
-   metric-derived STA product names and signed-versus-native blade lookup.
+   metric-derived STA product names, signed-versus-native blade lookup, and
+   exterior-word labels versus geometric products in oblique frames.
 2. [Eager values and expressions](eager_values_and_expressions.py) — numeric
    values, optional expression provenance, naming, long-form operations,
    variadic products, checked scalar conversion, tiny-value display tolerance,
@@ -26,7 +27,8 @@ The recommended reading order is:
 5. [Numeric core](numeric_core.py) — the presentation-free engine beneath the
    facade and the boundary between the two packages.
 
-The presentation lesson also uses `galaga_matrix` to display its Gram matrix.
+The construction and presentation lessons also use `galaga_matrix` to display
+their Gram matrices.
 The notebooks require Python 3.14 because Marimo's dynamic Markdown examples
 use t-strings. From the repository root, open the local example gallery with:
 

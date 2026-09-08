@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-104: Metric-Derived STA Names and Public Blade Contracts
 
+The remaining mixed-suite naming presets now have public owners.
+[ADR-117](117-public-naming-presets-and-exterior-word-contracts.md) records
+complete vocabulary replay and general-Gram checks distinguishing exterior
+blade labels from geometric vector words, without changing this design.
+
 ## Context and problem statement
 
 The remaining legacy blade-convention suite has 102 methods and 107 collected

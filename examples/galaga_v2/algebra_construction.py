@@ -170,7 +170,7 @@ def _(mo):
 @app.cell
 def _(Algebra, DisplayPolicy, p_cga, p_euclidean, p_pga, p_rga, p_sta):
     _full = DisplayPolicy(content="full")
-    euclidean_model = Algebra(config=p_euclidean(spatial_dim=3), display=_full)
+    _euclidean_model = Algebra(config=p_euclidean(spatial_dim=3), display=_full)
     spacetime_model = Algebra(config=p_sta("mostly-minus"), display=_full)
     projective_model = Algebra(config=p_pga(spatial_dim=3), display=_full)
     conformal_model = Algebra(config=p_cga(spatial_dim=3, frame="null"), display=_full)
@@ -321,6 +321,81 @@ def _(mo):
     - Override `presentation=`, `blades=`, `notation=`, `local_names=`,
       `display_order=`, or `display=` only when fine-grained control is the
       point.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## A blade word is a label, not a product parser
+
+    A complete blade convention supplies one label per native exterior mask,
+    including the scalar. Its ASCII, Unicode and LaTeX spellings can differ.
+    Here the ASCII lookup key `ab` denotes $a\wedge b$; we use explicit wedge
+    glyphs in the mathematical targets to make that meaning visible.
+
+    In an orthogonal basis, the geometric product of distinct basis vectors
+    happens to equal their exterior product. In a general Gram frame,
+    $ab=G_{12}+a\wedge b$. A three-vector geometric word can also contain a
+    vector part. Merely choosing names cannot remove those metric terms.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, gm):
+    from galaga_matrix import MatrixRepr
+
+    import galaga as _ga
+
+    naming_algebra = Algebra(gram=((2, 0.5, -0.25), (0.5, -1, 0.75), (-0.25, 0.75, 3)))
+    naming_gram = MatrixRepr(naming_algebra.gram).name(latex="G")
+    _names = (_ga.Name("a", "𝐚", r"\mathbf{a}"), _ga.Name("b", "𝐛", r"\mathbf{b}"), _ga.Name("c", "𝐜", r"\mathbf{c}"))
+    _labels = {}
+    for _mask in range(naming_algebra.dim):
+        _parts = [_name for _index, _name in enumerate(_names) if _mask & (1 << _index)]
+        _labels[_mask] = _ga.Name(
+            "".join(_name.ascii for _name in _parts) or "1",
+            "∧".join(_name.unicode for _name in _parts) or "1",
+            r" \wedge ".join(_name.latex for _name in _parts) or "1",
+        )
+    naming_view = naming_algebra.with_blades(_ga.BladeConvention(naming_algebra.n, _labels))
+    naming_a, naming_b, naming_c = naming_view.basis_vectors(expr=True)
+    naming_plane = naming_view.blade("ab")
+    naming_volume = naming_view.blade("abc")
+    naming_gp = naming_a * naming_b
+    naming_triple = naming_a * naming_b * naming_c
+    naming_local_view = naming_view.with_local_names(
+        _ga.LocalNamePolicy.from_convention(naming_view.presentation.blades)
+    )
+    _shared_numeric = naming_view.numeric is naming_algebra.numeric
+    _local_before = "a" in naming_view.locals()
+    _local_after = "a" in naming_local_view.locals()
+    _cross_term = naming_view.gram[0, 1]
+
+    gm.md(rt"""
+    Work in this Gram frame:
+
+    {naming_gram}
+
+    The presentation view shares its numeric algebra: `{_shared_numeric!s}`.
+
+    | Construction | Meaning | Computed result |
+    |---|---|---|
+    | `blade("ab")` | Native exterior plane | {naming_plane:value} |
+    | `a * b` | Geometric product, with scalar term {_cross_term} | {naming_gp:full} |
+    | `blade("abc")` | Native exterior volume | {naming_volume:value} |
+    | `a * b * c` | Geometric word, possibly mixed grade | {naming_triple:full} |
+
+    `blade("ab")` is a configured lookup, not evaluation of the Python text
+    `a*b`. Use `a ^ b` for the exterior product and `a * b` for the geometric
+    product.
+
+    Display labels and Python locals are independent. Replacing blade labels
+    leaves `"a" in view.locals()` equal to `{_local_before!s}`. Explicitly
+    applying `LocalNamePolicy.from_convention(...)` makes it
+    `{_local_after!s}`, without changing the numeric algebra.
     """)
     return
 

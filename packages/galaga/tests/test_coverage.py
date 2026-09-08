@@ -6,10 +6,6 @@ import pytest
 from galaga.expr import sym
 from galaga.legacy import (
     Algebra,
-    BladeConvention,
-    b_gamma,
-    b_sigma,
-    b_sigma_xyz,
     is_even,
     is_rotor,
     sandwich,
@@ -28,69 +24,8 @@ def cl3():
 # ============================================================
 
 
-class TestNamingPresets:
-    def test_gamma_preset(self):
-        """Gamma naming preset: γ₀, γ₁, ..."""
-        sta = Algebra((1, -1, -1, -1), blades=b_gamma())
-        g0, g1, g2, g3 = sta.basis_vectors()
-        assert "γ₀" in str(g0)
-        assert "γ₀" in repr(g0)
-
-    def test_sigma_preset(self):
-        """Sigma naming preset: σ₁, σ₂, ..."""
-        alg = Algebra((1, 1, 1), blades=b_sigma())
-        s1, s2, s3 = alg.basis_vectors()
-        assert "σ₁" in str(s1)
-        assert "σ₁" in repr(s1)
-
-    def test_sigma_xyz_preset(self):
-        """Sigma xyz preset: σₓ, σᵧ, σz."""
-        alg = Algebra((1, 1, 1), blades=b_sigma_xyz())
-        sx, sy, sz = alg.basis_vectors()
-        assert "σₓ" in str(sx)
-        assert "σₓ" in repr(sx)
-
-    def test_custom_names(self):
-        """Custom (code, unicode) name tuples."""
-        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[("a", "𝐚", "𝐚"), ("b", "𝐛", "𝐛")]))
-        a, b = alg.basis_vectors()
-        assert str(a) == "𝐚"
-        assert repr(a) == "𝐚"
-
-    def test_custom_names_wrong_length(self):
-        """Too-few custom names raise ValueError."""
-        with pytest.raises(ValueError, match="need at least"):
-            Algebra((1, 1), blades=BladeConvention(vector_names=[("a", "𝐚", "𝐚")]))
-
-    def test_invalid_blades_type(self):
-        """Non-BladeConvention blades= raises TypeError."""
-        with pytest.raises(TypeError):
-            Algebra((1, 1), blades="bogus")
-
-    def test_blade_lookup_custom_names(self):
-        """blade() works with gamma convention via display name."""
-        sta = Algebra((1, -1, -1, -1), blades=b_gamma())
-        b = sta.blade("g0g1")  # ascii name match
-        e0, e1, _, _ = sta.basis_vectors()
-        assert b == e0 ^ e1
-
-    def test_blade_lookup_custom_no_match(self):
-        """blade() with unrecognized name raises."""
-        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[("a", "𝐚", "𝐚"), ("b", "𝐛", "𝐛")]))
-        with pytest.raises(ValueError, match="Unknown blade name"):
-            alg.blade("xyz")
-
-    def test_blade_name_custom_unicode(self):
-        """Custom unicode names appear in str()."""
-        alg = Algebra(
-            (1, 1, 1), blades=BladeConvention(vector_names=[("a", "𝐚", "𝐚"), ("b", "𝐛", "𝐛"), ("c", "𝐜", "𝐜")])
-        )
-        a, b, c = alg.basis_vectors()
-        # Non-pseudoscalar bivector uses custom names
-        assert str(a * b) == "𝐚𝐛"
-        assert repr(a * b) == "𝐚𝐛"
-        # Pseudoscalar uses standard blade name
-        assert str(a * b * c) == "𝐚𝐛𝐜"
+# Naming-preset identities now live in presentation/test_naming_preset_contracts.py.
+# Historical source and observations: tools/baselines/naming-presets-v1.json.
 
 
 # Architectural identities now live in facade/test_architecture_contracts.py.

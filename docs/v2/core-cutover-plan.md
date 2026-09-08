@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Twenty-six legacy-dependency prerequisites are complete:
+Status: **in progress**. Twenty-seven legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1399,13 +1399,18 @@ Status: **in progress**. Twenty-six legacy-dependency prerequisites are complete
   tests distinguish numeric, structural and rendered equality, finite-float
   construction, hashing, snapshots and explicit replay. The eager-values
   notebook teaches those distinctions without restoring private v1 helpers
-  ([ADR-115](../adrs/115-public-expression-identity-and-helper-contracts.md)); and
+  ([ADR-115](../adrs/115-public-expression-identity-and-helper-contracts.md));
 - all 43 remaining mixed-coverage rendering identities have public owners.
   Complete source and 55 actual rendering observations retain values,
   bindings and old typography. Public tests pin current spelling, explicit
   content/wrappers and nonzero general-Gram compositions; the notebook teaches
   ambiguous accents and computed contraction signs
-  ([ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md)).
+  ([ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md)); and
+- the nine remaining naming-preset identities have public owners. Complete
+  source, 44 native labels, 132 evaluated lookups and validation errors are
+  archived. General-Gram tests and the construction notebook distinguish
+  exterior labels from geometric words and preserve independent Python locals
+  ([ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1415,9 +1420,9 @@ the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
 complex/quaternion, low-dimensional/transformation, scalar, factory/display
 and architecture/inner-product/eager-operation/grade-simplification and
-expression-helper/coverage-LaTeX suites with legacy imports blocked. Matrix
-plans continue to share core algebras across facade presentation views; that
-is intentional v2 behavior.
+expression-helper/coverage-LaTeX/naming-preset suites with legacy imports
+blocked. Matrix plans continue to share core algebras across facade
+presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1434,9 +1439,9 @@ resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
 ledger now contains 2 files, down from 3 after removing `test_coverage_gaps.py`.
 Extracting the architecture, inner-product, eager-operation, grade/simplification
-and expression-helper/coverage-LaTeX subgroups does not remove the mixed
-coverage suite from that ledger: its other 29 methods retain their existing
-owners (nine naming and twenty rotor/sandwich cases).
+and expression-helper/coverage-LaTeX/naming-preset subgroups does not remove
+the mixed coverage suite from that ledger: its other twenty rotor/sandwich
+methods retain their existing owners.
 The remaining entries are `test_coverage.py` and `test_redesign.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
@@ -1624,6 +1629,21 @@ a `MatrixRepr` Gram display. Full suites pass 8,732 cases (72 skipped) on
 Python 3.11 and 8,876 (20 skipped) on Python 3.14. Core, facade, expression
 and rendering coverage are unchanged. The guide recipe executes and all 246
 local links in the seven changed Markdown files resolve.
+The naming-preset checkpoint passes 109 focused cases on Python 3.14 with
+100% line/branch coverage in both files. All 93 public cases pass from the
+wheel with origins verified and legacy imports blocked. Nine historical
+identities retain 44 complete blade labels, 132 evaluated lookups and actual
+validation errors. General-Gram reference products, exterior/minor oracles and
+signed lookup checks keep names independent of their numeric meaning. The
+construction notebook teaches exterior lookup versus geometric words and
+explicit local-name configuration under a `MatrixRepr` Gram display. Full
+suites pass 8,831 cases (73 skipped) on Python 3.11 and 8,976 (20 skipped) on
+Python 3.14. Core, facade, expression and rendering coverage are unchanged.
+The additional naming/presentation production checkpoint measures 100% for
+`names.py`, 99% for `blades.py` and 96% for `presentation.py`, including
+branch measurement.
+The guide recipe executes and all 246 local links in the seven changed
+Markdown files resolve.
 Ruff lint, configured Python formatting and changed-file Markdown lint pass.
 The broad Ruff 0.16.5 format check additionally reports code-block formatting
 in 40 Markdown files; every finding reproduces against HEAD and remains
@@ -1636,8 +1656,8 @@ gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
 mixed-rendering, blade-convention, RGA, locals, quaternion, transformation,
 scalar, factory/display, architecture, inner-product, eager-operation and
-grade/simplification/expression-helper/coverage-LaTeX work. The converter's
-consolidated tuple lookup removes one of the previous 297 errors. The preceding
+grade/simplification/expression-helper/coverage-LaTeX/naming-preset work. The
+converter's consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 
 #### Immediate release blocker: equality/hash consistency

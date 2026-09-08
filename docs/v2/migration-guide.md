@@ -726,6 +726,48 @@ its square still depends on the Gram determinant and dimension. Signed
 native mask. See
 [ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).
 
+### Custom blade words do not evaluate geometric products
+
+A complete `BladeConvention` labels all $2^n$ native exterior masks,
+including the scalar. The ASCII, Unicode and LaTeX forms can be chosen
+independently. A word-like lookup key does not parse or multiply its letters:
+
+```python
+from galaga import Algebra, BladeConvention, LocalNamePolicy, Name
+
+base = Algebra(gram=((2, 0.5, -0.25), (0.5, -1, 0.75), (-0.25, 0.75, 3)))
+names = (Name("a", "𝐚", r"\mathbf{a}"),
+         Name("b", "𝐛", r"\mathbf{b}"),
+         Name("c", "𝐜", r"\mathbf{c}"))
+labels = {}
+for mask in range(base.dim):
+    parts = [name for index, name in enumerate(names) if mask & (1 << index)]
+    labels[mask] = Name(
+        "".join(name.ascii for name in parts) or "1",
+        "∧".join(name.unicode for name in parts) or "1",
+        r" \wedge ".join(name.latex for name in parts) or "1",
+    )
+view = base.with_blades(BladeConvention(base.n, labels))
+a, b, c = view.basis_vectors()
+assert view.blade("ab") == a ^ b
+assert a * b != view.blade("ab")
+assert a * b - (a ^ b) == view.scalar(view.gram[0, 1])
+assert view.numeric is base.numeric
+assert "a" not in view.locals()
+local_view = view.with_local_names(LocalNamePolicy.from_convention(view.presentation.blades))
+assert local_view.locals()["a"] == a
+```
+
+Regular gamma/sigma layouts can use `indexed_blade_convention`. To retain
+the old `b_sigma_xyz` ASCII keys `x/y/z`, supply them explicitly in a complete
+`Name` table; a sigma prefix with letter subscripts instead creates
+`sx/sy/sz`. V2 uses braced LaTeX scripts such as `\sigma_{x}`, and repr is
+ASCII rather than Unicode. Use `unicode()` when the latter is wanted.
+
+The [construction notebook](../../examples/galaga_v2/algebra_construction.py)
+also computes a three-vector word's extra vector part and displays the Gram
+matrix. See [ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md).
+
 ## Migrate complex and quaternion conventions
 
 Use `Algebra(config=p_complex())` or `Algebra(config=p_quaternion())` in

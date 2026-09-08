@@ -1,0 +1,3454 @@
+{
+  "schema_version": 1,
+  "source_commit": "f75d7954da77350fc856e4003459f6f36e1882b1",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_path": "packages/galaga/tests/test_coverage.py",
+  "source": "\"\"\"Coverage gap tests for algebra.py and symbolic.py.\"\"\"\n\nimport numpy as np\nimport pytest\n\nfrom galaga.expr import sym\nfrom galaga.legacy import (\n    Algebra,\n    BladeConvention,\n    b_gamma,\n    b_sigma,\n    b_sigma_xyz,\n    is_even,\n    is_rotor,\n    sandwich,\n)\nfrom galaga.legacy import sandwich as ssandwich\nfrom galaga.legacy import sw as ssw_alias\n\n\n@pytest.fixture\ndef cl3():\n    return Algebra((1, 1, 1))\n\n\n# ============================================================\n# algebra.py coverage gaps\n# ============================================================\n\n\nclass TestNamingPresets:\n    def test_gamma_preset(self):\n        \"\"\"Gamma naming preset: γ₀, γ₁, ...\"\"\"\n        sta = Algebra((1, -1, -1, -1), blades=b_gamma())\n        g0, g1, g2, g3 = sta.basis_vectors()\n        assert \"γ₀\" in str(g0)\n        assert \"γ₀\" in repr(g0)\n\n    def test_sigma_preset(self):\n        \"\"\"Sigma naming preset: σ₁, σ₂, ...\"\"\"\n        alg = Algebra((1, 1, 1), blades=b_sigma())\n        s1, s2, s3 = alg.basis_vectors()\n        assert \"σ₁\" in str(s1)\n        assert \"σ₁\" in repr(s1)\n\n    def test_sigma_xyz_preset(self):\n        \"\"\"Sigma xyz preset: σₓ, σᵧ, σz.\"\"\"\n        alg = Algebra((1, 1, 1), blades=b_sigma_xyz())\n        sx, sy, sz = alg.basis_vectors()\n        assert \"σₓ\" in str(sx)\n        assert \"σₓ\" in repr(sx)\n\n    def test_custom_names(self):\n        \"\"\"Custom (code, unicode) name tuples.\"\"\"\n        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\")]))\n        a, b = alg.basis_vectors()\n        assert str(a) == \"𝐚\"\n        assert repr(a) == \"𝐚\"\n\n    def test_custom_names_wrong_length(self):\n        \"\"\"Too-few custom names raise ValueError.\"\"\"\n        with pytest.raises(ValueError, match=\"need at least\"):\n            Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\")]))\n\n    def test_invalid_blades_type(self):\n        \"\"\"Non-BladeConvention blades= raises TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            Algebra((1, 1), blades=\"bogus\")\n\n    def test_blade_lookup_custom_names(self):\n        \"\"\"blade() works with gamma convention via display name.\"\"\"\n        sta = Algebra((1, -1, -1, -1), blades=b_gamma())\n        b = sta.blade(\"g0g1\")  # ascii name match\n        e0, e1, _, _ = sta.basis_vectors()\n        assert b == e0 ^ e1\n\n    def test_blade_lookup_custom_no_match(self):\n        \"\"\"blade() with unrecognized name raises.\"\"\"\n        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\")]))\n        with pytest.raises(ValueError, match=\"Unknown blade name\"):\n            alg.blade(\"xyz\")\n\n    def test_blade_name_custom_unicode(self):\n        \"\"\"Custom unicode names appear in str().\"\"\"\n        alg = Algebra(\n            (1, 1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\"), (\"c\", \"𝐜\", \"𝐜\")])\n        )\n        a, b, c = alg.basis_vectors()\n        # Non-pseudoscalar bivector uses custom names\n        assert str(a * b) == \"𝐚𝐛\"\n        assert repr(a * b) == \"𝐚𝐛\"\n        # Pseudoscalar uses standard blade name\n        assert str(a * b * c) == \"𝐚𝐛𝐜\"\n\n\n# Architectural identities now live in facade/test_architecture_contracts.py.\n# Historical source and registries: tools/baselines/architecture-contracts-v1.json.\n\n\n# Inner-product identities now live in facade/test_inner_product_contracts.py.\n\n\n# Eager operation/provenance identities now live in facade/test_eager_operation_contracts.py.\n# Historical source and observations: tools/baselines/eager-operation-edges-v1.json.\n\n\nclass TestRotorFromPlaneAngle:\n    def test_90_degree_rotation(self, cl3):\n        \"\"\"90° rotor rotates e1 to e2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi / 2)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e2.data, atol=1e-12)\n\n    def test_180_degree_rotation(self, cl3):\n        \"\"\"180° rotor rotates e1 to -e1.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, (-e1).data, atol=1e-12)\n\n    def test_zero_rotation(self, cl3):\n        \"\"\"0° rotor is identity.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=0)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e1.data, atol=1e-12)\n\n    def test_rotor_is_rotor(self, cl3):\n        \"\"\"rotor() output passes is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=1.23)\n        assert is_rotor(R)\n\n\nclass TestRotorValidation:\n    def test_rejects_vector(self, cl3):\n        \"\"\"rotor() rejects odd-grade input.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1, radians=0.5)\n\n    def test_rejects_trivector(self, cl3):\n        \"\"\"rotor() rejects trivector input.\"\"\"\n        e1, e2, e3 = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1 ^ e2 ^ e3, radians=0.5)\n\n    def test_accepts_bivector(self, cl3):\n        \"\"\"rotor() accepts bivector input.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=0.5)\n        assert is_rotor(R)\n\n    def test_rejects_scalar(self, cl3):\n        \"\"\"Scalars have no rotation plane — rotor() should reject them.\"\"\"\n        with pytest.raises(ValueError, match=\"bivector\"):\n            cl3.rotor(cl3.scalar(1.0), radians=0.5)\n\n    def test_normalizes_non_unit_bivector(self, cl3):\n        \"\"\"rotor() auto-normalizes the bivector.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=0.5)\n        R2 = cl3.rotor(3 * (e1 ^ e2), radians=0.5)\n        assert np.allclose(R1.data, R2.data)\n\n    def test_sta_pseudoscalar_u1(self):\n        \"\"\"rotor() accepts STA pseudoscalar — U(1) phase.\"\"\"\n        sta = Algebra((1, -1, -1, -1))\n        I = sta.I\n        R = sta.rotor(I, radians=0.5)\n        assert is_even(R)\n\n    def test_scaled_rotor_not_rotor(self, cl3):\n        \"\"\"Scaled rotor fails is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)\n        assert not is_rotor(2 * R)\n\n\n# Grade projection/inspection identities now live in facade/test_grade_simplification_contracts.py.\n# Historical source and observations: tools/baselines/grade-simplification-v1.json.\n\n\n# TestLatex now lives in rendering/test_coverage_latex_contracts.py.\n\n\nclass TestSandwich:\n    \"\"\"Tests for sandwich(r, x) / sw(r, x).\"\"\"\n\n    def test_symbolic_sandwich(self, cl3):\n        \"\"\"Symbolic sandwich builds Gp tree.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        expr = ssandwich(R, v)\n        assert str(expr) == \"RvR̃\"\n        assert expr.latex() == r\"R v \\tilde{R}\"\n\n    def test_symbolic_sandwich_eval(self, cl3):\n        \"\"\"Symbolic sandwich evaluates correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        expr = ssandwich(sym(R, \"R\"), sym(e1, \"v\"))\n        result = expr.eval()\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_symbolic_sw_alias(self, cl3):\n        \"\"\"Symbolic sw() is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        assert str(ssw_alias(R, v)) == \"RvR̃\"\n\n\n# TestSimplify now lives in facade/test_grade_simplification_contracts.py.\n\n\n# TestMultivectorLatex now lives in rendering/test_coverage_latex_contracts.py.\n\n\nclass TestCoverageGaps:\n    \"\"\"Tests targeting specific uncovered lines.\"\"\"\n\n    # Display identities now live in rendering/test_coverage_latex_contracts.py.\n    # Historical source and observations: tools/baselines/coverage-latex-v1.json.\n\n    # Expression-helper identities now live in facade/test_expression_helper_contracts.py.\n    # Historical source and observations: tools/baselines/expression-helpers-v1.json.\n\n    # algebra.py: rotor_from_plane_angle degrees= and error\n    def test_rotor_from_plane_degrees(self, cl3):\n        \"\"\"rotor(degrees=) works.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_rad = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_deg = cl3.rotor_from_plane_angle(e1 ^ e2, degrees=90)\n        assert np.allclose(R_rad.data, R_deg.data)\n\n    def test_rotor_from_plane_angle_error(self, cl3):\n        \"\"\"rotor() with both radians and degrees raises.\"\"\"\n        import pytest\n\n        e1, e2, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2)\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2, radians=1.0, degrees=90)\n\n    def test_rotor_from_plane_angle_positional(self, cl3):\n        \"\"\"rotor() requires keyword args for angle.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_kw = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_pos = cl3.rotor_from_plane_angle(e1 ^ e2, np.pi / 2)\n        assert np.allclose(R_kw.data, R_pos.data)\n\n    def test_rotor_canonical_name(self, cl3):\n        \"\"\"rotor() is the canonical name.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        result = sandwich(R, e1)\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_rotor_degrees(self, cl3):\n        \"\"\"rotor(degrees=90) matches radians=π/2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, degrees=90)\n        R2 = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        assert np.allclose(R.data, R2.data)\n\n    def test_rotor_from_bivector_alias(self, cl3):\n        \"\"\"rotor_from_bivector is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=1.0)\n        R2 = cl3.rotor_from_bivector(e1 ^ e2, radians=1.0)\n        assert np.allclose(R1.data, R2.data)\n",
+  "sha256": "d53ec10b2e5360954bf9cc3803ba54db8350a8efdddc708172aa9452e8a11dbb",
+  "all_source_test_ids": [
+    "TestNamingPresets.test_gamma_preset",
+    "TestNamingPresets.test_sigma_preset",
+    "TestNamingPresets.test_sigma_xyz_preset",
+    "TestNamingPresets.test_custom_names",
+    "TestNamingPresets.test_custom_names_wrong_length",
+    "TestNamingPresets.test_invalid_blades_type",
+    "TestNamingPresets.test_blade_lookup_custom_names",
+    "TestNamingPresets.test_blade_lookup_custom_no_match",
+    "TestNamingPresets.test_blade_name_custom_unicode",
+    "TestRotorFromPlaneAngle.test_90_degree_rotation",
+    "TestRotorFromPlaneAngle.test_180_degree_rotation",
+    "TestRotorFromPlaneAngle.test_zero_rotation",
+    "TestRotorFromPlaneAngle.test_rotor_is_rotor",
+    "TestRotorValidation.test_rejects_vector",
+    "TestRotorValidation.test_rejects_trivector",
+    "TestRotorValidation.test_accepts_bivector",
+    "TestRotorValidation.test_rejects_scalar",
+    "TestRotorValidation.test_normalizes_non_unit_bivector",
+    "TestRotorValidation.test_sta_pseudoscalar_u1",
+    "TestRotorValidation.test_scaled_rotor_not_rotor",
+    "TestSandwich.test_symbolic_sandwich",
+    "TestSandwich.test_symbolic_sandwich_eval",
+    "TestSandwich.test_symbolic_sw_alias",
+    "TestCoverageGaps.test_rotor_from_plane_degrees",
+    "TestCoverageGaps.test_rotor_from_plane_angle_error",
+    "TestCoverageGaps.test_rotor_from_plane_angle_positional",
+    "TestCoverageGaps.test_rotor_canonical_name",
+    "TestCoverageGaps.test_rotor_degrees",
+    "TestCoverageGaps.test_rotor_from_bivector_alias"
+  ],
+  "test_ids": [
+    "TestNamingPresets.test_gamma_preset",
+    "TestNamingPresets.test_sigma_preset",
+    "TestNamingPresets.test_sigma_xyz_preset",
+    "TestNamingPresets.test_custom_names",
+    "TestNamingPresets.test_custom_names_wrong_length",
+    "TestNamingPresets.test_invalid_blades_type",
+    "TestNamingPresets.test_blade_lookup_custom_names",
+    "TestNamingPresets.test_blade_lookup_custom_no_match",
+    "TestNamingPresets.test_blade_name_custom_unicode"
+  ],
+  "public_owner": "presentation/test_naming_preset_contracts.py",
+  "tables": [
+    {
+      "id": "gamma",
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ],
+      "labels": [
+        {
+          "mask": 0,
+          "names": {
+            "ascii": "1",
+            "unicode": "1",
+            "latex": "1"
+          },
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "1",
+          "repr": "1",
+          "latex": "1",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 1,
+          "names": {
+            "ascii": "g0",
+            "unicode": "γ₀",
+            "latex": "\\gamma_{0}"
+          },
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀",
+          "repr": "γ₀",
+          "latex": "\\gamma_{0}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "names": {
+            "ascii": "g1",
+            "unicode": "γ₁",
+            "latex": "\\gamma_{1}"
+          },
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₁",
+          "repr": "γ₁",
+          "latex": "\\gamma_{1}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "names": {
+            "ascii": "g0g1",
+            "unicode": "γ₀γ₁",
+            "latex": "\\gamma_{0} \\gamma_{1}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₁",
+          "repr": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "names": {
+            "ascii": "g2",
+            "unicode": "γ₂",
+            "latex": "\\gamma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₂",
+          "repr": "γ₂",
+          "latex": "\\gamma_{2}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "names": {
+            "ascii": "g0g2",
+            "unicode": "γ₀γ₂",
+            "latex": "\\gamma_{0} \\gamma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₂",
+          "repr": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "names": {
+            "ascii": "g1g2",
+            "unicode": "γ₁γ₂",
+            "latex": "\\gamma_{1} \\gamma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₁γ₂",
+          "repr": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "names": {
+            "ascii": "g0g1g2",
+            "unicode": "γ₀γ₁γ₂",
+            "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₁γ₂",
+          "repr": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 8,
+          "names": {
+            "ascii": "g3",
+            "unicode": "γ₃",
+            "latex": "\\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₃",
+          "repr": "γ₃",
+          "latex": "\\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 9,
+          "names": {
+            "ascii": "g0g3",
+            "unicode": "γ₀γ₃",
+            "latex": "\\gamma_{0} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₃",
+          "repr": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 10,
+          "names": {
+            "ascii": "g1g3",
+            "unicode": "γ₁γ₃",
+            "latex": "\\gamma_{1} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₁γ₃",
+          "repr": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 11,
+          "names": {
+            "ascii": "g0g1g3",
+            "unicode": "γ₀γ₁γ₃",
+            "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₁γ₃",
+          "repr": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 12,
+          "names": {
+            "ascii": "g2g3",
+            "unicode": "γ₂γ₃",
+            "latex": "\\gamma_{2} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "unicode": "γ₂γ₃",
+          "repr": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 13,
+          "names": {
+            "ascii": "g0g2g3",
+            "unicode": "γ₀γ₂γ₃",
+            "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "unicode": "γ₀γ₂γ₃",
+          "repr": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 14,
+          "names": {
+            "ascii": "g1g2g3",
+            "unicode": "γ₁γ₂γ₃",
+            "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "unicode": "γ₁γ₂γ₃",
+          "repr": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 15,
+          "names": {
+            "ascii": "g0g1g2g3",
+            "unicode": "γ₀γ₁γ₂γ₃",
+            "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2} \\gamma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "unicode": "γ₀γ₁γ₂γ₃",
+          "repr": "γ₀γ₁γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2} \\gamma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "sigma",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "labels": [
+        {
+          "mask": 0,
+          "names": {
+            "ascii": "1",
+            "unicode": "1",
+            "latex": "1"
+          },
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "1",
+          "repr": "1",
+          "latex": "1",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 1,
+          "names": {
+            "ascii": "s1",
+            "unicode": "σ₁",
+            "latex": "\\sigma_{1}"
+          },
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σ₁",
+          "repr": "σ₁",
+          "latex": "\\sigma_{1}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "names": {
+            "ascii": "s2",
+            "unicode": "σ₂",
+            "latex": "\\sigma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σ₂",
+          "repr": "σ₂",
+          "latex": "\\sigma_{2}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "names": {
+            "ascii": "s1s2",
+            "unicode": "σ₁σ₂",
+            "latex": "\\sigma_{1} \\sigma_{2}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σ₁σ₂",
+          "repr": "σ₁σ₂",
+          "latex": "\\sigma_{1} \\sigma_{2}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "names": {
+            "ascii": "s3",
+            "unicode": "σ₃",
+            "latex": "\\sigma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σ₃",
+          "repr": "σ₃",
+          "latex": "\\sigma_{3}",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "names": {
+            "ascii": "s1s3",
+            "unicode": "σ₁σ₃",
+            "latex": "\\sigma_{1} \\sigma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "unicode": "σ₁σ₃",
+          "repr": "σ₁σ₃",
+          "latex": "\\sigma_{1} \\sigma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "names": {
+            "ascii": "s2s3",
+            "unicode": "σ₂σ₃",
+            "latex": "\\sigma_{2} \\sigma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "unicode": "σ₂σ₃",
+          "repr": "σ₂σ₃",
+          "latex": "\\sigma_{2} \\sigma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "names": {
+            "ascii": "s1s2s3",
+            "unicode": "σ₁σ₂σ₃",
+            "latex": "\\sigma_{1} \\sigma_{2} \\sigma_{3}"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "unicode": "σ₁σ₂σ₃",
+          "repr": "σ₁σ₂σ₃",
+          "latex": "\\sigma_{1} \\sigma_{2} \\sigma_{3}",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "sigma_xyz",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "labels": [
+        {
+          "mask": 0,
+          "names": {
+            "ascii": "1",
+            "unicode": "1",
+            "latex": "1"
+          },
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "1",
+          "repr": "1",
+          "latex": "1",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 1,
+          "names": {
+            "ascii": "x",
+            "unicode": "σₓ",
+            "latex": "\\sigma_x"
+          },
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σₓ",
+          "repr": "σₓ",
+          "latex": "\\sigma_x",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "names": {
+            "ascii": "y",
+            "unicode": "σᵧ",
+            "latex": "\\sigma_y"
+          },
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σᵧ",
+          "repr": "σᵧ",
+          "latex": "\\sigma_y",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "names": {
+            "ascii": "xy",
+            "unicode": "σₓσᵧ",
+            "latex": "\\sigma_x \\sigma_y"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σₓσᵧ",
+          "repr": "σₓσᵧ",
+          "latex": "\\sigma_x \\sigma_y",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "names": {
+            "ascii": "z",
+            "unicode": "σz",
+            "latex": "\\sigma_z"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "unicode": "σz",
+          "repr": "σz",
+          "latex": "\\sigma_z",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "names": {
+            "ascii": "xz",
+            "unicode": "σₓσz",
+            "latex": "\\sigma_x \\sigma_z"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "unicode": "σₓσz",
+          "repr": "σₓσz",
+          "latex": "\\sigma_x \\sigma_z",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "names": {
+            "ascii": "yz",
+            "unicode": "σᵧσz",
+            "latex": "\\sigma_y \\sigma_z"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "unicode": "σᵧσz",
+          "repr": "σᵧσz",
+          "latex": "\\sigma_y \\sigma_z",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "names": {
+            "ascii": "xyz",
+            "unicode": "σₓσᵧσz",
+            "latex": "\\sigma_x \\sigma_y \\sigma_z"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "unicode": "σₓσᵧσz",
+          "repr": "σₓσᵧσz",
+          "latex": "\\sigma_x \\sigma_y \\sigma_z",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "custom_2",
+      "signature": [
+        1,
+        1
+      ],
+      "labels": [
+        {
+          "mask": 0,
+          "names": {
+            "ascii": "1",
+            "unicode": "1",
+            "latex": "1"
+          },
+          "data": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "unicode": "1",
+          "repr": "1",
+          "latex": "1",
+          "square": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              1,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              1,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 1,
+          "names": {
+            "ascii": "a",
+            "unicode": "𝐚",
+            "latex": "𝐚"
+          },
+          "data": [
+            0,
+            1,
+            0,
+            0
+          ],
+          "unicode": "𝐚",
+          "repr": "𝐚",
+          "latex": "𝐚",
+          "square": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              1,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              1,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "names": {
+            "ascii": "b",
+            "unicode": "𝐛",
+            "latex": "𝐛"
+          },
+          "data": [
+            0,
+            0,
+            1,
+            0
+          ],
+          "unicode": "𝐛",
+          "repr": "𝐛",
+          "latex": "𝐛",
+          "square": [
+            1,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              1,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              1,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "names": {
+            "ascii": "ab",
+            "unicode": "𝐚𝐛",
+            "latex": "𝐚 𝐛"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            1
+          ],
+          "unicode": "𝐚𝐛",
+          "repr": "𝐚𝐛",
+          "latex": "𝐚 𝐛",
+          "square": [
+            -1,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              1
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "custom_3",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "labels": [
+        {
+          "mask": 0,
+          "names": {
+            "ascii": "1",
+            "unicode": "1",
+            "latex": "1"
+          },
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "1",
+          "repr": "1",
+          "latex": "1",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 1,
+          "names": {
+            "ascii": "a",
+            "unicode": "𝐚",
+            "latex": "𝐚"
+          },
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "𝐚",
+          "repr": "𝐚",
+          "latex": "𝐚",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 2,
+          "names": {
+            "ascii": "b",
+            "unicode": "𝐛",
+            "latex": "𝐛"
+          },
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "𝐛",
+          "repr": "𝐛",
+          "latex": "𝐛",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 3,
+          "names": {
+            "ascii": "ab",
+            "unicode": "𝐚𝐛",
+            "latex": "𝐚 𝐛"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "unicode": "𝐚𝐛",
+          "repr": "𝐚𝐛",
+          "latex": "𝐚 𝐛",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 4,
+          "names": {
+            "ascii": "c",
+            "unicode": "𝐜",
+            "latex": "𝐜"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "unicode": "𝐜",
+          "repr": "𝐜",
+          "latex": "𝐜",
+          "square": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 5,
+          "names": {
+            "ascii": "ac",
+            "unicode": "𝐚𝐜",
+            "latex": "𝐚 𝐜"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "unicode": "𝐚𝐜",
+          "repr": "𝐚𝐜",
+          "latex": "𝐚 𝐜",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 6,
+          "names": {
+            "ascii": "bc",
+            "unicode": "𝐛𝐜",
+            "latex": "𝐛 𝐜"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "unicode": "𝐛𝐜",
+          "repr": "𝐛𝐜",
+          "latex": "𝐛 𝐜",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1,
+              0
+            ]
+          }
+        },
+        {
+          "mask": 7,
+          "names": {
+            "ascii": "abc",
+            "unicode": "𝐚𝐛𝐜",
+            "latex": "𝐚 𝐛 𝐜"
+          },
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "unicode": "𝐚𝐛𝐜",
+          "repr": "𝐚𝐛𝐜",
+          "latex": "𝐚 𝐛 𝐜",
+          "square": [
+            -1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "lookups": {
+            "ascii": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "unicode": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ],
+            "latex": [
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "id": "short_names",
+      "type": "ValueError",
+      "message": "vector_names has 1 entries, need at least 2"
+    },
+    {
+      "id": "invalid_blades",
+      "type": "TypeError",
+      "message": "blades must be a BladeConvention, got str"
+    },
+    {
+      "id": "unknown_name",
+      "type": "ValueError",
+      "message": "Unknown blade name: 'xyz'"
+    }
+  ]
+}

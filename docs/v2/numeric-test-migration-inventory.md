@@ -1587,3 +1587,49 @@ No production behavior changes. Nine naming and twenty rotor/sandwich tests
 remain in the mixed suite; both construction-ledger files remain. Namespace
 guards, engine deletion and release gates are pending. See
 [ADR-116](../adrs/116-public-latex-coverage-and-content-contracts.md).
+
+### Phase 9 follow-through: public naming-preset and exterior-word contracts
+
+All nine `TestNamingPresets` identities now live in
+`presentation/test_naming_preset_contracts.py`. The other twenty mixed-suite
+methods and unrelated code are unchanged. The archive
+`tools/baselines/naming-presets-v1.json` retains full source/digest, all 29
+source identities, selected ownership and five complete convention tables.
+The 44 native labels retain coefficients, squares, three spellings, actual
+renderings and 132 evaluated lookups. Three actual validation errors remain
+recorded.
+
+Public replay covers every label/target with and without expression literals.
+Existing ASCII repr, safe sigma-script bracing and `KeyError` lookup behavior
+remain explicit. Complete label tables preserve custom names and historical
+sigma-xyz ASCII keys; configuration and spelling ambiguities are rejected.
+
+Every named basis pair is checked against reference products in three metrics
+and three indexed styles across all targets. Separate coefficient identities
+show that word-like exterior labels do not absorb the scalar/vector terms of
+geometric words in oblique frames. Signed lookup follows a computed reversed
+exterior product, not its unsigned storage slot. Python locals remain an
+independent policy; label containers are immutable snapshots.
+
+The construction notebook displays its Gram matrix with `MatrixRepr` and
+teaches these distinctions through calculated values and explicit local-name
+configuration. A runtime regression verifies mathematics and teaching output.
+All 109 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both files.
+
+All 93 public cases pass from the wheel with module origins verified and
+legacy imports blocked. Full suites pass 8,831 cases (73 skipped) on Python
+3.11 and 8,976 (20 skipped) on Python 3.14. Core, facade, expression and
+rendering coverage are unchanged. Ruff lint, configured Python formatting
+and changed-file Markdown lint pass; the guide recipe executes and all 246
+local links in the seven changed Markdown files resolve. The existing matrix
+warning, 295 type errors and Markdown code-block formatting debt remain.
+
+A separate full-suite production coverage checkpoint measures 100% for
+`names.py`, 99% for `blades.py` and 96% for `presentation.py`, with branch
+measurement enabled.
+
+No production behavior changes. Only twenty rotor/sandwich methods remain in
+the mixed suite. Both construction-ledger files remain; namespace guards,
+engine deletion and release gates are pending. See
+[ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contracts.md).
