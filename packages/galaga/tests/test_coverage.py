@@ -6,7 +6,6 @@ import pytest
 from galaga.expr import (
     Conjugate,
     Dual,
-    Expr,
     Grade,
     Involute,
     Neg,
@@ -26,7 +25,6 @@ from galaga.legacy import (
     conjugate,
     doran_lasenby_inner,
     dual,
-    even_grades,
     gp,
     hestenes_inner,
     inverse,
@@ -34,32 +32,25 @@ from galaga.legacy import (
     is_even,
     is_rotor,
     left_contraction,
-    odd_grades,
-    op,
     regressive_product,
     reverse,
     right_contraction,
     sandwich,
     scalar_product,
-    undual,
     unit,
 )
 from galaga.legacy import conjugate as sconjugate
 from galaga.legacy import dual as sdual
 from galaga.legacy import even_grades as seven
 from galaga.legacy import even_grades as seven_grades
-from galaga.legacy import gp as sgp
 from galaga.legacy import grade as sgrade
 from galaga.legacy import hestenes_inner as shi
 from galaga.legacy import inverse as sinverse
 from galaga.legacy import involute as sinvolute
 from galaga.legacy import left_contraction as slc
 from galaga.legacy import norm as snorm
-from galaga.legacy import normalise as snormalise
-from galaga.legacy import normalize as snormalize
 from galaga.legacy import odd_grades as sodd
 from galaga.legacy import odd_grades as sodd_grades
-from galaga.legacy import op as sop
 from galaga.legacy import right_contraction as src
 from galaga.legacy import sandwich as ssandwich
 from galaga.legacy import scalar_product as ssp
@@ -152,356 +143,8 @@ class TestNamingPresets:
 # Inner-product identities now live in facade/test_inner_product_contracts.py.
 
 
-# ============================================================
-# symbolic.py coverage gaps
-# ============================================================
-
-
-class TestSymbolicOperators:
-    def test_radd_scalar(self, cl3):
-        """scalar + Expr works."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        expr = 3 + a
-        assert str(expr) == "3 + a"
-
-    def test_rsub_scalar(self, cl3):
-        """scalar - Expr works."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        expr = 3 - a
-        assert str(expr) == "3 - a"
-
-    def test_rmul_scalar(self, cl3):
-        """scalar * Expr works."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        expr = 5 * a
-        assert str(expr) == "5a"
-
-    def test_truediv(self, cl3):
-        """Expr / scalar works."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        expr = a / 2
-        assert str(expr) == "a/2"
-
-    def test_truediv_notimplemented(self, cl3):
-        """Expr / non-scalar raises TypeError."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert a.__truediv__("bad") is NotImplemented
-
-    def test_neg_eval(self, cl3):
-        """Neg node evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        result = (-a).eval()
-        assert np.allclose(result.data, (-e1).data)
-
-    def test_scalar_mul_eval(self, cl3):
-        """ScalarMul node evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        result = (3 * a).eval()
-        assert np.allclose(result.data, (3 * e1).data)
-
-
-class TestSymbolicBinaryEval:
-    def test_rc_eval(self, cl3):
-        """Right contraction Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = sym(e1 * e2, "B")
-        v = sym(e2, "v")
-        result = src(B, v).eval()
-        expected = right_contraction(e1 * e2, e2)
-        assert np.allclose(result.data, expected.data)
-
-    def test_hi_eval(self, cl3):
-        """Hestenes inner Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = shi(a, b).eval()
-        expected = hestenes_inner(e1, e2)
-        assert np.allclose(result.data, expected.data)
-
-    def test_sp_eval(self, cl3):
-        """Scalar product Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e1, "b")
-        result = ssp(a, b).eval()
-        expected = scalar_product(e1, e1)
-        assert np.allclose(result.data, expected.data)
-
-    def test_op_eval(self, cl3):
-        """Outer product Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = sop(a, b).eval()
-        expected = op(e1, e2)
-        assert np.allclose(result.data, expected.data)
-
-    def test_sub_eval(self, cl3):
-        """Sub Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = (a - b).eval()
-        assert np.allclose(result.data, (e1 - e2).data)
-
-    def test_add_eval(self, cl3):
-        """Add Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = (a + b).eval()
-        assert np.allclose(result.data, (e1 + e2).data)
-
-
-class TestSymbolicUnaryEval:
-    def test_involute_eval(self, cl3):
-        """Involute Expr evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        result = sinvolute(v).eval()
-        expected = involute(e1)
-        assert np.allclose(result.data, expected.data)
-
-    def test_conjugate_eval(self, cl3):
-        """Conjugate Expr evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        result = sconjugate(v).eval()
-        expected = conjugate(e1)
-        assert np.allclose(result.data, expected.data)
-
-    def test_undual_eval(self, cl3):
-        """Undual Expr evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        result = sundual(v).eval()
-        expected = undual(e1)
-        assert np.allclose(result.data, expected.data)
-
-    def test_unit_eval(self, cl3):
-        """Unit Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(cl3.vector([3, 4, 0]), "v")
-        result = sunit(v).eval()
-        expected = unit(cl3.vector([3, 4, 0]))
-        assert np.allclose(result.data, expected.data)
-
-    def test_inverse_eval(self, cl3):
-        """Inverse Expr evaluates correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(2 * e1, "v")
-        result = sinverse(v).eval()
-        expected = inverse(2 * e1)
-        assert np.allclose(result.data, expected.data)
-
-
-# Inner-product identities now live in facade/test_inner_product_contracts.py.
-
-
-class TestSymbolicNormalize:
-    def test_normalize_alias(self, cl3):
-        """normalize() is an alias for unit()."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(snormalize(v)) == "v̂"
-        assert str(snormalise(v)) == "v̂"
-
-    def test_normalize_numeric_fallback(self, cl3):
-        """normalize() falls back to numeric."""
-        v = cl3.vector([3, 4, 0])
-        result = snormalize(v)
-        assert not isinstance(result, Expr)
-
-
-class TestSymbolicConvenienceProps:
-    def test_inv_property(self, cl3):
-        """.inv returns inverse."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(v.inv) == "v⁻¹"
-
-    def test_dag_property(self, cl3):
-        """.dag returns reverse."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        assert str(R.dag) == "R̃"
-
-    def test_sq_property(self, cl3):
-        """.sq returns gp(x, x)."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        assert str(R.sq) == "R²"
-
-
-class TestSymbolicMixedInputs:
-    """Test that mixing Multivector and Expr works via _ensure_expr."""
-
-    def test_gp_mv_and_expr(self, cl3):
-        """gp(MV, Expr) coerces correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        result = sgp(e1, R)
-        assert result._is_symbolic
-
-    def test_op_mv_and_expr(self, cl3):
-        """op(MV, Expr) coerces correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        result = sop(e2, a)
-        assert result._is_symbolic
-
-
-class TestScalarExpr:
-    def test_scalar_str(self):
-        """Scalar node str() renders the value."""
-        s = Scalar(3.0)
-        assert str(s) == "3"
-
-    def test_scalar_eval_raises(self):
-        """Scalar node eval() raises — no algebra context."""
-        s = Scalar(3.0)
-        with pytest.raises(TypeError):
-            s.eval()
-
-
-class TestUnitLongName:
-    def test_unit_long_name(self, cl3):
-        """unit() long name renders correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "velocity")
-        assert str(sunit(v)) == "velocity/‖velocity‖"
-
-
-class TestRemainingSymbolicGaps:
-    def test_sym_repr(self, cl3):
-        """Sym repr uses ascii name."""
-        e1, _, _ = cl3.basis_vectors()
-        s = sym(e1, "v")
-        assert repr(s) == "v"
-
-    def test_expr_repr_delegates_to_str(self, cl3):
-        """All non-Sym Expr nodes should have repr() == str() for REPL display."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        v = sym(e1, "v")
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-
-        cases = [
-            sgrade(R * v * ~R, 1),  # Grade
-            R * v,  # Gp
-            a ^ b,  # Op
-            ~R,  # Reverse
-            a + b,  # Add
-            a - b,  # Sub
-            3 * a,  # ScalarMul
-            -a,  # Neg
-        ]
-        for expr in cases:
-            assert repr(expr) == str(expr), f"{type(expr).__name__}: repr != str"
-
-    def test_expr_or_operator(self, cl3):
-        """| operator on Expr builds Dli node."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e1 ^ e2, "B")
-        result = a | b
-        assert str(result) == "a·B"
-
-    def test_expr_mul_with_expr(self, cl3):
-        """Expr * Expr builds Gp node."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = a * b
-        assert str(result) == "ab"
-
-    def test_symbolic_numeric_fallbacks(self, cl3):
-        """Test all symbolic functions with plain Multivectors."""
-        e1, e2, _ = cl3.basis_vectors()
-        # These should all return Multivector, not Expr
-        assert not isinstance(sop(e1, e2), Expr)
-        assert not isinstance(slc(e1, e1 ^ e2), Expr)
-        assert not isinstance(src(e1 ^ e2, e1), Expr)
-        assert not isinstance(shi(e1, e2), Expr)
-        assert not isinstance(ssp(e1, e2), Expr)
-        assert not isinstance(sinvolute(e1), Expr)
-        assert not isinstance(sconjugate(e1), Expr)
-        assert not isinstance(sdual(e1), Expr)
-        assert not isinstance(sundual(e1), Expr)
-        assert not isinstance(sinverse(e1), Expr)
-
-
-class TestSymbolicEvenOddSquared:
-    """Tests for symbolic even_grades(), odd_grades(), squared()."""
-
-    def test_squared_str(self, cl3):
-        """Squared Expr renders as x²."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        assert str(ssq(R)) == "R²"
-
-    def test_squared_eval(self, cl3):
-        """Squared Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(e1 * e2, "R")
-        result = ssq(R).eval()
-        expected = gp(e1 * e2, e1 * e2)
-        assert np.allclose(result.data, expected.data)
-
-    def test_squared_numeric_fallback(self, cl3):
-        """squared() falls back for eager MVs."""
-        e1, _, _ = cl3.basis_vectors()
-        result = ssq(e1)
-        assert not isinstance(result, Expr)
-
-    def test_even_str(self, cl3):
-        """Even Expr renders with ⟨⟩₊."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(seven(v)) == "⟨v⟩₊"
-
-    def test_even_eval(self, cl3):
-        """Even Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = sym(1 + 2 * e1 + 3 * (e1 ^ e2), "A")
-        result = seven(mv).eval()
-        expected = even_grades(1 + 2 * e1 + 3 * (e1 ^ e2))
-        assert np.allclose(result.data, expected.data)
-
-    def test_even_numeric_fallback(self, cl3):
-        """even_grades() falls back for eager MVs."""
-        e1, _, _ = cl3.basis_vectors()
-        result = seven(e1)
-        assert not isinstance(result, Expr)
-
-    def test_odd_str(self, cl3):
-        """Odd Expr renders with ⟨⟩₋."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(sodd(v)) == "⟨v⟩₋"
-
-    def test_odd_eval(self, cl3):
-        """Odd Expr evaluates correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        mv = sym(1 + 2 * e1 + 3 * (e1 ^ e2), "A")
-        result = sodd(mv).eval()
-        expected = odd_grades(1 + 2 * e1 + 3 * (e1 ^ e2))
-        assert np.allclose(result.data, expected.data)
-
-    def test_odd_numeric_fallback(self, cl3):
-        """odd_grades() falls back for eager MVs."""
-        e1, _, _ = cl3.basis_vectors()
-        result = sodd(e1)
-        assert not isinstance(result, Expr)
+# Eager operation/provenance identities now live in facade/test_eager_operation_contracts.py.
+# Historical source and observations: tools/baselines/eager-operation-edges-v1.json.
 
 
 class TestRotorFromPlaneAngle:

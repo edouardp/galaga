@@ -1420,3 +1420,42 @@ No production package behavior changes. The two mixed suites remain in the
 construction ledger; their remaining contracts, namespace/construction guards,
 engine deletion and final release gates are still pending. See
 [ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md).
+
+### Phase 9 follow-through: eager operation and provenance edges
+
+All 42 identities in ten eager-operation classes are extracted from
+`test_coverage.py` into `facade/test_eager_operation_contracts.py`.
+The other 137 methods and unrelated code remain unchanged. The archive
+`tools/baselines/eager-operation-edges-v1.json` retains complete source and
+digest, all 179 source identities, extracted identities and owner, 46
+nonzero operation observations, eight mixed-input observations, wrapper/node
+types, display strings, scalar errors, normalization aliases and properties.
+
+Public tests check 23 recipes across Euclidean, oblique-indefinite and
+degenerate metrics and five provenance states. Gram minors, exterior
+permutation signs, grade signs and forced-reference tensors independently
+check coefficients. Linear solves and two-sided residuals check inverse;
+metric determinants check duality. Null-value domain errors, plain scalar
+result types, explicit replay, source order and presentation immutability
+are permanent v2 contracts. Reviewed three-target strings are separate from
+historical spelling; bare nodes, diagnostic repr and warning adapters retain
+their intentional v2 boundaries.
+
+Mutation controls reject erased/malformed/nonfinite coefficients, wrong unary
+operations, changed return types, reversed provenance, cached replay, wrong
+targets and silent aliases. The eager-values notebook teaches literal snapshots
+versus symbol rebinding with nonzero mixed-grade output, explicit scalar-node
+evaluation and mathematical rendering. Its runtime test checks coefficients,
+literal/symbol structure and generated Markdown. The guide contains an
+executable replacement recipe.
+
+All 489 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both files. All 470 public cases pass from the wheel with origins verified
+and legacy imports blocked. Full suites pass 7,737 cases (67 skipped) on
+Python 3.11 and 7,876 (20 skipped) on Python 3.14, including notebook exports.
+Core, facade and rendering coverage percentages are unchanged; the existing
+matrix warning, 295 type errors and Markdown-formatting debt remain.
+No production package behavior changes. This subgroup leaves
+both mixed suites in the construction ledger; remaining contracts, engine
+deletion and final release gates are still pending. See
+[ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).

@@ -126,6 +126,7 @@ helps future contributors understand why certain choices were made.
 | [110](110-public-factory-and-display-edge-contracts.md) | Public Factory and Display Edge Contracts | Accepted |
 | [111](111-architecture-contracts-use-the-public-operation-catalog.md) | Architecture Contracts Use the Public Operation Catalog | Accepted |
 | [112](112-explicit-inner-product-contracts-outlive-mode-dispatch.md) | Explicit Inner-Product Contracts Outlive Mode Dispatch | Accepted |
+| [113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md) | Eager Operation Contracts Outlive Mixed Symbolic Tests | Accepted |
 
 ## Creating New ADRs
 

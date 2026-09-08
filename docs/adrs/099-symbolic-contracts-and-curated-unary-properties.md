@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-099: Symbolic Contracts and Curated Unary Properties
 
+The additional eager-operation identities from the mixed coverage suite now
+exercise these same canonical properties without v1, including unit/inverse
+domain distinctions and warning adapters; see
+[ADR-113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).
+
 ## Context and problem statement
 
 The 57 tests in `test_symbolic.py` still exercised the legacy expression

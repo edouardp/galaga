@@ -209,6 +209,41 @@ for non-default controls. See
 
 ## Inspect generic expression calls, not legacy registries
 
+Plain numeric operands can participate in a tracked operation. Their literal
+leaves are snapshots; only symbol leaves respond to new bindings. A bare
+`Symbol("a")` is not a numeric operand: construct a `Call` explicitly when
+you want a standalone expression.
+
+```python
+from galaga import Algebra, Call, ScalarLiteral, Symbol, evaluate, render
+
+algebra = Algebra(3)
+plane = algebra.blade(3)
+original = algebra.vector((2, -1, 1))
+replacement = algebra.vector((1, 2, -1))
+literal = plane * original.with_expr()
+named = plane * original.named("a")
+assert literal == named
+assert evaluate(literal.expr, algebra=algebra) == literal
+assert evaluate(named.expr, algebra=algebra, environment={"a": replacement}) == plane * replacement
+assert named == plane * original  # replay has not mutated the saved value
+
+node = Call("subtract", (ScalarLiteral(3), Symbol("a")))
+assert evaluate(node, algebra=algebra, environment={"a": replacement}) == 3 - replacement
+assert render(node, presentation=algebra.presentation, target="latex") == "3 - a"
+assert repr(node).startswith("Call(operation_id=")  # diagnostic, not mathematics
+assert evaluate(ScalarLiteral(3), algebra=algebra) == 3
+```
+
+Even scalar leaves need an explicit algebra when evaluated; nodes have no
+hidden-context `.eval()` method. `normalize` and `normalise` are temporary
+deprecation-warning adapters to `unit`. Prefer the canonical name.
+Normalization divides by the metric-derived magnitude, not by the value's
+geometric inverse. Zero and nonzero null vectors cannot be normalized by
+this operation. See the
+[eager-values lesson](../../examples/galaga_v2/eager_values_and_expressions.py)
+and [ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).
+
 Galaga 2 has no per-operation expression class or symbolic-handler registration
 step. Inspect `Call.operation_id`, `operands` and immutable `parameters`;
 `get_operation` resolves the shared schema used by construction and replay.

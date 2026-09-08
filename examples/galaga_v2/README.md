@@ -12,7 +12,8 @@ The recommended reading order is:
 2. [Eager values and expressions](eager_values_and_expressions.py) — numeric
    values, optional expression provenance, naming, long-form operations,
    variadic products, checked scalar conversion, tiny-value display tolerance,
-   and literal versus named fractions with explicit replay.
+   literal versus named fractions, mixed-input snapshots versus symbol
+   rebinding, and diagnostic nodes versus mathematical rendering.
 3. [Presentation contexts](presentation_contexts.py) — content selection,
    immutable presentation views, scoped changes, explicit render overrides,
    numeric display policy, and rendered-string snapshots versus new scoped

@@ -302,6 +302,7 @@ def _(mo):
 @app.cell
 def _(Algebra, DisplayPolicy, gm):
     from fractions import Fraction
+
     from galaga.expression import evaluate
 
     _scalar_algebra = Algebra(1)
@@ -353,6 +354,120 @@ def _(Algebra, DisplayPolicy, gm):
         third_named,
         third_replayed,
     )
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Literal snapshots versus symbol bindings
+
+    A plain multivector is a numeric operand, not a bare expression node.
+    Combining it with a tracked operand records its coefficients as a literal
+    snapshot. A named operand instead contributes a symbol: replay needs an
+    explicit binding and can use a new value without changing the eager result.
+
+    Here a bivector multiplies a vector, producing both vector and trivector
+    grades. Compare the two histories before and after rebinding `a`.
+    """)
+    return
+
+
+@app.cell
+def _(algebra, geometric_product, gm):
+    from galaga import evaluate as _evaluate
+
+    history_source = algebra.vector((2, -1, 1))
+    history_replacement = algebra.vector((1, 2, -1))
+    _plane = algebra.blade(3)
+    literal_history = geometric_product(_plane, history_source.with_expr())
+    named_history = geometric_product(_plane, history_source.named("a"))
+    literal_replay = _evaluate(literal_history.expr, algebra=algebra)
+    named_replay = _evaluate(named_history.expr, algebra=algebra, environment={"a": history_replacement})
+    _literal_expression = literal_history.display("expr/latex")
+    _named_expression = named_history.display("expr/latex")
+    _original_value = named_history.display("value/latex")
+    _replayed_value = named_replay.display("value/latex")
+
+    gm.md(rt"""
+    Both calculations initially give the same numeric value:
+
+    $$
+    {_original_value!s}.
+    $$
+
+    Literal history (no environment needed):
+
+    $$
+    {_literal_expression!s}.
+    $$
+
+    Named history (bind `a` explicitly):
+
+    $$
+    {_named_expression!s}.
+    $$
+
+    Replaying the named history with `a = algebra.vector((1, 2, -1))` gives
+
+    $$
+    {_replayed_value!s}.
+    $$
+
+    `literal_replay` still equals the original value. `named_history` also
+    keeps its original coefficients; replay returns a new value.
+    """)
+    return history_replacement, history_source, literal_history, literal_replay, named_history, named_replay
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Nodes describe operations; values perform them
+
+    `Symbol("a")` has no coefficients, so it cannot replace a multivector in
+    numeric multiplication. To build an expression without calculating yet,
+    use `Call` and then `evaluate(..., algebra=..., environment=...)`.
+
+    Node `repr` is diagnostic structure, not formatted mathematics. Use
+    `render(node, presentation=...)` for mathematical display. Even a standalone
+    `ScalarLiteral` needs an algebra when evaluated; nodes carry no hidden
+    evaluation context.
+
+    Prefer `unit(a)` to the deprecated `normalize(a)` and `normalise(a)`
+    warning adapters. Normalization divides by the metric-derived magnitude;
+    it is not `inverse(a)`. A nonzero null vector cannot be normalized this way.
+    """)
+    return
+
+
+@app.cell
+def _(algebra, gm, history_replacement):
+    from galaga import Call as _Call
+    from galaga import ScalarLiteral as _ScalarLiteral
+    from galaga import Symbol as _Symbol
+    from galaga import evaluate as _evaluate
+    from galaga import render as _render
+
+    scalar_node = _ScalarLiteral(3)
+    reflected_node = _Call("subtract", (scalar_node, _Symbol("a")))
+    reflected_replay = _evaluate(reflected_node, algebra=algebra, environment={"a": history_replacement})
+    scalar_node_value = _evaluate(scalar_node, algebra=algebra)
+    _diagnostic = repr(reflected_node)
+    _math = _render(reflected_node, presentation=algebra.presentation, target="latex")
+
+    gm.md(rt"""
+    The source order in `3 - a` is explicit:
+
+    ```text
+    {_diagnostic!s}
+    ```
+
+    Its mathematical rendering is ${_math!s}$. Replaying with the same new
+    binding gives:
+
+    {reflected_replay}
+    """)
+    return reflected_node, reflected_replay, scalar_node, scalar_node_value
 
 
 if __name__ == "__main__":

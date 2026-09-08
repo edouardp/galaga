@@ -14,6 +14,10 @@ The legacy registry invariants now have v2 owners checking core/catalog import
 direction, API completeness, generic nodes and evaluator/parameter routing;
 see [ADR-111](111-architecture-contracts-use-the-public-operation-catalog.md).
 
+The mixed eager-operation contracts now have public owners checking literal
+snapshots, explicit rebinding, scalar-node context and diagnostic repr;
+see [ADR-113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).
+
 ## Context and problem statement
 
 Galaga's legacy expression design combined eager coefficients, mutable naming,
