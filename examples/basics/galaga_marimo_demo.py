@@ -9,18 +9,22 @@ def _():
     import marimo as mo
     import numpy as np
     from galaga import (
-        Algebra, gp, op, grade, reverse, norm, unit, inverse, exp, log, sandwich,
+        Algebra,
+        DisplayPolicy,
+        grade,
+        norm,
+        inverse,
+        exp,
+        sandwich,
     )
-    from galaga import symbolic as sym
-    Sym = sym.sym
     import galaga_marimo as gm
 
-    return Algebra, Sym, gm, mo, np, sandwich, sym
+    return Algebra, DisplayPolicy, exp, gm, grade, inverse, mo, norm, np, sandwich
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     # galaga_marimo — Examples
 
     This notebook demonstrates the `galaga_marimo` helper library for rendering
@@ -33,32 +37,31 @@ def _(gm):
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Setup
     """)
     return
 
 
 @app.cell
-def _(Algebra, Sym):
-    alg = Algebra((1, 1, 1), repr_unicode=True)
-    e1, e2, e3 = alg.basis_vectors()
-    I = alg.I
+def _(Algebra, exp):
+    alg = Algebra((1, 1, 1))
+    e1, e2, e3 = alg.basis_vectors(expr=True)
 
     v = 3 * e1 + 2 * e2 - e3
     B = e1 ^ e2
-    R = alg.rotor(B, radians=0.7)
+    R = exp(-0.7 * B / 2)
 
-    # Symbolic wrappers
-    v_s = Sym(v, "v")
-    R_s = Sym(R, "R")
+    # Named eager values retain expression provenance.
+    v_s = v.named("v")
+    R_s = R.named("R")
     return B, R, R_s, alg, e1, e2, e3, v, v_s
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Basic Interpolation
 
     Any object with a `.latex()` or `._repr_latex_()` method is automatically rendered as inline LaTeX.
@@ -82,8 +85,8 @@ def _(B, R, e1, gm, v):
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Format Specs
 
     Use format specs to control rendering:
@@ -93,13 +96,14 @@ def _(gm):
     | `:latex` or `:inline` | Force inline LaTeX |
     | `:block` | Force display-mode LaTeX ($$...$$) |
     | `:text` or `:unicode` | Force plain text (no LaTeX) |
-    | `:.3f`, `:+.2f`, etc. | Standard Python numeric formatting |
+    | `:name`, `:expr`, `:value`, `:full` | Select Galaga semantic content |
+    | `:.3f`, `:+.2f`, etc. | Standard formatting for Python numbers |
     """)
     return
 
 
 @app.cell
-def _(gm, np, v):
+def _(gm, norm, np, v):
     gm.md(t"""
     **Numeric format specs:**
     - Pi to 3 decimals: {np.pi:.3f}
@@ -109,9 +113,9 @@ def _(gm, np, v):
     - Integer formatting: {1234567:,}
 
     **Numeric specs on GA scalars:**
-    - Norm of v (raw): {float(np.sqrt(v.data @ v.data))}
-    - Norm of v (3 dp): {float(np.sqrt(v.data @ v.data)):.3f}
-    - Norm² of v (1 dp): {float(v.data @ v.data):.1f}
+    - Norm with provenance: {norm(v):full}
+    - Norm as a Python scalar (3 dp): {float(norm(v)):.3f}
+    - Norm² as a Python scalar (1 dp): {float(norm(v)) ** 2:.1f}
 
     **GA format specs:**
     - Auto (default): {v}
@@ -123,37 +127,42 @@ def _(gm, np, v):
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Format Specs on Multivectors
 
-    When you apply a numeric format spec like `:.3f` to a multivector,
-    **every coefficient** is formatted — including ±1. The default display
-    drops the `1` (writing `e₁` instead of `1e₁`), but an explicit format
-    spec shows all coefficients literally. This is intentional: if you're
-    asking for 3 decimal places, you want to inspect the actual values.
+    Multivectors use content/target format specs, not Python's `:.3f`.
+    Set `DisplayPolicy(coefficient_precision=3)` for **three significant
+    digits**, independently of the selected content. This is not a request
+    for three decimal places or for explicitly printing coefficients ±1.
+
+    For fixed decimal places, query an individual coefficient and format
+    the resulting Python number. Rendered text is rounded; inspect numeric
+    coefficients, not glyphs, when checking equality or numerical error.
     """)
     return
 
 
 @app.cell
-def _(e1, e2, e3, gm):
+def _(DisplayPolicy, alg, e1, e2, e3, gm):
     w = 1.006 * e1 + 3.462 * e2 - e3
+    coefficient_presentation = alg.presentation.with_display(DisplayPolicy(content="value", coefficient_precision=3))
+    rounded_latex = w.latex(presentation=coefficient_presentation)
 
     gm.md(t"""
-    - Default (drop-1 sugar): {w}
-    - With `:.3f` (all coefficients shown): {w:.3f}
-    - With `:.1f`: {w:.1f}
+    - Default value display: {w:value}
+    - Three significant digits: ${rounded_latex!s}$
+    - The $e_1$ coefficient, three decimal places: {w.coefficient(1):.3f}
+    - The $e_3$ coefficient, three decimal places: {w.coefficient(4):.3f}
 
-    Notice `-e₃` vs `-1.000e₃` — the format spec forces explicit coefficients
-    so you can verify whether a value is exactly 1.0 or just close to it.
+    These are different rendering requests over the same stored coefficients.
     """)
-    return
+    return coefficient_presentation, rounded_latex, w
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Conversion Flags
 
     Standard Python conversion flags (`!s`, `!r`, `!a`) force text mode,
@@ -174,38 +183,49 @@ def _(gm, v):
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
-    ## Symbolic Expressions
+def _(mo):
+    mo.md(r"""
+    ## Expressions over eager values
 
-    Symbolic expression trees also have `.latex()`, so they render automatically.
+    `expr=True` records immutable provenance; `.named(...)` supplies a
+    semantic name. No symbolic wrapper or delayed evaluation is required.
+    Use `:expr` and `:value` to teach the computation and its result separately.
     """)
     return
 
 
 @app.cell
-def _(R_s, gm, sym, v_s):
-    sandwich_expr = sym.grade(R_s * v_s * ~R_s, 1)
+def _(R_s, gm, grade, v_s):
+    sandwich_expr = grade(R_s * v_s * ~R_s, 1)
 
     gm.md(t"""
-    Sandwich product: {sandwich_expr} = {sandwich_expr.eval()}
+    Sandwich expression: {sandwich_expr:expr}
+
+    Computed value: {sandwich_expr:value}
+
+    Combined: {sandwich_expr:full}
     """)
-    return
+    return (sandwich_expr,)
 
 
 @app.cell
-def _(R_s, gm, sym, v_s):
+def _(R_s, alg, gm, np, v_s):
+    _double_reverse = ~~v_s
+    _rotor_norm = R_s * ~R_s
+    np.testing.assert_allclose(_double_reverse.data, v_s.data, atol=1e-12)
+    np.testing.assert_allclose(_rotor_norm.data, alg.identity.data, atol=1e-12)
     gm.md(t"""
-    **Simplification examples:**
-    - Double reverse: {sym.simplify(~~v_s)}
-    - Rotor normalization: {sym.simplify(R_s * ~R_s)}
+    **Numeric checks with provenance (not universal symbolic proofs):**
+
+    - Double reverse: {_double_reverse:full}
+    - Rotor normalization: {_rotor_norm:full}
     """)
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Explicit Wrappers
 
     Use `gm.latex()`, `gm.block_latex()`, and `gm.text()` to override
@@ -225,8 +245,8 @@ def _(gm, v):
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## `gm.inline()` and `gm.block()`
 
     These wrap the entire template in `$...$` or `$$...$$` respectively.
@@ -238,20 +258,20 @@ def _(gm):
 @app.cell
 def _(R, gm, v):
     _rotated = R * v * ~R
-    gm.inline(t"R v \\tilde{{R}} = {_rotated}")
+    gm.inline(t"""R v \\tilde{{R}} = {_rotated:value}""")
     return
 
 
 @app.cell
 def _(R, gm, v):
     rotated = R * v * ~R
-    gm.block(t"R v \\tilde{{R}} = {rotated}")
+    gm.block(t"""R v \\tilde{{R}} = {rotated:value}""")
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Lists with `mo.vstack`
 
     For programmatic content, use a list comprehension with `gm.md()` inside `mo.vstack()`.
@@ -261,37 +281,31 @@ def _(gm):
 
 
 @app.cell
-def _(alg, e1, e2, gm, mo, np):
-    angles = [0, 30, 45, 60, 90]
+def _(e1, e2, exp, gm, mo, np):
+    _angles = [0, 30, 45, 60, 90]
     _B = e1 ^ e2
 
-    mo.vstack([
-        gm.md(t"**θ = {deg}°:** rotor = {alg.rotor(_B, np.radians(deg))}")
-        for deg in angles
-    ])
+    mo.vstack([gm.md(t"""**θ = {_deg}°:** rotor = {exp(-np.radians(_deg) * _B / 2):value}""") for _deg in _angles])
     return
 
 
 @app.cell
-def _(Sym, e1, e2, gm, mo, sym):
-    a = Sym(e1, "a")
-    b = Sym(e2, "b")
+def _(e1, e2, gm, inverse, mo):
+    _a = e1.named("a")
+    _b = e2.named("b")
 
-    exprs = [
-        ("Wedge", sym.op(a, b)),
-        ("Inverse", sym.inverse(a)),
+    _exprs = [
+        ("Wedge", _a ^ _b),
+        ("Inverse", inverse(_a)),
     ]
 
-    mo.vstack([
-        gm.md(t"**{name}:** {e} = {e.eval()}")
-        for name, e in exprs
-    ])
+    mo.vstack([gm.md(t"""**{_name}:** {_e:full}""") for _name, _e in _exprs])
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Doc Builder
 
     For complex documents with mixed loops, conditionals, and prose,
@@ -302,37 +316,39 @@ def _(gm):
 
 
 @app.cell
-def _(e1, e2, e3, gm):
-    basis = [("e₁", e1), ("e₂", e2), ("e₃", e3)]
+def _(alg, e1, e2, e3, gm):
+    _basis = [("e₁", e1), ("e₂", e2), ("e₃", e3)]
 
     with gm.doc() as _doc:
-        _doc.md(t"### Basis Vector Properties")
-        for name, ei in basis:
-            sq = ei * ei
-            _doc.md(t"- **{name}**: {ei}, square = {sq}")
-        _doc.md(t"All basis vectors square to $+1$ ✓")
+        _doc.text("### Basis Vector Properties")
+        for _index, (_name, _ei) in enumerate(_basis):
+            _sq = _ei * _ei
+            assert _sq == alg.gram[_index, _index]
+            _doc.md(t"""- **{_name}**: {_ei}, square = {_sq:value}""")
+        _doc.text("Each square above was checked against the Gram matrix diagonal.")
 
     _doc.render()
     return
 
 
 @app.cell
-def _(alg, e1, e2, gm, np):
+def _(coefficient_presentation, e1, e2, exp, gm, np):
     with gm.doc() as _doc:
-        _doc.md(t"### Rotor Table")
+        _doc.text("### Rotor Table")
         _doc.text("| Angle | Rotor |")
         _doc.line("|---|---|")
-        for deg in range(0, 361, 45):
-            _R = alg.rotor(e1 ^ e2, radians=np.radians(deg))
-            _doc.line(f"| {deg}° | ${_R:.3f}$ |")
+        for _deg in range(0, 361, 45):
+            _R = exp(-np.radians(_deg) * (e1 ^ e2) / 2)
+            _latex = _R.latex(presentation=coefficient_presentation)
+            _doc.md(t"""| {_deg}° | ${_latex!s}$ |""")
 
     _doc.render()
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Mixing with Marimo UI
 
     `gm.md()` returns a marimo Html object, so it works seamlessly
@@ -349,26 +365,29 @@ def _(mo):
 
 
 @app.cell
-def _(alg, e1, e2, gm, mo, np, sandwich, theta_slider):
-    _R = alg.rotor(e1 ^ e2, radians=np.radians(theta_slider.value))
+def _(e1, e2, exp, gm, mo, np, sandwich, theta_slider):
+    _R = exp(-np.radians(theta_slider.value) * (e1 ^ e2) / 2)
     _v = e1
     _result = sandwich(_R, _v)
 
-    mo.vstack([
-        gm.md(t"**θ = {theta_slider.value}°**"),
-        gm.md(t"Rotor: {_R}"),
-        gm.md(t"$e_1$ rotated: {_result}"),
-    ])
+    mo.vstack(
+        [
+            gm.md(t"""**θ = {theta_slider.value}°**"""),
+            gm.md(t"""Rotor: {_R}"""),
+            gm.md(t"""$e_1$ rotated: {_result}"""),
+        ]
+    )
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## HTML Escaping
 
-    Text values are automatically escaped to prevent XSS.
-    GA objects (rendered as LaTeX) are trusted.
+    Text interpolations are HTML-escaped. They are not a general-purpose
+    sanitiser for arbitrary Markdown or LaTeX. Explicit LaTeX wrappers are
+    appropriate for trusted mathematical content.
     """)
     return
 
@@ -376,13 +395,13 @@ def _(gm):
 @app.cell
 def _(gm):
     user_input = "<script>alert('xss')</script>"
-    gm.md(t"User said: {user_input}")
+    gm.md(t"""User said: {user_input}""")
     return
 
 
 @app.cell(hide_code=True)
-def _(gm):
-    gm.md(t"""
+def _(mo):
+    mo.md(r"""
     ## Edge Cases
     """)
     return
@@ -402,11 +421,6 @@ def _(alg, gm):
     - Bool: {True}
     - Empty string: {""}
     """)
-    return
-
-
-@app.cell
-def _():
     return
 
 

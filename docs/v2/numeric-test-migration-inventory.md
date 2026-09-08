@@ -1854,3 +1854,24 @@ legacy imports, but the legacy files still ship. Physical engine deletion,
 alias retirement and final release gates are next. The high-dimensional
 `is_rotor` decision remains separate. See
 [ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md).
+
+### Phase 9 follow-through: physical engine deletion
+
+The twenty-one retired production modules are removed, including the
+temporary symbol-conversion shim. Historical API dispositions and all
+baseline data remain. Live module checks now enforce the supported/removed
+partition, and fresh processes verify real import failure without relying on
+the test guard. Empty retired namespace directories are rejected too.
+
+The permanent artifact validator compares wheel/sdist runtime bytes with
+source, rejects retired paths and private-table dependencies, and checks
+metadata/dependencies. Both `make check` and the release script use it.
+Notebook subprocesses now follow the packages under test rather than forcing
+source-tree imports. No surviving numeric or rendering algorithm changes.
+
+The [deletion gate report](legacy-engine-deletion-gate.md) records complete
+source/wheel runs, branch-coverage preservation across all thirty-one surviving
+production modules, artifacts, security and performance. Physical deletion
+does not complete Phase 9: surviving type errors, scratch-demo disposition,
+temporary aliases, the rotor contract, CI and release metadata remain open.
+See [ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md).

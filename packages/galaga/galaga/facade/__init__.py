@@ -3,7 +3,7 @@
 Top-level :mod:`galaga` re-exports this manifest with exact object identity.
 This namespace remains the stable implementation owner;
 :mod:`galaga.gram_bridge` is a temporary compatibility re-export of these same
-objects, while :mod:`galaga.legacy` is the explicit Galaga 1 oracle.
+objects. The Galaga 1 engine is no longer shipped.
 """
 
 from types import MappingProxyType

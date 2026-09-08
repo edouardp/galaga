@@ -2,10 +2,12 @@ import os
 import subprocess
 import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
+from importlib.util import find_spec
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
-from tools.migrate_v2_notebooks import MIGRATED_NOTEBOOKS, migrate_source
+from tools.migrate_v2_notebooks import migrate_source, migrated_notebook_paths
 
 ROOT = Path(__file__).resolve().parents[3]
 EXAMPLES = ROOT / "examples"
@@ -13,10 +15,10 @@ EXAMPLES = ROOT / "examples"
 
 def test_new_example_notebooks_compile():
     """Verify every listed example notebook is valid Python and has marimo boilerplate."""
-    for notebook in MIGRATED_NOTEBOOKS:
-        source = (EXAMPLES / notebook).read_text()
+    for notebook in migrated_notebook_paths(ROOT):
+        source = notebook.read_text()
         if sys.version_info >= (3, 14):
-            compile(source, str(EXAMPLES / notebook), "exec")
+            compile(source, str(notebook), "exec")
         else:
             assert "app = marimo.App(" in source
             assert '__generated_with = "' in source
@@ -24,8 +26,8 @@ def test_new_example_notebooks_compile():
 
 def test_new_example_notebooks_use_v2_facade_teaching_pattern():
     """Check the ledgered gallery uses expression provenance over eager values."""
-    for notebook in MIGRATED_NOTEBOOKS:
-        source = (EXAMPLES / notebook).read_text()
+    for notebook in migrated_notebook_paths(ROOT):
+        source = notebook.read_text()
         assert "from galaga import" in source
         assert "from galaga.facade import" not in source
         assert "expr=True" in source
@@ -217,7 +219,7 @@ def test_migrated_notebooks_pass_marimo_dependency_validation() -> None:
             "marimo",
             "check",
             "--quiet",
-            *(str(EXAMPLES / notebook) for notebook in MIGRATED_NOTEBOOKS),
+            *(str(notebook) for notebook in migrated_notebook_paths(ROOT)),
         ],
         cwd=ROOT,
         check=False,
@@ -231,21 +233,15 @@ def test_migrated_notebooks_pass_marimo_dependency_validation() -> None:
 @pytest.mark.skipif(sys.version_info < (3, 14), reason="Marimo t-strings require Python 3.14")
 def test_migrated_notebooks_execute_headlessly(tmp_path: Path) -> None:
     """Execute every ledgered notebook through Marimo's headless runtime."""
-    source_paths = [
-        str(ROOT),
-        str(ROOT / "packages" / "galaga"),
-        str(ROOT / "packages" / "galaga_anywidget"),
-        str(ROOT / "packages" / "galaga_marimo"),
-        str(ROOT / "packages" / "galaga_matrix"),
-        str(ROOT / "packages" / "galaga_mermaid"),
-    ]
+    source_paths = _notebook_import_paths()
     environment = os.environ.copy()
     inherited = environment.get("PYTHONPATH")
     if inherited:
         source_paths.extend(inherited.split(os.pathsep))
     environment["PYTHONPATH"] = os.pathsep.join(source_paths)
 
-    def execute(relative: str) -> tuple[str, subprocess.CompletedProcess[str]]:
+    def execute(notebook: Path) -> tuple[str, subprocess.CompletedProcess[str]]:
+        relative = notebook.relative_to(ROOT).as_posix()
         output = tmp_path / f"{relative.replace('/', '-')}.html"
         result = subprocess.run(
             [
@@ -254,7 +250,7 @@ def test_migrated_notebooks_execute_headlessly(tmp_path: Path) -> None:
                 "marimo",
                 "export",
                 "html",
-                str(EXAMPLES / relative),
+                str(notebook),
                 "--no-include-code",
                 "--force",
                 "-o",
@@ -270,10 +266,36 @@ def test_migrated_notebooks_execute_headlessly(tmp_path: Path) -> None:
 
     failures: list[str] = []
     with ThreadPoolExecutor(max_workers=8) as pool:
-        futures = [pool.submit(execute, notebook) for notebook in MIGRATED_NOTEBOOKS]
+        futures = [pool.submit(execute, notebook) for notebook in migrated_notebook_paths(ROOT)]
         for future in as_completed(futures):
             relative, result = future.result()
             if result.returncode:
                 failures.append(f"{relative}:\n{result.stdout}{result.stderr}")
 
     assert not failures, "\n\n".join(sorted(failures))
+
+
+def _notebook_import_paths() -> list[str]:
+    """Keep subprocesses on the same installed/source packages as this test."""
+    paths = [str(ROOT)]
+    for name in ("galaga", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
+        spec = find_spec(name)
+        if spec is None or spec.origin is None:
+            raise ImportError(f"notebook integration requires {name}")
+        paths.append(str(Path(spec.origin).resolve().parent.parent))
+    return list(dict.fromkeys(paths))
+
+
+def test_notebook_subprocess_paths_follow_installed_packages_not_repository_fallbacks(monkeypatch, tmp_path):
+    site = tmp_path / "site-packages"
+    monkeypatch.setattr(
+        sys.modules[__name__], "find_spec", lambda name: SimpleNamespace(origin=str(site / name / "__init__.py"))
+    )
+    assert _notebook_import_paths() == [str(ROOT), str(site)]
+
+
+@pytest.mark.parametrize("spec", (None, SimpleNamespace(origin=None)))
+def test_notebook_subprocess_paths_reject_missing_or_namespace_dependencies(monkeypatch, spec):
+    monkeypatch.setattr(sys.modules[__name__], "find_spec", lambda name: spec)
+    with pytest.raises(ImportError, match="notebook integration requires galaga"):
+        _notebook_import_paths()

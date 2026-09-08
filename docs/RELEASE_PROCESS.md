@@ -130,7 +130,7 @@ for an already published project/version pair to be replaced.
 | 9. Test galaga-anywidget | `pytest` in a temporary Python 3.11 venv | Any test failure |
 | 10. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
 | 11. Build | `uv build` all four released packages | Build failure |
-| 12. Twine check | Validate wheel/sdist metadata | Bad metadata or README |
+| 12. Artifact checks | Validate metadata/README and source-identical legacy-free Galaga runtime contents | Bad metadata, missing/changed runtime files, or retained legacy modules |
 | 13. Publish | Publish galaga, then AnyWidget, Marimo, and matrix companions | Auth failure or version conflict |
 | 14. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
 | 15. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
@@ -225,9 +225,26 @@ Before every release, the script enforces:
 - [ ] All galaga-marimo tests pass (Python 3.14)
 - [ ] Pre-commit hooks pass (ruff, shellcheck, bandit, rumdl, checkmake)
 - [ ] Twine check passes (metadata + README render)
+- [ ] Galaga wheel and sdist match source and contain no retired runtime files
 - [ ] CHANGELOG has been edited (placeholder removed)
 - [ ] Working tree is clean
 - [ ] Current branch is attached and tracks the intended remote branch
+
+### Check Built Artifacts Without Publishing
+
+`make check-artifacts` builds and checks the Galaga runtime inventory and
+metadata. `make check` includes that check and Twine validation for all
+packages. The release script applies the same artifact gate before fetching
+credentials. To inspect previously built files:
+
+```shell
+uv run python scripts/check_galaga_artifact.py --project packages/galaga \\
+  dist/galaga-2.0.0a2-py3-none-any.whl dist/galaga-2.0.0a2.tar.gz
+```
+
+Use the filenames for the version actually being checked. The
+[current Phase 9 gate report](v2/legacy-engine-deletion-gate.md) records local
+validation separately from release readiness.
 
 ### Manual Checks (Not Automated)
 

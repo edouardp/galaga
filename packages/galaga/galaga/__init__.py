@@ -5,14 +5,9 @@ the exact objects owned by :mod:`galaga.facade`; no wrapper or parallel public
 implementation is created here.  The presentation-independent numeric engine
 remains available as :mod:`galaga.core`.
 
-Galaga 1 is retained temporarily during the Phase 8 shadow cutover through an
-explicit import::
-
-    from galaga import legacy
-
-Legacy algebras, multivectors, and operations form a separate value domain and
-must not be mixed with their Galaga 2 counterparts.  The legacy namespace is a
-migration and test-oracle facility scheduled for removal in Phase 9.
+The Galaga 1 engine and its temporary legacy namespace have been removed.
+Historical behavior remains in development-only regression data, not in a
+second shipped implementation.
 """
 
 from __future__ import annotations

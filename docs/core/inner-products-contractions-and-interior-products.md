@@ -852,8 +852,8 @@ Relevant Galaga material in this repository:
 
 - [`galaga/core`](../../packages/galaga/galaga/core/__init__.py) for the current
   executable numeric definitions;
-- [`galaga/algebra.py`](../../packages/galaga/galaga/algebra.py) for the
-  prerelease legacy oracle;
+- [the legacy-engine deletion report](../v2/legacy-engine-deletion-gate.md)
+  for the removed prerelease oracle and preserved historical evidence;
 - [`rga-convention-layer.md`](../rga-convention-layer.md) for the RGA operation
   mapping;
 - [`review-terathon-ga-foundations.md`](../review-terathon-ga-foundations.md)

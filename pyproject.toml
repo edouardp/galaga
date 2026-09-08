@@ -44,6 +44,9 @@ ignore = [
     "B905",  # zip without strict= (not needed for numpy work)
 ]
 
+[tool.ruff.per-file-target-version]
+"test_mermaid.py" = "py314"
+
 [tool.ruff.lint.isort]
 known-first-party = ["galaga", "galaga_anywidget", "galaga_marimo"]
 

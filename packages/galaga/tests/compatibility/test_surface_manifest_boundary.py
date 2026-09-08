@@ -115,6 +115,27 @@ def test_live_package_inventory_rejects_new_and_missing_unclassified_modules(
         contract._assert_current_module_inventory(tmp_path)
 
 
+@pytest.mark.parametrize("kind", ("module", "namespace", "nested"))
+def test_retired_dispositions_reject_reintroduced_files_and_empty_packages(tmp_path, kind):
+    name = "galaga.legacy.render" if kind == "nested" else "galaga.legacy"
+    contract._assert_module_disposition(tmp_path, name)
+    if kind == "module":
+        (tmp_path / "legacy.py").touch()
+    elif kind == "namespace":
+        (tmp_path / "legacy").mkdir()
+    else:
+        (tmp_path / "legacy/render").mkdir(parents=True)
+    with pytest.raises(AssertionError, match=name):
+        contract._assert_module_disposition(tmp_path, name)
+
+
+def test_live_disposition_requires_the_module_or_package(tmp_path):
+    with pytest.raises(AssertionError, match="galaga.names"):
+        contract._assert_module_disposition(tmp_path, "galaga.names")
+    (tmp_path / "names.py").touch()
+    contract._assert_module_disposition(tmp_path, "galaga.names")
+
+
 def test_surface_and_deprecation_contracts_execute_with_all_legacy_imports_forbidden() -> None:
     program = """
 import importlib.abc
@@ -137,8 +158,8 @@ class RejectLegacy(importlib.abc.MetaPathFinder):
 
 sys.meta_path.insert(0, RejectLegacy())
 import pytest
-# Replace the ordinary parent's constructor-poisoning fixture with this
-# stronger import prohibition; run the real contract tests unchanged.
+# Exercise the real contracts independently of the parent's shared import
+# guard, including the supported-versus-removed file dispositions.
 result = pytest.main(['--noconftest', '-q', *sys.argv[1:]])
 assert result == 0
 assert not any(is_legacy(name) for name in sys.modules)

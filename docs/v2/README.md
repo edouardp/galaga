@@ -98,9 +98,9 @@ headlessly under Python 3.14.
 
 The Phase 8 top-level cutover is complete. `galaga.Algebra`,
 `galaga.Multivector`, and every other top-level public export are the exact
-objects owned by `galaga.facade`. The old table engine is available only as
-the explicit `galaga.legacy` oracle; plain `import galaga` does not load it,
-and unledgered tests poison its constructors. Clean Python 3.11 wheel tests,
+objects owned by `galaga.facade`. The subsequent Phase 9 work has removed the
+old table engine and `galaga.legacy`; tests reject retired imports and package
+artifacts cannot contain those files. Clean Python 3.11 wheel tests,
 the complete Python 3.11 and 3.14 package suites, and the layer-separated
 performance baseline pass.
 
@@ -194,7 +194,11 @@ the old nonsimple-rotor false positive. The exponential notebook teaches
 metric-dependent branches, compound grade-four terms and even STA phases.
 All thirty completed dependency groups have fresh-process legacy-import gates.
 The full suite now also rejects retired imports during collection and execution.
-Engine deletion, alias retirement, and final release gates are still pending.
+Physical engine deletion is complete. The five remaining teaching notebooks
+and NumPy benchmark are migrated in place under
+[ADR-123](../adrs/123-migrate-remaining-teaching-notebooks-and-benchmark.md);
+all 84 maintained notebooks receive headless validation. Alias retirement and
+final release gates remain open.
 
 The equality/hash release blocker is resolved: signed-zero peers and scalar
 multivectors equal to real numbers now have matching hashes. Comparison also
@@ -211,7 +215,10 @@ provenance and tiny stored grades, including finite subnormal quotients.
 Namespace/construction guards are complete: no guard needs live v1 classes,
 and retired markers cannot reintroduce exemptions. The remaining shared-symbolic
 and low-level LaTeX-tree contracts have public owners and archived evidence.
-Obsolete engine deletion is next; the old files still ship in the wheel.
+The twenty-one obsolete production modules are now removed. Source, wheel and
+sdist gates reject their return, including empty namespace directories.
+See the [current deletion/release gate report](legacy-engine-deletion-gate.md)
+for validation and outstanding release requirements.
 See [ADR-120](../adrs/120-complete-redesign-contract-migration.md),
 [ADR-121](../adrs/121-deletion-ready-namespace-and-import-guards.md),
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).

@@ -34,10 +34,23 @@ from galaga import Algebra, geometric_product, outer_product
 objects, but ordinary user code does not need to import it. `galaga.core` is
 the lower-level choice for presentation-free numeric work.
 
-During the prerelease migration only, Galaga 1 is available as an isolated
-oracle under `galaga.legacy`. Legacy and Galaga 2 values do not interoperate.
-The legacy engine and migration-only bridge paths are scheduled for removal
-before stable `2.0.0`.
+The temporary `galaga.legacy` oracle and the Galaga 1 engine are removed from
+source, wheels and source distributions. Historical observations remain
+development data. The `gram_bridge` warning adapter and temporary function
+spellings still have a separate removal milestone before stable `2.0.0`.
+
+| Removed path family | Public replacement |
+|---|---|
+| `galaga.algebra`, `galaga.ops`, `galaga.legacy` | `galaga` or numeric-only `galaga.core` |
+| `galaga.basis_blade`, `galaga.blade_convention` | `galaga.blades` |
+| `galaga.expr`, `galaga.symbolic`, `galaga.lazy`, `galaga.symbolic_core` | `galaga.expression` and eager facade operations |
+| `galaga.notation` | Immutable `galaga.presentation` |
+| `galaga.latex_build/emit/nodes/rewrite`, `galaga.legacy.render` | `galaga.rendering` |
+| `galaga.latex_symbols` | `galaga.names.LatexSymbols` or `Name.from_latex` |
+| `galaga.legacy.simplify` | Explicit `galaga.expression.simplify` |
+
+See [ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md)
+and the [deletion gate report](legacy-engine-deletion-gate.md).
 
 ## Prefer canonical operation names
 

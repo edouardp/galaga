@@ -135,6 +135,8 @@ helps future contributors understand why certain choices were made.
 | [119](119-division-provenance-and-exact-scalar-dispatch.md) | Division Provenance and Exact Scalar Dispatch | Accepted |
 | [120](120-complete-redesign-contract-migration.md) | Complete Redesign Contract Migration | Accepted |
 | [121](121-deletion-ready-namespace-and-import-guards.md) | Deletion-Ready Namespace and Import Guards | Accepted |
+| [122](122-remove-the-legacy-engine-and-verify-artifacts.md) | Remove the Legacy Engine and Verify Artifacts | Accepted |
+| [123](123-migrate-remaining-teaching-notebooks-and-benchmark.md) | Migrate Remaining Teaching Notebooks and Benchmark | Accepted |
 
 ## Creating New ADRs
 

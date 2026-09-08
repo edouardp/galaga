@@ -51,20 +51,23 @@ assert not any(forbidden(name) for name in sys.modules)
     assert completed.returncode == 0, completed.stdout + completed.stderr
 
 
-def test_old_symbol_import_is_only_a_same_object_shim_without_engine_imports_or_warnings():
+def test_old_symbol_import_is_removed_and_public_conversion_still_works():
     program = (
-        IMPORT_GUARD
+        r"""
+import importlib
+import importlib.util
+assert importlib.util.find_spec('galaga.latex_symbols') is None
+try:
+    importlib.import_module('galaga.latex_symbols')
+except ModuleNotFoundError as error:
+    assert error.name == 'galaga.latex_symbols'
+else:
+    raise AssertionError('the retired symbol shim is still importable')
+"""
+        + IMPORT_GUARD
         + r"""
-# Only the historical alias is allowed here; all engine dependencies stay banned.
-roots.remove('galaga.latex_symbols')
-import warnings
-with warnings.catch_warnings(record=True) as caught:
-    warnings.simplefilter('always')
-    from galaga.latex_symbols import LatexSymbols as compatibility
-    from galaga.names import LatexSymbols, Name
-assert not caught, caught
-assert compatibility is LatexSymbols
-assert compatibility().lookup(r'\mathbb{a}') == ('𝕒', 'a')
+from galaga.names import LatexSymbols, Name
+assert LatexSymbols().lookup(r'\mathbb{a}') == ('𝕒', 'a')
 assert Name.from_latex(r'\mathbb{a}').unicode == '𝕒'
 assert not any(forbidden(name) for name in sys.modules)
 """

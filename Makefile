@@ -131,8 +131,11 @@ build: ## Build package distributions
 	cd packages/galaga_matrix && uv build
 	cd packages/galaga_mermaid && uv build
 
-.PHONY: check
-check: build ## Build and run twine checks
+.PHONY: check check-artifacts
+check-artifacts: build ## Verify legacy-free Galaga wheel and source distribution
+	uv run python scripts/check_galaga_artifact.py --project packages/galaga dist/galaga-*
+
+check: check-artifacts ## Build, verify runtime contents, and run twine checks
 	uvx twine check dist/galaga-*
 	uvx twine check packages/galaga_anywidget/dist/galaga_anywidget-*
 	uvx twine check packages/galaga_marimo/dist/galaga_marimo-*

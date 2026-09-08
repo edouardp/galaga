@@ -60,3 +60,24 @@ explicit angle units and plane normalization, displayed Gram matrices for
 elliptic/hyperbolic/null generators, compound grade-four terms, and why an
 even STA phase need not be a rotor. The lesson distinguishes reversion from
 inverse conjugation and explains the current logarithm's narrower domain.
+
+## Further migrated teaching notebooks
+
+These lessons also use the v2 facade and participate in headless validation:
+
+- [Dynamic notation](../basics/dynamic_notation.py): render the same reversal
+  with a tilde, dagger, superscript, or function without changing its value.
+- [LaTeX layout and simplification](../basics/latex_rewrites_demo.py): script
+  fractions, explicit grouping and signs, and the boundary between layout
+  and expression simplification.
+- [Marimo helper guide](../basics/galaga_marimo_demo.py): interpolation,
+  content specs, coefficient precision, document building, and widgets.
+- [Spin-½ geometry](../quantum/quantum_physics.py): Bloch sphere, measurement,
+  Stern–Gerlach, precession, phase freedom, double cover, and interpolation.
+- [Mermaid rotations and boosts](../../test_mermaid.py): Euclidean rotation,
+  electromagnetic-field invariants, and Thomas–Wigner rotation. This remains
+  at its original root path; open it explicitly with Marimo on Python 3.14.
+
+The separate [NumPy batching benchmark](../../bench_batched.py) derives its
+coefficient tensor from public left-action matrices. It runs on Python 3.11
+and later and is tested against the algebra, including non-diagonal metrics.

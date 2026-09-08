@@ -16,6 +16,10 @@ import libcst as cst
 from libcst.helpers import get_full_name_for_node
 
 MIGRATED_NOTEBOOKS = (
+    "basics/dynamic_notation.py",
+    "basics/latex_rewrites_demo.py",
+    "basics/galaga_marimo_demo.py",
+    "quantum/quantum_physics.py",
     "cga/native_null_foundations.py",
     "cga/expression_forms.py",
     "cga/direct_objects_and_semantics.py",
@@ -98,6 +102,19 @@ MIGRATED_NOTEBOOKS = (
 )
 
 _MIGRATED_NOTEBOOK_SET = frozenset(MIGRATED_NOTEBOOKS)
+
+# Keep the existing root notebook URL without opening the codemod to arbitrary
+# repository files. These notebooks receive the same checks as the gallery.
+MIGRATED_ROOT_NOTEBOOKS = ("test_mermaid.py",)
+
+
+def migrated_notebook_paths(repository: Path) -> tuple[Path, ...]:
+    """Return every explicitly maintained notebook, including root entrypoints."""
+    return (
+        *(repository / "examples" / relative for relative in MIGRATED_NOTEBOOKS),
+        *(repository / relative for relative in MIGRATED_ROOT_NOTEBOOKS),
+    )
+
 
 _RENAMED_IMPORTS = {
     "b_rga": "rga_blade_convention",
@@ -286,9 +303,11 @@ def _notebook_relative_path(path: Path, *, repository: Path) -> str:
 
 def migrate_path(path: Path, *, repository: Path, check: bool) -> bool:
     """Migrate one ledgered notebook and return whether it required a change."""
-    relative = _notebook_relative_path(path, repository=repository)
-    if relative not in _MIGRATED_NOTEBOOK_SET:
-        raise ValueError(f"refusing to rewrite an unledgered notebook: {relative}")
+    root_paths = {repository.resolve() / relative for relative in MIGRATED_ROOT_NOTEBOOKS}
+    if path.resolve() not in root_paths:
+        relative = _notebook_relative_path(path, repository=repository)
+        if relative not in _MIGRATED_NOTEBOOK_SET:
+            raise ValueError(f"refusing to rewrite an unledgered notebook: {relative}")
 
     source = path.read_text()
     migrated = migrate_source(source)
@@ -305,7 +324,7 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("paths", nargs="*", type=Path)
     args = parser.parse_args(argv)
 
-    paths = args.paths or [args.repository / "examples" / relative for relative in MIGRATED_NOTEBOOKS]
+    paths = args.paths or migrated_notebook_paths(args.repository)
     changed = [path for path in paths if migrate_path(path, repository=args.repository, check=args.check)]
     for path in changed:
         print(path)

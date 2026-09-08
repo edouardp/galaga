@@ -7,6 +7,7 @@ import inspect
 import json
 import re
 from collections.abc import Collection
+from importlib.resources import files
 from pathlib import Path
 
 import pytest
@@ -203,14 +204,21 @@ def test_every_nonprivate_top_level_package_module_is_classified() -> None:
     _assert_current_module_inventory(Path(galaga.__file__).parent)
 
 
+def _assert_module_disposition(package_path, module_name: str) -> None:
+    parts = module_name.split(".")[1:]
+    module_file = package_path.joinpath(*parts[:-1], parts[-1] + ".py")
+    package = package_path.joinpath(*parts)
+    if module_name in LEGACY_ONLY_SUBMODULES:
+        assert not module_file.is_file() and not package.is_dir(), module_name
+    else:
+        assert module_file.is_file() or package.joinpath("__init__.py").is_file(), module_name
+
+
 @pytest.mark.parametrize("module_name", tuple(SUBMODULE_DISPOSITIONS))
-def test_classified_nested_and_top_level_modules_exist_without_importing_legacy(module_name: str) -> None:
-    # Presence is a temporary deletion ledger, not a promise of v2 support.
-    # Retired entries stay in SUBMODULE_DISPOSITIONS; update the current
-    # top-level inventory and this existence gate when their files are removed.
-    package_path = Path(galaga.__file__).parent
-    relative = Path(*module_name.split(".")[1:])
-    assert (package_path / relative.with_suffix(".py")).is_file() or (package_path / relative / "__init__.py").is_file()
+def test_classified_modules_follow_their_live_or_removed_disposition(module_name: str) -> None:
+    # Historical dispositions survive deletion; existence is required only
+    # for supported paths. Retired directories must not become namespace packages.
+    _assert_module_disposition(files("galaga"), module_name)
 
 
 def test_constructor_forms_and_invalid_combinations_are_characterized() -> None:

@@ -58,3 +58,20 @@ def test_python_formatter_leaves_markdown_to_the_markdown_linter() -> None:
 
     assert lint.count("--extend-exclude '*.md'") == 2
     assert "rumdl" in lint
+
+
+def test_release_checks_legacy_free_artifacts_before_credentials_or_publication() -> None:
+    command = "uv run python scripts/check_galaga_artifact.py --project packages/galaga dist/galaga-*"
+    release = (ROOT / "scripts/release.sh").read_text()
+    makefile = (ROOT / "Makefile").read_text()
+    assert command in makefile
+    assert release.index("uvx twine check") < release.index(command) < release.index("keyring get")
+    assert release.index(command) < release.index("uv publish")
+    assert "set -euo pipefail" in release
+
+
+def test_standalone_core_publish_cannot_bypass_the_artifact_gate() -> None:
+    script = (ROOT / "scripts/publish-galaga.sh").read_text()
+    command = 'uv run python "$SCRIPT_DIR/check_galaga_artifact.py" --project "$PKG" "$DIST"/galaga-*'
+    assert script.index("uvx twine check") < script.index(command) < script.index("uv publish")
+    assert "set -euo pipefail" in script

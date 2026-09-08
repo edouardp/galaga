@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-085: Top-Level API Is the Facade with an Explicit Legacy Oracle
 
+Phase 9 follow-up: [ADR-122](122-remove-the-legacy-engine-and-verify-artifacts.md)
+removes the temporary production oracle and its dependencies. The coexistence
+policy below is historical; evidence remains in development data.
+
 ## Context and problem statement
 
 Phases 0 through 7 proved the Gram-matrix core, completed the composition

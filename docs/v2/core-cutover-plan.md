@@ -186,7 +186,7 @@ The replacement suite must visibly distinguish:
 | 6 | Rendering and notation are rebuilt | Complete | Semantic, golden, and legacy/facade differential rendering tests pass |
 | 7 | Companion packages and shims migrate | Complete | Integration and deprecation suites pass |
 | 8 | Top-level API shadows the facade | Complete | Full suite reaches no legacy numeric path |
-| 9 | Legacy engine is removed | Planned | Clean wheel and release gates pass |
+| 9 | Legacy engine is removed | In progress | Physical deletion complete; final release gates remain open |
 
 ## Phase 0: internalize the numeric core
 
@@ -1268,6 +1268,21 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
+Physical deletion is complete under
+[ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md).
+All twenty-one retired production modules are absent from source, wheel and
+sdist; supported paths remain live. The
+[deletion gate report](legacy-engine-deletion-gate.md) records current tests,
+coverage, artifacts and outstanding repository/CI/release checks. The
+dependency checkpoints below are preserved historical evidence.
+
+The six remaining teaching-file dependencies are also migrated in place under
+[ADR-123](../adrs/123-migrate-remaining-teaching-notebooks-and-benchmark.md).
+The shared executable ledger now covers 84 notebooks, including the root
+Mermaid entrypoint. The NumPy benchmark derives products from public linear
+actions; regression tests compare its tensor against actual basis products
+for diagonal, degenerate, oblique and null-pair metrics.
+
 Status: **in progress**. Thirty legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
@@ -1450,7 +1465,7 @@ Remaining before this work unit is complete:
 - delete the obsolete engine and its exclusively legacy dependencies; and
 - prove source, wheel-content, coverage, and full-suite deletion gates below.
 
-The next work unit is physical engine deletion. Compatibility-manifest
+Physical engine deletion is complete. Compatibility-manifest
 introspection and all remaining live test-side legacy imports are retired;
 the independently discovered equality/hash release blocker below is resolved.
 Preserve permanent v2 assertions and source-derived algebraic coverage rather
@@ -1779,6 +1794,11 @@ Required tests:
   supported 2.0 feature.
 
 ### W9.3 Run the release gate
+
+Status: **not yet complete**. Local deletion, packaging and runtime tests do
+not replace the remaining type, alias-policy, rotor-policy, CI and
+release-metadata requirements. See the
+[current gate report](legacy-engine-deletion-gate.md).
 
 Required checks:
 

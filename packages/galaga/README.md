@@ -372,23 +372,18 @@ e1, e2 = numeric.basis_vectors()
 result = geometric_product(e1, e2)
 ```
 
-## Prerelease legacy oracle
+## Legacy engine removed
 
-During the Galaga 2 prerelease migration, Galaga 1 remains deliberately
-available as an isolated test oracle:
+The Galaga 1 table engine and its temporary `galaga.legacy` namespace no
+longer ship. Use the public `galaga` API or `galaga.core` for numeric-only
+work. Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation
+paths are removed too; their replacements are `galaga.expression`,
+`galaga.presentation`, `galaga.rendering` and `galaga.names`.
 
-```python
-from galaga import legacy
-
-old_alg = legacy.Algebra(3)
-old_e1, old_e2, _ = old_alg.basis_vectors()
-old_value = legacy.gp(old_e1, old_e2)
-```
-
-Legacy and Galaga 2 values are separate domains and must not be mixed. The
-`galaga.legacy` namespace, including `galaga.legacy.render` and
-`galaga.legacy.simplify`, is migration infrastructure and is scheduled for
-removal with the old table engine before stable `2.0.0`.
+Historical regression evidence remains in the repository, not in a second
+installed engine. See the
+[migration guide](https://github.com/edouardp/galaga/blob/main/docs/v2/migration-guide.md)
+for explicit naming, provenance and rendering replacements.
 
 ## More documentation
 

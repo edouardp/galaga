@@ -108,6 +108,9 @@ uvx twine check packages/galaga_anywidget/dist/galaga_anywidget-*
 uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
 uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
 
+echo "==> Legacy-free Galaga artifact check"
+uv run python scripts/check_galaga_artifact.py --project packages/galaga dist/galaga-*
+
 # --- Publish ---
 echo "==> Fetching PyPI token (one password prompt)..."
 UV_PUBLISH_TOKEN=$(keyring get https://upload.pypi.org/legacy/ __token__)

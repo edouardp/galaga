@@ -570,9 +570,8 @@ SUPPORTED_SUBMODULES = {
 }
 
 
-# Historical-path retirement inventory, not a claim that each path still owns
-# legacy implementation. latex_symbols is now a temporary same-object shim;
-# canonical v2 consumers import names and must work with the old path blocked.
+# Historical-path retirement inventory. These paths are absent after Phase 9
+# engine deletion, including the temporary latex_symbols same-object shim.
 LEGACY_ONLY_SUBMODULES = frozenset(
     {
         "galaga.algebra",
@@ -600,37 +599,7 @@ LEGACY_ONLY_SUBMODULES = frozenset(
 )
 
 
-TOP_LEVEL_PACKAGE_MODULES = frozenset(
-    {
-        "galaga.algebra",
-        "galaga.basis_blade",
-        "galaga.blade_convention",
-        "galaga.blades",
-        "galaga.cga",
-        "galaga.core",
-        "galaga.display",
-        "galaga.expr",
-        "galaga.expression",
-        "galaga.facade",
-        "galaga.gram_bridge",
-        "galaga.legacy",
-        "galaga.latex_build",
-        "galaga.latex_emit",
-        "galaga.latex_nodes",
-        "galaga.latex_rewrite",
-        "galaga.latex_symbols",
-        "galaga.lazy",
-        "galaga.names",
-        "galaga.notation",
-        "galaga.ops",
-        "galaga.presentation",
-        "galaga.presets",
-        "galaga.rga",
-        "galaga.rendering",
-        "galaga.symbolic",
-        "galaga.symbolic_core",
-    }
-)
+TOP_LEVEL_PACKAGE_MODULES = frozenset(name for name in SUPPORTED_SUBMODULES if name.count(".") == 1)
 
 
 COMPANION_TOUCHPOINTS = {

@@ -27,6 +27,9 @@ cd "$PKG" && uv build
 echo "==> Checking with twine"
 uvx twine check "$DIST"/galaga-*
 
+echo "==> Checking legacy-free runtime contents"
+uv run python "$SCRIPT_DIR/check_galaga_artifact.py" --project "$PKG" "$DIST"/galaga-*
+
 echo "==> Publishing to $PUBLISH_URL"
 uv publish --publish-url "$PUBLISH_URL" --keyring-provider subprocess --username __token__ "$DIST"/galaga-*
 

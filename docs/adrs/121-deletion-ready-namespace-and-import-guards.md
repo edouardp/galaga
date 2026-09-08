@@ -6,6 +6,9 @@ deciders: edouard
 
 # ADR-121: Deletion-Ready Namespace and Import Guards
 
+Subsequent physical deletion and wheel/sdist gates are recorded in
+[ADR-122](122-remove-the-legacy-engine-and-verify-artifacts.md).
+
 ## Context and problem statement
 
 [ADR-120](120-complete-redesign-contract-migration.md) emptied the legacy
