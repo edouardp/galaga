@@ -10,6 +10,10 @@ The numeric-function expression and grouping contracts now run without the
 legacy engine, retaining captured observations and independent numeric replay
 checks; see [ADR-098](098-expression-contracts-outlive-legacy-provenance.md).
 
+The legacy registry invariants now have v2 owners checking core/catalog import
+direction, API completeness, generic nodes and evaluator/parameter routing;
+see [ADR-111](111-architecture-contracts-use-the-public-operation-catalog.md).
+
 ## Context and problem statement
 
 Galaga's legacy expression design combined eager coefficients, mutable naming,

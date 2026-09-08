@@ -147,80 +147,8 @@ class TestNamingPresets:
         assert str(a * b * c) == "𝐚𝐛𝐜"
 
 
-class TestArchitecturalInvariants:
-    """Enforce the dependency and registry invariants from SPEC-012."""
-
-    def test_ops_never_imports_expr(self):
-        """ops.py must not import expr.py or render.py."""
-        import importlib
-
-        source = importlib.util.find_spec("galaga.ops").origin
-        with open(source) as f:
-            text = f.read()
-        # Only check top-level imports (not inside functions)
-        for line in text.splitlines():
-            stripped = line.lstrip()
-            if stripped.startswith("#"):
-                continue
-            if not line.startswith((" ", "\t")) and ("import expr" in stripped or "import render" in stripped):
-                pytest.fail(f"ops.py has forbidden import: {stripped}")
-
-    def test_algebra_never_imports_expr(self):
-        """algebra.py must not import expr.py."""
-        import importlib
-
-        source = importlib.util.find_spec("galaga.algebra").origin
-        with open(source) as f:
-            text = f.read()
-        for line in text.splitlines():
-            stripped = line.lstrip()
-            if stripped.startswith("#"):
-                continue
-            if "import expr" in stripped and "build_expr" not in stripped:
-                pytest.fail(f"algebra.py has forbidden import: {stripped}")
-
-    def test_every_ga_op_has_handler(self):
-        """Every operation in GA_OPS has a registered symbolic handler."""
-        from galaga.ops import _SYMBOLIC_HANDLERS, GA_OPS
-
-        for name in GA_OPS:
-            assert name in _SYMBOLIC_HANDLERS, f"GA op '{name}' has no symbolic handler"
-
-    def test_ga_ops_count(self):
-        """GA_OPS has the expected number of operations."""
-        from galaga.ops import GA_OPS
-
-        assert len(GA_OPS) == 45, f"Expected 45 GA ops, got {len(GA_OPS)}: {sorted(GA_OPS.keys())}"
-
-    def test_handler_map_covers_ga_ops(self):
-        """Every GA op is in the handler map (subset check)."""
-        from galaga.ops import _SYMBOLIC_HANDLERS, GA_OPS
-
-        ga_op_names = set(GA_OPS.keys())
-        handler_names = set(_SYMBOLIC_HANDLERS.keys())
-        missing = ga_op_names - handler_names
-        assert not missing, f"GA ops without handlers: {missing}"
-
-    def test_node_names_match_ga_ops(self):
-        """Every GA op has a corresponding entry in _NODE_NAMES."""
-        from galaga.expr import _NODE_NAMES
-        from galaga.ops import GA_OPS
-
-        node_op_names = set(_NODE_NAMES.keys())
-        ga_op_names = set(GA_OPS.keys())
-        missing = ga_op_names - node_op_names
-        assert not missing, f"GA ops without node classes: {missing}"
-
-    def test_node_names_arity_matches_ga_ops(self):
-        """Arity in _NODE_NAMES matches GA_OPS."""
-        from galaga.expr import _NODE_NAMES
-        from galaga.ops import GA_OPS
-
-        for op_name, (class_name, arity) in _NODE_NAMES.items():
-            assert op_name in GA_OPS, f"Node '{class_name}' has no GA op '{op_name}'"
-            assert GA_OPS[op_name].arity == arity, (
-                f"Arity mismatch for '{op_name}': _NODE_NAMES={arity}, GA_OPS={GA_OPS[op_name].arity}"
-            )
+# Architectural identities now live in facade/test_architecture_contracts.py.
+# Historical source and registries: tools/baselines/architecture-contracts-v1.json.
 
 
 class TestIpFunction:

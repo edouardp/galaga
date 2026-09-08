@@ -162,6 +162,43 @@ and raises the same error for a singular value; call `inverse(value, ...)`
 for non-default controls. See
 [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
+## Inspect generic expression calls, not legacy registries
+
+Galaga 2 has no per-operation expression class or symbolic-handler registration
+step. Inspect `Call.operation_id`, `operands` and immutable `parameters`;
+`get_operation` resolves the shared schema used by construction and replay.
+Do not equate evaluator arity with the number of expression operands:
+
+```python
+from galaga import Algebra, Call, Symbol, evaluate, get_operation, grade
+
+algebra = Algebra(gram=((2, 0.5), (0.5, -1)))
+x = algebra.vector([2, 1]).named("x")
+y = algebra.vector([-1, 3]).named("y")
+product = x * y
+bivector = grade(product, 2)
+
+assert product.expr == Call("geometric_product", (Symbol("x"), Symbol("y")))
+assert bivector.expr == Call("grade", (product.expr,), {"target": 2})
+assert get_operation("grade").arity == 2
+assert get_operation("grade").expression_arity == 1
+assert bivector.expr.parameters == (("target", 2),)
+assert list(product.data) == [-4.5, 0, 0, 7]
+
+# Replay follows these bindings, not a saved numeric result.
+replayed = evaluate(product.expr, algebra=algebra, environment={"x": y, "y": x})
+assert list(replayed.data) == [-4.5, 0, 0, -7]
+assert list(product.data) == [-4.5, 0, 0, 7]
+```
+
+Transwedge similarly stores two operands plus an `order` parameter; variadic
+geometric and outer products lower to nested binary calls. `OPERATIONS`
+enumerates the public numeric catalog, not all model-specific semantic calls
+recognized by `get_operation`. Its size is not a compatibility guarantee.
+This replaces v1 registry introspection, not a user-defined operation/plugin
+registration API. See
+[ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md).
+
 ## Derive a name from LaTeX explicitly
 
 Replace v1's `value.name(latex=...)` with an immutable name:

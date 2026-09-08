@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-065: Operation Registry Breaks algebra↔expr Circular Dependency
 
+This record describes the v1 engine. For v2, ADR-077 supersedes its callback
+registries with a shared operation schema and generic expression calls.
+The seven historical architecture checks now guard those v2 boundaries;
+their old source and registry observations remain archived under
+[ADR-111](111-architecture-contracts-use-the-public-operation-catalog.md).
+
 ## Context and Problem Statement
 
 `algebra.py` and `expr.py` had a circular import: algebra imported expr to

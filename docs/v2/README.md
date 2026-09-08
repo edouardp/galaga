@@ -175,8 +175,12 @@ complete archived basis tables, factory results and display observations.
 Signed lookup, native volume orientation, rendered-string snapshots, explicit
 content/wrapping and retired flags are checked. The presentation notebook
 demonstrates snapshots and numeric identity across scope changes.
-All twenty
-completed dependency groups have fresh-process legacy-import gates.
+The seven architecture identities from the mixed coverage suite now have
+public owners too. Recursive import checks enforce core/catalog boundaries;
+catalog completeness follows the API rather than a fixed operation count,
+and generic calls share checked evaluator/parameter routing. Complete v1
+source and registry evidence is archived. The other mixed-file code is unchanged.
+All twenty-one completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
 
@@ -189,8 +193,8 @@ scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
 The construction-only legacy ledger is down to 2 files: `test_coverage.py`
 and `test_redesign.py`.
-These mixed contracts are next, followed by namespace/construction guards.
-See [ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md)
+The remaining mixed contracts are next, followed by namespace/construction guards.
+See [ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

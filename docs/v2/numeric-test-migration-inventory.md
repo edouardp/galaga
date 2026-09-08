@@ -1330,3 +1330,48 @@ three files to two: `test_coverage.py` and `test_redesign.py`. Their mixed
 contracts, namespace/construction guards, engine deletion and final release
 gates remain pending. See
 [ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).
+
+### Phase 9 follow-through: architecture contracts and the public catalog
+
+The seven `TestArchitecturalInvariants` identities are extracted from
+`test_coverage.py` into `facade/test_architecture_contracts.py`. The other
+192 method identities and all other mixed-file code remain unchanged.
+`tools/baselines/architecture-contracts-v1.json` preserves the complete source,
+its SHA-256 digest, all 199 source identities, the seven migrated identities
+and owner, 45 operation/node declarations and 57 symbolic-handler names.
+All seven original tests passed before migration.
+
+Current checks enforce core/catalog import direction recursively, resolving
+relative imports and scanning nested lexical scopes. Source resource traversal
+also works in a zipped wheel. Catalog completeness follows the public core
+manifest, documented exclusions and structural arithmetic entries rather than
+the historical count. Generic calls use the same immutable schemas as numeric
+dispatch; public aliases retain exact object identity.
+
+All 71 current public numeric operations are checked with required parameters
+alone and with optional controls. Real evaluator signatures and recorded
+argument forwarding verify operand/parameter separation. Bad arities, unknown
+keywords and missing required parameters fail. Negative controls reject
+forbidden imports, incomplete catalogs, wrong IDs, overlapping or unexplained
+exclusions, mismatched signatures and swapped operands.
+
+Independent Gram pairings, exterior determinants and the vector triple-product
+identity check eager arithmetic, grade/transwedge parameters, binary lowering,
+norms and predicates under three metrics. Replay is independent of rendering
+target and follows changed symbol bindings without mutating the eager value;
+a cached-result mutation is rejected. The migration guide teaches the shared
+schema with an executable example. Existing notebooks need no changes for
+this internal architectural migration and continue to pass their export gates.
+
+All 203 focused cases pass with 100% line/branch coverage in both files.
+All 165 public cases pass directly from the built wheel with module origins
+verified and legacy imports blocked. Full suites pass 7,071 cases (62 skipped)
+on Python 3.11 and 7,205 (20 skipped) on Python 3.14. Core, facade and rendering
+coverage percentages are unchanged. The existing matrix warning and 295 type
+errors remain. No production package behavior changes.
+
+The construction ledger still contains `test_coverage.py` and `test_redesign.py`:
+extracting one coherent subgroup does not complete either mixed suite.
+Their remaining contracts, namespace/construction guards, engine deletion
+and final release gates remain pending. See
+[ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md).
