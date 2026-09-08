@@ -108,6 +108,12 @@ def _(mo):
 
     Content and target are independent axes. `ascii`, `unicode`, and `latex`
     are output targets; `name`, `expr`, `value`, and `full` are content.
+
+    `.display()` and `.latex()` return ordinary Python strings, not live
+    display objects. A saved string will not change when a later scope changes
+    the policy. Call the multivector's rendering method again for a new output.
+    Python `repr(value)` selects ASCII; the rich LaTeX hook selects LaTeX.
+    Wrapping in math delimiters does not change the requested content.
     """)
     return
 
@@ -260,11 +266,18 @@ def _(mo):
 def _(Notation, algebra, product):
     teaching_presentation = algebra.presentation.with_notation(Notation.functional())
     default_expression_latex = product.latex(content="expr")
+    saved_expression_latex = default_expression_latex
+    _data_before, _expr_before, _hash_before = product.data.copy(), product.expr, hash(product)
+    assert type(saved_expression_latex) is str
 
     with algebra.use_presentation(teaching_presentation):
         functional_expression_latex = product.latex(content="expr")
+        assert functional_expression_latex != saved_expression_latex
 
     restored_expression_latex = product.latex(content="expr")
+    assert restored_expression_latex == saved_expression_latex
+    assert (product.data == _data_before).all()
+    assert product.expr is _expr_before and hash(product) == _hash_before
     return (
         default_expression_latex,
         functional_expression_latex,
@@ -292,6 +305,9 @@ def _(
     After automatic restoration:
 
     $${restored_expression_latex}$$
+
+    Each result above is a saved string. The first one stayed unchanged
+    throughout; only a new rendering call observed the functional policy.
     """)
     return
 
@@ -406,6 +422,8 @@ def _(mo):
     For multivectors, the t-string format namespace is the semantic content
     namespace shown above. To apply a Python numeric format such as `.3f` to a
     scalar multivector, perform the checked conversion explicitly.
+    Applying `.2f` to an already rendered string is an error; applying `.2`
+    would merely truncate that string. Neither controls its coefficients.
     """)
     return
 

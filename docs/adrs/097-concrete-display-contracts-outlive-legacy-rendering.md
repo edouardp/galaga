@@ -69,6 +69,11 @@ drift cannot pass as numerical agreement.
 
 ## Consequences and boundaries
 
+[ADR-110](110-public-factory-and-display-edge-contracts.md) carries the later
+factory/display edge suite onto the same public contracts. It explicitly
+preserves rendered-string snapshots, target-specific hooks, wrapping/content
+independence and the retired factory-flag boundary, without production changes.
+
 - Good, because the two suites no longer keep the old engine alive while
   their numerical and presentation responsibilities remain tested.
 - Good, because existing public v2 contracts and compatibility limitations

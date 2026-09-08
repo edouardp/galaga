@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Nineteen legacy-dependency prerequisites are complete:
+Status: **in progress**. Twenty legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1358,12 +1358,18 @@ Status: **in progress**. Nineteen legacy-dependency prerequisites are complete:
   matrices check projection, normal reflection and bivector exponentials
   across general metrics. The two teaching notebooks now plot their computed
   geometry, with multi-angle regression tests. No helper API is restored
-  ([ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md)); and
+  ([ADR-108](../adrs/108-public-transformation-compositions-and-geometric-notebook-plots.md));
 - all 51 scalar-helper identities use public compositions and semantic
   rendering, retaining complete source evidence and observed values. Strict
   tiny-value regressions cover subnormals, display thresholds and named replay;
   the eager-values notebook teaches fraction and precision boundaries
-  ([ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md)).
+  ([ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md)); and
+- all thirty factory/display edge identities use public factories and display
+  policies. Complete archived basis tables and observations preserve their
+  history; signed lookup, oriented volumes, rendered-string snapshots and
+  target/wrapping boundaries are checked. The presentation notebook teaches
+  snapshots without changing production behavior
+  ([ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1371,7 +1377,7 @@ the surface/deprecation contracts, both concrete-display suites, and both
 expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
-complex/quaternion, low-dimensional/transformation, and scalar suites with
+complex/quaternion, low-dimensional/transformation, scalar and factory/display suites with
 legacy imports blocked. Matrix plans
 continue to share core algebras across facade presentation views; that is
 intentional v2 behavior.
@@ -1389,9 +1395,8 @@ introspection is retired, and the independently discovered equality/hash
 release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
-ledger now contains 3 files, down from 4 after removing `test_scalar_helpers.py`.
-The remaining entries are `test_coverage.py`, `test_coverage_gaps.py`, and
-`test_redesign.py`.
+ledger now contains 2 files, down from 3 after removing `test_coverage_gaps.py`.
+The remaining entries are `test_coverage.py` and `test_redesign.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
 remains the authority for ownership.
@@ -1414,8 +1419,8 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(6,828 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (6,695 passed, 61 skipped), with Python 3.14-only integrations
+(7,009 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (6,875 passed, 62 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
@@ -1505,6 +1510,17 @@ equality and display filtering. The eager-values notebook teaches small
 coefficients, literal versus named fractions and explicit replay. No
 production package behavior changes. The negative-unit scientific regression
 raises the full-suite emitter coverage to 96%.
+The factory/display edge checkpoint passes 211 focused cases on Python 3.14
+with 100% line and branch coverage in its three files. Both public suites
+pass all 199 cases from the built wheel with origins verified and legacy
+imports blocked. All thirty original identities remain, with complete
+pseudoscalar-labelled basis tables and factory/display evidence. Gram
+determinants and exterior coordinates independently check volume and product
+values; corruption probes reject unsigned names, changed coefficients/labels,
+wrong-target repr and non-string display wrappers. The notebook verifies
+saved strings and scope restoration without changing numeric identity.
+Core/facade coverage percentages are unchanged, with one additional facade
+path covered; emitter coverage remains at 96%.
 Earlier checkpoints measured 100% for both
 configured-rendering helpers, 95% for the benchmark, and 91% for matrix
 conversion. The additional equality/hash regressions now cover the defect
@@ -1512,7 +1528,7 @@ below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
 mixed-rendering, blade-convention, RGA, locals, quaternion, transformation,
-and scalar work. The converter's
+scalar and factory/display work. The converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

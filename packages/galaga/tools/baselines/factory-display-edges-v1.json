@@ -1,0 +1,1595 @@
+{
+  "schema_version": 1,
+  "source_commit": "0105096b97b5839d2f397fa52369471886cac3e9",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_path": "packages/galaga/tests/test_coverage_gaps.py",
+  "source": "\"\"\"Coverage gap tests for uncovered paths.\"\"\"\n\nimport unittest\n\nfrom galaga.legacy import Algebra, b_gamma, b_sta\n\n\nclass TestBladeLazyPaths(unittest.TestCase):\n    \"\"\"Cover blade() lazy= paths for all lookup strategies.\"\"\"\n\n    def test_metric_role_lazy(self):\n        \"\"\"blade(metric_role, lazy=True) returns lazy MV.\"\"\"\n        alg = Algebra(3)\n        mv = alg.blade(\"+1+2\", lazy=True)\n        assert mv._is_symbolic\n\n    def test_display_name_lazy(self):\n        \"\"\"blade(display_name, lazy=True) returns lazy MV.\"\"\"\n        sta = Algebra(1, 3, blades=b_sta(sigmas=True))\n        mv = sta.blade(\"σ₁\", lazy=True)\n        assert mv._is_symbolic\n\n    def test_scalar_blade_lazy(self):\n        \"\"\"blade('1', lazy=True) returns lazy scalar.\"\"\"\n        alg = Algebra(3)\n        mv = alg.blade(\"1\", lazy=True)\n        assert mv._is_symbolic\n        assert mv.scalar_part == 1.0\n\n    def test_empty_string_blade(self):\n        \"\"\"blade('') returns scalar 1.\"\"\"\n        alg = Algebra(3)\n        mv = alg.blade(\"\")\n        assert mv.scalar_part == 1.0\n\n    def test_prefix_digits_lazy(self):\n        \"\"\"blade('e12', lazy=True) returns lazy MV.\"\"\"\n        alg = Algebra(3)\n        mv = alg.blade(\"e12\", lazy=True)\n        assert mv._is_symbolic\n\n    def test_prefix_digits_out_of_range(self):\n        \"\"\"blade('e9') raises ValueError for 3D algebra.\"\"\"\n        alg = Algebra(3)\n        with self.assertRaises(ValueError):\n            alg.blade(\"e9\")\n\n    def test_blade_mv_not_basis(self):\n        \"\"\"blade(non_basis_mv) raises ValueError.\"\"\"\n        alg = Algebra(3)\n        e1, e2, e3 = alg.basis_vectors()\n        with self.assertRaises(ValueError):\n            alg.blade(e1 + e2)\n\n    def test_blade_mv_lazy(self):\n        \"\"\"blade(mv, lazy=True) returns lazy MV.\"\"\"\n        alg = Algebra(3)\n        e1, e2, e3 = alg.basis_vectors()\n        mv = alg.blade(e1 ^ e2, lazy=True)\n        assert mv._is_symbolic\n\n\nclass TestDisplayResultEdgeCases(unittest.TestCase):\n    \"\"\"Cover _DisplayResult str/repr paths.\"\"\"\n\n    def test_display_str(self):\n        \"\"\"_DisplayResult.__str__() returns LaTeX.\"\"\"\n        alg = Algebra(3)\n        e1, e2, e3 = alg.basis_vectors()\n        v = (e1 + e2).name(\"v\")\n        d = v.display()\n        assert isinstance(str(d), str)\n        assert len(str(d)) > 0\n\n    def test_display_repr(self):\n        \"\"\"_DisplayResult.__repr__() returns LaTeX.\"\"\"\n        alg = Algebra(3)\n        e1, e2, e3 = alg.basis_vectors()\n        v = (e1 + e2).name(\"v\")\n        d = v.display()\n        assert isinstance(repr(d), str)\n\n\nclass TestGammaFactoryPss(unittest.TestCase):\n    \"\"\"Cover factory pss= parameter paths.\"\"\"\n\n    def test_gamma_with_pss(self):\n        \"\"\"b_gamma(pss='I') names the pseudoscalar.\"\"\"\n        alg = Algebra(1, 3, blades=b_gamma(pss=\"I\"))\n        assert str(alg.pseudoscalar()) == \"I\"\n\n    def test_sigma_with_pss(self):\n        \"\"\"b_sigma(pss='I') names the pseudoscalar.\"\"\"\n        from galaga.legacy import b_sigma\n\n        alg = Algebra(3, blades=b_sigma(pss=\"I\"))\n        assert str(alg.pseudoscalar()) == \"I\"\n\n    def test_sigma_xyz_with_pss(self):\n        \"\"\"b_sigma_xyz(pss='I') names the pseudoscalar.\"\"\"\n        from galaga.legacy import b_sigma_xyz\n\n        alg = Algebra(3, blades=b_sigma_xyz(pss=\"I\"))\n        assert str(alg.pseudoscalar()) == \"I\"\n\n\nif __name__ == \"__main__\":\n    unittest.main()\n\n\nclass TestAlgebraDisplayMode(unittest.TestCase):\n    \"\"\"Tests for Algebra(display_repr=True) routing repr/str/latex through .display().\"\"\"\n\n    def setUp(self):\n        self.alg = Algebra(3, display_repr=True)\n        self.e1, self.e2, self.e3 = self.alg.basis_vectors()\n\n    def test_named_repr_uses_display(self):\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        self.assertIn(\"=\", repr(v))\n        self.assertIn(\"v\", repr(v))\n\n    def test_named_str_uses_display(self):\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        self.assertIn(\"=\", str(v))\n\n    def test_named_repr_latex_uses_display(self):\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        latex = v._repr_latex_()\n        self.assertTrue(latex.startswith(\"$\"))\n        self.assertIn(\"=\", latex)\n\n    def test_unnamed_no_equals(self):\n        \"\"\"Unnamed mv has only one part, so display() produces no '='.\"\"\"\n        w = 2 * self.e1 + 3 * self.e2\n        self.assertNotIn(\"=\", repr(w))\n\n    def test_default_display_false(self):\n        alg = Algebra(3)\n        e1, e2, _ = alg.basis_vectors()\n        v = (2 * e1 + 3 * e2).name(\"v\")\n        # Default mode: repr is just the name\n        self.assertEqual(repr(v), \"v\")\n        self.assertEqual(v._repr_latex_(), \"$v$\")\n\n    def test_display_result_format_spec(self):\n        \"\"\"_DisplayResult supports format specs for coefficient formatting.\"\"\"\n        v = (2.123456 * self.e1 + 3.789012 * self.e2).name(\"v\")\n        d = v.display()\n        formatted = f\"{d:.2f}\"\n        self.assertIn(\"2.12\", formatted)\n        self.assertIn(\"3.79\", formatted)\n\n    def test_display_result_format_empty(self):\n        \"\"\"_DisplayResult with empty format spec returns default rendering.\"\"\"\n        v = (2 * self.e1).name(\"v\")\n        d = v.display()\n        self.assertEqual(f\"{d}\", str(d))\n\n    def test_named_latex_uses_display(self):\n        \"\"\"latex() should return the full display form when display_repr=True.\"\"\"\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        latex = v.latex()\n        self.assertIn(\"=\", latex)\n        self.assertIn(\"v\", latex)\n\n    def test_latex_coeff_format_bypasses_display(self):\n        \"\"\"latex(coeff_format=...) should bypass display mode.\"\"\"\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        latex = v.latex(coeff_format=\".1f\")\n        # coeff_format goes through the normal path, not display()\n        self.assertIn(\"2.0\", latex)\n\n    def test_latex_wrap_bypasses_display(self):\n        \"\"\"latex(wrap='$') should bypass display mode.\"\"\"\n        v = (2 * self.e1 + 3 * self.e2).name(\"v\")\n        latex = v.latex(wrap=\"$\")\n        self.assertTrue(latex.startswith(\"$\"))\n        self.assertTrue(latex.endswith(\"$\"))\n\n\nclass TestSymbolicAlias(unittest.TestCase):\n    \"\"\"Tests for symbolic= as alias for lazy=.\"\"\"\n\n    def setUp(self):\n        self.alg = Algebra(3)\n\n    def test_basis_vectors_symbolic(self):\n        vecs = self.alg.basis_vectors(symbolic=True)\n        self.assertTrue(vecs[0]._is_symbolic)\n\n    def test_basis_blades_symbolic(self):\n        blades = self.alg.basis_blades(2, symbolic=True)\n        self.assertTrue(blades[0]._is_symbolic)\n\n    def test_locals_symbolic(self):\n        d = self.alg.locals(symbolic=True)\n        self.assertTrue(next(iter(d.values()))._is_symbolic)\n\n    def test_pseudoscalar_symbolic(self):\n        ps = self.alg.pseudoscalar(symbolic=True)\n        self.assertTrue(ps._is_symbolic)\n\n    def test_blade_symbolic(self):\n        mv = self.alg.blade(\"e1\", symbolic=True)\n        self.assertTrue(mv._is_symbolic)\n\n    def test_conflict_raises(self):\n        with self.assertRaises(ValueError):\n            self.alg.basis_vectors(lazy=True, symbolic=True)\n        with self.assertRaises(ValueError):\n            self.alg.basis_vectors(lazy=False, symbolic=False)\n\n    def test_symbolic_false_is_eager(self):\n        vecs = self.alg.basis_vectors(symbolic=False)\n        self.assertFalse(vecs[0]._is_symbolic)\n",
+  "sha256": "f9c69f323ea07af2f4ff6c364b03198e9dc3bc91728a68e74ec63a4ba4336aca",
+  "test_ids": [
+    "TestBladeLazyPaths.test_metric_role_lazy",
+    "TestBladeLazyPaths.test_display_name_lazy",
+    "TestBladeLazyPaths.test_scalar_blade_lazy",
+    "TestBladeLazyPaths.test_empty_string_blade",
+    "TestBladeLazyPaths.test_prefix_digits_lazy",
+    "TestBladeLazyPaths.test_prefix_digits_out_of_range",
+    "TestBladeLazyPaths.test_blade_mv_not_basis",
+    "TestBladeLazyPaths.test_blade_mv_lazy",
+    "TestDisplayResultEdgeCases.test_display_str",
+    "TestDisplayResultEdgeCases.test_display_repr",
+    "TestGammaFactoryPss.test_gamma_with_pss",
+    "TestGammaFactoryPss.test_sigma_with_pss",
+    "TestGammaFactoryPss.test_sigma_xyz_with_pss",
+    "TestAlgebraDisplayMode.test_named_repr_uses_display",
+    "TestAlgebraDisplayMode.test_named_str_uses_display",
+    "TestAlgebraDisplayMode.test_named_repr_latex_uses_display",
+    "TestAlgebraDisplayMode.test_unnamed_no_equals",
+    "TestAlgebraDisplayMode.test_default_display_false",
+    "TestAlgebraDisplayMode.test_display_result_format_spec",
+    "TestAlgebraDisplayMode.test_display_result_format_empty",
+    "TestAlgebraDisplayMode.test_named_latex_uses_display",
+    "TestAlgebraDisplayMode.test_latex_coeff_format_bypasses_display",
+    "TestAlgebraDisplayMode.test_latex_wrap_bypasses_display",
+    "TestSymbolicAlias.test_basis_vectors_symbolic",
+    "TestSymbolicAlias.test_basis_blades_symbolic",
+    "TestSymbolicAlias.test_locals_symbolic",
+    "TestSymbolicAlias.test_pseudoscalar_symbolic",
+    "TestSymbolicAlias.test_blade_symbolic",
+    "TestSymbolicAlias.test_conflict_raises",
+    "TestSymbolicAlias.test_symbolic_false_is_eager"
+  ],
+  "case_count": 30,
+  "lookups": [
+    {
+      "id": "metric_role",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "data": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": true,
+      "unicode": "e₁₂",
+      "latex": "e_{12}"
+    },
+    {
+      "id": "display_name",
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ],
+      "data": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": true,
+      "unicode": "-σ₁",
+      "latex": "-\\sigma_{1}"
+    },
+    {
+      "id": "scalar",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "data": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": true,
+      "unicode": "1",
+      "latex": "1"
+    },
+    {
+      "id": "empty",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "data": [
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": false,
+      "unicode": "1",
+      "latex": "1"
+    },
+    {
+      "id": "prefix",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "data": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": true,
+      "unicode": "e₁₂",
+      "latex": "e_{12}"
+    },
+    {
+      "id": "mv",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "data": [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0
+      ],
+      "symbolic": true,
+      "unicode": "e₁₂",
+      "latex": "e_{12}"
+    }
+  ],
+  "errors": [
+    {
+      "id": "unknown",
+      "type": "ValueError",
+      "message": "Basis index 9 out of range for 3D algebra (index_base=1)"
+    },
+    {
+      "id": "not_basis",
+      "type": "ValueError",
+      "message": "Not a basis blade — has multiple nonzero components"
+    },
+    {
+      "id": "conflict_true",
+      "type": "ValueError",
+      "message": "Cannot pass both lazy= and symbolic=; use one or the other"
+    },
+    {
+      "id": "conflict_false",
+      "type": "ValueError",
+      "message": "Cannot pass both lazy= and symbolic=; use one or the other"
+    }
+  ],
+  "pseudoscalar_tables": [
+    {
+      "id": "gamma",
+      "signature": [
+        1,
+        -1,
+        -1,
+        -1
+      ],
+      "basis": [
+        {
+          "mask": 0,
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀",
+          "latex": "\\gamma_{0}"
+        },
+        {
+          "mask": 2,
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₁",
+          "latex": "\\gamma_{1}"
+        },
+        {
+          "mask": 3,
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₁",
+          "latex": "\\gamma_{0} \\gamma_{1}"
+        },
+        {
+          "mask": 4,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₂",
+          "latex": "\\gamma_{2}"
+        },
+        {
+          "mask": 5,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₂",
+          "latex": "\\gamma_{0} \\gamma_{2}"
+        },
+        {
+          "mask": 6,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₁γ₂",
+          "latex": "\\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 7,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₁γ₂",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{2}"
+        },
+        {
+          "mask": 8,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₃",
+          "latex": "\\gamma_{3}"
+        },
+        {
+          "mask": 9,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₃",
+          "latex": "\\gamma_{0} \\gamma_{3}"
+        },
+        {
+          "mask": 10,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₁γ₃",
+          "latex": "\\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 11,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₁γ₃",
+          "latex": "\\gamma_{0} \\gamma_{1} \\gamma_{3}"
+        },
+        {
+          "mask": 12,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₂γ₃",
+          "latex": "\\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 13,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₀γ₂γ₃",
+          "latex": "\\gamma_{0} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 14,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "γ₁γ₂γ₃",
+          "latex": "\\gamma_{1} \\gamma_{2} \\gamma_{3}"
+        },
+        {
+          "mask": 15,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": false,
+          "unicode": "I",
+          "latex": "I"
+        }
+      ]
+    },
+    {
+      "id": "sigma",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "basis": [
+        {
+          "mask": 0,
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₁",
+          "latex": "\\sigma_{1}"
+        },
+        {
+          "mask": 2,
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₂",
+          "latex": "\\sigma_{2}"
+        },
+        {
+          "mask": 3,
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₁σ₂",
+          "latex": "\\sigma_{1} \\sigma_{2}"
+        },
+        {
+          "mask": 4,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₃",
+          "latex": "\\sigma_{3}"
+        },
+        {
+          "mask": 5,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₁σ₃",
+          "latex": "\\sigma_{1} \\sigma_{3}"
+        },
+        {
+          "mask": 6,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σ₂σ₃",
+          "latex": "\\sigma_{2} \\sigma_{3}"
+        },
+        {
+          "mask": 7,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": false,
+          "unicode": "I",
+          "latex": "I"
+        }
+      ]
+    },
+    {
+      "id": "sigma_xyz",
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "basis": [
+        {
+          "mask": 0,
+          "data": [
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "1",
+          "latex": "1"
+        },
+        {
+          "mask": 1,
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σₓ",
+          "latex": "\\sigma_x"
+        },
+        {
+          "mask": 2,
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σᵧ",
+          "latex": "\\sigma_y"
+        },
+        {
+          "mask": 3,
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σₓσᵧ",
+          "latex": "\\sigma_x \\sigma_y"
+        },
+        {
+          "mask": 4,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σz",
+          "latex": "\\sigma_z"
+        },
+        {
+          "mask": 5,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σₓσz",
+          "latex": "\\sigma_x \\sigma_z"
+        },
+        {
+          "mask": 6,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "σᵧσz",
+          "latex": "\\sigma_y \\sigma_z"
+        },
+        {
+          "mask": 7,
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": false,
+          "unicode": "I",
+          "latex": "I"
+        }
+      ]
+    }
+  ],
+  "displays": [
+    {
+      "id": "sum",
+      "display_repr": false,
+      "named": true,
+      "coordinates": [
+        1,
+        1,
+        0
+      ],
+      "data": [
+        0,
+        1,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "v",
+      "repr": "v",
+      "latex": "v",
+      "rich": "$v$",
+      "display_str": "v \\quad = \\quad e_{1} + e_{2}",
+      "display_repr_text": "v \\quad = \\quad e_{1} + e_{2}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "v \\quad = \\quad 1.00 e_{1} + 1.00 e_{2}",
+      "latex_fixed": "1.0 e_{1} + 1.0 e_{2}",
+      "wrapped": "$v$"
+    },
+    {
+      "id": "full",
+      "display_repr": true,
+      "named": true,
+      "coordinates": [
+        2,
+        3,
+        0
+      ],
+      "data": [
+        0,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "repr": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "latex": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "rich": "$v \\quad = \\quad 2 e_{1} + 3 e_{2}$",
+      "display_str": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "display_repr_text": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "v \\quad = \\quad 2.00 e_{1} + 3.00 e_{2}",
+      "latex_fixed": "2.0 e_{1} + 3.0 e_{2}",
+      "wrapped": "$v$"
+    },
+    {
+      "id": "unnamed",
+      "display_repr": true,
+      "named": false,
+      "coordinates": [
+        2,
+        3,
+        0
+      ],
+      "data": [
+        0,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "2 e_{1} + 3 e_{2}",
+      "repr": "2 e_{1} + 3 e_{2}",
+      "latex": "2 e_{1} + 3 e_{2}",
+      "rich": "$2 e_{1} + 3 e_{2}$",
+      "display_str": "2 e_{1} + 3 e_{2}",
+      "display_repr_text": "2 e_{1} + 3 e_{2}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "2.00 e_{1} + 3.00 e_{2}",
+      "latex_fixed": "2.0 e_{1} + 3.0 e_{2}",
+      "wrapped": "$2 e_{1} + 3 e_{2}$"
+    },
+    {
+      "id": "default",
+      "display_repr": false,
+      "named": true,
+      "coordinates": [
+        2,
+        3,
+        0
+      ],
+      "data": [
+        0,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "v",
+      "repr": "v",
+      "latex": "v",
+      "rich": "$v$",
+      "display_str": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "display_repr_text": "v \\quad = \\quad 2 e_{1} + 3 e_{2}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "v \\quad = \\quad 2.00 e_{1} + 3.00 e_{2}",
+      "latex_fixed": "2.0 e_{1} + 3.0 e_{2}",
+      "wrapped": "$v$"
+    },
+    {
+      "id": "fractional",
+      "display_repr": true,
+      "named": true,
+      "coordinates": [
+        2.123456,
+        3.789012,
+        0
+      ],
+      "data": [
+        0,
+        2.123456,
+        3.789012,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}",
+      "repr": "v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}",
+      "latex": "v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}",
+      "rich": "$v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}$",
+      "display_str": "v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}",
+      "display_repr_text": "v \\quad = \\quad 2.12346 e_{1} + 3.78901 e_{2}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "v \\quad = \\quad 2.12 e_{1} + 3.79 e_{2}",
+      "latex_fixed": "2.1 e_{1} + 3.8 e_{2}",
+      "wrapped": "$v$"
+    },
+    {
+      "id": "single",
+      "display_repr": true,
+      "named": true,
+      "coordinates": [
+        2,
+        0,
+        0
+      ],
+      "data": [
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "str": "v \\quad = \\quad 2 e_{1}",
+      "repr": "v \\quad = \\quad 2 e_{1}",
+      "latex": "v \\quad = \\quad 2 e_{1}",
+      "rich": "$v \\quad = \\quad 2 e_{1}$",
+      "display_str": "v \\quad = \\quad 2 e_{1}",
+      "display_repr_text": "v \\quad = \\quad 2 e_{1}",
+      "display_type": "_DisplayResult",
+      "display_fixed": "v \\quad = \\quad 2.00 e_{1}",
+      "latex_fixed": "2.0 e_{1}",
+      "wrapped": "$v$"
+    }
+  ],
+  "factories": [
+    {
+      "id": "basis_vectors",
+      "symbolic": false,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₃",
+          "latex": "e_{3}"
+        }
+      ]
+    },
+    {
+      "id": "basis_blades",
+      "symbolic": false,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁₂",
+          "latex": "e_{12}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁₃",
+          "latex": "e_{13}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₂₃",
+          "latex": "e_{23}"
+        }
+      ]
+    },
+    {
+      "id": "locals",
+      "symbolic": false,
+      "keys": [
+        "e1",
+        "e2",
+        "e12",
+        "e3",
+        "e13",
+        "e23",
+        "e123"
+      ],
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁₂",
+          "latex": "e_{12}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₃",
+          "latex": "e_{3}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁₃",
+          "latex": "e_{13}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₂₃",
+          "latex": "e_{23}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": false,
+          "unicode": "e₁₂₃",
+          "latex": "e_{123}"
+        }
+      ]
+    },
+    {
+      "id": "pseudoscalar",
+      "symbolic": false,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": false,
+          "unicode": "e₁₂₃",
+          "latex": "e_{123}"
+        }
+      ]
+    },
+    {
+      "id": "blade",
+      "symbolic": false,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": false,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        }
+      ]
+    },
+    {
+      "id": "basis_vectors",
+      "symbolic": true,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₃",
+          "latex": "e_{3}"
+        }
+      ]
+    },
+    {
+      "id": "basis_blades",
+      "symbolic": true,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁₂",
+          "latex": "e_{12}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁₃",
+          "latex": "e_{13}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₂₃",
+          "latex": "e_{23}"
+        }
+      ]
+    },
+    {
+      "id": "locals",
+      "symbolic": true,
+      "keys": [
+        "e1",
+        "e2",
+        "e12",
+        "e3",
+        "e13",
+        "e23",
+        "e123"
+      ],
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₂",
+          "latex": "e_{2}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁₂",
+          "latex": "e_{12}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₃",
+          "latex": "e_{3}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁₃",
+          "latex": "e_{13}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₂₃",
+          "latex": "e_{23}"
+        },
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": true,
+          "unicode": "e₁₂₃",
+          "latex": "e_{123}"
+        }
+      ]
+    },
+    {
+      "id": "pseudoscalar",
+      "symbolic": true,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0,
+            1
+          ],
+          "symbolic": true,
+          "unicode": "e₁₂₃",
+          "latex": "e_{123}"
+        }
+      ]
+    },
+    {
+      "id": "blade",
+      "symbolic": true,
+      "keys": null,
+      "values": [
+        {
+          "data": [
+            0,
+            1,
+            0,
+            0,
+            0,
+            0,
+            0,
+            0
+          ],
+          "symbolic": true,
+          "unicode": "e₁",
+          "latex": "e_{1}"
+        }
+      ]
+    }
+  ]
+}

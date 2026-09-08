@@ -15,7 +15,8 @@ The recommended reading order is:
    and literal versus named fractions with explicit replay.
 3. [Presentation contexts](presentation_contexts.py) — content selection,
    immutable presentation views, scoped changes, explicit render overrides,
-   and numeric display policy.
+   numeric display policy, and rendered-string snapshots versus new scoped
+   rendering calls.
 4. [Custom functional notation](custom_functional_notation.py) — constructing
    an algebra with custom short forms such as `metric_ip` and `hestenes_ip`,
    extending built-in short notation, and keeping Python aliases separate from

@@ -123,6 +123,7 @@ helps future contributors understand why certain choices were made.
 | [107](107-public-complex-and-quaternion-convention-contracts.md) | Public Complex and Quaternion Convention Contracts | Accepted |
 | [108](108-public-transformation-compositions-and-geometric-notebook-plots.md) | Public Transformation Compositions and Geometric Notebook Plots | Accepted |
 | [109](109-public-scalar-compositions-and-small-value-contracts.md) | Public Scalar Compositions and Small-Value Contracts | Accepted |
+| [110](110-public-factory-and-display-edge-contracts.md) | Public Factory and Display Edge Contracts | Accepted |
 
 ## Creating New ADRs
 

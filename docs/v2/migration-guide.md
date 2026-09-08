@@ -107,6 +107,10 @@ e1, e2, e3 = algebra.basis_vectors(expr=True)
 facade values. Numeric coefficients are always computed eagerly; `expr=True`
 adds optional provenance rather than enabling deferred symbolic arithmetic.
 
+The factory flags `lazy` and `symbolic` are not v2 aliases, even when false.
+Use `expr` consistently for `basis_vectors`, `basis_blades`, `locals`,
+`pseudoscalar` and `blade`. Passing either retired flag raises `TypeError`.
+
 Naming alone does not create an expression on that value. An operation on a
 named or tracked operand does create provenance, so a named scalar needs no
 extra tracking call:
@@ -470,7 +474,8 @@ Other blade-convention changes:
   new convention and use `with_blades` or a scoped presentation. Replacing
   local names is an independent `LocalNamePolicy` decision.
 - Unknown lookup names raise `KeyError`. Add `"pss"` as an explicit alias
-  if needed, or use `algebra.I`.
+  if needed, or use `algebra.I`. For the scalar blade use mask `0` or label
+  `"1"`; empty text no longer implicitly selects it.
 - PGA presets use Euclidean vectors first and a final null vector. Use an
   explicit signature and indexed labels to keep historical null-first order.
   PGA/CGA pseudoscalars are not automatically named `I`.
@@ -481,6 +486,32 @@ The [construction notebook](../../examples/galaga_v2/algebra_construction.py)
 computes the signs under both STA metric choices. See
 [ADR-104](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md)
 for the archived contracts and validation boundaries.
+
+For the old `b_gamma(pss="I")`, `b_sigma(pss="I")` and
+`b_sigma_xyz(pss="I")` constructors, override the top-grade label explicitly:
+
+```python
+from galaga import Algebra, Name, indexed_blade_convention
+
+signature = (1, -1, -1, -1)
+dimension = len(signature)
+labels = indexed_blade_convention(
+    dimension, prefix=Name("g", "γ", r"\gamma"), start=0,
+    style="juxtapose", overrides={(1 << dimension) - 1: Name("I")},
+)
+algebra = Algebra(signature, blades=labels)
+volume = algebra.scalar(1)
+for vector in algebra.basis_vectors():
+    volume = volume ^ vector
+assert algebra.blade("I") == algebra.pseudoscalar() == volume
+```
+
+Use a sigma prefix and explicit letter subscripts for the corresponding
+sigma conventions. A label does not normalize a volume or make it invertible:
+its square still depends on the Gram determinant and dimension. Signed
+`BladeLabel` overrides distinguish oriented-name lookup from the positive
+native mask. See
+[ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).
 
 ## Migrate complex and quaternion conventions
 
@@ -756,6 +787,47 @@ Multivector `repr(value)` is ASCII, while `str(value)` is Unicode by default.
 summary or a stable serialized format. Use explicit `signature` and `gram`
 metadata for those properties. These are existing v2 differences, not changes
 to arithmetic. See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
+
+### Rendered strings are snapshots
+
+`.display()` and `.latex()` return ordinary strings, not the old
+`_DisplayResult` object. Their repr is consequently Python's quoted string
+repr. Specify `"full/latex"` when a LaTeX teaching equality is wanted;
+`.display()` without arguments follows the active content/target policy.
+
+```python
+from galaga import Algebra, DisplayPolicy, Notation
+
+algebra = Algebra(2)
+x, y = (v.named(name) for v, name in zip(algebra.basis_vectors(expr=True), ("x", "y")))
+value = (x * y).named("v")
+saved = value.display("full/ascii")
+assert type(saved) is str and saved == "v = xy = e12"
+functional = algebra.presentation.with_notation(Notation.functional())
+with algebra.use_presentation(functional):
+    current = value.display("full/ascii")
+    assert "geometric_product" in current
+    assert saved == "v = xy = e12"
+assert value.display("full/ascii") == saved
+
+name_only = algebra.presentation.with_display(DisplayPolicy(content="name"))
+with algebra.use_presentation(name_only):
+    assert value.latex(wrap="$") == "$v$"
+assert value.latex(wrap="$") == "$" + value.latex() + "$"
+```
+
+Replace `display_repr` with `DisplayPolicy(content="full")` or
+`content="name"` explicitly. The default named display is a teaching equality.
+Repr of the multivector always selects ASCII; its rich hook selects LaTeX.
+Unlike the old bypass behavior, `wrap="$"` only adds delimiters: choose
+`content="name"` when only the name should be wrapped.
+
+`format(rendered_string, ".2f")` raises an error, and `".2"` merely truncates
+the text. Neither sets coefficient precision. Configure precision before
+rendering or format individual numeric coefficients after conversion.
+The [presentation notebook](../../examples/galaga_v2/presentation_contexts.py)
+executes the snapshot/scope distinction. See
+[ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).
 
 ## Use checked conversions
 

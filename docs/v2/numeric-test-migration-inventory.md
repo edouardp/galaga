@@ -1279,3 +1279,54 @@ four files to three: `test_coverage.py`, `test_coverage_gaps.py` and
 `test_redesign.py`. Their mixed contracts, namespace/construction guards,
 engine deletion and final release gates remain pending. See
 [ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).
+
+### Phase 9 follow-through: public factory and display edges
+
+All thirty historical method identities in `test_coverage_gaps.py` now run
+on the public facade. The archive `tools/baselines/factory-display-edges-v1.json`
+preserves the complete source and digest, six lookup observations, four
+errors, three complete pseudoscalar-labelled basis tables (32 blades), six
+display samples and ten factory/flag observations. Display evidence includes
+old result-object type, strings, repr, rich output, wrapping and fixed decimals.
+
+The current public contracts remain explicit: `expr` replaces both retired
+factory flags; unknown lookup text raises `KeyError`; mask `0` or `"1"`
+selects the scalar. Signed names return their actual product, not the old
+unsigned storage slot. Blade literalization preserves orientation while
+dropping names and prior provenance. Indexed conventions override the
+derived top-grade mask without changing its metric-dependent square.
+
+Display methods return string snapshots. New calls observe scoped policies,
+while stored strings and numeric values remain unchanged. Repr selects ASCII,
+rich output selects LaTeX, and wrapping adds delimiters without bypassing
+content. Request name-only content explicitly when wanted. Retired
+`display_repr` and result-object numeric formatting are not restored;
+formatting an ordinary string cannot set coefficient precision.
+
+Archived values are recomputed from factories and exterior products, with
+both expression modes and all three targets. Basis/factory comparisons do
+not mistake legacy display order for native enumeration. Additional probes
+derive vector products from Gram pairings and exterior determinants; signed
+volumes use the dimension/Gram determinant identity. Degenerate named
+volumes remain noninvertible. Nested scopes and exceptional exits restore
+policy without changing coefficients, expression identity or hashes.
+
+Corruption probes reject malformed/nonfinite or erased coefficients, unsigned
+semantic lookup, wrong-target repr, non-string display wrappers and changed
+pseudoscalar labels. Fresh-process tests block legacy imports. The existing
+presentation notebook now teaches snapshots explicitly; its runtime test
+checks numeric product coefficients and actual generated math.
+
+All 211 focused cases pass on Python 3.14 with 100% line/branch coverage in
+their three files. Both public suites pass all 199 cases directly from the
+built wheel with origins verified. Full suites pass 6,875 cases (62 skipped)
+on Python 3.11 and 7,009 (20 skipped) on Python 3.14, including maintained
+notebook exports. Core/facade percentages remain unchanged with one extra
+facade path covered; emitter coverage remains at 96%. The existing matrix
+warning and 295 type errors remain.
+
+No production package behavior changes. The construction ledger falls from
+three files to two: `test_coverage.py` and `test_redesign.py`. Their mixed
+contracts, namespace/construction guards, engine deletion and final release
+gates remain pending. See
+[ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md).

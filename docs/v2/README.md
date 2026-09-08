@@ -170,7 +170,12 @@ All 51 scalar-helper identities now use public compositions, with archived
 values and rendering evidence. Strict tiny-value checks replace assertions
 that accepted zero; subnormal storage, display thresholds, named replay and
 fraction/formatting boundaries are tested and taught in the eager-values notebook.
-All nineteen
+All thirty factory/display edge identities now use the public facade, with
+complete archived basis tables, factory results and display observations.
+Signed lookup, native volume orientation, rendered-string snapshots, explicit
+content/wrapping and retired flags are checked. The presentation notebook
+demonstrates snapshots and numeric identity across scope changes.
+All twenty
 completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
@@ -182,10 +187,10 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is down to 3 files: `test_coverage.py`,
-`test_coverage_gaps.py`, and `test_redesign.py`.
+The construction-only legacy ledger is down to 2 files: `test_coverage.py`
+and `test_redesign.py`.
 These mixed contracts are next, followed by namespace/construction guards.
-See [ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md)
+See [ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the
