@@ -1375,3 +1375,48 @@ extracting one coherent subgroup does not complete either mixed suite.
 Their remaining contracts, namespace/construction guards, engine deletion
 and final release gates remain pending. See
 [ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md).
+
+### Phase 9 follow-through: explicit inner-product contracts
+
+All thirteen `TestIpFunction` and `TestSymbolicIp` identities are extracted
+from `test_coverage.py` into `facade/test_inner_product_contracts.py`.
+The other 179 methods and unrelated code remain unchanged. The archive
+`tools/baselines/inner-products-v1.json` retains full source and digest,
+all 192 source identities, the thirteen migrated identities and owner,
+75 eager/symbolic mode observations, default/Dorst results, wrapper/node
+types, original glyphs and both invalid-mode errors.
+
+All thirteen original cases passed, but the method named Hestenes actually
+called the Doran–Lasenby default, and several vector-only examples produced zero.
+Current assertions distinguish the explicit named functions on nonzero scalar,
+bivector and mixed-grade examples. The dispatcher and `inner_product` alias
+remain absent; `|` retains its fixed Doran–Lasenby meaning. A local import
+alias selects a function without changing the operator.
+
+Independent Gram-minor oracles check metric and scalar pairings, including
+the grade-dependent reversion sign. Grade-filtered reference left actions
+check the four contraction/inner variants; coordinate formulas independently
+check vector/bivector orientation. Tests cover every grade pair through grade
+three and mixed inputs under Euclidean, oblique-indefinite and degenerate
+metrics, across all targets and anonymous/literal/named provenance states.
+Replay follows changed bindings. Mutation probes reject erased/nonfinite
+coefficients, substituted conventions, reversed floors and cached results.
+
+The existing inner-product notebook now teaches six contrasting operand
+pairs under four selectable metrics. `MatrixRepr` displays the actual Gram
+matrix; values and signs are computed, including nonzero null bivectors.
+Runtime tests check all four metric inputs and actual generated math.
+The migration guide includes an executable replacement recipe.
+
+All 237 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both files. All 221 public cases pass directly from the wheel with origins
+verified and legacy imports blocked. Full suites pass 7,291 cases (66 skipped)
+on Python 3.11 and 7,429 (20 skipped) on Python 3.14, including notebook
+exports. Numeric facade coverage rises to 98% through the reflected-pipe
+regression; core and rendering percentages stay unchanged. The existing
+matrix warning, 295 type errors and Markdown-formatting debt remain.
+
+No production package behavior changes. The two mixed suites remain in the
+construction ledger; their remaining contracts, namespace/construction guards,
+engine deletion and final release gates are still pending. See
+[ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md).

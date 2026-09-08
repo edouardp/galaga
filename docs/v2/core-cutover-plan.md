@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Twenty-one legacy-dependency prerequisites are complete:
+Status: **in progress**. Twenty-two legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1369,13 +1369,19 @@ Status: **in progress**. Twenty-one legacy-dependency prerequisites are complete
   history; signed lookup, oriented volumes, rendered-string snapshots and
   target/wrapping boundaries are checked. The presentation notebook teaches
   snapshots without changing production behavior
-  ([ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md)); and
+  ([ADR-110](../adrs/110-public-factory-and-display-edge-contracts.md));
 - the seven architecture identities in the mixed coverage suite have public
   owners. Complete v1 source and registry observations remain archived;
   recursive import guards, API-derived catalog completeness and generic call
   routing replace old callback-registry checks. Other mixed-file code and
   production behavior are unchanged
-  ([ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md)).
+  ([ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md)); and
+- the thirteen inner-product dispatch identities use explicit public
+  operations, with 75 mode observations archived. Gram minors, grade-filtered
+  reference actions and coordinate contractions verify mixed-grade behavior
+  and replay. The inner-product notebook teaches six operand pairs under four
+  metrics and displays the Gram matrix without restoring the dispatcher
+  ([ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1384,7 +1390,7 @@ expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
 complex/quaternion, low-dimensional/transformation, scalar, factory/display
-and architecture suites with legacy imports blocked. Matrix plans
+and architecture/inner-product suites with legacy imports blocked. Matrix plans
 continue to share core algebras across facade presentation views; that is
 intentional v2 behavior.
 
@@ -1402,8 +1408,9 @@ release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
 ledger now contains 2 files, down from 3 after removing `test_coverage_gaps.py`.
-Extracting the architecture subgroup does not remove the mixed coverage suite
-from that ledger: its other 192 methods retain their existing owners.
+Extracting the architecture and inner-product subgroups does not remove the
+mixed coverage suite from that ledger: its other 179 methods retain their
+existing owners.
 The remaining entries are `test_coverage.py` and `test_redesign.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
@@ -1427,14 +1434,14 @@ See [ADR-090](../adrs/090-portable-notebooks-use-a-local-editable-launcher.md)
 and [ADR-081](../adrs/081-optional-integrations-consume-public-protocols.md).
 
 The combined package and release-workflow suite passes on Python 3.14
-(7,205 passed, 20 skipped), including the maintained gallery's headless exports,
-and on Python 3.11 (7,071 passed, 62 skipped), with Python 3.14-only integrations
+(7,429 passed, 20 skipped), including the maintained gallery's headless exports,
+and on Python 3.11 (7,291 passed, 66 skipped), with Python 3.14-only integrations
 skipped on the older runtime. The existing complex-to-real matrix conversion
 warning remains. These runs use the updated dependency lockfile in isolated
 environments; the checkout's Python 3.13 environment is unchanged. The Python
 3.11 run measures branch coverage without new exclusions: the core public
 module remains at 97%, its backend/metric/metadata modules at 100%, and the
-facade numeric module remains at 97%, including coverage of every new unary
+facade numeric module reaches 98%, including the reflected-pipe path and every new unary
 property. A focused Python 3.11 run passes all 322 symbolic, unary-property,
 and boundary cases with 100% line and branch coverage in those three files.
 All 305 tests in the two public suites also pass against the built wheel,
@@ -1538,6 +1545,14 @@ Python 3.11 and 7,205 (20 skipped) on Python 3.14, including notebook exports.
 Core, facade and rendering coverage percentages are unchanged. Negative
 controls reject forbidden nested imports, incomplete catalogs, incompatible
 call signatures, swapped operands and replay that ignores new bindings.
+The inner-product checkpoint passes 237 focused cases on Python 3.14 with
+100% line/branch coverage in both files. All 221 public cases pass from the
+wheel with origins verified and legacy imports blocked. Gram-minor pairings
+and reference grade-selection oracles cover sixteen grade pairs and mixed
+inputs, three metrics, three provenance states and three display targets.
+Four runtime regressions check the pedagogical notebook's selectable metric,
+matrix display, computed tables and formulas. The reflected-pipe test covers
+an additional facade path, raising numeric facade coverage to 98%.
 Ruff lint, configured Python formatting and changed-file Markdown lint pass.
 The broad Ruff 0.16.5 format check additionally reports code-block formatting
 in 40 Markdown files; every finding reproduces against HEAD and remains
@@ -1549,7 +1564,7 @@ below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
 mixed-rendering, blade-convention, RGA, locals, quaternion, transformation,
-scalar, factory/display and architecture work. The converter's
+scalar, factory/display, architecture and inner-product work. The converter's
 consolidated tuple lookup removes one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 

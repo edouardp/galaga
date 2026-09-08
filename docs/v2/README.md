@@ -180,7 +180,13 @@ public owners too. Recursive import checks enforce core/catalog boundaries;
 catalog completeness follows the API rather than a fixed operation count,
 and generic calls share checked evaluator/parameter routing. Complete v1
 source and registry evidence is archived. The other mixed-file code is unchanged.
-All twenty-one completed dependency groups have fresh-process legacy-import gates.
+The thirteen inner-product dispatch identities now use explicit public
+functions, retaining 75 archived mode observations. Gram-minor and
+grade-selection oracles distinguish scalar handling, contraction direction
+and higher-grade signs. The existing inner-product notebook compares six
+operand pairs under four selectable metrics, displaying its Gram matrix
+with `MatrixRepr`. No mode dispatcher is restored.
+All twenty-two completed dependency groups have fresh-process legacy-import gates.
 The remaining test dependencies, engine deletion, alias retirement, and
 final release gates are still pending.
 
@@ -194,7 +200,7 @@ scalar semantics and their mixed-numeric limitation are documented in
 The construction-only legacy ledger is down to 2 files: `test_coverage.py`
 and `test_redesign.py`.
 The remaining mixed contracts are next, followed by namespace/construction guards.
-See [ADR-111](../adrs/111-architecture-contracts-use-the-public-operation-catalog.md)
+See [ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md)
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the

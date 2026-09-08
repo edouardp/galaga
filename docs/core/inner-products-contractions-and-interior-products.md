@@ -19,6 +19,14 @@ The central distinction is:
 `galaga.core` keeps separate names for these meanings instead of giving an unqualified
 `inner_product()` name to one of them.
 
+The executable [inner-product notebook](../../examples/algebra/inner_product_family.py)
+compares all six conventional named products using selectable Gram matrices,
+displayed with `MatrixRepr`. Scalar, vector/bivector and mixed-grade examples
+show distinctions that a vector-only comparison misses. The public facade
+tests preserve the retired mode dispatcher's evidence while checking Gram
+minors and grade-selection oracles; see
+[ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md).
+
 ## Notation
 
 Let $g$ be the symmetric $n\times n$ Gram matrix on the base vector space,

@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-003: Explicit Inner Product Variants
 
+The retained v1 engine did implement a mode dispatcher despite this intended
+direction. Its thirteen dispatch tests now have public v2 owners, with the
+old observations archived rather than the dispatcher restored; see
+[ADR-112](112-explicit-inner-product-contracts-outlive-mode-dispatch.md).
+
 ## Context and Problem Statement
 
 There are at least four different "inner product" conventions in geometric

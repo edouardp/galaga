@@ -125,6 +125,7 @@ helps future contributors understand why certain choices were made.
 | [109](109-public-scalar-compositions-and-small-value-contracts.md) | Public Scalar Compositions and Small-Value Contracts | Accepted |
 | [110](110-public-factory-and-display-edge-contracts.md) | Public Factory and Display Edge Contracts | Accepted |
 | [111](111-architecture-contracts-use-the-public-operation-catalog.md) | Architecture Contracts Use the Public Operation Catalog | Accepted |
+| [112](112-explicit-inner-product-contracts-outlive-mode-dispatch.md) | Explicit Inner-Product Contracts Outlive Mode Dispatch | Accepted |
 
 ## Creating New ADRs
 

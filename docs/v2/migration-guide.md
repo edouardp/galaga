@@ -63,6 +63,51 @@ There is no unqualified `inner_product` or `ip` export because the Doran–
 Lasenby, Hestenes, metric, scalar, and contraction operations disagree outside
 restricted inputs.
 
+Replace each old dispatcher call with its chosen function:
+
+| Old `ip` mode | Public v2 function |
+|---|---|
+| Default, `"doran_lasenby"`, `"dorst"` | `doran_lasenby_inner` |
+| `"hestenes"` | `hestenes_inner` |
+| `"left"` | `left_contraction` |
+| `"right"` | `right_contraction` |
+| `"scalar"` | `scalar_product` |
+
+The functions do not accept a `mode` keyword. Their differences are numerical,
+not just notation:
+
+```python
+from galaga import (
+    Algebra,
+    hestenes_inner,
+    left_contraction,
+    metric_inner_product,
+    right_contraction,
+    scalar_product,
+)
+
+algebra = Algebra(gram=((2, 1), (1, 3)))
+e1, e2 = algebra.basis_vectors()
+s = algebra.scalar(2)
+B = e1 ^ e2  # e1 * e2 would also contain the off-diagonal Gram entry.
+G = algebra.gram
+determinant = G[0, 0] * G[1, 1] - G[0, 1] ** 2
+
+assert s | e1 == e1 | s == 2 * e1
+assert hestenes_inner(s, e1) == 0
+assert left_contraction(s, e1) == right_contraction(e1, s) == 2 * e1
+assert right_contraction(s, e1) == left_contraction(e1, s) == 0
+assert float(scalar_product(B, B)) == -determinant
+assert float(metric_inner_product(B, B)) == determinant
+```
+
+For mixed grades, apply the defining rule separately to every homogeneous
+pair and add the results. Default LaTeX uses a dot for both Doran–Lasenby
+and Hestenes; use `Notation.functional()` when the distinction should be
+visible. The stored operation IDs and numeric results do not depend on
+that choice. Explore the [inner-product notebook](../../examples/algebra/inner_product_family.py)
+for four metrics, including indefinite and degenerate cases.
+
 ## Account for corrected bracket scaling
 
 Galaga 2 makes the factor of one half visible:

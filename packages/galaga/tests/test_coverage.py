@@ -31,7 +31,6 @@ from galaga.legacy import (
     hestenes_inner,
     inverse,
     involute,
-    ip,
     is_even,
     is_rotor,
     left_contraction,
@@ -54,7 +53,6 @@ from galaga.legacy import grade as sgrade
 from galaga.legacy import hestenes_inner as shi
 from galaga.legacy import inverse as sinverse
 from galaga.legacy import involute as sinvolute
-from galaga.legacy import ip as sip
 from galaga.legacy import left_contraction as slc
 from galaga.legacy import norm as snorm
 from galaga.legacy import normalise as snormalise
@@ -151,37 +149,7 @@ class TestNamingPresets:
 # Historical source and registries: tools/baselines/architecture-contracts-v1.json.
 
 
-class TestIpFunction:
-    def test_ip_default_is_doran_lasenby(self, cl3):
-        """ip() defaults to Doran-Lasenby."""
-        e1, _, _ = cl3.basis_vectors()
-        assert ip(e1, e1) == doran_lasenby_inner(e1, e1)
-
-    def test_ip_hestenes(self, cl3):
-        """ip(mode='hestenes') dispatches correctly."""
-        e1, _, _ = cl3.basis_vectors()
-        assert ip(e1, e1, mode="hestenes") == hestenes_inner(e1, e1)
-
-    def test_ip_left(self, cl3):
-        """ip(mode='left') dispatches to left contraction."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert ip(e1, e1 ^ e2, mode="left") == left_contraction(e1, e1 ^ e2)
-
-    def test_ip_right(self, cl3):
-        """ip(mode='right') dispatches to right contraction."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert ip(e1 ^ e2, e2, mode="right") == right_contraction(e1 ^ e2, e2)
-
-    def test_ip_scalar(self, cl3):
-        """ip(mode='scalar') dispatches to scalar product."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert ip(e1, e2, mode="scalar") == scalar_product(e1, e2)
-
-    def test_ip_bad_mode(self, cl3):
-        """ip() with unknown mode raises ValueError."""
-        e1, _, _ = cl3.basis_vectors()
-        with pytest.raises(ValueError, match="Unknown inner product mode"):
-            ip(e1, e1, mode="bogus")
+# Inner-product identities now live in facade/test_inner_product_contracts.py.
 
 
 # ============================================================
@@ -335,55 +303,7 @@ class TestSymbolicUnaryEval:
         assert np.allclose(result.data, expected.data)
 
 
-class TestSymbolicIp:
-    def test_ip_hestenes(self, cl3):
-        """ip(mode='hestenes') dispatches correctly."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        assert str(sip(a, b)) == "a·b"
-
-    def test_ip_left(self, cl3):
-        """ip(mode='left') dispatches to left contraction."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        assert str(sip(a, b, mode="left")) == "a⌋b"
-
-    def test_ip_right(self, cl3):
-        """ip(mode='right') dispatches to right contraction."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        assert str(sip(a, b, mode="right")) == "a⌊b"
-
-    def test_ip_scalar(self, cl3):
-        """ip(mode='scalar') dispatches to scalar product."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        assert str(sip(a, b, mode="scalar")) == "a∗b"
-
-    def test_ip_bad_mode(self, cl3):
-        """ip() with unknown mode raises ValueError."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        with pytest.raises(ValueError, match="Unknown inner product mode"):
-            sip(a, b, mode="bogus")
-
-    def test_ip_numeric_fallback(self, cl3):
-        """ip() falls back to numeric for eager MVs."""
-        e1, _, _ = cl3.basis_vectors()
-        result = sip(e1, e1)
-        assert not isinstance(result, Expr)
-
-    def test_ip_numeric_modes(self, cl3):
-        """ip() numeric fallback works for all modes."""
-        e1, e2, _ = cl3.basis_vectors()
-        assert sip(e1, e1 ^ e2, mode="left") == left_contraction(e1, e1 ^ e2)
-        assert sip(e1 ^ e2, e1, mode="right") == right_contraction(e1 ^ e2, e1)
-        assert sip(e1, e2, mode="scalar") == scalar_product(e1, e2)
+# Inner-product identities now live in facade/test_inner_product_contracts.py.
 
 
 class TestSymbolicNormalize:
