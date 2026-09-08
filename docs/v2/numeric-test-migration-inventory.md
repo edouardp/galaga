@@ -1459,3 +1459,44 @@ No production package behavior changes. This subgroup leaves
 both mixed suites in the construction ledger; remaining contracts, engine
 deletion and final release gates are still pending. See
 [ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).
+
+### Phase 9 follow-through: grade inspection and bounded simplification
+
+All 48 identities in `TestSymbolicGradeEvenOdd`, `TestGradePropagation` and
+`TestSimplify` now live in `facade/test_grade_simplification_contracts.py`.
+The other 89 methods and unrelated code are unchanged. The archive
+`tools/baselines/grade-simplification-v1.json` retains complete source and
+digest, all 137 source identities, extracted owners, 30 grade observations,
+eight parity projections, 60 simplification observations, automatic grades
+and fourteen original scalar-context errors across two signatures. A separate
+four-dimensional sample preserves the incorrect legacy self-wedge rewrite.
+
+Public grade inspection follows actual coefficients, not cached assumptions.
+Zero and mixed values report `None`; tiny-value tests distinguish diagnostic
+tolerance from storage and exact equality. The original orthogonal-vector
+product is a pure bivector, despite its misleading test comment. A separate
+six-dimensional bivector inverse has both grades 2 and 6.
+
+Bounded v2 simplification remains unchanged. Tests pin its supported reductions,
+preserve numeric checks for other valid identities without promising those
+rewrites, and replay under vector, bivector and mixed bindings. Self-wedge,
+grade projection and rotor-value assumptions cannot be inferred from a name;
+norm/unit and double-inverse calls retain invalid-binding domain errors.
+
+Independent mask, permutation, Gram-minor and reference-action oracles cover
+three metrics, provenance states, projection targets, involutions and inverses.
+Mutation controls reject bad archives, stale grades, unsafe rewrites, single-pass
+simplification and wrong replay/rendering. The involutions notebook teaches
+the distinctions under three selectable Gram matrices shown with `MatrixRepr`.
+Runtime tests check all metrics, decomposition, signs, bindings and actual math.
+
+All 600 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both files. All 582 public cases pass from the wheel with origins verified
+and legacy imports blocked. Full suites pass 8,286 cases (70 skipped) on
+Python 3.11 and 8,428 (20 skipped) on Python 3.14, including notebook exports.
+Core/facade coverage is unchanged; two additional rendering paths are covered.
+The existing matrix warning, 295 type errors and Markdown-formatting debt
+remain. No production package behavior changes. Both mixed suites remain
+in the construction ledger; remaining helpers, rendering/transformation tests,
+namespace guards, engine deletion and release gates are still pending. See
+[ADR-114](../adrs/114-grade-inspection-and-bounded-simplification-contracts.md).

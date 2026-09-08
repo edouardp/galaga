@@ -6,6 +6,13 @@ deciders: edouard
 
 # ADR-066: Grade Propagation via @ga_op and __float__ Conversion
 
+The cached-grade propagation described below is historical v1 behavior.
+Galaga 2 instead inspects concrete coefficients through
+`homogeneous_grade(atol=...)`; symbols carry no inferred grade. The migrated
+contracts preserve value checks and distinguish zero projections, actual
+product grades and tolerance from the old cache; see
+[ADR-114](114-grade-inspection-and-bounded-simplification-contracts.md).
+
 ## Context and Problem Statement
 
 Multivectors had no systematic way to track their grade through operations.

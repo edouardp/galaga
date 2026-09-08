@@ -44,3 +44,8 @@ headlessly.
 The optional [`galaga_matrix` example series](../matrix/README.md) continues
 from the facade into compact, left-regular, Pauli, Dirac, quaternion, and
 spinor-column representations.
+
+Continue the expression lesson with
+[involutions and grades](../algebra/involutions_and_grade_ops.py): selectable
+Gram matrices, grade decomposition, involution signs, symbol rebinding and
+why a nonsimple bivector can have a nonzero wedge square.

@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-014: Fixed-Point Simplification
 
+For Galaga 2, ADR-077 retains fixed-point structural rewriting but narrows
+the rules and removes dependence on legacy node types and hidden bindings.
+The migrated contracts explicitly distinguish numeric identities from
+promised tree reductions; see
+[ADR-114](114-grade-inspection-and-bounded-simplification-contracts.md).
+
 ## Context and Problem Statement
 
 How should symbolic expression simplification work? A single pass may not

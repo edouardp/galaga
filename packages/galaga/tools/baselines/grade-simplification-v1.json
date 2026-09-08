@@ -1,0 +1,3544 @@
+{
+  "schema_version": 1,
+  "source_commit": "334133b7987b359929df7f76c7c397e6cbf6765e",
+  "captured_on": "2026-09-08",
+  "python": "3.14.4",
+  "numpy": "2.5.2",
+  "source_path": "packages/galaga/tests/test_coverage.py",
+  "source": "\"\"\"Coverage gap tests for algebra.py and symbolic.py.\"\"\"\n\nimport numpy as np\nimport pytest\n\nfrom galaga.expr import (\n    Conjugate,\n    Dual,\n    Grade,\n    Involute,\n    Neg,\n    Reverse,\n    Scalar,\n    ScalarMul,\n    Unit,\n    sym,\n)\nfrom galaga.legacy import (\n    Algebra,\n    BladeConvention,\n    b_gamma,\n    b_sigma,\n    b_sigma_xyz,\n    complement,\n    conjugate,\n    doran_lasenby_inner,\n    dual,\n    gp,\n    hestenes_inner,\n    inverse,\n    involute,\n    is_even,\n    is_rotor,\n    left_contraction,\n    regressive_product,\n    reverse,\n    right_contraction,\n    sandwich,\n    scalar_product,\n    unit,\n)\nfrom galaga.legacy import conjugate as sconjugate\nfrom galaga.legacy import dual as sdual\nfrom galaga.legacy import even_grades as seven\nfrom galaga.legacy import even_grades as seven_grades\nfrom galaga.legacy import grade as sgrade\nfrom galaga.legacy import hestenes_inner as shi\nfrom galaga.legacy import inverse as sinverse\nfrom galaga.legacy import involute as sinvolute\nfrom galaga.legacy import left_contraction as slc\nfrom galaga.legacy import norm as snorm\nfrom galaga.legacy import odd_grades as sodd\nfrom galaga.legacy import odd_grades as sodd_grades\nfrom galaga.legacy import right_contraction as src\nfrom galaga.legacy import sandwich as ssandwich\nfrom galaga.legacy import scalar_product as ssp\nfrom galaga.legacy import squared as ssq\nfrom galaga.legacy import sw as ssw_alias\nfrom galaga.legacy import undual as sundual\nfrom galaga.legacy import unit as sunit\nfrom galaga.legacy.simplify import simplify\n\n\n@pytest.fixture\ndef cl3():\n    return Algebra((1, 1, 1))\n\n\n# ============================================================\n# algebra.py coverage gaps\n# ============================================================\n\n\nclass TestNamingPresets:\n    def test_gamma_preset(self):\n        \"\"\"Gamma naming preset: γ₀, γ₁, ...\"\"\"\n        sta = Algebra((1, -1, -1, -1), blades=b_gamma())\n        g0, g1, g2, g3 = sta.basis_vectors()\n        assert \"γ₀\" in str(g0)\n        assert \"γ₀\" in repr(g0)\n\n    def test_sigma_preset(self):\n        \"\"\"Sigma naming preset: σ₁, σ₂, ...\"\"\"\n        alg = Algebra((1, 1, 1), blades=b_sigma())\n        s1, s2, s3 = alg.basis_vectors()\n        assert \"σ₁\" in str(s1)\n        assert \"σ₁\" in repr(s1)\n\n    def test_sigma_xyz_preset(self):\n        \"\"\"Sigma xyz preset: σₓ, σᵧ, σz.\"\"\"\n        alg = Algebra((1, 1, 1), blades=b_sigma_xyz())\n        sx, sy, sz = alg.basis_vectors()\n        assert \"σₓ\" in str(sx)\n        assert \"σₓ\" in repr(sx)\n\n    def test_custom_names(self):\n        \"\"\"Custom (code, unicode) name tuples.\"\"\"\n        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\")]))\n        a, b = alg.basis_vectors()\n        assert str(a) == \"𝐚\"\n        assert repr(a) == \"𝐚\"\n\n    def test_custom_names_wrong_length(self):\n        \"\"\"Too-few custom names raise ValueError.\"\"\"\n        with pytest.raises(ValueError, match=\"need at least\"):\n            Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\")]))\n\n    def test_invalid_blades_type(self):\n        \"\"\"Non-BladeConvention blades= raises TypeError.\"\"\"\n        with pytest.raises(TypeError):\n            Algebra((1, 1), blades=\"bogus\")\n\n    def test_blade_lookup_custom_names(self):\n        \"\"\"blade() works with gamma convention via display name.\"\"\"\n        sta = Algebra((1, -1, -1, -1), blades=b_gamma())\n        b = sta.blade(\"g0g1\")  # ascii name match\n        e0, e1, _, _ = sta.basis_vectors()\n        assert b == e0 ^ e1\n\n    def test_blade_lookup_custom_no_match(self):\n        \"\"\"blade() with unrecognized name raises.\"\"\"\n        alg = Algebra((1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\")]))\n        with pytest.raises(ValueError, match=\"Unknown blade name\"):\n            alg.blade(\"xyz\")\n\n    def test_blade_name_custom_unicode(self):\n        \"\"\"Custom unicode names appear in str().\"\"\"\n        alg = Algebra(\n            (1, 1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\"), (\"c\", \"𝐜\", \"𝐜\")])\n        )\n        a, b, c = alg.basis_vectors()\n        # Non-pseudoscalar bivector uses custom names\n        assert str(a * b) == \"𝐚𝐛\"\n        assert repr(a * b) == \"𝐚𝐛\"\n        # Pseudoscalar uses standard blade name\n        assert str(a * b * c) == \"𝐚𝐛𝐜\"\n\n\n# Architectural identities now live in facade/test_architecture_contracts.py.\n# Historical source and registries: tools/baselines/architecture-contracts-v1.json.\n\n\n# Inner-product identities now live in facade/test_inner_product_contracts.py.\n\n\n# Eager operation/provenance identities now live in facade/test_eager_operation_contracts.py.\n# Historical source and observations: tools/baselines/eager-operation-edges-v1.json.\n\n\nclass TestRotorFromPlaneAngle:\n    def test_90_degree_rotation(self, cl3):\n        \"\"\"90° rotor rotates e1 to e2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi / 2)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e2.data, atol=1e-12)\n\n    def test_180_degree_rotation(self, cl3):\n        \"\"\"180° rotor rotates e1 to -e1.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=np.pi)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, (-e1).data, atol=1e-12)\n\n    def test_zero_rotation(self, cl3):\n        \"\"\"0° rotor is identity.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=0)\n        v_rot = R * e1 * ~R\n        assert np.allclose(v_rot.data, e1.data, atol=1e-12)\n\n    def test_rotor_is_rotor(self, cl3):\n        \"\"\"rotor() output passes is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = e1 ^ e2\n        R = cl3.rotor_from_plane_angle(B, radians=1.23)\n        assert is_rotor(R)\n\n\nclass TestRotorValidation:\n    def test_rejects_vector(self, cl3):\n        \"\"\"rotor() rejects odd-grade input.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1, radians=0.5)\n\n    def test_rejects_trivector(self, cl3):\n        \"\"\"rotor() rejects trivector input.\"\"\"\n        e1, e2, e3 = cl3.basis_vectors()\n        with pytest.raises(ValueError, match=\"odd-grade\"):\n            cl3.rotor(e1 ^ e2 ^ e3, radians=0.5)\n\n    def test_accepts_bivector(self, cl3):\n        \"\"\"rotor() accepts bivector input.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=0.5)\n        assert is_rotor(R)\n\n    def test_rejects_scalar(self, cl3):\n        \"\"\"Scalars have no rotation plane — rotor() should reject them.\"\"\"\n        with pytest.raises(ValueError, match=\"bivector\"):\n            cl3.rotor(cl3.scalar(1.0), radians=0.5)\n\n    def test_normalizes_non_unit_bivector(self, cl3):\n        \"\"\"rotor() auto-normalizes the bivector.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=0.5)\n        R2 = cl3.rotor(3 * (e1 ^ e2), radians=0.5)\n        assert np.allclose(R1.data, R2.data)\n\n    def test_sta_pseudoscalar_u1(self):\n        \"\"\"rotor() accepts STA pseudoscalar — U(1) phase.\"\"\"\n        sta = Algebra((1, -1, -1, -1))\n        I = sta.I\n        R = sta.rotor(I, radians=0.5)\n        assert is_even(R)\n\n    def test_scaled_rotor_not_rotor(self, cl3):\n        \"\"\"Scaled rotor fails is_rotor().\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5)\n        assert not is_rotor(2 * R)\n\n\nclass TestSymbolicGradeEvenOdd:\n    def test_sym_grade_even(self, cl3):\n        \"\"\"Symbolic grade('even') builds Even node.\"\"\"\n        from galaga.legacy import grade as sgrade\n\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert str(sgrade(v, \"even\")) == \"⟨v⟩₊\"\n\n    def test_sym_grade_odd(self, cl3):\n        \"\"\"Symbolic grade('odd') builds Odd node.\"\"\"\n        from galaga.legacy import grade as sgrade\n\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert str(sgrade(v, \"odd\")) == \"⟨v⟩₋\"\n\n    def test_sym_even_grades(self, cl3):\n        \"\"\"Symbolic even_grades builds Even node.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert str(seven_grades(v)) == \"⟨v⟩₊\"\n\n    def test_sym_odd_grades(self, cl3):\n        \"\"\"Symbolic odd_grades builds Odd node.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert str(sodd_grades(v)) == \"⟨v⟩₋\"\n\n\nclass TestGradePropagation:\n    \"\"\"Grade rules propagate through @ga_op operations.\"\"\"\n\n    def test_op_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        w = sym(e2, \"w\")\n        assert (v ^ w)._grade == 2\n\n    def test_left_contraction_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        B = sym(e1 ^ e2, \"B\")\n        assert left_contraction(v, B)._grade == 1\n\n    def test_right_contraction_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        B = sym(e1 ^ e2, \"B\")\n        assert right_contraction(B, v)._grade == 1\n\n    def test_doran_lasenby_inner_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        B = sym(e1 ^ e2, \"B\")\n        assert doran_lasenby_inner(v, B)._grade == 1\n\n    def test_hestenes_inner_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        w = sym(e2, \"w\")\n        assert hestenes_inner(v, w)._grade == 0\n\n    def test_scalar_product_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        w = sym(e2, \"w\")\n        assert scalar_product(v, w)._grade == 0\n\n    def test_reverse_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        B = sym(e1 ^ e2, \"B\")\n        assert reverse(B)._grade == 2\n\n    def test_involute_grade(self, cl3):\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert involute(v)._grade == 1\n\n    def test_conjugate_grade(self, cl3):\n        e1, e2, _ = cl3.basis_vectors()\n        B = sym(e1 ^ e2, \"B\")\n        assert conjugate(B)._grade == 2\n\n    def test_dual_grade(self, cl3):\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert dual(v)._grade == 2\n\n    def test_complement_grade(self, cl3):\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert complement(v)._grade == 2\n\n    def test_unit_grade(self, cl3):\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert unit(v)._grade == 1\n\n    def test_inverse_grade(self, cl3):\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert inverse(v)._grade == 1\n\n    def test_regressive_product_grade(self, cl3):\n        e1, e2, e3 = cl3.basis_vectors()\n        B1 = sym(e1 ^ e2, \"B1\")\n        B2 = sym(e2 ^ e3, \"B2\")\n        assert regressive_product(B1, B2)._grade == 1\n\n    def test_gp_no_grade(self, cl3):\n        \"\"\"GP doesn't propagate grade (mixed in general).\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        w = sym(e2, \"w\")\n        # gp of two grade-1 gives grade-0 + grade-2, so _grade comes from\n        # homogeneous_grade detection on the numeric result, not from a rule\n        result = gp(v, w)\n        # Should be None since gp has no grade rule and result is mixed\n        assert result._grade is None\n\n\nclass TestLatex:\n    \"\"\"Tests for .latex() output on all expression types.\"\"\"\n\n    def test_sym(self, cl3):\n        \"\"\"Sym LaTeX renders its latex name.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        assert sym(e1, \"v\").latex() == \"v\"\n\n    def test_gp(self, cl3):\n        \"\"\"Gp LaTeX renders with space.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        assert (R * v).latex() == \"R v\"\n\n    def test_sandwich_grade(self, cl3):\n        \"\"\"Grade of sandwich renders correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        from galaga.legacy import grade as sgrade\n\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        assert sgrade(R * v * ~R, 1).latex() == r\"\\langle R v \\tilde{R} \\rangle_{1}\"\n\n    def test_wedge(self, cl3):\n        r\"\"\"Op LaTeX renders with \\wedge.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        assert (a ^ b).latex() == r\"a \\wedge b\"\n\n    def test_left_contraction(self, cl3):\n        r\"\"\"Lc LaTeX renders with \\lrcorner.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        assert slc(a, b).latex() == r\"a \\;\\lrcorner\\; b\"\n\n    def test_right_contraction(self, cl3):\n        r\"\"\"Rc LaTeX renders with \\llcorner.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        assert src(a, b).latex() == r\"a \\;\\llcorner\\; b\"\n\n    def test_hestenes_inner(self, cl3):\n        r\"\"\"Hi LaTeX renders with \\cdot.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"A\"), sym(e2, \"B\")\n        assert shi(a, b).latex() == r\"A \\cdot B\"\n\n    def test_scalar_product(self, cl3):\n        \"\"\"Sp LaTeX renders with *.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"A\"), sym(e2, \"B\")\n        assert ssp(a, b).latex() == \"A * B\"\n\n    def test_reverse(self, cl3):\n        \"\"\"Reverse LaTeX renders with \\tilde.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        assert (~R).latex() == r\"\\tilde{R}\"\n\n    def test_involute(self, cl3):\n        r\"\"\"Involute LaTeX renders with \\hat.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sinvolute(v).latex() == r\"\\hat{v}\"\n\n    def test_conjugate(self, cl3):\n        \"\"\"Conjugate LaTeX renders with \\bar.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sconjugate(v).latex() == r\"\\bar{v}\"\n\n    def test_dual(self, cl3):\n        \"\"\"Dual LaTeX renders with ^*.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sdual(v).latex() == \"v^*\"\n\n    def test_undual(self, cl3):\n        \"\"\"Undual LaTeX renders with ^{*^{-1}}.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sundual(v).latex() == \"v^{*^{-1}}\"\n\n    def test_norm(self, cl3):\n        r\"\"\"Norm LaTeX renders with \\lVert.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert snorm(v).latex() == r\"\\lVert v \\rVert\"\n\n    def test_unit(self, cl3):\n        r\"\"\"Unit LaTeX renders with \\hat.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sunit(v).latex() == r\"\\hat{v}\"\n\n    def test_inverse(self, cl3):\n        \"\"\"Inverse LaTeX renders with ^{-1}.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sinverse(v).latex() == \"v^{-1}\"\n\n    def test_squared(self, cl3):\n        \"\"\"Squared LaTeX renders with ^2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        assert ssq(R).latex() == \"R^2\"\n\n    def test_even(self, cl3):\n        \"\"\"Even LaTeX renders with \\text{even}.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert seven(v).latex() == r\"\\langle v \\rangle_{\\text{even}}\"\n\n    def test_odd(self, cl3):\n        \"\"\"Odd LaTeX renders with \\text{odd}.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert sodd(v).latex() == r\"\\langle v \\rangle_{\\text{odd}}\"\n\n    def test_add(self, cl3):\n        \"\"\"Add LaTeX renders with +.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        assert (a + b).latex() == \"a + b\"\n\n    def test_sub(self, cl3):\n        \"\"\"Sub LaTeX renders with -.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        assert (a - b).latex() == \"a - b\"\n\n    def test_neg(self, cl3):\n        \"\"\"Neg LaTeX renders with -.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert (-a).latex() == \"-a\"\n\n    def test_scalar_mul(self, cl3):\n        \"\"\"ScalarMul LaTeX renders as coefficient.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert (3 * a).latex() == \"3 a\"\n        assert (-1 * a).latex() == \"-a\"\n\n    def test_parens(self, cl3):\n        \"\"\"Parens in LaTeX use \\\\left(\\right).\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a, b = sym(e1, \"a\"), sym(e2, \"b\")\n        R = sym(e1 * e2, \"R\")\n        assert ((a + b) * R).latex() == r\"\\left(a + b\\right) R\"\n\n    def test_repr_latex(self, cl3):\n        \"\"\"MV._repr_latex_() wraps in $.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert v._repr_latex_() == \"$v$\"\n        assert (~v)._repr_latex_() == r\"$\\tilde{v}$\"\n\n    def test_multivector_latex_bare(self, cl3):\n        \"\"\"MV.latex() returns raw LaTeX.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        v = 3 * e1 + 4 * e2\n        assert v.latex() == \"3 e_{12}\" or \"e_{1}\" in v.latex()  # just check it returns a string\n        assert \"$\" not in v.latex()\n\n    def test_multivector_latex_wrap_inline(self, cl3):\n        \"\"\"MV.latex(wrap='$') wraps inline.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = 3 * e1\n        raw = v.latex()\n        assert v.latex(wrap=\"$\") == f\"${raw}$\"\n\n    def test_multivector_latex_wrap_display(self, cl3):\n        \"\"\"MV.latex(wrap='$$') wraps display.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = 3 * e1\n        raw = v.latex()\n        assert v.latex(wrap=\"$$\") == f\"$$\\n{raw}\\n$$\"\n\n    def test_multivector_latex_wrap_none(self, cl3):\n        \"\"\"MV.latex(wrap=None) returns raw.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = 3 * e1\n        assert v.latex(wrap=None) == v.latex()\n\n\nclass TestSandwich:\n    \"\"\"Tests for sandwich(r, x) / sw(r, x).\"\"\"\n\n    def test_symbolic_sandwich(self, cl3):\n        \"\"\"Symbolic sandwich builds Gp tree.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        expr = ssandwich(R, v)\n        assert str(expr) == \"RvR̃\"\n        assert expr.latex() == r\"R v \\tilde{R}\"\n\n    def test_symbolic_sandwich_eval(self, cl3):\n        \"\"\"Symbolic sandwich evaluates correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        expr = ssandwich(sym(R, \"R\"), sym(e1, \"v\"))\n        result = expr.eval()\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_symbolic_sw_alias(self, cl3):\n        \"\"\"Symbolic sw() is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(e1 * e2, \"R\")\n        v = sym(e1, \"v\")\n        assert str(ssw_alias(R, v)) == \"RvR̃\"\n\n\nclass TestSimplify:\n    \"\"\"Tests for simplify() rewrite rules.\"\"\"\n\n    def test_double_reverse(self, cl3):\n        \"\"\"simplify(~~x) = x.\"\"\"\n        R = sym(cl3.basis_vectors()[0], \"R\")\n        assert str(simplify(~~R)) == \"R\"\n\n    def test_double_neg(self, cl3):\n        \"\"\"simplify(--x) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(-(-v))) == \"v\"  # noqa: B002\n\n    def test_mul_identity_right(self, cl3):\n        \"\"\"simplify(x*1) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(v * Scalar(1))) == \"v\"\n\n    def test_mul_identity_left(self, cl3):\n        \"\"\"simplify(1*x) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(Scalar(1) * v)) == \"v\"\n\n    def test_mul_zero(self, cl3):\n        \"\"\"simplify(x*0) = 0.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(v * Scalar(0))) == \"0\"\n        assert str(simplify(Scalar(0) * v)) == \"0\"\n\n    def test_add_zero(self, cl3):\n        \"\"\"simplify(x+0) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(v + Scalar(0))) == \"v\"\n        assert str(simplify(Scalar(0) + v)) == \"v\"\n\n    def test_sub_self(self, cl3):\n        \"\"\"simplify(x-x) = 0.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(v - v)) == \"0\"\n\n    def test_scalar_mul_zero(self, cl3):\n        \"\"\"simplify(0*x) = 0.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(0 * v)) == \"0\"\n\n    def test_scalar_mul_one(self, cl3):\n        \"\"\"simplify(1*x) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(1 * v)) == \"v\"\n\n    def test_r_times_r_reverse(self, cl3):\n        \"\"\"simplify(R*~R) = 1 for rotors.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = sym(cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5), \"R\")\n        result = simplify(R * ~R)\n        assert np.allclose(result.eval().data[0], 1.0, atol=1e-12)\n\n    def test_grade_idempotent(self, cl3):\n        \"\"\"simplify(grade(grade(x,k),k)) = grade(x,k).\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        # grade(grade(v,1),1) → v (v is known grade-1)\n        assert str(simplify(sgrade(sgrade(v, 1), 1))) == \"v\"\n\n    def test_nested(self, cl3):\n        \"\"\"Simplify cascades through nested expressions.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        # ~~v + 0 → v\n        assert str(simplify(~~v + Scalar(0))) == \"v\"\n\n    # --- New rules ---\n\n    def test_double_involute(self, cl3):\n        \"\"\"simplify(involute(involute(x))) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(sinvolute(sinvolute(v)))) == \"v\"\n\n    def test_double_conjugate(self, cl3):\n        \"\"\"simplify(conjugate(conjugate(x))) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(sconjugate(sconjugate(v)))) == \"v\"\n\n    def test_double_inverse(self, cl3):\n        \"\"\"simplify(inverse(inverse(x))) = x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(sinverse(sinverse(v)))) == \"v\"\n\n    def test_wedge_self(self, cl3):\n        \"\"\"simplify(x∧x) = 0.\"\"\"\n        a = sym(cl3.basis_vectors()[0], \"a\")\n        assert str(simplify(a ^ a)) == \"0\"\n\n    def test_norm_unit(self, cl3):\n        \"\"\"simplify(norm(unit(x))) = 1.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(snorm(sunit(v)))) == \"1\"\n\n    def test_add_self(self, cl3):\n        \"\"\"simplify(x+x) = 2x.\"\"\"\n        a = sym(cl3.basis_vectors()[0], \"a\")\n        assert str(simplify(a + a)) == \"2a\"\n\n    def test_sub_neg(self, cl3):\n        \"\"\"simplify(x-(-y)) = x+y.\"\"\"\n        a = sym(cl3.basis_vectors()[0], \"a\")\n        b = sym(cl3.basis_vectors()[1], \"b\")\n        result = simplify(a - (-b))\n        assert str(result) == \"a + b\"\n\n    def test_add_neg_self(self, cl3):\n        \"\"\"simplify(x+(-x)) = 0.\"\"\"\n        a = sym(cl3.basis_vectors()[0], \"a\")\n        assert str(simplify(a + (-a))) == \"0\"\n\n    def test_scalar_mul_collapse(self, cl3):\n        \"\"\"simplify(3*(2*x)) = 6x.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(3 * (2 * v))) == \"6v\"\n\n    def test_grade_known_match(self, cl3):\n        \"\"\"simplify(grade(v,1)) = v when v is grade-1.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")  # grade 1\n        assert str(simplify(sgrade(v, 1))) == \"v\"\n\n    def test_grade_known_mismatch(self, cl3):\n        \"\"\"simplify(grade(v,2)) = 0 when v is grade-1.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")  # grade 1\n        assert str(simplify(sgrade(v, 2))) == \"0\"\n\n    def test_even_bivector(self, cl3):\n        \"\"\"simplify(even(B)) = B for bivector.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = sym(e1 ^ e2, \"B\")  # grade 2\n        assert str(simplify(seven(B))) == \"B\"\n\n    def test_odd_bivector(self, cl3):\n        \"\"\"simplify(odd(B)) = 0 for bivector.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        B = sym(e1 ^ e2, \"B\")\n        assert str(simplify(sodd(B))) == \"0\"\n\n    def test_even_vector(self, cl3):\n        \"\"\"simplify(even(v)) = 0 for vector.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(seven(v))) == \"0\"\n\n    def test_odd_vector(self, cl3):\n        \"\"\"simplify(odd(v)) = v for vector.\"\"\"\n        v = sym(cl3.basis_vectors()[0], \"v\")\n        assert str(simplify(sodd(v))) == \"v\"\n\n    def test_cascade(self, cl3):\n        \"\"\"Cascading simplifications resolve fully.\"\"\"\n        a = sym(cl3.basis_vectors()[0], \"a\")\n        # a - (-a) → a + a → 2a (requires two passes)\n        assert str(simplify(a - (-a))) == \"2a\"\n\n    def test_auto_grade_detection(self, cl3):\n        \"\"\"sym() auto-detects grade from MV data.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        B = sym(e1 ^ e2, \"B\")\n        s = sym(cl3.scalar(5.0), \"s\")\n        assert v._grade == 1\n        assert B._grade == 2\n        assert s._grade == 0\n\n\nclass TestMultivectorLatex:\n    \"\"\"Tests for Multivector.latex() and _repr_latex_().\"\"\"\n\n    def test_scalar(self, cl3):\n        \"\"\"Scalar MV LaTeX renders as number.\"\"\"\n        assert cl3.scalar(5).latex() == \"5\"\n\n    def test_zero(self, cl3):\n        \"\"\"vector_part/scalar_part of zero MV.\"\"\"\n        assert cl3.scalar(0).latex() == \"0\"\n\n    def test_vector(self, cl3):\n        \"\"\"Vector MV LaTeX renders with basis names.\"\"\"\n        e1, e2, e3 = cl3.basis_vectors()\n        assert (3 * e1 + 4 * e2).latex() == \"3 e_{1} + 4 e_{2}\"\n\n    def test_coeff_one_suppressed(self, cl3):\n        \"\"\"Coefficient ±1 is suppressed in LaTeX.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        assert e1.latex() == \"e_{1}\"\n        assert (-e2).latex() == \"-e_{2}\"\n\n    def test_bivector(self, cl3):\n        \"\"\"Bivector MV LaTeX renders correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        assert (e1 ^ e2).latex() == \"e_{12}\"\n\n    def test_pseudoscalar(self, cl3):\n        \"\"\"Pseudoscalar MV LaTeX renders correctly.\"\"\"\n        assert cl3.I.latex() == \"e_{123}\"\n\n    def test_mixed(self, cl3):\n        \"\"\"Mixed-grade MV LaTeX renders all terms.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        mv = cl3.scalar(1) + 2 * e1 + 3 * (e1 ^ e2)\n        assert mv.latex() == \"1 + 2 e_{1} + 3 e_{12}\"\n\n    def test_negative_terms(self, cl3):\n        \"\"\"Negative terms use - not + -.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        assert (e1 - e2).latex() == \"e_{1} - e_{2}\"\n\n    def test_gamma_names(self):\n        \"\"\"Gamma-named algebra uses γ in LaTeX.\"\"\"\n        sta = Algebra((1, -1, -1, -1), blades=b_gamma())\n        g0, g1, _, _ = sta.basis_vectors()\n        assert g0.latex() == \"\\\\gamma_{0}\"\n        assert (g0 * g1).latex() == \"\\\\gamma_{0} \\\\gamma_{1}\"\n\n    def test_sigma_names(self):\n        \"\"\"Sigma-named algebra uses σ in LaTeX.\"\"\"\n        pauli = Algebra((1, 1, 1), blades=b_sigma())\n        s1, s2, _ = pauli.basis_vectors()\n        assert s1.latex() == \"\\\\sigma_{1}\"\n        assert (s1 * s2).latex() == \"\\\\sigma_{1} \\\\sigma_{2}\"\n\n    def test_repr_latex(self, cl3):\n        \"\"\"MV._repr_latex_() wraps in $.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        assert e1._repr_latex_() == \"$e_{1}$\"\n\n    def test_repr_latex_mixed(self, cl3):\n        \"\"\"Mixed MV _repr_latex_() wraps correctly.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        mv = cl3.scalar(1) + e1\n        assert mv._repr_latex_() == \"$1 + e_{1}$\"\n\n\nclass TestCoverageGaps:\n    \"\"\"Tests targeting specific uncovered lines.\"\"\"\n\n    # algebra.py: _blade_latex fallback with custom names, no latex_names (lines 322-324)\n    def test_blade_latex_custom_names_no_latex(self):\n        \"\"\"Custom names with explicit latex use the latex variant.\"\"\"\n        alg = Algebra(\n            (1, 1, 1), blades=BladeConvention(vector_names=[(\"a\", \"𝐚\", \"𝐚\"), (\"b\", \"𝐛\", \"𝐛\"), (\"c\", \"𝐜\", \"𝐜\")])\n        )\n        e1, e2, _ = alg.basis_vectors()\n        mv = e1 ^ e2\n        latex = mv.latex()\n        assert \"𝐚\" in latex and \"𝐛\" in latex\n\n    # symbolic.py: Expr.latex(wrap='$') and wrap='$$' (lines 138, 140)\n    def test_expr_latex_wrap(self, cl3):\n        \"\"\"Expr.latex(wrap='$') wraps in $.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        raw = v.latex()\n        assert v.latex(wrap=\"$\") == f\"${raw}$\"\n        assert v.latex(wrap=\"$$\") == f\"$$\\n{raw}\\n$$\"\n\n    # symbolic.py: Expr.__rmul__ with non-scalar (line 179)\n    def test_expr_rmul_expr(self, cl3):\n        \"\"\"Expr * Expr builds Gp.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        b = sym(e2, \"b\")\n        result = a.__rmul__(b)\n        assert str(result) == \"ba\"\n\n    # symbolic.py: Expr.__rmul__ with scalar (line 172)\n    def test_expr_rmul_scalar(self, cl3):\n        \"\"\"scalar * Expr builds ScalarMul.\"\"\"\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        result = 5 * a\n        assert str(result) == \"5a\"\n\n    # symbolic.py: Sym with explicit grade (line 228)\n    def test_sym_explicit_grade(self, cl3):\n        \"\"\"Sym with explicit grade overrides auto-detect.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        s = sym(e1 + e2, \"v\", grade=1)\n        assert s._grade == 1\n\n    # symbolic.py: Scalar.__str__ (line 270)\n    def test_scalar_str(self):\n        \"\"\"Scalar node str() renders the value.\"\"\"\n        from galaga.expr import Scalar\n\n        s = Scalar(42)\n        assert str(s) == \"42\"\n        assert s.latex() == \"42\"\n\n    # symbolic.py: _ensure_expr TypeError (line 611)\n    def test_ensure_expr_bad_type(self):\n        \"\"\"Non-MV/Expr/scalar raises TypeError.\"\"\"\n        import pytest\n\n        from galaga.expr import _ensure_expr\n\n        with pytest.raises(TypeError, match=\"Cannot convert\"):\n            _ensure_expr([1, 2, 3])\n\n    # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)\n    def test_eq_conjugate(self, cl3):\n        \"\"\"Conjugate Expr equality.\"\"\"\n        from galaga.legacy.simplify import _eq\n\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert _eq(Conjugate(a), Conjugate(a))\n        assert not _eq(Conjugate(a), Conjugate(sym(e1, \"b\")))\n\n    def test_eq_grade(self, cl3):\n        \"\"\"Grade Expr equality.\"\"\"\n        from galaga.legacy.simplify import _eq\n\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert _eq(Grade(a, 1), Grade(a, 1))\n        assert not _eq(Grade(a, 1), Grade(a, 2))\n\n    def test_eq_fallback(self, cl3):\n        \"\"\"Expr equality fallback returns False.\"\"\"\n        from galaga.legacy.simplify import _eq\n\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert _eq(Dual(a), Dual(a))\n        assert not _eq(Dual(a), Dual(sym(e1, \"b\")))\n\n    # symbolic.py: _known_grade branches (lines 691-703)\n    def test_known_grade_scalar(self):\n        \"\"\"Scalar has known grade 0.\"\"\"\n        from galaga.expr import Scalar\n        from galaga.legacy.simplify import _known_grade\n\n        assert _known_grade(Scalar(5)) == 0\n\n    def test_known_grade_grade_node(self, cl3):\n        \"\"\"Grade node has known grade.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, _, _ = cl3.basis_vectors()\n        assert _known_grade(Grade(sym(e1, \"v\"), 2)) == 2\n\n    def test_known_grade_reverse(self, cl3):\n        \"\"\"Reverse preserves known grade.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, _, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")\n        assert _known_grade(Reverse(v)) == 1\n\n    def test_known_grade_neg(self, cl3):\n        \"\"\"Neg preserves known grade.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, _, _ = cl3.basis_vectors()\n        assert _known_grade(Neg(sym(e1, \"v\"))) == 1\n\n    def test_known_grade_scalarmul(self, cl3):\n        \"\"\"ScalarMul preserves known grade.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, _, _ = cl3.basis_vectors()\n        assert _known_grade(ScalarMul(3, sym(e1, \"v\"))) == 1\n\n    def test_known_grade_unit(self, cl3):\n        \"\"\"Unit preserves known grade.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, _, _ = cl3.basis_vectors()\n        assert _known_grade(Unit(sym(e1, \"v\"))) == 1\n\n    def test_known_grade_unknown(self, cl3):\n        \"\"\"Unknown grade returns None.\"\"\"\n        from galaga.legacy.simplify import _known_grade\n\n        e1, e2, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        b = sym(e2, \"b\")\n        assert _known_grade(a + b) is None\n\n    # symbolic.py: simplify even/odd with known grade (line 819)\n    def test_simplify_odd_known_grade(self, cl3):\n        \"\"\"Odd of known even-grade simplifies to 0.\"\"\"\n        from galaga.legacy import even_grades as seven\n        from galaga.legacy import odd_grades as sodd\n\n        e1, e2, _ = cl3.basis_vectors()\n        v = sym(e1, \"v\")  # grade 1 (odd)\n        B = sym(e1 ^ e2, \"B\")  # grade 2 (even)\n        assert str(simplify(sodd(v))) == \"v\"\n        assert str(simplify(sodd(B))) == \"0\"\n        assert str(simplify(seven(B))) == \"B\"\n        assert str(simplify(seven(v))) == \"0\"\n\n    # symbolic.py: _eq for Involute (line 635)\n    def test_eq_involute(self, cl3):\n        \"\"\"Involute Expr equality.\"\"\"\n        from galaga.legacy.simplify import _eq\n\n        e1, _, _ = cl3.basis_vectors()\n        a = sym(e1, \"a\")\n        assert _eq(Involute(a), Involute(a))\n        assert not _eq(Involute(a), Involute(sym(e1, \"b\")))\n\n    # algebra.py: rotor_from_plane_angle degrees= and error\n    def test_rotor_from_plane_degrees(self, cl3):\n        \"\"\"rotor(degrees=) works.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_rad = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_deg = cl3.rotor_from_plane_angle(e1 ^ e2, degrees=90)\n        assert np.allclose(R_rad.data, R_deg.data)\n\n    def test_rotor_from_plane_angle_error(self, cl3):\n        \"\"\"rotor() with both radians and degrees raises.\"\"\"\n        import pytest\n\n        e1, e2, _ = cl3.basis_vectors()\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2)\n        with pytest.raises(ValueError):\n            cl3.rotor_from_plane_angle(e1 ^ e2, radians=1.0, degrees=90)\n\n    def test_rotor_from_plane_angle_positional(self, cl3):\n        \"\"\"rotor() requires keyword args for angle.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R_kw = cl3.rotor_from_plane_angle(e1 ^ e2, radians=np.pi / 2)\n        R_pos = cl3.rotor_from_plane_angle(e1 ^ e2, np.pi / 2)\n        assert np.allclose(R_kw.data, R_pos.data)\n\n    def test_rotor_canonical_name(self, cl3):\n        \"\"\"rotor() is the canonical name.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        result = sandwich(R, e1)\n        assert np.allclose(result.data, e2.data, atol=1e-12)\n\n    def test_rotor_degrees(self, cl3):\n        \"\"\"rotor(degrees=90) matches radians=π/2.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R = cl3.rotor(e1 ^ e2, degrees=90)\n        R2 = cl3.rotor(e1 ^ e2, radians=np.pi / 2)\n        assert np.allclose(R.data, R2.data)\n\n    def test_rotor_from_bivector_alias(self, cl3):\n        \"\"\"rotor_from_bivector is an alias.\"\"\"\n        e1, e2, _ = cl3.basis_vectors()\n        R1 = cl3.rotor(e1 ^ e2, radians=1.0)\n        R2 = cl3.rotor_from_bivector(e1 ^ e2, radians=1.0)\n        assert np.allclose(R1.data, R2.data)\n",
+  "sha256": "2983d2f42b6032fe238ea3b4f6251411f2779b2fd541f93b78045a1af0ec0333",
+  "all_source_test_ids": [
+    "TestNamingPresets.test_gamma_preset",
+    "TestNamingPresets.test_sigma_preset",
+    "TestNamingPresets.test_sigma_xyz_preset",
+    "TestNamingPresets.test_custom_names",
+    "TestNamingPresets.test_custom_names_wrong_length",
+    "TestNamingPresets.test_invalid_blades_type",
+    "TestNamingPresets.test_blade_lookup_custom_names",
+    "TestNamingPresets.test_blade_lookup_custom_no_match",
+    "TestNamingPresets.test_blade_name_custom_unicode",
+    "TestRotorFromPlaneAngle.test_90_degree_rotation",
+    "TestRotorFromPlaneAngle.test_180_degree_rotation",
+    "TestRotorFromPlaneAngle.test_zero_rotation",
+    "TestRotorFromPlaneAngle.test_rotor_is_rotor",
+    "TestRotorValidation.test_rejects_vector",
+    "TestRotorValidation.test_rejects_trivector",
+    "TestRotorValidation.test_accepts_bivector",
+    "TestRotorValidation.test_rejects_scalar",
+    "TestRotorValidation.test_normalizes_non_unit_bivector",
+    "TestRotorValidation.test_sta_pseudoscalar_u1",
+    "TestRotorValidation.test_scaled_rotor_not_rotor",
+    "TestSymbolicGradeEvenOdd.test_sym_grade_even",
+    "TestSymbolicGradeEvenOdd.test_sym_grade_odd",
+    "TestSymbolicGradeEvenOdd.test_sym_even_grades",
+    "TestSymbolicGradeEvenOdd.test_sym_odd_grades",
+    "TestGradePropagation.test_op_grade",
+    "TestGradePropagation.test_left_contraction_grade",
+    "TestGradePropagation.test_right_contraction_grade",
+    "TestGradePropagation.test_doran_lasenby_inner_grade",
+    "TestGradePropagation.test_hestenes_inner_grade",
+    "TestGradePropagation.test_scalar_product_grade",
+    "TestGradePropagation.test_reverse_grade",
+    "TestGradePropagation.test_involute_grade",
+    "TestGradePropagation.test_conjugate_grade",
+    "TestGradePropagation.test_dual_grade",
+    "TestGradePropagation.test_complement_grade",
+    "TestGradePropagation.test_unit_grade",
+    "TestGradePropagation.test_inverse_grade",
+    "TestGradePropagation.test_regressive_product_grade",
+    "TestGradePropagation.test_gp_no_grade",
+    "TestLatex.test_sym",
+    "TestLatex.test_gp",
+    "TestLatex.test_sandwich_grade",
+    "TestLatex.test_wedge",
+    "TestLatex.test_left_contraction",
+    "TestLatex.test_right_contraction",
+    "TestLatex.test_hestenes_inner",
+    "TestLatex.test_scalar_product",
+    "TestLatex.test_reverse",
+    "TestLatex.test_involute",
+    "TestLatex.test_conjugate",
+    "TestLatex.test_dual",
+    "TestLatex.test_undual",
+    "TestLatex.test_norm",
+    "TestLatex.test_unit",
+    "TestLatex.test_inverse",
+    "TestLatex.test_squared",
+    "TestLatex.test_even",
+    "TestLatex.test_odd",
+    "TestLatex.test_add",
+    "TestLatex.test_sub",
+    "TestLatex.test_neg",
+    "TestLatex.test_scalar_mul",
+    "TestLatex.test_parens",
+    "TestLatex.test_repr_latex",
+    "TestLatex.test_multivector_latex_bare",
+    "TestLatex.test_multivector_latex_wrap_inline",
+    "TestLatex.test_multivector_latex_wrap_display",
+    "TestLatex.test_multivector_latex_wrap_none",
+    "TestSandwich.test_symbolic_sandwich",
+    "TestSandwich.test_symbolic_sandwich_eval",
+    "TestSandwich.test_symbolic_sw_alias",
+    "TestSimplify.test_double_reverse",
+    "TestSimplify.test_double_neg",
+    "TestSimplify.test_mul_identity_right",
+    "TestSimplify.test_mul_identity_left",
+    "TestSimplify.test_mul_zero",
+    "TestSimplify.test_add_zero",
+    "TestSimplify.test_sub_self",
+    "TestSimplify.test_scalar_mul_zero",
+    "TestSimplify.test_scalar_mul_one",
+    "TestSimplify.test_r_times_r_reverse",
+    "TestSimplify.test_grade_idempotent",
+    "TestSimplify.test_nested",
+    "TestSimplify.test_double_involute",
+    "TestSimplify.test_double_conjugate",
+    "TestSimplify.test_double_inverse",
+    "TestSimplify.test_wedge_self",
+    "TestSimplify.test_norm_unit",
+    "TestSimplify.test_add_self",
+    "TestSimplify.test_sub_neg",
+    "TestSimplify.test_add_neg_self",
+    "TestSimplify.test_scalar_mul_collapse",
+    "TestSimplify.test_grade_known_match",
+    "TestSimplify.test_grade_known_mismatch",
+    "TestSimplify.test_even_bivector",
+    "TestSimplify.test_odd_bivector",
+    "TestSimplify.test_even_vector",
+    "TestSimplify.test_odd_vector",
+    "TestSimplify.test_cascade",
+    "TestSimplify.test_auto_grade_detection",
+    "TestMultivectorLatex.test_scalar",
+    "TestMultivectorLatex.test_zero",
+    "TestMultivectorLatex.test_vector",
+    "TestMultivectorLatex.test_coeff_one_suppressed",
+    "TestMultivectorLatex.test_bivector",
+    "TestMultivectorLatex.test_pseudoscalar",
+    "TestMultivectorLatex.test_mixed",
+    "TestMultivectorLatex.test_negative_terms",
+    "TestMultivectorLatex.test_gamma_names",
+    "TestMultivectorLatex.test_sigma_names",
+    "TestMultivectorLatex.test_repr_latex",
+    "TestMultivectorLatex.test_repr_latex_mixed",
+    "TestCoverageGaps.test_blade_latex_custom_names_no_latex",
+    "TestCoverageGaps.test_expr_latex_wrap",
+    "TestCoverageGaps.test_expr_rmul_expr",
+    "TestCoverageGaps.test_expr_rmul_scalar",
+    "TestCoverageGaps.test_sym_explicit_grade",
+    "TestCoverageGaps.test_scalar_str",
+    "TestCoverageGaps.test_ensure_expr_bad_type",
+    "TestCoverageGaps.test_eq_conjugate",
+    "TestCoverageGaps.test_eq_grade",
+    "TestCoverageGaps.test_eq_fallback",
+    "TestCoverageGaps.test_known_grade_scalar",
+    "TestCoverageGaps.test_known_grade_grade_node",
+    "TestCoverageGaps.test_known_grade_reverse",
+    "TestCoverageGaps.test_known_grade_neg",
+    "TestCoverageGaps.test_known_grade_scalarmul",
+    "TestCoverageGaps.test_known_grade_unit",
+    "TestCoverageGaps.test_known_grade_unknown",
+    "TestCoverageGaps.test_simplify_odd_known_grade",
+    "TestCoverageGaps.test_eq_involute",
+    "TestCoverageGaps.test_rotor_from_plane_degrees",
+    "TestCoverageGaps.test_rotor_from_plane_angle_error",
+    "TestCoverageGaps.test_rotor_from_plane_angle_positional",
+    "TestCoverageGaps.test_rotor_canonical_name",
+    "TestCoverageGaps.test_rotor_degrees",
+    "TestCoverageGaps.test_rotor_from_bivector_alias"
+  ],
+  "test_ids": [
+    "TestSymbolicGradeEvenOdd.test_sym_grade_even",
+    "TestSymbolicGradeEvenOdd.test_sym_grade_odd",
+    "TestSymbolicGradeEvenOdd.test_sym_even_grades",
+    "TestSymbolicGradeEvenOdd.test_sym_odd_grades",
+    "TestGradePropagation.test_op_grade",
+    "TestGradePropagation.test_left_contraction_grade",
+    "TestGradePropagation.test_right_contraction_grade",
+    "TestGradePropagation.test_doran_lasenby_inner_grade",
+    "TestGradePropagation.test_hestenes_inner_grade",
+    "TestGradePropagation.test_scalar_product_grade",
+    "TestGradePropagation.test_reverse_grade",
+    "TestGradePropagation.test_involute_grade",
+    "TestGradePropagation.test_conjugate_grade",
+    "TestGradePropagation.test_dual_grade",
+    "TestGradePropagation.test_complement_grade",
+    "TestGradePropagation.test_unit_grade",
+    "TestGradePropagation.test_inverse_grade",
+    "TestGradePropagation.test_regressive_product_grade",
+    "TestGradePropagation.test_gp_no_grade",
+    "TestSimplify.test_double_reverse",
+    "TestSimplify.test_double_neg",
+    "TestSimplify.test_mul_identity_right",
+    "TestSimplify.test_mul_identity_left",
+    "TestSimplify.test_mul_zero",
+    "TestSimplify.test_add_zero",
+    "TestSimplify.test_sub_self",
+    "TestSimplify.test_scalar_mul_zero",
+    "TestSimplify.test_scalar_mul_one",
+    "TestSimplify.test_r_times_r_reverse",
+    "TestSimplify.test_grade_idempotent",
+    "TestSimplify.test_nested",
+    "TestSimplify.test_double_involute",
+    "TestSimplify.test_double_conjugate",
+    "TestSimplify.test_double_inverse",
+    "TestSimplify.test_wedge_self",
+    "TestSimplify.test_norm_unit",
+    "TestSimplify.test_add_self",
+    "TestSimplify.test_sub_neg",
+    "TestSimplify.test_add_neg_self",
+    "TestSimplify.test_scalar_mul_collapse",
+    "TestSimplify.test_grade_known_match",
+    "TestSimplify.test_grade_known_mismatch",
+    "TestSimplify.test_even_bivector",
+    "TestSimplify.test_odd_bivector",
+    "TestSimplify.test_even_vector",
+    "TestSimplify.test_odd_vector",
+    "TestSimplify.test_cascade",
+    "TestSimplify.test_auto_grade_detection"
+  ],
+  "owners": [
+    "TestSymbolicGradeEvenOdd",
+    "TestGradePropagation",
+    "TestSimplify"
+  ],
+  "public_owner": "facade/test_grade_simplification_contracts.py",
+  "tables": [
+    {
+      "signature": [
+        1,
+        1,
+        1
+      ],
+      "bindings": {
+        "v": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "w": [
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "B": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "C": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "R": [
+          0.9689124217106447,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -0.24740395925452294,
+          0.0,
+          0.0
+        ]
+      },
+      "grades": [
+        {
+          "id": "outer_product",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "v∧w",
+          "latex": "v \\wedge w",
+          "wrapper": "Multivector",
+          "node": "Op",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "left_contraction",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v⌋B",
+          "latex": "v \\;\\lrcorner\\; B",
+          "wrapper": "Multivector",
+          "node": "Lc",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "right_contraction",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "B⌊v",
+          "latex": "B \\;\\llcorner\\; v",
+          "wrapper": "Multivector",
+          "node": "Rc",
+          "data": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "doran_lasenby_inner",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v·B",
+          "latex": "v \\cdot B",
+          "wrapper": "Multivector",
+          "node": "Dli",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "hestenes_inner",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 0,
+          "unicode": "v·w",
+          "latex": "v \\cdot w",
+          "wrapper": "Multivector",
+          "node": "Hi",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "scalar_product",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 0,
+          "unicode": "v∗w",
+          "latex": "v * w",
+          "wrapper": "Multivector",
+          "node": "Sp",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "reverse",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "B̃",
+          "latex": "\\tilde{B}",
+          "wrapper": "Multivector",
+          "node": "Reverse",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "involute",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v̂",
+          "latex": "\\hat{v}",
+          "wrapper": "Multivector",
+          "node": "Involute",
+          "data": [
+            0.0,
+            -1.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.0,
+            0.0,
+            -0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "conjugate",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "B̄",
+          "latex": "\\bar{B}",
+          "wrapper": "Multivector",
+          "node": "Conjugate",
+          "data": [
+            0.0,
+            -0.0,
+            -0.0,
+            -1.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "dual",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "v⋆",
+          "latex": "v^*",
+          "wrapper": "Multivector",
+          "node": "Dual",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "complement",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "vᶜ",
+          "latex": "v^{\\complement}",
+          "wrapper": "Multivector",
+          "node": "Complement",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "unit",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v̂",
+          "latex": "\\hat{v}",
+          "wrapper": "Multivector",
+          "node": "Unit",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "inverse",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v⁻¹",
+          "latex": "v^{-1}",
+          "wrapper": "Multivector",
+          "node": "Inverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "regressive_product",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "C",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "B∨C",
+          "latex": "B \\vee C",
+          "wrapper": "Multivector",
+          "node": "Regressive",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "gp",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": null,
+          "unicode": "vw",
+          "latex": "v w",
+          "wrapper": "Multivector",
+          "node": "Gp",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        }
+      ],
+      "projections": [
+        {
+          "id": "grade_even",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "grade_odd",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "even_grades",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "odd_grades",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        }
+      ],
+      "simplifications": [
+        {
+          "id": "double_reverse",
+          "cached_grade": 1,
+          "unicode": "~(ṽ)",
+          "latex": "\\widetilde{\\tilde{v}}",
+          "wrapper": "Multivector",
+          "node": "Reverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_neg",
+          "cached_grade": null,
+          "unicode": "--v",
+          "latex": "--v",
+          "wrapper": "Multivector",
+          "node": "Neg",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_identity_right",
+          "cached_grade": null,
+          "unicode": "v1",
+          "latex": "v 1",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_identity_left",
+          "cached_grade": null,
+          "unicode": "1v",
+          "latex": "1 v",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_zero_right",
+          "cached_grade": null,
+          "unicode": "v0",
+          "latex": "v 0",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "mul_zero_left",
+          "cached_grade": null,
+          "unicode": "0v",
+          "latex": "0 v",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "add_zero_right",
+          "cached_grade": null,
+          "unicode": "v + 0",
+          "latex": "v + 0",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "add_zero_left",
+          "cached_grade": null,
+          "unicode": "0 + v",
+          "latex": "0 + v",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "sub_self",
+          "cached_grade": null,
+          "unicode": "v - v",
+          "latex": "v - v",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_zero",
+          "cached_grade": null,
+          "unicode": "0v",
+          "latex": "0 v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_one",
+          "cached_grade": null,
+          "unicode": "v",
+          "latex": "v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "r_times_r_reverse",
+          "cached_grade": null,
+          "unicode": "RR̃",
+          "latex": "R \\tilde{R}",
+          "wrapper": "Multivector",
+          "node": "Gp",
+          "data": [
+            0.9999999999999999,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 0,
+          "simplified": {
+            "unicode": "RR̃",
+            "latex": "RR̃",
+            "node": "Sym",
+            "data": [
+              0.9999999999999999,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_idempotent",
+          "cached_grade": 1,
+          "unicode": "⟨⟨v⟩₁⟩₁",
+          "latex": "\\langle \\langle v \\rangle_{1} \\rangle_{1}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "nested",
+          "cached_grade": null,
+          "unicode": "~(ṽ) + 0",
+          "latex": "\\widetilde{\\tilde{v}} + 0",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_involute",
+          "cached_grade": 1,
+          "unicode": "inv(v̂)",
+          "latex": "\\widehat{\\hat{v}}",
+          "wrapper": "Multivector",
+          "node": "Involute",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_conjugate",
+          "cached_grade": 1,
+          "unicode": "conj(v̄)",
+          "latex": "\\overline{\\bar{v}}",
+          "wrapper": "Multivector",
+          "node": "Conjugate",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_inverse",
+          "cached_grade": 1,
+          "unicode": "(v⁻¹)⁻¹",
+          "latex": "\\left(v^{-1}\\right)^{-1}",
+          "wrapper": "Multivector",
+          "node": "Inverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "wedge_self",
+          "cached_grade": 2,
+          "unicode": "v∧v",
+          "latex": "v \\wedge v",
+          "wrapper": "Multivector",
+          "node": "Op",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "norm_unit",
+          "cached_grade": null,
+          "unicode": "‖v̂‖",
+          "latex": "\\lVert \\hat{v} \\rVert",
+          "wrapper": "Multivector",
+          "node": "Norm",
+          "data": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 0,
+          "simplified": {
+            "unicode": "1",
+            "latex": "1",
+            "node": "Scalar",
+            "scalar": 1
+          }
+        },
+        {
+          "id": "add_self",
+          "cached_grade": null,
+          "unicode": "v + v",
+          "latex": "v + v",
+          "wrapper": "Multivector",
+          "node": "Add",
+          "data": [
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "2v",
+            "latex": "2 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              2.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "sub_neg",
+          "cached_grade": null,
+          "unicode": "v - -w",
+          "latex": "v - -w",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v + w",
+            "latex": "v + w",
+            "node": "Add",
+            "data": [
+              0.0,
+              1.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "add_neg_self",
+          "cached_grade": null,
+          "unicode": "v - v",
+          "latex": "v - v",
+          "wrapper": "Multivector",
+          "node": "Add",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_collapse",
+          "cached_grade": null,
+          "unicode": "32v",
+          "latex": "3 2 v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "6v",
+            "latex": "6 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              6.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_known_match",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₁",
+          "latex": "\\langle v \\rangle_{1}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_known_mismatch",
+          "cached_grade": 2,
+          "unicode": "⟨v⟩₂",
+          "latex": "\\langle v \\rangle_{2}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "even_bivector",
+          "cached_grade": 2,
+          "unicode": "⟨B⟩₊",
+          "latex": "\\langle B \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2,
+          "simplified": {
+            "unicode": "B",
+            "latex": "B",
+            "node": "Sym",
+            "data": [
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "odd_bivector",
+          "cached_grade": null,
+          "unicode": "⟨B⟩₋",
+          "latex": "\\langle B \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "even_vector",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "odd_vector",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "cascade",
+          "cached_grade": null,
+          "unicode": "v - -v",
+          "latex": "v - -v",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "2v",
+            "latex": "2 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              2.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "auto_grades": {
+        "v": 1,
+        "B": 2,
+        "s": 0
+      }
+    },
+    {
+      "signature": [
+        1,
+        -1,
+        1
+      ],
+      "bindings": {
+        "v": [
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "w": [
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "B": [
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ],
+        "C": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          1.0,
+          0.0
+        ],
+        "R": [
+          0.9689124217106447,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          -0.24740395925452294,
+          0.0,
+          0.0
+        ]
+      },
+      "grades": [
+        {
+          "id": "outer_product",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "v∧w",
+          "latex": "v \\wedge w",
+          "wrapper": "Multivector",
+          "node": "Op",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "left_contraction",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v⌋B",
+          "latex": "v \\;\\lrcorner\\; B",
+          "wrapper": "Multivector",
+          "node": "Lc",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "right_contraction",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "B⌊v",
+          "latex": "B \\;\\llcorner\\; v",
+          "wrapper": "Multivector",
+          "node": "Rc",
+          "data": [
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "doran_lasenby_inner",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v·B",
+          "latex": "v \\cdot B",
+          "wrapper": "Multivector",
+          "node": "Dli",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "hestenes_inner",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 0,
+          "unicode": "v·w",
+          "latex": "v \\cdot w",
+          "wrapper": "Multivector",
+          "node": "Hi",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "scalar_product",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 0,
+          "unicode": "v∗w",
+          "latex": "v * w",
+          "wrapper": "Multivector",
+          "node": "Sp",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "reverse",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "B̃",
+          "latex": "\\tilde{B}",
+          "wrapper": "Multivector",
+          "node": "Reverse",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            -1.0,
+            0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "involute",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v̂",
+          "latex": "\\hat{v}",
+          "wrapper": "Multivector",
+          "node": "Involute",
+          "data": [
+            0.0,
+            -1.0,
+            -0.0,
+            0.0,
+            -0.0,
+            0.0,
+            0.0,
+            -0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "conjugate",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "B̄",
+          "latex": "\\bar{B}",
+          "wrapper": "Multivector",
+          "node": "Conjugate",
+          "data": [
+            0.0,
+            -0.0,
+            -0.0,
+            -1.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "dual",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "v⋆",
+          "latex": "v^*",
+          "wrapper": "Multivector",
+          "node": "Dual",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "complement",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 2,
+          "unicode": "vᶜ",
+          "latex": "v^{\\complement}",
+          "wrapper": "Multivector",
+          "node": "Complement",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        },
+        {
+          "id": "unit",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v̂",
+          "latex": "\\hat{v}",
+          "wrapper": "Multivector",
+          "node": "Unit",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "inverse",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "v⁻¹",
+          "latex": "v^{-1}",
+          "wrapper": "Multivector",
+          "node": "Inverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "regressive_product",
+          "inputs": [
+            {
+              "name": "B",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "C",
+              "data": [
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                1.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": 1,
+          "unicode": "B∨C",
+          "latex": "B \\vee C",
+          "wrapper": "Multivector",
+          "node": "Regressive",
+          "data": [
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "gp",
+          "inputs": [
+            {
+              "name": "v",
+              "data": [
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            {
+              "name": "w",
+              "data": [
+                0.0,
+                0.0,
+                1.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0,
+                0.0
+              ]
+            }
+          ],
+          "cached_grade": null,
+          "unicode": "vw",
+          "latex": "v w",
+          "wrapper": "Multivector",
+          "node": "Gp",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2
+        }
+      ],
+      "projections": [
+        {
+          "id": "grade_even",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "grade_odd",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        },
+        {
+          "id": "even_grades",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null
+        },
+        {
+          "id": "odd_grades",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1
+        }
+      ],
+      "simplifications": [
+        {
+          "id": "double_reverse",
+          "cached_grade": 1,
+          "unicode": "~(ṽ)",
+          "latex": "\\widetilde{\\tilde{v}}",
+          "wrapper": "Multivector",
+          "node": "Reverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_neg",
+          "cached_grade": null,
+          "unicode": "--v",
+          "latex": "--v",
+          "wrapper": "Multivector",
+          "node": "Neg",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_identity_right",
+          "cached_grade": null,
+          "unicode": "v1",
+          "latex": "v 1",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_identity_left",
+          "cached_grade": null,
+          "unicode": "1v",
+          "latex": "1 v",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "mul_zero_right",
+          "cached_grade": null,
+          "unicode": "v0",
+          "latex": "v 0",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "mul_zero_left",
+          "cached_grade": null,
+          "unicode": "0v",
+          "latex": "0 v",
+          "wrapper": "Gp",
+          "node": "Gp",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "add_zero_right",
+          "cached_grade": null,
+          "unicode": "v + 0",
+          "latex": "v + 0",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "add_zero_left",
+          "cached_grade": null,
+          "unicode": "0 + v",
+          "latex": "0 + v",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "sub_self",
+          "cached_grade": null,
+          "unicode": "v - v",
+          "latex": "v - v",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_zero",
+          "cached_grade": null,
+          "unicode": "0v",
+          "latex": "0 v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_one",
+          "cached_grade": null,
+          "unicode": "v",
+          "latex": "v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "r_times_r_reverse",
+          "cached_grade": null,
+          "unicode": "RR̃",
+          "latex": "R \\tilde{R}",
+          "wrapper": "Multivector",
+          "node": "Gp",
+          "data": [
+            0.9999999999999999,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 0,
+          "simplified": {
+            "unicode": "RR̃",
+            "latex": "RR̃",
+            "node": "Sym",
+            "data": [
+              0.9999999999999999,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_idempotent",
+          "cached_grade": 1,
+          "unicode": "⟨⟨v⟩₁⟩₁",
+          "latex": "\\langle \\langle v \\rangle_{1} \\rangle_{1}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "nested",
+          "cached_grade": null,
+          "unicode": "~(ṽ) + 0",
+          "latex": "\\widetilde{\\tilde{v}} + 0",
+          "wrapper": "Add",
+          "node": "Add",
+          "evaluation_error": {
+            "type": "TypeError",
+            "message": "Scalar has no algebra context; use with Sym nodes"
+          },
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_involute",
+          "cached_grade": 1,
+          "unicode": "inv(v̂)",
+          "latex": "\\widehat{\\hat{v}}",
+          "wrapper": "Multivector",
+          "node": "Involute",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_conjugate",
+          "cached_grade": 1,
+          "unicode": "conj(v̄)",
+          "latex": "\\overline{\\bar{v}}",
+          "wrapper": "Multivector",
+          "node": "Conjugate",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "double_inverse",
+          "cached_grade": 1,
+          "unicode": "(v⁻¹)⁻¹",
+          "latex": "\\left(v^{-1}\\right)^{-1}",
+          "wrapper": "Multivector",
+          "node": "Inverse",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "wedge_self",
+          "cached_grade": 2,
+          "unicode": "v∧v",
+          "latex": "v \\wedge v",
+          "wrapper": "Multivector",
+          "node": "Op",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "norm_unit",
+          "cached_grade": null,
+          "unicode": "‖v̂‖",
+          "latex": "\\lVert \\hat{v} \\rVert",
+          "wrapper": "Multivector",
+          "node": "Norm",
+          "data": [
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 0,
+          "simplified": {
+            "unicode": "1",
+            "latex": "1",
+            "node": "Scalar",
+            "scalar": 1
+          }
+        },
+        {
+          "id": "add_self",
+          "cached_grade": null,
+          "unicode": "v + v",
+          "latex": "v + v",
+          "wrapper": "Multivector",
+          "node": "Add",
+          "data": [
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "2v",
+            "latex": "2 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              2.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "sub_neg",
+          "cached_grade": null,
+          "unicode": "v - -w",
+          "latex": "v - -w",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            1.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v + w",
+            "latex": "v + w",
+            "node": "Add",
+            "data": [
+              0.0,
+              1.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "add_neg_self",
+          "cached_grade": null,
+          "unicode": "v - v",
+          "latex": "v - v",
+          "wrapper": "Multivector",
+          "node": "Add",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "scalar_mul_collapse",
+          "cached_grade": null,
+          "unicode": "32v",
+          "latex": "3 2 v",
+          "wrapper": "Multivector",
+          "node": "ScalarMul",
+          "data": [
+            0.0,
+            6.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "6v",
+            "latex": "6 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              6.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_known_match",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₁",
+          "latex": "\\langle v \\rangle_{1}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "grade_known_mismatch",
+          "cached_grade": 2,
+          "unicode": "⟨v⟩₂",
+          "latex": "\\langle v \\rangle_{2}",
+          "wrapper": "Multivector",
+          "node": "Grade",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "even_bivector",
+          "cached_grade": 2,
+          "unicode": "⟨B⟩₊",
+          "latex": "\\langle B \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 2,
+          "simplified": {
+            "unicode": "B",
+            "latex": "B",
+            "node": "Sym",
+            "data": [
+              0.0,
+              0.0,
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "odd_bivector",
+          "cached_grade": null,
+          "unicode": "⟨B⟩₋",
+          "latex": "\\langle B \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "even_vector",
+          "cached_grade": null,
+          "unicode": "⟨v⟩₊",
+          "latex": "\\langle v \\rangle_{\\text{even}}",
+          "wrapper": "Multivector",
+          "node": "Even",
+          "data": [
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": null,
+          "simplified": {
+            "unicode": "0",
+            "latex": "0",
+            "node": "Scalar",
+            "scalar": 0
+          }
+        },
+        {
+          "id": "odd_vector",
+          "cached_grade": 1,
+          "unicode": "⟨v⟩₋",
+          "latex": "\\langle v \\rangle_{\\text{odd}}",
+          "wrapper": "Multivector",
+          "node": "Odd",
+          "data": [
+            0.0,
+            1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "v",
+            "latex": "v",
+            "node": "Sym",
+            "data": [
+              0.0,
+              1.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        {
+          "id": "cascade",
+          "cached_grade": null,
+          "unicode": "v - -v",
+          "latex": "v - -v",
+          "wrapper": "Multivector",
+          "node": "Sub",
+          "data": [
+            0.0,
+            2.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ],
+          "homogeneous_grade": 1,
+          "simplified": {
+            "unicode": "2v",
+            "latex": "2 v",
+            "node": "ScalarMul",
+            "data": [
+              0.0,
+              2.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        }
+      ],
+      "auto_grades": {
+        "v": 1,
+        "B": 2,
+        "s": 0
+      }
+    }
+  ],
+  "wedge_counterexample": {
+    "signature": [
+      1,
+      1,
+      1,
+      1
+    ],
+    "operand": [
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      1.0,
+      0.0,
+      0.0,
+      0.0
+    ],
+    "cached_grade": 4,
+    "unicode": "B∧B",
+    "latex": "B \\wedge B",
+    "wrapper": "Multivector",
+    "node": "Op",
+    "data": [
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      0.0,
+      2.0
+    ],
+    "homogeneous_grade": 4,
+    "simplified": {
+      "unicode": "0",
+      "node": "Scalar",
+      "scalar": 0
+    }
+  }
+}

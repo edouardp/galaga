@@ -127,6 +127,7 @@ helps future contributors understand why certain choices were made.
 | [111](111-architecture-contracts-use-the-public-operation-catalog.md) | Architecture Contracts Use the Public Operation Catalog | Accepted |
 | [112](112-explicit-inner-product-contracts-outlive-mode-dispatch.md) | Explicit Inner-Product Contracts Outlive Mode Dispatch | Accepted |
 | [113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md) | Eager Operation Contracts Outlive Mixed Symbolic Tests | Accepted |
+| [114](114-grade-inspection-and-bounded-simplification-contracts.md) | Grade Inspection and Bounded Simplification Contracts | Accepted |
 
 ## Creating New ADRs
 

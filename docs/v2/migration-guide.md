@@ -207,6 +207,50 @@ and raises the same error for a singular value; call `inverse(value, ...)`
 for non-default controls. See
 [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
+## Inspect grades without assigning them to symbols
+
+Replace private `_grade` inspection with `value.homogeneous_grade()`.
+It inspects the current coefficients, returning `None` for zero or mixed
+grade. Its default `1e-12` tolerance is diagnostic, not an equality rule;
+`homogeneous_grade(atol=0)` includes every stored nonzero coefficient.
+
+`grade(value, k)` projects onto a component; it does not assert that the
+result is nonzero. `grade(value, "even")` and `even_grades(value)` have equal
+values but different expression IDs and spelling; prefer the named parity
+operations for the even/odd glyphs.
+
+Symbols carry no fixed grade, even if the first binding is a vector:
+
+```python
+from galaga import Algebra, Call, Symbol, evaluate, simplify
+
+algebra = Algebra(4)
+e1, e2, e3, e4 = algebra.basis_vectors()
+projection = Call("grade", (Symbol("v"),), {"target": 1})
+assert simplify(projection) == projection
+assert evaluate(projection, algebra=algebra, environment={"v": e1}) == e1
+zero = evaluate(projection, algebra=algebra, environment={"v": e1 ^ e2})
+assert zero == 0 and zero.homogeneous_grade() is None
+
+B = ((e1 ^ e2) + (e3 ^ e4)).named("B")
+wedge = B ^ B
+assert wedge == 2 * (e1 ^ e2 ^ e3 ^ e4)
+assert simplify(wedge.expr) == wedge.expr
+assert evaluate(wedge.expr, algebra=algebra, environment={"B": B}) == wedge
+assert evaluate(wedge.expr, algebra=algebra, environment={"B": e1}) == 0
+```
+
+Call `simplify(value.expr)` when a value has provenance. V2 deliberately
+supports a smaller rewrite set than v1: even valid numeric identities such
+as double reverse need not collapse their call trees. Do not rely on v1's
+term collection, scalar-factor collapse or cached-grade rewrites. A universal
+`x ∧ x → 0` rule is incorrect for general multivectors, including nonsimple
+bivectors. `norm(unit(v))` and `inverse(inverse(v))` stay explicit and retain
+their invalid-binding domain errors. The
+[involutions lesson](../../examples/algebra/involutions_and_grade_ops.py)
+teaches these distinctions with selectable Gram matrices; see
+[ADR-114](../adrs/114-grade-inspection-and-bounded-simplification-contracts.md).
+
 ## Inspect generic expression calls, not legacy registries
 
 Plain numeric operands can participate in a tracked operation. Their literal

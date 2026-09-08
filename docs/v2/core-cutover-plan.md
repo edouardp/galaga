@@ -1268,7 +1268,7 @@ package suite additionally executes the Marimo/t-string integrations.
 
 ### W9.1 Delete legacy numeric storage and tables
 
-Status: **in progress**. Twenty-three legacy-dependency prerequisites are complete:
+Status: **in progress**. Twenty-four legacy-dependency prerequisites are complete:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs
@@ -1381,13 +1381,19 @@ Status: **in progress**. Twenty-three legacy-dependency prerequisites are comple
   reference actions and coordinate contractions verify mixed-grade behavior
   and replay. The inner-product notebook teaches six operand pairs under four
   metrics and displays the Gram matrix without restoring the dispatcher
-  ([ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md)); and
+  ([ADR-112](../adrs/112-explicit-inner-product-contracts-outlive-mode-dispatch.md));
 - the 42 eager-operation/provenance identities have public owners, with 46
   operation and eight mixed-input observations archived. Independent grade,
   Gram-minor, exterior and reference-action oracles verify mixed-grade values,
   literal snapshots, changed bindings and domain errors. The eager-values
   notebook teaches explicit replay and node-versus-value boundaries
-  ([ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests.md)).
+  ([ADR-113](../adrs/113-eager-operation-contracts-outlive-mixed-symbolic-tests.md)); and
+- the 48 grade/simplification identities have public owners. Complete source,
+  cached-grade observations, scalar-context errors and actual v1 simplifications
+  remain archived. Independent oracles verify grade support, fixed points and
+  changed bindings; the notebook teaches nonsimple bivector wedge squares
+  under three displayed Gram matrices without expanding the v2 rewrite rules
+  ([ADR-114](../adrs/114-grade-inspection-and-bounded-simplification-contracts.md)).
 
 Fresh-process regression gates exercise the audit, benchmark, matrix
 conversions, all three exact rendering suites, the complete numeric contract,
@@ -1396,9 +1402,9 @@ expression-function/grouping suites, the symbolic/unary-property suites, and
 the symbol-conversion, notation/unit-fraction, LaTeX pipeline/safety, and
 mixed-rendering/numeric, blade-convention/STA, RGA/under-accent, locals, and
 complex/quaternion, low-dimensional/transformation, scalar, factory/display
-and architecture/inner-product/eager-operation suites with legacy imports
-blocked. Matrix plans continue to share core algebras across facade presentation
-views; that is intentional v2 behavior.
+and architecture/inner-product/eager-operation/grade-simplification suites
+with legacy imports blocked. Matrix plans continue to share core algebras
+across facade presentation views; that is intentional v2 behavior.
 
 Remaining before this work unit is complete:
 
@@ -1414,9 +1420,9 @@ release blocker below is
 resolved. Preserve permanent v2 assertions and source-derived algebraic
 coverage rather than deleting mixed test files wholesale. The legacy test
 ledger now contains 2 files, down from 3 after removing `test_coverage_gaps.py`.
-Extracting the architecture, inner-product and eager-operation subgroups does
-not remove the mixed coverage suite from that ledger: its other 137 methods
-retain their existing owners.
+Extracting the architecture, inner-product, eager-operation and
+grade/simplification subgroups does not remove the mixed coverage suite from
+that ledger: its other 89 methods retain their existing owners.
 The remaining entries are `test_coverage.py` and `test_redesign.py`.
 The compatibility manifest was never in this construction-only list; its
 earlier import retirement did not change that count. The migration inventory
@@ -1569,6 +1575,17 @@ node evaluation and diagnostic versus mathematical rendering. Full suites
 pass 7,737 cases (67 skipped) on Python 3.11 and 7,876 (20 skipped) on
 Python 3.14. Core, facade and rendering coverage are unchanged; no production
 behavior changes. The guide recipe executes and its documentation links resolve.
+The grade/simplification checkpoint passes 600 focused cases on Python 3.14
+with 100% line/branch coverage in both files. All 582 public cases pass from
+the wheel with origins verified and legacy imports blocked. The 48 historical
+identities retain complete evidence, including original scalar-context errors
+and the incorrect v1 self-wedge rewrite. Independent numeric oracles check
+actual grade support, changed bindings, fixed points and inverse domains.
+Three notebook runtime cases verify selectable Gram matrices, involution signs,
+grade reconstruction and nonzero wedge squares. Full suites pass 8,286 cases
+(70 skipped) on Python 3.11 and 8,428 (20 skipped) on Python 3.14. Core/facade
+coverage is unchanged; string grade targets and Unicode subscript fallback
+cover two additional rendering paths without changing rounded percentages.
 Ruff lint, configured Python formatting and changed-file Markdown lint pass.
 The broad Ruff 0.16.5 format check additionally reports code-block formatting
 in 40 Markdown files; every finding reproduces against HEAD and remains
@@ -1580,8 +1597,9 @@ below. These checks do not complete engine deletion or the final release
 gates. Repository-wide type checking now has 295 errors after the LaTeX suite
 migration, down from 296 at the notation checkpoint and unchanged by the
 mixed-rendering, blade-convention, RGA, locals, quaternion, transformation,
-scalar, factory/display, architecture, inner-product and eager-operation work. The converter's
-consolidated tuple lookup removes one of the previous 297 errors. The preceding
+scalar, factory/display, architecture, inner-product, eager-operation and
+grade/simplification work. The converter's consolidated tuple lookup removes
+one of the previous 297 errors. The preceding
 equality/hash correction had reduced the earlier count from 298.
 
 #### Immediate release blocker: equality/hash consistency

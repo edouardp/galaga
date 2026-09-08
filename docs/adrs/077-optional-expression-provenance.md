@@ -18,6 +18,11 @@ The mixed eager-operation contracts now have public owners checking literal
 snapshots, explicit rebinding, scalar-node context and diagnostic repr;
 see [ADR-113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md).
 
+Grade inspection and simplification contracts now distinguish actual support
+from historical cached grades, preserve rebinding and domain boundaries, and
+check the nonzero bivector self-wedge counterexample; see
+[ADR-114](114-grade-inspection-and-bounded-simplification-contracts.md).
+
 ## Context and problem statement
 
 Galaga's legacy expression design combined eager coefficients, mutable naming,

@@ -10,7 +10,6 @@ from galaga.expr import (
     Involute,
     Neg,
     Reverse,
-    Scalar,
     ScalarMul,
     Unit,
     sym,
@@ -21,36 +20,19 @@ from galaga.legacy import (
     b_gamma,
     b_sigma,
     b_sigma_xyz,
-    complement,
-    conjugate,
-    doran_lasenby_inner,
-    dual,
-    gp,
-    hestenes_inner,
-    inverse,
-    involute,
     is_even,
     is_rotor,
-    left_contraction,
-    regressive_product,
-    reverse,
-    right_contraction,
     sandwich,
-    scalar_product,
-    unit,
 )
 from galaga.legacy import conjugate as sconjugate
 from galaga.legacy import dual as sdual
 from galaga.legacy import even_grades as seven
-from galaga.legacy import even_grades as seven_grades
-from galaga.legacy import grade as sgrade
 from galaga.legacy import hestenes_inner as shi
 from galaga.legacy import inverse as sinverse
 from galaga.legacy import involute as sinvolute
 from galaga.legacy import left_contraction as slc
 from galaga.legacy import norm as snorm
 from galaga.legacy import odd_grades as sodd
-from galaga.legacy import odd_grades as sodd_grades
 from galaga.legacy import right_contraction as src
 from galaga.legacy import sandwich as ssandwich
 from galaga.legacy import scalar_product as ssp
@@ -225,126 +207,8 @@ class TestRotorValidation:
         assert not is_rotor(2 * R)
 
 
-class TestSymbolicGradeEvenOdd:
-    def test_sym_grade_even(self, cl3):
-        """Symbolic grade('even') builds Even node."""
-        from galaga.legacy import grade as sgrade
-
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(sgrade(v, "even")) == "⟨v⟩₊"
-
-    def test_sym_grade_odd(self, cl3):
-        """Symbolic grade('odd') builds Odd node."""
-        from galaga.legacy import grade as sgrade
-
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(sgrade(v, "odd")) == "⟨v⟩₋"
-
-    def test_sym_even_grades(self, cl3):
-        """Symbolic even_grades builds Even node."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(seven_grades(v)) == "⟨v⟩₊"
-
-    def test_sym_odd_grades(self, cl3):
-        """Symbolic odd_grades builds Odd node."""
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert str(sodd_grades(v)) == "⟨v⟩₋"
-
-
-class TestGradePropagation:
-    """Grade rules propagate through @ga_op operations."""
-
-    def test_op_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        w = sym(e2, "w")
-        assert (v ^ w)._grade == 2
-
-    def test_left_contraction_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        B = sym(e1 ^ e2, "B")
-        assert left_contraction(v, B)._grade == 1
-
-    def test_right_contraction_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        B = sym(e1 ^ e2, "B")
-        assert right_contraction(B, v)._grade == 1
-
-    def test_doran_lasenby_inner_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        B = sym(e1 ^ e2, "B")
-        assert doran_lasenby_inner(v, B)._grade == 1
-
-    def test_hestenes_inner_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        w = sym(e2, "w")
-        assert hestenes_inner(v, w)._grade == 0
-
-    def test_scalar_product_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        w = sym(e2, "w")
-        assert scalar_product(v, w)._grade == 0
-
-    def test_reverse_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        B = sym(e1 ^ e2, "B")
-        assert reverse(B)._grade == 2
-
-    def test_involute_grade(self, cl3):
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert involute(v)._grade == 1
-
-    def test_conjugate_grade(self, cl3):
-        e1, e2, _ = cl3.basis_vectors()
-        B = sym(e1 ^ e2, "B")
-        assert conjugate(B)._grade == 2
-
-    def test_dual_grade(self, cl3):
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert dual(v)._grade == 2
-
-    def test_complement_grade(self, cl3):
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert complement(v)._grade == 2
-
-    def test_unit_grade(self, cl3):
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert unit(v)._grade == 1
-
-    def test_inverse_grade(self, cl3):
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert inverse(v)._grade == 1
-
-    def test_regressive_product_grade(self, cl3):
-        e1, e2, e3 = cl3.basis_vectors()
-        B1 = sym(e1 ^ e2, "B1")
-        B2 = sym(e2 ^ e3, "B2")
-        assert regressive_product(B1, B2)._grade == 1
-
-    def test_gp_no_grade(self, cl3):
-        """GP doesn't propagate grade (mixed in general)."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        w = sym(e2, "w")
-        # gp of two grade-1 gives grade-0 + grade-2, so _grade comes from
-        # homogeneous_grade detection on the numeric result, not from a rule
-        result = gp(v, w)
-        # Should be None since gp has no grade rule and result is mixed
-        assert result._grade is None
+# Grade projection/inspection identities now live in facade/test_grade_simplification_contracts.py.
+# Historical source and observations: tools/baselines/grade-simplification-v1.json.
 
 
 class TestLatex:
@@ -562,171 +426,7 @@ class TestSandwich:
         assert str(ssw_alias(R, v)) == "RvR̃"
 
 
-class TestSimplify:
-    """Tests for simplify() rewrite rules."""
-
-    def test_double_reverse(self, cl3):
-        """simplify(~~x) = x."""
-        R = sym(cl3.basis_vectors()[0], "R")
-        assert str(simplify(~~R)) == "R"
-
-    def test_double_neg(self, cl3):
-        """simplify(--x) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(-(-v))) == "v"  # noqa: B002
-
-    def test_mul_identity_right(self, cl3):
-        """simplify(x*1) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(v * Scalar(1))) == "v"
-
-    def test_mul_identity_left(self, cl3):
-        """simplify(1*x) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(Scalar(1) * v)) == "v"
-
-    def test_mul_zero(self, cl3):
-        """simplify(x*0) = 0."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(v * Scalar(0))) == "0"
-        assert str(simplify(Scalar(0) * v)) == "0"
-
-    def test_add_zero(self, cl3):
-        """simplify(x+0) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(v + Scalar(0))) == "v"
-        assert str(simplify(Scalar(0) + v)) == "v"
-
-    def test_sub_self(self, cl3):
-        """simplify(x-x) = 0."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(v - v)) == "0"
-
-    def test_scalar_mul_zero(self, cl3):
-        """simplify(0*x) = 0."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(0 * v)) == "0"
-
-    def test_scalar_mul_one(self, cl3):
-        """simplify(1*x) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(1 * v)) == "v"
-
-    def test_r_times_r_reverse(self, cl3):
-        """simplify(R*~R) = 1 for rotors."""
-        e1, e2, _ = cl3.basis_vectors()
-        R = sym(cl3.rotor_from_plane_angle(e1 ^ e2, radians=0.5), "R")
-        result = simplify(R * ~R)
-        assert np.allclose(result.eval().data[0], 1.0, atol=1e-12)
-
-    def test_grade_idempotent(self, cl3):
-        """simplify(grade(grade(x,k),k)) = grade(x,k)."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        # grade(grade(v,1),1) → v (v is known grade-1)
-        assert str(simplify(sgrade(sgrade(v, 1), 1))) == "v"
-
-    def test_nested(self, cl3):
-        """Simplify cascades through nested expressions."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        # ~~v + 0 → v
-        assert str(simplify(~~v + Scalar(0))) == "v"
-
-    # --- New rules ---
-
-    def test_double_involute(self, cl3):
-        """simplify(involute(involute(x))) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(sinvolute(sinvolute(v)))) == "v"
-
-    def test_double_conjugate(self, cl3):
-        """simplify(conjugate(conjugate(x))) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(sconjugate(sconjugate(v)))) == "v"
-
-    def test_double_inverse(self, cl3):
-        """simplify(inverse(inverse(x))) = x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(sinverse(sinverse(v)))) == "v"
-
-    def test_wedge_self(self, cl3):
-        """simplify(x∧x) = 0."""
-        a = sym(cl3.basis_vectors()[0], "a")
-        assert str(simplify(a ^ a)) == "0"
-
-    def test_norm_unit(self, cl3):
-        """simplify(norm(unit(x))) = 1."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(snorm(sunit(v)))) == "1"
-
-    def test_add_self(self, cl3):
-        """simplify(x+x) = 2x."""
-        a = sym(cl3.basis_vectors()[0], "a")
-        assert str(simplify(a + a)) == "2a"
-
-    def test_sub_neg(self, cl3):
-        """simplify(x-(-y)) = x+y."""
-        a = sym(cl3.basis_vectors()[0], "a")
-        b = sym(cl3.basis_vectors()[1], "b")
-        result = simplify(a - (-b))
-        assert str(result) == "a + b"
-
-    def test_add_neg_self(self, cl3):
-        """simplify(x+(-x)) = 0."""
-        a = sym(cl3.basis_vectors()[0], "a")
-        assert str(simplify(a + (-a))) == "0"
-
-    def test_scalar_mul_collapse(self, cl3):
-        """simplify(3*(2*x)) = 6x."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(3 * (2 * v))) == "6v"
-
-    def test_grade_known_match(self, cl3):
-        """simplify(grade(v,1)) = v when v is grade-1."""
-        v = sym(cl3.basis_vectors()[0], "v")  # grade 1
-        assert str(simplify(sgrade(v, 1))) == "v"
-
-    def test_grade_known_mismatch(self, cl3):
-        """simplify(grade(v,2)) = 0 when v is grade-1."""
-        v = sym(cl3.basis_vectors()[0], "v")  # grade 1
-        assert str(simplify(sgrade(v, 2))) == "0"
-
-    def test_even_bivector(self, cl3):
-        """simplify(even(B)) = B for bivector."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = sym(e1 ^ e2, "B")  # grade 2
-        assert str(simplify(seven(B))) == "B"
-
-    def test_odd_bivector(self, cl3):
-        """simplify(odd(B)) = 0 for bivector."""
-        e1, e2, _ = cl3.basis_vectors()
-        B = sym(e1 ^ e2, "B")
-        assert str(simplify(sodd(B))) == "0"
-
-    def test_even_vector(self, cl3):
-        """simplify(even(v)) = 0 for vector."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(seven(v))) == "0"
-
-    def test_odd_vector(self, cl3):
-        """simplify(odd(v)) = v for vector."""
-        v = sym(cl3.basis_vectors()[0], "v")
-        assert str(simplify(sodd(v))) == "v"
-
-    def test_cascade(self, cl3):
-        """Cascading simplifications resolve fully."""
-        a = sym(cl3.basis_vectors()[0], "a")
-        # a - (-a) → a + a → 2a (requires two passes)
-        assert str(simplify(a - (-a))) == "2a"
-
-    def test_auto_grade_detection(self, cl3):
-        """sym() auto-detects grade from MV data."""
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        B = sym(e1 ^ e2, "B")
-        s = sym(cl3.scalar(5.0), "s")
-        assert v._grade == 1
-        assert B._grade == 2
-        assert s._grade == 0
+# TestSimplify now lives in facade/test_grade_simplification_contracts.py.
 
 
 class TestMultivectorLatex:
