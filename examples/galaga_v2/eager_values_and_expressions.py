@@ -470,5 +470,91 @@ def _(algebra, gm, history_replacement):
     return reflected_node, reflected_replay, scalar_node, scalar_node_value
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Three different meanings of equality
+
+    Multivectors compare numeric values, ignoring their names and provenance.
+    Expression nodes instead compare operation IDs, ordered operands and
+    normalized parameters. A symbol's identity includes all its name spellings,
+    not just the ASCII identifier.
+
+    Rendered strings answer a third question. If two different symbols are
+    both given the LaTeX spelling `x`, their expressions can look identical
+    without being the same history. Do not use rendered mathematics as a
+    cache key for an expression or its evaluated value.
+
+    Literal coefficients are finite floating-point numbers, compared exactly,
+    not approximately. Construction converts inputs to floats; it does not
+    create exact rational or arbitrary-precision storage. Adjacent floats can
+    be numerically close without being equal literal nodes. Equal nodes have
+    compatible hashes; unequal nodes need not have different hashes.
+    """)
+    return
+
+
+@app.cell
+def _(algebra, gm):
+    import numpy as _np
+
+    import galaga as _ga
+
+    _vector = algebra.vector((1, 2, -1))
+    identity_left = 5 * _vector.named("left", latex="x")
+    identity_right = 5 * _vector.named("right", latex="x")
+    identity_values_equal = identity_left == identity_right
+    identity_histories_equal = identity_left.expr == identity_right.expr
+    _left_math = identity_left.display("expr/latex")
+    identity_renderings_equal = _left_math == identity_right.display("expr/latex")
+    identity_rebound = _ga.evaluate(
+        identity_right.expr,
+        algebra=algebra,
+        environment={"right": algebra.vector((2, 0, 1))},
+    )
+    _rebound_math = identity_rebound.display("value/latex")
+    adjacent_literals = (_ga.ScalarLiteral(1), _ga.ScalarLiteral(_np.nextafter(1.0, 2.0)))
+    adjacent_literals_equal = adjacent_literals[0] == adjacent_literals[1]
+    signed_zero_literals = (_ga.ScalarLiteral(0.0), _ga.ScalarLiteral(-0.0))
+    signed_zero_lookup = {signed_zero_literals[0]: "same key"}[signed_zero_literals[1]]
+
+    gm.md(rt"""
+    The two histories both display as ${_left_math!s}$.
+
+    | Comparison | Equal? |
+    |---|---|
+    | Eager multivector values | {identity_values_equal!s} |
+    | Expression histories | {identity_histories_equal!s} |
+    | LaTeX strings | {identity_renderings_equal!s} |
+
+    Rebinding only the symbol `right` gives the new value ${_rebound_math!s}$.
+    The original two eager values are unchanged.
+
+    The adjacent floating-point literals are:
+
+    ```text
+    {repr(adjacent_literals[0])!s}
+    {repr(adjacent_literals[1])!s}
+    ```
+
+    Their node equality is `{adjacent_literals_equal!s}`. In contrast,
+    `+0.0` and `-0.0` compare equal and give the same dictionary lookup:
+    `{signed_zero_lookup!s}`. These rules concern stored numbers, not display
+    rounding or a chosen tolerance.
+    """)
+    return (
+        adjacent_literals,
+        adjacent_literals_equal,
+        identity_histories_equal,
+        identity_left,
+        identity_rebound,
+        identity_renderings_equal,
+        identity_right,
+        identity_values_equal,
+        signed_zero_literals,
+        signed_zero_lookup,
+    )
+
+
 if __name__ == "__main__":
     app.run()

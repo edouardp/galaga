@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-095: Exact Numeric Equality and Compatible Hashes
 
+Expression-node equality is a separate structural policy. Further regression
+tests distinguish exact stored-float equality from constructor rounding and
+from rendered strings without changing the numeric policy below; see
+[ADR-115](115-public-expression-identity-and-helper-contracts.md).
+
 ## Context and problem statement
 
 Boundary checks after numeric-contract retirement found that equal immutable

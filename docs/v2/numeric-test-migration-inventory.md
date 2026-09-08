@@ -1500,3 +1500,49 @@ remain. No production package behavior changes. Both mixed suites remain
 in the construction ledger; remaining helpers, rendering/transformation tests,
 namespace guards, engine deletion and release gates are still pending. See
 [ADR-114](../adrs/114-grade-inspection-and-bounded-simplification-contracts.md).
+
+### Phase 9 follow-through: public expression-helper identity contracts
+
+Seventeen `TestCoverageGaps` methods now live in
+`facade/test_expression_helper_contracts.py`. The other 72 methods and unrelated
+code are unchanged. The archive `tools/baselines/expression-helpers-v1.json`
+retains complete source/digest, all 89 source identities, selected ownership,
+four reflected products, fourteen known-grade observations, sixteen equality
+comparisons and eight parity observations before/after simplification across
+two signatures. Scalar rendering, invalid coercion, actual fallback equality
+and the ignored `sym` grade keyword remain recorded.
+
+The old override test passed because its supplied grade matched the value,
+not because `sym` used that keyword. The named fallback test exercised `Dual`,
+not an unknown node. Public replacements use explicit constructors, numeric
+inspection and replay rather than preserving those misleading claims.
+
+Tests separate numeric values, structural histories and rendered strings.
+They check immutable snapshots, full-name identity, exact finite-float equality,
+compatible signed-zero hashes and changed bindings. Constructor rounding of
+large integers/fractions is distinct from exact numeric comparison with those
+original inputs. Independent grade-sign, Gram-minor and reference-product
+oracles check values across three metrics. Mutation controls reject bad
+archives, swapped source order, stale replay, identity hashes, approximate
+literal equality and ASCII-only name identity.
+
+The eager-values notebook demonstrates all three equality questions, rebinding,
+adjacent floats and signed-zero dictionary lookup. Its runtime regression
+checks computed values, actual nodes and generated teaching text.
+All 179 focused cases pass on Python 3.14 with 100% line/branch coverage in
+both files. All 163 public cases pass from the wheel with origins verified
+and legacy imports blocked.
+
+Full suites pass 8,447 cases (71 skipped) on Python 3.11 and 8,590 (20 skipped)
+on Python 3.14. Expression nodes and simplification have 100% line/branch
+coverage; evaluation has 99%. An additional numeric-facade path and catalog
+path are covered, with rounded production percentages otherwise unchanged.
+The guide recipe executes and all 246 local links in the eight changed
+Markdown files resolve. Ruff lint, configured Python formatting and
+changed-file Markdown lint pass. The existing matrix warning, 295 type errors
+and Markdown code-block formatting debt remain.
+
+No production package behavior changes. Both mixed suites remain in the
+construction ledger. The remaining display/naming/rotor tests, namespace
+guards, engine deletion and release gates are still pending. See
+[ADR-115](../adrs/115-public-expression-identity-and-helper-contracts.md).

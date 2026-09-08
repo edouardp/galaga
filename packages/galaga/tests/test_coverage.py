@@ -3,17 +3,7 @@
 import numpy as np
 import pytest
 
-from galaga.expr import (
-    Conjugate,
-    Dual,
-    Grade,
-    Involute,
-    Neg,
-    Reverse,
-    ScalarMul,
-    Unit,
-    sym,
-)
+from galaga.expr import sym
 from galaga.legacy import (
     Algebra,
     BladeConvention,
@@ -40,7 +30,6 @@ from galaga.legacy import squared as ssq
 from galaga.legacy import sw as ssw_alias
 from galaga.legacy import undual as sundual
 from galaga.legacy import unit as sunit
-from galaga.legacy.simplify import simplify
 
 
 @pytest.fixture
@@ -520,153 +509,8 @@ class TestCoverageGaps:
         assert v.latex(wrap="$") == f"${raw}$"
         assert v.latex(wrap="$$") == f"$$\n{raw}\n$$"
 
-    # symbolic.py: Expr.__rmul__ with non-scalar (line 179)
-    def test_expr_rmul_expr(self, cl3):
-        """Expr * Expr builds Gp."""
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        result = a.__rmul__(b)
-        assert str(result) == "ba"
-
-    # symbolic.py: Expr.__rmul__ with scalar (line 172)
-    def test_expr_rmul_scalar(self, cl3):
-        """scalar * Expr builds ScalarMul."""
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        result = 5 * a
-        assert str(result) == "5a"
-
-    # symbolic.py: Sym with explicit grade (line 228)
-    def test_sym_explicit_grade(self, cl3):
-        """Sym with explicit grade overrides auto-detect."""
-        e1, e2, _ = cl3.basis_vectors()
-        s = sym(e1 + e2, "v", grade=1)
-        assert s._grade == 1
-
-    # symbolic.py: Scalar.__str__ (line 270)
-    def test_scalar_str(self):
-        """Scalar node str() renders the value."""
-        from galaga.expr import Scalar
-
-        s = Scalar(42)
-        assert str(s) == "42"
-        assert s.latex() == "42"
-
-    # symbolic.py: _ensure_expr TypeError (line 611)
-    def test_ensure_expr_bad_type(self):
-        """Non-MV/Expr/scalar raises TypeError."""
-        import pytest
-
-        from galaga.expr import _ensure_expr
-
-        with pytest.raises(TypeError, match="Cannot convert"):
-            _ensure_expr([1, 2, 3])
-
-    # symbolic.py: _eq for Conjugate, Grade, fallback (lines 635, 637, 640-642)
-    def test_eq_conjugate(self, cl3):
-        """Conjugate Expr equality."""
-        from galaga.legacy.simplify import _eq
-
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert _eq(Conjugate(a), Conjugate(a))
-        assert not _eq(Conjugate(a), Conjugate(sym(e1, "b")))
-
-    def test_eq_grade(self, cl3):
-        """Grade Expr equality."""
-        from galaga.legacy.simplify import _eq
-
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert _eq(Grade(a, 1), Grade(a, 1))
-        assert not _eq(Grade(a, 1), Grade(a, 2))
-
-    def test_eq_fallback(self, cl3):
-        """Expr equality fallback returns False."""
-        from galaga.legacy.simplify import _eq
-
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert _eq(Dual(a), Dual(a))
-        assert not _eq(Dual(a), Dual(sym(e1, "b")))
-
-    # symbolic.py: _known_grade branches (lines 691-703)
-    def test_known_grade_scalar(self):
-        """Scalar has known grade 0."""
-        from galaga.expr import Scalar
-        from galaga.legacy.simplify import _known_grade
-
-        assert _known_grade(Scalar(5)) == 0
-
-    def test_known_grade_grade_node(self, cl3):
-        """Grade node has known grade."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert _known_grade(Grade(sym(e1, "v"), 2)) == 2
-
-    def test_known_grade_reverse(self, cl3):
-        """Reverse preserves known grade."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, _, _ = cl3.basis_vectors()
-        v = sym(e1, "v")
-        assert _known_grade(Reverse(v)) == 1
-
-    def test_known_grade_neg(self, cl3):
-        """Neg preserves known grade."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert _known_grade(Neg(sym(e1, "v"))) == 1
-
-    def test_known_grade_scalarmul(self, cl3):
-        """ScalarMul preserves known grade."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert _known_grade(ScalarMul(3, sym(e1, "v"))) == 1
-
-    def test_known_grade_unit(self, cl3):
-        """Unit preserves known grade."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, _, _ = cl3.basis_vectors()
-        assert _known_grade(Unit(sym(e1, "v"))) == 1
-
-    def test_known_grade_unknown(self, cl3):
-        """Unknown grade returns None."""
-        from galaga.legacy.simplify import _known_grade
-
-        e1, e2, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        b = sym(e2, "b")
-        assert _known_grade(a + b) is None
-
-    # symbolic.py: simplify even/odd with known grade (line 819)
-    def test_simplify_odd_known_grade(self, cl3):
-        """Odd of known even-grade simplifies to 0."""
-        from galaga.legacy import even_grades as seven
-        from galaga.legacy import odd_grades as sodd
-
-        e1, e2, _ = cl3.basis_vectors()
-        v = sym(e1, "v")  # grade 1 (odd)
-        B = sym(e1 ^ e2, "B")  # grade 2 (even)
-        assert str(simplify(sodd(v))) == "v"
-        assert str(simplify(sodd(B))) == "0"
-        assert str(simplify(seven(B))) == "B"
-        assert str(simplify(seven(v))) == "0"
-
-    # symbolic.py: _eq for Involute (line 635)
-    def test_eq_involute(self, cl3):
-        """Involute Expr equality."""
-        from galaga.legacy.simplify import _eq
-
-        e1, _, _ = cl3.basis_vectors()
-        a = sym(e1, "a")
-        assert _eq(Involute(a), Involute(a))
-        assert not _eq(Involute(a), Involute(sym(e1, "b")))
+    # Expression-helper identities now live in facade/test_expression_helper_contracts.py.
+    # Historical source and observations: tools/baselines/expression-helpers-v1.json.
 
     # algebra.py: rotor_from_plane_angle degrees= and error
     def test_rotor_from_plane_degrees(self, cl3):

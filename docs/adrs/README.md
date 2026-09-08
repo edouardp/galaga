@@ -128,6 +128,7 @@ helps future contributors understand why certain choices were made.
 | [112](112-explicit-inner-product-contracts-outlive-mode-dispatch.md) | Explicit Inner-Product Contracts Outlive Mode Dispatch | Accepted |
 | [113](113-eager-operation-contracts-outlive-mixed-symbolic-tests.md) | Eager Operation Contracts Outlive Mixed Symbolic Tests | Accepted |
 | [114](114-grade-inspection-and-bounded-simplification-contracts.md) | Grade Inspection and Bounded Simplification Contracts | Accepted |
+| [115](115-public-expression-identity-and-helper-contracts.md) | Public Expression Identity and Helper Contracts | Accepted |
 
 ## Creating New ADRs
 

@@ -207,12 +207,64 @@ and raises the same error for a singular value; call `inverse(value, ...)`
 for non-default controls. See
 [ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
 
+## Compare numeric values, expression structure and rendered strings separately
+
+Private v1 `_eq` comparisons become equality between public expression nodes.
+`Call` equality includes its operation ID, ordered operands and normalized
+parameters; `Symbol` identity includes all its name spellings. Equal nodes
+have compatible hashes, but no collision-free or cross-process hash guarantee.
+
+Multivector equality instead follows the numeric policy and ignores naming
+and provenance. Rendered strings can coincide for different histories:
+
+```python
+from math import nextafter
+
+from galaga import Algebra, ScalarLiteral, evaluate
+
+algebra = Algebra(3)
+vector = algebra.vector((1, 2, -1))
+left = 5 * vector.named("left", latex="x")
+right = 5 * vector.named("right", latex="x")
+assert left == right and hash(left) == hash(right)
+assert left.expr != right.expr
+assert left.display("expr/latex") == right.display("expr/latex")
+changed = evaluate(
+    right.expr,
+    algebra=algebra,
+    environment={"right": algebra.vector((2, 0, 1))},
+)
+assert changed != right  # a node alone is not an evaluated-value cache key
+
+assert ScalarLiteral(1) != ScalarLiteral(nextafter(1.0, 2.0))
+assert {ScalarLiteral(0.0): "saved"}[ScalarLiteral(-0.0)] == "saved"
+original_integer = 2**53 + 1
+rounded_literal = ScalarLiteral(original_integer)
+assert rounded_literal == ScalarLiteral(float(original_integer))
+assert evaluate(rounded_literal, algebra=algebra) != original_integer
+```
+
+Literal constructors convert inputs to finite floats; exact equality compares
+the stored floats, not exact rationals or arbitrary-precision inputs.
+`MultivectorLiteral` snapshots coefficients; `Call` snapshots operand and
+parameter containers. Use these public constructors, not `_ensure_expr`.
+They do not remove the need for an algebra and explicit symbol bindings.
+
+The [eager-values lesson](../../examples/galaga_v2/eager_values_and_expressions.py)
+demonstrates all three equality questions; see
+[ADR-115](../adrs/115-public-expression-identity-and-helper-contracts.md).
+
 ## Inspect grades without assigning them to symbols
 
 Replace private `_grade` inspection with `value.homogeneous_grade()`.
 It inspects the current coefficients, returning `None` for zero or mixed
 grade. Its default `1e-12` tolerance is diagnostic, not an equality rule;
 `homogeneous_grade(atol=0)` includes every stored nonzero coefficient.
+
+Do not migrate `sym(..., grade=...)` into an assumed v2 override: v1's `sym`
+helper actually ignored that keyword, although direct legacy `Sym` nodes could
+store an override. V2 `Symbol` and `named` reject `grade=`. A name does not
+declare a grade; use an explicit projection when selection is intended.
 
 `grade(value, k)` projects onto a component; it does not assert that the
 result is nonzero. `grade(value, "even")` and `even_grades(value)` have equal

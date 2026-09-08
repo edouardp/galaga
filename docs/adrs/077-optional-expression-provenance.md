@@ -23,6 +23,11 @@ from historical cached grades, preserve rebinding and domain boundaries, and
 check the nonzero bivector self-wedge counterexample; see
 [ADR-114](114-grade-inspection-and-bounded-simplification-contracts.md).
 
+Private expression-helper contracts now use public immutable nodes, exact
+structural equality/hashing and explicit replay. The distinction from numeric
+and rendered equality, including float-construction boundaries, is recorded
+in [ADR-115](115-public-expression-identity-and-helper-contracts.md).
+
 ## Context and problem statement
 
 Galaga's legacy expression design combined eager coefficients, mutable naming,
