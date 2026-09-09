@@ -267,6 +267,12 @@ branches. A valid algebra logarithm need not be a geometric generator, even
 when its input is a rotor. The returned generator includes its full scale
 and any half-angle, rather than just a normalized plane.
 
+The [logarithms and generators notebook](../../examples/algebra/logarithms_and_generators.py)
+teaches these distinctions with computed Gram matrices, branch-cut examples,
+and an interactive comparison of algebraic and geometric paths to one rotor.
+From a checkout, run `make run-marimo` and open
+`algebra/logarithms_and_generators.py` in the gallery (Python 3.14).
+
 ## Product and contraction family
 
 The long names are canonical:

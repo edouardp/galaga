@@ -91,6 +91,7 @@ MIGRATED_NOTEBOOKS = (
     "algebra/commutator_lie_jordan.py",
     "algebra/duality_and_subspaces.py",
     "algebra/exp_log_rotors.py",
+    "algebra/logarithms_and_generators.py",
     "algebra/sandwich_products.py",
     "algebra/meets_joins_pga.py",
     "algebra/rotations_from_bivectors.py",

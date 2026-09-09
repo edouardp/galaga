@@ -19,6 +19,9 @@ how the replacement was carried out; they are not alternate APIs.
   model semantics, measurements, and constraints.
 - [Rotors, generators, and spinors](rotors-generators-spinors.md): mathematical
   distinctions used by the API and examples.
+- [Logarithms and rotor generators notebook](../examples/algebra/logarithms_and_generators.py):
+  computed examples, branch boundaries, and an interactive comparison of
+  algebraic and geometric paths.
 - [Inner products, contractions, and interior products](core/inner-products-contractions-and-interior-products.md):
   the explicit product families and their behavior across representative
   algebras.

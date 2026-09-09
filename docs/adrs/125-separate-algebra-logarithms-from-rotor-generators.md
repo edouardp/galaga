@@ -115,6 +115,20 @@ compound generator recovery, and both six-dimensional half-step paths.
 Teach the explicit principal-branch limitation instead of suggesting that
 any logarithm can be used for geometric interpolation.
 
+Provide a dedicated
+[logarithms and generators notebook](../../examples/algebra/logarithms_and_generators.py)
+alongside that broader rotor lesson. It teaches nonrotor logarithms, oblique
+compound inputs, a mixed-grade nilpotent, principal-branch wrapping and
+rejections, and an interactive comparison of the two paths to the same
+six-dimensional rotor. Keep it in the maintained executable gallery, with
+algebra-derived and rendered-output tests, including interior slider values
+and both endpoints. This extends the teaching coverage, not the API or its
+branch policy. Static prose remains native Marimo Markdown cells; computed
+equations use `galaga_marimo` t-strings and displayed Gram matrices.
+Inside existing math delimiters, interpolate raw value LaTeX with `!s`;
+standalone objects retain automatic rendering. Tests reject nested dollar
+delimiters as well as unexpanded fields.
+
 ## Consequences and verification strategy
 
 This supersedes the logarithm restriction in core

@@ -122,6 +122,10 @@ raises if this branch is unsuitable; it does not silently project grades or
 search other branches. See
 [ADR-125](adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
 
+The [logarithms and generators notebook](../examples/algebra/logarithms_and_generators.py)
+works through nonrotor, compound, and nilpotent logarithms, then lets you
+compare the two paths to the same rotor with a slider.
+
 ## What is a spinor?
 
 This is the most overloaded term. There are at least four incompatible definitions.
