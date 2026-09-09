@@ -153,6 +153,21 @@ def test_latex_groups_an_inline_fraction_that_is_one_factor_in_an_exponent() -> 
     assert emit(Power(Identifier("e"), exponent), "latex") == r"e^{\left(-theta/2\right) B}"
 
 
+@pytest.mark.parametrize(
+    ("target", "expected"),
+    (
+        ("ascii", "x^(a - b) / 2c"),
+        ("unicode", "x^((a - b) / 2c)"),
+        ("latex", r"x^{\left(\left(a - b\right)/2\right) c}"),
+    ),
+)
+def test_nested_sum_and_product_keep_term_lists_separate_from_rendered_factors(target, expected) -> None:
+    summation = Sum((SumTerm(Identifier("a")), SumTerm(Identifier("b"), True)))
+    exponent = Product((Fraction(summation, Literal(2)), Identifier("c")))
+
+    assert emit(Power(Identifier("x"), exponent), target) == expected
+
+
 def test_unicode_preserves_position_for_symbols_without_script_codepoints() -> None:
     star = Identifier(Name("star", "★", r"\text{★}"))
     bulk = Identifier(Name("bulk", "●", r"\text{●}"))

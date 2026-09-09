@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Callable
+from fractions import Fraction
 
 import numpy as np
 import pytest
@@ -41,6 +42,24 @@ def native_cga_gram() -> np.ndarray:
 
 
 class TestConstructionAndValues:
+    @pytest.mark.parametrize("value", (0, 0.25, Fraction(1, 4), np.float32(0.25), np.float64(0.25)))
+    @pytest.mark.parametrize("expr", (False, True))
+    def test_scalar_factory_preserves_supported_real_inputs_and_provenance(self, value, expr) -> None:
+        algebra = Algebra(2)
+        result = algebra.scalar(value, expr=expr)
+
+        assert isinstance(result, Multivector)
+        assert result.algebra is algebra
+        np.testing.assert_array_equal(result.data, [float(value), 0, 0, 0])
+        assert (result.expr is not None) == expr
+        if expr:
+            assert facade.evaluate(result.expr, algebra=algebra) == result
+
+    @pytest.mark.parametrize("value", ("0.25", 0.25j, object()))
+    def test_scalar_factory_still_rejects_nonreal_inputs(self, value) -> None:
+        with pytest.raises(TypeError, match="scalar value must be real"):
+            Algebra(2).scalar(value)
+
     @pytest.mark.parametrize("signature", ((1, -1, 0), [1, -1, 0]))
     def test_accepts_the_legacy_positional_signature_form(self, signature) -> None:
         algebra = Algebra(signature)

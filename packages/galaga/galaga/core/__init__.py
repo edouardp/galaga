@@ -1338,7 +1338,7 @@ def outerexp(value: Multivector) -> Multivector:
     """Return the exponential series formed with the exterior product."""
     even, odd = _outer_even_odd(value)
     scalar_exp = float(np.exp(value.scalar_part))
-    return scalar_exp * (even + odd)
+    return value.algebra.multivector(scalar_exp * (even.data + odd.data))
 
 
 def outersin(value: Multivector) -> Multivector:

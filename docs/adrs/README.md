@@ -139,6 +139,7 @@ helps future contributors understand why certain choices were made.
 | [123](123-migrate-remaining-teaching-notebooks-and-benchmark.md) | Migrate Remaining Teaching Notebooks and Benchmark | Accepted |
 | [124](124-rotor-predicate-requires-vector-preservation.md) | Rotor Predicate Requires Vector Preservation | Accepted |
 | [125](125-separate-algebra-logarithms-from-rotor-generators.md) | Separate Algebra Logarithms from Rotor Generators | Accepted |
+| [126](126-align-static-types-with-existing-numeric-contracts.md) | Align Static Types with Existing Numeric Contracts | Accepted |
 
 ## Creating New ADRs
 

@@ -12,7 +12,7 @@ from __future__ import annotations
 from collections.abc import Iterable
 from numbers import Real
 from types import MappingProxyType
-from typing import Literal, cast
+from typing import Literal, TypedDict, Unpack, cast
 
 import numpy as np
 
@@ -36,6 +36,13 @@ from .facade import (
 )
 
 CGAExpressionForm = Literal["operator", "expanded"]
+
+
+class _RoleParameters(TypedDict, total=False):
+    """Role selectors forwarded to expression replay, not tracking controls."""
+
+    origin: tuple[int, int]
+    infinity: tuple[int, int]
 
 
 class ConformalModel:
@@ -1022,7 +1029,7 @@ class ConformalModel:
         role: BladeRef,
         contains_role: bool,
         expression_form: CGAExpressionForm | None,
-        **parameters: object,
+        **parameters: Unpack[_RoleParameters],
     ) -> Multivector:
         self._require_geometry(value)
         data = np.zeros_like(value.data)

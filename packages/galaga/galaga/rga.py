@@ -137,7 +137,7 @@ class RigidModel:
         self,
         position: Iterable[Real] | Multivector,
         *,
-        weight: Real = 1.0,
+        weight: Real | float = 1.0,
         expr: bool | None = None,
     ) -> Multivector:
         r"""Construct the homogeneous point ``x + weight*e4``."""
@@ -597,7 +597,7 @@ def _coordinates(value: Iterable[Real], *, expected: int) -> tuple[float, ...]:
     return tuple(_finite_real(coordinate, name="Euclidean coordinate") for coordinate in coordinates)
 
 
-def _finite_real(value: Real, *, name: str) -> float:
+def _finite_real(value: Real | float, *, name: str) -> float:
     if not isinstance(value, Real) or isinstance(value, (bool, np.bool_)):
         raise TypeError(f"{name} must be a real number")
     result = float(value)

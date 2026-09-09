@@ -291,7 +291,7 @@ class Algebra:
 
     def scalar(
         self,
-        value: Real,
+        value: Real | float,
         *,
         name: Name | str | None = None,
         expr: bool | Expr = False,

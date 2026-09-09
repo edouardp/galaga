@@ -1802,9 +1802,11 @@ Required tests:
 
 ### W9.3 Run the release gate
 
-Status: **not yet complete**. Local deletion, packaging and runtime tests do
-not replace the remaining type, alias-policy, CI and
-release-metadata requirements. See the
+Status: **not yet complete**. The production type check now passes (zero
+errors; seventeen warnings), as recorded in
+[ADR-126](../adrs/126-align-static-types-with-existing-numeric-contracts.md).
+Local deletion, packaging and runtime tests do not replace the remaining
+alias-policy, CI and release-metadata requirements. See the
 [current gate report](legacy-engine-deletion-gate.md).
 
 Required checks:

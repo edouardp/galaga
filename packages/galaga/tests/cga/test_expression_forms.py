@@ -104,6 +104,41 @@ def test_explicit_expr_false_suppresses_both_expression_forms() -> None:
     )
 
 
+@pytest.mark.parametrize("expression_form", ("operator", "expanded"))
+@pytest.mark.parametrize("tracking", (False, True))
+@pytest.mark.parametrize(
+    ("method", "operation_id", "role_name", "contains_role"),
+    (
+        ("round_part", "round_part", "infinity", False),
+        ("flat_part", "flat_part", "infinity", True),
+        ("bulk_part", "conformal_bulk_part", "origin", False),
+        ("weight_part", "conformal_weight_part", "origin", True),
+    ),
+)
+def test_role_parts_forward_only_the_role_selector_and_replay_new_bindings(
+    method, operation_id, role_name, contains_role, tracking, expression_form
+) -> None:
+    cga = ConformalModel(Algebra(config=p_lengyel_cga()), expr=tracking)
+    point = cga.up((1, 2, 3))
+    if tracking:
+        point = point.named("P")
+    role = dict(cga.algebra.model.roles)[role_name]
+    keep = np.array([bool(mask & role.mask) is contains_role for mask in range(cga.algebra.dim)])
+
+    result = getattr(cga, method)(point, expression_form=expression_form)
+
+    np.testing.assert_array_equal(result.data, np.where(keep, point.data, 0))
+    if not tracking:
+        assert result.expr is None
+        return
+    assert isinstance(result.expr, Call)
+    assert result.expr.operation_id == operation_id
+    assert dict(result.expr.parameters) == {role_name: (role.mask, role.orientation)}
+    replacement = cga.up((-2, 3, 1))
+    rebound = evaluate(result.expr, algebra=cga.algebra, environment={"P": replacement})
+    np.testing.assert_array_equal(rebound.data, np.where(keep, replacement.data, 0))
+
+
 def test_round_point_retains_radius_in_both_executable_explanations() -> None:
     compact = _model()
     expanded = compact.with_expression_form("expanded")

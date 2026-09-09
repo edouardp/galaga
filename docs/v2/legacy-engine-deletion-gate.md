@@ -21,7 +21,7 @@ Residual bytecode-only `legacy` and `symbolic_core` directories were moved to
 is recoverable from Git. Removing the directories prevents accidental
 namespace-package imports, not just loading of old bytecode.
 
-## Validation evidence
+## Original deletion-checkpoint validation evidence
 
 | Check | Result |
 |---|---|
@@ -178,11 +178,26 @@ an installed-wheel process exercises the new APIs independently of source
 imports. These results supersede the earlier predicate-only test counts
 for the current working tree, without implying a release or publication.
 
+## Type-check follow-up
+
+The eleven remaining type errors are resolved by
+[ADR-126](../adrs/126-align-static-types-with-existing-numeric-contracts.md).
+The configured production check reports **zero errors**, with the same
+seventeen warnings. No ignores, exclusions, relaxed checks, or dependencies
+were added. The fixes preserve numeric and rendering behavior, with 52 new
+regression cases; all 264 focused cases pass. The earlier type counts above
+are historical checkpoints, not the current result.
+
+Full package and release-workflow suites now pass with 9,382 tests (103
+skipped) on Python 3.11 and 9,557 tests (20 skipped) on Python 3.14,
+including headless notebooks. Both retain only the existing matrix
+complex-to-real conversion warning. This is source validation, not a fresh
+release-artifact or publication checkpoint.
+
 ## Release gate remains open
 
-- Resolve the **11 surviving type errors** (17 warnings). The core scalar
-  annotation correction in ADR-125 reduced the earlier 34-error checkpoint;
-  no exclusions or ignores were added.
+- Keep the now-passing type check green while completing the remaining
+  source and artifact release checks. Seventeen non-error warnings remain.
 - Finish the published retirement of `gram_bridge` and six temporary function
   spellings before stable 2.0.
 - Obtain CI evidence on the intended tracked branch. This branch has no

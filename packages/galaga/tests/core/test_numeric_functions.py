@@ -411,6 +411,22 @@ class TestOuterTranscendentals:
         assert outercos(value).almost_equal(algebra.scalar(np.cosh(0.4)) + np.sinh(0.4) * e1)
         assert outersin(value).almost_equal(algebra.scalar(np.sinh(0.4)) + np.cosh(0.4) * e1)
 
+    @pytest.mark.parametrize("scalar", (0.0, 0.4, -745.0, -1000.0))
+    @pytest.mark.parametrize("gram", (np.eye(3), [[2, 0.5, 0], [0.5, -1, 0], [0, 0, 0]]))
+    def test_outerexp_returns_owned_multivector_for_mixed_grades_and_underflow(self, scalar, gram) -> None:
+        algebra = Algebra(gram=gram)
+        nilpotent = algebra.blade(1) + 0.25 * algebra.blade(6)
+        square = nilpotent ^ nilpotent
+        assert square != 0 and square ^ nilpotent == 0
+        expected = np.exp(scalar) * (algebra.identity.data + nilpotent.data + square.data / 2)
+
+        result = outerexp(scalar + nilpotent)
+
+        assert type(result) is Multivector
+        assert result.algebra is algebra
+        assert not result.data.flags.writeable
+        np.testing.assert_array_equal(result.data, expected)
+
     def test_outer_series_is_metric_independent(self) -> None:
         diagonal = Algebra(3)
         oblique = Algebra(gram=np.array([[2.0, 0.5, 0.0], [0.5, 1.0, 0.2], [0.0, 0.2, -1.0]]))

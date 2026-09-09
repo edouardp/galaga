@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-125: Separate Algebra Logarithms from Rotor Generators
 
+Follow-up: [ADR-126](126-align-static-types-with-existing-numeric-contracts.md)
+resolves the eleven type errors recorded below without changing the
+logarithm/generator contracts. The verification counts here describe this
+earlier checkpoint.
+
 ## Context and problem statement
 
 `log` previously accepted only reverse-unit even elements with scalar-square

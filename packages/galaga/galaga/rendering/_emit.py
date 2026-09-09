@@ -87,10 +87,10 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
             separator = f" {node.separator.for_target(target)} "
         factors: list[str] = []
         for factor in node.factors:
-            rendered = _emit(factor, target, compact_fractions=compact_fractions)
+            rendered_factor = _emit(factor, target, compact_fractions=compact_fractions)
             if target == "latex" and compact_fractions and len(node.factors) > 1 and isinstance(factor, Fraction):
-                rendered = rf"\left({rendered}\right)"
-            factors.append(rendered)
+                rendered_factor = rf"\left({rendered_factor}\right)"
+            factors.append(rendered_factor)
         return separator.join(factors)
     if isinstance(node, Fraction):
         numerator = _emit(node.numerator, target, compact_fractions=compact_fractions)
