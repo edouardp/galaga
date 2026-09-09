@@ -194,23 +194,93 @@ including headless notebooks. Both retain only the existing matrix
 complex-to-real conversion warning. This is source validation, not a fresh
 release-artifact or publication checkpoint.
 
+## Pre-a3 validation and integration checkpoint
+
+Date: 2026-09-10. Validated source commit: `8805253`. This prepares the next
+`2.0.0a3` release; it does not bump versions or publish packages. The fresh
+public-package artifacts still carry the committed `2.0.0a2` metadata and
+must not be uploaded as replacements for the already published alpha.
+
+| Check | Result |
+| --- | --- |
+| Full source and release-workflow suite, Python 3.11.15 | 9,383 passed, 114 skipped |
+| Full source and release-workflow suite, Python 3.14.4 | 9,569 passed, 20 skipped |
+| Fresh installed wheels, Python 3.11.15 | 9,229 package tests passed, 114 skipped; 43 loaded package-module origins verified |
+| Fresh installed wheels, Python 3.14.4 | 9,415 package tests passed, 20 skipped; 46 loaded package-module origins verified |
+| Maintained gallery | All 85 notebooks pass dependency validation and headless execution |
+| Clean integration-worktree gallery and logarithm regressions | 30 passed, including all 85 notebook exports |
+| Galaga production coverage, Python 3.11 | 94.83% combined line/branch; direct core 98.48% |
+| Marimo companion coverage, Python 3.14 | 95 focused tests passed; 86% combined line/branch |
+| Production type check | Zero errors; 17 existing warnings |
+| Wheels and sdists | All five repository packages built; all ten artifacts passed Twine |
+| Galaga artifact inventory | Wheel and sdist each contain 33 source-identical, legacy-free runtime files |
+| Declared-dependency-only core smoke tests | Pass on Python 3.11 and 3.14, with isolated site-packages imports |
+| Installed dependency consistency | Pass in both fresh environments |
+| Ruff, configured Python formatting, Shellcheck, Checkmake, Bandit | Pass; existing Bandit annotation warnings remain |
+| Dependency vulnerability audit | No known vulnerabilities found in the audited source environment |
+| Lockfile consistency | Pass; no dependency or version changes |
+| Configured release Markdown lint | Pass for all 33 files |
+| Branch-change Markdown lint | Pass for all 94 changed documents |
+| Tracked local documentation file links | All 828 resolve; no broken targets on the pre-integration baseline either |
+| Historical rendering parity | All 73 cases match the accepted ledger, including its ten intentional differences |
+
+The installed package suites exclude the 154 repository release-workflow
+tests already exercised by the source runs. All four full runs retain the
+existing matrix complex-to-real conversion warning. Older-Python notebook
+skips are explicit; the Python 3.14 runs execute the notebook runtime tests.
+No coverage exclusions or production algorithms changed during validation.
+
+Both fresh environments initially contained only the new Galaga wheel and
+its declared NumPy dependency. Core-only smoke tests checked general-Gram and
+native-null products, logarithms, generator predicates, equality/hashing,
+and absence of retired imports before installing any test tools. The full
+package runs then used installed companion wheels, never runtime source
+directories; development-only test helpers remained separate. NumPy resolved
+to 2.4.6 on Python 3.11 and 2.5.3 on Python 3.14. The experimental Mermaid
+package was also built and tested, but remains outside joint publication.
+
+Artifacts, coverage data, installed-test XML reports and benchmark output
+are retained under `/tmp/galaga-a3-validation.F55xCA`. The fresh benchmark
+measures direct-core product at 16.444 microseconds versus 16.947 in the
+accepted baseline, and reverse at 1.910 versus 1.836. These are local
+microbenchmark observations, not a cross-machine performance threshold;
+the archived baseline is unchanged.
+
+A broader Markdown scan reports 324 findings in 30 older documents,
+including `AGENTS.md`. Every affected document is byte-identical to the
+pre-integration `origin/galaga_v2` baseline; none belongs to the 94 changed
+documents. This is existing documentation-formatting debt, not a globally
+clean Markdown result.
+
+The fetched `origin/galaga_v2` was an ancestor of the validated commit, with
+38 feature commits to integrate and no remote-only commits. Integration
+uses a separate clean worktree to exclude a concurrent uncommitted edit to
+`examples/matrix/general_gram_compact_foundations.py`. The committed gallery
+was revalidated there after the fast-forward. User work remains untouched.
+
+GitHub reports no Actions workflows, check runs or external commit statuses.
+The user explicitly chose **no CI** for this alpha preparation. This is a
+local source-and-artifact validation checkpoint, not a CI pass or completion
+of every stable-2.0 gate. See the follow-up in
+[ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md).
+
 ## Release gate remains open
 
 - Keep the now-passing type check green while completing the remaining
   source and artifact release checks. Seventeen non-error warnings remain.
 - Finish the published retirement of `gram_bridge` and six temporary function
   spellings before stable 2.0.
-- Obtain CI evidence on the intended tracked branch. This branch has no
-  upstream; GitHub reports the committed checkpoint is not present remotely.
-  No push or CI configuration change is inferred from local validation.
+- Prepare the alpha from the intended clean, tracked `galaga_v2` branch.
+  The user has authorized integration and push and explicitly chosen local
+  validation without CI for this alpha; no CI result is claimed.
 - At the actual release, choose the version, update the changelog/classifiers
   and installation guidance as appropriate, and verify the required clean
   branch, release-candidate and publication prerequisites. None were changed
   during this verification.
 
-Concurrent user edits to `examples/matrix/cga_via_gram_matrix.py` and
-`examples/galaga_v2/presentation_contexts.py` are preserved and are not part
-of the engine-removal changes.
+Concurrent edits mentioned in earlier checkpoints were preserved separately
+from the engine-removal changes; the pre-a3 checkpoint above records the
+current validation boundary.
 
 See [ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md),
 the [cutover plan](core-cutover-plan.md#w93-run-the-release-gate), and the

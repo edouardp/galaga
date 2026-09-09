@@ -80,6 +80,17 @@ than authorising removal of teaching work.
 
 ## Verification and consequences
 
+### Alpha preparation follow-up, 2026-09-10
+
+For the next `2.0.0a3` preparation, the user explicitly chose no CI setup.
+Use the refreshed local source, installed-wheel and notebook validation
+recorded in the gate report, then integrate into the clean tracked
+`galaga_v2` branch. Do not describe absent workflows or empty commit-status
+lists as passing CI. This alpha-specific validation choice does not assert
+completion of the original stable Phase 9 gate, change runtime architecture,
+or authorize publication. Concurrent uncommitted user work is excluded from
+integration by using a separate clean worktree.
+
 Full tests, before/after branch coverage, clean wheel installations, package
 metadata, security checks and benchmarks are recorded in the
 [deletion gate report](../v2/legacy-engine-deletion-gate.md). It distinguishes
