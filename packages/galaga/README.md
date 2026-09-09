@@ -252,6 +252,21 @@ This is a five-dimensional algebra whose pseudoscalar renders as
 $e_1 e_2 e_3 e_o e_\infty$. The convention adds the origin and infinity
 vectors to the three Euclidean vectors itself.
 
+## Logarithms and geometric generators
+
+`log(A)` is the real principal **algebra** logarithm, with no rotor
+requirement. It accepts positive scalar multivectors, vector exponentials,
+compound rotors and general mixed-grade inputs on its supported principal
+branch. Singular inputs, the spectral branch cut, and unresolved numerical
+cases raise rather than silently returning another branch or complex values.
+
+Use `rotor_generator(R)` when the result must generate a path of rotors,
+or `is_rotor_generator(B)` to check a candidate independently. The generator
+operation validates the principal logarithm; it does not search alternative
+branches. A valid algebra logarithm need not be a geometric generator, even
+when its input is a rotor. The returned generator includes its full scale
+and any half-angle, rather than just a normalized plane.
+
 ## Product and contraction family
 
 The long names are canonical:

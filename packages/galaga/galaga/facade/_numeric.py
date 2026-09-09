@@ -1160,7 +1160,23 @@ def is_even(value: Multivector, *, atol: float = 1e-12) -> bool:
 
 
 def is_rotor(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Test evenness, full unit reverse product, and native vector preservation.
+
+    ``atol`` is an absolute coefficient tolerance for all three checks in the
+    stored basis; large boosts or poorly conditioned metrics may need a larger
+    value. No normalization or inverse-sandwich substitution is performed.
+    """
     return _invoke("is_rotor", value, atol=atol)
+
+
+def is_rotor_generator(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Test evenness, reverse skewness, and vector-valued native commutators.
+
+    These are the infinitesimal rotor conditions, checked with absolute
+    coefficient tolerance ``atol``; testing ``is_rotor(exp(value))`` alone
+    would not validate the generated one-parameter action.
+    """
+    return _invoke("is_rotor_generator", value, atol=atol)
 
 
 def is_basis_blade(value: Multivector, *, atol: float = 1e-12) -> bool:
@@ -1176,7 +1192,23 @@ def exp(value: Multivector) -> Multivector:
 
 
 def log(value: Multivector, *, atol: float = 1e-12) -> Multivector:
+    """Return the real principal algebra logarithm; rotorhood is not required.
+
+    Reject singular inputs, the spectral branch cut, and unresolved numerical
+    cases. ``atol`` bounds coefficient convergence and the scale-aware native
+    exponential residual; no alternative branch or complexification is used.
+    See ``rotor_generator`` for the intentionally geometric operation.
+    """
     return _invoke("log", value, **({"atol": atol} if atol != 1e-12 else {}))
+
+
+def rotor_generator(value: Multivector, *, atol: float = 1e-12) -> Multivector:
+    """Return a checked geometric generator from a rotor's principal logarithm.
+
+    Raise if the input is not a rotor or this logarithm is not a generator;
+    do not normalize, discard grades, or search alternative branches.
+    """
+    return _invoke("rotor_generator", value, **({"atol": atol} if atol != 1e-12 else {}))
 
 
 def outerexp(value: Multivector) -> Multivector:
@@ -1225,6 +1257,7 @@ __all__ = [
     "is_bivector",
     "is_even",
     "is_rotor",
+    "is_rotor_generator",
     "is_scalar",
     "is_vector",
     "jordan_product",
@@ -1253,6 +1286,7 @@ __all__ = [
     "right_hodge_dual",
     "right_interior_product",
     "right_weight_dual",
+    "rotor_generator",
     "sandwich",
     "scalar_part",
     "scalar_product",

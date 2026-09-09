@@ -302,7 +302,15 @@ def _core_operations() -> tuple[OperationSpec, ...]:
             parameters=(ParameterSpec("atol", normalize=_normalize_tolerance),),
             result_kind="predicate",
         )
-        for name in ("is_basis_blade", "is_bivector", "is_even", "is_rotor", "is_scalar", "is_vector")
+        for name in (
+            "is_basis_blade",
+            "is_bivector",
+            "is_even",
+            "is_rotor",
+            "is_rotor_generator",
+            "is_scalar",
+            "is_vector",
+        )
     )
     specs.extend(
         (
@@ -316,6 +324,11 @@ def _core_operations() -> tuple[OperationSpec, ...]:
             ),
             _core_operation(
                 "log",
+                1,
+                parameters=(ParameterSpec("atol", normalize=_normalize_tolerance),),
+            ),
+            _core_operation(
+                "rotor_generator",
                 1,
                 parameters=(ParameterSpec("atol", normalize=_normalize_tolerance),),
             ),

@@ -56,8 +56,9 @@ libraries. Named functions are the unambiguous contract:
   convention choices behind a generic `inner` name;
 - `complement`, `dual`, and `right_hodge_dual` remain distinct because they
   have different metric requirements and meanings.
-- `scalar_sqrt`, Study-number `sqrt`, `exp`, and Study-rotor `log` state their
-  domains instead of masquerading as unrestricted scalar functions.
+- `scalar_sqrt`, Study-number `sqrt`, `exp`, and principal algebra `log`
+  state their real branch domains. `rotor_generator` intentionally names the
+  distinct geometric contract instead of overloading `log` with rotor checks.
 
 Operators remain documented sugar: `*` is geometric product, `^` is exterior
 product, `|` is Doran–Lasenby inner, and `~` is reverse.

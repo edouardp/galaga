@@ -76,9 +76,12 @@ Analytic functions need different checks from bilinear products:
   identical exterior coefficients.
 
 Failure cases are part of correctness. Negative real scalar roots, non-Study
-square roots, non-rotors, non-Study rotor logarithms, the plane-ambiguous
-logarithm of scalar `-1`, and noninvertible outer cosine values must fail
-explicitly.
+square roots, singular or branch-cut logarithms, failed logarithm convergence,
+and noninvertible outer cosine values must fail explicitly. `log` accepts
+nonrotors on its principal algebra branch; `rotor_generator` rejects
+nonrotors and principal logs that fail the geometric generator conditions.
+Tests distinguish those contracts using actual six-dimensional products,
+including a valid algebra logarithm that is not a geometric generator.
 
 Tiny nonzero generators receive regression coverage so scalar classification
 tolerances do not erase meaningful coefficients.

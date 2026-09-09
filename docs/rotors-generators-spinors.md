@@ -10,23 +10,33 @@ There are three definitions in active use.
 
 A rotor is an **even versor** (product of an even number of vectors) that is **normalized**: $R\tilde{R} = 1$.
 
-Hestenes originally defined it as the product of two unit vectors, then broadened it. Chisolm follows this path — initially defining a rotor as an invertible biversor ($\S$ 1.3), then later ($\S$ 9.3) broadening to "any even invertible versor." Cohoe (Def 6.1) defines a spinor as a product of an even number of vectors, and a rotor as a normalized spinor.
+Hestenes originally defined it as the product of two unit vectors, then broadened it. Chisolm follows this path — initially defining a rotor as an invertible biversor ($\S$ 1.3), then later ($\S$ 9.3)
+broadening to "any even invertible versor." Cohoe (Def 6.1) defines a spinor as a product of an even number of vectors, and a rotor as a normalized spinor.
 
-A rotor is **not** "any element of the even subalgebra." It must be constructible as a product of vectors (a versor) and must be invertible/normalized. A general even multivector might not be expressible as a product of vectors.
+A rotor is **not** "any element of the even subalgebra." It must be constructible as a product of vectors (a versor) and must be invertible/normalized. A general even multivector might not be
+expressible as a product of vectors.
 
 ### Pure mathematics (Clifford algebra / spin group literature)
 
-A rotor is an element of $\mathrm{Spin}(V)$ — the subgroup of the even Clifford algebra $\mathrm{Cl}^0(V)$ consisting of elements $R$ with $R\tilde{R} = 1$.
-
-Wikipedia states: "a rotor in the geometric algebra of $V$ is the same thing as an element of the spin group $\mathrm{Spin}(V)$." For $n > 2$, the rotor group is the identity component $\mathrm{Spin}^e(V)$.
+A spin-group definition must include the Clifford/versor condition; evenness
+and $R\widetilde R=1$ alone do not characterize rotors in arbitrary dimension.
+Galaga keeps the unit-reverse convention and additionally checks that every
+native vector remains a vector under the reverse sandwich. Component and
+factorization conventions in indefinite or degenerate signatures require
+care; see [ADR-124](adrs/124-rotor-predicate-requires-vector-preservation.md).
 
 ### PGA / motor algebra community (Gunn, De Keninck)
 
-In projective geometric algebra, the term **motor** replaces "rotor" for the general case (rotation + translation). A motor is an element of the even subalgebra satisfying appropriate normalization. Not every motor is the exponential of a single bivector — some are products of non-commuting exponentials.
+In projective geometric algebra, the term **motor** replaces "rotor" for the general case (rotation + translation). A motor is an element of the even subalgebra satisfying appropriate normalization.
+Not every motor is the exponential of a single bivector — some are products of non-commuting exponentials.
 
-### Key disagreement
+### Normalization is not enough
 
-Is every element of the even subalgebra with $R\tilde{R} = 1$ a rotor?  Mathematicians say yes — it's the definition of $\mathrm{Spin}(V)$. GA practitioners sometimes insist a rotor must be *constructible* as a product of vectors. For finite-dimensional real Clifford algebras these are the same set, but the conceptual framing differs.
+The unit-even condition is genuinely weaker, not merely a community naming
+difference. In Euclidean dimension six, $(1+e_{123456})/\sqrt2$ is unit and
+even but sends $e_1$ to $-e_{23456}$ under its reverse sandwich. The
+[executable rotor notebook](../examples/algebra/exp_log_rotors.py) computes
+this counterexample and contrasts it with valid compound rotors.
 
 ## What is a "generator"?
 
@@ -34,17 +44,21 @@ The word **"generator" is not standard GA terminology.** It comes from Lie theor
 
 ### Physics / Lie group community
 
-A "generator" is an element of the Lie algebra $\mathfrak{g}$ that, when exponentiated, produces a group element. For rotations, the Lie algebra of $\mathrm{Spin}(r,s)$ is the space of bivectors $\bigwedge^2 V$ under the commutator bracket. So a bivector $B$ is a "generator" of the rotation $\exp(B)$. Physicists routinely call bivectors "generators of rotations."
+A "generator" is an element of the Lie algebra $\mathfrak{g}$ that, when exponentiated, produces a group element. For rotations, the Lie algebra of $\mathrm{Spin}(r,s)$ is the space of bivectors
+$\bigwedge^2 V$ under the commutator bracket. So a bivector $B$ is a "generator" of the rotation $\exp(B)$. Physicists routinely call bivectors "generators of rotations."
 
 ### GA community
 
-They avoid the word almost entirely. Instead they say "the bivector $B$ defines the plane of rotation" or "$B$ is the rotation plane." Doran & Lasenby, Hestenes, Chisolm, Dorst — none of them use "generator" in this sense.
+They avoid the word almost entirely. Instead they say "the bivector $B$ defines the plane of rotation" or "$B$ is the rotation plane." Doran & Lasenby, Hestenes, Chisolm, Dorst — none of them use
+"generator" in this sense.
 
-Hestenes & Sobczyk (1984) and Doran & Lasenby (2003) both establish that the bivectors form the Lie algebra of the rotor group under the commutator product, but they frame this as a *consequence* rather than a definition.
+Hestenes & Sobczyk (1984) and Doran & Lasenby (2003) both establish that the bivectors form the Lie algebra of the rotor group under the commutator product, but they frame this as a *consequence*
+rather than a definition.
 
 ### Mathematics community
 
-Bivectors are elements of the Lie algebra $\mathfrak{spin}(V)$. The exponential map sends them to $\mathrm{Spin}(V)$. The term "generator" is used in the standard Lie algebra sense — an element of a basis for the Lie algebra.
+Bivectors are elements of the Lie algebra $\mathfrak{spin}(V)$. The exponential map sends them to $\mathrm{Spin}(V)$. The term "generator" is used in the standard Lie algebra sense — an element of a
+basis for the Lie algebra.
 
 ## The anatomy of $\exp(-B\theta/2)$
 
@@ -77,24 +91,36 @@ Chisolm also handles the other cases in $\S$ 9.3.1:
 | Convention                                        | What you exponentiate                                                 | Who uses it                                   |
 | ------------------------------------------------- | --------------------------------------------------------------------- | --------------------------------------------- |
 | $\exp(-B\theta/2)$                                | Unit bivector $B$, angle $\theta$, explicit half-angle                | Chisolm, Hestenes, Doran & Lasenby            |
-| $\exp(B)$ where $B$ is a general bivector         | The bivector _is_ the full exponent; magnitude encodes the half-angle | Dorst, most software libraries, PGA community |
+| $\exp(B)$ where $B$ is a general bivector         | The bivector *is* the full exponent; magnitude encodes the half-angle | Dorst, most software libraries, PGA community |
 | $\exp(-\hat{B}\theta/2)$ with $\hat{B}^2 = \pm 1$ | Normalized bivector, separate angle                                   | Physics texts                                 |
 
-The second convention is what most code uses (including galaga's `exp`). You pass a bivector whose magnitude already encodes the half-angle. The decomposition into "unit plane $\times$ angle / 2" is a human interpretation, not something the algebra requires.
+The second convention is what most code uses (including galaga's `exp`). You pass a bivector whose magnitude already encodes the half-angle. The decomposition into "unit plane $\times$ angle / 2" is a
+human interpretation, not something the algebra requires.
 
 ## What does $\log()$ return?
 
-Neither Chisolm nor Cohoe discuss logarithms.
+An algebra logarithm $L$ satisfies $\exp L=A$; rotorhood is not required.
+Galaga's `log(A)` selects the real principal branch. It supports positive
+scalars, vector exponentials, compound rotors and other mixed-grade inputs,
+subject to its spectral branch and numerical convergence rules.
 
-In the wider literature:
+A geometric rotor generator is a different contract. For a supported simple
+rotation, `rotor_generator(R)` returns the full exponent
+$-\widehat B\theta/2$, including its half-angle. Compound generators may
+be nonsimple bivectors. A null translator $1+N$ with $N^2=0$ has logarithm
+$N$; its scale represents a displacement, not a Euclidean angle.
 
-- **Dorst** ($\S$ 7.4.3 of "GA for Computer Science") shows that in Euclidean and Minkowski spaces, any bivector $B$ decomposes into a sum of commuting 2-blades $B = B_1 + B_2 + \cdots$, so $\exp(B) = \exp(B_1)\exp(B_2)\cdots$. The logarithm reverses this.
+Do not assume that a rotor's principal algebra logarithm is a bivector.
+In Euclidean dimension six, $\log(e_{123456})=\pi e_{123456}/2$ is a valid
+algebra logarithm but not a geometric generator. An alternative bivector
+logarithm exists; the principal branch does not choose it. Likewise,
+`log(exp(B))` need not recover $B$ after a branch crossing.
 
-- **For simple rotors** (single plane): $\log(\exp(-\hat{B}\theta/2)) = -\hat{B}\theta/2$. You get back the full exponent — the unit bivector scaled by the half-angle. To recover the angle: $2|\log(R)|$. To recover the plane: normalize $\log(R)$.
-
-- **For compound rotors** (4D+, multiple planes): $\log(R)$ is a general bivector that is *not* a blade. It's the sum of the individual plane contributions. Dorst's invariant decomposition is needed to factor it.
-
-- **For degenerate cases** (PGA translations): $\log(1 + \varepsilon B) = \varepsilon B$ (the series truncates). The "angle" is really a displacement.
+Use `rotor_generator(R)` for the checked principal-branch geometric result
+and `is_rotor_generator(B)` to check a candidate independently. The former
+raises if this branch is unsuitable; it does not silently project grades or
+search other branches. See
+[ADR-125](adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
 
 ## What is a spinor?
 
@@ -104,9 +130,11 @@ This is the most overloaded term. There are at least four incompatible definitio
 
 Cohoe uses this (Def 6.1): a spinor is a product of an even number of vectors. A rotor is a normalized spinor.
 
-The GA community generally treats spinors as elements of the even subalgebra $\mathrm{Cl}^0(V)$ that transform under rotations by single-sided multiplication: $\psi \to R\psi$, rather than the double-sided sandwich $R\psi\tilde{R}$ used for vectors.
+The GA community generally treats spinors as elements of the even subalgebra $\mathrm{Cl}^0(V)$ that transform under rotations by single-sided multiplication: $\psi \to R\psi$, rather than the
+double-sided sandwich $R\psi\tilde{R}$ used for vectors.
 
-The key insight: a spinor is *an element of the algebra itself*, not something living in a separate vector space. A rotor acts on vectors via sandwich product, but rotors compose with each other via ordinary (single-sided) multiplication. So a rotor is simultaneously an operator (when sandwiching) and a spinor (when being composed).
+The key insight: a spinor is *an element of the algebra itself*, not something living in a separate vector space. A rotor acts on vectors via sandwich product, but rotors compose with each other via
+ordinary (single-sided) multiplication. So a rotor is simultaneously an operator (when sandwiching) and a spinor (when being composed).
 
 This is the simplest definition and the one most GA software uses. But it doesn't capture everything physicists mean by "spinor."
 
@@ -164,11 +192,13 @@ The Chevalley/Lounesto definition. Pick an idempotent $p$ — like $p = \frac{1}
 
 This is more general than Definition 1. The even subalgebra and a minimal left ideal are not the same thing in general, though they are isomorphic as $\mathrm{Spin}(V)$ representations in many cases.
 
-The advantage: it gives a concrete matrix-column representation. If you represent $\mathrm{Cl}(3,0)$ as $2 \times 2$ matrices (via Pauli matrices), then a minimal left ideal is the set of matrices with only one nonzero column — exactly the physicist's 2-component spinor.
+The advantage: it gives a concrete matrix-column representation. If you represent $\mathrm{Cl}(3,0)$ as $2 \times 2$ matrices (via Pauli matrices), then a minimal left ideal is the set of matrices
+with only one nonzero column — exactly the physicist's 2-component spinor.
 
 ### Definition 3: Physics — "element of an irreducible representation of $\mathrm{Spin}(V)$"
 
-The standard physics definition. A spinor is a column vector that transforms under $\psi \to S\psi$ where $S \in \mathrm{Spin}(V)$ acts via a matrix representation. The spinor lives in a *separate* vector space from the Clifford algebra.
+The standard physics definition. A spinor is a column vector that transforms under $\psi \to S\psi$ where $S \in \mathrm{Spin}(V)$ acts via a matrix representation. The spinor lives in a *separate*
+vector space from the Clifford algebra.
 
 - 3D: 2-component complex vectors (Pauli spinors)
 - 4D: 4-component complex vectors (Dirac spinors), decomposing into two 2-component Weyl spinors (chiral/semi-spinors)
@@ -177,9 +207,11 @@ The standard physics definition. A spinor is a column vector that transforms und
 
 ### Definition 4: Cartan — "square root of a null vector" (pure spinors)
 
-Cartan's original definition: a spinor $\psi$ is *pure* if there exists a maximal totally isotropic subspace $S$ such that $x\psi = 0$ for all $x \in S$. A null vector can be "factored" into a product of a left spinor and a right spinor.
+Cartan's original definition: a spinor $\psi$ is *pure* if there exists a maximal totally isotropic subspace $S$ such that $x\psi = 0$ for all $x \in S$. A null vector can be "factored" into a product
+of a left spinor and a right spinor.
 
-This is the most geometric definition but also the most restrictive. In low dimensions ($\leq 6$ for complex, $\leq 3{+}1$ for Lorentzian), all spinors happen to be pure. In $8+$ dimensions, not all spinors are pure.
+This is the most geometric definition but also the most restrictive. In low dimensions ($\leq 6$ for complex, $\leq 3{+}1$ for Lorentzian), all spinors happen to be pure. In $8+$ dimensions, not all
+spinors are pure.
 
 ### When the definitions coincide
 
@@ -196,15 +228,16 @@ The coincidence in low dimensions is why people get away with treating these as 
 
 The choice of spinor definition determines what "rotor" and "generator" mean:
 
-- **If spinor = even element** (GA): a rotor is a normalized spinor, and the bivector you exponentiate is just "the thing in the exponent." No separate concept of "generator" is needed.
+- **If spinor = even element** (GA): a rotor is a normalized spinor with the additional vector-preserving action; normalization alone is insufficient. A bivector generator is the full exponent.
 
-- **If spinor = column vector** (physics): a rotor is a *matrix* acting on spinors, the bivector is a *matrix* in the Lie algebra (a "generator"), and $\exp$ maps generators to group elements. The $\frac{1}{2}$ shows up because the Lie algebra representation has a factor of $\frac{1}{2}$ built in — the $\sigma_i/2$ for $\mathrm{SU}(2)$.
+- **If spinor = column vector** (physics): a rotor is a *matrix* acting on spinors, the bivector is a *matrix* in the Lie algebra (a "generator"), and $\exp$ maps generators to group elements. The
+  $\frac{1}{2}$ shows up because the Lie algebra representation has a factor of $\frac{1}{2}$ built in — the $\sigma_i/2$ for $\mathrm{SU}(2)$.
 
 - **If spinor = ideal element** (Lounesto): a rotor acts by left multiplication on the ideal, and the bivector generates this action.
 
 ## The half-angle: everyone agrees
 
-The $\frac{1}{2}$ in $\exp(-B\theta/2)$ is not a convention in any framework.  But *why* it's there gets explained differently:
+The $\frac{1}{2}$ in $\exp(-B\theta/2)$ is not a convention in any framework. But *why* it's there gets explained differently:
 
 - **GA**: because rotation = two reflections at half the angle
 - **Physics**: because the spin representation has eigenvalues $\pm\frac{1}{2}$
@@ -223,10 +256,10 @@ These are three descriptions of the same geometric fact.
 - Cartan, "The Theory of Spinors" (1966, Dover reprint)
 - Benn & Tucker, "An Introduction to Spinors and Geometry" (1987)
 - Hestenes, "Lie groups as spin groups" (J. Math. Phys. 34, 1993)
-- Wikipedia, "Rotor (mathematics)" — https://en.wikipedia.org/wiki/Rotor_(mathematics)
-- Wikipedia, "Spinor" — https://en.wikipedia.org/wiki/Spinor
-- Marsh, "Mathematics for Physics" — http://www.mathphysicsbook.com/?page_id=1867
-- eigenchris, "Conflicting definitions of a spinor" — https://physics.stackexchange.com/questions/639161
+- Wikipedia, "Rotor (mathematics)" — <https://en.wikipedia.org/wiki/Rotor_(mathematics)>
+- Wikipedia, "Spinor" — <https://en.wikipedia.org/wiki/Spinor>
+- Marsh, "Mathematics for Physics" — <http://www.mathphysicsbook.com/?page_id=1867>
+- eigenchris, "Conflicting definitions of a spinor" — <https://physics.stackexchange.com/questions/639161>
 
 ## Appendix: Notation and Definitions
 
@@ -241,7 +274,8 @@ Different communities use different symbols for the same algebra:
 | $\mathcal{G}(B)$ or $G(B)$                                | Cohoe                                                  | Geometric algebra parametrised by bilinear form $B$                                 |
 | $C\ell(V)$ or $C\ell_{p,q}$                               | Some European texts                                    | Variant typesetting of $\mathrm{Cl}$                                                |
 
-These all denote the same mathematical object. "Clifford algebra" is the traditional name from mathematics; "geometric algebra" is the name popularised by Hestenes to emphasise the geometric (rather than purely algebraic) interpretation. The notation $\mathcal{G}^n$ typically means the geometric algebra of an $n$-dimensional vector space, leaving the signature implicit.
+These all denote the same mathematical object. "Clifford algebra" is the traditional name from mathematics; "geometric algebra" is the name popularised by Hestenes to emphasise the geometric (rather
+than purely algebraic) interpretation. The notation $\mathcal{G}^n$ typically means the geometric algebra of an $n$-dimensional vector space, leaving the signature implicit.
 
 The even subalgebra follows the same pattern:
 
@@ -250,7 +284,8 @@ The even subalgebra follows the same pattern:
 | $\mathrm{Cl}^0(V)$, $\mathrm{Cl}^{\bar{0}}(V)$, or $\mathrm{Cl}^+(V)$ | Even subalgebra (maths) |
 | $\mathcal{G}^+(V)$, $\mathcal{G}^0(V)$, or $\mathcal{G}^{\bar{0}}(V)$ | Even subalgebra (GA)    |
 
-The superscript 0 in $\mathrm{Cl}^0(V)$ means "grade mod 2 = 0" (i.e. even), not "grade 0." Some authors write $\mathrm{Cl}^{\bar{0}}(V)$ to make the parity meaning explicit, and some use $+$ instead of $0$ for the same thing. Similarly, $\mathrm{Cl}^{\bar{1}}(V)$ denotes the odd subspace.
+The superscript 0 in $\mathrm{Cl}^0(V)$ means "grade mod 2 = 0" (i.e. even), not "grade 0." Some authors write $\mathrm{Cl}^{\bar{0}}(V)$ to make the parity meaning explicit, and some use $+$ instead
+of $0$ for the same thing. Similarly, $\mathrm{Cl}^{\bar{1}}(V)$ denotes the odd subspace.
 
 ### Symbol reference
 
@@ -301,7 +336,9 @@ $$AB = A \cdot B + A \times B + A \wedge B$$
 
 where $A \times B = \frac{1}{2}(AB - BA)$ is the "commutator product." Without the $\frac{1}{2}$, this identity would need an explicit factor.
 
-galaga reflects this split: `commutator(A, B)` computes $AB - BA$ (maths/physics convention), while `lie_bracket(A, B)` computes $\frac{1}{2}(AB - BA)$ (GA convention). The name `lie_bracket` for the $\frac{1}{2}$ version is slightly ironic — mathematicians' Lie bracket on an associative algebra is $AB - BA$ without the $\frac{1}{2}$ — but it matches Chisolm's notation, which is what the reference test suite uses.
+galaga reflects this split: `commutator(A, B)` computes $AB - BA$ (maths/physics convention), while `lie_bracket(A, B)` computes $\frac{1}{2}(AB - BA)$ (GA convention). The name `lie_bracket` for the
+$\frac{1}{2}$ version is slightly ironic — mathematicians' Lie bracket on an associative algebra is $AB - BA$ without the $\frac{1}{2}$ — but it matches Chisolm's notation, which is what the reference
+test suite uses.
 
 ### galaga API mapping
 
@@ -320,5 +357,6 @@ galaga reflects this split: `commutator(A, B)` computes $AB - BA$ (maths/physics
 | $\langle A^\dagger B \rangle_0$ (scalar product) | `scalar_product(A, B)`    |
 | $A^\dagger A$ (norm squared)                     | `norm2(A)`                |
 | $\exp(B)$                                        | `exp(B)`                  |
-| $\log(R)$                                        | `log(R)`                  |
+| Principal algebra $\log(A)$                     | `log(A)`                  |
+| Checked geometric exponent of $R$               | `rotor_generator(R)`      |
 | $RAR^{-1}$ or $RA\tilde{R}$ (sandwich)           | `sandwich(R, A)`          |

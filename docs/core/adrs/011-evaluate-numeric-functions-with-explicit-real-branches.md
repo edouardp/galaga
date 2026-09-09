@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-011: Evaluate Numeric Functions with Explicit Real Branches
 
+The original logarithm restriction below is superseded by
+[ADR-125](../../adrs/125-separate-algebra-logarithms-from-rotor-generators.md):
+`log` now means the real principal algebra logarithm, and `rotor_generator`
+is the separate geometric operation. The other function decisions remain.
+
 ## Context and problem statement
 
 Adding square roots, exponentials, logarithms, and outer power series to a

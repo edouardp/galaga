@@ -67,7 +67,7 @@ conjugation is different and can mix vector/trivector grades.
 `sandwich`/`sw` always use reverse, even for nonunit operands:
 scaling a rotor by two scales its reverse sandwich by four.
 
-The public `is_rotor` contract checks evenness and the **whole** reverse
+At this migration checkpoint, the public `is_rotor` contract checked evenness and the **whole** reverse
 product against one, with zero relative tolerance and the requested absolute
 tolerance. This predicate is not a general high-dimensional certificate of
 vector-space preservation. No predicate or equality semantics change here.
@@ -77,6 +77,13 @@ predicate but maps a vector to vector-plus-grade-five components. A dedicated
 regression records that limitation. Deciding whether to strengthen the
 predicate or expose a separate strict validator is a release follow-up,
 not silently resolved by migrating these tests.
+
+Follow-up: [ADR-124](124-rotor-predicate-requires-vector-preservation.md)
+resolves this decision by strengthening `is_rotor` to check every native
+basis vector's reverse sandwich as well. The regression now rejects the
+unit even nonrotor. This supersedes only the predicate limitation above;
+the exponential recipes, full reverse-product check, and general sandwich
+semantics remain in force.
 
 ### Preserve eager values and explicit symbolic replay
 

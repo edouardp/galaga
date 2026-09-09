@@ -330,7 +330,7 @@ class TestGeometricExponential:
             exp(1.0)  # type: ignore[arg-type]
 
 
-class TestRotorLogarithm:
+class TestAlgebraLogarithm:
     @pytest.mark.parametrize("kind", ["elliptic", "hyperbolic", "null"])
     def test_log_exp_roundtrip_for_each_generator_square(self, kind: str) -> None:
         if kind == "elliptic":
@@ -356,16 +356,15 @@ class TestRotorLogarithm:
 
         assert log(exp(generator)).almost_equal(generator)
 
-    def test_log_validates_its_real_study_rotor_domain(self) -> None:
+    def test_log_validates_its_principal_real_domain_without_requiring_study_rotors(self) -> None:
         algebra = Algebra(4)
         e1, e2, e3, e4 = algebra.basis_vectors()
         general_rotor = exp(0.3 * (e1 ^ e2) + 0.5 * (e3 ^ e4))
 
-        with pytest.raises(ValueError, match="normalized rotor"):
+        with pytest.raises(ValueError, match="principal real"):
             log(e1)
-        with pytest.raises(ValueError, match="Study-number rotor"):
-            log(general_rotor)
-        with pytest.raises(ValueError, match="undefined without a plane"):
+        assert log(general_rotor).almost_equal(0.3 * (e1 ^ e2) + 0.5 * (e3 ^ e4))
+        with pytest.raises(ValueError, match="principal real"):
             log(-algebra.identity)
 
         with pytest.raises(TypeError, match="Multivector"):
@@ -377,7 +376,7 @@ class TestRotorLogarithm:
         pga = Algebra(2, 0, 1)
         e0, e1, _ = pga.basis_vectors()
         negative_translator = -pga.identity + 0.25 * (e0 ^ e1)
-        with pytest.raises(ValueError, match=r"scalar part \+1"):
+        with pytest.raises(ValueError, match="principal real"):
             log(negative_translator)
 
         split = Algebra(1, 1)

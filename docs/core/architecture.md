@@ -234,18 +234,24 @@ branch, and verifies that the result squares back to the input. It therefore
 supports ordinary simple rotors and null PGA translators without claiming a
 general multivector square-root algorithm.
 
-### Geometric exponential and Study-rotor logarithm
+### Geometric exponential, algebra logarithm, and rotor generators
 
 `exp` uses trigonometric, null, or hyperbolic closed forms whenever the
 generator square is scalar. Every other input follows the scaling-and-squaring
 path described above.
 
-`log` first validates a normalized rotor and then requires its nonscalar part
-to square to a scalar. Elliptic, hyperbolic, and null branches are explicit.
-In particular, a translator `1 + N` with `N*N == 0` maps back to `N`; it is not
-mistaken for the identity. A general non-Study rotor and scalar `-1` fail
-clearly because this implementation cannot choose a correct principal
-bivector from those inputs.
+`log` is the real principal algebra logarithm, without a rotor guard. Scalar
+and exact scalar-square Study cases use closed forms that retain magnitude;
+general cases use resolvent quadrature on the native left action, with
+convergence and exponential round-trip checks. No eigenvector decomposition
+or complexification is used. A translator `1 + N` with `N*N == 0` maps to
+`N`, and compound/mixed-grade cases are supported. Singular inputs, the
+spectral cut (including scalar `-1`) and unresolved numerics raise.
+
+`rotor_generator` is the distinct geometric operation. It validates both the
+input rotor and the principal logarithm's infinitesimal rotor conditions.
+It does not silently project the result or search another branch. See
+[ADR-125](../adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
 
 ### Outer functions
 

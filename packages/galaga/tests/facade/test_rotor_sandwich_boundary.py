@@ -202,6 +202,8 @@ def test_notebook_teaches_metric_branches_compound_rotors_and_even_phase_boundar
         CONTRACT["assert_data"](row["logarithm"].data, (-0.3 * row["generator"]).data)
     compound, factored = definitions["compound_rotor"], definitions["compound_factored"]
     CONTRACT["assert_data"](compound.data, factored.data)
+    CONTRACT["assert_data"](definitions["compound_logarithm"].data, (-0.25 * definitions["compound_generator"]).data)
+    CONTRACT["assert_data"](definitions["compound_recovered"].data, definitions["compound_logarithm"].data)
     assert ga.is_rotor(compound) and not ga.is_rotor(definitions["incomplete_rotor"])
     assert np.linalg.norm(definitions["compound_grade_four"].data) > 0.05
     assert np.linalg.norm(ga.grade(definitions["incomplete_reverse_product"], 4).data) > 0.05
@@ -209,8 +211,45 @@ def test_notebook_teaches_metric_branches_compound_rotors_and_even_phase_boundar
     assert ga.is_even(phase) and not ga.is_rotor(phase)
     CONTRACT["assert_data"](definitions["phase_sandwich"].data, phase.algebra.blade(1).data)
     assert np.linalg.norm(ga.grade(definitions["phase_conjugated"], 3).data) > 0.4
+    unit_even = definitions["unit_even_candidate"]
+    assert ga.is_even(unit_even) and not ga.is_rotor(unit_even)
+    CONTRACT["assert_data"](definitions["unit_even_reverse_product"].data, unit_even.algebra.identity.data)
+    image = definitions["unit_even_image"]
+    expected = unit_even.algebra.pseudoscalar() * unit_even.algebra.blade(1)
+    CONTRACT["assert_data"](image.data, expected.data)
+    assert np.linalg.norm(ga.grade(image, 5).data) > 0.9
+    CONTRACT["assert_data"](ga.log(unit_even).data, (np.pi / 4 * unit_even.algebra.pseudoscalar()).data)
+    with pytest.raises(ValueError, match="normalized rotor"):
+        ga.rotor_generator(unit_even)
+    CONTRACT["assert_data"](definitions["unit_even_logarithm"].data, ga.log(unit_even).data)
+    assert not ga.is_rotor_generator(definitions["volume_logarithm"])
+    assert ga.is_rotor_generator(definitions["alternative_generator"])
+    assert not ga.is_rotor(definitions["algebra_half_step"])
+    assert ga.is_rotor(definitions["geometric_half_step"])
+    assert "alternative branch may exist" in definitions["generator_branch_error"]
     html = "\n".join(getattr(output, "text", "") for output in outputs)
-    for text in ("An oriented Euclidean plane", "Gram matrix choose", "grade-four term", "even phase", "rapidity"):
+    for text in (
+        "An oriented Euclidean plane",
+        "Gram matrix choose",
+        "grade-four term",
+        "even phase",
+        "rapidity",
+        "Unit and even still need not mean rotor",
+        "unit even nonrotor",
+        "An algebra logarithm is not necessarily a rotor generator",
+    ):
         assert text in html
-    for key in ("compound_grade_four", "incomplete_reverse_product", "phase_reverse_product", "phase_conjugated"):
+    for key in (
+        "compound_grade_four",
+        "incomplete_reverse_product",
+        "phase_reverse_product",
+        "phase_conjugated",
+        "unit_even_candidate",
+        "unit_even_reverse_product",
+        "unit_even_image",
+        "unit_even_logarithm",
+        "volume_logarithm",
+        "alternative_generator",
+        "geometric_half_step",
+    ):
         assert definitions[key].latex(content="value") in html

@@ -150,13 +150,41 @@ cases requiring Python 3.14 t-strings. Both runs retain the existing matrix
 complex-to-real casting warning. No runtime algorithm or coverage exclusion
 was changed by this teaching-file migration.
 
+## Rotor predicate follow-up
+
+The high-dimensional `is_rotor` decision is resolved: the predicate now
+requires native vector preservation as well as evenness and a full unit
+reverse product. `rotor_generator` rejects the same unit even nonrotors,
+while the mathematical `log` accepts their principal algebra logarithms.
+General exponentiation and sandwich multiplication are unchanged. Regression
+coverage includes singular and non-orthogonal metrics, valid higher-grade
+compound rotors, and explicit floating-point tolerances. See
+[ADR-124](../adrs/124-rotor-predicate-requires-vector-preservation.md).
+
+Post-fix full suites pass with 9,227 tests (102 skipped) on Python 3.11
+and 9,401 tests (20 skipped) on Python 3.14, including the extended rotor
+notebook. Focused tests cover every statement and branch of `is_rotor`.
+The subsequent logarithm/generator split is specified in
+[ADR-125](../adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
+`log` now implements the real principal algebra logarithm, and
+`rotor_generator` separately validates geometric use. Automatic alternative
+generator-branch selection remains outside the current implementation.
+
+The logarithm/generator checkpoint passes 9,330 tests (102 skipped) on
+Python 3.11 and 9,504 tests (20 skipped) on Python 3.14. Its new numerical
+functions have full statement/branch coverage in the 376 focused cases.
+Fresh wheel and sdist checks verify all 33 source-identical runtime files;
+an installed-wheel process exercises the new APIs independently of source
+imports. These results supersede the earlier predicate-only test counts
+for the current working tree, without implying a release or publication.
+
 ## Release gate remains open
 
-- Resolve the **34 surviving type errors**; deleting v1 did not hide or
-  exclude them.
+- Resolve the **11 surviving type errors** (17 warnings). The core scalar
+  annotation correction in ADR-125 reduced the earlier 34-error checkpoint;
+  no exclusions or ignores were added.
 - Finish the published retirement of `gram_bridge` and six temporary function
   spellings before stable 2.0.
-- Decide the documented high-dimensional `is_rotor` contract.
 - Obtain CI evidence on the intended tracked branch. This branch has no
   upstream; GitHub reports the committed checkpoint is not present remotely.
   No push or CI configuration change is inferred from local validation.

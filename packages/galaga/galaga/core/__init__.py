@@ -21,6 +21,7 @@ from ._backends import (
     make_product_backend,
     packed_backend_byte_estimate,
 )
+from ._logarithm import principal_log_candidates
 from ._metadata import dimension_metadata, set_bit_indices
 from ._metric import exterior_antimetric_matrix, exterior_metric_matrix
 
@@ -57,6 +58,7 @@ __all__ = [
     "is_bivector",
     "is_even",
     "is_rotor",
+    "is_rotor_generator",
     "is_scalar",
     "is_vector",
     "jordan_product",
@@ -88,6 +90,7 @@ __all__ = [
     "right_hodge_dual",
     "right_interior_product",
     "right_weight_dual",
+    "rotor_generator",
     "sandwich",
     "scalar_sqrt",
     "scalar_product",
@@ -582,7 +585,7 @@ class Algebra:
         """Construct a multivector from dense exterior-basis coefficients."""
         return Multivector(self, data)
 
-    def scalar(self, value: Real) -> Multivector:
+    def scalar(self, value: Real | float) -> Multivector:
         """Construct a scalar multivector."""
         if not isinstance(value, Real):
             raise TypeError("scalar value must be real")
@@ -1230,46 +1233,105 @@ def _exp_scalar_square(value: Multivector, square: float) -> Multivector:
 
 
 def log(value: Multivector, *, atol: float = 1e-12) -> Multivector:
-    """Return the principal logarithm of a real Study-number rotor.
+    """Return the real principal algebra logarithm, without requiring a rotor.
 
-    The supported rotor has scalar part ``a`` and nonscalar part ``N`` with
-    scalar ``N*N``. Elliptic, hyperbolic, and null generators are handled.
-    General non-Study rotors require a separate matrix or bivector-factor
-    logarithm algorithm and are rejected instead of returning a partial
-    answer.
+    Use scalar/Study closed forms or native left-action resolvent quadrature.
+    Reject singular inputs, the nonpositive-real spectral branch cut, and
+    numerically unresolved cases; no complexification or alternative branch
+    is chosen. A real nonprincipal logarithm can still exist on the cut.
+
+    ``atol`` bounds coefficient convergence; the exponential round-trip
+    residual is bounded by ``atol * max(1, max(abs(value.data)))``. This is
+    a backward-error check, not a forward-error bound near the branch cut.
+    Use ``rotor_generator`` for a checked geometric generator instead.
     """
     if not isinstance(value, Multivector):
         raise TypeError("log expects a Multivector")
-    if not is_rotor(value, atol=atol):
-        raise ValueError("log expects a normalized rotor")
+    if not isinstance(atol, Real) or not np.isfinite(atol) or atol < 0:
+        raise ValueError("log atol must be finite and nonnegative")
 
     scalar = value.scalar_part
     nonscalar = value - value.algebra.scalar(scalar)
     if not np.any(nonscalar.data):
-        if scalar > 0:
-            return value.algebra.scalar(0)
-        raise ValueError("the logarithm of -1 is undefined without a plane")
+        if scalar == 0:
+            raise ValueError("log input is singular")
+        if scalar < 0:
+            raise ValueError("log principal real branch is undefined on the nonpositive real axis")
+        return value.algebra.scalar(float(np.log(scalar)))
 
+    # Positive scaling preserves the principal branch. Avoid rescaling near
+    # identity so tiny nilpotent/compound terms do not suffer cancellation.
+    magnitude = float(np.max(np.abs(value.data)))
+    scale = magnitude if magnitude < 0.5 or magnitude > 2 else 1.0
+    scaled = value / scale
+    scalar = scaled.scalar_part
+    nonscalar = scaled - scaled.algebra.scalar(scalar)
     nonscalar_square = squared(nonscalar)
-    if not is_scalar(nonscalar_square, atol=atol):
-        raise ValueError("log currently requires a Study-number rotor")
-    square = nonscalar_square.scalar_part
-    square_scale = max(1.0, float(np.max(np.abs(nonscalar.data))) ** 2)
+    scalar_shift = value.algebra.scalar(float(np.log(scale)))
+    # Only an exactly scalar square selects the closed form: small grade-four
+    # terms are real algebraic data, not a reason to invoke the null formula.
+    if not np.any(nonscalar_square.data[1:]):
+        candidate = _log_scalar_square(scalar, nonscalar, nonscalar_square.scalar_part) + scalar_shift
+        if _log_roundtrip_matches(value, candidate, atol=atol):
+            return candidate
+        raise ValueError("log exponential round-trip did not meet the requested tolerance")
 
-    if abs(square) <= atol * square_scale:
-        if not np.isclose(scalar, 1.0, rtol=0.0, atol=atol):
-            raise ValueError("null-rotor logarithm requires scalar part +1")
-        return nonscalar
+    previous = None
+    for data in principal_log_candidates(scaled.algebra.left_action(scaled)):
+        candidate = value.algebra.multivector(data) + scalar_shift
+        if previous is not None and np.allclose(candidate.data, previous.data, rtol=0, atol=atol):
+            if _log_roundtrip_matches(value, candidate, atol=atol):
+                return candidate
+        previous = candidate
+    raise ValueError("log quadrature did not converge at the requested tolerance; branch or conditioning unresolved")
+
+
+def _log_scalar_square(scalar: float, nonscalar: Multivector, square: float) -> Multivector:
+    """Principal log of a + N with exactly scalar N*N, without unit assumptions."""
     if square < 0:
         magnitude = float(np.sqrt(-square))
-        angle = float(np.arctan2(magnitude, scalar))
-        return (angle / magnitude) * nonscalar
+        return (
+            nonscalar.algebra.scalar(float(np.log(np.hypot(scalar, magnitude))))
+            + (float(np.arctan2(magnitude, scalar)) / magnitude) * nonscalar
+        )
+    if square == 0:
+        if scalar == 0:
+            raise ValueError("log input is singular")
+        if scalar < 0:
+            raise ValueError("log principal real branch is undefined on the nonpositive real axis")
+        return nonscalar.algebra.scalar(float(np.log(scalar))) + nonscalar / scalar
 
     magnitude = float(np.sqrt(square))
-    if scalar <= 0 or magnitude >= scalar:
-        raise ValueError("hyperbolic rotor is outside the principal real branch")
-    rapidity = float(np.arctanh(magnitude / scalar))
-    return (rapidity / magnitude) * nonscalar
+    if scalar == magnitude:
+        raise ValueError("log input is singular")
+    if scalar < magnitude:
+        raise ValueError("log principal real branch is undefined on the nonpositive real axis")
+    ratio = magnitude / scalar
+    scalar_log = float(np.log(scalar) + 0.5 * np.log1p(-ratio * ratio))
+    return nonscalar.algebra.scalar(scalar_log) + (float(np.arctanh(ratio)) / magnitude) * nonscalar
+
+
+def _log_roundtrip_matches(value: Multivector, candidate: Multivector, *, atol: float) -> bool:
+    bound = atol * max(1.0, float(np.max(np.abs(value.data))))
+    return bool(np.allclose(exp(candidate).data, value.data, rtol=0, atol=bound))
+
+
+def rotor_generator(value: Multivector, *, atol: float = 1e-12) -> Multivector:
+    """Return a checked rotor generator from the real principal logarithm.
+
+    Require a normalized rotor, a valid infinitesimal rotor action, and an
+    exponential round-trip. Do not project away grades, normalize the input,
+    or search alternative logarithm branches. Failure does not prove that no
+    other generator exists. The returned exponent includes any half-angle.
+    """
+    if not isinstance(value, Multivector):
+        raise TypeError("rotor_generator expects a Multivector")
+    if not is_rotor(value, atol=atol):
+        raise ValueError("rotor_generator expects a normalized rotor")
+    candidate = log(value, atol=atol)
+    if not is_rotor_generator(candidate, atol=atol):
+        raise ValueError("the principal logarithm is not a rotor generator; an alternative branch may exist")
+    return candidate
 
 
 def outerexp(value: Multivector) -> Multivector:
@@ -1401,18 +1463,48 @@ def is_even(value: Multivector, *, atol: float = 1e-12) -> bool:
 
 
 def is_rotor(value: Multivector, *, atol: float = 1e-12) -> bool:
-    """Whether ``value`` is even and ``value * ~value`` is approximately one."""
+    """Whether ``value`` is even, reverse-unit, and preserves native vectors.
+
+    Check the whole ``value * ~value`` against one and every native basis
+    vector's reverse sandwich for non-vector coefficients. All checks use
+    absolute coefficient tolerance ``atol`` (no relative tolerance). This is
+    a numerical test in the stored basis, not a basis-independent error bound;
+    poorly conditioned metrics or large boosts may need a larger tolerance.
+    """
     if not is_even(value, atol=atol):
         return False
-    product = geometric_product(value, reverse(value))
-    return bool(
-        np.allclose(
-            product.data,
-            value.algebra.identity.data,
-            rtol=0.0,
-            atol=atol,
-        )
-    )
+    reversed_value = reverse(value)
+    product = geometric_product(value, reversed_value)
+    if not np.allclose(product.data, value.algebra.identity.data, rtol=0.0, atol=atol):
+        return False
+    # Linearity makes a native basis sufficient, including for singular Gram
+    # matrices. Unit even elements alone need not preserve vectors in n >= 6.
+    for vector in value.algebra.basis_vectors():
+        image = geometric_product(geometric_product(value, vector), reversed_value)
+        if not is_vector(image, atol=atol):
+            return False
+    return True
+
+
+def is_rotor_generator(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Test the infinitesimal conditions for ``exp(t * value)`` to be a rotor.
+
+    Require evenness, ``value + ~value == 0``, and vector-valued commutators
+    with every native basis vector, within absolute coefficient ``atol``.
+    In a nondegenerate algebra this characterizes bivectors, including zero.
+    Degenerate algebras can additionally admit generators with trivial action.
+    Numerical tolerance does not bound error for arbitrarily large ``t``.
+    """
+    if not isinstance(value, Multivector):
+        raise TypeError("is_rotor_generator expects a Multivector")
+    if not is_even(value, atol=atol):
+        return False
+    if not np.all(np.abs((value + reverse(value)).data) <= atol):
+        return False
+    for vector in value.algebra.basis_vectors():
+        if not is_vector(commutator(value, vector), atol=atol):
+            return False
+    return True
 
 
 def is_basis_blade(value: Multivector, *, atol: float = 1e-12) -> bool:

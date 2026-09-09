@@ -312,8 +312,8 @@ def test_nonsimple_bivector_exp_keeps_the_grade_four_cross_term(signature, expr)
     assert_data(rotor.data, exponential_action[:, 0])
     assert_data((rotor * ~rotor).data, algebra.identity.data)
     assert ga.is_rotor(rotor)
-    with pytest.raises(ValueError, match="Study"):
-        ga.log(rotor)
+    assert_data(ga.log(rotor).data, generator.data)
+    assert_data(ga.rotor_generator(rotor).data, generator.data)
     for target in TARGETS:
         check_value(rotor, factored.data, expr, target)
 
@@ -362,18 +362,37 @@ def test_sandwich_preserves_all_input_grades_and_uses_reverse_even_when_scaled(g
         check_value(ga.sw(scaled, value), expected, expr, target)
 
 
-def test_is_rotor_predicate_is_not_a_high_dimensional_vector_preservation_certificate():
+@pytest.mark.parametrize("expr", (False, True))
+def test_is_rotor_rejects_high_dimensional_unit_even_nonrotor(expr):
     algebra = ga.Algebra(6)
-    volume, vector = algebra.pseudoscalar(expr=True), algebra.blade(1, expr=True)
+    volume, vector = algebra.pseudoscalar(expr=expr), algebra.blade(1, expr=expr)
     reverse_sign = (-1) ** (algebra.n * (algebra.n - 1) // 2)
     square = reverse_sign * np.linalg.det(algebra.gram)
     assert_data((volume * volume).data, algebra.scalar(square).data)
     assert ~volume == reverse_sign * volume and volume * vector == -vector * volume
     value = ga.exp(-0.25 * volume)
-    assert ga.is_even(value) and ga.is_rotor(value)
+    assert ga.is_even(value)
     assert_data((value * ~value).data, algebra.identity.data)
     result = ga.sandwich(value, vector)
     expected = np.cos(0.5) * vector + np.sin(0.5) * vector * volume
     assert np.linalg.norm(ga.grade(result, 5).data) > 0.4
+    assert not ga.is_rotor(value)
+    assert_data(ga.log(value).data, (-0.25 * volume).data)
+    with pytest.raises(ValueError, match="normalized rotor"):
+        ga.rotor_generator(value)
     for target in TARGETS:
-        check_value(result, expected.data, True, target)
+        check_value(result, expected.data, expr, target)
+
+
+@pytest.mark.parametrize("expr", (False, True))
+def test_rotor_predicate_and_generator_forward_absolute_action_tolerance(expr):
+    algebra = ga.Algebra(6)
+    generator = 8e-13 * algebra.pseudoscalar(expr=expr)
+    value = ga.exp(generator)
+    assert_data((value * ~value).data, algebra.identity.data)
+    assert not ga.is_rotor(value)
+    assert ga.is_rotor(value, atol=1e-10)
+    with pytest.raises(ValueError, match="normalized rotor"):
+        ga.rotor_generator(value)
+    np.testing.assert_allclose(ga.log(value, atol=1e-10).data, generator.data, rtol=0, atol=1e-25)
+    np.testing.assert_allclose(ga.rotor_generator(value, atol=1e-10).data, generator.data, rtol=0, atol=1e-25)

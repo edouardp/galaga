@@ -137,6 +137,8 @@ helps future contributors understand why certain choices were made.
 | [121](121-deletion-ready-namespace-and-import-guards.md) | Deletion-Ready Namespace and Import Guards | Accepted |
 | [122](122-remove-the-legacy-engine-and-verify-artifacts.md) | Remove the Legacy Engine and Verify Artifacts | Accepted |
 | [123](123-migrate-remaining-teaching-notebooks-and-benchmark.md) | Migrate Remaining Teaching Notebooks and Benchmark | Accepted |
+| [124](124-rotor-predicate-requires-vector-preservation.md) | Rotor Predicate Requires Vector Preservation | Accepted |
+| [125](125-separate-algebra-logarithms-from-rotor-generators.md) | Separate Algebra Logarithms from Rotor Generators | Accepted |
 
 ## Creating New ADRs
 

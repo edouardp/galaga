@@ -264,9 +264,9 @@ def test_log_symbol_can_render_without_accepting_the_legacy_vector_logarithm():
     assert (
         ga.render(expression, target="latex", presentation=algebra.presentation) == r"\operatorname{log}\left(a\right)"
     )
-    with pytest.raises(ValueError, match="normalized rotor"):
+    with pytest.raises(ValueError, match="principal real"):
         ga.log(a)
-    with pytest.raises(ValueError, match="normalized rotor"):
+    with pytest.raises(ValueError, match="principal real"):
         evaluate(expression, algebra=algebra, environment={"a": a})
     # The old pi/2 times a result is not a logarithm of this positive-square
     # vector: exponentiating it fails the defining round-trip identity.

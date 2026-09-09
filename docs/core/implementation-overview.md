@@ -296,7 +296,7 @@ The public operations fall into families according to the component they use.
 | Antimetric/RGA | Complementary metric map plus complements | `antidot_product`, weight duals, interiors |
 | Algebraic combinations | Existing named operations | commutators, regressive products, sandwich, norm |
 | Matrix-derived | Backend-neutral left action | general `inverse` |
-| Numeric functions | Closed forms, finite outer series, or left action | square roots, `exp`, Study-rotor `log`, outer transcendental functions |
+| Numeric functions | Closed forms, finite outer series, or left action | square roots, `exp`, principal algebra `log`, checked rotor generators, outer transcendental functions |
 
 This composition is deliberate. There is one geometric-product kernel, one
 exterior-product kernel, and one definition for each metric map. Higher-level
@@ -310,8 +310,11 @@ operations should be visibly reducible to them.
 - `exp` uses closed forms for scalar-square generators. Its general path uses
   the left-action norm to select a scale, a geometric-product Taylor series,
   and repeated squaring.
-- Study-rotor `log` validates rotor normalization, then selects elliptic,
-  hyperbolic, or null formulas from the nonscalar square.
+- Algebra `log` uses positive-scalar and scalar-square Study formulas or
+  native left-action resolvent quadrature, preserving magnitude and checking
+  the principal branch, convergence and exponential round-trip.
+- `rotor_generator` separately checks rotorhood and the infinitesimal
+  conditions on the returned principal logarithm; it does not search branches.
 - `outerexp`, `outercos`, and `outersin` factor out the non-nilpotent scalar
   part and use the exterior-product kernel for the terminating positive-grade
   series. Their results are therefore independent of the metric.

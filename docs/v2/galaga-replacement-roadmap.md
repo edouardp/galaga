@@ -31,7 +31,7 @@ product-table internals.
 | Duality | Complements, metric duals, Hodge and weight duals, regressive products |
 | RGA layer | Antiproduct, antidot, bulk/weight, interiors, transwedge families |
 | Core numeric API | Arithmetic, checked scalar conversion, involutions, grades, powers, norm, unit, inverse, predicates, sandwich |
-| Numeric functions | Scalar and Study square roots, general exponential, Study-rotor logarithm, and outer transcendental functions |
+| Numeric functions | Scalar and Study square roots, general exponential, principal algebra logarithm, checked rotor generators, and outer transcendental functions |
 | Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
 | Native CGA model | Validated native `eo`/`einf` roles, generalized round-point embedding, semantic operations, and transformation contracts |
 | Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
@@ -169,9 +169,11 @@ grade ladder and use dual transformation products.
   left-regular solve as a verification fallback.
 - Replace the dense left-action norm used to scale general exponentials with a
   cheaper certified bound before targeting large dimensions.
-- Add a general non-Study rotor logarithm or multivector square-root algorithm
-  only with a documented real branch and an independent oracle; the current
-  functions deliberately reject those domains.
+- The principal algebra logarithm now handles non-Study inputs with native
+  resolvent quadrature; measure difficult conditioning and branch-cut cases
+  before extending its bounded numerical algorithm. Automatic alternative
+  rotor-generator branches and general multivector square roots remain
+  separate work requiring explicit branch contracts and independent oracles.
 - Add memory guards or operator forms for dense compound metric matrices.
 - Measure dense-multivector workloads on the lazy backend and tune caching or
   packed selection from evidence.

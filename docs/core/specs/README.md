@@ -12,7 +12,7 @@ which explain why a design was selected.
 | [SPEC-002](SPEC-002-multivector-representation-and-operators.md) | Implemented | Coefficient storage, immutability, arithmetic, scalar conversion, equality, and operators |
 | [SPEC-003](SPEC-003-product-and-duality-conventions.md) | Implemented | Clifford, exterior, inner, bracket, duality, and RGA conventions |
 | [SPEC-004](SPEC-004-product-backends.md) | Implemented | Backend contract, automatic selection, caching, and diagnostics |
-| [SPEC-005](SPEC-005-numeric-functions.md) | Implemented | Square roots, exponential, Study-rotor logarithm, and outer transcendental functions |
+| [SPEC-005](SPEC-005-numeric-functions.md) | Implemented | Square roots, exponential, principal algebra logarithm, rotor generators, and outer transcendental functions |
 
 ## Language
 

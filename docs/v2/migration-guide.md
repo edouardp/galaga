@@ -990,16 +990,58 @@ A positive-square plane uses hyperbolic functions and rapidity; a null plane
 keeps its original scale. For a nonsimple bivector, let `exp` compute the full
 result, including grade-four cross terms. The old sine/cosine constructor
 could omit those terms and incorrectly accept the result as a rotor.
-The current Study-number `log` domain does not include every valid rotor.
+`log` computes the real principal algebra logarithm, including general
+compound inputs. Use `rotor_generator` when a geometric generator is needed.
 
 In STA with signature `(1, -1, -1, -1)`, the pseudoscalar has `I*I == -1`
 but `reverse(I) == I`. Thus `P=exp(-I/4)` is even without being a rotor:
 `P*reverse(P)` is not one. Its reverse sandwich happens to fix vectors,
 whereas inverse conjugation mixes vector and trivector grades.
-`is_rotor` checks evenness and the whole reverse product against one with
-an absolute tolerance; it is not a general high-dimensional proof of
-vector-space preservation. Scaling a true rotor by two scales its reverse
-sandwich by four, while inverse conjugation is scale invariant.
+Scaling a true rotor by two scales its reverse sandwich by four, while
+inverse conjugation is scale invariant.
+
+`is_rotor(R, atol=1e-12)` checks evenness, the **whole** reverse product
+against one, and preservation of grade-one vectors under `R*v*reverse(R)`.
+It checks every native basis vector; linearity makes this sufficient without
+enumerating all multivectors or changing the Gram basis. All checks use
+absolute coefficient tolerance with zero relative tolerance. This numerical
+criterion is expressed in the stored basis, not as a basis-independent error
+bound. Large boosts and poorly conditioned metrics may need an explicitly
+chosen larger `atol`.
+
+The vector check matters in higher dimensions. In Euclidean `Algebra(6)`,
+`I=pseudoscalar()` has `I*I == -1` and `reverse(I) == -I`, so
+`U=(1+I)/np.sqrt(2)` is even and unit under reversion. Nevertheless,
+`U*e1*reverse(U)` is the grade-five blade `-e23456`. `is_rotor(U)` now
+returns `False`, but `log(U)` correctly returns `np.pi*I/4`:
+`exp(np.pi*I/4)` equals `U` up to rounding. `rotor_generator(U)` rejects
+the nonrotor input. General `exp` and `sandwich` remain defined on such
+nonrotors. Do not reject higher even
+grades themselves: compound rotors can have grades four and six while
+preserving vectors. See
+[ADR-124](../adrs/124-rotor-predicate-requires-vector-preservation.md).
+
+An algebra logarithm is not a geometric generator solver. For
+the six-dimensional rotor `I` itself, it returns `np.pi*I/2`: a valid
+algebra logarithm whose half-exponential is the nonrotor `U` above.
+Do not assume `exp(t*log(R))` stays a rotor for arbitrary accepted inputs.
+Use `rotor_generator(R)` to require a valid generator from the selected
+principal logarithm, or `is_rotor_generator(B)` to check a candidate
+independently. The predicate checks evenness, reverse skewness, and native
+vector commutators; testing only the endpoint `is_rotor(exp(B))` is not enough.
+`rotor_generator(I)` raises because this principal logarithm is not a
+generator, even though the alternative bivector
+`np.pi*(e12+e34+e56)/2` also exponentiates to `I`. Automatic alternative
+branch selection is not implemented.
+
+`log` uses scalar/Study closed forms and native left-action quadrature for
+general inputs, without adding a dependency. Positive scalar multivectors,
+vector exponentials and compound rotors are supported on the principal
+branch. Singular inputs, the nonpositive-real spectral cut and numerically
+unresolved cases raise; rejection does not prove that no other real
+logarithm exists. `atol` controls coefficient convergence and a scale-aware
+exponential backward residual. It does not certify forward accuracy near
+the cut. See [ADR-125](../adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
 
 For named sandwich provenance, use `R.named("R").with_expr()` and
 `v.named("v").with_expr()`, then replay with

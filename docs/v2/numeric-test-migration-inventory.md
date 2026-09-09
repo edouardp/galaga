@@ -1688,9 +1688,10 @@ Ruff lint, Python formatting and changed-file Markdown lint pass. The type
 baseline remains 295 errors and 18 warnings. The existing matrix conversion
 warning and Markdown code-block formatting debt remain separate work.
 
-An explicit six-dimensional counterexample records that `is_rotor` is a
-unit-even predicate, not a general vector-preservation certificate.
-Strengthening it or introducing a strict validator remains a release decision.
+At this checkpoint, an explicit six-dimensional counterexample recorded
+that `is_rotor` was a unit-even predicate, not a general vector-preservation
+certificate. [ADR-124](../adrs/124-rotor-predicate-requires-vector-preservation.md)
+subsequently strengthened the predicate; that regression now requires rejection.
 Both executable guide recipes and all 297 local file-link targets in the
 eight changed Markdown files are checked.
 

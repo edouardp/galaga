@@ -1492,12 +1492,19 @@ measured production files; combined coverage remains 95%. Type checking
 retains the existing 295 errors and 18 warnings. These are dependency-removal
 checks, not proof that the wheel no longer contains the old engine.
 
-Release follow-up from the rotor migration: the documented `is_rotor`
-predicate tests evenness and a unit whole reverse product, not preservation
-of the vector space in arbitrary dimensions. A six-dimensional pseudoscalar
-exponential passes it but mixes vector/grade-five components under sandwich.
-Decide explicitly whether to strengthen that predicate or add a separate
-strict validator; current behavior is recorded, not changed, in
+The rotor migration's release follow-up is resolved:
+`is_rotor` now checks preservation of every native basis vector in addition
+to evenness and a unit whole reverse product. The six-dimensional
+pseudoscalar counterexample is rejected as a rotor. The separate
+`rotor_generator` operation rejects it too, while the mathematical `log`
+correctly accepts its algebra logarithm (see
+[ADR-125](../adrs/125-separate-algebra-logarithms-from-rotor-generators.md)).
+Regression tests retain valid compound rotors and cover indefinite,
+degenerate and oblique metrics, all product-backend strategies, and the
+explicit absolute-tolerance policy. General `exp` and `sandwich` are
+unchanged. See
+[ADR-124](../adrs/124-rotor-predicate-requires-vector-preservation.md), which
+resolves the limitation recorded in
 [ADR-118](../adrs/118-public-rotor-recipes-and-sandwich-contracts.md).
 
 The concrete-display migration documents existing compatibility limitations:
@@ -1796,7 +1803,7 @@ Required tests:
 ### W9.3 Run the release gate
 
 Status: **not yet complete**. Local deletion, packaging and runtime tests do
-not replace the remaining type, alias-policy, rotor-policy, CI and
+not replace the remaining type, alias-policy, CI and
 release-metadata requirements. See the
 [current gate report](legacy-engine-deletion-gate.md).
 

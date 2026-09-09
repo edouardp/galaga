@@ -70,28 +70,59 @@ nonorthogonal Gram basis.
 Unlike `scalar_sqrt`, `exp` requires a multivector so its output algebra is
 unambiguous.
 
-## Rotor logarithm
+## Algebra logarithm
 
-`log(R)` is the principal real logarithm for a normalized Study-number rotor
+`log(A, atol=1e-12)` is the real principal algebra logarithm. It does not
+require a rotor, evenness, normalization, or Study-number shape. Like `exp`,
+it requires a multivector so the algebra is explicit.
 
-$$
-R=a+N,\qquad N^2=q\in\mathbb R.
-$$
+For a positive scalar, return the ordinary real logarithm. For $A=a+N$
+with exactly scalar $N^2=q$, use these closed forms:
 
-Its branches are:
-
-| Nonscalar square | Result |
+| Nonscalar square | Result and branch |
 |---|---|
-| $q<0$ | $\frac{\operatorname{atan2}(\sqrt{-q},a)}{\sqrt{-q}}N$ |
-| $q=0$, $a=1$ | $N$ |
-| $q>0$, principal real branch | $\frac{\operatorname{atanh}(\sqrt q/a)}{\sqrt q}N$ |
+| $q<0$ | $\log\sqrt{a^2-q}+\frac{\operatorname{atan2}(\sqrt{-q},a)}{\sqrt{-q}}N$ |
+| $q=0$, $a>0$ | $\log a+N/a$ |
+| $q>0$, $a>\sqrt q$ | $\tfrac12\log(a^2-q)+\frac{\operatorname{atanh}(\sqrt q/a)}{\sqrt q}N$ |
 
-Consequently, `log(exp(N)) == N` also holds for a null PGA translator
-generator. The identity maps to zero. The scalar rotor `-1` must raise because
-its logarithm cannot select a plane from the input.
+General inputs use the principal resolvent integral of the native
+left-regular action. Increasing Gauss-Legendre orders 8 through 256 provide
+convergence estimates, without requiring diagonalizability. Recover the
+multivector from the action on the scalar identity and verify exponentiation
+in the original algebra. Positive scalar scaling retains its scalar log.
+No SciPy dependency or alternate geometric-product backend is introduced.
 
-A non-rotor, a general non-Study rotor, or a rotor outside the principal real
-hyperbolic branch must raise instead of returning a partial bivector answer.
+The branch excludes singular inputs and the nonpositive-real spectral axis.
+In particular, scalar `-1` is rejected, even in an algebra where nonprincipal
+real logarithms exist. Numerically unresolved spectra, ill-conditioned
+actions, failed solves or convergence failures also raise. No complex
+coefficients, invented planes or alternative branches are returned.
+
+`atol` bounds successive candidate differences in native coefficients. The
+exponential round-trip residual is bounded by
+`atol * max(1, max(abs(A.data)))`, without an additional relative term. This
+backward-error check is not a forward-error bound near the branch cut.
+
+## Geometric rotor generator
+
+`rotor_generator(R, atol=1e-12)` requires a normalized vector-preserving
+rotor and returns its principal algebra logarithm only if the result passes
+`is_rotor_generator`. Otherwise it raises; it never normalizes, projects
+away grades, or searches alternative branches. The returned exponent has
+the full scale, including a half-angle when that convention is used.
+
+`is_rotor_generator(B, atol=1e-12)` checks evenness, $B+\widetilde B=0$,
+and grade-one commutators $Be_i-e_iB$ for every native basis vector. All
+checks use absolute coefficient tolerance. These infinitesimal conditions
+match the group checked by `is_rotor`; in nondegenerate metrics they
+characterize bivectors, including zero. Degenerate metrics may additionally
+admit generators acting trivially on vectors.
+
+In Euclidean dimension six, the pseudoscalar $I$ is a rotor but
+$\log I=\pi I/2$ is not a rotor generator: its half-exponential is the
+nonrotor $(1+I)/\sqrt2$. Therefore `log(I)` succeeds and
+`rotor_generator(I)` raises. A different bivector logarithm exists, but
+finding it automatically is outside the current branch-selection policy.
 
 ## Outer transcendental family
 
@@ -141,4 +172,6 @@ layer rather than this numeric-function surface.
 
 The architectural rationale and implementation strategy are recorded in
 [ADR-010](../adrs/010-separate-numeric-functions-from-geometry-helpers.md) and
-[ADR-011](../adrs/011-evaluate-numeric-functions-with-explicit-real-branches.md).
+[ADR-011](../adrs/011-evaluate-numeric-functions-with-explicit-real-branches.md),
+with the logarithm/generator split refined by
+[ADR-125](../../adrs/125-separate-algebra-logarithms-from-rotor-generators.md).
