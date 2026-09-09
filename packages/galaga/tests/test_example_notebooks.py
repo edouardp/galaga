@@ -123,7 +123,7 @@ def test_cga_gram_matrix_notebook_connects_metric_geometry_and_compact_matrices(
     assert 'to_matrix(cga_model.origin, mode="compact")' in source
     assert "point_matrix @ point_matrix" in source
     assert "sandwich(translator, conformal_point)" in source
-    assert "translator_matrix @ to_matrix(conformal_point" in source
+    assert "translator_matrix @ to_matrix(conformal_point" in " ".join(source.split())
     assert "automatic_point_matrix = to_matrix(conformal_point)" in source
 
 

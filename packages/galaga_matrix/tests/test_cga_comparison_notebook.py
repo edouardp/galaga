@@ -151,11 +151,15 @@ def test_mixed_example_needs_both_quaternion_components(notebook):
     assert "$" not in normalization
 
 
-def test_native_null_notebook_scalar_equation_has_no_nested_math_delimiters():
+def test_native_null_notebook_scalar_equation_and_standalone_gram_display():
     with pytest.MonkeyPatch.context() as patch:
         patch.syspath_prepend(str(ROOT / "packages/galaga_marimo"))
         app = runpy.run_path(str(ROOT / "examples/matrix/cga_via_gram_matrix.py"))["app"]
-        outputs, _ = app.run()
+        outputs, definitions = app.run()
+    gram = definitions["cga_gram_matrix"]
+    np.testing.assert_array_equal(gram.mat, definitions["cga_algebra"].gram)
+    assert any(output is gram for output in outputs)
+    assert r"\begin{pmatrix}" in gram._repr_latex_()
     markup = "\n".join(getattr(output, "text", "") for output in outputs)
     equations = re.findall(r"<marimo-tex[^>]*>(.*?)</marimo-tex>", markup, flags=re.S)
     equation = next(equation for equation in equations if "e_o^2=" in equation)

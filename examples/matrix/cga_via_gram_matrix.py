@@ -130,6 +130,12 @@ def _(cga_algebra, cga_gram_matrix, cga_model, gm, scalar_product, squared):
 
 
 @app.cell
+def _(cga_gram_matrix):
+    cga_gram_matrix  # noqa: B018 - Marimo displays the cell's final expression.
+    return
+
+
+@app.cell
 def _(cga_model, np, scalar_product, squared, to_matrix):
     origin_matrix = to_matrix(cga_model.origin, mode="compact")
     infinity_matrix = to_matrix(cga_model.infinity, mode="compact")
@@ -139,14 +145,27 @@ def _(cga_model, np, scalar_product, squared, to_matrix):
         (
             np.allclose(origin_matrix @ origin_matrix, float(squared(cga_model.origin)) * _identity),
             np.allclose(infinity_matrix @ infinity_matrix, float(squared(cga_model.infinity)) * _identity),
-            np.allclose(origin_matrix @ infinity_matrix + infinity_matrix @ origin_matrix, anticommutator_scale * _identity),
+            np.allclose(
+                origin_matrix @ infinity_matrix + infinity_matrix @ origin_matrix, anticommutator_scale * _identity
+            ),
         )
     )
-    return anticommutator_scale, infinity_matrix, null_generator_relations_hold, origin_matrix
+    return (
+        anticommutator_scale,
+        infinity_matrix,
+        null_generator_relations_hold,
+        origin_matrix,
+    )
 
 
 @app.cell
-def _(anticommutator_scale, gm, infinity_matrix, null_generator_relations_hold, origin_matrix):
+def _(
+    anticommutator_scale,
+    gm,
+    infinity_matrix,
+    null_generator_relations_hold,
+    origin_matrix,
+):
     gm.md(rt"""
     ## Compact matrices for the null pair
 
@@ -251,9 +270,13 @@ def _(cga_model, conformal_point, exp, np, reverse, sandwich, to_matrix):
     translated_point = sandwich(translator, conformal_point).named("P_prime", latex=r"P'")
     translator_matrix = to_matrix(translator, mode="compact")
     translated_point_matrix = to_matrix(translated_point, mode="compact")
-    matrix_sandwich = translator_matrix @ to_matrix(conformal_point, mode="compact") @ to_matrix(
-        reverse(translator),
-        mode="compact",
+    matrix_sandwich = (
+        translator_matrix
+        @ to_matrix(conformal_point, mode="compact")
+        @ to_matrix(
+            reverse(translator),
+            mode="compact",
+        )
     )
     sandwich_homomorphism_holds = np.allclose(translated_point_matrix, matrix_sandwich)
     translated_coordinates = cga_model.coordinates(translated_point)

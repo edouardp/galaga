@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.14"
+__generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
@@ -254,13 +254,18 @@ def _(antireverse, antiunit, cga, e2, e3, einf, geometric_antiproduct, gm):
 
     gm.md(rt"""
     Given the point:
-    {source_point:block}
 
-    Then the translation via the antiproduct sandwhich is:
+    {source_point}
+
+    Then the translation via the antiproduct sandwich is:
 
     {anti_translator}
 
     {translated_by_antiproduct}
+
+    Lowering the translated point gives its Euclidean vector:
+
+    {cga.down(translated_by_antiproduct)}
 
     Translated coordinates: `{_anti_coordinates!s}`.
     """)
@@ -280,9 +285,7 @@ def _(
 ):
     _translation_plane = cga.dual(e1).named("g")
     _translation_attitude = cga.att(_translation_plane)
-    _anti_translator_from_direction = (
-        antiunit + 0.5 * _translation_attitude
-    ).named("T", latex=r"T")
+    _anti_translator_from_direction = (antiunit + 0.5 * _translation_attitude).named("T", latex=r"T")
 
     _translated_from_direction = geometric_antiproduct(
         geometric_antiproduct(_anti_translator_from_direction, source_point),
@@ -334,9 +337,7 @@ def _(
     translated_by_antiproduct,
 ):
     translator = exp(-0.5 * (e1 ^ einf)).named("U")
-    translated_by_product = sandwich(translator, source_point).named(
-        "P", latex=r"P^{\prime}"
-    )
+    translated_by_product = sandwich(translator, source_point).named("P", latex=r"P^{\prime}")
     _product_coordinates = cga.coordinates(translated_by_product)
     _forms_agree = translated_by_product == translated_by_antiproduct
 
@@ -380,9 +381,7 @@ def _(cga, e1, e2, einf, eo, exp, gm, math, sandwich):
 
     _parameter = (0.2 * e1).named("a")
     _transversor = exp(0.5 * _parameter * eo).named("K")
-    _transverted = sandwich(_transversor, _test_point).named(
-        "Q_K", latex=r"Q_K"
-    )
+    _transverted = sandwich(_transversor, _test_point).named("Q_K", latex=r"Q_K")
 
     _rotation_coordinates = cga.coordinates(_rotated)
     _dilation_coordinates = cga.coordinates(_dilated)
