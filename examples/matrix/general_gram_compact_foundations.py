@@ -31,6 +31,9 @@ def _(mo):
     mo.md(r"""
     # Compact matrices in an oblique basis
 
+    For an introduction to the two products and their labelled tables, start
+    with [bilinear and wedge tables](../galaga_v2/bilinear_and_wedge_tables.py).
+
     A Clifford algebra does not require an orthonormal basis. Its vector
     products are controlled by a symmetric Gram matrix $G$, where
 

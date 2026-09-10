@@ -51,6 +51,9 @@ def _(mo):
     mo.md(r"""
     # Conformal geometric algebra from its Gram matrix
 
+    For background on bilinear forms, null vectors, and exterior products,
+    start with [bilinear and wedge tables](../galaga_v2/bilinear_and_wedge_tables.py).
+
     Three-dimensional CGA uses five basis vectors in the native order
 
     $$
