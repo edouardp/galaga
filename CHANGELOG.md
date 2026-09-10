@@ -1,5 +1,83 @@
 # Changelog
 
+## 2.0.0a4 (2026-09-10)
+
+This fourth Galaga 2 alpha adds notebook-ready bilinear and wedge product
+tables, concise presets for complete configurations, blade names and notation,
+and executable lessons on metrics, exterior products and inner-product
+conventions.
+
+### Added
+
+- **Labelled Gram tables** — `Algebra.bilinear_form_table()` returns an
+  immutable, rich-display snapshot of the native Gram matrix with basis labels
+  on both axes. It supports LaTeX, Unicode, ASCII and Marimo interpolation
+  without requiring the matrix companion. Exact zeros render in grey
+  (`#bbbbbb`); small nonzero metric entries are not hidden by display tolerance.
+
+- **Wedge product tables** — `Algebra.wedge_product_table()` displays basis
+  vector exterior products. `full=True` includes every exterior basis blade,
+  starting with scalar `1` and ordered by grade. Either `color=True` or
+  `colour=True` enables LaTeX colouring by result grade; zeros remain grey.
+  Tables preserve signed blade labels and capture the active presentation.
+  Full tables contain `4**n` result cells, so vector-only tables remain the
+  default.
+
+- **Concise complete presets** — Adds `from galaga import presets` with
+  `euclidean`, `sta`, `pga`, `cga`, `rga`, `lengyel_cga`, `complex`,
+  `quaternion` and `exterior` factories. For example,
+  `Algebra(config=presets.euclidean(3))` selects a complete immutable
+  configuration.
+
+- **Independent blade-name recipes** — Adds `presets.blades` for use with
+  `Algebra(..., blades=...)` and `.with_blades()`, including
+  `Algebra(1, 3, blades=presets.blades.sta())`. Immutable recipes resolve
+  against the target algebra without changing its metric, model or notation.
+  Metric-aware STA names derive their signs from the actual ordered metric;
+  CGA frame recipes validate compatibility with the target Gram matrix.
+
+- **Named notation presets** — Adds `presets.notation.default()`,
+  `functional()`, `functional_short()`, `doran_lasenby()`, `hestenes()`,
+  `lengyel()` and `lengyel_rga()`. These delegate to the existing immutable
+  notation configurations and can be passed directly to
+  `Algebra(..., notation=presets.notation.functional())`; numerical operations
+  are unchanged.
+
+- **Executable teaching notebooks** — Adds three maintained Marimo lessons:
+  [preset namespaces](examples/galaga_v2/preset_namespaces.py),
+  [bilinear and wedge tables](examples/galaga_v2/bilinear_and_wedge_tables.py),
+  and [inner products](examples/galaga_v2/inner_products.py). They teach
+  configuration versus vocabulary, coordinate bilinear forms, metric-independent
+  exterior products, null versus degenerate metrics, and the intent and grade
+  rules of scalar products, metric pairings, contractions and Hestenes and
+  Doran–Lasenby products. Interactive examples include mixed grades, Gram
+  determinants and related RGA operations, with references explaining differing
+  author conventions.
+
+### Changed
+
+- **Clean preset discovery** — `galaga.presets` is now a package whose
+  advertised namespace and wildcard exports contain only the concise factories,
+  `blades` and `notation`. Implementation helpers no longer clutter notebook
+  autocomplete. Existing `p_*` factories and concrete preset classes remain
+  available through explicit compatibility imports; root-level `p_*` imports
+  are unchanged and no deprecation warnings are introduced.
+
+- **Expanded presentation documentation and examples** — Documents table
+  rendering and composable presets in the package guide, presentation guide
+  and ADRs. The existing CGA-via-Gram notebook now demonstrates labelled
+  bilinear and wedge tables, including a small full table and graded
+  commutation. Gram-matrix lessons link to the new teaching notebooks and
+  distinguish the reversion-based metric pairing from the scalar part of a
+  geometric product.
+
+- **Regression and notebook coverage** — Adds algebra-derived table checks,
+  preset compatibility and metric-validation tests, and headless tests of the
+  new lessons and their interactive choices. Matrix dtype-conversion tests now
+  explicitly expect NumPy's complex-to-real warning and verify both the real
+  result and preservation of the original complex matrix; runtime conversion
+  behaviour is unchanged.
+
 ## 2.0.0a3 (2026-09-10)
 
 This third Galaga 2 alpha removes the retired Galaga 1 runtime, extends compact

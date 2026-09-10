@@ -18,21 +18,19 @@ def _():
 
 @app.cell(hide_code=True)
 def _(mo):
-    mo.md(
-        r"""
-        # Choosing an algebra and choosing its vocabulary
+    mo.md(r"""
+    # Choosing an algebra and choosing its vocabulary
 
-        Galaga separates two decisions:
+    Galaga separates two decisions:
 
-        1. A complete preset chooses a Gram matrix, model roles, notation, and
-           coordinated basis names.
-        2. A blade preset chooses only the names and signed aliases for an
-           algebra whose metric we specify separately.
+    1. A complete preset chooses a Gram matrix, model roles, notation, and
+       coordinated basis names.
+    2. A blade preset chooses only the names and signed aliases for an
+       algebra whose metric we specify separately.
 
-        The second form is especially useful when teaching a familiar metric
-        with a different vocabulary.
-        """
-    )
+    The second form is especially useful when teaching a familiar metric
+    with a different vocabulary.
+    """)
     return
 
 
@@ -40,7 +38,7 @@ def _(mo):
 def _(Algebra, presets):
     complete_cga = Algebra(config=presets.cga(3))
     complete_cga.bilinear_form_table()
-    return (complete_cga,)
+    return
 
 
 @app.cell

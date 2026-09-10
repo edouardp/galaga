@@ -1,6 +1,6 @@
 [project]
 name = "galaga-anywidget"
-version = "2.0.0a3"
+version = "2.0.0a4"
 description = "Interactive AnyWidget visualizations for Galaga geometric algebra"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -22,7 +22,7 @@ classifiers = [
 ]
 dependencies = [
     "anywidget>=0.9",
-    "galaga>=2.0.0a3",
+    "galaga>=2.0.0a4",
     "marimo>=0.23.14,<0.25",
     "numpy>=1.24",
     "traitlets>=5.14",
