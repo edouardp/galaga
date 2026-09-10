@@ -1,3 +1,7 @@
+> **Historical design conversation.** Proposals and API examples below are
+> brainstorming, not the implemented Galaga 2 contract. Start with the
+> [current documentation](docs/README.md) for supported operations and naming.
+
 This is a copy of a conversation between ChatGPT & Anonymous.
 
 Report conversation

@@ -1,48 +1,39 @@
 # Pyrefly Type-Checking Status
 
-Pyrefly runs from `make lint` but remains advisory:
+Pyrefly is a **blocking local validation gate** under
+[ADR-131](adrs/131-local-only-stable-release-validation.md):
 
 ```bash
 uv run pyrefly check
+make lint
 ```
 
-The repository configuration checks `packages/galaga/galaga/**/*.py`.
-`scripts/lint.sh` reports the tail of its output and does not fail the lint
-command when type errors remain.
+The configured scope is `packages/galaga/galaga/**/*.py`. This is the core
+package's production tree, not a claim that every companion, example or test
+is statically checked. `scripts/lint.sh` preserves the checker's diagnostics
+and exits unsuccessfully on type-check failure; it no longer truncates output
+or converts failure to a warning. `make validate` includes that gate.
 
-## Current snapshot
+## Latest recorded checkpoint
 
-On 2026-07-25, Pyrefly reported 298 errors. This number is diagnostic, not a
-stable test contract. Measure the current tree rather than copying the count
-into release notes.
+The 2026-09-11 [post-a4 validation](v2/legacy-engine-deletion-gate.md#post-a4-stable-release-preparation-checkpoint)
+reported **zero errors and 18 non-error warnings**. Counts are observations,
+not a permanent test contract; rerun the checker on each candidate.
 
-The largest groups are:
-
-- legacy Galaga 1 expression/rendering narrowing failures;
-- old mutable blade-convention dictionary inference;
-- `numbers.Real` versus built-in and NumPy scalar typing;
-- optional values that runtime validation narrows more precisely than the type
-  checker;
-- semantic-renderer local-variable inference; and
-- remaining legacy `symbolic_core` node narrowing.
-
-Phase 9 deletion of the table-backed engine should remove a substantial part
-of the first, second, and last groups. Current Galaga 2 modules still have real
-issues of their own, so deleting legacy code is not equivalent to completing
-the typing work.
+The July 2026 report of 298 errors described the pre-deletion source tree.
+Engine removal eliminated obsolete code; the surviving numeric typing issues
+were fixed separately under
+[ADR-126](adrs/126-align-static-types-with-existing-numeric-contracts.md).
 
 ## Release policy
 
-For the 2.0 prerelease line:
+- Type errors and tool failures block local validation.
+- Warnings remain visible in the reported status and are reviewed separately.
+- Do not add broad ignores or weaken checks to make the gate green.
+- Runtime, artifact and supported-Python tests remain independent requirements.
+- The release script does not run every local gate automatically; follow the
+  complete [release checklist](RELEASE_PROCESS.md).
 
-- Pyrefly output must remain visible in `make lint`;
-- new Galaga 2 code should not add avoidable errors;
-- runtime tests, Ruff, package builds, and supported-version execution remain
-  blocking; and
-- no README or classifier should claim that the package is fully statically
-  checked.
-
-Before making Pyrefly a blocking gate, first narrow the configured project to
-the post-Phase-9 source tree, establish a checked baseline, and then reduce it
-to zero without broad ignores. When that policy changes, update
-`scripts/lint.sh`, the release process, and this document together.
+No CI workflow is required. The regression tests in
+`tests/release/test_lint_gate.py` verify failure propagation through the actual
+shell script, including normal and fix modes.

@@ -12,6 +12,7 @@ root, open the local example gallery with:
 make run-marimo
 ```
 
-The launcher selects the uncommitted local packages as editable installations;
-the notebook itself remains portable and also runs against released packages
-outside the checkout.
+The launcher selects local packages as editable installations, including
+working-tree changes. The notebook is portable, but the experimental Mermaid
+companion is not part of joint PyPI publication: outside the checkout, install
+that companion from source or a locally built wheel as well as its dependencies.

@@ -1,5 +1,11 @@
 # SymPy Integration Plan
 
+> **Historical proposal, not a 2.0 commitment.** The architecture and module
+> names below describe the Galaga 1 design. Galaga 2 uses real numeric
+> coefficients and optional immutable `galaga.expression` provenance; symbolic
+> coefficients and Gram entries are explicit non-goals of this replacement.
+> See the [current roadmap](docs/v2/galaga-replacement-roadmap.md).
+
 ## Goal
 
 Enable symbolic scalar coefficients in multivectors, so that expressions like

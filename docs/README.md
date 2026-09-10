@@ -25,6 +25,8 @@ how the replacement was carried out; they are not alternate APIs.
 - [Inner products, contractions, and interior products](core/inner-products-contractions-and-interior-products.md):
   the explicit product families and their behavior across representative
   algebras.
+- [Duality and exterior complements](what_is_dual.md): general-Gram formulas,
+  Euclidean-only simplifications, mixed grades and degenerate metrics.
 
 ## Understand the implementation
 
@@ -41,6 +43,10 @@ how the replacement was carried out; they are not alternate APIs.
 ## Release Galaga
 
 - [Release process](RELEASE_PROCESS.md) is the operational source of truth.
+- [Type-checking status](PYREFLY_STATUS.md) records the blocking local type
+  gate and its latest measured checkpoint; no CI is required for release.
+- [Post-a4 documentation review](v2/documentation-review.md) records corrected
+  guidance, executable examples, validation results and historical-document boundaries.
 - [Galaga 2 core cutover plan](v2/core-cutover-plan.md) records phase gates,
   including the stable-release removal gate.
 - [Historical initial PyPI plan](PYPI_RELEASE_PLAN.md) is retained for context
@@ -56,6 +62,11 @@ examples intentionally:
 - `docs/proposals/`;
 - the legacy presentation specifications under `docs/specs/`; and
 - superseded or historical ADRs.
+
+Root-level conversation transcripts and old library surveys are also historical
+material, not an unimplemented feature list. The
+[capability roadmap](v2/galaga-replacement-roadmap.md) separates the remaining
+release steps from post-2.0 proposals.
 
 Each index or document should state when it is historical. Do not copy an API
 example from those records without checking the current package guide or

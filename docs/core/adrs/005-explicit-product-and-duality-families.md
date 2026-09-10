@@ -50,6 +50,19 @@ one as an explicitly documented compatibility convenience.
 Operations that require an invertible pseudoscalar fail on a degenerate metric.
 They do not silently substitute a complement or pseudoinverse.
 
+### Documentation clarification, 2026-09-11
+
+The implemented relation is
+`left_contraction(A, I) = complement(metric_apply(reverse(A)))`.
+For homogeneous grade $r$, reversion supplies $(-1)^{r(r-1)/2}$; a bare
+sign-times-complement formula assumes the stored Gram matrix is the identity.
+Dividing by $I^2$ gives `dual(A)` only when the pseudoscalar is invertible.
+This clarifies the existing choice; it does not change the numeric API.
+
+The earlier allowance for an ambiguous facade dispatcher was not adopted:
+the final facade rejects `ip` and `inner_product` in favor of explicitly named
+operations. See [ADR-130](../../adrs/130-retire-migration-only-api-adapters.md).
+
 ## Consequences
 
 - Good, because call sites reveal the convention being used.

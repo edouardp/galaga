@@ -2,7 +2,11 @@
 
 # GA Library Operations Survey
 
-Tested across 7 libraries in Cl(3,0,0) unless noted. All results verified by running actual code.
+Historical tests across 7 libraries in Cl(3,0,0) unless noted. Results below
+record the original comparison run, not a new check against current releases.
+For Galaga 2, use the [product specification](core/specs/SPEC-003-product-and-duality-conventions.md)
+and [duality guide](what_is_dual.md). In particular, `lie_bracket` is now
+unscaled, and metric duality must not be conflated with exterior complement.
 
 ## `~` Operator (Tilde)
 

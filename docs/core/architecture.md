@@ -25,7 +25,7 @@ flowchart TD
     M --> T
     A --> D[Lazy compound metric matrices]
     D --> O
-    O --> F[Future Galaga naming, rendering, and expression layer]
+    O --> F[Galaga facade, naming, rendering, and expression layer]
     T --> F
 ```
 

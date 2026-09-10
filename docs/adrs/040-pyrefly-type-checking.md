@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-040: Pyrefly for Type Checking
 
+> The choice of Pyrefly remains accepted. The original non-blocking policy
+> below is superseded by [ADR-131](131-local-only-stable-release-validation.md):
+> type errors now fail local validation. Historical counts describe adoption,
+> not the current source tree.
+
 ## Context and Problem Statement
 
 The codebase uses dynamic patterns (isinstance dispatch, optional fields,

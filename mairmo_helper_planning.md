@@ -1,3 +1,9 @@
+> **Historical planning conversation.** The helper is now implemented as
+> `galaga_marimo`, separately from `galaga_anywidget`. The proposals below are
+> not its current API; see the [package guide](packages/galaga_marimo/README.md).
+
+---
+
 > **Instruction:**
 >
 > Sketch out a planer for a separate Marino helper library that supplies its own .md helper using t strings

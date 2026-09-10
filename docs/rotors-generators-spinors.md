@@ -340,26 +340,29 @@ $$AB = A \cdot B + A \times B + A \wedge B$$
 
 where $A \times B = \frac{1}{2}(AB - BA)$ is the "commutator product." Without the $\frac{1}{2}$, this identity would need an explicit factor.
 
-galaga reflects this split: `commutator(A, B)` computes $AB - BA$ (maths/physics convention), while `lie_bracket(A, B)` computes $\frac{1}{2}(AB - BA)$ (GA convention). The name `lie_bracket` for the
-$\frac{1}{2}$ version is slightly ironic — mathematicians' Lie bracket on an associative algebra is $AB - BA$ without the $\frac{1}{2}$ — but it matches Chisolm's notation, which is what the reference
-test suite uses.
+Galaga 2 makes the scaling explicit: both `commutator(A, B)` and
+`lie_bracket(A, B)` compute $AB-BA$. Use `half_commutator(A, B)` for
+$\frac{1}{2}(AB-BA)$, including identities written in Chisolm's convention.
+The same rule applies to `anticommutator` and `jordan_product` (unscaled),
+with `half_anticommutator` providing the explicit factor of one half.
 
 ### galaga API mapping
 
 | Mathematical notation                            | galaga function           |
 | ------------------------------------------------ | ------------------------- |
 | $\tilde{A}$ (reverse)                            | `reverse(A)`              |
-| $\hat{A}$ (grade involution)                     | `involute(A)`             |
+| $\hat{A}$ (grade involution)                     | `grade_involution(A)`     |
 | $\bar{A}$ (Clifford conjugate)                   | `conjugate(A)`            |
 | $\langle A \rangle_k$                            | `grade(A, k)`             |
-| $A \rfloor B$ (left contraction)                 | `left_contraction(A, B)`  |
-| $A \lfloor B$ (right contraction)                | `right_contraction(A, B)` |
+| $A \lfloor B$ (left contraction)                 | `left_contraction(A, B)`  |
+| $A \rfloor B$ (right contraction)                | `right_contraction(A, B)` |
 | $A \wedge B$ (outer product)                     | `op(A, B)`                |
 | $AB$ (geometric product)                         | `gp(A, B)`                |
 | $AB - BA$ (commutator)                           | `commutator(A, B)`        |
-| $\frac{1}{2}(AB - BA)$ (commutator product)      | `lie_bracket(A, B)`       |
-| $\langle A^\dagger B \rangle_0$ (scalar product) | `scalar_product(A, B)`    |
-| $A^\dagger A$ (norm squared)                     | `norm2(A)`                |
+| $\frac{1}{2}(AB - BA)$ (commutator product)      | `half_commutator(A, B)`   |
+| $\langle AB \rangle_0$ (scalar product)         | `scalar_product(A, B)`    |
+| $\langle A\widetilde B \rangle_0$ (metric pairing) | `metric_inner_product(A, B)` |
+| $\langle A\widetilde A \rangle_0$ (signed norm squared) | `norm2(A)`          |
 | $\exp(B)$                                        | `exp(B)`                  |
 | Principal algebra $\log(A)$                     | `log(A)`                  |
 | Checked geometric exponent of $R$               | `rotor_generator(R)`      |

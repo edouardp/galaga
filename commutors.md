@@ -1,3 +1,7 @@
+> **Historical design conversation.** The accepted Galaga 2 operations are
+> `commutator` and `lie_bracket` (both unscaled), plus explicit
+> `half_commutator`. See the [product contract](docs/core/specs/SPEC-003-product-and-duality-conventions.md).
+
 > [!IMPORTANT]
 > In terms of design, should there be two commutor() methods? (Or a commutor(..., half=True))
 

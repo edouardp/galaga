@@ -1,3 +1,8 @@
+> **Historical teaching conversation.** The current distinctions, including
+> the limits of scalar-square intuition, are in
+> [rotors, generators and spinors](docs/rotors-generators-spinors.md).
+> This transcript is not an API or release checklist.
+
 So vectors create bivectors. And bivectors are generators of rotors. And rotors apply rotations to objects via the sandwhich product.
 
 Yes — that chain is essentially right. The nice thing is that **each step is doing something very specific geometrically**, not just algebraically.

@@ -24,13 +24,19 @@ in all signatures?
 
 Two separate operations:
 
-- `dual(x)` — left-contracts with the inverse pseudoscalar. Requires invertible
+* `dual(x)` — left-contracts with the inverse pseudoscalar. Requires invertible
   pseudoscalar. Fails in degenerate algebras.
-- `complement(x)` — maps grade-k to grade-(n-k) by index set complement, with
-  sign chosen so that `x * complement(x) = pseudoscalar`. Works in all
-  signatures including degenerate algebras.
+* `complement(x)` — maps grade-k to grade-(n-k) by index set complement, with
+  sign chosen so that `E ^ complement(E) = I` for each native exterior basis
+  blade `E`. Extend this map linearly. Works in all signatures including
+  degenerate algebras; the defining product is exterior, not geometric.
 
 Both have inverses: `undual()` and `uncomplement()`.
+
+Clarified 2026-09-11: the old geometric-product wording did not hold for
+general metrics or arbitrary scaled inputs. The numeric convention is unchanged;
+see the current [duality guide](../what_is_dual.md) and
+[core ADR-005](../core/adrs/005-explicit-product-and-duality-families.md).
 
 ### Consequences
 

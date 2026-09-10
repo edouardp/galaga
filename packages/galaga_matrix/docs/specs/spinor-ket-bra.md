@@ -6,10 +6,10 @@ Accepted — implemented.
 
 ## Problem
 
-`to_spinor_column` returns a raw numpy array. This loses metadata (algebra,
-basis, name) and prevents chaining operations or automatic basis handling.
-Meanwhile `to_matrix` returns a rich `MatrixRepr`. The two should be
-consistent.
+Before this change, `to_spinor_column` returned a raw numpy array, losing metadata
+(algebra, basis, name) and preventing chaining or automatic basis handling.
+The implemented contract makes it consistent with the rich `MatrixRepr`
+returned by `to_matrix`.
 
 ## Rules
 
@@ -94,9 +94,12 @@ Code doing `np.allclose(to_spinor_column(R), ...)` still works via
 ## Examples
 
 ```python
+from galaga import Algebra, exp
+from galaga_matrix import to_matrix, to_spinor_column, from_spinor_column
+
 sta = Algebra(1, 3)
 g = sta.basis_vectors()
-R = exp(-0.3 * (g[0] * g[1])).name(latex=r"\psi")
+R = exp(-0.3 * (g[0] * g[1])).named("psi", latex=r"\psi")
 
 # Returns MatrixRepr ket
 ket = to_spinor_column(R)
@@ -118,7 +121,7 @@ bra.shape         # (1, 4)
 overlap = bra @ ket    # complex scalar
 
 # Operator acts on spinor
-M = to_matrix(g[0])
+M = to_matrix(g[0], mode="compact")
 result = M @ ket       # MatrixRepr with kind="ket"
 
 # Roundtrip

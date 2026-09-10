@@ -21,7 +21,7 @@ This repository is a monorepo:
 During the prerelease train:
 
 ```bash
-python -m pip install --pre "galaga>=2.0.0a1,<3"
+python -m pip install --pre "galaga>=2.0.0a4,<3"
 ```
 
 After the stable release:

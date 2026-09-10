@@ -1,3 +1,8 @@
+> **Historical teaching proposal.** The referenced old branch, lazy state and
+> `.eval()` API are not current Galaga 2 behavior. See the
+> [package guide](packages/galaga/README.md) and maintained
+> [example gallery](examples/galaga_v2/README.md) for eager, immutable usage.
+
 Can we use a geometric algebra library to do things like polarisation equations (H blocks V, but adding a 45 degree one between them let light through)? https://github.com/edouardp/ga/tree/symbolic_redesign being the lib I'd use
 
 Yes — absolutely, at least at the level of **ideal polarization optics**.

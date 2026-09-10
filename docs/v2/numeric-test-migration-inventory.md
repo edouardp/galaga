@@ -1,5 +1,11 @@
 # Numeric Test Migration Inventory
 
+This is a historical migration inventory and delivery log. Migration and
+physical engine deletion are complete; references below to files still
+shipping describe intermediate checkpoints. The
+[cutover plan](core-cutover-plan.md) and [release report](legacy-engine-deletion-gate.md)
+record the current position.
+
 ## Purpose
 
 This inventory identifies the existing Galaga tests that should become

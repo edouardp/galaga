@@ -112,7 +112,8 @@ extraction composes as `float(grade(value, 0))`, while `float(value)` remains a
 checked assertion about the original value; the corrected bracket family
 makes half-scaling explicit; and the real numeric function layer has been
 implemented. Its proposed naming, preset, immutability, and display changes
-remain relevant because those outer layers have not yet been rebuilt.
+are now resolved by the implemented outer layers. The proposal sequence below
+is retained as design history, not outstanding implementation work.
 
 ## Goals
 

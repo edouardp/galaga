@@ -1,6 +1,9 @@
 # Branches
 
-Parked feature branches and their status.
+Historical notes on parked Galaga 1 feature branches, not a live inventory of
+Git branches or the current v2 backlog. For current API choices and remaining
+work, use the [v2 roadmap](docs/v2/galaga-replacement-roadmap.md). The snapshots
+below retain their original counts and proposed spellings.
 
 ## feature/grade-tracking-float
 
@@ -18,7 +21,11 @@ Parked feature branches and their status.
 
 **Why we parked it:**
 
-We initially tried eager grade propagation through all operations — fragile, required touching every op and every code path that constructs a Multivector. We simplified to constructors + lazy fallback, which works but doesn't solve the deeper problem: cross-cutting concerns (grade tracking, symbolic dispatch, notation) are scattered across every operation body.
+We initially tried eager grade propagation through all operations — fragile,
+required touching every op and every code path that constructs a Multivector.
+We simplified to constructors + lazy fallback, which works but doesn't solve
+the deeper problem: cross-cutting concerns (grade tracking, symbolic dispatch,
+notation) are scattered across every operation body.
 
 **How to revisit:**
 

@@ -24,7 +24,10 @@ keyring set https://test.pypi.org/legacy/ __token__
 # paste token when prompted
 ```
 
-The publish scripts use `--keyring-provider subprocess --username __token__` to retrieve these automatically.
+Standalone publish scripts use `--keyring-provider subprocess` and
+`--username __token__` to retrieve these automatically. The joint release script retrieves
+the production token once with `keyring` and supplies it to `uv publish` through
+`UV_PUBLISH_TOKEN`. Do not include the token in logs or shared diagnostics.
 
 ### Tool Installation
 

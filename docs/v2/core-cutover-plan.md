@@ -25,6 +25,10 @@ facade, the full supported-version suites pass, and clean-wheel and performance
 evidence are recorded. Phase 9 has since removed the legacy engine and
 migration-only API adapters; final release validation remains open.
 
+The phase instructions and intermediate measurements below preserve the
+execution history. References to retaining a bridge or legacy oracle describe
+those earlier stages, not the current supported API.
+
 ## Current position
 
 The repository has one numeric engine behind the public composition facade:
@@ -48,7 +52,7 @@ flowchart TD
 - tests reject retired imports, with no legacy-construction exemptions;
 - the external `gram` distribution is no longer required by Galaga.
 
-The intended end state is:
+The implemented ownership structure is:
 
 ```mermaid
 flowchart TD
@@ -63,8 +67,8 @@ flowchart TD
     A[optional integrations] --> F
 ```
 
-The legacy multiplication tables and legacy numeric `Multivector` storage are
-absent from the public execution path and can then be removed.
+The legacy multiplication tables and legacy numeric `Multivector` storage have
+been removed, not merely bypassed in the public execution path.
 
 ## Definition of done
 
@@ -1270,17 +1274,19 @@ Physical deletion is complete under
 All twenty-one retired production modules are absent from source, wheel and
 sdist; supported paths remain live. The
 [deletion gate report](legacy-engine-deletion-gate.md) records current tests,
-coverage, artifacts and outstanding repository/CI/release checks. The
+coverage, artifacts and outstanding local candidate/release checks. The
 dependency checkpoints below are preserved historical evidence.
 
 The six remaining teaching-file dependencies are also migrated in place under
 [ADR-123](../adrs/123-migrate-remaining-teaching-notebooks-and-benchmark.md).
-The shared executable ledger now covers 84 notebooks, including the root
-Mermaid entrypoint. The NumPy benchmark derives products from public linear
+The shared executable ledger covers 88 notebooks at the post-a4 checkpoint,
+including the root Mermaid entrypoint. The NumPy benchmark derives products from public linear
 actions; regression tests compare its tensor against actual basis products
 for diagonal, degenerate, oblique and null-pair metrics.
 
-Status: **in progress**. Thirty legacy-dependency prerequisites are complete:
+Historical dependency-migration checkpoint (before physical deletion):
+thirty legacy-dependency prerequisites were complete. The following records
+their delivery sequence, not work still outstanding:
 
 - the 73-case rendering parity audit uses captured v1 observations instead of
   importing the legacy engine, and independently pins reviewed v2 outputs

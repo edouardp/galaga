@@ -15,7 +15,8 @@ Current v2 behavior is still checked live. See
 The manifest currently classifies:
 
 - all 99 former top-level names captured from `galaga.legacy.__all__`;
-- all 151 promoted names in `galaga.__all__` and `galaga.facade.__all__`;
+- the complete promoted surface in `galaga.__all__` and `galaga.facade.__all__`
+  (145 names at the post-a4 cleanup checkpoint);
 - all 28 public legacy `Algebra` members;
 - all 20 public legacy `Multivector` members;
 - all 22 special methods declared by the legacy `Multivector`;
@@ -90,10 +91,11 @@ The exact policy and replacements are documented in
 
 - `BasisBlade`, `BladeConvention`, `Notation`, and the ten `b_*` constructors
   migrate through the immutable presentation and blade configuration built in
-  Phase 4. Legacy constructors remain compatibility work for Phase 7.
-- `sym` and `simplify` belong to expression provenance in Phase 5.
-- `project`, `reject`, and `reflect` are scheduled for removal rather than
-  becoming generic facade helpers. Their meaning depends on the chosen
+  Phase 4. Phase 7 compatibility decisions are complete; use the current
+  `presets`, `presets.blades` and `presets.notation` namespaces for new code.
+- `sym` and `simplify` belong to the implemented expression-provenance layer.
+- `project`, `reject`, and `reflect` are removed rather than becoming generic
+  facade helpers. Their meaning depends on the chosen
   subspace or geometry model, while their arithmetic is already an explicit
   composition of primitives. A future model-specific API may provide them
   together with the metadata and validation that make the operation precise.
@@ -172,10 +174,10 @@ exact equality and hashing do not use that tolerance. See the
 
 All 59 public v1 expression classes are listed in the executable manifest.
 `Expr` remains the base concept; scalar and symbol leaves are redesigned; and
-operation-specific constructor classes become compatibility adapters over one
-operation-identified expression node. The durable Galaga 2 model is now
-implemented in `galaga.expression`; the 59 legacy adapters remain Phase 9
-compatibility work.
+operation-specific constructor classes were classified for replacement by one
+operation-identified expression node. The durable Galaga 2 model is implemented
+in `galaga.expression`; the 59 legacy classes are retired, with their historical
+dispositions and replacement contracts preserved in tests.
 
 The complete `SUBMODULE_DISPOSITIONS` inventory records 36 transitional import
 paths. It is distinct from `SUPPORTED_SUBMODULES`, whose 12 live v2 entry
@@ -190,11 +192,10 @@ retired `gram_bridge` paths. Their dispositions and absence remain checked
 without importing them. Historical archive importability is not a promise of
 current support.
 
-The supported prerelease oracle is still `galaga.legacy`, with
-`galaga.legacy.render` and `galaga.legacy.simplify` avoiding collisions with
-promoted facade functions. It is intentionally excluded from the v2-only
-import contract, not removed by this test change. Legacy files and their
-remaining tests retire in a separate Phase 9 step.
+The former `galaga.legacy`, `galaga.legacy.render` and
+`galaga.legacy.simplify` oracle paths are removed, not supported prerelease
+entry points. Frozen observations and migrated public-contract tests preserve
+their evidence without shipping a second executable engine.
 
 ## Known private dependencies
 

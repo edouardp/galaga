@@ -1,3 +1,8 @@
+> **Historical notebook feedback.** Suggestions below are not general identities
+> for every even multivector or an outstanding v2 checklist. In particular,
+> reversion is not universally Hermitian conjugation. See the current
+> [rotor and spinor guide](docs/rotors-generators-spinors.md) for those distinctions.
+
 A few things that would help a GA reader bridge to QM:
 
 1. A "Rosetta Stone" cell — a small translation table between conventional QM notation and STA equivalents, specific to the AB effect. Something like:

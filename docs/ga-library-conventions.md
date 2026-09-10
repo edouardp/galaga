@@ -4,6 +4,12 @@
 
 A comparison of algebra construction, basis naming, and basis ordering across GA libraries.
 
+> **Historical comparison snapshot.** These library observations are not a
+> fresh compatibility check against current releases. Galaga 2's supported
+> constructor and presentation APIs are documented in the
+> [package guide](../packages/galaga/README.md) and
+> [migration guide](v2/migration-guide.md); those take precedence over this survey.
+
 ## Algebra Construction
 
 | Library | Language | Constructor forms | PGA example |

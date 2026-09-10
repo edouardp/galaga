@@ -2,13 +2,17 @@
 
 ## Status
 
-Proposed.
+Partially implemented; specialized native-CGA work remains proposed.
 
-Implementation progress: work unit 1 is complete. The package now has frozen
+Implementation progress: work units 1 and 2 are complete. The package has frozen
 representation descriptors, immutable cached plans, explicit full/even source
-domain metadata, and shared compact-family reconstruction systems. Work units
-2--7 remain proposed; no general-Gram compact representation or dispatch
-change is enabled yet.
+domain metadata, shared compact-family reconstruction systems, and the general
+native exterior lift for explicit `mode="compact"`. General-Gram and native-null
+CGA values already use that path when numerically suitable. Work units 3--7
+remain proposed except for the existing generic examples noted in unit 6.
+Canonical native-CGA matrices, the native even-quaternion API, Vahlen views and
+automatic compact dispatch are not implemented. These are post-2.0 features,
+not prerequisites for the current joint release.
 
 This document specifies matrix representations for three-dimensional
 conformal geometric algebra in its native null basis. It covers:
@@ -370,10 +374,11 @@ These identities provide readable examples and strong tests.
 ### Proposed Python example
 
 ```python
-from galaga import Algebra, ConformalModel, p_cga
+from galaga import Algebra, presets
+from galaga.cga import ConformalModel
 from galaga_matrix import from_matrix, to_matrix
 
-algebra = Algebra(config=p_cga(spatial_dim=3))
+algebra = Algebra(config=presets.cga(spatial_dim=3))
 cga = ConformalModel(algebra)
 
 point = cga.up((1.0, 2.0, 3.0))
@@ -886,10 +891,11 @@ blades and randomized even multivectors.
 ### Proposed quaternion example
 
 ```python
-from galaga import Algebra, ConformalModel, exp, p_cga
+from galaga import Algebra, exp, presets
+from galaga.cga import ConformalModel
 from galaga_matrix import from_matrix, to_matrix
 
-algebra = Algebra(config=p_cga(spatial_dim=3))
+algebra = Algebra(config=presets.cga(spatial_dim=3))
 cga = ConformalModel(algebra)
 e1, e2, e3, eo, einf = algebra.basis_vectors()
 

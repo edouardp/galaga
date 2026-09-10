@@ -167,7 +167,7 @@ noninvertibility error. The wedge-series results must be metric-independent.
 
 `Algebra.rotor`, `project`, `reject`, `reflect`, and compatibility aliases add
 names but no new numerical capability: each is a short composition of
-existing functions. They belong in a future geometry-helper or Galaga facade
+existing functions. They belong, if needed, in a validated model-specific
 layer rather than this numeric-function surface.
 
 The architectural rationale and implementation strategy are recorded in

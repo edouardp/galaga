@@ -67,13 +67,12 @@ from galaga.expression import (
 `Call` validates its identifier, expression arity, parameter names, required
 parameters, and parameter values against the operation catalog. There is no
 operation-specific expression-class hierarchy and no second operation
-registry. Future compatibility constructors such as an old `Gp` spelling can
-construct `Call("geometric_product", ...)` without gaining separate semantics.
+registry. Operation-specific legacy constructors such as `Gp` are retired;
+construct `Call("geometric_product", ...)` through the public expression API.
 
-The package is named `galaga.expression`. The old `galaga.expr` module remains
-only as a prerelease legacy path until the Phase 9 compatibility cutover; new
-code imports expression types and helpers from `galaga.expression` or the
-top-level public API.
+The package is named `galaga.expression`. The old `galaga.expr` module is
+removed. Code imports expression types and helpers from `galaga.expression`
+or the top-level public API.
 
 ## Independent name and tracking state
 

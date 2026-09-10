@@ -10,9 +10,10 @@ The compact matrix representation for Cl(1,3) and Cl(3,1) produces γ matrices
 in the Dirac (standard) basis. Physics uses several other named bases — Weyl
 (chiral) and Majorana — which are related by unitary similarity transforms.
 
-Users working with the Weyl basis (where γ⁵ is diagonal and chiral projections
-are trivial) or the Majorana basis (where all γ matrices are purely imaginary
-and spinors can be real) currently have no way to convert within galaga_matrix.
+The implemented `to_basis()` conversion supports the Weyl basis (where γ⁵
+is diagonal) and the package's Majorana basis (where the Cl(1,3) γ matrices
+are purely imaginary). This is a change of matrix representation basis,
+not the proposed general outermorphism API for multivectors.
 
 ## Rules
 
@@ -36,7 +37,7 @@ Returns a new `MatrixRepr` with the transformed data.
 
 | Value        | Meaning                                    |
 | ------------ | ------------------------------------------ |
-| `None`       | Unspecified (default for all current code) |
+| `None`       | Unspecified, for example on raw wrappers |
 | `"dirac"`    | Dirac/standard basis                       |
 | `"weyl"`     | Weyl/chiral basis                          |
 | `"majorana"` | Majorana basis                             |
@@ -92,6 +93,10 @@ preserved.
 ## Examples
 
 ```python
+import numpy as np
+from galaga import Algebra
+from galaga_matrix import to_matrix, from_matrix
+
 sta = Algebra(1, 3)
 g0, g1, g2, g3 = sta.basis_vectors()
 
@@ -102,18 +107,20 @@ assert W.basis == "weyl"
 assert np.allclose(W.mat, [[0,0,1,0],[0,0,0,1],[1,0,0,0],[0,1,0,0]])
 
 # γ⁵ is diagonal in Weyl basis
-g5 = to_matrix(1j * g0 * g1 * g2 * g3, mode="dirac")
+# Complex scalars belong to the matrix layer, not real Galaga multivectors.
+g5 = 1j * to_matrix(sta.I, mode="dirac")
 g5_weyl = g5.to_basis("weyl")
 assert np.allclose(np.diag(g5_weyl.mat), [-1, -1, 1, 1])
 
 # Majorana basis: all γ purely imaginary
 M_maj = M.to_basis("majorana")
-assert np.allclose(M_maj.mat.real, 0)  # (for spatial γ)
-# Note: γ⁰ in Majorana basis is real, spatial γ are imaginary
+assert np.allclose(M_maj.mat.real, 0)
+for gamma in (g0, g1, g2, g3):
+    assert np.allclose(to_matrix(gamma, mode="dirac").to_basis("majorana").mat.real, 0)
 
 # Roundtrip
 v = g0 + 0.5 * g1
-assert np.allclose(from_matrix(to_matrix(v).to_basis("weyl")).data, v.data)
+assert np.allclose(from_matrix(to_matrix(v, mode="dirac").to_basis("weyl")).data, v.data)
 
 # Chain
 assert np.allclose(

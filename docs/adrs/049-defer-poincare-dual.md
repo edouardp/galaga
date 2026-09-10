@@ -1,60 +1,38 @@
 ---
-status: deferred
+status: superseded
 date: 2026-03-31
 deciders: edouard
 ---
 
 # ADR-049: Defer Poincaré/Hodge Dual as Separate Function
 
-## Context and Problem Statement
+## Historical decision and correction
 
-The library has `dual(x) = x ⌋ I⁻¹` (left contraction into inverse
-pseudoscalar). The Poincaré/Hodge dual is `⋆x = xI⁻¹` (right geometric
-product with inverse pseudoscalar). Should we add a separate function?
+The original decision deferred a separate `poincare_dual()` function. Its
+rationale incorrectly claimed that contraction into the inverse pseudoscalar
+and geometric multiplication by it differed on mixed-grade multivectors.
+That claim is corrected here on 2026-09-11.
 
-## How They Differ
+For homogeneous grade $r$, $A_rI^{-1}$ has only grade $n-r$, so
+$A_r\mathbin{\lfloor}I^{-1}=A_rI^{-1}$ under Galaga's contraction convention.
+By linearity the identity also holds for mixed grades. There are no additional
+cross-grade terms that would justify a second function for this distinction.
 
-For a grade-k blade, both give the same result — left contraction and
-geometric product are equivalent when the left operand's grade ≤ the
-right operand's grade.
+Neither expression defines a metric-independent Poincaré complement. Both
+require an invertible pseudoscalar; exterior complementation does not.
 
-They differ only on **mixed-grade multivectors**:
+## Current Galaga 2 decision
 
-- `dual(x) = x ⌋ I⁻¹` — applies left contraction, which grade-filters.
-  Each grade component is mapped independently.
-- `poincare_dual(x) = x * I⁻¹` — applies the full geometric product,
-  which can produce cross-grade terms.
+The implemented [core ADR-005](../core/adrs/005-explicit-product-and-duality-families.md)
+supersedes this deferral:
 
-For homogeneous blades (the vast majority of use cases), the results
-are identical.
+- `dual(A)` uses contraction into the inverse pseudoscalar.
+- `complement(A)` and `uncomplement(A)` are metric-independent exterior maps.
+- `right_hodge_dual(A)` and `left_hodge_dual(A)` apply the metric extension
+  before the corresponding complement, and are distinct named operations.
+- There is no separate `poincare_dual()` alias.
 
-Both fail in degenerate algebras (PGA) where I is not invertible.
-Use `complement()` for non-metric duality in those algebras.
-
-## Decision Outcome
-
-Defer. Do not add `poincare_dual()` as a library function.
-
-### Rationale
-
-- Identical to `dual()` on blades, which covers ~99% of use cases
-- Adds API surface for a distinction most users will never encounter
-- The mixed-grade case is niche enough that an explicit expression is clearer
-
-### Workaround
-
-Users who need the Hodge star on mixed-grade multivectors can write:
-
-```python
-from galaga import inverse
-
-def poincare_dual(x):
-    return x * inverse(x.algebra.pseudoscalar())
-```
-
-### Consequences
-
-- Good, because the API stays simple
-- Good, because users aren't confused by two near-identical dual functions
-- Neutral, because the workaround is a two-line function
-- Revisit if mixed-grade duality becomes a common request
+See the [duality guide](../what_is_dual.md) for the general-Gram identities,
+Euclidean special case and degenerate-metric behavior. Core and facade tests
+cover homogeneous and mixed-grade values; no numeric implementation changed
+as part of this documentation correction.

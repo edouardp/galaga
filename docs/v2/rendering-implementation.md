@@ -460,7 +460,7 @@ The associated audit command writes a structured Markdown artifact for human
 review. Its adapters, coverage contract, report format, and first findings are
 documented in [Legacy/facade LaTeX rendering parity](rendering-parity.md).
 
-The reviewed differential audit now has 65 exact matches and eight explicit
+The post-a4 reviewed differential audit has 63 exact matches and ten explicit
 Galaga 2 decisions, improved from 16 matches and 57 differences in its first
 run. The permanent suite checks the complete 73-case differential inventory,
 58 exact full-display expression scenarios, the exact accepted-difference
@@ -474,13 +474,12 @@ parameter handling, a 26-operation Lengyel notation matrix, and the complete
   it is not a general algebraic simplifier or expression evaluator.
 - Numeric formatting is display-oriented, not a serialization format.
 - Top-level values use the semantic renderer through the promoted facade.
-- Legacy mutable notation and operation-specific renderer adapters remain only
-  under `galaga.legacy`; `legacy.render` is retained only as a prerelease
-  differential oracle.
+- Legacy mutable notation, operation-specific renderer adapters and the
+  `galaga.legacy` oracle are removed. Differential checks read frozen historical
+  observations and compare live results to the reviewed v2 baseline.
 - `galaga_matrix`, `galaga_anywidget`, `galaga_marimo`, `galaga_mermaid`, and
   the maintained notebooks now consume public facade, model, expression, and
   display protocols.
 
-Those boundaries allowed the Phase 8 top-level type cutover without another
-rendering redesign and allow Phase 9 to delete the oracle without changing the
-public renderer.
+Those boundaries allowed the Phase 8 top-level type cutover and Phase 9 oracle
+deletion without changing ownership of the public renderer.

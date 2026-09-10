@@ -6,10 +6,10 @@ Accepted — implemented.
 
 ## Problem
 
-`mode="quaternion"` currently stores data as `_qmat` (a `list[list[Quat]]`)
-with `mat = None`. This creates a separate code path: arithmetic operations
-raise `TypeError`, basis changes don't work, `from_matrix` can't roundtrip,
-and the rendering code has two branches.
+Before this change, `mode="quaternion"` stored `_qmat` (a `list[list[Quat]]`)
+with `mat = None`. This created a separate code path: arithmetic operations
+raised `TypeError`, basis changes did not work, `from_matrix` could not roundtrip,
+and the rendering code had two branches.
 
 Meanwhile, the quaternion-block representation IS a 4×4 complex matrix
 internally (each quaternion is embedded as a 2×2 complex block). We already
@@ -82,6 +82,9 @@ Future work could add quaternion-to-complex basis conversion.
 ## Examples
 
 ```python
+from galaga import Algebra
+from galaga_matrix import MatrixRepr, to_matrix, from_matrix
+
 sta = Algebra(1, 3)
 g0, g1 = sta.basis_vectors()[:2]
 

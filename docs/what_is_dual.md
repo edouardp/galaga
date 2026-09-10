@@ -1,76 +1,120 @@
 # What is the Dual?
 
-There is no single "dual" in geometric algebra. Different libraries use
-different definitions, producing different signs. This document surveys
-the conventions and explains why.
+Galaga exposes several distinct operations. Do not infer a definition from
+the word “dual” alone, or from a single Euclidean bivector example.
 
-## The test: `dual(e₁∧e₂)` in Cl(3,0)
+This guide describes the implemented Galaga 2 conventions. Older library
+comparisons are historical observations in the
+[operations survey](ga-library-operations-survey.md), not a current cross-library
+API guarantee.
 
-In Cl(3,0), the pseudoscalar is I = e₁₂₃, and I² = −1, so I⁻¹ = −e₁₂₃.
+## The operations are different
 
-| Library | `dual(e₁₂)` | Definition |
-|---|---|---|
-| **galaga** | `e₃` | `x ⌋ I⁻¹` |
-| **clifford** (Python) | `e₃` | `x * I⁻¹` |
-| **kingdon** (Python) | `e₃` | `x * I⁻¹` |
-| **Grassmann.jl** (Julia) | `v₃` | `x ⌋ I⁻¹` |
-| **galgebra** (Python) | `−e₃` | `I⁻¹ * x` (= `x * I`) |
-| **ganja.js** (JS) | `−e₃` | `x * I` (Poincaré dual) |
+| Operation | Galaga definition | Metric-dependent? | Degenerate metric? |
+|---|---|---|---|
+| `complement(A)` | Right exterior complement in the ordered native basis | No | Works |
+| `uncomplement(A)` | Left exterior complement; inverse of the right complement | No | Works |
+| `dual(A)` | $A\mathbin{\lfloor}I^{-1}$ | Yes | Raises `ValueError` |
+| `undual(A)` | $A\mathbin{\lfloor}I$; inverse of `dual` | Yes | Raises `ValueError` |
+| `right_hodge_dual(A)` | `complement(metric_apply(A))` | Yes | Defined, but may be noninvertible |
+| `left_hodge_dual(A)` | `uncomplement(metric_apply(A))` | Yes | Defined, but may be noninvertible |
 
-## Full blade table in Cl(3,0)
+Here $I=e_1\wedge\cdots\wedge e_n$ is the native pseudoscalar.
+For each native exterior basis blade $E$, $E\wedge\operatorname{complement}(E)=I$.
+This basis-blade rule extends linearly; it does not say that
+$A\wedge\operatorname{complement}(A)=I$ for arbitrary $A$.
 
-All definitions agree on the grade mapping (grade k → grade n−k), but
-differ in sign for certain grades.
+Galaga's left contraction selects $\langle A_rB_s\rangle_{s-r}$ when $r\le s$,
+without reversion. Other conventions insert reversion and consequently have
+different signs. See the [product-family guide](core/inner-products-contractions-and-interior-products.md).
 
-| Blade | galaga / clifford / kingdon | galgebra / ganja.js |
-|---|---|---|
-| `1` | `−e₁₂₃` | `e₁₂₃` |
-| `e₁` | `−e₂₃` | `e₂₃` |
-| `e₂` | `e₁₃` | `−e₁₃` |
-| `e₃` | `−e₁₂` | `e₁₂` |
-| `e₁₂` | `e₃` | `−e₃` |
-| `e₁₃` | `−e₂` | `e₂` |
-| `e₂₃` | `e₁` | `−e₁` |
-| `e₁₂₃` | `1` | `−1` |
+## Relating contraction, the metric and complement
 
-The two columns differ by an overall factor of `−1` (because `I⁻¹ = −I`
-in Cl(3,0), so `x * I⁻¹ = −x * I`).
+Let $\mathcal G$ be the exterior extension of the stored Gram matrix:
+`metric_apply` applies its compound matrices to each grade. For any multivector,
 
-## Why the disagreement?
+$$
+A\mathbin{\lfloor}I
+=\operatorname{complement}\!\left(\mathcal G(\widetilde A)\right).
+$$
 
-There are at least four reasonable definitions of "dual":
+For homogeneous grade $r$, reversion is
+$\widetilde A_r=(-1)^{r(r-1)/2}A_r$, so
 
-1. **Right multiply by I⁻¹**: `x* = x I⁻¹`
-   Used by clifford, kingdon. Simple, but requires I to be invertible.
+$$
+A_r\mathbin{\lfloor}I
+=(-1)^{r(r-1)/2}\operatorname{complement}\!\left(\mathcal G(A_r)\right).
+$$
 
-2. **Left contraction into I⁻¹**: `x* = x ⌋ I⁻¹`
-   Used by galaga, Grassmann.jl. Equivalent to (1) for blades in
-   nondegenerate algebras. Preferred by Dorst, Fontijne & Mann.
+When $I^2\ne0$, $I^{-1}=I/I^2$, hence
 
-3. **Right multiply by I** (Poincaré dual): `x* = x I`
-   Used by ganja.js. Differs from (1) by a factor of I².
+$$
+\operatorname{dual}(A_r)
+=\frac{(-1)^{r(r-1)/2}}{I^2}
+ \operatorname{complement}\!\left(\mathcal G(A_r)\right).
+$$
 
-4. **Left multiply by I⁻¹**: `x* = I⁻¹ x`
-   Used by galgebra. Differs from (1) by a sign that depends on the
-   grade of x: `I⁻¹ x = (−1)^(k(n−k)) x I⁻¹` for a grade-k blade
-   in n dimensions.
+Only when the stored Gram matrix is the identity can the metric map be
+dropped for every input. Thus the simpler sign-times-complement formulas are
+orthonormal-Euclidean formulas, not general CGA/PGA/oblique-basis identities.
+For mixed grades, use reversion rather than one grade-dependent sign.
 
-In Cl(3,0), definitions (1) and (2) agree on all blades. Definitions
-(3) and (4) also agree with each other, and differ from (1)/(2) by a
-global sign of −1.
+```python
+import numpy as np
+from galaga import Algebra, complement, dual, left_contraction, metric_apply, reverse
 
-## When does it matter?
+algebra = Algebra(gram=[[2.0, 0.5], [0.5, 1.0]])
+A = algebra.multivector([1.0, 2.0, 3.0, 4.0])
+metric_complement = complement(metric_apply(reverse(A)))
 
-- **Nondegenerate algebras (VGA, STA, CGA)**: all four definitions work,
-  but signs differ. Pick one and be consistent.
-- **Degenerate algebras (PGA)**: the pseudoscalar is not invertible
-  (I² = 0), so definitions (1)–(4) all fail. Use `complement()` instead,
-  which is purely combinatorial and works in all signatures.
+np.testing.assert_allclose(
+    left_contraction(A, algebra.I).data, metric_complement.data,
+    rtol=0, atol=1e-12,
+)
+np.testing.assert_allclose(
+    dual(A).data, (metric_complement / float(algebra.I * algebra.I)).data,
+    rtol=0, atol=1e-12,
+)
+```
 
-## galaga's choice
+## A mixed-signature counterexample
 
-galaga uses definition (2): `dual(x) = x ⌋ I⁻¹`. This matches Dorst et al.
-and gives the same results as clifford and kingdon.
+In $\mathrm{Cl}(1,1)$, $e_1^2=1$, $e_2^2=-1$ and $I^2=1$:
 
-For degenerate algebras, `dual()` raises `ValueError` with a message
-directing users to `complement()`. See ADR-010 for the rationale.
+```python
+from galaga import Algebra, complement, dual, left_contraction
+
+algebra = Algebra(1, 1)
+e1, e2 = algebra.basis_vectors()
+assert complement(e2) == -e1
+assert left_contraction(e2, algebra.I) == e1
+assert dual(e2) == e1
+```
+
+The complement ignores the negative square; contraction does not.
+
+## Pseudoscalar multiplication is not an exterior complement
+
+For homogeneous $A_r$, multiplication by $I$ has only grade $n-r$, so
+$A_rI=A_r\mathbin{\lfloor}I$. In a nondegenerate algebra the analogous statement
+holds for $I^{-1}$. It does not follow that either product is the
+metric-independent complement.
+
+For example, in $\mathrm{Cl}(3,0)$,
+$\operatorname{dual}(e_{12})=e_3=\operatorname{complement}(e_{12})$, but
+$\operatorname{dual}(e_1)=-e_{23}$ while
+$\operatorname{complement}(e_1)=e_{23}$.
+Also, $I$ is central in odd dimension: $I^{-1}e_{12}=e_{12}I^{-1}=e_3$.
+Merely switching multiplication from right to left cannot explain a minus
+sign for that example.
+
+For a degenerate metric, $I^2=0$. Multiplication or contraction with $I$ is
+still defined, but can lose nonzero inputs and is not an invertible duality.
+Galaga therefore rejects `dual` and `undual` there. Use exterior complements
+when that metric-independent mapping is what the geometry needs; do not label
+$AI$ a general Poincaré dual.
+
+The [implemented specification](core/specs/SPEC-003-product-and-duality-conventions.md)
+and [core ADR-005](core/adrs/005-explicit-product-and-duality-families.md) define
+these contracts. The general identities above have executable tests across
+Euclidean, mixed-signature, oblique, null and degenerate metrics.

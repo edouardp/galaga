@@ -249,6 +249,8 @@ to induce Euclidean norms.
 The Gram-native implementation calculates the operation as
 
 ```python
+from galaga.core import Multivector, reverse, scalar_product
+
 def metric_inner_product(left: Multivector, right: Multivector) -> Multivector:
     return scalar_product(left, reverse(right))
 ```
@@ -544,23 +546,23 @@ but that does not make it the metric-induced pairing.
 ### Rigid/projective algebra $Cl(3,0,1)$
 
 RGA uses the explicit ordered signature $(1,1,1,0)$ so that $e_4$ is null.
-The advanced RGA operations in this example are also implemented by the
-legacy Galaga API:
+The advanced RGA operations in this example are implemented by the core and
+public Galaga 2 facade. A blade-only preset supplies the displayed vocabulary:
 
 ```python
 from galaga import (
     Algebra,
     antidot_product,
-    b_rga,
+    presets,
     metric_inner_product,
 )
 
-rga = Algebra((1, 1, 1, 0), blades=b_rga())
+rga = Algebra((1, 1, 1, 0), blades=presets.blades.rga())
 b = rga.locals()
 
 e1 = b["e1"]
 e4 = b["e4"]
-direction = b["e423"]
+direction = e4 ^ b["e2"] ^ b["e3"]  # e423, constructed in the stated order
 
 assert metric_inner_product(e1, e1) == 1
 assert antidot_product(e1, e1) == 0
@@ -580,7 +582,7 @@ in plane-based PGA, which is why its useful magnitude comes from the antidot
 product rather than the ordinary dot product.
 
 The convenience constructor `Algebra(3, 0, 1)` orders null vectors first in
-both `gram` and Galaga. Use the explicit signature when reproducing RGA's
+both `galaga.core` and the public facade. Use the explicit signature when reproducing RGA's
 $e_1,e_2,e_3,e_4$ naming and orientation.
 
 ### Conformal algebra $Cl(4,1)$ in a native null basis

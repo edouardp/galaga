@@ -2,6 +2,13 @@
 
 This is a copy of a shared ChatGPT conversation.
 
+> **Historical review transcript, not a list of current release blockers.**
+> Several issues below informed the implemented rank-checked conversions and
+> explicit quaternion conventions. See the [current package guide](README.md),
+> [ADR-005](docs/adrs/005-strict-inverses-and-spinor-conventions.md) and
+> [native-CGA work units](docs/specs/native-null-cga-matrix-representations.md).
+> Remaining proposals there are distinct from defects in the current API.
+
 Report conversation
 
 Uploaded a file

@@ -1,5 +1,11 @@
 # **Spec: Naming and Evaluation Semantics for Multivectors and Blades**
 
+> **Superseded design draft.** The mutable `.name()` and lazy-state proposals
+> below are not the Galaga 2 API. Current values are eager and immutable;
+> use `.named()` and explicit `expr=True`. See
+> [expression provenance](docs/v2/expression-provenance.md) and
+> [presentation configuration](docs/v2/presentation-configuration.md).
+
 
 
 

@@ -11,6 +11,13 @@ helps future contributors understand why certain choices were made.
 
 ## ADR Index
 
+Statuses record acceptance at the time, not a promise that old modules or API
+spellings remain available. Early Galaga 1 implementation records retain their
+chronology; the [core specifications](../core/specs/README.md),
+[v2 architecture](../v2/README.md) and later superseding ADRs define current
+behavior. In particular, the table engine, mutable naming and legacy expression
+classes are no longer production alternatives.
+
 | ADR | Title | Status |
 |-----|-------|--------|
 | [001](001-use-architectural-decision-records.md) | Use Architectural Decision Records | Accepted |
@@ -52,7 +59,7 @@ helps future contributors understand why certain choices were made.
 | [037](037-bandit-security.md) | Bandit for Security Scanning | Accepted |
 | [038](038-rumdl-markdown.md) | Rumdl for Markdown Linting | Accepted |
 | [039](039-pip-audit.md) | Pip-audit for Dependency Vulnerability Scanning | Accepted |
-| [040](040-pyrefly-type-checking.md) | Pyrefly for Type Checking | Accepted |
+| [040](040-pyrefly-type-checking.md) | Pyrefly for Type Checking | Tool accepted; advisory policy superseded by 131 |
 | [041](041-pre-commit-hooks.md) | Pre-commit Hooks for Automated Quality Gates | Accepted |
 | [042](042-scalar-sqrt.md) | scalar_sqrt as a Symbolic-First Convenience | Accepted |
 | [043](043-notation-first-rendering.md) | Notation-First Rendering Architecture | Accepted |
@@ -61,7 +68,7 @@ helps future contributors understand why certain choices were made.
 | [046](046-remove-symbolic-dropins.md) | Remove Symbolic Drop-in Function Replacements | Accepted |
 | [047](047-sym-inner-expr.md) | Sym Inner Expression for Structural Rendering Decisions | Accepted |
 | [048](048-unit-fraction-notation.md) | unit_fraction Notation Kind | Accepted |
-| [049](049-defer-poincare-dual.md) | Defer Poincaré/Hodge Dual as Separate Function | Deferred |
+| [049](049-defer-poincare-dual.md) | Defer Poincaré/Hodge Dual as Separate Function | Superseded by core ADR-005; rationale corrected |
 | [050](050-latex-scientific-notation.md) | LaTeX Scientific Notation via LNodes and Notation Setting | Accepted |
 | [051](051-scalar-constants.md) | Algebra Scalar Constants and Fractions | Accepted |
 | [052](052-general-multivector-inverse.md) | General Multivector Inverse via Hitzer/Shirokov | Accepted |

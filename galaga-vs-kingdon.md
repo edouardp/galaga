@@ -1,5 +1,13 @@
 # galaga vs kingdon: Inner Product, Exp, Log, Inverse, and Square Root
 
+> **Historical Galaga 1 comparison.** The dispatcher, mutable API and numeric
+> algorithms below are not the Galaga 2 surface. Current Galaga has explicit
+> product families, a general principal algebra logarithm, separately checked
+> rotor generators and a Gram-matrix inverse solve. See the
+> [migration guide](docs/v2/migration-guide.md) and
+> [numeric specification](docs/core/specs/SPEC-005-numeric-functions.md).
+> The other library's behavior has not been remeasured for this documentation update.
+
 ## Inner Product
 
 Both libraries agree on results for common cases (vector·vector, bivector·vector) but differ in architecture and API.

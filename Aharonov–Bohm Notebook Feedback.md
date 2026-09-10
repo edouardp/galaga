@@ -1,5 +1,10 @@
 # Aharonov–Bohm Notebook Feedback
 
+> **Historical review of an earlier notebook.** The comments below retain that
+> review context; they are not a claim that each issue remains in the maintained
+> gallery. Current transformation and phase distinctions are documented in
+> [rotors, generators and spinors](docs/rotors-generators-spinors.md).
+
 Overall: **good conceptual demo, but it has a few important physics/math issues that I would fix before treating it as a teaching example**. The biggest problems are the missing $\hbar$ in the AB phase, an over-strong statement about $I$ commuting with “all even elements” rather than the more relevant algebraic fact, and a slightly loose use of “rotor” for what is really an internal U(1) phase factor in the STA/QM representation. The interference formula and the ideal-solenoid setup are otherwise basically fine.
 
 ## What is correct

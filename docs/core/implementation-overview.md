@@ -321,7 +321,9 @@ operations should be visibly reducible to them.
 
 These functions add analytic or convergence machinery. Rotor construction,
 projection, rejection, and reflection do not: each is a short geometric
-composition and remains in the future helper/facade layer. See
+composition. Users compose these operations explicitly; model-specific helpers
+are justified only when they add geometric validation or meaning. No generic
+facade convenience is promised. See
 [SPEC-005](specs/SPEC-005-numeric-functions.md),
 [ADR-010](adrs/010-separate-numeric-functions-from-geometry-helpers.md), and
 [ADR-011](adrs/011-evaluate-numeric-functions-with-explicit-real-branches.md).

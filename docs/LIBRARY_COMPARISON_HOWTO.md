@@ -1,5 +1,11 @@
 # Cross-Library Testing Howto
 
+These are diagnostic recipes, not a version-pinned cross-library compatibility
+guarantee or a required release gate. Third-party commands and API examples have
+not been revalidated in the 2026-09-11 documentation review. Record the exact
+library and interpreter versions when reproducing a result, and compare explicit
+product definitions and computed coefficients rather than operation names alone.
+
 How to quickly test GA computations across different libraries without
 polluting your environment. Uses `uvx` (Python), `bunx` (JS), and
 `podman`/`docker` (Julia).

@@ -1,5 +1,18 @@
 # Dirac, Weyl, and Majorana Spinor Bases
 
+## Implementation boundary
+
+Named matrix-basis conversion is implemented: use
+`to_matrix(value, mode="compact").to_basis("weyl")` or
+`to_spinor_column(value).to_basis("majorana")`; inverse conversions consume the
+wrapper's basis metadata. See the [basis-change contract](specs/basis-change.md)
+and [ket/bra contract](specs/spinor-ket-bra.md).
+
+The implementation plan at the end retains earlier proposals. Standalone
+charge-conjugation/chirality helpers and `basis=` constructor arguments there
+are not current public APIs. A matrix basis change does not impose a Weyl or
+Majorana constraint on the spinor being represented.
+
 ## Short Version
 
 The current `galaga_matrix` $Cl(1,3)$ compact representation uses the standard
@@ -675,9 +688,12 @@ $$
 
 Then explicitly show that bilinears and roundtrips are unchanged.
 
-## Future Implementation Plan
+## Original implementation proposals and remaining extensions
 
-The implementation should be incremental and convention-first.
+The basic conversion and round-trip goals below are implemented through
+`MatrixRepr.to_basis()`, not the sketched helper names or constructor arguments.
+Additional semantic helpers and specialized notebooks remain proposed; this
+list is not a prerequisite for stable 2.0.
 
 ### 1. Add a documented basis convention
 

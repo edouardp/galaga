@@ -160,10 +160,11 @@ Numeric equality is exact; approximate comparison is an explicit operation.
 
 ## 10. Migration machinery does not become permanent architecture
 
-The Galaga 2 prerelease line retains `galaga.legacy` as an isolated comparison
-oracle and temporary warning adapters for selected Galaga 1 spellings. Legacy
-values never mix implicitly with Galaga 2 values.
+The Galaga 2 migration used `galaga.legacy` as an isolated comparison oracle.
+That engine is now removed. The post-a4 API cleanup also removed the bridge
+and six temporary function spellings; permanent aliases remain explicit.
 
-The stable 2.0 release gate removes the table-backed engine and migration-only
-bridge paths. Historical tests, reports, specifications, and ADRs remain as
-evidence without keeping obsolete production implementations alive.
+Source and artifact gates reject the return of those retired modules.
+Historical tests, reports, specifications, and ADRs remain as evidence without
+keeping obsolete production implementations alive. Stable release approval
+still requires the local candidate gate in the [release process](RELEASE_PROCESS.md).

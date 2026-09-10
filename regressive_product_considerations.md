@@ -1,3 +1,7 @@
+> **Historical notation conversation.** Galaga 2 uses the metric-independent
+> complement-based regressive product, with a distinct metric regressive
+> operation. See the [implemented contract](docs/core/specs/SPEC-003-product-and-duality-conventions.md).
+
 > [!important]
 > What the unicode and latex for the regressive proiduct (the meet)?
 

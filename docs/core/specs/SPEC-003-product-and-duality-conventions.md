@@ -109,6 +109,21 @@ pseudoscalar is not invertible.
 Right and left Hodge duals apply the exterior metric and then the corresponding
 complement. Weight duals use the antimetric instead.
 
+For the native pseudoscalar and any multivector, the relation to the
+metric-independent right complement is
+
+$$
+A\mathbin{\lfloor}I
+=\operatorname{complement}\left(\operatorname{metric\_apply}(\widetilde A)\right).
+$$
+
+On grade $r$, reversion contributes $(-1)^{r(r-1)/2}$. Dropping
+`metric_apply` for all inputs is valid only in an orthonormal Euclidean stored
+basis. For nondegenerate metrics, divide this contraction by $I^2$ to obtain
+`dual(A)`. The contraction itself remains defined for degenerate metrics;
+the invertible dual does not. See the [duality guide](../../what_is_dual.md)
+for computed counterexamples and mixed-grade usage.
+
 ## Regressive products
 
 The default regressive product is metric-independent:

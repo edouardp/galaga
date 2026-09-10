@@ -10,8 +10,8 @@
 >
 > Start with the [Galaga 2 documentation index](docs/v2/README.md), the
 > [migration guide](docs/v2/migration-guide.md), and the
-> [core cutover plan](docs/v2/core-cutover-plan.md). Phase 9 removal and stable
-> release hardening remain the normative unfinished migration work.
+> [core cutover plan](docs/v2/core-cutover-plan.md). Phase 9 engine and temporary
+> API removal are complete; the clean-candidate and stable-release gates remain.
 
 This document records changes considered for Galaga 2.0. Some questions have
 since been decided by the core-backed facade architecture; newer ADRs,
