@@ -34,7 +34,7 @@ from .catalog import LeftFoldCall, get_operation
 
 if TYPE_CHECKING:
     from ..display import BilinearFormTable, WedgeProductTable
-    from ..presets import Preset
+    from ..presets import BladePreset, Preset
 
 
 class Algebra:
@@ -53,7 +53,7 @@ class Algebra:
         *args: Any,
         config: AlgebraConfig | Preset | None = None,
         presentation: PresentationConfig | None = None,
-        blades: BladeConvention | None = None,
+        blades: BladeConvention | BladePreset | None = None,
         notation: Notation | None = None,
         local_names: LocalNamePolicy | None = None,
         display_order: DisplayOrder | None = None,
@@ -90,6 +90,7 @@ class Algebra:
 
         if presentation is not None:
             base_presentation = _require_presentation(presentation)
+        blades = _resolve_blades(blades, self._numeric.gram)
         self._default_presentation = _override_presentation(
             base_presentation,
             blades=blades,
@@ -178,8 +179,11 @@ class Algebra:
             model=self._model,
         )
 
-    def with_blades(self, blades: BladeConvention) -> Algebra:
-        return self.with_presentation(self.presentation.with_blades(blades))
+    def with_blades(self, blades: BladeConvention | BladePreset) -> Algebra:
+        resolved = _resolve_blades(blades, self._numeric.gram)
+        if resolved is None:  # pragma: no cover - _resolve_blades preserves None only for constructor use
+            raise TypeError("blades must be a BladeConvention or a resolvable blade preset")
+        return self.with_presentation(self.presentation.with_blades(resolved))
 
     def with_notation(self, notation: Notation) -> Algebra:
         return self.with_presentation(self.presentation.with_notation(notation))
@@ -559,6 +563,18 @@ def _override_presentation(
             raise TypeError("display must be a DisplayPolicy")
         result = result.with_display(display)
     return result
+
+
+def _resolve_blades(value: BladeConvention | BladePreset | None, gram: Any) -> BladeConvention | None:
+    if value is None or isinstance(value, BladeConvention):
+        return value
+    resolve = getattr(value, "resolve", None)
+    if callable(resolve):
+        result = resolve(gram)
+        if not isinstance(result, BladeConvention):
+            raise TypeError("blade preset resolve() must return a BladeConvention")
+        return result
+    raise TypeError("blades must be a BladeConvention or a resolvable blade preset")
 
 
 class Multivector:

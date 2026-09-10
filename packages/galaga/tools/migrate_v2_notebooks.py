@@ -31,6 +31,7 @@ MIGRATED_NOTEBOOKS = (
     "cga/lengyel_cga_transformations.py",
     "cga/reflections_and_inversions.py",
     "galaga_v2/algebra_construction.py",
+    "galaga_v2/preset_namespaces.py",
     "galaga_v2/eager_values_and_expressions.py",
     "galaga_v2/presentation_contexts.py",
     "galaga_v2/custom_functional_notation.py",

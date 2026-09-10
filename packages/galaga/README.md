@@ -91,18 +91,31 @@ null_plane = Algebra(
 Complete presets configure numeric and presentation choices together:
 
 ```python
-from galaga import Algebra, p_cga, p_lengyel_cga, p_pga, p_rga, p_sta
+from galaga import Algebra, presets
 
-sta = Algebra(config=p_sta("mostly-minus"))
-pga = Algebra(config=p_pga(spatial_dim=3))
-cga = Algebra(config=p_cga(spatial_dim=3, frame="null"))
-lengyel_cga = Algebra(config=p_lengyel_cga())
-rga = Algebra(config=p_rga(spatial_dim=3))
+sta = Algebra(config=presets.sta("mostly-minus"))
+pga = Algebra(config=presets.pga(spatial_dim=3))
+cga = Algebra(config=presets.cga(spatial_dim=3, frame="null"))
+lengyel_cga = Algebra(config=presets.lengyel_cga())
+rga = Algebra(config=presets.rga(spatial_dim=3))
 ```
 
 `config=` owns the whole algebra definition. The lower-level `presentation=`,
 `blades=`, `notation=`, `local_names=`, `display_order=`, and `display=`
 parameters permit deliberate overrides when constructing an algebra directly.
+
+The older `p_*` spellings remain available as compatibility names. New code
+can select only a blade vocabulary when the metric is specified separately:
+
+```python
+sta = Algebra(1, 3, blades=presets.blades.sta())
+named_sta = Algebra(3, 1, blades=presets.blades.sta(sigmas=True, pseudovectors=True))
+```
+
+Metric-aware STA names are derived from the algebra's actual ordered metric;
+unsupported non-diagonal or non-unit metrics are rejected. A blade preset
+changes names and signed aliases only—it does not change the Gram matrix or
+install model metadata.
 
 ### Native-null conformal model
 

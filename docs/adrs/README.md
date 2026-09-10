@@ -142,6 +142,7 @@ helps future contributors understand why certain choices were made.
 | [126](126-align-static-types-with-existing-numeric-contracts.md) | Align Static Types with Existing Numeric Contracts | Accepted |
 | [127](127-renderable-native-bilinear-form-tables.md) | Renderable Native Bilinear Form Tables | Accepted |
 | [128](128-wedge-product-tables-and-grade-colours.md) | Wedge Product Tables and Grade Colours | Accepted |
+| [129](129-concise-complete-and-resolvable-blade-presets.md) | Concise Complete and Resolvable Blade Presets | Accepted |
 
 ## Creating New ADRs
 

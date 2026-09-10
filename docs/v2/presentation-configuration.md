@@ -288,15 +288,23 @@ algebra is not permanently in a hidden preset mode.
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |
 | `ExteriorPreset(n)` | All-zero Gram matrix | Explicit wedge labels |
 
-Ergonomic `p_*` functions return these preset objects; they do not construct a
-second kind of configuration.
+The concise `presets.*` functions are preferred for new code; the ergonomic
+`p_*` functions remain compatibility spellings and return the same preset
+objects. They do not construct a second kind of configuration.
 
 ```python
-from galaga import Algebra, Notation, p_cga
+from galaga import Algebra, Notation, presets
 
-algebra = Algebra(config=p_cga(3))
-teaching = Algebra(config=p_cga(3), notation=Notation("teaching"))
+algebra = Algebra(config=presets.cga(3))
+teaching = Algebra(config=presets.cga(3), notation=Notation("teaching"))
+named_sta = Algebra(1, 3, blades=presets.blades.sta(sigmas=True))
 ```
+
+Blade recipes are resolved only after the target algebra's Gram matrix exists.
+This lets metric-derived STA names use the actual ordered unit signature and
+reject unsupported off-diagonal or scaled metrics. A blade recipe changes the
+blade convention only; it does not change the Gram matrix, model, notation,
+display order, or local-name policy.
 
 Supplying `config=` together with `gram=`, a signature, or positional metric
 arguments is an error because it would define the numeric algebra twice.

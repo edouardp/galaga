@@ -3,8 +3,9 @@
 from __future__ import annotations
 
 import math
+from collections.abc import Sequence
 from dataclasses import dataclass
-from typing import Literal, Protocol
+from typing import Any, Literal, Protocol
 
 from .blades import (
     BladeConvention,
@@ -13,6 +14,7 @@ from .blades import (
     complex_blade_convention,
     euclidean_blade_convention,
     exterior_blade_convention,
+    indexed_blade_convention,
     lengyel_cga_blade_convention,
     lengyel_cga_display_order,
     null_cga_blade_convention,
@@ -40,6 +42,97 @@ class Preset(Protocol):
     def build(self) -> AlgebraConfig:
         """Expand the preset into a complete immutable configuration."""
         ...
+
+
+@dataclass(frozen=True, slots=True)
+class BladePreset:
+    """A blade-vocabulary recipe resolved against one algebra's Gram matrix."""
+
+    kind: str
+    dimension: int | None = None
+    options: tuple[tuple[str, Any], ...] = ()
+
+    def resolve(self, gram: Sequence[Sequence[float]]) -> BladeConvention:
+        """Build a concrete convention after checking the target metric."""
+        matrix = tuple(tuple(float(value) for value in row) for row in gram)
+        dimension = len(matrix)
+        if any(len(row) != dimension for row in matrix):
+            raise ValueError("the algebra Gram matrix must be square")
+        if self.dimension is not None and self.dimension != dimension:
+            raise ValueError(f"blade preset {self.kind!r} requires dimension {self.dimension}, got {dimension}")
+        options = dict(self.options)
+        if self.kind == "indexed":
+            return indexed_blade_convention(dimension, **options)
+        if self.kind == "euclidean":
+            return euclidean_blade_convention(dimension)
+        if self.kind == "exterior":
+            return exterior_blade_convention(dimension)
+        if self.kind == "pga":
+            return pga_blade_convention(dimension - 1)
+        if self.kind == "cga":
+            frame = options.get("frame", "null")
+            _validate_cga_frame_metric(matrix, frame)
+            return (
+                null_cga_blade_convention(dimension - 2)
+                if frame == "null"
+                else orthogonal_cga_blade_convention(dimension - 2)
+            )
+        if self.kind == "rga":
+            return rga_blade_convention()
+        if self.kind == "complex":
+            return complex_blade_convention()
+        if self.kind == "quaternion":
+            return quaternion_blade_convention()
+        if self.kind == "sta":
+            if dimension != 4:
+                raise ValueError(f"blade preset 'sta' requires dimension 4, got {dimension}")
+            if options.get("sigmas", False) or options.get("pseudovectors", False):
+                signature = _unit_diagonal_signature(matrix)
+                return spacetime_blade_convention(signature=signature, **options)
+            return spacetime_blade_convention()
+        raise ValueError(f"unknown blade preset kind {self.kind!r}")
+
+
+class _BladePresets:
+    """Namespace of independently selectable blade-vocabulary recipes."""
+
+    def indexed(self, dimension: int, **options: Any) -> BladePreset:
+        _validate_spatial_dim(dimension, name="dimension")
+        return BladePreset("indexed", dimension, tuple(sorted(options.items())))
+
+    def euclidean(self, dimension: int = 3) -> BladePreset:
+        return BladePreset("euclidean", dimension)
+
+    def sta(self, *, sigmas: bool = False, pseudovectors: bool = False) -> BladePreset:
+        _require_bool("sigmas", sigmas)
+        _require_bool("pseudovectors", pseudovectors)
+        return BladePreset("sta", 4, (("sigmas", sigmas), ("pseudovectors", pseudovectors)))
+
+    def pga(self, spatial_dim: int = 3) -> BladePreset:
+        _validate_spatial_dim(spatial_dim)
+        return BladePreset("pga", spatial_dim + 1)
+
+    def cga(self, spatial_dim: int = 3, *, frame: Literal["null", "orthogonal"] = "null") -> BladePreset:
+        _validate_spatial_dim(spatial_dim)
+        if frame not in {"null", "orthogonal"}:
+            raise ValueError("CGA frame must be 'null' or 'orthogonal'")
+        return BladePreset("cga", spatial_dim + 2, (("frame", frame),))
+
+    def rga(self) -> BladePreset:
+        return BladePreset("rga", 4)
+
+    def complex(self) -> BladePreset:
+        return BladePreset("complex", 2)
+
+    def quaternion(self) -> BladePreset:
+        return BladePreset("quaternion", 3)
+
+    def exterior(self, dimension: int = 3) -> BladePreset:
+        _validate_spatial_dim(dimension, name="dimension")
+        return BladePreset("exterior", dimension)
+
+
+blades = _BladePresets()
 
 
 @dataclass(frozen=True, slots=True)
@@ -298,6 +391,19 @@ def p_exterior(dimension: int = 3) -> ExteriorPreset:
     return ExteriorPreset(dimension)
 
 
+# Short names are the canonical spelling for new code. The p_* functions stay
+# available for compatibility with the a3 API.
+euclidean = p_euclidean
+sta = p_sta
+pga = p_pga
+cga = p_cga
+rga = p_rga
+lengyel_cga = p_lengyel_cga
+complex = p_complex
+quaternion = p_quaternion
+exterior = p_exterior
+
+
 def _presentation(
     blades: BladeConvention,
     *,
@@ -341,7 +447,46 @@ def _validate_spatial_dim(spatial_dim: int, *, name: str = "spatial_dim") -> Non
         raise ValueError(f"{name} must be a positive integer")
 
 
+def _require_bool(name: str, value: Any) -> None:
+    if not isinstance(value, bool):
+        raise TypeError(f"{name} must be a boolean")
+
+
+def _unit_diagonal_signature(gram: tuple[tuple[float, ...], ...]) -> tuple[int, ...]:
+    """Return an ordered STA signature, rejecting non-diagonal metrics."""
+    for row, values in enumerate(gram):
+        for column, value in enumerate(values):
+            if row != column and value != 0.0:
+                raise ValueError("metric-aware STA blade names require a diagonal Gram matrix")
+    diagonal = tuple(gram[index][index] for index in range(len(gram)))
+    if any(value not in (-1.0, 1.0) for value in diagonal):
+        raise ValueError("metric-aware STA blade names require unit diagonal entries (+1 or -1)")
+    return tuple(int(value) for value in diagonal)
+
+
+def _validate_cga_frame_metric(gram: tuple[tuple[float, ...], ...], frame: str) -> None:
+    """Reject a CGA naming frame that would misdescribe the target metric."""
+    if frame not in {"null", "orthogonal"}:
+        raise ValueError("CGA frame must be 'null' or 'orthogonal'")
+    spatial_dim = len(gram) - 2
+    if spatial_dim < 1:
+        raise ValueError("CGA blade presets require at least one spatial dimension")
+    for row in range(len(gram)):
+        for column, value in enumerate(gram[row]):
+            if row != column and value != 0.0 and {row, column} != {spatial_dim, spatial_dim + 1}:
+                raise ValueError("blade preset CGA frame is incompatible with the target Gram matrix")
+    diagonal = tuple(gram[index][index] for index in range(len(gram)))
+    if any(value != 1.0 for value in diagonal[:spatial_dim]):
+        raise ValueError("blade preset CGA frame requires unit Euclidean spatial entries")
+    if frame == "null":
+        if diagonal[-2:] != (0.0, 0.0) or gram[-2][-1] == 0.0:
+            raise ValueError("blade preset CGA null frame requires a nonzero null-pair metric")
+    elif diagonal[-2:] != (1.0, -1.0) or gram[-2][-1] != 0.0:
+        raise ValueError("blade preset CGA orthogonal frame requires a (+1, -1) pair")
+
+
 __all__ = [
+    "BladePreset",
     "CGAPreset",
     "ComplexPreset",
     "EuclideanPreset",
@@ -352,6 +497,13 @@ __all__ = [
     "Preset",
     "QuaternionPreset",
     "SpacetimePreset",
+    "blades",
+    "cga",
+    "complex",
+    "euclidean",
+    "exterior",
+    "lengyel_cga",
+    "pga",
     "p_cga",
     "p_complex",
     "p_euclidean",
@@ -361,4 +513,7 @@ __all__ = [
     "p_quaternion",
     "p_rga",
     "p_sta",
+    "quaternion",
+    "rga",
+    "sta",
 ]
