@@ -12,9 +12,18 @@ def _():
     import numpy as np
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, presets, scalar_product
+    from galaga import Algebra, DisplayPolicy, metric_inner_product, presets, scalar_product
 
-    return Algebra, DisplayPolicy, gm, mo, np, presets, scalar_product
+    return (
+        Algebra,
+        DisplayPolicy,
+        gm,
+        metric_inner_product,
+        mo,
+        np,
+        presets,
+        scalar_product,
+    )
 
 
 @app.cell(hide_code=True)
@@ -68,7 +77,7 @@ def _(mo):
 
     Try predicting the pairing of $a=2e_1+e_3$ and $b=e_1+e_2-e_3$ before
     moving the slider. The calculation below checks the coordinate formula
-    against Galaga's scalar product.
+    against Galaga's `metric_inner_product`.
     """)
     return
 
@@ -81,7 +90,7 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, metric_slider, np, scalar_product):
+def _(Algebra, DisplayPolicy, metric_inner_product, metric_slider, np):
     pairing = metric_slider.value
     oblique = Algebra(
         gram=[[1, 0, pairing], [0, 1, 0], [pairing, 0, 1]],
@@ -91,7 +100,7 @@ def _(Algebra, DisplayPolicy, metric_slider, np, scalar_product):
     vector_a = 2 * e1 + e3
     vector_b = e1 + e2 - e3
     coordinate_pairing = float(np.array([2, 0, 1]) @ oblique.gram @ np.array([1, 1, -1]))
-    algebra_pairing = scalar_product(vector_a, vector_b)
+    algebra_pairing = metric_inner_product(vector_a, vector_b)
     np.testing.assert_allclose(float(algebra_pairing), coordinate_pairing, atol=1e-12, rtol=0)
     return algebra_pairing, coordinate_pairing, e1, e3, oblique
 
@@ -100,17 +109,17 @@ def _(Algebra, DisplayPolicy, metric_slider, np, scalar_product):
 def _(algebra_pairing, coordinate_pairing, gm, oblique):
     _table = oblique.bilinear_form_table()
     gm.md(rt"""
-{_table:block}
+    {_table:block}
 
-Coordinate calculation: $a\cdot b={coordinate_pairing:g}$.
+    Coordinate calculation: $a\cdot b={coordinate_pairing:g}$.
 
-Computed algebra expression:
+    Computed algebra expression:
 
-{algebra_pairing:block}
+    {algebra_pairing:block}
 
-A Gram matrix represents a bilinear form on **vectors**. It is not a
-matrix representation of multiplication by an arbitrary multivector.
-""")
+    A Gram matrix represents a bilinear form on **vectors**. It is not a
+    matrix representation of multiplication by an arbitrary multivector.
+    """)
     return
 
 
@@ -142,23 +151,75 @@ def _(e1, e3, euclidean, gm, np, oblique, scalar_product):
     np.testing.assert_allclose(geometric.data, (symmetric_part + wedge).data, atol=1e-12, rtol=0)
     assert wedge_table.latex() == euclidean.wedge_product_table(color=True).latex()
     gm.md(rt"""
-{wedge_table:block}
+    {wedge_table:block}
 
-## The geometric product combines both tables
+    ## The geometric product combines both tables
 
-For vectors, $ab=a\cdot b+a\wedge b$. Equivalently,
+    For vectors, $ab=a\cdot b+a\wedge b$. Equivalently,
 
-$$a\cdot b=\tfrac12(ab+ba),\qquad a\wedge b=\tfrac12(ab-ba).$$
+    $$a\cdot b=\tfrac12(ab+ba),\qquad a\wedge b=\tfrac12(ab-ba).$$
 
-Here the computed geometric product and exterior product are:
+    Here the computed geometric product and exterior product are:
 
-{geometric:block}
+    {geometric:block}
 
-{wedge:block}
+    {wedge:block}
 
-The scalar part follows the slider. The exterior blade stays the same.
-In an oblique basis, $e_1e_3$ therefore need not equal $e_1\wedge e_3$.
-""")
+    The scalar part follows the slider. The exterior blade stays the same.
+    In an oblique basis, $e_1e_3$ therefore need not equal $e_1\wedge e_3$.
+    Here `scalar_product(e1, e3)` explicitly extracts the scalar part of $e_1e_3$.
+    """)
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Two scalar-valued pairings: why reversion matters
+
+    Galaga distinguishes scalar extraction from the metric-induced pairing
+    on multivectors:
+
+    $$\operatorname{scalar\_product}(A,B)=\langle AB\rangle_0,$$
+    $$\operatorname{metric\_inner\_product}(A,B)=\langle A\widetilde{B}\rangle_0.$$
+
+    Reversion reverses the order of vector factors. It leaves a vector
+    unchanged, so the two operations agree for all vector pairings in the
+    Gram table and for $a\cdot b$ above. A bivector changes sign under
+    reversion, so its two self-pairings have opposite signs.
+
+    Let $B=e_1\wedge e_3$ in our slider-controlled metric. Its induced metric
+    pairing is the determinant of the Gram matrix restricted to this pair:
+
+    $$\langle B\widetilde{B}\rangle_0=G_{11}G_{33}-G_{13}^2.$$
+
+    At $t=0$, this gives $+1$, whereas $\langle B^2\rangle_0=-1$.
+    Move the slider to see both values change. Positivity here follows from
+    our positive-definite metric; the metric-induced pairing can be negative
+    or zero for other metrics.
+    """)
+    return
+
+
+@app.cell
+def _(e1, e3, gm, metric_inner_product, np, oblique, scalar_product):
+    pairing_blade = (e1 ^ e3).named("B")
+    blade_scalar_pairing = scalar_product(pairing_blade, pairing_blade)
+    blade_metric_pairing = metric_inner_product(pairing_blade, pairing_blade)
+    restricted_determinant = float(np.linalg.det(oblique.gram[np.ix_([0, 2], [0, 2])]))
+    np.testing.assert_allclose(float(blade_metric_pairing), restricted_determinant, atol=1e-12, rtol=0)
+    assert blade_scalar_pairing == -blade_metric_pairing
+    gm.md(rt"""
+    Scalar part of $B^2$:
+
+    {blade_scalar_pairing:block}
+
+    Metric-induced pairing of $B$ with itself:
+
+    {blade_metric_pairing:block}
+
+    The computed restricted Gram determinant is {restricted_determinant:g}.
+    """)
     return
 
 
@@ -192,12 +253,12 @@ def _(euclidean, gm):
     bivector_vector = (_y ^ _z) ^ _x
     assert vector_bivector == bivector_vector
     gm.md(rt"""
-{full_wedge:block}
+    {full_wedge:block}
 
-{vector_bivector:block}
+    {vector_bivector:block}
 
-{bivector_vector:block}
-""")
+    {bivector_vector:block}
+    """)
     return
 
 
@@ -219,30 +280,30 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, gm, np, presets, scalar_product):
+def _(Algebra, gm, metric_inner_product, np, presets):
     pga = Algebra(config=presets.pga())
     cga = Algebra(config=presets.cga())
     pga_rank = int(np.linalg.matrix_rank(pga.gram))
     cga_rank = int(np.linalg.matrix_rank(cga.gram))
     _o, _infinity = cga.basis_vectors()[-2:]
-    null_origin_square = scalar_product(_o, _o)
-    null_infinity_square = scalar_product(_infinity, _infinity)
-    null_pair_product = scalar_product(_o, _infinity)
+    null_origin_square = metric_inner_product(_o, _o)
+    null_infinity_square = metric_inner_product(_infinity, _infinity)
+    null_pair_product = metric_inner_product(_o, _infinity)
     _pga_table, _cga_table = pga.bilinear_form_table(), cga.bilinear_form_table()
     gm.md(rt"""
-**PGA:** rank {pga_rank:g} of {pga.n:g}.
+    **PGA:** rank {pga_rank:g} of {pga.n:g}.
 
-{_pga_table:block}
+    {_pga_table:block}
 
-**CGA:** rank {cga_rank:g} of {cga.n:g}.
+    **CGA:** rank {cga_rank:g} of {cga.n:g}.
 
-{_cga_table:block}
+    {_cga_table:block}
 
-CGA Summary
-$$
-e_o^2 = {null_origin_square!s},\quad e_\infty^2={null_infinity_square!s},\quad e_o\cdot e_\infty={null_pair_product!s}.
-$$
-""")
+    CGA Summary
+    $$
+    e_o^2 = {null_origin_square!s},\quad e_\infty^2={null_infinity_square!s},\quad e_o\cdot e_\infty={null_pair_product!s}.
+    $$
+    """)
     return
 
 
@@ -293,10 +354,10 @@ def _(Algebra, full_toggle, geometry_selector, gm, presets):
     _bilinear = selected_algebra.bilinear_form_table()
     selected_wedge = selected_algebra.wedge_product_table(full=full_toggle.value, colour=True)
     gm.md(rt"""
-{_bilinear:block}
+    {_bilinear:block}
 
-{selected_wedge:block}
-""")
+    {selected_wedge:block}
+    """)
     return
 
 
@@ -316,6 +377,8 @@ def _(mo):
     Continue with [compact matrices in an oblique basis](../matrix/general_gram_compact_foundations.py)
     or [CGA from its Gram matrix](../matrix/cga_via_gram_matrix.py).
     For independent vocabulary choices, see [preset namespaces](preset_namespaces.py).
+    To choose between scalar pairings, contractions, and grade-difference
+    products, continue with [which inner product?](inner_products.py).
     """)
     return
 

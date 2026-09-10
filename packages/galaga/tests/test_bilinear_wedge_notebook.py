@@ -49,10 +49,28 @@ def test_coordinate_pairing_and_geometric_decomposition_follow_slider(lesson):
     symmetric = (a * b + b * a) / 2
     assert float(symmetric) == pytest.approx(values["coordinate_pairing"])
     assert float(symmetric) == pytest.approx(float(values["algebra_pairing"]))
+    assert values["algebra_pairing"].expr.operation_id == "metric_inner_product"
+    assert values["symmetric_part"].expr.operation_id == "scalar_product"
     x, z = values["e1"], values["e3"]
     np.testing.assert_allclose(values["wedge"].data, ((x * z - z * x) / 2).data, atol=1e-12)
     np.testing.assert_allclose(values["geometric"].data, (values["symmetric_part"] + values["wedge"]).data, atol=1e-12)
     assert values["wedge_table"].latex() == values["euclidean"].wedge_product_table(colour=True).latex()
+
+
+def test_bivector_pairings_follow_reversion_and_restricted_metric(lesson):
+    _, values, _ = lesson
+    blade = values["pairing_blade"]
+    scalar = values["blade_scalar_pairing"]
+    metric = values["blade_metric_pairing"]
+    assert scalar.expr.operation_id == "scalar_product"
+    assert metric.expr.operation_id == "metric_inner_product"
+    np.testing.assert_allclose(scalar.data, (blade * blade).data, atol=1e-12)
+    np.testing.assert_allclose(metric.data, (blade * ~blade).data, atol=1e-12)
+    gram = values["oblique"].gram
+    expected = gram[0, 0] * gram[2, 2] - gram[0, 2] * gram[2, 0]
+    assert float(metric) == pytest.approx(expected)
+    assert values["restricted_determinant"] == pytest.approx(expected)
+    assert float(scalar) == pytest.approx(-expected)
 
 
 def test_full_table_and_selected_table_entries_match_native_products(lesson):
