@@ -22,10 +22,13 @@ algebra exists would make the convention silently wrong for another metric.
 
 ## Decision
 
-Keep `galaga.presets` as the existing public module and add concise aliases:
-`euclidean`, `sta`, `pga`, `cga`, `rga`, `lengyel_cga`, `complex`,
-`quaternion`, and `exterior`. The existing `p_*` names remain compatibility
-spellings and currently have identical behavior. Complete presets still build
+Expose `galaga.presets` as a package whose advertised namespace contains only
+the concise complete preset factories—`euclidean`, `sta`, `pga`, `cga`, `rga`,
+`lengyel_cga`, `complex`, `quaternion`, and `exterior`—plus `blades`. The
+implementation submodule retains compatibility attributes such as `p_cga` and
+`CGAPreset` for explicit legacy imports, but they are resolved lazily and
+omitted from `dir(galaga.presets)` and the preferred discovery surface.
+Complete presets still build
 the entire immutable `AlgebraConfig`: Gram definition, presentation, model,
 notation, local-name policy, and display order.
 
@@ -33,6 +36,10 @@ Expose `presets.blades` as a namespace of immutable `BladePreset` recipes.
 Recipes are resolved by the facade constructor or `with_blades()` only after
 the numeric algebra and its Gram matrix exist. `PresentationConfig` continues
 to contain concrete `BladeConvention` objects, never unresolved recipes.
+
+Expose `presets.notation` as a parallel namespace of named immutable notation
+recipes. These delegate to the canonical `Notation` constructors and can be
+passed directly to `Algebra(..., notation=presets.notation.functional())`.
 
 Blade-only recipes affect the blade convention only. They do not alter the
 metric, model metadata, notation, display order, or local-name policy unless
@@ -59,9 +66,9 @@ orthogonal conformal pair from being applied to a native-null metric.
 Users can write `Algebra(config=presets.cga(3))` and retain a compact,
 discoverable namespace, while `Algebra(1, 3, blades=presets.blades.sta())`
 makes the metric/vocabulary boundary explicit. `from galaga import presets`
-works without converting the shipped module into a package or creating an
-import-order hazard. The old spellings remain until a separate deprecation
-and removal decision.
+exposes the small advertised namespace while preserving normal module imports.
+The old spellings remain available through lazy compatibility imports until a
+separate deprecation and removal decision.
 
 Tests compare every concise complete preset with its `p_*` counterpart,
 exercise complete configuration identity, resolve plain and metric-aware STA

@@ -5,27 +5,74 @@ import pytest
 
 from galaga import Algebra, presets
 from galaga.blades import spacetime_blade_convention
+from galaga.presets import p_cga, p_complex, p_euclidean, p_exterior, p_lengyel_cga, p_pga, p_quaternion, p_rga, p_sta
 
 
 def test_concise_complete_presets_match_the_existing_factories():
-    assert presets.euclidean(2) == presets.p_euclidean(2)
-    assert presets.sta("mostly-plus") == presets.p_sta("mostly-plus")
-    assert presets.pga(2) == presets.p_pga(2)
-    assert presets.cga(2, frame="orthogonal") == presets.p_cga(2, frame="orthogonal")
-    assert presets.rga() == presets.p_rga()
-    assert presets.complex() == presets.p_complex()
-    assert presets.quaternion() == presets.p_quaternion()
-    assert presets.exterior(2) == presets.p_exterior(2)
-    assert presets.lengyel_cga() == presets.p_lengyel_cga()
+    assert presets.euclidean(2) == p_euclidean(2)
+    assert presets.sta("mostly-plus") == p_sta("mostly-plus")
+    assert presets.pga(2) == p_pga(2)
+    assert presets.cga(2, frame="orthogonal") == p_cga(2, frame="orthogonal")
+    assert presets.rga() == p_rga()
+    assert presets.complex() == p_complex()
+    assert presets.quaternion() == p_quaternion()
+    assert presets.exterior(2) == p_exterior(2)
+    assert presets.lengyel_cga() == p_lengyel_cga()
+
+
+def test_package_preset_namespace_contains_only_public_recipe_factories():
+    expected = [
+        "blades",
+        "cga",
+        "complex",
+        "euclidean",
+        "exterior",
+        "lengyel_cga",
+        "notation",
+        "pga",
+        "quaternion",
+        "rga",
+        "sta",
+    ]
+    assert dir(presets) == expected
+    assert presets.__all__ == expected
+    assert hasattr(presets, "CGAPreset")
+    assert hasattr(presets, "p_cga")
+
+
+def test_compatibility_imports_work_without_polluting_public_namespace():
+    import galaga.presets as imported
+    from galaga.presets import CGAPreset, p_cga
+
+    assert imported is presets
+    assert p_cga is imported.p_cga
+    assert CGAPreset is imported.CGAPreset
+    assert "p_cga" not in dir(imported)
+
+
+def test_notation_namespace_exposes_named_immutable_notation_recipes():
+    assert dir(presets.notation) == [
+        "default",
+        "doran_lasenby",
+        "functional",
+        "functional_short",
+        "hestenes",
+        "lengyel",
+        "lengyel_rga",
+    ]
+    assert presets.notation.__all__ == dir(presets.notation)
+    assert presets.notation.functional() == presets.notation.functional()
+    functional = presets.notation.functional()
+    assert Algebra(2, notation=functional).presentation.notation == functional
 
 
 @pytest.mark.parametrize(
     ("new", "old"),
     (
-        (presets.euclidean(3), presets.p_euclidean(3)),
-        (presets.sta(), presets.p_sta()),
-        (presets.cga(), presets.p_cga()),
-        (presets.pga(), presets.p_pga()),
+        (presets.euclidean(3), p_euclidean(3)),
+        (presets.sta(), p_sta()),
+        (presets.cga(), p_cga()),
+        (presets.pga(), p_pga()),
     ),
 )
 def test_concise_complete_presets_build_identical_algebras(new, old):

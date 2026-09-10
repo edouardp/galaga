@@ -7,7 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
-from .blades import (
+from ..blades import (
     BladeConvention,
     DisplayOrder,
     LocalNamePolicy,
@@ -26,7 +26,7 @@ from .blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
-from .presentation import (
+from ..presentation import (
     AlgebraConfig,
     AlgebraDefinition,
     DisplayPolicy,
@@ -486,17 +486,6 @@ def _validate_cga_frame_metric(gram: tuple[tuple[float, ...], ...], frame: str) 
 
 
 __all__ = [
-    "BladePreset",
-    "CGAPreset",
-    "ComplexPreset",
-    "EuclideanPreset",
-    "ExteriorPreset",
-    "LengyelCGAPreset",
-    "LengyelRGAPreset",
-    "PGAPreset",
-    "Preset",
-    "QuaternionPreset",
-    "SpacetimePreset",
     "blades",
     "cga",
     "complex",
@@ -504,16 +493,12 @@ __all__ = [
     "exterior",
     "lengyel_cga",
     "pga",
-    "p_cga",
-    "p_complex",
-    "p_euclidean",
-    "p_exterior",
-    "p_lengyel_cga",
-    "p_pga",
-    "p_quaternion",
-    "p_rga",
-    "p_sta",
     "quaternion",
     "rga",
     "sta",
 ]
+
+
+def __dir__() -> list[str]:
+    """Advertise the concise recipe surface while retaining old imports."""
+    return list(__all__)
