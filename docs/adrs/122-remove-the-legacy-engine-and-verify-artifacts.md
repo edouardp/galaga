@@ -10,6 +10,9 @@ deciders: edouard
 > after `2.0.0a4` in [ADR-130](130-retire-migration-only-api-adapters.md).
 > Historical validation checkpoints below are retained; this follow-up does
 > not declare the remaining stable-release gates complete.
+> The historical CI requirement and alpha-only no-CI scope below are superseded
+> by [ADR-131](131-local-only-stable-release-validation.md): stable validation
+> also uses an explicit local source-and-artifact gate.
 
 ## Context and problem statement
 

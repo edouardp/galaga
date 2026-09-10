@@ -20,10 +20,10 @@ echo "=== bandit ==="
 uv run bandit -r -c .bandit packages/
 
 echo "=== pip-audit ==="
-uv run pip-audit || echo "⚠️  pip-audit found issues (see above)"
+uv run pip-audit
 
 echo "=== pyrefly ==="
-uv run pyrefly check 2>&1 | tail -5 || echo "⚠️  pyrefly found type issues (see above)"
+uv run pyrefly check
 
 echo "=== rumdl ==="
 if [[ -n "$FIX" ]]; then

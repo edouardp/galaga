@@ -216,6 +216,14 @@ turns an RC into a final release. The maintainer explicitly chooses
 
 ## Quality Gates
 
+Galaga 2 uses **local validation, with no required CI**, for prereleases and
+stable releases under
+[ADR-131](adrs/131-local-only-stable-release-validation.md). A missing CI result
+is not a pass. Record commands, source revision, environment versions, results
+and reviewed exceptions in the [gate report](v2/legacy-engine-deletion-gate.md).
+Working-tree checks are preparation; the candidate gate must be rerun from a
+clean, tracked checkout before release approval.
+
 Before every release, the script enforces:
 
 - [ ] Repository release-workflow tests pass
@@ -229,6 +237,12 @@ Before every release, the script enforces:
 - [ ] CHANGELOG has been edited (placeholder removed)
 - [ ] Working tree is clean
 - [ ] Current branch is attached and tracks the intended remote branch
+
+`make validate` also runs dependency auditing and production type checking.
+Lint, audit-service and type errors return failure; warnings remain visible.
+These additional checks and the complete stable checklist below are maintainer
+prerequisites, not all enforced by `scripts/release.sh`. Do not equate a
+successful release-script test subset with the full stable gate.
 
 ### Check Built Artifacts Without Publishing
 
@@ -273,8 +287,50 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 - [ ] `make validate` passes from a clean checkout
 - [ ] Built wheels install and pass import/numeric smoke tests in clean Python
   3.11 and 3.14 environments as applicable
+- [ ] Full source suites pass on both interpreters; Python 3.11 branch coverage
+  is reviewed against the last gate, with separate Python 3.14 Marimo coverage
+- [ ] Full installed-wheel suites cover all companion packages, including
+  experimental Mermaid, with site-packages origins verified and no editable
+  runtime dependencies; Python 3.14 executes the maintained notebook gallery
+- [ ] Fresh environments pass dependency consistency and vulnerability checks;
+  unpublished local packages without advisory records are reported explicitly
+- [ ] Documentation links and copyable README examples pass their checks
+- [ ] Current benchmark results are reviewed against the archived Phase 8
+  baseline; retain the historical measurements unchanged
 - [ ] The release candidate has been installed from PyPI and reviewed before
   invoking `make release VERSION=2.0.0`
+
+### Metadata and installation guidance at the actual release
+
+Do not mark the current alpha stable during preparation. The release script
+updates versions and dependency floors, **not classifiers or README wording**.
+Make and review those stage-specific edits in a separate preparation commit
+before invoking the release command:
+
+| Release stage | Four jointly released package classifiers | Installation guidance |
+|---|---|---|
+| Alpha | `Development Status :: 3 - Alpha` | Prerelease opt-in; exact published alpha for reproducibility |
+| Beta or RC | `Development Status :: 4 - Beta` | Prerelease opt-in; exact published candidate for evaluation |
+| Final | `Development Status :: 5 - Production/Stable` | Stable install commands first; no `--pre` required |
+
+For final, update `packages/galaga/README.md`, the AnyWidget, Marimo and matrix
+READMEs, and `docs/v2/migration-guide.md`. The leading commands should become:
+
+```bash
+python -m pip install "galaga>=2.0.0,<3"
+python -m pip install "galaga-anywidget>=2.0.0,<3"
+python -m pip install "galaga-matrix>=2.0.0,<3"
+# Python 3.14+ only:
+python -m pip install "galaga-marimo>=2.0.0,<3"
+```
+
+Remove alpha-status language and update reproducibility examples to the actual
+release. Repository links may continue to target `galaga_v2` until the reviewed
+content is on `main`; do not publish links to v1 documentation. Mermaid retains
+its experimental classifier and independent version. Only edit `CHANGELOG.md`
+during the actual release. Check the rebuilt artifact metadata afterward;
+preparation artifacts carrying an already published alpha version must never
+be uploaded as replacements.
 
 ## Ongoing Custodianship
 
@@ -288,10 +344,10 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 
 | Dependency | Policy |
 |---|---|
-| numpy | Support ≥1.24. Test against latest in CI. Bump minimum only when using new features. |
+| numpy | Support ≥1.24. Record the locally tested version at each gate. Bump minimum only when using new features. |
 | marimo | Track releases. Watch for t-string API changes in `string.templatelib`. |
 | anywidget and traitlets | Track synchronized model and packaged asset compatibility in `galaga-anywidget`. |
-| Python | galaga and galaga-anywidget support 3.11+. galaga-marimo requires 3.14+. Add new versions to CI matrix when released. |
+| Python | galaga, matrix and AnyWidget support 3.11+. Marimo requires 3.14+. Run both local release targets; evaluate newer interpreters before claiming support. |
 
 ### Monitoring
 
