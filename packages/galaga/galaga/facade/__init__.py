@@ -1,9 +1,8 @@
 """Core-backed numeric and presentation facade for Galaga 2.
 
 Top-level :mod:`galaga` re-exports this manifest with exact object identity.
-This namespace remains the stable implementation owner;
-:mod:`galaga.gram_bridge` is a temporary compatibility re-export of these same
-objects. The Galaga 1 engine is no longer shipped.
+This namespace remains the stable implementation owner. The Galaga 1 engine
+and migration-only bridge and operation adapters are no longer shipped.
 """
 
 from types import MappingProxyType
@@ -74,16 +73,6 @@ from ..presets import (
     p_quaternion,
     p_rga,
     p_sta,
-)
-from ._compat import (
-    DEPRECATED_OPERATION_ALIASES,
-    GalagaDeprecationWarning,
-    involute,
-    mag2,
-    magnitude_squared,
-    norm_squared,
-    normalise,
-    normalize,
 )
 from ._numeric import (
     Algebra,
@@ -214,14 +203,12 @@ __all__ = [
     "ComplexPreset",
     "DisplayOrder",
     "DisplayPolicy",
-    "DEPRECATED_OPERATION_ALIASES",
     "EXCLUDED_PUBLIC_NAMES",
     "EuclideanPreset",
     "Expr",
     "Expression",
     "ExteriorPreset",
     "FixedCall",
-    "GalagaDeprecationWarning",
     "LengyelCGAPreset",
     "LengyelRGAPreset",
     "LeftFoldCall",
@@ -276,7 +263,6 @@ __all__ = [
     "hestenes_inner",
     "inverse",
     "indexed_blade_convention",
-    "involute",
     "is_basis_blade",
     "is_bivector",
     "is_even",
@@ -295,17 +281,12 @@ __all__ = [
     "left_weight_dual",
     "lie_bracket",
     "log",
-    "mag2",
-    "magnitude_squared",
     "meet",
     "metric_apply",
     "metric_inner_product",
     "metric_regressive_product",
     "norm",
     "norm2",
-    "norm_squared",
-    "normalise",
-    "normalize",
     "null_cga_blade_convention",
     "odd_grades",
     "op",

@@ -15,7 +15,7 @@ def _():
 def _():
     import numpy as np
     from galaga import (
-        Algebra, gp, op, grade, reverse, involute, conjugate,
+        Algebra, gp, op, grade, reverse, grade_involution, conjugate,
         dual, undual, norm, unit, inverse, exp, log,
         sandwich, squared,
         left_contraction, right_contraction,
@@ -39,7 +39,7 @@ def _():
         grade,
         hestenes_inner,
         inverse,
-        involute,
+        grade_involution,
         jordan_product,
         left_contraction,
         lie_bracket,
@@ -247,9 +247,9 @@ def _(e1, e2, reverse):
 
 
 @app.cell
-def _(e1, involute):
+def _(e1, grade_involution):
     _v = e1.name("v")
-    _r = involute(_v)
+    _r = grade_involution(_v)
     _r
     return
 

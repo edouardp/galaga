@@ -22,6 +22,7 @@ RETIRED_ROOTS = frozenset(
         "basis_blade",
         "blade_convention",
         "expr",
+        "gram_bridge",
         "latex_build",
         "latex_emit",
         "latex_nodes",

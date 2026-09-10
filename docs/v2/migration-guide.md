@@ -36,12 +36,15 @@ the lower-level choice for presentation-free numeric work.
 
 The temporary `galaga.legacy` oracle and the Galaga 1 engine are removed from
 source, wheels and source distributions. Historical observations remain
-development data. The `gram_bridge` warning adapter and temporary function
-spellings still have a separate removal milestone before stable `2.0.0`.
+development data. The final-API cleanup after `2.0.0a4` also removes the
+`gram_bridge` warning adapters and six temporary function spellings. Earlier
+alphas may still expose them; do not rely on them for stable 2.0.
 
 | Removed path family | Public replacement |
 |---|---|
 | `galaga.algebra`, `galaga.ops`, `galaga.legacy` | `galaga` or numeric-only `galaga.core` |
+| `galaga.gram_bridge`, `galaga.gram_bridge.facade` | `galaga` or `galaga.facade` |
+| `galaga.gram_bridge.catalog` | `galaga.facade.catalog` |
 | `galaga.basis_blade`, `galaga.blade_convention` | `galaga.blades` |
 | `galaga.expr`, `galaga.symbolic`, `galaga.lazy`, `galaga.symbolic_core` | `galaga.expression` and eager facade operations |
 | `galaga.notation` | Immutable `galaga.presentation` |
@@ -71,6 +74,28 @@ implementations. Project-local notation can always use an import alias:
 ```python
 from galaga import doran_lasenby_inner as ip
 ```
+
+### Replace removed migration spellings
+
+The warning period for these function spellings has ended in the current
+source. Explicit imports now fail rather than dispatching through an adapter:
+
+| Removed name | Use instead |
+|---|---|
+| `involute` | `grade_involution` |
+| `mag2`, `magnitude_squared`, `norm_squared` | `norm2` |
+| `normalise`, `normalize` | `unit` |
+
+This includes `galaga.core.involute`, not just the facade spelling. The
+adapter-only `GalagaDeprecationWarning` and `DEPRECATED_OPERATION_ALIASES`
+exports are gone too. `unit(a)` still normalizes by the metric-derived
+magnitude; it is not an inverse. The canonical mathematical functions and
+their expression operation IDs have not changed.
+
+Permanent aliases and the explicit `p_*` preset compatibility imports remain.
+See the [compatibility policy](compatibility-shims.md) for the complete boundary.
+
+### Choose an explicit inner product
 
 There is no unqualified `inner_product` or `ip` export because the Doran–
 Lasenby, Hestenes, metric, scalar, and contraction operations disagree outside

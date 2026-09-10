@@ -212,7 +212,8 @@ def test_canonical_calls_do_not_remap_through_legacy_spellings(
         raise AssertionError("legacy operation remapping")
 
     monkeypatch.setattr(facade, operation, canonical)
-    monkeypatch.setattr(facade, alias, reject_alias)
+    # Include retired spellings as deliberate mutation probes, not live APIs.
+    monkeypatch.setattr(facade, alias, reject_alias, raising=False)
 
     assert context.call(operation, value) is value
     assert len(observed) == 1 and observed[0] is value

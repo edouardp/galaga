@@ -143,6 +143,7 @@ helps future contributors understand why certain choices were made.
 | [127](127-renderable-native-bilinear-form-tables.md) | Renderable Native Bilinear Form Tables | Accepted |
 | [128](128-wedge-product-tables-and-grade-colours.md) | Wedge Product Tables and Grade Colours | Accepted |
 | [129](129-concise-complete-and-resolvable-blade-presets.md) | Concise Complete and Resolvable Blade Presets | Accepted |
+| [130](130-retire-migration-only-api-adapters.md) | Retire Migration-Only API Adapters | Accepted |
 
 ## Creating New ADRs
 

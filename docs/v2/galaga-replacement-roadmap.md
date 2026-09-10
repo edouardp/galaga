@@ -38,13 +38,16 @@ product-table internals.
 | Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
 | Presentation configuration | Immutable independent components, signed conventions, complete presets, facade lookup/factories, and context-local overrides |
 | Outer layers | Optional expression provenance, semantic rendering, compatibility policy, and companion-package integration |
-| Top-level cutover | `galaga` exactly re-exports the facade; Galaga 1 is isolated under the temporary `galaga.legacy` oracle |
+| Top-level cutover | `galaga` exactly re-exports the facade; the legacy engine and migration-only API adapters are removed |
 | Release evidence | Guarded full suites, clean Python 3.11 wheel install, Python 3.14 Marimo execution, and a layer-separated performance baseline |
 
 ## Stable-release gate and post-2.0 work
 
-Only removal of the retained legacy engine and migration-only paths is part of
-the stable `2.0.0` cutover gate. The numeric and performance items below are
+The legacy engine and migration-only paths are removed, with API retirement
+completed after `2.0.0a4` in
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Clean-artifact
+validation and release-candidate review still gate stable `2.0.0`.
+The numeric and performance items below are
 post-2.0 improvements unless a release-candidate regression demonstrates that
 one is required for correctness.
 
@@ -85,8 +88,8 @@ The architecture and phased implementation are specified in the
 `galaga.facade` values wrap core values, expression provenance remains an
 optional outer-layer concern, and presentation, semantic rendering,
 compatibility helpers, and companion integrations use public protocols.
-Top-level `galaga` now exactly re-exports the facade. The retained v1 engine is
-an explicit guarded `galaga.legacy` oracle scheduled for Phase 9 removal.
+Top-level `galaga` now exactly re-exports the facade. Phase 9 has removed the
+v1 engine, `galaga.legacy`, the bridge and temporary operation aliases.
 
 The completed Phase 1 matrix records the policy for API elements that are
 numeric-adjacent but not part of the core metric engine:
@@ -115,8 +118,8 @@ and `inverse`. They belong only in a future model-specific API that supplies
 useful domain meaning or validation. Compatibility aliases such as `wedge`,
 `rev`, and `normalize` likewise add vocabulary rather than numeric capability.
 They are audited rather than recreated mechanically: users can select concise
-local names with ordinary import aliases, and only migration-critical spellings
-receive temporary facade shims. The numeric core does not duplicate them.
+local names with ordinary import aliases. Permanent aliases remain; temporary
+spellings such as `normalize` are now removed in favor of `unit`.
 
 An unqualified `ip` or `inner_product` should not become a permanent facade
 choice. If needed for migration, it should be a deprecated adapter. Users who

@@ -71,15 +71,15 @@ entries or implementations:
 | `rev` | `reverse` | retained |
 | `sw` | `sandwich` | retained |
 | `wedge` | `outer_product` | retained |
-| `involute` | `grade_involution` | compatibility through Phase 9 |
 
 `galaga.facade.OPERATION_ALIASES` is the executable facade alias manifest.
 
 The v1 spellings `mag2`, `magnitude_squared`, `norm_squared`, `normalise`, and
-`normalize`, together with `involute`, are temporary Phase 9 adapters in
-`galaga.facade`. They emit the ledgered `GalagaDeprecationWarning` at the
-callsite and dispatch through the canonical operation, so expression
-provenance retains the canonical ID. The ambiguous `inner_product` and `ip`
+`normalize`, together with `involute`, are removed after `2.0.0a4` under the
+Phase 9 retirement policy. Their replacements are `norm2`, `unit` and
+`grade_involution`; the core `involute` alias is removed as well. The unused
+warning category and deprecated-alias runtime manifest are no longer exported.
+Canonical operations retain their expression IDs. The ambiguous `inner_product` and `ip`
 names are absent and attribute access explains the explicit inner-product
 choices; they are not facade catalog operations.
 
@@ -178,17 +178,17 @@ implemented in `galaga.expression`; the 59 legacy adapters remain Phase 9
 compatibility work.
 
 The complete `SUBMODULE_DISPOSITIONS` inventory records 36 transitional import
-paths. It is distinct from `SUPPORTED_SUBMODULES`, whose 15 live v2 entry
+paths. It is distinct from `SUPPORTED_SUBMODULES`, whose 12 live v2 entry
 points are `blades`, `cga`, `core`, `display`, `expression`, `facade`,
-`facade.catalog`, `names`, `presentation`, `presets`, `rga`, `rendering`, and
-the three temporary `gram_bridge` paths, all under `galaga`.
+`facade.catalog`, `names`, `presentation`, `presets`, `rga` and `rendering`,
+all under `galaga`.
 
-The other 21 paths belong to the explicit `LEGACY_ONLY_SUBMODULES` inventory:
+The other 24 paths belong to the explicit `LEGACY_ONLY_SUBMODULES` inventory:
 the old engine, blade and notation implementation, expression implementation,
-five `latex_*` helpers, symbolic decorators, and legacy oracle paths. Their
-dispositions and current file presence remain checked without importing them.
-Some helpers import successfully in isolation but defer use of v1 until a
-function call; that is not evidence of v2 support.
+five `latex_*` helpers, symbolic decorators, legacy oracle paths and the three
+retired `gram_bridge` paths. Their dispositions and absence remain checked
+without importing them. Historical archive importability is not a promise of
+current support.
 
 The supported prerelease oracle is still `galaga.legacy`, with
 `galaga.legacy.render` and `galaga.legacy.simplify` avoiding collisions with

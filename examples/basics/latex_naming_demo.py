@@ -15,7 +15,7 @@ def _():
 def _():
     import numpy as np
     from galaga import (
-        Algebra, gp, op, grade, reverse, involute, conjugate,
+        Algebra, gp, op, grade, reverse, grade_involution, conjugate,
         dual, norm, unit, inverse, exp, log, sandwich, squared,
         left_contraction, commutator, even_grades, odd_grades,
     )

@@ -26,6 +26,8 @@ RENAMED = {
     "test_v1_and_v2_values_do_not_mix_implicitly": "test_foreign_value_domains_do_not_mix_implicitly",
     "test_explicit_v1_numeric_aliases_remain_the_same_function_objects": "test_archived_v1_aliases_do_not_define_the_public_v2_catalog",
     "test_legacy_numeric_constructor_guard_is_active": "test_numeric_values_use_core_storage_without_importing_legacy",
+    "test_core_facade_and_bridge_import_in_either_order": "test_core_facade_and_public_api_import_in_either_order",
+    "test_gram_bridge_reexports_the_facade_objects_without_a_fork": "test_public_api_reexports_the_facade_objects_without_a_fork",
 }
 
 
@@ -123,7 +125,7 @@ def test_finder_rejects_retired_roots_and_descendants_before_loading(root, suffi
         "galaga.names",
         "galaga._latex_symbols",
         "galaga.facade",
-        "galaga.gram_bridge",
+        "galaga.gram_bridge_extra",
         "galaga.legacy_notes",
         "galaga.symbolic_core_extra",
         "other.galaga.legacy",
@@ -135,7 +137,7 @@ def test_finder_passes_unrelated_and_live_modules_to_the_next_loader(name):
     boundary.assert_no_legacy_modules({name: None})
 
 
-@pytest.mark.parametrize("name", ("galaga.legacy", "galaga.symbolic_core.expr"))
+@pytest.mark.parametrize("name", ("galaga.legacy", "galaga.symbolic_core.expr", "galaga.gram_bridge.catalog"))
 @pytest.mark.parametrize("value", (None, object()))
 def test_cache_checks_reject_preloaded_modules_including_failed_import_sentinels(name, value):
     modules = {name: value, "galaga.core": object()}
@@ -295,15 +297,14 @@ def test_real_pytest_refuses_preloaded_modules_and_new_construction_exemptions(t
     assert result.returncode != 0 and message in result.stdout + result.stderr
 
 
-def test_real_pytest_accepts_public_core_facade_and_bridge_values_without_legacy(tmp_path):
+def test_real_pytest_accepts_public_core_and_facade_values_without_legacy(tmp_path):
     source = """
 import galaga as ga
 import galaga.core as core
 import galaga.facade as facade
-import galaga.gram_bridge as bridge
 from tools.legacy_import_boundary import assert_no_legacy_modules
 def test_probe():
-    assert ga.Algebra is bridge.Algebra is facade.Algebra
+    assert ga.Algebra is facade.Algebra
     algebra = ga.Algebra(gram=((2, 0.5), (0.5, -1)))
     a, b = algebra.basis_vectors()
     assert isinstance(a.numeric, core.Multivector)

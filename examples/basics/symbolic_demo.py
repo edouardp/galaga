@@ -25,7 +25,7 @@ def _():
     import numpy as np
     from galaga import Algebra
     from galaga import (
-        sym, gp, op, grade, reverse, involute, conjugate,
+        sym, gp, op, grade, reverse, grade_involution, conjugate,
         dual, undual, norm, unit, inverse, squared,
         left_contraction, right_contraction, hestenes_inner, scalar_product,
         doran_lasenby_inner,
@@ -47,7 +47,7 @@ def _():
         grade,
         hestenes_inner,
         inverse,
-        involute,
+        grade_involution,
         jordan_product,
         left_contraction,
         lie_bracket,
@@ -241,8 +241,8 @@ def _(R, reverse):
 
 
 @app.cell
-def _(involute, v):
-    involute(v)
+def _(grade_involution, v):
+    grade_involution(v)
     return
 
 

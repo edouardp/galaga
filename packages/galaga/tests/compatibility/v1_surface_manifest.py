@@ -129,7 +129,7 @@ CURATED_OPERATION_ALIASES = {
     "wedge": "outer_product",
 }
 
-TEMPORARY_OPERATION_ALIASES = {
+REMOVED_OPERATION_ALIASES = {
     "involute": "grade_involution",
     "mag2": "norm2",
     "magnitude_squared": "norm2",
@@ -177,12 +177,12 @@ TOP_LEVEL_EXPORTS = _merge(
     {
         alias: SurfaceDisposition(
             "compatibility",
-            "deprecated-alias",
+            "removed-alias",
             f"galaga.facade.{canonical}",
             "phase-9",
-            f"{alias} is deprecated in Galaga 2; use {canonical}",
+            f"{alias} was removed in Galaga 2; use {canonical}",
         )
-        for alias, canonical in TEMPORARY_OPERATION_ALIASES.items()
+        for alias, canonical in REMOVED_OPERATION_ALIASES.items()
     },
     {
         name: SurfaceDisposition(
@@ -480,24 +480,24 @@ SUBMODULE_DISPOSITIONS = {
     "galaga.facade.catalog": SurfaceDisposition("facade", "retain", "galaga.facade.catalog", "permanent"),
     "galaga.gram_bridge": SurfaceDisposition(
         "compatibility",
-        "deprecated-reexport",
+        "removed-reexport",
         "galaga.facade",
         "phase-9",
-        "galaga.gram_bridge is deprecated; import galaga.facade",
+        "galaga.gram_bridge was removed; import galaga.facade",
     ),
     "galaga.gram_bridge.catalog": SurfaceDisposition(
         "compatibility",
-        "deprecated-reexport",
+        "removed-reexport",
         "galaga.facade.catalog",
         "phase-9",
-        "galaga.gram_bridge.catalog is deprecated; import galaga.facade.catalog",
+        "galaga.gram_bridge.catalog was removed; import galaga.facade.catalog",
     ),
     "galaga.gram_bridge.facade": SurfaceDisposition(
         "compatibility",
-        "deprecated-reexport",
+        "removed-reexport",
         "galaga.facade",
         "phase-9",
-        "galaga.gram_bridge.facade is deprecated; import galaga.facade",
+        "galaga.gram_bridge.facade was removed; import galaga.facade",
     ),
     "galaga.legacy": SurfaceDisposition(
         "compatibility",
@@ -558,9 +558,6 @@ SUPPORTED_SUBMODULES = {
         "galaga.expression",
         "galaga.facade",
         "galaga.facade.catalog",
-        "galaga.gram_bridge",
-        "galaga.gram_bridge.catalog",
-        "galaga.gram_bridge.facade",
         "galaga.names",
         "galaga.presentation",
         "galaga.presets",
@@ -571,13 +568,16 @@ SUPPORTED_SUBMODULES = {
 
 
 # Historical-path retirement inventory. These paths are absent after Phase 9
-# engine deletion, including the temporary latex_symbols same-object shim.
+# engine and bridge deletion, including the temporary latex_symbols shim.
 LEGACY_ONLY_SUBMODULES = frozenset(
     {
         "galaga.algebra",
         "galaga.basis_blade",
         "galaga.blade_convention",
         "galaga.expr",
+        "galaga.gram_bridge",
+        "galaga.gram_bridge.catalog",
+        "galaga.gram_bridge.facade",
         "galaga.latex_build",
         "galaga.latex_emit",
         "galaga.latex_nodes",

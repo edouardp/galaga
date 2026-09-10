@@ -143,7 +143,7 @@ import sys
 
 legacy_roots = {
     'galaga.algebra', 'galaga.basis_blade', 'galaga.blade_convention',
-    'galaga.expr', 'galaga.latex_build', 'galaga.latex_emit',
+    'galaga.expr', 'galaga.gram_bridge', 'galaga.latex_build', 'galaga.latex_emit',
     'galaga.latex_nodes', 'galaga.latex_rewrite', 'galaga.latex_symbols',
     'galaga.lazy', 'galaga.legacy', 'galaga.notation', 'galaga.ops',
     'galaga.symbolic', 'galaga.symbolic_core',

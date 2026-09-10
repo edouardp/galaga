@@ -1,9 +1,10 @@
-# Galaga 2 Compatibility Shims
+# Galaga 2 Compatibility and Removed Migration Shims
 
 Galaga 2 keeps a deliberately small compatibility surface. Long operation
 names are the mathematical contract. A concise spelling is either a permanent
-same-object alias, a temporary warning adapter with a removal milestone, or a
-local import choice made by the user.
+same-object alias or a local import choice made by the user. The migration-only
+operation adapters and bridge paths are removed in the final-API cleanup after
+`2.0.0a4`; earlier published alphas still contain them.
 
 This policy is now active at both `galaga` and `galaga.facade`: the top-level
 objects are exact facade re-exports.
@@ -27,15 +28,14 @@ catalog entry, wrapper, warning, or independent semantics.
 `galaga.facade.OPERATION_ALIASES` is the immutable executable manifest for
 this group.
 
-## Temporary function spellings
+## Removed function spellings
 
-These v1 names remain callable during the prerelease migration and are removed
-by the Phase 9 stable-release gate. Each emits
-`GalagaDeprecationWarning` at the user's callsite and delegates to the canonical
-facade function. A tracked value therefore records only the canonical
-operation ID.
+These six v1 names are no longer attributes, imports or wildcard exports of
+`galaga` or `galaga.facade`. The old `galaga.core.involute` alias is also
+removed. Use the canonical operations, which retain the same numerical and
+expression-provenance contracts.
 
-| Temporary spelling | Replacement |
+| Removed spelling | Replacement |
 |---|---|
 | `involute` | `grade_involution` |
 | `mag2` | `norm2` |
@@ -44,9 +44,17 @@ operation ID.
 | `normalise` | `unit` |
 | `normalize` | `unit` |
 
-`galaga.facade.DEPRECATED_OPERATION_ALIASES` is the immutable executable
-manifest. These adapters are deliberately not same-object aliases because a
-wrapper is required to issue migration guidance.
+The unused `GalagaDeprecationWarning` and `DEPRECATED_OPERATION_ALIASES`
+exports and private adapter module are removed too. The development-only
+`REMOVED_OPERATION_ALIASES` ledger preserves replacement guidance; it is not
+a new runtime API. Attribute lookup fails and explicit imports raise
+`ImportError` instead of warning and forwarding.
+
+The `p_*` complete preset factories and concrete preset classes remain
+available through explicit imports under their separate
+[preset policy](../adrs/129-concise-complete-and-resolvable-blade-presets.md).
+Prefer `from galaga import presets` in new code. No additional removals are
+implied for permanent aliases or model-specific methods.
 
 ## No ambiguous inner-product adapter
 
@@ -70,17 +78,18 @@ from galaga import doran_lasenby_inner as ip
 
 ## Migration-only import paths
 
-The Gram proof repository has already been folded into Galaga. Its bridge
-namespace re-exports the current implementation but now warns on import:
+The Gram proof repository has already been folded into Galaga. Its three
+migration-only bridge import paths are now absent, including from artifacts:
 
-| Deprecated module | Replacement | Removal |
+| Removed module | Replacement | Status |
 |---|---|---|
-| `galaga.gram_bridge` | `galaga.facade` | Before stable `2.0.0` |
-| `galaga.gram_bridge.facade` | `galaga.facade` | Before stable `2.0.0` |
-| `galaga.gram_bridge.catalog` | `galaga.facade.catalog` | Before stable `2.0.0` |
+| `galaga.gram_bridge` | `galaga.facade` | Removed after `2.0.0a4` |
+| `galaga.gram_bridge.facade` | `galaga.facade` | Removed after `2.0.0a4` |
+| `galaga.gram_bridge.catalog` | `galaga.facade.catalog` | Removed after `2.0.0a4` |
 
-The bridge contains no implementation and must not become a second public
-architecture.
+Ordinary application code can import directly from `galaga`. There is no
+warning shim or empty bridge namespace left behind. See
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md).
 
 The temporary `galaga.latex_symbols` shim is removed. Use
 `galaga.names.LatexSymbols` or `Name.from_latex(...)`; the converter remains
@@ -123,12 +132,13 @@ promise of supported v2 entry points. See
 Compatibility tests prove:
 
 - permanent aliases are exact function objects;
-- temporary aliases warn with the ledgered category, text, and caller-facing
-  stack level;
-- tracked adapter calls retain the canonical expression operation ID;
+- removed aliases cannot return through attribute lookup, explicit imports,
+  wildcard exports, core aliases or catalog entries;
+- canonical replacements retain their numeric values and expression IDs;
 - ambiguous inner products remain absent and provide explicit choices;
-- bridge import paths warn and still import; and
+- bridge imports fail in fresh processes without relying on a test guard;
 - top-level exports are identical to their facade owners;
 - plain `import galaga` leaves legacy engine modules unloaded;
 - unledgered tests cannot construct legacy numeric values; and
-- this guide names every temporary function and bridge replacement.
+- source and artifact checks reject bridge files and empty directories; and
+- this guide names every removed function and bridge replacement.

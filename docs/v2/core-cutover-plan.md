@@ -21,20 +21,17 @@ Phases 0 through 7 are complete on the `galaga_v2` branch: the core,
 replacement contract, facade, presentation, provenance, rendering,
 compatibility, companion packages, and maintained examples all have their
 replacement evidence. Phase 8 is complete: top-level Galaga exposes the
-facade, the old engine remains an explicit guarded `galaga.legacy` oracle,
-the full supported-version suites pass, and clean-wheel and performance
-evidence are recorded. Phase 9 legacy removal is the next implementation
-phase.
+facade, the full supported-version suites pass, and clean-wheel and performance
+evidence are recorded. Phase 9 has since removed the legacy engine and
+migration-only API adapters; final release validation remains open.
 
 ## Current position
 
-The repository currently has four relevant numeric paths:
+The repository has one numeric engine behind the public composition facade:
 
 ```mermaid
 flowchart TD
     T[galaga public API] --> F[galaga.facade]
-    B[galaga.gram_bridge compatibility alias] --> F
-    O[galaga.legacy explicit oracle] --> L[legacy algebra.py engine]
     F --> C[galaga.core]
     C --> G[Gram-matrix numeric implementation]
 ```
@@ -42,14 +39,13 @@ flowchart TD
 - `galaga.core` contains the proven Gram-matrix numeric engine and its tests.
 - `galaga.facade` owns the complete eager numeric composition facade and
   operation catalog.
-- `galaga.gram_bridge` re-exports those exact objects as a temporary migration
-  alias; it contains no implementation fork.
+- `galaga.gram_bridge` and its re-export modules are removed after `2.0.0a4`.
 - top-level `galaga.Algebra` and `galaga.Multivector` are the exact facade
   classes, and the whole top-level manifest is identity-checked against
   `galaga.facade.__all__`;
-- `galaga.legacy` preserves the coherent v1 surface only for ledgered oracle
-  tests and deliberate migration work; plain `import galaga` does not load it;
-- unledgered Galaga tests poison both legacy numeric constructors;
+- `galaga.legacy` and the old engine are removed; frozen development-only
+  archives retain historical observations;
+- tests reject retired imports, with no legacy-construction exemptions;
 - the external `gram` distribution is no longer required by Galaga.
 
 The intended end state is:
@@ -1785,6 +1781,13 @@ Required tests:
 
 ### W9.2 Retire migration-only names
 
+Status: **complete after `2.0.0a4`** under
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). The bridge and
+six temporary operation spellings are removed, including the core `involute`
+alias and obsolete adapter infrastructure. Permanent aliases and `p_*` preset
+compatibility names remain. Import, surface and artifact guards enforce the
+retirement without changing numeric operations.
+
 Deliverables:
 
 - remove or reduce `galaga.gram_bridge` to the documented compatibility policy;
@@ -1806,7 +1809,8 @@ Status: **not yet complete**. The production type check now passes (zero
 errors; seventeen warnings), as recorded in
 [ADR-126](../adrs/126-align-static-types-with-existing-numeric-contracts.md).
 Local deletion, packaging and runtime tests do not replace the remaining
-alias-policy, CI and release-metadata requirements. See the
+validation-policy and release-metadata requirements. W9.2 API retirement is
+complete; the source and clean-artifact release gate is still separate. See the
 [current gate report](legacy-engine-deletion-gate.md).
 
 Required checks:

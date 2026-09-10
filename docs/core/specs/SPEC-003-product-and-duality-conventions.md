@@ -77,7 +77,7 @@ For a homogeneous grade `k`:
 | Operation | Sign |
 |---|---|
 | `reverse` | `(-1)**(k*(k-1)/2)` |
-| `grade_involution` (`involute` alias) | `(-1)**k` |
+| `grade_involution` | `(-1)**k` |
 | `conjugate` | `(-1)**(k*(k+1)/2)` |
 | `antireverse` | `(-1)**((n-k)*(n-k-1)/2)` |
 

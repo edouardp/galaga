@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-096: Compatibility Manifests Use Historical API Evidence
 
+> [ADR-130](130-retire-migration-only-api-adapters.md) completes the bridge
+> retirement after `2.0.0a4`: the live/retired partition is now 12/24 rather
+> than 15/21. The frozen historical evidence and completeness checks remain.
+
 ## Context and problem statement
 
 The executable v1 disposition ledger proved completeness by importing and

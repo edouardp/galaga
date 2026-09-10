@@ -264,12 +264,41 @@ local source-and-artifact validation checkpoint, not a CI pass or completion
 of every stable-2.0 gate. See the follow-up in
 [ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md).
 
+## Post-a4 API retirement checkpoint
+
+Date: 2026-09-11. The working tree completes W9.2 under
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md), without changing
+the committed `2.0.0a4` version or publishing replacement artifacts.
+
+| Check | Result |
+|---|---|
+| Full package and release-workflow suite, Python 3.11.15 | 9,578 passed, 169 skipped |
+| Full package and release-workflow suite, Python 3.14.4 | 9,819 passed, 20 skipped |
+| Wheel and sdist runtime validation | 31 source-identical files in each; bridge root and descendants rejected |
+| Isolated installed-wheel checks, Python 3.11 and 3.14 | Site-packages origins verified; retired imports/exports absent; canonical operations and retained aliases pass |
+| Twine metadata/README checks | Both artifacts pass |
+| Ruff and configured Python formatting | Pass |
+| Production type check | Zero errors; 18 warnings |
+| Changed Markdown and whitespace checks | Pass |
+
+The full runs exercise source with an installed editable Galaga distribution;
+the separate wheel checks use isolated Python processes without repository
+paths. These are API-cleanup checks, not a rerun of every companion's complete
+installed-wheel suite, coverage comparison or security/release gate.
+Temporary artifacts remain under `/tmp/galaga-api-cleanup.6q0oBy/artifacts`
+and must not be uploaded over the already published alpha. The bridge's
+bytecode-only remainder was moved to `/tmp/galaga-retired-bridge.rNZzsO` so
+the source directory cannot survive as an importable namespace package.
+Deleted tracked adapter sources remain recoverable from Git.
+
 ## Release gate remains open
 
+- API retirement is complete after `2.0.0a4` under
+  [ADR-130](../adrs/130-retire-migration-only-api-adapters.md): `gram_bridge`,
+  the six temporary function spellings and unused adapter infrastructure are
+  removed. Earlier checkpoints above correctly describe their then-live state.
 - Keep the now-passing type check green while completing the remaining
   source and artifact release checks. Seventeen non-error warnings remain.
-- Finish the published retirement of `gram_bridge` and six temporary function
-  spellings before stable 2.0.
 - Prepare the alpha from the intended clean, tracked `galaga_v2` branch.
   The user has authorized integration and push and explicitly chosen local
   validation without CI for this alpha; no CI result is claimed.

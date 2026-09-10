@@ -53,7 +53,6 @@ __all__ = [
     "half_commutator",
     "hestenes_inner",
     "inverse",
-    "involute",
     "is_basis_blade",
     "is_bivector",
     "is_even",
@@ -113,7 +112,6 @@ OPERATION_ALIASES: Mapping[str, str] = MappingProxyType(
     {
         "dorst_inner": "doran_lasenby_inner",
         "gp": "geometric_product",
-        "involute": "grade_involution",
         "join": "outer_product",
         "meet": "regressive_product",
         "op": "outer_product",
@@ -926,9 +924,6 @@ def grade_involution(value: Multivector) -> Multivector:
     if not isinstance(value, Multivector):
         raise TypeError("grade_involution expects a Multivector")
     return Multivector(value.algebra, value.data * value.algebra._involute_sign)
-
-
-involute = grade_involution
 
 
 def conjugate(value: Multivector) -> Multivector:

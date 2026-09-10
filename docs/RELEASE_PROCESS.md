@@ -260,8 +260,10 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 - [ ] Phase 9 of the
   [core cutover plan](v2/core-cutover-plan.md) is complete
 - [ ] The table-backed engine and `galaga.legacy` do not ship in the wheel
-- [ ] Migration-only `galaga.gram_bridge` paths follow their final removal
-  policy
+- [x] Migration-only `galaga.gram_bridge` paths and six temporary operation
+  spellings removed after `2.0.0a4` per
+  [ADR-130](adrs/130-retire-migration-only-api-adapters.md); rerun their
+  source/artifact regression checks for each release candidate
 - [ ] The [Galaga 1 to 2 migration guide](v2/migration-guide.md) reflects every
   removal and corrected mathematical convention
 - [ ] Package classifiers no longer describe a stable release as Alpha

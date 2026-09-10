@@ -12,14 +12,14 @@ from importlib.abc import MetaPathFinder
 from importlib.machinery import ModuleSpec
 from types import ModuleType
 
-# Root prefixes cover the complete 21-path historical retirement inventory.
-# gram_bridge remains an explicitly supported warning adapter at this stage.
+# Root prefixes cover the retired engine and migration-only bridge inventory.
 LEGACY_ROOTS = frozenset(
     {
         "galaga.algebra",
         "galaga.basis_blade",
         "galaga.blade_convention",
         "galaga.expr",
+        "galaga.gram_bridge",
         "galaga.latex_build",
         "galaga.latex_emit",
         "galaga.latex_nodes",

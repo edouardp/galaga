@@ -195,8 +195,9 @@ def test_expression_spelling_probe_rejects_rendering_in_the_wrong_target(monkeyp
 
 
 def test_alias_probe_rejects_a_silent_normalize_adapter(monkeypatch):
-    monkeypatch.setattr(ga, "normalize", ga.unit)
-    with pytest.raises(pytest.fail.Exception, match="DID NOT WARN"):
+    # Reintroducing even a same-object alias violates the final removal contract.
+    monkeypatch.setattr(ga, "normalize", ga.unit, raising=False)
+    with pytest.raises(AssertionError):
         CONTRACT["TestSymbolicNormalize"]().test_normalize_alias()
 
 

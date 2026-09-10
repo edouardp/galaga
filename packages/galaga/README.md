@@ -510,6 +510,11 @@ The public facade composes these numeric values with presentation; it is not
 a second engine. See the [numeric core guide][core] for its lower-level API.
 
 The Galaga 1 engine and temporary `galaga.legacy` namespace no longer ship.
+The final-API cleanup after `2.0.0a4` also removes `galaga.gram_bridge` and
+the temporary `involute`, `mag2`, `magnitude_squared`, `norm_squared`,
+`normalise` and `normalize` functions. Use `grade_involution`, `norm2` and
+`unit` respectively. Earlier alphas still provide those migration adapters;
+permanent concise aliases and explicit `p_*` preset imports remain supported.
 Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation paths
 are replaced by `galaga.expression`, `galaga.presentation`, `galaga.rendering`
 and `galaga.names`. Follow the [migration guide][migration] for explicit

@@ -63,13 +63,13 @@
 
 ## Current status
 
-Galaga `2.0.0a1` has been published from the `galaga_v2` release line. Phases
+Galaga `2.0.0a4` has been published from the `galaga_v2` release line. Phases
 0 through 8 of the core cutover plan are complete. The
 proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
 replacement contract is checked in and executable; `galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
-been migrated to or rerun against that facade. `galaga.gram_bridge` is now
-only a compatibility re-export of the same facade objects. The facade now
+been migrated to or rerun against that facade. The migration-only
+`galaga.gram_bridge` package is removed after `2.0.0a4`. The facade now
 also owns immutable presentation configuration, signed blade lookup, complete
 inspectable presets, fine-grained presentation views, and thread- and
 async-safe scoped overrides. Optional immutable expression provenance now
@@ -82,9 +82,9 @@ Unicode, and LaTeX emitters. Content and target are independently selectable,
 and facade string, format, and rich-display hooks use the same context-safe
 pipeline.
 
-The Phase 7 compatibility policy is implemented: permanent
-concise aliases are exact canonical objects, temporary v1 spellings and the
-`gram_bridge` paths warn with executable replacement guidance, ambiguous inner
+The Phase 7 compatibility policy and Phase 9 API retirement are implemented:
+permanent concise aliases are exact canonical objects, temporary v1 spellings
+and `gram_bridge` paths are removed with documented replacements, ambiguous inner
 products remain absent, and redundant generic geometry helpers are classified
 for removal. `galaga_matrix` now uses public core-backed linear actions,
 basis-independent inertia, and general-Gram-safe mode selection without private
@@ -104,12 +104,13 @@ artifacts cannot contain those files. Clean Python 3.11 wheel tests,
 the complete Python 3.11 and 3.14 package suites, and the layer-separated
 performance baseline pass.
 
-Phase 9 is the stable `2.0.0` release gate. It removes the retained table-backed
-legacy engine and migration-only bridge paths, finalizes the public export
-surface, runs the full supported-version and artifact gates, and records all
-removals in the migration guide and release changelog. Alpha releases may
-retain the explicit `galaga.legacy` oracle for comparison; the stable release
-must not ship it.
+Phase 9 is the stable `2.0.0` release gate. The legacy engine is removed and
+W9.2 API retirement is complete after `2.0.0a4`: the bridge paths, six temporary
+operation spellings and unused adapter infrastructure are gone. See
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Permanent aliases
+and `p_*` presets remain. Full supported-version and clean-artifact validation,
+release metadata, release-candidate review and publication remain separate
+gates; completion of API cleanup does not declare stable 2.0 ready.
 
 Phase 9 has removed the rendering audit's live legacy dependency: all 73
 historical cases remain, and reviewed v2 outputs are pinned even for accepted

@@ -18,18 +18,18 @@ ARCHITECTURE = runpy.run_path(str(Path(__file__).parents[1] / "facade/test_archi
 @pytest.mark.parametrize(
     "imports",
     (
-        "import galaga.core; import galaga.facade; import galaga.gram_bridge",
-        "import galaga.gram_bridge; import galaga.facade; import galaga.core",
+        "import galaga.core; import galaga.facade; import galaga",
+        "import galaga; import galaga.facade; import galaga.core",
     ),
-    ids=("core-facade-bridge", "bridge-facade-core"),
+    ids=("core-facade-public", "public-facade-core"),
 )
-def test_core_facade_and_bridge_import_in_either_order(imports: str) -> None:
+def test_core_facade_and_public_api_import_in_either_order(imports: str) -> None:
     program = f"""
 from tools.legacy_import_boundary import install_import_guard, assert_no_legacy_modules
 install_import_guard()
 {imports}
-assert galaga.gram_bridge.Algebra is galaga.facade.Algebra
-assert galaga.gram_bridge.OPERATIONS is galaga.facade.OPERATIONS
+assert galaga.Algebra is galaga.facade.Algebra
+assert galaga.OPERATIONS is galaga.facade.OPERATIONS
 assert galaga.facade.Algebra(2).numeric.__class__ is galaga.core.Algebra
 assert_no_legacy_modules()
 """

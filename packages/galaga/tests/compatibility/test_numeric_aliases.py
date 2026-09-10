@@ -2,11 +2,8 @@
 
 from __future__ import annotations
 
-import importlib
 import json
 from pathlib import Path
-
-import pytest
 
 import galaga
 import galaga.facade as facade
@@ -43,16 +40,11 @@ def test_v2_antiwedge_has_a_distinct_operation_identity_but_the_same_value() -> 
     assert facade.antiwedge(left, right) == facade.regressive_product(left, right)
 
 
-def test_gram_bridge_reexports_the_facade_objects_without_a_fork() -> None:
+def test_public_api_reexports_the_facade_objects_without_a_fork() -> None:
     import galaga.facade.catalog as facade_catalog
 
-    with pytest.warns(facade.GalagaDeprecationWarning, match="gram_bridge is deprecated"):
-        bridge = importlib.reload(importlib.import_module("galaga.gram_bridge"))
-    with pytest.warns(facade.GalagaDeprecationWarning, match="gram_bridge.catalog is deprecated"):
-        bridge_catalog = importlib.reload(importlib.import_module("galaga.gram_bridge.catalog"))
-
-    assert bridge.Algebra is facade.Algebra
-    assert bridge.Multivector is facade.Multivector
-    assert bridge.OPERATIONS is facade.OPERATIONS
-    assert bridge.geometric_product is facade.geometric_product
-    assert bridge_catalog.OperationSpec is facade_catalog.OperationSpec
+    assert galaga.Algebra is facade.Algebra
+    assert galaga.Multivector is facade.Multivector
+    assert galaga.OPERATIONS is facade.OPERATIONS
+    assert galaga.geometric_product is facade.geometric_product
+    assert galaga.OperationSpec is facade_catalog.OperationSpec

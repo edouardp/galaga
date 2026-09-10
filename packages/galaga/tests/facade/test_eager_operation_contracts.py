@@ -301,14 +301,14 @@ class TestSymbolicNormalize:
     def test_normalize_alias(self):
         a = ga.Algebra(3).multivector(LEFT).named("a")
         for name in ("normalize", "normalise"):
-            with pytest.warns(ga.GalagaDeprecationWarning, match=f"{name} is deprecated.*unit"):
-                value = getattr(ga, name)(a)
-            assert value == ga.unit(a) and value.expr == ga.Call("unit", (ga.Symbol("a"),))
+            assert not hasattr(ga, name)
+        value = ga.unit(a)
+        assert value.expr == ga.Call("unit", (ga.Symbol("a"),))
+        assert value.same_expression(ga.unit(a))
 
     def test_normalize_numeric_fallback(self):
         a = ga.Algebra(3).vector([3, 4, 0])
-        with pytest.warns(ga.GalagaDeprecationWarning, match="normalize"):
-            value = ga.normalize(a)
+        value = ga.unit(a)
         assert_coefficients(value, [0, 0.6, 0.8, 0, 0, 0, 0, 0])
         assert value.expr is None
 

@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-079: Curated Compatibility without Redundant Generic Helpers
 
+> The migration-only warning adapters and bridge paths described below were
+> retired after `2.0.0a4` by
+> [ADR-130](130-retire-migration-only-api-adapters.md). Permanent aliases and
+> the remaining architectural decisions are unchanged.
+
 ## Context and problem statement
 
 The Galaga 2 facade now has canonical long operation names, optional concise

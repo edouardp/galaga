@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-122: Remove the Legacy Engine and Verify Artifacts
 
+> The separately deferred bridge and function-adapter removal is completed
+> after `2.0.0a4` in [ADR-130](130-retire-migration-only-api-adapters.md).
+> Historical validation checkpoints below are retained; this follow-up does
+> not declare the remaining stable-release gates complete.
+
 ## Context and problem statement
 
 The user requested physical engine removal after the committed dependency

@@ -487,8 +487,8 @@ def _(mo):
     `ScalarLiteral` needs an algebra when evaluated; nodes carry no hidden
     evaluation context.
 
-    Prefer `unit(a)` to the deprecated `normalize(a)` and `normalise(a)`
-    warning adapters. Normalization divides by the metric-derived magnitude;
+    Use `unit(a)` in place of the removed `normalize(a)` and `normalise(a)`
+    migration spellings. Normalization divides by the metric-derived magnitude;
     it is not `inverse(a)`. A nonzero null vector cannot be normalized this way.
     """)
     return

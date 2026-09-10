@@ -13,7 +13,7 @@ def _():
 
 @app.cell
 def _():
-    from galaga.facade import Algebra, reverse, involute, conjugate, dual, inverse, squared, exp, grade, grade_involution,DisplayPolicy, Notation
+    from galaga.facade import Algebra, reverse, conjugate, dual, inverse, squared, exp, grade, grade_involution,DisplayPolicy, Notation
     from galaga import simplify
     import galaga_marimo as gm
     import numpy as np

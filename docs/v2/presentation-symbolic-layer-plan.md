@@ -55,8 +55,10 @@ project.
 
 The numeric foundation was completed and promoted on 2026-07-19.
 `galaga.facade` now owns the composition layer over the in-package
-`galaga.core`; the historical `galaga.gram_bridge` namespace is only an
-exact-object compatibility re-export. The completed foundation provides:
+`galaga.core`; the historical `galaga.gram_bridge` compatibility re-export was
+removed after `2.0.0a4` under
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md).
+The completed foundation provides:
 
 - an immutable operation catalog whose evaluator/node arity is distinct from
   its public call policy;

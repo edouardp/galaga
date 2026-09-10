@@ -149,7 +149,7 @@ def test_metadata_cannot_silently_change(project, before, after, message, kind):
         gate.check_artifact(path, project)
 
 
-@pytest.mark.parametrize("path", ("legacy", "symbolic_core", "algebra.py"))
+@pytest.mark.parametrize("path", ("legacy", "symbolic_core", "algebra.py", "gram_bridge"))
 def test_source_gate_rejects_empty_namespace_directories_and_retired_modules(project, path):
     (project / "galaga" / path).mkdir()
     with pytest.raises(ValueError, match="retired source path"):
@@ -170,6 +170,9 @@ def test_source_gate_allows_local_caches_but_not_missing_runtime(project):
     "source",
     (
         "import galaga.algebra",
+        "import galaga.gram_bridge.catalog",
+        "from galaga import gram_bridge",
+        "importlib.import_module('galaga.gram_bridge')",
         "def later():\n    from .. import legacy",
         "if TYPE_CHECKING:\n    from ..symbolic_core import Expr",
         "value . _mul_index",

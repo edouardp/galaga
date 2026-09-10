@@ -5,7 +5,6 @@ from __future__ import annotations
 import importlib
 import inspect
 import json
-import re
 from collections.abc import Collection
 from importlib.resources import files
 from pathlib import Path
@@ -28,9 +27,9 @@ from .v1_surface_manifest import (
     MULTIVECTOR_FORMATTING_HOOKS,
     MULTIVECTOR_MEMBERS,
     OPERATION_CALL_FORMS,
+    REMOVED_OPERATION_ALIASES,
     SUBMODULE_DISPOSITIONS,
     SUPPORTED_SUBMODULES,
-    TEMPORARY_OPERATION_ALIASES,
     TOP_LEVEL_EXPORTS,
     TOP_LEVEL_PACKAGE_MODULES,
     V1_MULTIVECTOR_SPECIAL_METHODS,
@@ -162,19 +161,13 @@ def test_dispositions_are_actionable_and_all_retiring_names_have_guidance() -> N
             if disposition.action.startswith(("deprecated", "remove")):
                 assert disposition.warning
 
-    for alias in TEMPORARY_OPERATION_ALIASES:
+    for alias in REMOVED_OPERATION_ALIASES:
         assert TOP_LEVEL_EXPORTS[alias].warning
 
 
 @pytest.mark.parametrize("module_name", tuple(SUPPORTED_SUBMODULES))
 def test_supported_package_entry_points_import(module_name: str) -> None:
-    disposition = SUPPORTED_SUBMODULES[module_name]
-    if module_name.startswith("galaga.gram_bridge"):
-        assert disposition.warning is not None
-        with pytest.warns(facade.GalagaDeprecationWarning, match=re.escape(disposition.warning)):
-            module = importlib.reload(importlib.import_module(module_name))
-    else:
-        module = importlib.import_module(module_name)
+    module = importlib.import_module(module_name)
     assert module.__name__ == module_name
 
 
@@ -281,16 +274,13 @@ def test_operation_call_shapes_are_explicit() -> None:
 
 def test_facade_alias_manifest_has_one_object_per_operation() -> None:
     assert dict(facade.OPERATION_ALIASES) == CURATED_OPERATION_ALIASES
-    assert dict(facade.DEPRECATED_OPERATION_ALIASES) == TEMPORARY_OPERATION_ALIASES
     with pytest.raises(TypeError):
         facade.OPERATION_ALIASES["product"] = "geometric_product"  # type: ignore[index]
-    with pytest.raises(TypeError):
-        facade.DEPRECATED_OPERATION_ALIASES["product"] = "geometric_product"  # type: ignore[index]
     for alias, canonical in CURATED_OPERATION_ALIASES.items():
         assert getattr(facade, alias) is getattr(facade, canonical)
         assert alias not in facade.OPERATIONS
-    for alias, canonical in TEMPORARY_OPERATION_ALIASES.items():
-        assert getattr(facade, alias) is not getattr(facade, canonical)
+    for alias in REMOVED_OPERATION_ALIASES:
+        assert not hasattr(facade, alias)
         assert alias not in facade.OPERATIONS
 
 

@@ -1100,9 +1100,6 @@ def grade_involution(value: Multivector) -> Multivector:
     return _invoke("grade_involution", value)
 
 
-involute = grade_involution
-
-
 def conjugate(value: Multivector) -> Multivector:
     return _invoke("conjugate", value)
 
@@ -1315,7 +1312,6 @@ __all__ = [
     "half_commutator",
     "hestenes_inner",
     "inverse",
-    "involute",
     "is_basis_blade",
     "is_bivector",
     "is_even",
