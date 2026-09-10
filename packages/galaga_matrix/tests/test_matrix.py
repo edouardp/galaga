@@ -341,11 +341,18 @@ class TestMatrixRepr:
         mr = MatrixRepr(mat)
         assert np.array_equal(np.array(mr), mat)
 
-    def test_array_dtype_conversion(self):
-        mat = np.array([[1, 0], [0, 1]], dtype=complex)
+    @pytest.mark.parametrize("imaginary", [0.0, 2.0])
+    def test_array_dtype_conversion(self, imaginary):
+        mat = np.array([[1 + imaginary * 1j, 0], [0, 1]], dtype=complex)
         mr = MatrixRepr(mat)
-        result = np.array(mr, dtype=float)
+        # NumPy 1.24 exposes this warning at the top level; newer releases
+        # provide it in numpy.exceptions. Even zero imaginary parts warn.
+        complex_warning = getattr(np, "exceptions", np).ComplexWarning
+        with pytest.warns(complex_warning, match="Casting complex values to real"):
+            result = np.array(mr, dtype=float)
         assert result.dtype == float
+        np.testing.assert_array_equal(result, mat.real)
+        np.testing.assert_array_equal(np.asarray(mr), mat)
 
     def test_asarray(self):
         mat = np.array([[1 + 2j]], dtype=complex)
