@@ -1,94 +1,110 @@
 # Galaga — Geometric Algebra for Python
 
-Galaga 2 is a numeric geometric-algebra library built on a native Gram-matrix
-core. Its public API composes eager multivector values with optional immutable
-expression provenance, configurable blade conventions, and shared ASCII,
-Unicode, and LaTeX rendering.
+Galaga 2 is a numeric geometric-algebra library for calculations and teaching.
+Build an algebra from a signature or a full Gram matrix, compute with immutable
+multivectors, and display the same calculation as values, named expressions,
+or LaTeX. Expression tracking records how an eagerly computed value was
+obtained; it is not a deferred symbolic algebra system.
 
-- General symmetric Gram matrices, not only diagonal signatures.
-- Long, unambiguous operation names as the primary mathematical API.
-- Optional concise aliases such as `gp`, `op`, `rev`, and `sw`.
-- Explicit inner products and contractions rather than one overloaded `ip`.
-- Immutable names and expression provenance over eager numeric values.
-- Presets that configure the metric, blade convention, notation, and model
-  metadata together while still permitting component-level overrides.
-- Thread- and async-safe scoped presentation changes.
-- Read-only coefficient access and checked scalar conversion.
+- Real symmetric metrics, including nonorthogonal, indefinite and degenerate
+  algebras, with native-null conformal bases.
+- Explicit geometric, exterior, inner and regressive products; checked
+  inverses, exponentials, principal logarithms and rotor generators.
+- Composable presets for metrics, blade vocabulary and operation notation.
+- Shared ASCII, Unicode and LaTeX rendering, including labelled Gram and
+  wedge product tables for notebooks.
+- Optional conformal and rigid model APIs, with separate companion packages
+  for matrices, notebook Markdown, visualization and expression diagrams.
 
-## Install
+## Installation and status
 
-For the Galaga 2 prerelease train:
-
-```bash
-python -m pip install --pre "galaga>=2.0.0a1,<3"
-```
-
-After stable `2.0.0` is published:
+Galaga 2 is an **alpha release**. This guide uses the APIs available in
+`2.0.0a4`; opt into the v2 prerelease train explicitly:
 
 ```bash
-python -m pip install "galaga>=2,<3"
+python -m pip install --pre "galaga>=2.0.0a4,<3"
 ```
 
-Galaga requires Python 3.11 or newer and NumPy. The optional
-`galaga-anywidget` visualization package also supports Python 3.11, while
-`galaga-marimo` requires Python 3.14 because it uses t-strings.
+For reproducible notebooks, pin the version you tested, for example
+`galaga==2.0.0a4`. The core package requires **Python 3.11+ and NumPy**.
+It does not require Marimo, Jupyter or a matrix package.
+
+The examples below are self-contained Python snippets. Only the
+`galaga_marimo` t-string example requires Python 3.14 and an optional package.
+Documentation links target the `galaga_v2` branch while v2 is in development.
+Existing v1 users should start with the [migration guide][migration].
 
 ## Quick start
 
 ```python
-from galaga import Algebra, DisplayPolicy, norm, outer_product
+from galaga import Algebra, norm, outer_product, presets
 
-alg = Algebra((1, 1, 1), display=DisplayPolicy("full"))
+alg = Algebra(config=presets.euclidean(3))
 e1, e2, e3 = alg.basis_vectors(expr=True)
 
 u = (2 * e1 + e2).named("u")
-v = (0.5 * e1 + 1.8 * e2).named("v")
-area = outer_product(u, v)
+v = (e1 + 3 * e2).named("v")
+area = outer_product(u, v).named("A")
 
-print(area)
-print(area.latex())
-print(norm(area))
+print(area.display("value/unicode"))  # 5e₁₂
+print(area.display("expr/unicode"))   # u ∧ v
+print(area.display("full/latex"))     # Name = expression = value, as LaTeX.
+assert area == 5 * (e1 ^ e2)
+assert float(norm(area)) == 5
 ```
 
-The operators are conveniences over named operations:
+The wedge is an oriented area **bivector**, not a cross-product vector.
+Names and expression history do not affect its numeric value.
+
+Common operators are conveniences over named functions:
+
+| Python | Named operation | Meaning |
+|---|---|---|
+| `a * b` | `geometric_product(a, b)` | Clifford product |
+| `a ^ b` | `outer_product(a, b)` | Exterior product |
+| `a \| b` | `doran_lasenby_inner(a, b)` | Grade-difference inner product, including scalars |
+| `~a` | `reverse(a)` | Reversion, not inversion |
+| `a / b` | `geometric_product(a, inverse(b))` | Right division for multivector `b` |
+
+Parenthesize wedge expressions when mixing them with other Python operators.
+Long names are the primary API; `gp`, `op`, `rev` and `sw` remain concise aliases.
+
+## Define the metric
 
 ```python
-u * v  # geometric_product(u, v)
-u ^ v  # outer_product(u, v)
-u | v  # doran_lasenby_inner(u, v)
-~u     # reverse(u)
+from galaga import Algebra, metric_inner_product
+
+euclidean = Algebra(3)                  # Cl(3, 0)
+spacetime = Algebra(1, 3)                # Ordered squares: +1, -1, -1, -1.
+projective = Algebra(3, 0, 1)            # Three positive, then one null vector.
+time_first = Algebra((-1, 1, 1, 1))     # Explicit ordered signature.
+
+oblique = Algebra(gram=[[2.0, 1.0], [1.0, 3.0]])
+e1, e2 = oblique.basis_vectors()
+assert float(metric_inner_product(e1, e2)) == oblique.gram[0, 1]
+assert e1 * e2 == oblique.gram[0, 1] + (e1 ^ e2)
 ```
 
-## Constructing an algebra
+The defining identity is $e_i e_j + e_j e_i = 2G_{ij}$. Use `gram=` for
+scaled or nonorthogonal metrics; ordered signatures contain only `+1`, `-1`
+and `0`. `Algebra(p, q, r)` puts positive, negative, then null vectors in
+that order. Thus `Algebra(3, 1)` is **not** the time-first mostly-plus frame
+`Algebra((-1, 1, 1, 1))`.
 
-Diagonal algebras retain the familiar call shapes:
+Coefficients are real `float64` values in the **native exterior basis**.
+In a nonorthogonal basis, `e1 ^ e2` is a pure bivector while `e1 * e2` also
+contains the Gram entry. Blade labels do not turn exterior products into
+geometric products or perform a basis change.
 
-```python
-from galaga import Algebra
+For `n` basis vectors, a multivector stores `2**n` coefficients. `alg.n` is
+the vector-space dimension and `alg.dim` is the coefficient count. Dense
+storage and some operations grow exponentially; this is not a sparse or
+arbitrary-precision engine.
 
-cl3 = Algebra(3)                       # Cl(3, 0)
-sta = Algebra(1, 3)                    # Cl(1, 3)
-pga = Algebra(3, 0, 1)                 # Cl(3, 0, 1)
-ordered = Algebra((1, -1, -1, -1))    # explicit basis order
-```
+## Choose presets or individual presentation components
 
-A full symmetric Gram matrix defines a non-orthogonal or native-null basis:
-
-```python
-import numpy as np
-from galaga import Algebra
-
-null_plane = Algebra(
-    gram=np.array(
-        [
-            [0.0, -1.0],
-            [-1.0, 0.0],
-        ]
-    )
-)
-```
-
-Complete presets configure numeric and presentation choices together:
+Complete presets select the metric, blade convention, notation, local-name
+policy, display order and optional model metadata together:
 
 ```python
 from galaga import Algebra, presets
@@ -96,400 +112,424 @@ from galaga import Algebra, presets
 sta = Algebra(config=presets.sta("mostly-minus"))
 pga = Algebra(config=presets.pga(spatial_dim=3))
 cga = Algebra(config=presets.cga(spatial_dim=3, frame="null"))
+rga = Algebra(config=presets.rga())
 lengyel_cga = Algebra(config=presets.lengyel_cga())
-rga = Algebra(config=presets.rga(spatial_dim=3))
+
+# Inspect the immutable expanded configuration before constructing an algebra.
+config = presets.euclidean(3).build()
+euclidean = Algebra(config=config)
 ```
 
-`config=` owns the whole algebra definition. The lower-level `presentation=`,
-`blades=`, `notation=`, `local_names=`, `display_order=`, and `display=`
-parameters permit deliberate overrides when constructing an algebra directly.
+The complete factories are `euclidean`, `sta`, `pga`, `cga`, `rga`,
+`lengyel_cga`, `complex`, `quaternion` and `exterior`. Complex and quaternion
+presets describe even subalgebras of real Euclidean algebras, not complex
+coefficient storage. The older `p_*` factories remain explicit compatibility
+imports; new code should use `presets`.
 
-The older `p_*` spellings remain available as compatibility names. New code
-can select only a blade vocabulary when the metric is specified separately:
+Select only blade names or operation notation when the metric is already known:
 
 ```python
-sta = Algebra(1, 3, blades=presets.blades.sta())
-named_sta = Algebra(3, 1, blades=presets.blades.sta(sigmas=True, pseudovectors=True))
+from galaga import Algebra, presets
+
+sta = Algebra(
+    1, 3,
+    blades=presets.blades.sta(sigmas=True, pseudovectors=True),
+    notation=presets.notation.functional(),
+)
+g0, g1, g2, g3 = sta.basis_vectors()
+assert sta.blade("s1") == g1 * g0
+
+# config= defines the metric; presentation components can still override it.
+cga = Algebra(
+    config=presets.cga(3),
+    notation=presets.notation.doran_lasenby(),
+)
 ```
 
-Metric-aware STA names are derived from the algebra's actual ordered metric;
-unsupported non-diagonal or non-unit metrics are rejected. A blade preset
-changes names and signed aliases only—it does not change the Gram matrix or
-install model metadata.
+`config=` cannot be combined with numeric constructor arguments such as
+`gram=` or `(p, q, r)`. It **can** be combined with `presentation=`, `blades=`,
+`notation=`, `local_names=`, `display_order=` and `display=` overrides.
 
-### Native-null conformal model
+Blade recipes resolve against the target algebra. Metric-aware STA sigma and
+pseudovector signs are derived from the actual ordered unit-diagonal metric;
+unsupported metrics are rejected. CGA recipes validate the selected null or
+orthogonal frame. Blade-only recipes do not install model metadata or change
+the metric; arbitrary vocabulary choices do not guarantee model semantics.
 
-The conformal preset stores `eo` and `einf` as actual null basis vectors in a
-non-diagonal Gram matrix. Attach the model-specific semantics explicitly:
+`presets.notation` offers `default()`, `functional()`, `functional_short()`,
+`doran_lasenby()`, `hestenes()`, `lengyel()` and `lengyel_rga()`. These change
+rendering, not the operation called. See the [preset lesson][preset-lesson]
+and [presentation guide][presentation] for lower-level customization.
+
+## Values, blades, names and expressions
 
 ```python
-from galaga import Algebra, outer_product, p_cga
+from galaga import Algebra, Name, exp
+from galaga.expression import evaluate
+
+alg = Algebra(3)
+e1, e2, e3 = alg.basis_vectors(expr=True)
+B = (e1 ^ e2).named("B")
+theta = alg.scalar(0.6).named(Name.from_latex(r"\theta"))
+R = exp(-theta * B / 2).named("R")
+
+print(R.display("full/latex"))
+assert R.unnamed() == R.without_expr() == R
+
+mass = alg.scalar(3).named("m")
+square = mass**2
+replayed = evaluate(square.expr, algebra=alg, environment={"m": 5})
+assert float(replayed) == 25
+assert float(square) == 9  # Rebinding does not change the original eager value.
+```
+
+`named()`, `unnamed()`, `with_expr()` and `without_expr()` return new
+wrappers. Naming alone does not attach an expression to that value, but
+operations on named or tracked operands record provenance. `expr=True` on
+factories records construction provenance. Replay of symbols requires explicit
+bindings; expression history does not make coefficients symbolic.
+
+`Name` holds ASCII, Unicode and LaTeX spellings. Use `Name.from_latex(...)`
+for supported LaTeX-to-name conversion, or supply each spelling explicitly;
+ordinary strings are literal and are not automatically parsed as LaTeX.
+
+`blade()` accepts configured labels, native bitmasks, signed blade references
+or existing signed unit blades. `blades()` is the ordered plural form:
+
+```python
+from galaga import Algebra, presets
+
+alg = Algebra(config=presets.rga())
+e1, e2, e3, e4 = alg.basis_vectors()
+e23, e31 = alg.blades(e2 ^ e3, e3 ^ e1, expr=True)
+assert e31 == alg.blade("e31") == -alg.blade(0b0101)
+
+vector = alg.vector([1, 2, 3, 0])
+assert vector == e1 + 2 * e2 + 3 * e3
+```
+
+`alg.locals()` returns a read-only mapping of configured local names. Prefer
+explicit bindings in reactive notebooks so dependencies remain visible.
+Presentation order never changes coefficient storage or native basis order.
+
+### Grades, scalar conversion and floating-point comparisons
+
+```python
+from galaga import Algebra, grade, grades, scalar_part
+
+alg = Algebra(3)
+e1, e2, e3 = alg.basis_vectors()
+value = 2 + e1 + 3 * (e1 ^ e2)
+assert grade(value, 1) == e1
+assert grades(value, [0, 2]) == 2 + 3 * (e1 ^ e2)
+assert float(grade(value, 0)) == scalar_part(value) == 2
+
+coefficients = value.data  # Read-only NumPy array, indexed by blade bitmask.
+assert coefficients[0b0011] == 3
+assert not coefficients.flags.writeable
+
+a = alg.scalar(0.1) + alg.scalar(0.2)
+b = alg.scalar(0.3)
+assert a != b
+assert a.almost_equal(b, atol=1e-12)
+
+nearly_scalar = 2 + 1e-13 * e1
+assert nearly_scalar != 2          # Equality sees every nonzero coefficient.
+assert float(nearly_scalar) == 2   # Scalar conversion has a 1e-12 tolerance.
+assert nearly_scalar.data[1] != 0  # Conversion does not change the stored value.
+```
+
+`float(value)` checks scalarity with an absolute coefficient tolerance of
+`1e-12`: larger nonscalar components raise `TypeError`, but components at or
+below that threshold can be ignored. It is **not an exact scalarity check**.
+For deliberate scalar extraction from any multivector, use `grade(value, 0)`
+for a scalar multivector or `scalar_part(value)` for its Python float
+coefficient. To require exact scalarity, check that every entry of
+`value.data[1:]` is zero before conversion.
+
+Equality and hashing use exact stored values, not rounded display text or a
+tolerance. Multivector comparisons require the same underlying numeric algebra;
+presentation views share that identity, independently constructed algebras do
+not. Use `.almost_equal(..., atol=...)` for absolute-tolerance comparisons
+within one algebra. Display zero tolerance does not erase coefficients.
+
+Multivectors do not implement NumPy array or ufunc protocols; use `.data`
+explicitly rather than `np.asarray(value)` to obtain coefficients.
+
+## Choose the intended inner product
+
+There is deliberately no unqualified `ip` or `inner_product`. For homogeneous
+grades `r` and `s`, the operations have different definitions and purposes:
+
+| Operation | Definition | Typical intent |
+|---|---|---|
+| `scalar_product(A, B)` | Scalar part of `A * B` | Scalar coefficient of the geometric product |
+| `metric_inner_product(A, B)` | Scalar part of `A * ~B` | Metric-induced pairing on exterior blades |
+| `left_contraction(A, B)` | Grade `s-r` of `A * B` if `r <= s`, else zero | Remove the left grade from the right |
+| `right_contraction(A, B)` | Grade `r-s` of `A * B` if `r >= s`, else zero | Remove the right grade from the left |
+| `hestenes_inner(A, B)` | Grade `abs(r-s)` of `A * B` if both grades are nonzero | Symmetric grade selection excluding scalars |
+| `doran_lasenby_inner(A, B)` | Grade `abs(r-s)` of `A * B`, including scalar grades | Symmetric grade selection including scalars |
+
+Mixed-grade inputs are handled by summing over homogeneous pairs. “Symmetric
+grade selection” does not mean the operation commutes. All six agree on vector
+inputs, but a bivector's metric pairing differs from its scalar product:
+
+```python
+from galaga import Algebra, metric_inner_product, scalar_product
+
+alg = Algebra(gram=[[2.0, 1.0], [1.0, 3.0]])
+e1, e2 = alg.basis_vectors()
+B = e1 ^ e2
+G = alg.gram
+determinant = G[0, 0] * G[1, 1] - G[0, 1] * G[1, 0]
+assert float(metric_inner_product(B, B)) == determinant
+assert float(scalar_product(B, B)) == -determinant
+```
+
+`norm2(A)` is `metric_inner_product(A, A)` and `norm(A)` is
+`sqrt(abs(norm2(A)))`. These are metric quantities, not Euclidean norms of
+the coefficient array: a nonzero null value can have zero norm. With named or
+tracked inputs, `norm` returns a scalar multivector to retain provenance;
+`float(norm(A))` obtains the magnitude in either case.
+
+The [inner-products lesson][inner-lesson] explains the intent, scalar cases,
+contraction signs and differing author conventions. Related APIs include
+`regressive_product`, `antidot_product`, `transwedge` and
+`transwedge_antiproduct`; see the [RGA guide][rga-guide] for their model context.
+
+`geometric_product(a, b, c)` and `outer_product(a, b, c)` fold left-to-right.
+`commutator` and `lie_bracket` return `ab - ba`; `anticommutator` and
+`jordan_product` return `ab + ba`. Use `half_commutator` or
+`half_anticommutator` when the definition includes a factor of one half.
+
+## Rotors, logarithms and generators
+
+```python
+import math
+from galaga import (
+    Algebra, exp, is_rotor, is_rotor_generator, log, rotor_generator, sandwich,
+)
+
+alg = Algebra(3)
+e1, e2, e3 = alg.basis_vectors()
+generator = -(math.pi / 4) * (e1 ^ e2)  # Half-angle for a quarter-turn.
+R = exp(generator)
+assert is_rotor_generator(generator)
+assert is_rotor(R)
+assert sandwich(R, e1).almost_equal(e2)  # R * e1 * ~R
+assert rotor_generator(R).almost_equal(generator)
+
+# The mathematical logarithm is not restricted to rotors.
+A = exp(0.3 * e1)
+assert log(A).almost_equal(0.3 * e1)
+```
+
+`is_rotor` checks evenness, the full unit reverse product and preservation of
+vectors under the reverse sandwich. Evenness alone is insufficient.
+`sandwich(R, x)` uses reversion, not a substituted inverse or automatic
+normalization. `R.dag` also means reverse; `.bar`, `.inv` and `.sq` mean
+grade involution, inverse and geometric square respectively.
+
+`log(A)` computes the **real principal algebra logarithm** where supported.
+It accepts more than rotors, but not every invertible value: singular inputs,
+the nonpositive-real spectral branch cut and unresolved numerical cases raise.
+It does not complexify the algebra or search alternative logarithm branches.
+
+`rotor_generator(R)` checks the rotor's principal logarithm as a geometric
+generator; `is_rotor_generator(B)` checks a candidate independently. A valid
+algebra logarithm need not generate a path of rotors, even if its exponential
+is a rotor. The returned generator retains its full scale and any half-angle.
+Explore the [logarithms and generators lesson][log-lesson].
+
+## Rendering and notebook tables
+
+Rendering content (`name`, `expr`, `value`, `full`) is independent of the
+target (`ascii`, `unicode`, `latex`). Persistent presentation changes return
+cheap algebra views; scoped changes are isolated by thread and async task:
+
+```python
+from galaga import Algebra, DisplayPolicy, presets
+
+alg = Algebra(3)
+e1, e2, e3 = alg.basis_vectors(expr=True)
+x = (e1 ^ e2).named("x")
+teaching = alg.with_notation(presets.notation.functional()).with_display(
+    DisplayPolicy(content="full")
+)
+assert teaching.numeric is alg.numeric
+with alg.use_presentation(teaching.presentation):
+    print(x.latex())
+print(x.display("value/ascii"))
+```
+
+Rich notebook display works directly on multivectors and algebra tables.
+Raw `.latex()` output has no math delimiters; the rich-display hook adds them.
+
+```python
+from galaga import Algebra, presets
+
+cga = Algebra(config=presets.cga(3))
+gram_table = cga.bilinear_form_table()
+print(gram_table)  # Aligned text with the default Unicode presentation.
+
+vector_table = cga.wedge_product_table(colour=True)
+full_table = Algebra(3).wedge_product_table(full=True, color=True)
+gram_table  # Last line of a notebook cell: rich display. Try vector_table/full_table too.
+```
+
+`bilinear_form_table()` labels the native Gram matrix; numeric entries remain
+available as `alg.gram`. `wedge_product_table()` shows **row blade wedged with
+column blade**, using basis vectors by default. `full=True` includes scalar
+`1` and all exterior blades, sorted by grade then bitmask. A full table has
+`4**n` result cells: an 8-by-8 table for `Algebra(3)`, but 32-by-32 for 3D CGA.
+
+Both are immutable presentation snapshots with signed native blade headings.
+Exact zeros render in grey (`#bbbbbb`) in LaTeX; small nonzero entries are not
+hidden by display tolerance. Either `color=True` or `colour=True` enables
+wedge-result grade colouring; all flags default to `False` and require booleans.
+Text output has no colour escapes. Unlike Gram entries, exterior products in
+the fixed native basis are independent of the metric.
+
+On **Python 3.14+**, install the helper with
+`python -m pip install --pre "galaga-marimo>=2.0.0a4,<3"`, then interpolate
+values and tables into dynamic Markdown:
+
+```python
+import galaga_marimo as gm
+from galaga import Algebra, presets
+
+alg = Algebra(config=presets.cga(3))
+table = alg.bilinear_form_table()
+document = gm.md(t"""The native bilinear form is:
+
+{table}
+""")
+document
+```
+
+The table supplies its display-math block; do not add another `$$` wrapper
+around `{table}`. The [bilinear and wedge lesson][table-lesson] teaches the
+underlying geometry, including null vectors versus degenerate metrics.
+
+## Geometric models
+
+### Native-null conformal geometric algebra (CGA)
+
+The null-frame preset stores origin and infinity as actual null basis vectors,
+with their mutual pairing in the Gram matrix. Attach `ConformalModel` for
+lifting coordinates and working with geometric objects:
+
+```python
+from galaga import Algebra, outer_product, presets
 from galaga.cga import ConformalModel
 
-algebra = Algebra(config=p_cga(spatial_dim=3))
-cga = ConformalModel(algebra, expr=True)
-expanded_cga = cga.with_expression_form("expanded")
-
+alg = Algebra(config=presets.cga(spatial_dim=3, frame="null"))
+cga = ConformalModel(alg, expr=True)
 a = cga.up((0, 0, 0))
 b = cga.up((1, 0, 0))
 line = outer_product(a, b, cga.infinity)
-
-assert cga.carrier(cga.round_point((1, 2, 3))).homogeneous_grade() == 2
+assert line.homogeneous_grade() == 3
 
 round_point = cga.round_point((3, 4, 0), radius_squared=4)
 assert float(cga.center_norm(round_point)) == 5
 assert float(cga.radius_norm(round_point)) == 2
-
-# The same value can explain itself with compact CGA vocabulary or its formula.
-compact = cga.carrier(round_point)
-expanded = expanded_cga.carrier(round_point)
-assert compact == expanded
+expanded = cga.with_expression_form("expanded")
+assert cga.carrier(round_point) == expanded.carrier(round_point)
 ```
 
-The [native-null CGA guide](https://github.com/edouardp/galaga/blob/main/docs/cga/README.md)
-covers round and flat
-objects, operator/expanded expression forms,
-`att`/`car`/`ccr`/`cen`/`con`/`par`, dual conventions, projection,
-Eric Lengyel's ●/○/■/□ components and weighted norms, and transformation
-recipes.
+The [CGA guide][cga-guide] covers rounds, flats, duality, projection,
+transformations, weighted norms and operator versus expanded expression forms.
+The [CGA Gram lesson][cga-gram] constructs the model from its bilinear form.
+Here `spatial_dim=3` means five algebra basis vectors, not three.
 
-### Point-based rigid model
+### Point-based rigid geometric algebra (RGA)
 
-`p_rga()` selects Eric Lengyel's point-based interpretation of
-`Cl(3, 0, 1)`. Attach `RigidModel` when coordinates, projective measurement,
-projection, support, or validity constraints are needed:
+`presets.rga()` selects Eric Lengyel's point-based interpretation of
+`Cl(3, 0, 1)`. It shares a signature with plane-based PGA but has different
+geometric meanings and conventions:
 
 ```python
-from galaga import Algebra, p_rga
+from galaga import Algebra, presets
 from galaga.rga import RigidModel
 
-algebra = Algebra(config=p_rga())
-rga = RigidModel(algebra, expr=True)
-
+alg = Algebra(config=presets.rga())
+rga = RigidModel(alg, expr=True)
 p = rga.point((3, 4, 0)).named("P")
 q = rga.point((1, 0, 0)).named("Q")
 line = p ^ q
-
 assert float(rga.bulk_norm(p)) == 5
 assert rga.is_valid_line(line)
 ```
 
-The [RGA guide](https://github.com/edouardp/galaga/blob/main/docs/rga-convention-layer.md)
-covers the algebraic
-convention layer, paired norms, homogeneous distance and angle, projections,
-support, line/motor/flector constraints, transwedge correction, and the dual
-relationship with plane-based PGA.
-
-## Values, names, and expressions
-
-Multivectors are eager and immutable. Naming and expression tracking return a
-new wrapper without changing the coefficients or the original value:
-
-```python
-from galaga import Algebra, exp
-
-alg = Algebra(3)
-e1, e2, _ = alg.basis_vectors(expr=True)
-
-theta = alg.scalar(0.6).named(r"\theta")
-B = (e1 ^ e2).named("B")
-R = exp(-theta * B / 2).named("R")
-
-R.name       # immutable semantic Name
-R.expr       # immutable expression provenance
-R.numeric    # presentation-independent galaga.core.Multivector
-R.data       # read-only coefficient array
-```
-
-Useful state transformations include:
-
-```python
-R.named("Q")       # replace the semantic name
-R.without_name()   # retain expression provenance
-R.with_expr()      # attach literal provenance if absent
-R.without_expr()   # retain the eager value and name
-```
-
-Factories accept `expr=True` when the construction itself should participate
-in a later expression tree:
-
-```python
-e1, e2, e3 = alg.basis_vectors(expr=True)
-scalar = alg.scalar(2, expr=True)
-vector = alg.vector([1, 2, 3], expr=True)
-```
-
-## Blades
-
-`blade()` accepts configured labels, bitmasks, signed blade references, or an
-existing signed unit blade. `blades()` is the ordered plural form:
-
-```python
-rga = Algebra(config=p_rga())
-e1, e2, e3, e4 = rga.basis_vectors(expr=True)
-e23, e31, e41, e42 = rga.blades(
-    e2 ^ e3,
-    e3 ^ e1,
-    e4 ^ e1,
-    e4 ^ e2,
-    expr=True,
-)
-```
-
-`alg.locals()` returns a read-only mapping for environments where bulk name
-injection is appropriate. In reactive notebooks, explicit `blade()` or
-`blades()` calls preserve dependency tracking more clearly.
-
-Generated conventions support compact, juxtaposed, and wedge blade products:
-
-| Style | LaTeX example |
-|---|---|
-| `"compact"` | $e_{12}$ |
-| `"juxtapose"` | $e_1 e_2$ |
-| `"wedge"` | $e_1\wedge e_2$ |
-
-Model-aware convention builders retain semantic roles while changing that
-spelling. Their dimension argument is the model's spatial dimension, not the
-total algebra dimension:
-
-```python
-from galaga import Algebra, null_cga_blade_convention, p_cga
-
-cga = Algebra(
-    config=p_cga(spatial_dim=3),
-    blades=null_cga_blade_convention(3, style="juxtapose"),
-)
-```
-
-This is a five-dimensional algebra whose pseudoscalar renders as
-$e_1 e_2 e_3 e_o e_\infty$. The convention adds the origin and infinity
-vectors to the three Euclidean vectors itself.
-
-## Logarithms and geometric generators
-
-`log(A)` is the real principal **algebra** logarithm, with no rotor
-requirement. It accepts positive scalar multivectors, vector exponentials,
-compound rotors and general mixed-grade inputs on its supported principal
-branch. Singular inputs, the spectral branch cut, and unresolved numerical
-cases raise rather than silently returning another branch or complex values.
-
-Use `rotor_generator(R)` when the result must generate a path of rotors,
-or `is_rotor_generator(B)` to check a candidate independently. The generator
-operation validates the principal logarithm; it does not search alternative
-branches. A valid algebra logarithm need not be a geometric generator, even
-when its input is a rotor. The returned generator includes its full scale
-and any half-angle, rather than just a normalized plane.
-
-The [logarithms and generators notebook](../../examples/algebra/logarithms_and_generators.py)
-teaches these distinctions with computed Gram matrices, branch-cut examples,
-and an interactive comparison of algebraic and geometric paths to one rotor.
-From a checkout, run `make run-marimo` and open
-`algebra/logarithms_and_generators.py` in the gallery (Python 3.14).
-
-## Product and contraction family
-
-The long names are canonical:
-
-| Family | Canonical operation |
-|---|---|
-| Clifford product | `geometric_product` |
-| Exterior product | `outer_product` |
-| Left and right contractions | `left_contraction`, `right_contraction` |
-| Doran–Lasenby inner | `doran_lasenby_inner` |
-| Hestenes inner | `hestenes_inner` |
-| Metric inner | `metric_inner_product` |
-| Scalar product | `scalar_product` |
-| Lengyel antidot | `antidot_product` |
-| Regressive product | `regressive_product` |
-| Transwedge family | `transwedge`, `transwedge_antiproduct` |
-
-There is deliberately no top-level `ip` or `inner_product`: these operations
-disagree for mixed grades and scalar inputs. Choose the intended definition
-explicitly, or define a local notation:
-
-```python
-from galaga import doran_lasenby_inner as ip
-```
-
-Variadic geometric and outer products lower left-to-right through their binary
-catalog operation:
-
-```python
-from galaga import geometric_product, outer_product
-
-geometric_product(a, b, c)
-outer_product(e1, e2, e3)
-```
-
-Commutators and anticommutators are unscaled:
-
-```python
-commutator(a, b)            # ab - ba
-anticommutator(a, b)        # ab + ba
-half_commutator(a, b)       # (ab - ba) / 2
-half_anticommutator(a, b)   # (ab + ba) / 2
-lie_bracket(a, b)           # unscaled commutator
-jordan_product(a, b)        # unscaled anticommutator
-```
-
-## Grades and scalar conversion
-
-```python
-from galaga import grade, grades, scalar_part
-
-scalar_component = grade(value, 0)      # scalar multivector
-selected = grades(value, [0, 2, 4])
-coefficient = float(grade(value, 0))
-same_coefficient = scalar_part(value)   # optional helper
-```
-
-`float(value)` succeeds only when the entire multivector is scalar. It never
-silently discards non-scalar grades. The explicit `.data` property exposes the
-read-only NumPy coefficient array:
-
-```python
-coefficients = value.data
-```
-
-Multivectors deliberately do not implement NumPy's array or ufunc protocols;
-`np.asarray(value)` is not a coefficient conversion.
-
-## Rendering and presentation
-
-`DisplayPolicy` chooses content independently from the target format:
-
-```python
-from galaga import Algebra, DisplayPolicy
-
-alg = Algebra(3, display=DisplayPolicy(content="full"))
-e1, e2, _ = alg.basis_vectors(expr=True)
-x = (2 * e1 + e2).named("x")
-
-x.display("full/latex")
-x.display("expr/unicode")
-x.display("value/ascii")
-x.latex()
-```
-
-Persistent presentation changes return cheap algebra views sharing the same
-numeric algebra. Scoped overrides use `ContextVar`, so they are isolated by
-thread and asynchronous task:
-
-```python
-teaching_alg = alg.with_presentation(teaching_presentation)
-
-with alg.use_presentation(teaching_presentation):
-    print(x.latex())
-```
-
-### Display the bilinear form
-
-`Algebra.bilinear_form_table()` returns a notebook-ready Gram table with
-basis labels on both axes:
-
-```python
-from galaga import Algebra
-from galaga.presets import p_cga
-
-cga = Algebra(config=p_cga(3))
-table = cga.bilinear_form_table()
-table  # Rich display in Marimo/Jupyter; print(table) gives an aligned text table.
-```
-
-LaTeX uses a labelled array with grey (`#bbbbbb`) exact zeros. Small nonzero
-entries remain visible even when the multivector display policy would hide
-them. `table.latex()` returns raw LaTeX without math delimiters.
-
-In Python 3.14 Marimo notebooks, the table also works as a display-math block
-in a dynamic Markdown template:
-
-```python
-import galaga_marimo as gm
-
-gm.md(t"""The native bilinear form is:
-
-{table}
-""")
-```
-
-The table captures the current presentation, keeps native Gram order, and
-includes any sign needed to identify each native basis vector correctly.
-For numeric entries use `cga.gram`. See the executable
-[CGA Gram notebook](../../examples/matrix/cga_via_gram_matrix.py) and the
-[presentation guide](../../docs/v2/presentation-configuration.md#labelled-bilinear-form-tables).
-
-### Display wedge products
-
-`Algebra.wedge_product_table()` uses the same rich-display protocol, with
-a wedge in the corner and **row blade wedged with column blade** in each
-cell:
-
-```python
-cga.wedge_product_table()                        # Native basis vectors only.
-cga.wedge_product_table(color=True)              # Colour nonzero results by grade.
-cga.wedge_product_table(full=True, colour=True)   # All blades, including scalar 1.
-```
-
-`color` and `colour` are aliases: either being `True` enables colouring.
-All three flags default to `False` and require booleans. Zeros always stay
-grey; ASCII and Unicode remain uncoloured. A stable eight-colour palette
-is indexed by grade, repeating for grades above seven.
-
-Full tables begin with `1`, then list every native exterior blade by grade
-and bitmask, with signed convention names preserved. Unlike the Gram
-matrix, wedge products do not depend on the metric. A full table has
-`4**n` cells: 3D CGA gives a 32-by-32 table. For a smaller teaching example:
-
-```python
-Algebra(3).wedge_product_table(full=True, colour=True)  # An 8-by-8 table.
-```
-
-## Public API and numeric core
-
-Import application APIs from `galaga`. Internally, those public objects are
-owned by the composition facade:
-
-```python
-import galaga
-import galaga.facade
-
-assert galaga.Algebra is galaga.facade.Algebra
-assert galaga.Multivector is galaga.facade.Multivector
-```
-
-Use `galaga.core` when presentation, names, and expression provenance are not
-needed:
+The [RGA guide][rga-guide] covers paired norms, projective measurements,
+projection, support, line/motor/flector constraints and the dual relationship
+with plane-based PGA. Merely changing blade labels does not attach a model.
+
+## Optional packages and learning resources
+
+These are separate installations, not dependencies of the numeric package:
+
+| Package | Python | Purpose |
+|---|---|---|
+| [galaga-matrix][matrix] | 3.11+ | Rich matrix representations, conversions and supported spinor/quaternion modes |
+| [galaga-marimo][marimo] | 3.14+ | T-string Markdown interpolation and notebook helpers |
+| [galaga-anywidget][anywidget] | 3.11+ | Interactive geometric visualizations |
+| [galaga-mermaid][mermaid] | 3.11+ | Expression-tree diagrams |
+
+For example, install `galaga-matrix` with
+`python -m pip install --pre "galaga-matrix>=2.0.0a4,<3"`. Its left-regular
+representation supports any symmetric Gram matrix; compact conversion is
+explicit for numerically suitable general nondegenerate Gram metrics and
+round-trips only when the selected representation is injective. Complex matrices
+do not change the real coefficient domain of Galaga multivectors. See the
+[matrix lessons][matrix-lessons].
+
+From a repository checkout, `make run-marimo` opens the example gallery using
+Python 3.14 and editable local companion packages. Start with
+[construction][construction], [presets][preset-lesson],
+[eager values and expressions][expression-lesson], [tables][table-lesson],
+and [inner products][inner-lesson]. See the [documentation index][docs] for
+the full collection. README Python snippets are executed by the test suite;
+the maintained notebooks also have headless execution coverage.
+
+## Numeric-only use and migration
+
+Application code normally imports from `galaga`. Use `galaga.core` when names,
+expression provenance and rendering are not needed:
 
 ```python
 from galaga.core import Algebra, geometric_product
 
-numeric = Algebra(gram=[[1.0, 0.2], [0.2, 1.0]])
-e1, e2 = numeric.basis_vectors()
+alg = Algebra(gram=[[1.0, 0.2], [0.2, 1.0]])
+e1, e2 = alg.basis_vectors()
 result = geometric_product(e1, e2)
+assert float(result.grade(0)) == alg.gram[0, 1]
 ```
 
-## Legacy engine removed
+The public facade composes these numeric values with presentation; it is not
+a second engine. See the [numeric core guide][core] for its lower-level API.
 
-The Galaga 1 table engine and its temporary `galaga.legacy` namespace no
-longer ship. Use the public `galaga` API or `galaga.core` for numeric-only
-work. Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation
-paths are removed too; their replacements are `galaga.expression`,
-`galaga.presentation`, `galaga.rendering` and `galaga.names`.
+The Galaga 1 engine and temporary `galaga.legacy` namespace no longer ship.
+Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation paths
+are replaced by `galaga.expression`, `galaga.presentation`, `galaga.rendering`
+and `galaga.names`. Follow the [migration guide][migration] for explicit
+construction, naming, provenance and operation replacements.
 
-Historical regression evidence remains in the repository, not in a second
-installed engine. See the
-[migration guide](https://github.com/edouardp/galaga/blob/main/docs/v2/migration-guide.md)
-for explicit naming, provenance and rendering replacements.
-
-## More documentation
-
-- [Documentation index](https://github.com/edouardp/galaga/blob/main/docs/README.md)
-- [Galaga 1 to 2 migration guide](https://github.com/edouardp/galaga/blob/main/docs/v2/migration-guide.md)
-- [Numeric core](https://github.com/edouardp/galaga/blob/main/docs/core/README.md)
-- [Galaga 2 implementation overview](https://github.com/edouardp/galaga/blob/main/docs/v2/README.md)
-- [Native-null CGA](https://github.com/edouardp/galaga/blob/main/docs/cga/README.md)
-- [Rigid Geometric Algebra](https://github.com/edouardp/galaga/blob/main/docs/rga-convention-layer.md)
-- [Release process](https://github.com/edouardp/galaga/blob/main/docs/RELEASE_PROCESS.md)
-
-Executable examples live in the
-[repository gallery](https://github.com/edouardp/galaga/tree/main/examples).
+[migration]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/v2/migration-guide.md
+[presentation]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/v2/presentation-configuration.md
+[preset-lesson]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/galaga_v2/preset_namespaces.py
+[inner-lesson]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/galaga_v2/inner_products.py
+[table-lesson]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/galaga_v2/bilinear_and_wedge_tables.py
+[log-lesson]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/algebra/logarithms_and_generators.py
+[cga-guide]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/cga/README.md
+[rga-guide]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/rga-convention-layer.md
+[cga-gram]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/cga_via_gram_matrix.py
+[matrix]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/README.md
+[marimo]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_marimo/README.md
+[anywidget]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_anywidget/README.md
+[mermaid]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_mermaid/README.md
+[matrix-lessons]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/README.md
+[construction]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/galaga_v2/algebra_construction.py
+[expression-lesson]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/galaga_v2/eager_values_and_expressions.py
+[docs]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/README.md
+[core]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/core/README.md
