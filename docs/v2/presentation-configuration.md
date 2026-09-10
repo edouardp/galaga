@@ -379,6 +379,76 @@ with algebra.use_presentation(teaching_presentation):
 
 There is no process-global display mode and no mutation of a shared config.
 
+## Labelled bilinear form tables
+
+The public facade provides a rich-display view of the stored Gram matrix:
+
+```python
+from galaga import Algebra
+
+algebra = Algebra(gram=[[1, 0.5], [0.5, -1]])
+table = algebra.bilinear_form_table()
+table.latex()    # Raw LaTeX array, with no math delimiters.
+print(table)    # Aligned Unicode table; table.ascii() is also available.
+```
+
+Use `table` as a Marimo cell's final expression, or interpolate it with
+`gm.md(t"""{table}""")` on Python 3.14. Both rich-display paths supply one
+display-math wrapper. The LaTeX array has a bullet corner, basis labels on
+both axes, header rules, and exact zeros coloured `#bbbbbb` without global
+macros.
+
+The returned immutable `galaga.display.BilinearFormTable` captures the
+active (including scoped) vector names, coefficient precision and default
+target at creation. Create a new table to use a different presentation;
+`.display(target="latex")`, `.unicode()` and `.ascii()` can still select
+an output format for an existing snapshot.
+
+Rows and columns always follow native Gram order, ignoring multivector
+`DisplayOrder`. If a convention names `u = -e1`, the corresponding heading
+is `-u`, so the entry still represents the stored native pairing. Exact
+zeros alone are grey: `zero_tolerance` is deliberately ignored because
+hiding a small nonzero coupling would misrepresent the defining metric.
+Coefficient precision still controls significant digits.
+
+This is a display object, not a basis transformation or a `MatrixRepr`;
+raw numeric access remains `algebra.gram`. It adds no dependency on Marimo
+or the matrix companion. See
+[ADR-127](../adrs/127-renderable-native-bilinear-form-tables.md).
+
+## Wedge product tables
+
+`algebra.wedge_product_table(full=False, *, color=False, colour=False)`
+returns an immutable `galaga.display.WedgeProductTable` with the same
+snapshot, formatting, exact-zero and rich-display contracts as the Gram
+table. The corner is a wedge; each cell contains the row blade's exterior
+product with the column blade, in that order.
+
+```python
+algebra.wedge_product_table()                       # Vector axes only.
+algebra.wedge_product_table(full=True, colour=True)  # Every exterior blade.
+```
+
+Vector axes follow native order. Full axes include scalar `1` first, then
+all native exterior masks ordered by grade and bitmask, independently of
+multivector `DisplayOrder`. Signed headings and results agree with the
+configured convention without changing the underlying native products.
+Neither the metric nor `zero_tolerance` affects exterior-product entries.
+
+Either `color=True` or `colour=True` enables LaTeX grade colouring of
+nonzero result cells. Both spellings may be supplied: their Boolean OR is
+used. All flags require Python booleans. Zeros stay `#bbbbbb`, headers
+remain uncoloured, and plain-text targets have no colour escapes. Grade
+zero is neutral; grades one through seven use blue, vermilion, green,
+purple, orange, cyan and yellow. The eight-colour cycle then repeats.
+
+The vector-only default has `n*n` result cells. Full tables have `4**n`
+cells, so use small dimensions for an overview. The
+[CGA Gram notebook](../../examples/matrix/cga_via_gram_matrix.py) compares
+the two products and uses a full 3D Euclidean wedge table to teach the
+scalar identity and graded commutation. See
+[ADR-128](../adrs/128-wedge-product-tables-and-grade-colours.md).
+
 ## Numeric invariants
 
 Presentation code must preserve all of these rules:

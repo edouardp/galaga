@@ -33,6 +33,7 @@ from ..presentation import (
 from .catalog import LeftFoldCall, get_operation
 
 if TYPE_CHECKING:
+    from ..display import BilinearFormTable, WedgeProductTable
     from ..presets import Preset
 
 
@@ -205,6 +206,52 @@ class Algebra:
     @property
     def gram(self) -> np.ndarray:
         return cast(np.ndarray, self._numeric.gram)
+
+    def bilinear_form_table(self) -> BilinearFormTable:
+        """Return a notebook-ready labelled table of the stored Gram matrix.
+
+        Capture the active basis labels and coefficient precision in native
+        vector order. Exact zeros render in grey (#bbbbbb); tiny nonzeros are
+        never elided. This is a presentation snapshot, not a matrix conversion.
+        """
+        from ..display import BilinearFormTable
+        from ..rendering._build import bilinear_form_tree
+
+        selected = self.presentation
+        return BilinearFormTable(bilinear_form_tree(self.gram, selected), target=selected.display.target)
+
+    def wedge_product_table(
+        self, full: bool = False, *, color: bool = False, colour: bool = False
+    ) -> WedgeProductTable:
+        """Return a rich-display table of row blade wedged with column blade.
+
+        By default the axes contain native basis vectors. With full=True,
+        include every native exterior blade, starting with scalar 1, ordered
+        by grade then bitmask. A full table has 4**n result cells.
+
+        Either color=True or colour=True enables LaTeX colouring by result
+        grade. Exact zeros always remain grey (#bbbbbb); plain-text targets
+        have no colour escapes. Capture the active presentation at creation.
+        """
+        from ..core._metadata import dimension_metadata
+        from ..display import WedgeProductTable
+        from ..rendering._build import wedge_product_tree
+
+        for name, flag in (("full", full), ("color", color), ("colour", colour)):
+            if not isinstance(flag, bool):
+                raise TypeError(f"{name} must be a boolean")
+        selected = self.presentation
+        masks = (
+            tuple(sorted(range(self.dim), key=lambda mask: (mask.bit_count(), mask)))
+            if full
+            else tuple(1 << index for index in range(self.n))
+        )
+        # Reuse the numeric core's exact exterior coefficients. No dense
+        # multivector per cell or duplicate sign algorithm is needed.
+        factors = dimension_metadata(self.n).wedge_factor
+        rows = tuple(tuple(int(factors[left, right]) for right in masks) for left in masks)
+        tree = wedge_product_tree(masks, rows, selected, color=color or colour)
+        return WedgeProductTable(tree, target=selected.display.target)
 
     @property
     def basis_squares(self) -> np.ndarray:

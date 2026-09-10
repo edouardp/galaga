@@ -28,7 +28,7 @@ flowchart LR
 | Component | Responsibility |
 |---|---|
 | `galaga.rendering.tree` | Immutable layout nodes, precedence, associativity, and grouping |
-| `galaga.rendering._build` | Read-only translation from expressions and facade coefficients |
+| `galaga.rendering._build` | Read-only translation from expressions, facade coefficients and native Gram entries |
 | `galaga.presentation.RenderRule` | One semantic layout choice for a stable operation ID |
 | `galaga.presentation.Notation` | Immutable generic and target-specific rule maps and presets |
 | `galaga.rendering.ascii` | Portable text emission |
@@ -36,6 +36,8 @@ flowchart LR
 | `galaga.rendering.latex` | LaTeX structure, escaping, delimiters, and scientific notation |
 | `galaga.display` | Content/target policy, format specs, override precedence, and public dispatch |
 | `galaga.facade.Multivector` | User-facing display methods and Python rich-display hooks |
+| `galaga.display.BilinearFormTable` | Immutable labelled Gram-table snapshot with rich-display hooks |
+| `galaga.display.WedgeProductTable` | Immutable labelled exterior-product table with the same rich-display hooks |
 
 The tree module is independently importable. It does not initialize the
 facade, expression evaluator, or numeric core. The builder imports the
@@ -76,8 +78,8 @@ The node set represents mathematical layout rather than strings:
 | Leaves | `Identifier`, `Literal`, `Text` | Target-aware names, finite numbers, and escapable ordinary text |
 | Arithmetic | `Sum`, `Product`, `Fraction`, `Power` | Structured mathematical forms |
 | Application | `Call`, `Prefix`, `Postfix`, `Infix` | Function and operator layouts |
-| Decoration | `Subscript`, `Accent`, `Underset`, `MathClass`, `Wrapper` | Scripts, accents, below-annotations, TeX math classes, and delimiters |
-| Structure | `Group`, `Delimited`, `Equality` | Explicit parentheses, lists, and teaching equalities |
+| Decoration | `Subscript`, `Accent`, `Underset`, `MathClass`, `Wrapper`, `GradeColor` | Scripts, accents, below-annotations, TeX math classes, delimiters, and optional grade colouring |
+| Structure | `Group`, `Delimited`, `Equality`, `Table` | Explicit parentheses, lists, teaching equalities, and labelled square tables |
 
 `Name` values carry the intended ASCII, Unicode, and LaTeX spellings for
 mathematical identifiers and glyphs. `Text` is different: it is ordinary text
@@ -91,6 +93,25 @@ final string syntax. `Call`, `Wrapper`, and `Delimited` also carry a scalable
 delimiter decision. That lets conventional notation request compact
 `f(a,\,b)` while canonical functional fallback can retain scalable delimiters,
 without embedding either LaTeX spelling in the expression model.
+
+`Algebra.bilinear_form_table()` builds a `Table` from native Gram entries
+and the active presentation's vector labels. Its immutable snapshot uses
+the same numeric literals and target emitters as multivectors. The LaTeX
+emitter owns header rules and scoped `#bbbbbb` styling for exact zero
+cells; ASCII and Unicode emit aligned text. Unlike multivector coefficient
+display, table construction never drops a small nonzero entry. See
+[labelled bilinear form tables](presentation-configuration.md#labelled-bilinear-form-tables)
+and [ADR-127](../adrs/127-renderable-native-bilinear-form-tables.md).
+
+`Algebra.wedge_product_table()` reuses this table pipeline, passing native
+exterior coefficients from the core's dimension metadata into the builder.
+It does not allocate a dense multivector for each cell or evaluate an
+expression during rendering. Optional `GradeColor` wrappers record the
+grade of nonzero results. The LaTeX emitter chooses a stable palette and
+scopes the colour; plain-text emitters ignore this decoration. Gram and
+wedge wrappers share private rich-display plumbing while remaining
+distinct public types. See
+[ADR-128](../adrs/128-wedge-product-tables-and-grade-colours.md).
 
 Conventional `add` calls become `Sum` nodes whose `SumTerm` children carry an
 explicit sign. The builder flattens nested additions and absorbs a leading

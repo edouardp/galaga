@@ -11,6 +11,7 @@ from .tree import (
     Delimited,
     Equality,
     Fraction,
+    GradeColor,
     Group,
     Identifier,
     Infix,
@@ -23,6 +24,7 @@ from .tree import (
     Product,
     Subscript,
     Sum,
+    Table,
     Text,
     Underset,
     Wrapper,
@@ -31,6 +33,9 @@ from .tree import (
 _SUPERSCRIPT = str.maketrans("0123456789+-", "⁰¹²³⁴⁵⁶⁷⁸⁹⁺⁻")
 _SUBSCRIPT = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
 _POSITIONAL_MARKERS = frozenset("★☆●○■□")
+# The plotting companion uses these hues too; keep rendering independent of
+# that optional package. Grade zero is neutral, then cycle through the hues.
+_GRADE_COLORS = ("#111827", "#0072B2", "#D55E00", "#009E73", "#CC79A7", "#E69F00", "#56B4E9", "#F0E442")
 _LATEX_UNDERACCENT_COMMANDS = frozenset(
     {r"\underline", r"\utilde", r"\underbrace", r"\underleftarrow", r"\underrightarrow", r"\underleftrightarrow"}
 )
@@ -66,6 +71,12 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         return node.name.for_target(target)
     if isinstance(node, Literal):
         return _number(node.value, target, node.precision)
+    if isinstance(node, GradeColor):
+        body = _emit(node.body, target, compact_fractions=compact_fractions)
+        color = _GRADE_COLORS[node.grade % len(_GRADE_COLORS)]
+        return rf"{{\color{{{color}}}{body}}}" if target == "latex" else body
+    if isinstance(node, Table):
+        return _table(node, target)
     if isinstance(node, Text):
         return _escape_text(node.value, target)
     if isinstance(node, Group):
@@ -209,6 +220,33 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         rendered_parts = dict.fromkeys(_emit(part, target, compact_fractions=compact_fractions) for part in node.parts)
         return separator.join(rendered_parts)
     raise TypeError(f"unsupported semantic render node {type(node).__name__}")
+
+
+def _table(node: Table, target: str) -> str:
+    headings = [_emit(heading, target) for heading in node.headings]
+    rows = [[_emit(node.corner, target), *headings]]
+    for heading, cells in zip(headings, node.rows, strict=True):
+        entries = []
+        for cell in cells:
+            entry = _emit(cell, target)
+            if target == "latex" and isinstance(cell, Literal) and cell.value == 0:
+                entry = r"{\color{#bbbbbb}0}"
+            entries.append(entry)
+        rows.append([heading, *entries])
+    if target == "latex":
+        columns = "c|" + "c" * len(headings) if headings else "c"
+        lines = [rf"\begin{{array}}{{{columns}}}", " & ".join(rows[0]) + r" \\", r"\hline"]
+        lines.extend(" & ".join(row) + r" \\" for row in rows[1:])
+        lines.append(r"\end{array}")
+        return "\n".join(lines)
+    widths = [max(len(row[index]) for row in rows) for index in range(len(rows[0]))]
+    lines = []
+    for row in rows:
+        cells = [entry.rjust(width) for entry, width in zip(row, widths, strict=True)]
+        lines.append(cells[0] + (" | " + " ".join(cells[1:]) if headings else ""))
+    separator = "-" * widths[0] + ("-+-" + "-".join("-" * width for width in widths[1:]) if headings else "")
+    lines.insert(1, separator)
+    return "\n".join(lines)
 
 
 def _number(value: int | float, target: str, precision: int) -> str:

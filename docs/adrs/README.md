@@ -140,6 +140,8 @@ helps future contributors understand why certain choices were made.
 | [124](124-rotor-predicate-requires-vector-preservation.md) | Rotor Predicate Requires Vector Preservation | Accepted |
 | [125](125-separate-algebra-logarithms-from-rotor-generators.md) | Separate Algebra Logarithms from Rotor Generators | Accepted |
 | [126](126-align-static-types-with-existing-numeric-contracts.md) | Align Static Types with Existing Numeric Contracts | Accepted |
+| [127](127-renderable-native-bilinear-form-tables.md) | Renderable Native Bilinear Form Tables | Accepted |
+| [128](128-wedge-product-tables-and-grade-colours.md) | Wedge Product Tables and Grade Colours | Accepted |
 
 ## Creating New ADRs
 

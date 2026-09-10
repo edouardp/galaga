@@ -125,6 +125,10 @@ def _(cga_algebra, cga_gram_matrix, cga_model, gm, scalar_product, squared):
 
     Therefore the form is nondegenerate even though two diagonal entries are
     zero. This is exactly the case that a diagonal-signature check misses.
+
+    `cga_algebra.bilinear_form_table()` also gives a labelled view of the same
+    stored matrix, shown below. Grey entries are exact zeros; the row and
+    column labels identify the native basis vectors being paired.
     """)
     return
 
@@ -132,6 +136,77 @@ def _(cga_algebra, cga_gram_matrix, cga_model, gm, scalar_product, squared):
 @app.cell
 def _(cga_gram_matrix):
     cga_gram_matrix  # noqa: B018 - Marimo displays the cell's final expression.
+    return
+
+
+@app.cell
+def _(cga_algebra):
+    cga_bilinear_form = cga_algebra.bilinear_form_table()
+    cga_bilinear_form  # noqa: B018 - Marimo displays the cell's final expression.
+    return
+
+
+@app.cell
+def _(cga_algebra, cga_model, gm):
+    cga_wedge_table = cga_algebra.wedge_product_table(color=True)
+    _null_wedge = cga_model.origin ^ cga_model.infinity
+    gm.md(rt"""
+    ## The exterior product is a different table
+
+    {cga_wedge_table}
+
+    A row vector is wedged with a column vector, in that order. Reversing
+    two different vectors changes the sign; a repeated vector gives zero.
+    Unlike the bilinear form, this table does not depend on the metric.
+    In particular, a nonzero inner product does **not** erase the bivector:
+
+    {_null_wedge:block}
+
+    `color=True` (equivalently `colour=True`) colours nonzero entries by
+    their result grade. Here every nonzero result is a bivector, so they
+    share one colour. Zeros always stay grey, even with colouring disabled.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, DisplayPolicy, cga_algebra, gm):
+    _small_algebra = Algebra(3, display=DisplayPolicy(content="full"))
+    full_wedge_table = _small_algebra.wedge_product_table(full=True, colour=True)
+    _e1, _e2, _e3 = _small_algebra.basis_vectors(expr=True)
+    _B = (_e2 ^ _e3).named("B")
+    _vector_bivector = _e1 ^ _B
+    _bivector_vector = _B ^ _e1
+    assert _vector_bivector == _bivector_vector
+    _full_cga_size = cga_algebra.dim
+    gm.md(rt"""
+    ## Include every blade, including the scalar
+
+    To keep the full table readable, first use three-dimensional Euclidean
+    space. `full=True` adds every exterior basis blade, ordered by grade,
+    starting with the scalar $1$:
+
+    {full_wedge_table}
+
+    The first row and column show that $1$ is the wedge identity. Colours
+    now distinguish scalar, vector, bivector, and trivector results. A zero
+    has no unique grade; it remains grey. Any repeated basis-vector factor
+    makes a cell zero.
+
+    The full table also teaches why "swapping always negates" only holds
+    for vectors. Swapping a grade-$p$ blade with a grade-$q$ blade introduces
+    $(-1)^{{pq}}$. A vector and bivector therefore commute under the wedge.
+    With $B=e_2\wedge e_3$, the computed products are:
+
+    {_vector_bivector:block}
+
+    {_bivector_vector:block}
+
+    The same call on `cga_algebra`,
+    `cga_algebra.wedge_product_table(full=True, colour=True)`, produces
+    a ${_full_cga_size:g}\times{_full_cga_size:g}$ table. Full tables grow
+    as $4^n$ cells, so the vector-only default is usually the better overview.
+    """)
     return
 
 

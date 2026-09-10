@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Iterable, Sequence
 from numbers import Real
 from typing import Any
 
@@ -25,6 +25,7 @@ from .tree import (
     Delimited,
     Equality,
     Fraction,
+    GradeColor,
     Group,
     Identifier,
     Infix,
@@ -38,10 +39,62 @@ from .tree import (
     Subscript,
     Sum,
     SumTerm,
+    Table,
     Underset,
     Wrapper,
     grouped_child,
 )
+
+
+def bilinear_form_tree(gram: Iterable[Iterable[float]], presentation: PresentationConfig) -> Table:
+    """Snapshot a native Gram matrix without tolerance-based entry elision."""
+    selected = _presentation(presentation)
+    headings: list[Node] = []
+    for index in range(selected.dimension):
+        label = selected.blades.label(1 << index)
+        heading = Identifier(label.name)
+        # The stored Gram entries pair native vectors, not their signed aliases.
+        headings.append(_negated(heading) if label.ref.orientation < 0 else heading)
+    rows = tuple(tuple(_literal(value, selected) for value in row) for row in gram)
+    return Table(headings, rows, corner=Identifier(Name(".", "•", r"\bullet")))
+
+
+def wedge_product_tree(
+    masks: tuple[int, ...],
+    factors: tuple[tuple[int, ...], ...],
+    presentation: PresentationConfig,
+    *,
+    color: bool,
+) -> Table:
+    """Lay out already-computed exterior coefficients without evaluating GA."""
+    selected = _presentation(presentation)
+    if len(factors) != len(masks) or any(len(row) != len(masks) for row in factors):
+        raise ValueError("wedge factors must form a square matching the axis masks")
+
+    def blade(mask: int, sign: int = 1) -> Node:
+        if mask == 0:
+            return _literal(sign, selected)
+        label = selected.blades.label(mask)
+        heading = Identifier(label.name)
+        return _negated(heading) if sign * label.ref.orientation < 0 else heading
+
+    headings = tuple(blade(mask) for mask in masks)
+    rows: list[tuple[Node, ...]] = []
+    for left, factors_row in zip(masks, factors, strict=True):
+        cells: list[Node] = []
+        for right, factor in zip(masks, factors_row, strict=True):
+            if factor == 0:
+                cell: Node = _literal(0, selected)
+            else:
+                if factor not in (-1, 1):
+                    raise ValueError("native wedge factors must be -1, 0, or 1")
+                result_mask = left ^ right
+                cell = blade(result_mask, factor)
+                if color:
+                    cell = GradeColor(cell, result_mask.bit_count())
+            cells.append(cell)
+        rows.append(tuple(cells))
+    return Table(headings, rows, corner=Identifier(Name("^", "∧", r"\wedge")))
 
 
 def expression_tree(

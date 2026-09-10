@@ -153,6 +153,50 @@ class Text(Node):
 
 
 @dataclass(frozen=True, slots=True, init=False)
+class GradeColor(Node):
+    """Optional grade-based colour decoration, transparent to plain text."""
+
+    body: Node
+    grade: int
+
+    def __init__(self, body: Node, grade: int) -> None:
+        if not isinstance(grade, Integral) or isinstance(grade, bool) or grade < 0:
+            raise ValueError("colour grade must be a non-negative integer")
+        object.__setattr__(self, "body", _node(body, field="grade colour body"))
+        object.__setattr__(self, "grade", int(grade))
+
+    @property
+    def precedence(self) -> int:
+        return self.body.precedence
+
+
+@dataclass(frozen=True, slots=True, init=False)
+class Table(Node):
+    """A square table with shared axis headings and exact-zero emphasis."""
+
+    headings: tuple[Node, ...]
+    rows: tuple[tuple[Node, ...], ...]
+    corner: Node
+
+    def __init__(self, headings: Any, rows: Any, *, corner: Node) -> None:
+        labels = _nodes(headings, field="table headings", minimum=0)
+        try:
+            row_values = tuple(rows)
+        except TypeError:
+            raise TypeError("table rows must be an iterable of rows") from None
+        cells = tuple(_nodes(row, field="table row", minimum=0) for row in row_values)
+        if len(cells) != len(labels) or any(len(row) != len(labels) for row in cells):
+            raise ValueError("table rows must form a square matching the headings")
+        object.__setattr__(self, "headings", labels)
+        object.__setattr__(self, "rows", cells)
+        object.__setattr__(self, "corner", _node(corner, field="table corner"))
+
+    @property
+    def precedence(self) -> int:
+        return Precedence.ATOM
+
+
+@dataclass(frozen=True, slots=True, init=False)
 class Group(Node):
     """Explicit grouping chosen by the shared precedence model."""
 
@@ -553,6 +597,7 @@ __all__ = [
     "Delimited",
     "Equality",
     "Fraction",
+    "GradeColor",
     "Group",
     "Identifier",
     "Infix",
@@ -567,6 +612,7 @@ __all__ = [
     "Subscript",
     "Sum",
     "SumTerm",
+    "Table",
     "Text",
     "Underset",
     "Wrapper",

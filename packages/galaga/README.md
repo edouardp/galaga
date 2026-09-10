@@ -369,6 +369,68 @@ with alg.use_presentation(teaching_presentation):
     print(x.latex())
 ```
 
+### Display the bilinear form
+
+`Algebra.bilinear_form_table()` returns a notebook-ready Gram table with
+basis labels on both axes:
+
+```python
+from galaga import Algebra
+from galaga.presets import p_cga
+
+cga = Algebra(config=p_cga(3))
+table = cga.bilinear_form_table()
+table  # Rich display in Marimo/Jupyter; print(table) gives an aligned text table.
+```
+
+LaTeX uses a labelled array with grey (`#bbbbbb`) exact zeros. Small nonzero
+entries remain visible even when the multivector display policy would hide
+them. `table.latex()` returns raw LaTeX without math delimiters.
+
+In Python 3.14 Marimo notebooks, the table also works as a display-math block
+in a dynamic Markdown template:
+
+```python
+import galaga_marimo as gm
+
+gm.md(t"""The native bilinear form is:
+
+{table}
+""")
+```
+
+The table captures the current presentation, keeps native Gram order, and
+includes any sign needed to identify each native basis vector correctly.
+For numeric entries use `cga.gram`. See the executable
+[CGA Gram notebook](../../examples/matrix/cga_via_gram_matrix.py) and the
+[presentation guide](../../docs/v2/presentation-configuration.md#labelled-bilinear-form-tables).
+
+### Display wedge products
+
+`Algebra.wedge_product_table()` uses the same rich-display protocol, with
+a wedge in the corner and **row blade wedged with column blade** in each
+cell:
+
+```python
+cga.wedge_product_table()                        # Native basis vectors only.
+cga.wedge_product_table(color=True)              # Colour nonzero results by grade.
+cga.wedge_product_table(full=True, colour=True)   # All blades, including scalar 1.
+```
+
+`color` and `colour` are aliases: either being `True` enables colouring.
+All three flags default to `False` and require booleans. Zeros always stay
+grey; ASCII and Unicode remain uncoloured. A stable eight-colour palette
+is indexed by grade, repeating for grades above seven.
+
+Full tables begin with `1`, then list every native exterior blade by grade
+and bitmask, with signed convention names preserved. Unlike the Gram
+matrix, wedge products do not depend on the metric. A full table has
+`4**n` cells: 3D CGA gives a 32-by-32 table. For a smaller teaching example:
+
+```python
+Algebra(3).wedge_product_table(full=True, colour=True)  # An 8-by-8 table.
+```
+
 ## Public API and numeric core
 
 Import application APIs from `galaga`. Internally, those public objects are

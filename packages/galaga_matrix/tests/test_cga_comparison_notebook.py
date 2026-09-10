@@ -11,7 +11,9 @@ import numpy as np
 import pytest
 from galaga_matrix import MatrixRepr, from_matrix, to_matrix
 
-from galaga import Algebra, sandwich, squared
+from galaga import Algebra, outer_product, sandwich, squared
+from galaga.display import emit
+from galaga.rendering import GradeColor
 
 ROOT = Path(__file__).resolve().parents[3]
 pytestmark = pytest.mark.skipif(sys.version_info < (3, 14), reason="Notebook t-strings require Python 3.14")
@@ -160,6 +162,28 @@ def test_native_null_notebook_scalar_equation_and_standalone_gram_display():
     np.testing.assert_array_equal(gram.mat, definitions["cga_algebra"].gram)
     assert any(output is gram for output in outputs)
     assert r"\begin{pmatrix}" in gram._repr_latex_()
+    table = definitions["cga_bilinear_form"]
+    assert any(output is table for output in outputs)
+    np.testing.assert_array_equal([[cell.value for cell in row] for row in table.tree.rows], gram.mat)
+    assert r"\begin{array}{c|ccccc}" in table.latex()
+    assert table.latex().count(r"{\color{#bbbbbb}0}") == np.count_nonzero(gram.mat == 0)
+    for key, algebra, full in (
+        ("cga_wedge_table", definitions["cga_algebra"], False),
+        ("full_wedge_table", Algebra(3), True),
+    ):
+        wedge_table = definitions[key]
+        masks = (
+            sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask))
+            if full
+            else [1 << index for index in range(algebra.n)]
+        )
+        assert len(wedge_table.tree.headings) == len(masks)
+        for i, left in enumerate(masks):
+            for j, right in enumerate(masks):
+                cell = wedge_table.tree.rows[i][j]
+                body = cell.body if isinstance(cell, GradeColor) else cell
+                product = outer_product(algebra.blade(left), algebra.blade(right))
+                assert emit(body, "latex") == product.latex(content="value")
     markup = "\n".join(getattr(output, "text", "") for output in outputs)
     equations = re.findall(r"<marimo-tex[^>]*>(.*?)</marimo-tex>", markup, flags=re.S)
     equation = next(equation for equation in equations if "e_o^2=" in equation)
@@ -167,6 +191,13 @@ def test_native_null_notebook_scalar_equation_and_standalone_gram_display():
     assert "e_o^2=0" in equation
     assert r"e_\infty^2=0" in equation
     assert r"e_o\mathbin{\cdot}e_\infty=-1" in equation
+    null_wedge = next(equation for equation in equations if r"e_{o} \wedge e_{\infty}" in equation)
+    assert "$" not in null_wedge and null_wedge.count("=") == 1
+    assert r"e_{o\infty}" in null_wedge
+    for product in (r"e_{1} \wedge B", r"B \wedge e_{1}"):
+        graded_commutation = next(equation for equation in equations if product in equation)
+        assert "$" not in graded_commutation and graded_commutation.count("=") == 1
+        assert graded_commutation.count(r"e_{123}") == 1
 
 
 def test_oblique_notebook_generator_checks_follow_an_edited_metric():
