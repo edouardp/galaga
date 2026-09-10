@@ -1,5 +1,178 @@
 # Changelog
 
+## 2.0.0a3 (2026-09-10)
+
+This third Galaga 2 alpha removes the retired Galaga 1 runtime, extends compact
+matrix representations to general nondegenerate Gram metrics, and separates
+mathematical logarithms from checked rotor generators. It also fixes exact
+numeric key semantics, division provenance, and high-dimensional rotor
+validation, with expanded executable teaching examples.
+
+Code still importing `galaga.legacy` or other retired implementation modules
+must migrate to the public Galaga 2 API. See the
+[migration guide](docs/v2/migration-guide.md) for replacements.
+
+### Added
+
+- **Compact matrices for general Gram metrics** — Explicit
+  `to_matrix(value, mode="compact")` now supports numerically suitable
+  nondegenerate scaled and nonorthogonal real symmetric Gram matrices,
+  including native-null CGA. Metric congruence and an exterior-power lift
+  preserve native blade coefficients and geometric products; inverse
+  conversion recovers coefficients when the selected representation is
+  injective. Automatic dispatch remains left-regular for these metrics.
+
+- **Explicit rotor-generator APIs** — Adds `rotor_generator(R)` to obtain a
+  checked geometric exponent from a rotor's principal logarithm, and
+  `is_rotor_generator(B)` to validate an independent candidate. The predicate
+  checks evenness, reverse skewness, and vector-valued commutators. Returned
+  generators retain their full scale, including any half-angle.
+
+- **Opt-in LaTeX name conversion** — Adds `Name.from_latex(...)` and exposes
+  `LatexSymbols` through `galaga.names`. Supported symbols derive ASCII and
+  Unicode spellings; explicit overrides are preserved, and unsupported LaTeX
+  requires an explicit ASCII fallback. Ordinary name construction remains
+  literal rather than guessing spellings.
+
+- **Metric-derived STA names** — Adds `sigmas=True` and
+  `pseudovectors=True` options to `p_sta()` and its blade convention. Sigma
+  and pseudoscalar-product labels derive their signs from the ordered native
+  signature for both mostly-minus and mostly-plus conventions, while original
+  gamma blade spellings remain available.
+
+- **Unary multivector conveniences** — Adds `.bar`, `.dag`, `.inv`, and
+  `.sq` properties as provenance-preserving forms of grade involution,
+  reverse, inverse, and geometric square. `.dag` means reverse, not an
+  additional Hermitian adjoint.
+
+- **Configurable unit-fraction rendering** — Adds the opt-in
+  `RenderRule("unit_fraction")` for displaying normalization as a value
+  divided by its norm. This changes presentation only; non-default operation
+  controls remain visible through functional notation.
+
+- **General-Gram, CGA, and logarithm notebooks** — Adds pedagogical compact
+  matrix foundations and workflow notebooks, CGA constructed from its Gram
+  matrix, a CGA complex/quaternion comparison, and a dedicated logarithms and
+  rotor-generators lesson. Examples include rendered Gram matrices, `4x4`
+  compact complex and `32x32` real left-regular CGA matrices, mixed-grade
+  quaternion-pair encodings, branch cuts, nilpotent logarithms, and interactive
+  comparisons of paths to the same rotor. Quaternion CGA examples use explicit
+  notebook-local coordinate maps; general native CGA quaternion conversion is
+  not introduced by this release.
+
+### Changed
+
+- **`log` is the real principal algebra logarithm** — Removes the normalized
+  rotor and scalar-square nonscalar-part restrictions. Positive scalar,
+  nonrotor, compound, and nilpotent inputs are supported where the principal
+  branch can be resolved. Closed forms handle scalar-square cases, with
+  native left-action quadrature for general inputs. Scalar magnitude and all
+  stored grades are retained, and nonscalar results must pass an exponential
+  round-trip check. Singular inputs, the nonpositive-real spectral branch
+  cut, and unresolved numerical cases raise explicitly; no complexification
+  or alternative-branch search is performed. Use `rotor_generator` when the
+  result must generate a path of rotors.
+
+- **Contraction symbols** — Default LaTeX rendering now uses
+  `\mathbin{\rfloor}` for left contraction and `\mathbin{\lfloor}` for right
+  contraction. ASCII and Unicode spellings and numerical operations are
+  unchanged.
+
+- **Shared matrix representation plans** — Forward, inverse, and spinor
+  conversions reuse bounded, immutable cached plans for algebra-derived
+  generators, blade matrices, and reconstruction systems. Presentation-only
+  algebra views share plans, while returned matrices remain independent.
+  `MatrixRepr.domain` records whether the source coefficient domain is full
+  or even.
+
+- **Teaching and migration coverage** — Migrates the remaining scratch and
+  teaching files to the public facade, including quantum physics, dynamic
+  notation, LaTeX layouts, Marimo helpers, Mermaid examples, and the batched
+  benchmark. The maintained gallery now contains 85 notebooks with dependency
+  validation and headless execution checks. Guides distinguish exterior
+  blades from geometric words, exact values from display rounding, and
+  algebraic logarithms from geometric generators.
+
+- **Legacy-free validation and packaging** — Historical compatibility tests
+  and benchmarks now use frozen observations, public contracts, and independent
+  algebraic reference checks instead of executing the old engine. Wheel and
+  sdist validation rejects retired runtime files, source mismatches, and
+  metadata drift before publication. Fresh installed-wheel tests verify
+  package origins and exercise companion integrations outside runtime source
+  paths.
+
+### Fixed
+
+- **Exact equality and compatible hashes** — Equal immutable multivectors
+  now hash alike across positive and negative zero, and exactly scalar values
+  hash like equal Python real numbers. Scalar comparisons no longer round
+  large integers, exact fractions, or NumPy scalar operands through `float64`;
+  nonfinite comparisons return false without raising. Every stored nonzero
+  coefficient remains significant. No tolerance-based equality is introduced,
+  and multivector-to-multivector equality retains its algebra-identity scope.
+
+- **Division preserves values and both operand histories** — Multivector
+  denominators retain their names and expressions for rendering and replay,
+  including CGA weight denominators. Scalar dispatch now requires exactly zero
+  nonscalar coefficients, preventing tiny grades from being discarded. Direct
+  scalar division avoids an overflowing reciprocal when the quotient is
+  finite, and exact scalar zero denominators consistently raise
+  `ZeroDivisionError`. General division remains right multiplication by the
+  denominator's inverse.
+
+- **High-dimensional rotor validation** — `is_rotor` now requires the
+  reverse sandwich to preserve every native basis vector, in addition to
+  evenness and the full unit reverse product. Unit even multivectors that mix
+  vectors into higher grades are no longer accepted as rotors. Tests cover
+  nonorthogonal and degenerate metrics, compound rotors, and explicit
+  floating-point tolerances.
+
+- **Matrix inverse and convention boundaries** — Normalizes reconstruction
+  columns before rank checks so uniform metric scaling does not create false
+  rank deficiency. Genuine information loss and matrices outside the image
+  still fail inverse conversion. Named Dirac/Weyl/Majorana basis changes no
+  longer accept unrelated `4x4` matrices or infer a textbook convention from
+  general-Gram inertia alone; spinor and named-mode restrictions remain
+  explicit.
+
+- **Unicode symbol conversion** — Corrects lowercase mathematical-font
+  mappings, Unicode block exceptions, and supported digit mappings. Unsupported
+  non-ASCII bodies, nested commands, and invalid font/digit combinations are
+  rejected instead of producing unrelated or unassigned characters.
+
+- **LaTeX grouping and accents** — Protects already-scripted and compound
+  names when adding superscripts or subscripts, separates control-word
+  prefixes from following identifiers, and renders custom under-accents with
+  a KaTeX-compatible fallback. Hestenes reversal consistently uses its dagger
+  rule in LaTeX as well as plain-text targets. Notebook regressions also guard
+  computed scalar equations against nested math delimiters.
+
+- **Production type checking** — Resolves the remaining production type
+  errors while preserving accepted numeric inputs and model keyword
+  contracts. No type-check exclusions, ignores, or relaxed rules were added.
+
+### Removed
+
+- **Galaga 1 runtime and legacy import paths** — Deletes `galaga.legacy`,
+  the table-backed engine, old operation registries, lazy/symbolic adapters,
+  and the legacy rendering and simplification pipeline. Retired paths such
+  as `galaga.algebra`, `galaga.ops`, `galaga.symbolic_core`, and
+  `galaga.notation` are no longer importable. Use `galaga` or numeric-only
+  `galaga.core`, with `galaga.expression`, `galaga.presentation`, and
+  `galaga.rendering` for their respective public contracts.
+
+- **Old symbol-converter path and matrix fallbacks** — Removes the
+  `galaga.latex_symbols` shim; use `galaga.names.LatexSymbols` or
+  `Name.from_latex(...)`. Matrix conversion no longer probes legacy private
+  product tables or legacy multivector factories.
+
+The warning-only `galaga.gram_bridge` paths and six temporary function
+spellings remain available during the prerelease migration; their retirement
+is still scheduled before stable `2.0.0`. Degenerate metrics continue to
+require left-regular matrices, and a rejected principal logarithm or generator
+does not prove that no alternative real logarithm or geometric generator
+exists.
+
 ## 2.0.0a2 (2026-09-06)
 
 This second Galaga 2 alpha expands the conformal and projective workflows,
