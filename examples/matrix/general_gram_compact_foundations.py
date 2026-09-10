@@ -52,8 +52,6 @@ def _(Algebra, MatrixRepr, np):
     gram_matrix = MatrixRepr(gram_2d).name(latex=r"G")
     oblique = Algebra(gram=gram_2d)
     e1_oblique, e2_oblique = oblique.basis_vectors(expr=True)
-    e1_oblique = e1_oblique.named("e1", latex=r"e_1")
-    e2_oblique = e2_oblique.named("e2", latex=r"e_2")
     return e1_oblique, e2_oblique, gram_2d, gram_matrix, oblique
 
 
