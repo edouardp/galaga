@@ -10,17 +10,21 @@ names are deliberately more explicit.
 Until stable `2.0.0` is published, opt into prereleases:
 
 ```bash
-python -m pip install --pre "galaga>=2.0.0a1,<3"
+python -m pip install --pre "galaga>=2.0.0a4,<3"
 ```
 
 For a reproducible report or notebook, pin the exact release being evaluated:
 
 ```bash
-python -m pip install "galaga==2.0.0a1"
+python -m pip install "galaga==2.0.0a4"
 ```
 
-Galaga, `galaga-matrix`, and `galaga-mermaid` support Python 3.11 and later.
+Galaga, `galaga-matrix`, `galaga-anywidget`, and the experimental
+`galaga-mermaid` support Python 3.11 and later.
 `galaga-marimo` requires Python 3.14 because its API uses t-strings.
+Mermaid is independently versioned and is not part of the joint publication.
+The source branch contains post-a4 API removals described below; an a4 pin
+reproduces that published alpha, not the unreleased branch.
 
 ## Use the top-level API
 

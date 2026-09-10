@@ -1,7 +1,7 @@
 # galaga_matrix
 
 Matrix representations for
-[galaga](https://github.com/edouardp/galaga/tree/main/packages/galaga)
+[galaga](https://github.com/edouardp/galaga/tree/galaga_v2/packages/galaga)
 Clifford algebras.
 
 > **Status**: published to PyPI alongside galaga. Released as part of the monorepo.
@@ -9,7 +9,7 @@ Clifford algebras.
 During the Galaga 2 prerelease train:
 
 ```bash
-python -m pip install --pre "galaga-matrix>=2.0.0a1,<3"
+python -m pip install --pre "galaga-matrix>=2.0.0a4,<3"
 ```
 
 ## What it does
@@ -82,13 +82,13 @@ from_matrix(compact_x)  # native exterior-basis coefficients are preserved
 
 The repository includes a short Marimo series using the Galaga 2 facade:
 
-- [representations and round-trips](https://github.com/edouardp/galaga/blob/main/examples/matrix/representations_and_roundtrips.py);
-- [compact matrices in an oblique basis](https://github.com/edouardp/galaga/blob/main/examples/matrix/general_gram_compact_foundations.py);
-- [a basis-independent compact workflow](https://github.com/edouardp/galaga/blob/main/examples/matrix/general_gram_compact_workflow.py);
-- [CGA from its native-null Gram matrix](https://github.com/edouardp/galaga/blob/main/examples/matrix/cga_via_gram_matrix.py);
-- [CGA objects in complex and quaternion form](https://github.com/edouardp/galaga/blob/main/examples/matrix/cga_complex_and_quaternion.py);
-- [Pauli and Dirac matrices](https://github.com/edouardp/galaga/blob/main/examples/matrix/pauli_and_dirac.py); and
-- [spinor columns](https://github.com/edouardp/galaga/blob/main/examples/matrix/spinor_columns.py).
+- [representations and round-trips](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/representations_and_roundtrips.py);
+- [compact matrices in an oblique basis](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/general_gram_compact_foundations.py);
+- [a basis-independent compact workflow](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/general_gram_compact_workflow.py);
+- [CGA from its native-null Gram matrix](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/cga_via_gram_matrix.py);
+- [CGA objects in complex and quaternion form](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/cga_complex_and_quaternion.py);
+- [Pauli and Dirac matrices](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/pauli_and_dirac.py); and
+- [spinor columns](https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/spinor_columns.py).
 
 The CGA comparison notebook covers vectors, lifted points, point pairs, lines,
 circles, spheres, planes, and rotors. It shows their `4×4` compact complex
@@ -142,9 +142,12 @@ presentation overrides on the facade algebra. `galaga_matrix` does not import
 `galaga.symbolic_core` or inspect private multivector fields. This keeps the
 optional package independent without losing evaluable provenance.
 
-Works in galaga_marimo t-strings:
+Works in `galaga_marimo` t-strings (Python 3.14+, with that optional package
+installed; continuing the quick start above):
 
 ```python
+import galaga_marimo as gm
+
 gm.md(t"""
 The Pauli matrix: {to_matrix(e1, mode="compact"):block}
 """)
@@ -186,7 +189,7 @@ orthogonal conventions.
   compact works, but `from_matrix` compact raises if the selected compact
   representation is not injective. Use `left-regular` for exact inverse
   conversion. See
-  [Double Clifford Algebras](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/double-algebras.md).
+  [Double Clifford Algebras](https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/docs/double-algebras.md).
 - **Quaternion output**: `to_quaternion_matrix` and quaternion spinor conversions use explicit quaternion-block bases. They currently support Cl(0,2) and Cl(1,3), and reject double algebras such as Cl(0,3).
 - **Spinor roundtrip**: spinor-column conversions retain their normalized
   orthogonal native-basis requirement and are rank-checked for the actual
@@ -200,16 +203,16 @@ orthogonal conventions.
 ## Architecture decisions
 
 See the
-[matrix ADR index](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/adrs/README.md).
+[matrix ADR index](https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/docs/adrs/README.md).
 
 For the mathematical relationship between primitive idempotents, reciprocal
 frames, and compact real, complex, or quaternionic matrix representations, see
-[Spectral-Sandwich Matrix Representations](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/spectral-sandwich-representations.md).
+[Spectral-Sandwich Matrix Representations](https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/docs/spectral-sandwich-representations.md).
 
 For the proposed faithful `4×4` complex representation of native-null 3D CGA,
 its Vahlen/Möbius block interpretation, and the `2×2` quaternion
 representation of the even conformal algebra, see
-[Native-Null CGA Matrix Representations](https://github.com/edouardp/galaga/blob/main/packages/galaga_matrix/docs/specs/native-null-cga-matrix-representations.md).
+[Native-Null CGA Matrix Representations](https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/docs/specs/native-null-cga-matrix-representations.md).
 
 ## Tests
 

@@ -106,7 +106,7 @@ numeric-adjacent but not part of the core metric engine:
   standalone helper equivalent to `float(grade(value, 0))`;
 - same-object aliases and their deprecation milestones.
 
-The corrected bracket family must also migrate into Galaga. In the current
+The corrected bracket family is migrated into Galaga. In the current
 core, `lie_bracket` and `commutator` are unscaled, `jordan_product` and
 `anticommutator` are unscaled, and only the two `half_...` functions divide by
 two.
@@ -166,7 +166,7 @@ model-owned rather than silently applied by the product. Point-based RGA and
 plane-based PGA remain distinct presets because they reverse the point/plane
 grade ladder and use dual transformation products.
 
-### 5. Production hardening
+### 5. Further production hardening (not stable 2.0 prerequisites)
 
 - Add a versor fast path and Hitzer/Shirokov paths to `inverse`, retaining the
   left-regular solve as a verification fallback.
@@ -187,18 +187,21 @@ grade ladder and use dual transformation products.
 
 ```mermaid
 flowchart LR
-    X[Phase 8 top-level cutover complete] --> R[Phase 9 remove legacy engine]
-    X --> H[Further performance hardening]
+    X[Phase 8 top-level cutover complete] --> R[Engine and temporary APIs removed]
     G[Native CGA model complete] --> Q
     O[Public outermorphisms and basis changes] --> C[Native/orthogonal CGA comparison]
     R --> Q[Galaga 2 release hardening]
-    H --> Q
+    Q --> H[Further performance hardening]
 ```
 
 Numeric function and facade parity, presentation configuration, expression
 provenance, semantic rendering, public linear actions, companion migration,
-the top-level cutover, and the native CGA model are complete. The next cutover
-phase removes the retained legacy engine and migration-only names. Linear-map
+the top-level cutover, and the native CGA model are complete. The retained legacy
+engine and migration-only names are now removed. The remaining release work is
+the clean-candidate gate, release-stage metadata and published RC review under
+the [local-only policy](../adrs/131-local-only-stable-release-validation.md).
+See the [current validation report](legacy-engine-deletion-gate.md).
+Linear-map
 promotion, an explicit native/orthogonal CGA comparison, and further
 performance hardening remain independent numeric/model work rather than
 blockers for the public facade.

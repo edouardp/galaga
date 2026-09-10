@@ -10,13 +10,19 @@ this optional adapter package.
 During the Galaga 2 prerelease train:
 
 ```bash
-python -m pip install --pre "galaga-marimo>=2.0.0a1,<3"
+python -m pip install --pre "galaga-marimo>=2.0.0a4,<3"
 ```
 
 ## Usage
 
 ```python
+from galaga import Algebra, exp
 import galaga_marimo as gm
+
+algebra = Algebra(2)
+e1, e2 = algebra.basis_vectors(expr=True)
+R = exp(-0.25 * (e1 ^ e2)).named("R")
+v = (2 * e1 + e2).named("v")
 
 gm.md(t"""
 # Example
@@ -55,9 +61,10 @@ gm.md(t"Result: {result}", recognize=knowns)
 The `Doc` builder also supports it:
 
 ```python
-with gm.doc(recognize=knowns) as d:
-    d.md(t"g₊(↓) = {g_plus(d)}")
-    d.md(t"g₋(↓) = {g_minus(d)}")
+with gm.doc(recognize=knowns) as document:
+    document.md(t"Known scalar: {u}")
+    document.md(t"Known bivector: {d}")
+document
 ```
 
 Labels are taken from each MV's immutable `.name` value, created with
@@ -67,3 +74,6 @@ multivectors.
 Interactive visualizations are intentionally separate from this t-string
 renderer. Install `galaga-anywidget` and import `galaga_anywidget.viz` for the
 persistent 2D CGA widget.
+
+See the [integration guide](https://github.com/edouardp/galaga/blob/galaga_v2/docs/v2/integration-migration.md)
+for the public rendering and expression protocols used by companion packages.

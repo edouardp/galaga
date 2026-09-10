@@ -110,7 +110,10 @@ operation spellings and unused adapter infrastructure are gone. See
 [ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Permanent aliases
 and `p_*` presets remain. Full supported-version and clean-artifact validation,
 release metadata, release-candidate review and publication remain separate
-gates; completion of API cleanup does not declare stable 2.0 ready.
+gates; completion of API cleanup does not declare stable 2.0 ready. The
+[post-a4 preparation checkpoint](legacy-engine-deletion-gate.md#post-a4-stable-release-preparation-checkpoint)
+records passing local source/installed-wheel validation, coverage, security
+and benchmark checks; it must be repeated for the clean release candidate.
 
 Phase 9 has removed the rendering audit's live legacy dependency: all 73
 historical cases remain, and reviewed v2 outputs are pinned even for accepted
@@ -198,8 +201,10 @@ The full suite now also rejects retired imports during collection and execution.
 Physical engine deletion is complete. The five remaining teaching notebooks
 and NumPy benchmark are migrated in place under
 [ADR-123](../adrs/123-migrate-remaining-teaching-notebooks-and-benchmark.md);
-all 84 maintained notebooks receive headless validation. Alias retirement and
-final release gates remain open.
+the maintained notebook gallery receives headless validation. Migration-only
+alias retirement is complete under ADR-130. Final release gates remain open,
+using the local-only policy in
+[ADR-131](../adrs/131-local-only-stable-release-validation.md).
 
 The equality/hash release blocker is resolved: signed-zero peers and scalar
 multivectors equal to real numbers now have matching hashes. Comparison also

@@ -291,25 +291,148 @@ bytecode-only remainder was moved to `/tmp/galaga-retired-bridge.rNZzsO` so
 the source directory cannot survive as an importable namespace package.
 Deleted tracked adapter sources remain recoverable from Git.
 
-## Release gate remains open
+## Post-a4 stable-release preparation checkpoint
+
+Date: 2026-09-11. Base commit: `22e9db2` on `galaga_v2`, plus the uncommitted
+lint-gate fix, README regression tests and release-documentation changes in
+this checkpoint. This completes the requested local preparation checks, not
+the clean release-candidate or publication gate. No versions, classifiers,
+dependency floors, lockfile or changelog were changed; no CI was added.
+The stable local-only validation policy is now explicit in
+[ADR-131](../adrs/131-local-only-stable-release-validation.md).
+
+| Check | Result |
+|---|---|
+| Full source package and release-workflow suite, Python 3.11.15 | 9,601 passed, 170 skipped |
+| Full source package and release-workflow suite, Python 3.14.4 | 9,843 passed, 20 skipped |
+| Full installed-wheel package and release-workflow suite, Python 3.11.15 | 9,601 passed, 170 skipped; 41 loaded runtime module origins verified |
+| Full installed-wheel package and release-workflow suite, Python 3.14.4 | 9,843 passed, 20 skipped; 44 loaded runtime module origins verified |
+| Maintained gallery | All 88 notebooks pass dependency validation and headless execution |
+| README examples | Core and all four companion READMEs execute; Marimo examples require Python 3.14 |
+| Lint-gate regressions | 16 tests cover every failing stage and successful normal/fix runs |
+| `make lint` and `make validate` | Pass, including dependency audit and production type checking |
+| Production type check | Zero errors; 18 non-error warnings remain |
+| Ruff, Python formatting, Shellcheck, Checkmake and Markdown lint | Pass |
+| Bandit | No issues; existing annotation warnings remain |
+| Wheels and source distributions | All five packages built; all ten artifacts pass Twine |
+| Core artifact inventory | Wheel and sdist each contain 31 source-identical runtime files; retired paths absent |
+| Declared-dependency-only core smoke | Pass on Python 3.11 and 3.14 before installing companions/test tools |
+| Installed dependency consistency | Both wheel environments pass |
+| Dependency vulnerability audit | Source environment and both wheel environments report no known vulnerabilities |
+| Lockfile consistency | Pass; lockfile unchanged |
+| Local Markdown file targets | No missing targets; headings and external HTTP availability are not part of this check |
+| Historical rendering audit | 73 cases checked; zero reviewed-v2 regressions; ten already-reviewed differences from v1 |
+
+The first installed Python 3.14 run failed only because the sandbox blocked
+Marimo's local kernel sockets. The complete suite was rerun outside that
+sandbox and passed; the successful numbers above are from that rerun.
+Both installed environments load Galaga and its companions from site-packages,
+not editable runtime trees. The runner exposes only repository test helpers
+and verifies runtime module origins before and after the suite. Notebook
+subprocesses derive their package paths from those installed modules.
+
+The dependency audit cannot look up `galaga-mermaid==0.2.0` because this
+experimental local project is absent from PyPI. That explicit exception is
+not a vulnerability waiver: its code is scanned by Bandit and its third-party
+dependencies are audited. Audit cache-deserialization warnings caused stale
+cache entries to be ignored; the online audits completed successfully.
+
+### Coverage review
+
+| Scope | Previous pre-a3 checkpoint | This checkpoint |
+|---|---:|---:|
+| Galaga production, combined line/branch | 94.83% | 94.85% |
+| Direct numeric core, combined line/branch | 98.48% | 98.48% |
+| Marimo companion, combined line/branch | 86% | 86% |
+
+Galaga production line coverage is 96.07%; branch coverage is 91.37%.
+The comparison filters the older combined report to `packages/galaga/galaga/`
+so development helpers and companion code do not distort the baseline.
+Marimo's separate Python 3.14 run passes all 95 focused tests.
+
+No coverage exclusions were added during this preparation. Relative to the
+older pre-a3 checkpoint, the production exclusion count is 72 rather than 69:
+the existing presets work added a type-only import line and a two-line
+defensive `with_blades` guard. The protocol stub moved into the private preset
+implementation without increasing that count. These are not hidden engine
+remnants. Lower-coverage presentation/catalog and model validation paths
+remain future coverage opportunities; no runtime code changed in this work.
+
+### Performance review
+
+Python 3.11.15, NumPy 2.4.6, macOS 26.6.2, seed `20260721`; median of seven
+repeats of 2,000 calls. Each path is checked against the independent numeric
+reference before timing. The archived Phase 8 baseline remains unchanged.
+
+| Operation / layer | Phase 8 median µs | Current median µs |
+|---|---:|---:|
+| Geometric product / direct core | 16.947 | 16.268 |
+| Geometric product / untracked facade | 18.518 | 17.715 |
+| Geometric product / tracked facade | 20.576 | 19.765 |
+| Reverse / direct core | 1.836 | 1.884 |
+| Reverse / untracked facade | 2.574 | 2.582 |
+| Reverse / tracked facade | 6.832 | 6.676 |
+
+There is no material regression in this local comparison. The small reverse
+variation is not evidence of a new slowdown; host/OS and timing noise prevent
+treating these microsecond measurements as a cross-machine threshold.
+
+### Reproduction and artifact boundary
+
+Temporary artifacts, the installed-suite runner, JUnit reports, coverage JSON
+and raw benchmark/rendering reports are retained in
+`/tmp/galaga-stable-gate.xI4eiC`. The four public projects still carry
+`2.0.0a4`; these are validation artifacts and must not replace published alpha
+files. Mermaid retains its independent `0.2.0` metadata.
+
+Source suites used explicit Python 3.11 and 3.14 isolated `uv run --no-project`
+environments with an editable Galaga distribution for metadata and repository
+runtime paths. The installed suites instead use fresh `uv venv` environments,
+explicit local wheels, `python -I`, and Pytest's `--import-mode=importlib`.
+Key commands, with `GATE` set to the temporary directory above:
+
+```shell
+"$GATE/py311/bin/python" -I "$GATE/installed_gate.py" tests
+"$GATE/py314/bin/python" -I "$GATE/installed_gate.py" tests
+uv pip check --python "$GATE/py311/bin/python"
+uv pip check --python "$GATE/py314/bin/python"
+"$GATE/py311/bin/python" -m pip_audit
+"$GATE/py314/bin/python" -m pip_audit
+uvx twine check "$GATE"/artifacts/*
+uv run python scripts/check_galaga_artifact.py --project packages/galaga \
+  "$GATE"/artifacts/galaga-*
+PYTHONPATH="$GATE/test-support" "$GATE/py311/bin/python" \
+  -m tools.benchmark_phase8 --output "$GATE/performance.md"
+```
+
+`make validate` also passed with `UV_PROJECT_ENVIRONMENT` pointing to a
+separate temporary project environment and all companion source roots on
+`PYTHONPATH`. Its existing Makefile recipes select Python 3.13, 3.11 and 3.14
+for different steps; this does not replace the explicit full 3.11/3.14 suites
+above. The user's Python 3.13 `.venv` was preserved.
+
+## Remaining release actions
 
 - API retirement is complete after `2.0.0a4` under
   [ADR-130](../adrs/130-retire-migration-only-api-adapters.md): `gram_bridge`,
   the six temporary function spellings and unused adapter infrastructure are
   removed. Earlier checkpoints above correctly describe their then-live state.
-- Keep the now-passing type check green while completing the remaining
-  source and artifact release checks. Seventeen non-error warnings remain.
-- Prepare the alpha from the intended clean, tracked `galaga_v2` branch.
-  The user has authorized integration and push and explicitly chosen local
-  validation without CI for this alpha; no CI result is claimed.
-- At the actual release, choose the version, update the changelog/classifiers
-  and installation guidance as appropriate, and verify the required clean
-  branch, release-candidate and publication prerequisites. None were changed
-  during this verification.
+- Review and commit this preparation, then validate the intended clean,
+  tracked candidate. Merge to `main` only when explicitly authorized.
+- Use the now-documented local gate for stable as well as prereleases;
+  no CI setup is outstanding. Keep the zero-error type check green.
+- At the actual beta/RC/final release, select the version and update the
+  stage-specific classifiers and README installation guidance. The release
+  script does not do those wording/classifier edits automatically. Follow the
+  exact checklist in the release process; only then edit the changelog and
+  synchronize package versions/dependency floors through the release workflow.
+- Install and review the published release candidate before approving stable
+  `2.0.0`. Publication, credentials, tags and a clean release commit are not
+  certified by this working-tree checkpoint.
 
 Concurrent edits mentioned in earlier checkpoints were preserved separately
-from the engine-removal changes; the pre-a3 checkpoint above records the
-current validation boundary.
+from the engine-removal changes; the post-a4 preparation checkpoint above
+records the current validation boundary.
 
 See [ADR-122](../adrs/122-remove-the-legacy-engine-and-verify-artifacts.md),
 the [cutover plan](core-cutover-plan.md#w93-run-the-release-gate), and the

@@ -10,10 +10,20 @@ notebook keeps all geometric constructions in Python.
 During the Galaga 2 prerelease train:
 
 ```bash
-python -m pip install --pre "galaga-anywidget>=2.0.0a1,<3"
+python -m pip install --pre "galaga-anywidget>=2.0.0a4,<3"
 ```
 
 ## Persistent reactive construction
+
+Requires Python 3.11+. In Marimo, first create the native-null conformal model
+in a setup cell:
+
+```python
+from galaga import Algebra, presets
+from galaga.cga import ConformalModel
+
+cga = ConformalModel(Algebra(config=presets.cga(2)), expr=True)
+```
 
 Construct and render the visualization in a cell that has no dependency on
 changing geometry:
@@ -63,4 +73,4 @@ For compact static or one-cell views, use
 solid, dashed, or dotted line styles.
 
 The design and interaction lessons are recorded in
-[GALAGA_ANYWIDGET.md](https://github.com/edouardp/galaga/blob/main/GALAGA_ANYWIDGET.md).
+[GALAGA_ANYWIDGET.md](https://github.com/edouardp/galaga/blob/galaga_v2/GALAGA_ANYWIDGET.md).

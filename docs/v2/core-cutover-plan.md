@@ -165,7 +165,8 @@ The replacement suite must visibly distinguish:
 
 - Python 3.11 is the required Galaga, `galaga_anywidget`, and `galaga_matrix`
   release target.
-- Newer supported Python versions should run in CI as available.
+- Newer supported Python versions run in the recorded local gate under
+  [ADR-131](../adrs/131-local-only-stable-release-validation.md); no CI is required.
 - Python 3.14 is additionally required for `galaga_marimo` and its t-string
   tests; it must not raise the base Galaga requirement.
 
@@ -1767,8 +1768,10 @@ artifact check, not a claim that the legacy-free wheel deletion gate is done.
 
 #### Legacy engine deletion gate
 
-Remove the private legacy oracle only after Phase 8 has passed on the branch
-and in CI. Preserve historical behavior in tests, specifications, and migration
+Remove the private legacy oracle only after Phase 8 has passed on the branch.
+The original CI requirement is superseded by the local validation policy in
+[ADR-131](../adrs/131-local-only-stable-release-validation.md).
+Preserve historical behavior in tests, specifications, and migration
 documentation rather than in unreachable production code.
 
 Required tests:
@@ -1806,12 +1809,20 @@ Required tests:
 ### W9.3 Run the release gate
 
 Status: **not yet complete**. The production type check now passes (zero
-errors; seventeen warnings), as recorded in
+errors; eighteen warnings at the post-a4 checkpoint), following
 [ADR-126](../adrs/126-align-static-types-with-existing-numeric-contracts.md).
 Local deletion, packaging and runtime tests do not replace the remaining
-validation-policy and release-metadata requirements. W9.2 API retirement is
+release-metadata and clean-candidate requirements. Validation is local-only
+under [ADR-131](../adrs/131-local-only-stable-release-validation.md); CI setup
+is not outstanding. W9.2 API retirement is
 complete; the source and clean-artifact release gate is still separate. See the
 [current gate report](legacy-engine-deletion-gate.md).
+
+The 2026-09-11 post-a4 preparation checkpoint passes full source and installed
+wheel suites on Python 3.11/3.14, coverage review, security, documentation,
+artifact checks and the benchmark comparison. It is a working-tree checkpoint;
+the remaining work is to validate the clean candidate, apply release-stage
+metadata and review the published RC before final approval.
 
 Required checks:
 
