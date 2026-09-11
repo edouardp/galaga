@@ -45,6 +45,7 @@ MIGRATED_NOTEBOOKS = (
     "matrix/general_gram_compact_workflow.py",
     "matrix/pauli_and_dirac.py",
     "matrix/spinor_columns.py",
+    "matrix/spinors_ideals_and_chirality.py",
     "mermaid/mermaid_diagram.py",
     "basics/complex_and_quaternions.py",
     "basics/spinor_column_conversions.py",

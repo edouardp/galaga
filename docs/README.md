@@ -27,6 +27,9 @@ how the replacement was carried out; they are not alternate APIs.
   algebras.
 - [Duality and exterior complements](what_is_dual.md): general-Gram formulas,
   Euclidean-only simplifications, mixed grades and degenerate metrics.
+- [One spinor, three representations notebook](../examples/matrix/spinors_ideals_and_chirality.py):
+  ideals, columns, reflections, the rotation double cover, and chirality in
+  Dirac/Weyl bases, including real-GA projections and projected-spinor roundtrips.
 
 ## Understand the implementation
 

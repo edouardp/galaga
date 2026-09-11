@@ -51,8 +51,9 @@ Use strict inverse checks and explicit spinor conventions.
 - The Cl(1,3) public compact/spinor default remains the current standard Dirac
   basis.
 - Weyl and Majorana basis views are layered on top by explicit unitary
-  similarity transforms in examples and documentation. They are not yet public
-  basis-aware API modes.
+  similarity transforms. The subsequently implemented public `.to_basis()`
+  method supplies these views while preserving the default Dirac basis; see
+  the [basis-change contract](../specs/basis-change.md).
 - The documented Majorana convention uses
   $B_D=i_{\mathbb C}\Gamma^2_D$ for charge conjugation and chooses
   $U_{M\leftarrow D}$ so that
@@ -64,6 +65,47 @@ Use strict inverse checks and explicit spinor conventions.
   basis.
 - Quaternion APIs reject double algebras such as Cl(0,3) instead of exposing a
   one-summand conversion as if it were the full quaternionic algebra.
+
+### Teaching clarification, 2026-09-12
+
+The [ideals and chirality notebook](../../../../examples/matrix/spinors_ideals_and_chirality.py)
+distinguishes an ideal element from the even representative accepted by
+`to_spinor_column`. Its first-column extraction is explicitly restricted to
+the demonstrated Cl(3,0) ideal, not promoted as a general conversion API.
+The general Clifford action on that even representative is transported through
+the fixed reference, including the right-hand factor required for odd inputs.
+
+Chirality matrices/projectors and basis-change diagnostics remain local teaching
+constructions using public conversions. The notebook derives the Weyl change
+from converted basis columns, checks all operator grades, and labels complex
+amplitude plots separately from physical vector plots. No runtime convention,
+spinor predicate, or representation default changes.
+
+The STA chirality lesson starts with real even spinors. It derives the
+right-acting complex structure `J` from `from_spinor_column(1j *
+to_spinor_column(sta.identity))` and verifies its action on every even blade.
+Chirality is the two-sided map `Psi -> I * Psi * J`, with real projections
+`(Psi - I * Psi * J) / 2` and `(Psi + I * Psi * J) / 2`. Its matrix is built
+from its action on column basis states, then checked against `1j * rho(I)`.
+The lesson compares direct GA projections with projected columns reconstructed
+through both Dirac and Weyl bases, including even, odd, and mixed operators.
+
+This distinguishes a matrix of a spinor-space operation from the matrix of a
+single real Clifford element. The chiral projector matrices are outside the
+real compact representation's image, even when their entries are real;
+`from_matrix` must continue to reject them. Projected spinor columns do have
+real even representatives and roundtrip through `from_spinor_column`. No
+complexification of the core algebra or relaxation of inverse checks is needed.
+
+Matrix teaching panels stack headings, rendered mathematics, and captions
+vertically. Comparison rows contain at most two panels and may wrap; wide
+four-component operators and basis-change matrices occupy their own rows.
+This keeps matrix labels and chirality weights readable at notebook width.
+Controls are defined without display in an upstream cell, then rendered in
+the same output stack as the calculation or plot that reads their values.
+This preserves Marimo's reactive separation without putting controls and
+results in separate output cells; chirality controls sit immediately before
+the selected operator rather than above the introductory projector matrices.
 
 ### Consequences
 

@@ -24,6 +24,10 @@ def test_new_example_notebooks_compile():
             assert '__generated_with = "' in source
 
 
+def test_spinor_ideals_lesson_is_in_the_executable_gallery():
+    assert EXAMPLES / "matrix/spinors_ideals_and_chirality.py" in migrated_notebook_paths(ROOT)
+
+
 def test_new_example_notebooks_use_v2_facade_teaching_pattern():
     """Check the ledgered gallery uses expression provenance over eager values."""
     for notebook in migrated_notebook_paths(ROOT):
