@@ -156,11 +156,10 @@ def _(
                 mo.md("Its image has complex dimension one; the **left ideal** has complex dimension two."),
             ),
             gm.md(rt"""
-    **Algebra element**
+    **Algebra element** <br/>
+    {ideal_spinor:name} $\quad = \quad$ {ideal_spinor:expr} <br/>
+    {ideal_spinor:name} $\quad = \quad$ {ideal_spinor:value}<br/>
 
-    {ideal_spinor:full}
-
-    $$\psi={ideal_spinor.latex(content="value")!s}.$$
     """),
             mo.hstack(
                 [
@@ -173,6 +172,12 @@ def _(
         ]
     )
     return ideal_spinor, spinor_ket
+
+
+@app.cell
+def _(ideal_spinor):
+    ideal_spinor.latex(content="value")
+    return
 
 
 @app.cell(hide_code=True)
