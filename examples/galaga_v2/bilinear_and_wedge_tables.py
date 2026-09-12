@@ -288,7 +288,7 @@ def _(Algebra, gm, metric_inner_product, np, presets):
     cga = Algebra(config=presets.cga())
     pga_rank = int(np.linalg.matrix_rank(pga.gram))
     cga_rank = int(np.linalg.matrix_rank(cga.gram))
-    _o, _infinity = cga.basis_vectors()[-2:]
+    _o, _infinity = cga.blade("origin"), cga.blade("infinity")
     null_origin_square = metric_inner_product(_o, _o)
     null_infinity_square = metric_inner_product(_infinity, _infinity)
     null_pair_product = metric_inner_product(_o, _infinity)

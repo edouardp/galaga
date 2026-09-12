@@ -99,7 +99,7 @@ def _(cga_algebra, gm, gram_matrix):
 
     {gram_matrix:block}
 
-    The native order is $(e_1,e_2,e_3,e_o,e_\infty)$, with inertia
+    The native order is $(e_o,e_1,e_2,e_3,e_\infty)$, with inertia
     `{_inertia!s}`. The off-diagonal null-pair entry makes the metric
     nondegenerate. Try changing `null_pair_scale` to another negative value:
     the normalizations and coordinate maps below are derived from the algebra.

@@ -121,7 +121,7 @@ def test_cga_gram_matrix_notebook_connects_metric_geometry_and_compact_matrices(
     source = (EXAMPLES / "matrix/cga_via_gram_matrix.py").read_text()
 
     assert "cga_gram = np.zeros((spatial_dimension + 2, spatial_dimension + 2))" in source
-    assert "cga_gram[spatial_dimension, spatial_dimension + 1] = null_pair_scale" in source
+    assert "cga_gram[0, spatial_dimension + 1] = null_pair_scale" in source
     assert 'cga_gram_matrix = MatrixRepr(cga_gram).name(latex=r"G_{\\mathrm{CGA}}")' in source
     assert "ConformalModel(cga_algebra, expr=True)" in source
     assert 'to_matrix(cga_model.origin, mode="compact")' in source

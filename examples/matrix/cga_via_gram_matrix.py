@@ -57,7 +57,7 @@ def _(mo):
     Three-dimensional CGA uses five basis vectors in the native order
 
     $$
-    (e_1,e_2,e_3,e_o,e_\infty).
+    (e_o,e_1,e_2,e_3,e_\infty).
     $$
 
     The Euclidean vectors have unit positive square. The conformal origin and
@@ -86,9 +86,9 @@ def _(
     spatial_dimension = 3
     null_pair_scale = -1.0
     cga_gram = np.zeros((spatial_dimension + 2, spatial_dimension + 2))
-    cga_gram[:spatial_dimension, :spatial_dimension] = np.eye(spatial_dimension)
-    cga_gram[spatial_dimension, spatial_dimension + 1] = null_pair_scale
-    cga_gram[spatial_dimension + 1, spatial_dimension] = null_pair_scale
+    cga_gram[1:spatial_dimension + 1, 1:spatial_dimension + 1] = np.eye(spatial_dimension)
+    cga_gram[0, spatial_dimension + 1] = null_pair_scale
+    cga_gram[spatial_dimension + 1, 0] = null_pair_scale
 
     cga_template = p_cga(spatial_dimension, frame="null", null_pair=null_pair_scale).build()
     cga_definition = AlgebraDefinition(cga_gram, id="cga-3d-explicit-gram")

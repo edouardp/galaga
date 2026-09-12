@@ -21,6 +21,7 @@ MIGRATED_NOTEBOOKS = (
     "basics/galaga_marimo_demo.py",
     "quantum/quantum_physics.py",
     "cga/native_null_foundations.py",
+    "cga/basis_order_and_orientation.py",
     "cga/expression_forms.py",
     "cga/direct_objects_and_semantics.py",
     "cga/direct_and_dual_representations.py",
