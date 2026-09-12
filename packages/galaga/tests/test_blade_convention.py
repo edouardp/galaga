@@ -302,7 +302,7 @@ class TestFactoryDefaults:
         assert ep * ep == alg.scalar(alg.basis_squares[3])
         assert em * em == alg.scalar(alg.basis_squares[4])
         assert alg.locals()["ep"] == ep and alg.locals()["em"] == em
-        assert str(alg.I) == "e₁₂₃₊₋"
+        assert str(alg.I) == "I"
         custom = alg.with_blades(replace_labels(alg.presentation.blades, {31: Name("I")}))
         assert str(custom.I) == "I"
         assert custom.numeric is alg.numeric
@@ -310,17 +310,17 @@ class TestFactoryDefaults:
     def test_b_cga_origin_infinity_is_explicit_display_only(self):
         # Labels alone never change an orthogonal metric into a native-null frame.
         alg = Algebra(config=p_cga(frame="orthogonal"))
-        renamed = alg.with_blades(null_cga_blade_convention(3))
+        renamed = alg.with_blades(null_cga_blade_convention(3, basis_order="euclidean-first"))
         np.testing.assert_array_equal(renamed.gram, alg.gram)
         _, _, _, eo, einf = renamed.basis_vectors()
         assert str(eo) == "eₒ" and str(einf) == "e∞"
         assert eo * eo == renamed.scalar(alg.basis_squares[3])
         assert einf * einf == renamed.scalar(alg.basis_squares[4])
         native = Algebra(config=p_cga(frame="null"))
-        _, _, _, origin, infinity = native.basis_vectors()
+        origin, _, _, _, infinity = native.basis_vectors()
         assert origin * origin == infinity * infinity == native.scalar(0)
-        assert origin | infinity == native.scalar(native.gram[3, 4])
-        assert native.gram[3, 4] != 0
+        assert origin | infinity == native.scalar(native.gram[0, 4])
+        assert native.gram[0, 4] != 0
 
     def test_b_cga_null_vectors_are_derived_from_default_frame(self):
         alg = Algebra(4, 1, blades=replace_labels(orthogonal_cga_blade_convention(3), {31: Name("I")}))
@@ -880,7 +880,7 @@ class TestFactoryKeywords:
 
     def test_cga_pss_none(self):
         alg = Algebra(config=p_cga(frame="orthogonal"))
-        assert str(alg.I) == "e₁₂₃₊₋"
+        assert str(alg.I) == "I"
 
     def test_pga_pss_none(self):
         alg = Algebra(config=p_pga(2))
@@ -956,7 +956,7 @@ class TestCoverageGaps:
         custom = replace_labels(alg.presentation.blades, {3: Name("MyBlade")})
         view = alg.with_blades(custom)
         assert str(view.blade(1) * view.blade(2)) == "MyBlade"
-        assert str(view.I) == str(alg.I) == "e₁₂₃₊₋"
+        assert str(view.I) == str(alg.I) == "I"
         assert view.numeric is alg.numeric
 
     def test_b_cga_invalid_null_basis(self):

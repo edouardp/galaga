@@ -154,6 +154,8 @@ classes are no longer production alternatives.
 | [131](131-local-only-stable-release-validation.md) | Local-Only Stable Release Validation | Accepted |
 | [132](132-algebra-expression-tracking-default.md) | Algebra-Level Expression Tracking Default | Accepted |
 | [133](133-grade-lexicographic-default-display-order.md) | Grade-Then-Lexicographic Default Display Order | Accepted |
+| [134](134-origin-first-native-null-cga.md) | Origin-First Native-Null CGA with an Explicit Compatibility Order | Accepted |
+| [135](135-cga-pseudoscalar-names-and-exact-orientations.md) | CGA Pseudoscalar Names and Exact Orientations | Accepted |
 
 ## Creating New ADRs
 

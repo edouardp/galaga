@@ -165,7 +165,7 @@ def test_every_blade_recipe_resolves_to_the_expected_convention(recipe, algebra)
 
 
 def test_cga_blade_recipe_rejects_a_frame_that_does_not_match_the_metric():
-    with pytest.raises(ValueError, match="orthogonal frame"):
+    with pytest.raises(ValueError, match="CGA frame"):
         Algebra(config=presets.cga(1), blades=presets.blades.cga(1, frame="orthogonal"))
     with pytest.raises(ValueError, match="null frame"):
         Algebra(config=presets.cga(1, frame="orthogonal"), blades=presets.blades.cga(1))

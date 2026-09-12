@@ -11,6 +11,8 @@ from ..blades import (
     BladeConvention,
     DisplayOrder,
     LocalNamePolicy,
+    _cga_pseudoscalar_labels,
+    _validate_cga_pseudoscalar_options,
     complex_blade_convention,
     euclidean_blade_convention,
     exterior_blade_convention,
@@ -26,6 +28,7 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
+from ..names import Name
 from ..presentation import (
     AlgebraConfig,
     AlgebraDefinition,
@@ -71,11 +74,18 @@ class BladePreset:
             return pga_blade_convention(dimension - 1)
         if self.kind == "cga":
             frame = options.get("frame", "null")
-            _validate_cga_frame_metric(matrix, frame)
-            return (
-                null_cga_blade_convention(dimension - 2)
+            basis_order = _cga_basis_order(frame, options.get("basis_order"))
+            _validate_cga_frame_metric(matrix, frame, basis_order)
+            convention = (
+                null_cga_blade_convention(dimension - 2, basis_order=basis_order)
                 if frame == "null"
                 else orthogonal_cga_blade_convention(dimension - 2)
+            )
+            return _cga_pseudoscalar_labels(
+                convention,
+                model_pseudoscalars=options.get("model_pseudoscalars", False),
+                pss=options.get("pss"),
+                pseudoscalar_null=options.get("pseudoscalar_null", False),
             )
         if self.kind == "rga":
             return rga_blade_convention()
@@ -112,11 +122,36 @@ class _BladePresets:
         _validate_spatial_dim(spatial_dim)
         return BladePreset("pga", spatial_dim + 1)
 
-    def cga(self, spatial_dim: int = 3, *, frame: Literal["null", "orthogonal"] = "null") -> BladePreset:
+    def cga(
+        self,
+        spatial_dim: int = 3,
+        *,
+        frame: Literal["null", "orthogonal"] = "null",
+        basis_order: Literal["origin-first", "euclidean-first"] | None = None,
+        model_pseudoscalars: bool = False,
+        pss: Name | str | None = None,
+        pseudoscalar_null: bool = False,
+    ) -> BladePreset:
+        """Name a matching CGA frame without permuting the target metric.
+
+        I is the default native pseudoscalar label. model_pseudoscalars names
+        IE/IC (LaTeX I_E/I_C), pseudoscalar_null names o ^ infinity as E, and an explicit
+        pss overrides the native top label. In 1D, e1 stays canonical.
+        """
         _validate_spatial_dim(spatial_dim)
-        if frame not in {"null", "orthogonal"}:
-            raise ValueError("CGA frame must be 'null' or 'orthogonal'")
-        return BladePreset("cga", spatial_dim + 2, (("frame", frame),))
+        _cga_basis_order(frame, basis_order)
+        _validate_cga_pseudoscalar_options(model_pseudoscalars, pss, pseudoscalar_null)
+        return BladePreset(
+            "cga",
+            spatial_dim + 2,
+            (
+                ("frame", frame),
+                ("basis_order", basis_order),
+                ("model_pseudoscalars", model_pseudoscalars),
+                ("pss", pss),
+                ("pseudoscalar_null", pseudoscalar_null),
+            ),
+        )
 
     def rga(self) -> BladePreset:
         return BladePreset("rga", 4)
@@ -203,16 +238,31 @@ class PGAPreset:
 
 @dataclass(frozen=True, slots=True)
 class CGAPreset:
-    """CGA with ``spatial_dim`` Euclidean vectors plus two conformal vectors."""
+    """CGA with origin-first native-null coordinates by default.
+
+    ``basis_order="euclidean-first"`` selects the historical null coordinates.
+    Orthogonal frames retain Euclidean vectors followed by plus and minus;
+    omit ``basis_order`` for those frames. Display order remains independent.
+
+    The native pseudoscalar displays as I. Set model_pseudoscalars=True for
+    IE/IC (LaTeX I_E/I_C; IE is alias-only in 1D), and pseudoscalar_null=True for
+    E = origin ^ infinity. An explicit pss (Name or string) overrides the
+    native top label; None selects I or IC automatically. I remains a
+    native lookup alias. Model volume names always retain their signed values.
+    """
 
     spatial_dim: int = 3
     frame: Literal["null", "orthogonal"] = "null"
     null_pair: float = -1.0
+    basis_order: Literal["origin-first", "euclidean-first"] | None = None
+    model_pseudoscalars: bool = False
+    pss: Name | str | None = None
+    pseudoscalar_null: bool = False
 
     def __post_init__(self) -> None:
         _validate_spatial_dim(self.spatial_dim)
-        if self.frame not in {"null", "orthogonal"}:
-            raise ValueError("CGA frame must be 'null' or 'orthogonal'")
+        _cga_basis_order(self.frame, self.basis_order)
+        _validate_cga_pseudoscalar_options(self.model_pseudoscalars, self.pss, self.pseudoscalar_null)
         if not isinstance(self.null_pair, (int, float)) or isinstance(self.null_pair, bool):
             raise TypeError("null_pair must be a real number")
         if not math.isfinite(self.null_pair):
@@ -224,15 +274,24 @@ class CGAPreset:
 
     def build(self) -> AlgebraConfig:
         if self.frame == "null":
-            blades = null_cga_blade_convention(self.spatial_dim)
-            gram = _native_null_cga_gram(self.spatial_dim, self.null_pair)
+            basis_order = _cga_basis_order(self.frame, self.basis_order)
+            blades = null_cga_blade_convention(self.spatial_dim, basis_order=basis_order)
+            gram = _native_null_cga_gram(blades, self.null_pair)
+            suffix = "-origin-first" if basis_order == "origin-first" else ""
         else:
             blades = orthogonal_cga_blade_convention(self.spatial_dim)
             gram = _diagonal_gram((1,) * self.spatial_dim + (1, -1))
+            suffix = ""
+        blades = _cga_pseudoscalar_labels(
+            blades,
+            model_pseudoscalars=self.model_pseudoscalars,
+            pss=self.pss,
+            pseudoscalar_null=self.pseudoscalar_null,
+        )
         return AlgebraConfig(
             definition=AlgebraDefinition(
                 gram,
-                id=f"cga-{self.spatial_dim}d-{self.frame}",
+                id=f"cga-{self.spatial_dim}d-{self.frame}{suffix}",
             ),
             presentation=_presentation(blades, notation=Notation(f"cga-{self.frame}")),
             model=_model(f"cga-{self.frame}", blades),
@@ -276,7 +335,7 @@ class LengyelCGAPreset:
         blades = lengyel_cga_blade_convention()
         return AlgebraConfig(
             definition=AlgebraDefinition(
-                _native_null_cga_gram(self.spatial_dim, -1.0),
+                _native_null_cga_gram(blades, -1.0),
                 id="lengyel-cga-3d-null",
             ),
             presentation=_presentation(
@@ -361,9 +420,20 @@ def p_cga(
     *,
     frame: Literal["null", "orthogonal"] = "null",
     null_pair: float = -1.0,
+    basis_order: Literal["origin-first", "euclidean-first"] | None = None,
+    model_pseudoscalars: bool = False,
+    pss: Name | str | None = None,
+    pseudoscalar_null: bool = False,
 ) -> CGAPreset:
-    """Return a ``spatial_dim + 2`` conformal-algebra preset."""
-    return CGAPreset(spatial_dim, frame, null_pair)
+    """Return a CGA preset; native-null coordinates default to origin-first.
+
+    Use ``basis_order="euclidean-first"`` for historical null coordinates.
+    With ``frame="orthogonal"``, omit ``basis_order`` to keep (Euclidean, +, -).
+    Display I by default. model_pseudoscalars=True selects IE/IC (LaTeX I_E/I_C), while
+    pseudoscalar_null=True names origin ^ infinity as E. pss overrides the
+    native top label; None keeps automatic naming. In 1D, e1 stays e1.
+    """
+    return CGAPreset(spatial_dim, frame, null_pair, basis_order, model_pseudoscalars, pss, pseudoscalar_null)
 
 
 def p_rga(spatial_dim: int = 3) -> LengyelRGAPreset:
@@ -430,13 +500,16 @@ def _diagonal_gram(signature: tuple[int, ...]) -> tuple[tuple[float, ...], ...]:
     )
 
 
-def _native_null_cga_gram(spatial_dim: int, null_pair: float) -> tuple[tuple[float, ...], ...]:
-    dimension = spatial_dim + 2
-    origin = spatial_dim
-    infinity = spatial_dim + 1
+def _native_null_cga_gram(blades: BladeConvention, null_pair: float) -> tuple[tuple[float, ...], ...]:
+    """Derive native metric coordinates from the convention's semantic roles."""
+    dimension = blades.dimension
+    origin = blades.resolve("origin").mask.bit_length() - 1
+    infinity = blades.resolve("infinity").mask.bit_length() - 1
     rows = [[0.0] * dimension for _ in range(dimension)]
-    for index in range(spatial_dim):
-        rows[index][index] = 1.0
+    for role, ref in blades.roles:
+        if role.startswith("euclidean_"):
+            index = ref.mask.bit_length() - 1
+            rows[index][index] = 1.0
     rows[origin][infinity] = null_pair
     rows[infinity][origin] = null_pair
     return tuple(tuple(row) for row in rows)
@@ -464,13 +537,41 @@ def _unit_diagonal_signature(gram: tuple[tuple[float, ...], ...]) -> tuple[int, 
     return tuple(int(value) for value in diagonal)
 
 
-def _validate_cga_frame_metric(gram: tuple[tuple[float, ...], ...], frame: str) -> None:
+def _cga_basis_order(frame: str, basis_order: str | None) -> Literal["origin-first", "euclidean-first"]:
+    if frame not in ("null", "orthogonal"):
+        raise ValueError("CGA frame must be 'null' or 'orthogonal'")
+    if frame == "orthogonal":
+        if basis_order is not None:
+            raise ValueError("basis_order only applies to the native-null CGA frame")
+        return "euclidean-first"
+    if basis_order is None:
+        return "origin-first"
+    if basis_order not in ("origin-first", "euclidean-first"):
+        raise ValueError("CGA basis_order must be 'origin-first' or 'euclidean-first'")
+    return basis_order
+
+
+def _validate_cga_frame_metric(
+    gram: tuple[tuple[float, ...], ...],
+    frame: str,
+    basis_order: Literal["origin-first", "euclidean-first"],
+) -> None:
     """Reject a CGA naming frame that would misdescribe the target metric."""
     if frame not in {"null", "orthogonal"}:
         raise ValueError("CGA frame must be 'null' or 'orthogonal'")
     spatial_dim = len(gram) - 2
     if spatial_dim < 1:
         raise ValueError("CGA blade presets require at least one spatial dimension")
+    if frame == "null":
+        blades = null_cga_blade_convention(spatial_dim, basis_order=basis_order)
+        origin = blades.resolve("origin").mask.bit_length() - 1
+        infinity = blades.resolve("infinity").mask.bit_length() - 1
+        null_pair = gram[origin][infinity]
+        if not math.isfinite(null_pair) or null_pair == 0:
+            raise ValueError("blade preset CGA null frame requires a nonzero null-pair metric")
+        if gram != _native_null_cga_gram(blades, null_pair):
+            raise ValueError("blade preset CGA frame is incompatible with the target Gram matrix")
+        return
     for row in range(len(gram)):
         for column, value in enumerate(gram[row]):
             if row != column and value != 0.0 and {row, column} != {spatial_dim, spatial_dim + 1}:
@@ -478,10 +579,7 @@ def _validate_cga_frame_metric(gram: tuple[tuple[float, ...], ...], frame: str) 
     diagonal = tuple(gram[index][index] for index in range(len(gram)))
     if any(value != 1.0 for value in diagonal[:spatial_dim]):
         raise ValueError("blade preset CGA frame requires unit Euclidean spatial entries")
-    if frame == "null":
-        if diagonal[-2:] != (0.0, 0.0) or gram[-2][-1] == 0.0:
-            raise ValueError("blade preset CGA null frame requires a nonzero null-pair metric")
-    elif diagonal[-2:] != (1.0, -1.0) or gram[-2][-1] != 0.0:
+    if diagonal[-2:] != (1.0, -1.0) or gram[-2][-1] != 0.0:
         raise ValueError("blade preset CGA orthogonal frame requires a (+1, -1) pair")
 
 

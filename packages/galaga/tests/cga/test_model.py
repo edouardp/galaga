@@ -15,11 +15,11 @@ def test_model_exposes_actual_native_null_basis_vectors_and_euclidean_roles() ->
     assert cga.algebra is algebra
     assert cga.spatial_dim == 3
     assert cga.null_pair == -1
-    assert cga.origin == algebra.basis_vectors()[3]
+    assert cga.origin == algebra.basis_vectors()[0]
     assert cga.infinity == algebra.basis_vectors()[4]
     assert float(squared(cga.origin)) == 0
     assert float(squared(cga.infinity)) == 0
-    np.testing.assert_array_equal([e1.data, e2.data, e3.data], [value.data for value in algebra.basis_vectors()[:3]])
+    np.testing.assert_array_equal([e1.data, e2.data, e3.data], [value.data for value in algebra.basis_vectors()[1:4]])
 
 
 @pytest.mark.parametrize("null_pair", (-2.0, -1.0, -0.5, 0.75))
@@ -141,7 +141,7 @@ def test_model_rejects_orthogonal_and_untyped_cl41_algebras() -> None:
 def test_model_validates_the_metric_behind_declared_semantic_roles() -> None:
     config = p_cga(2).build()
     malformed = [list(row) for row in config.definition.gram]
-    malformed[0][0] = 2.0
+    malformed[1][1] = 2.0
     algebra = Algebra(
         config=AlgebraConfig(
             AlgebraDefinition(malformed, id="malformed-cga"),

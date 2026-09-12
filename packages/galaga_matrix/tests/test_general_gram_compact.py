@@ -251,8 +251,9 @@ def test_uniform_metric_scale_does_not_create_a_false_rank_deficiency() -> None:
     )
 
 
-def test_native_null_cga_reaches_the_generic_explicit_compact_path() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=3, frame="null"))
+@pytest.mark.parametrize("basis_order", ("origin-first", "euclidean-first"))
+def test_native_null_cga_reaches_the_generic_explicit_compact_path(basis_order) -> None:
+    algebra = Algebra(config=p_cga(spatial_dim=3, frame="null", basis_order=basis_order))
     cga = ConformalModel(algebra)
     point = cga.up((1.0, 2.0, -0.5))
     plan = _representation_plan(algebra, "compact")
@@ -269,6 +270,23 @@ def test_native_null_cga_reaches_the_generic_explicit_compact_path() -> None:
     )
 
 
+@pytest.mark.parametrize("basis_order", ("origin-first", "euclidean-first"))
+@pytest.mark.parametrize("null_pair", (-2.0, -1.0, 0.5))
+def test_cga_native_orders_preserve_all_blade_roundtrips_and_matrix_products(basis_order, null_pair):
+    algebra = Algebra(config=p_cga(3, basis_order=basis_order, null_pair=null_pair))
+    rng = np.random.default_rng(134)
+    for mask in range(algebra.dim):
+        blade = algebra.blade(mask)
+        np.testing.assert_allclose(from_matrix(to_matrix(blade, mode="compact")).data, blade.data, rtol=0, atol=1e-12)
+    left, right = (algebra.multivector(rng.normal(size=algebra.dim)) for _ in range(2))
+    np.testing.assert_allclose(
+        (to_matrix(left, mode="compact") @ to_matrix(right, mode="compact")).mat,
+        to_matrix(left * right, mode="compact").mat,
+        rtol=0,
+        atol=1e-10,
+    )
+
+
 def test_general_gram_support_does_not_claim_a_named_spinor_convention() -> None:
     algebra = Algebra(gram=np.array([[2.0, 0.5], [0.5, -1.0]]))
 
@@ -276,8 +294,9 @@ def test_general_gram_support_does_not_claim_a_named_spinor_convention() -> None
         to_spinor_column(algebra.identity)
 
 
-def test_native_null_cga_matrix_does_not_claim_a_dirac_basis_transform() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=3, frame="null"))
+@pytest.mark.parametrize("basis_order", ("origin-first", "euclidean-first"))
+def test_native_null_cga_matrix_does_not_claim_a_dirac_basis_transform(basis_order) -> None:
+    algebra = Algebra(config=p_cga(spatial_dim=3, frame="null", basis_order=basis_order))
     cga = ConformalModel(algebra)
     matrix = to_matrix(cga.origin, mode="compact")
 

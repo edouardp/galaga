@@ -8,6 +8,7 @@ from dataclasses import dataclass
 from itertools import combinations
 from numbers import Real
 from types import MappingProxyType
+from typing import Literal
 
 from .names import Name
 
@@ -399,20 +400,26 @@ def null_cga_blade_convention(
     spatial_dim: int,
     *,
     style: str = "compact",
+    basis_order: Literal["origin-first", "euclidean-first"] = "origin-first",
 ) -> BladeConvention:
     """Build native-null CGA blades in ``spatial_dim + 2`` dimensions.
 
-    ``spatial_dim`` counts Euclidean vectors; the convention appends the
-    origin and infinity vectors. ``style`` selects compact, juxtaposed, or
-    wedge spelling without changing those semantic roles.
+    The default native order is origin, Euclidean vectors, infinity.
+    ``basis_order="euclidean-first"`` retains the historical order with both
+    null vectors last. ``style`` changes spelling, not semantic roles.
     """
     _validate_spatial_dimension(spatial_dim)
+    if basis_order not in ("origin-first", "euclidean-first"):
+        raise ValueError("CGA basis_order must be 'origin-first' or 'euclidean-first'")
     subscripts: list[Name | str] = [str(index) for index in range(1, spatial_dim + 1)]
-    subscripts.extend((Name("o", "ₒ", "o"), Name("inf", "∞", r"\infty")))
-    roles = {f"euclidean_{index + 1}": BladeRef(1 << index) for index in range(spatial_dim)}
+    origin_index = 0 if basis_order == "origin-first" else spatial_dim
+    spatial_offset = 1 if basis_order == "origin-first" else 0
+    subscripts.insert(origin_index, Name("o", "ₒ", "o"))
+    subscripts.append(Name("inf", "∞", r"\infty"))
+    roles = {f"euclidean_{index + 1}": BladeRef(1 << (index + spatial_offset)) for index in range(spatial_dim)}
     roles.update(
         {
-            "origin": BladeRef(1 << spatial_dim),
+            "origin": BladeRef(1 << origin_index),
             "infinity": BladeRef(1 << (spatial_dim + 1)),
         }
     )
@@ -422,6 +429,106 @@ def null_cga_blade_convention(
         style=style,
         roles=roles,
     )
+
+
+def _validate_cga_pseudoscalar_options(
+    model_pseudoscalars: bool,
+    pss: Name | str | None,
+    pseudoscalar_null: bool,
+) -> Name | None:
+    for name, flag in (("model_pseudoscalars", model_pseudoscalars), ("pseudoscalar_null", pseudoscalar_null)):
+        if not isinstance(flag, bool):
+            raise TypeError(f"{name} must be a boolean")
+    if pss is not None and not isinstance(pss, (Name, str)):
+        raise TypeError("pss must be a Name, string, or None")
+    return None if pss is None else _coerce_name(pss)
+
+
+def _cga_pseudoscalar_labels(
+    convention: BladeConvention,
+    *,
+    model_pseudoscalars: bool,
+    pss: Name | str | None = None,
+    pseudoscalar_null: bool = False,
+) -> BladeConvention:
+    """Name native I or the paired semantic volumes, preserving exterior aliases.
+
+    The input is a validated null or unit orthogonal CGA convention. Derive
+    signs from ordered semantic vectors, independently of display order.
+    In an orthogonal frame use o=(minus-plus)/2 and infinity=minus+plus.
+    """
+    custom = _validate_cga_pseudoscalar_options(model_pseudoscalars, pss, pseudoscalar_null)
+    native = BladeRef((1 << convention.dimension) - 1)
+    names = [(Name("I"), native)]
+    reserved_override = custom is not None and bool(set(custom.variants) & {"IE", "IC", "I_E", "I_C", "E"})
+    if model_pseudoscalars or pseudoscalar_null or reserved_override:
+        spatial = tuple(convention.resolve(f"euclidean_{index}") for index in range(1, convention.dimension - 1))
+
+        def wedge_ref(vectors: tuple[BladeRef, ...]) -> BladeRef:
+            indices = tuple(vector.mask.bit_length() - 1 for vector in vectors)
+            orientation = _orientation(indices)
+            for vector in vectors:
+                orientation *= vector.orientation
+            return BladeRef(sum(vector.mask for vector in vectors), orientation)
+
+        roles = dict(convention.roles)
+
+        def null_sandwich_ref(middle: tuple[BladeRef, ...]) -> BladeRef:
+            if "origin" in roles:
+                return wedge_ref((roles["origin"], *middle, roles["infinity"]))
+            # Expand o ^ IE ^ infinity. Terms repeating plus/minus vanish.
+            minus_first = wedge_ref((roles["minus"], *middle, roles["plus"]))
+            plus_first = wedge_ref((roles["plus"], *middle, roles["minus"]))
+            return BladeRef(minus_first.mask, (minus_first.orientation - plus_first.orientation) // 2)
+
+        if model_pseudoscalars:
+            names = [
+                (Name("IE", latex="I_E"), wedge_ref(spatial)),
+                (Name("IC", latex="I_C"), null_sandwich_ref(spatial)),
+            ]
+        if pseudoscalar_null:
+            names.append((Name("E"), null_sandwich_ref(())))
+        if reserved_override and custom is not None:
+            euclidean, conformal = wedge_ref(spatial), null_sandwich_ref(spatial)
+            semantic_refs = {
+                "IE": euclidean,
+                "I_E": euclidean,
+                "IC": conformal,
+                "I_C": conformal,
+                "E": null_sandwich_ref(()),
+            }
+            for spelling in custom.variants:
+                if spelling in semantic_refs and semantic_refs[spelling] != native:
+                    raise ValueError(f"CGA name {spelling!r} would refer to different signed blades")
+    if custom is not None:
+        names.append((custom, native))
+    labels = list(convention.labels)
+    aliases = dict(convention.aliases)
+
+    def alias(spelling: str, ref: BladeRef) -> None:
+        if spelling in aliases and aliases[spelling] != ref:
+            raise ValueError(f"CGA name {spelling!r} would refer to different signed blades")
+        aliases[spelling] = ref
+
+    alias("I", native)
+    for name, ref in names:
+        for spelling in name.variants:
+            alias(spelling, ref)
+        if name.ascii == "IE" and ref.mask.bit_count() == 1:
+            # In 1D the Euclidean volume is also the axis: keep e1 canonical.
+            continue
+        original = convention.label(ref.mask)
+        for spelling in original.name.variants:
+            alias(spelling, original.ref)
+        labels[ref.mask] = BladeLabel(name, ref)
+    # A spelling may be both requested and canonical, but never mean two values.
+    for label in labels:
+        for spelling in label.name.variants:
+            if spelling in aliases:
+                if aliases[spelling] != label.ref:
+                    raise ValueError(f"CGA name {spelling!r} would refer to different signed blades")
+                del aliases[spelling]
+    return BladeConvention(convention.dimension, labels, aliases=aliases, roles=convention.roles)
 
 
 def lengyel_cga_blade_convention() -> BladeConvention:

@@ -30,13 +30,13 @@ def test_native_null_cga_preset_defines_all_five_basis_vectors_and_gram_entries(
     algebra = Algebra(config=p_cga(spatial_dim=3))
 
     expected = np.zeros((5, 5))
-    expected[:3, :3] = np.eye(3)
-    expected[3, 4] = expected[4, 3] = -1
+    expected[1:4, 1:4] = np.eye(3)
+    expected[0, 4] = expected[4, 0] = -1
     np.testing.assert_array_equal(algebra.gram, expected)
     assert algebra.n == 5
     assert algebra.model is not None
     assert algebra.model.id == "cga-null"
-    assert algebra.presentation.blades.resolve("origin").mask == 8
+    assert algebra.presentation.blades.resolve("origin").mask == 1
     assert algebra.presentation.blades.resolve("infinity").mask == 16
 
 
@@ -178,7 +178,7 @@ def test_spacetime_preset_and_custom_null_pair_change_the_numeric_definition():
 
     assert mostly_minus.blade("i") == mostly_minus.I
     np.testing.assert_array_equal(mostly_plus.basis_squares, (-1, 1, 1, 1))
-    assert custom_null.gram[1, 2] == custom_null.gram[2, 1] == -0.5
+    assert custom_null.gram[0, 2] == custom_null.gram[2, 0] == -0.5
 
     with pytest.raises(ValueError, match="finite"):
         CGAPreset(null_pair=float("nan"))

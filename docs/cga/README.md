@@ -6,7 +6,7 @@ does not disguise an orthogonal pair as null vectors. With
 `p_cga(spatial_dim=3)`, the stored basis is exactly
 
 $$
-(e_1,e_2,e_3,e_o,e_\infty)
+(e_o,e_1,e_2,e_3,e_\infty)
 $$
 
 and the Gram matrix is
@@ -14,22 +14,68 @@ and the Gram matrix is
 $$
 G=
 \begin{bmatrix}
-1&0&0&0&0\\
+0&0&0&0&-1\\
 0&1&0&0&0\\
 0&0&1&0&0\\
-0&0&0&0&-1\\
-0&0&0&-1&0
+0&0&0&1&0\\
+-1&0&0&0&0
 \end{bmatrix}.
 $$
 
 Thus $e_o^2=e_\infty^2=0$ and
 $e_o\mathbin{\cdot}e_\infty=-1$ are direct multiplication-table facts.
-This is the native frame used by the
+The
 [CGA wiki](https://conformalgeometricalgebra.org/wiki/index.php?title=Main_Page),
-where its $e_4$ is Galaga's $e_o$ and its $e_5$ is Galaga's
-$e_\infty$. The stored matrix is exactly its
-[metric](https://conformalgeometricalgebra.org/wiki/index.php?title=Metrics),
-not a presentation-time relabeling.
+uses $e_4$ for origin and $e_5$ for infinity in a Euclidean-first frame.
+Its [metric](https://conformalgeometricalgebra.org/wiki/index.php?title=Metrics)
+is related to this one by a simultaneous row/column permutation, not merely
+a presentation-time relabeling. `presets.lengyel_cga()` retains that original
+coordinate order and its signed blade vocabulary.
+
+## Native basis order and orientation
+
+The ordinary preset now defaults to origin-first. The old order remains an
+explicit choice:
+
+```python
+from galaga import Algebra, DisplayOrder, presets
+
+preferred = Algebra(config=presets.cga(3))
+eo, e1, e2, e3, einf = preferred.basis_vectors()
+assert eo ^ e1 ^ e2 ^ e3 ^ einf == preferred.I
+
+previous = Algebra(config=presets.cga(3, basis_order="euclidean-first"))
+e1_old, e2_old, e3_old, eo_old, einf_old = previous.basis_vectors()
+assert eo_old ^ e1_old ^ e2_old ^ e3_old ^ einf_old == -previous.I
+
+# Presentation is independently selectable and changes no mathematical signs.
+view = preferred.with_display_order(DisplayOrder(5, range(32)))
+assert view.I == preferred.I
+```
+
+For $I_E=e_1\wedge\cdots\wedge e_n$ and $I_C=e_o\wedge I_E\wedge e_\infty$,
+the default gives $I_C=I_{\mathrm{native}}$; Euclidean-first gives
+$I_C=(-1)^n I_{\mathrm{native}}$. Use wedges, not a geometric product of the
+nonorthogonal null pair. These model quantities are derived expressions,
+not additional properties on `ConformalModel`.
+
+The choice changes coordinates at every grade. Old coefficient arrays must
+use the compatibility order or an exterior basis conversion, never a plain
+copy into the new default. Save the metric, order and normalization together.
+The definition ID for the new default includes `-origin-first`; the old
+order retains its previous ID. Model metadata remains `cga-null`.
+
+`presets.blades.cga(n, basis_order=...)` can name either matching metric,
+but rejects the wrong coordinate order and never transforms the metric.
+`frame="orthogonal"` retains Euclidean/plus/minus order and requires
+`basis_order` to be omitted. Orthogonal `ConformalModel` support is not implied.
+
+Dual conventions are unchanged: algebra `dual` uses $AI^{-1}$, while
+`ConformalModel.dual` uses right Hodge duality. Reversing the native orientation
+changes the signs of orientation-dependent operations under the basis map.
+The [foundations lesson](../../examples/cga/native_null_foundations.py) computes
+the native, compatibility and familiar orthogonal pseudoscalar comparison.
+See [ADR-134](../adrs/134-origin-first-native-null-cga.md).
 
 `spatial_dim` always counts Euclidean dimensions. The conformal preset and its
 model-aware blade-convention builders add the two null vectors themselves:
@@ -46,8 +92,50 @@ not a convention for ordinary 3D CGA.
 
 ## Blade product spelling
 
-The native-null basis roles and the way compound blades are printed are
-independent presentation choices. The default is compact, but the model-aware
+Complete and blade-only CGA presets name the native top blade `I` by default,
+including in `wedge_product_table(full=True)`. Naming controls are independent:
+
+```python
+from galaga import Algebra, presets
+
+plain = Algebra(config=presets.cga(2))  # Native pseudoscalar displays as I.
+named = Algebra(config=presets.cga(
+    3,
+    model_pseudoscalars=True,  # Paired IE and IC (LaTeX: I_E and I_C).
+    pseudoscalar_null=True,    # E = eo ^ einf.
+    pss="J",                  # Optional: prefer J for the native top blade.
+))
+```
+
+`pss=None` means automatic `I` or `IC`, not an unnamed blade. A string or
+`Name` overrides the native top label. The same options are accepted by
+`presets.blades.cga`. Names never alter the metric, coordinates or duals.
+Original indexed spellings remain lookup aliases.
+
+The exact identities are $I_C=e_o\wedge I_E\wedge e_\infty$,
+$E=e_o\wedge e_\infty$, and $I_E\wedge E=(-1)^nI_C$.
+For Euclidean-first 3D, native `I` is $-I_C$. With `pss="J"`,
+`blade("IC")` instead displays `-J`. Attempting `pss="IC"` in that frame
+is rejected because it would give the native blade the opposite blade's name.
+
+`locals()` contains canonical Python-safe names, not all aliases. Default
+naming exports `I`; paired model naming exports `IE`/`IC`; a custom `J`
+replaces the top canonical local. Enabling null-plane naming adds `E`.
+With model naming and `pss="I"`, the volume locals are `IE` and `I`, not `IC`.
+LaTeX uses $I_E$/$I_C$; `blade("I_E")`/`blade("I_C")` also work as lookup
+spellings but are not exported by `locals()`.
+In **1D**, `e1` stays the vector's display/local name, and `IE` is lookup-only.
+`alg.I` and `alg.blade("I")` always return the native pseudoscalar.
+Explicit local policies and blade-only overrides remain independent.
+
+The [basis-order lesson](../../examples/cga/basis_order_and_orientation.py)
+works through these choices with exact expanded signs and table entries.
+See [ADR-135](../adrs/135-cga-pseudoscalar-names-and-exact-orientations.md).
+
+### Explicit expanded blade spelling
+
+The selected native-null basis order and the way compound blades are printed
+are independent choices. The default is compact, but the model-aware
 builder also supports juxtaposed and explicit-wedge styles:
 
 ```python
@@ -65,10 +153,11 @@ algebra = Algebra(
 )
 ```
 
-The pseudoscalar then renders as $e_1 e_2 e_3 e_o e_\infty$.
+This explicit low-level blade-convention override keeps the expanded
+pseudoscalar $e_o e_1 e_2 e_3 e_\infty$, instead of the preset's short `I`.
 
-With `style="compact"` it renders as $e_{123o\infty}$, and with `style="wedge"` it renders as
-$e_1\wedge e_2\wedge e_3\wedge e_o\wedge e_\infty$.
+With `style="compact"` it renders as $e_{o123\infty}$, and with `style="wedge"` it renders as
+$e_o\wedge e_1\wedge e_2\wedge e_3\wedge e_\infty$.
 
 All three conventions retain the same `euclidean_1` through `euclidean_3`, `origin`,
 and `infinity` roles and the same Gram matrix.
@@ -649,11 +738,15 @@ special case in the numeric core.
 
 ## Executable notebooks
 
-The core maintained Marimo sequence includes four native-null CGA notebooks:
+The core maintained Marimo sequence includes these native-null CGA notebooks:
 
 - [`native_null_foundations.py`](../../examples/cga/native_null_foundations.py)
   derives the Gram matrix facts, point embedding, distance identity, and
-  homogeneous `up`/`down` round trip.
+  homogeneous `up`/`down` round trip, and compares origin-first, compatibility
+  and orthogonal volumes.
+- [`basis_order_and_orientation.py`](../../examples/cga/basis_order_and_orientation.py)
+  works through native versus display order, exterior coordinate conversion,
+  and exact signed line/plane and circle/sphere duals, with 2D/3D controls.
 - [`direct_objects_and_semantics.py`](../../examples/cga/direct_objects_and_semantics.py)
   constructs direct points, flat points, dipoles, lines, circles, planes, and
   spheres, then exercises `att`, `car`, `ccr`, `cen`, `con`, `par`, expansion,

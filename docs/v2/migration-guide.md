@@ -658,7 +658,24 @@ rga = Algebra(config=p_rga(spatial_dim=3))
 `spatial_dim` counts the Euclidean model dimensions, not the algebra's total
 number of basis vectors. Thus `p_cga(spatial_dim=3)` and
 `null_cga_blade_convention(3)` both describe a five-dimensional algebra:
-$e_1,e_2,e_3,e_o,e_\infty$.
+$e_o,e_1,e_2,e_3,e_\infty$.
+
+The native-null default is now origin-first. To interpret coefficient arrays
+from the earlier Euclidean-first preset, select
+`presets.cga(n, basis_order="euclidean-first")` (also accepted by `p_cga`).
+Do not load those arrays into the new default unchanged: vector positions
+move and the induced exterior map changes higher-grade coefficients and signs.
+The new definition ID has an `-origin-first` suffix; the old order keeps its
+former ID. IDs alone do not encode the full metric or normalization.
+
+The matching `presets.blades.cga(n, basis_order=...)` validates the supplied
+Gram coordinates without transforming them. Omit the option for orthogonal
+CGA; its Euclidean/plus/minus coordinates are unchanged. Lengyel CGA is also
+unchanged. `DisplayOrder` only changes rendering and cannot change orientation.
+The default now has $e_o\wedge I_E\wedge e_\infty=\mathrm{algebra.I}$;
+Euclidean-first retains the factor $(-1)^n$. No dual definition changes.
+See the [CGA convention guide](../cga/README.md#native-basis-order-and-orientation)
+and [ADR-134](../adrs/134-origin-first-native-null-cga.md).
 
 Model-specific geometry is attached explicitly:
 
@@ -788,7 +805,12 @@ Other blade-convention changes:
   `"1"`; empty text no longer implicitly selects it.
 - PGA presets use Euclidean vectors first and a final null vector. Use an
   explicit signature and indexed labels to keep historical null-first order.
-  PGA/CGA pseudoscalars are not automatically named `I`.
+  PGA pseudoscalars are not automatically named `I`. Ordinary CGA presets now
+  name the native top blade `I`; optional `model_pseudoscalars=True` selects
+  `IE`/`IC` (LaTeX $I_E$/$I_C$) and `pseudoscalar_null=True` names
+  `E = eo ^ einf`. An explicit
+  `pss=` overrides the native top label. Indexed blade spellings remain aliases.
+  See [CGA naming and locals](../cga/README.md#blade-product-spelling).
 - Use `p_cga(frame="null")` for actual null origin/infinity vectors.
   Merely renaming an orthogonal basis does not change its Gram matrix.
 
@@ -1189,7 +1211,7 @@ The three generated blade styles are:
 | `"wedge"` | $e_1\wedge e_2$ |
 
 The native-null CGA pseudoscalar in the example renders as
-$e_1 e_2 e_3 e_o e_\infty$. Changing blade presentation does not change the
+$e_o e_1 e_2 e_3 e_\infty$. Changing blade presentation does not change the
 Gram matrix, model roles, or coefficients.
 
 Temporary teaching changes are context-local and safe across threads and

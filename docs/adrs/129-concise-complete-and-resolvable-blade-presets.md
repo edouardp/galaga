@@ -61,6 +61,11 @@ The CGA recipe additionally validates that its `null` or `orthogonal` frame
 actually describes the target Gram matrix, preventing names such as an
 orthogonal conformal pair from being applied to a native-null metric.
 
+[ADR-134](134-origin-first-native-null-cga.md) additionally makes null CGA
+origin-first by default and adds the explicit Euclidean-first compatibility
+order to both complete and blade-only CGA recipes. Blade-only resolution
+validates the selected coordinate positions; it does not permute the metric.
+
 ## Consequences and verification
 
 Users can write `Algebra(config=presets.cga(3))` and retain a compact,

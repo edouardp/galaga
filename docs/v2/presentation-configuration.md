@@ -288,7 +288,7 @@ algebra is not permanently in a hidden preset mode.
 | `EuclideanPreset(n)` | `Cl(n, 0)` | Indexed Euclidean roles |
 | `SpacetimePreset(...)` | Mostly-minus or mostly-plus `Cl(1, 3)` ordering | Gamma vocabulary, pseudoscalar `i`, and time/space roles |
 | `PGAPreset(n)` | `n` positive vectors plus a final native null vector | Projective role |
-| `CGAPreset(n, frame="null")` | Native null pair with configurable nonzero mutual product | Actual origin/infinity roles |
+| `CGAPreset(n, frame="null")` | Origin-first native null pair with configurable nonzero mutual product | Actual origin/Euclidean/infinity roles |
 | `CGAPreset(n, frame="orthogonal")` | Positive/negative orthogonal conformal pair | Actual plus/minus roles |
 | `LengyelCGAPreset(3)` | Standard native-null CGA | Bold signed $e_1,\ldots,e_5$ blades, Lengyel order, and unit antiscalar $𝟙$ |
 | `LengyelRGAPreset(3)` | Three positive vectors plus a final null vector | Signed RGA vocabulary and Lengyel order |
@@ -307,6 +307,27 @@ algebra = Algebra(config=presets.cga(3))
 teaching = Algebra(config=presets.cga(3), notation=Notation("teaching"))
 named_sta = Algebra(1, 3, blades=presets.blades.sta(sigmas=True))
 ```
+
+Null CGA defaults to the actual native order $(e_o,e_1,\ldots,e_n,e_\infty)$.
+`presets.cga(n, basis_order="euclidean-first")` selects the earlier native
+coordinate order. This changes Gram rows/columns, role masks and exterior
+coordinates, not just display. The same option on `presets.blades.cga`
+validates matching Gram coordinates without transforming them. For orthogonal
+CGA omit the order option; Euclidean/plus/minus order stays unchanged.
+Lengyel CGA, RGA and quaternion conventions retain their intentional orders.
+Existing `display_order=` overrides are independent and keep precedence.
+See [ADR-134](../adrs/134-origin-first-native-null-cga.md).
+
+Both complete and blade-only CGA recipes display native `I` by default.
+`model_pseudoscalars=True` selects paired `IE`/`IC` Python names
+(LaTeX $I_E$/$I_C$), and
+`pseudoscalar_null=True` names `E = eo ^ einf`. `pss=None` means automatic;
+an explicit string or `Name` overrides the native top label without changing
+its sign. Expanded blade spellings remain aliases. In 1D, `e1` stays canonical
+and `IE` is lookup-only. The LaTeX spellings remain lookup aliases.
+Complete preset locals follow canonical names;
+explicit local policies and blade-only overrides retain their independence.
+See [ADR-135](../adrs/135-cga-pseudoscalar-names-and-exact-orientations.md).
 
 Blade recipes are resolved only after the target algebra's Gram matrix exists.
 This lets metric-derived STA names use the actual ordered unit signature and

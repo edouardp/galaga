@@ -53,7 +53,7 @@ def test_native_null_cga_layout_has_axis_labels_separators_and_scoped_grey_zeros
     latex = table.latex()
     lines = latex.splitlines()
     assert lines[0] == r"\begin{array}{c|ccccc}"
-    assert lines[1] == r"\bullet & e_{1} & e_{2} & e_{3} & e_{o} & e_{\infty} \\"
+    assert lines[1] == r"\bullet & e_{o} & e_{1} & e_{2} & e_{3} & e_{\infty} \\"
     assert lines[2] == r"\hline" and lines[-1] == r"\end{array}"
     assert len(lines[3:-1]) == algebra.n
     for index, line in enumerate(lines[3:-1]):

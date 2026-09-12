@@ -61,11 +61,11 @@ def test_cga_vector_table_matches_requested_layout():
     table = Algebra(config=p_cga(3)).wedge_product_table()
     lines = table.latex().splitlines()
     assert lines[0] == r"\begin{array}{c|ccccc}"
-    assert lines[1] == r"\wedge & e_{1} & e_{2} & e_{3} & e_{o} & e_{\infty} \\"
+    assert lines[1] == r"\wedge & e_{o} & e_{1} & e_{2} & e_{3} & e_{\infty} \\"
     assert lines[2] == r"\hline" and lines[-1] == r"\end{array}"
-    assert lines[3] == r"e_{1} & {\color{#bbbbbb}0} & e_{12} & e_{13} & e_{1o} & e_{1\infty} \\"
+    assert lines[3] == r"e_{o} & {\color{#bbbbbb}0} & e_{o1} & e_{o2} & e_{o3} & e_{o\infty} \\"
     assert (
-        lines[-2] == r"e_{\infty} & -e_{1\infty} & -e_{2\infty} & -e_{3\infty} & -e_{o\infty} & {\color{#bbbbbb}0} \\"
+        lines[-2] == r"e_{\infty} & -e_{o\infty} & -e_{1\infty} & -e_{2\infty} & -e_{3\infty} & {\color{#bbbbbb}0} \\"
     )
     assert r"\newcommand" not in table.latex() and "$" not in table.latex()
 
@@ -208,7 +208,7 @@ def test_both_colour_spellings_enable_the_same_grade_decoration(full, algebra):
 def test_colours_are_stable_by_grade_not_dimension_and_include_scalar_and_sign():
     small = Algebra(2).wedge_product_table(True, color=True)
     large = Algebra(config=p_cga(3)).wedge_product_table(True, colour=True)
-    assert emit(small.tree.rows[1][2], "latex") == emit(large.tree.rows[1][2], "latex")
+    assert emit(small.tree.rows[1][2], "latex") == emit(large.tree.rows[2][3], "latex")
     assert emit(small.tree.rows[0][0], "latex") == r"{\color{#111827}1}"
     assert emit(small.tree.rows[0][1], "latex") == r"{\color{#0072B2}e_{1}}"
     assert emit(small.tree.rows[1][2], "latex") == r"{\color{#D55E00}e_{12}}"

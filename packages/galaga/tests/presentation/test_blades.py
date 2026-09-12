@@ -170,13 +170,13 @@ def test_native_null_cga_can_juxtapose_blades_without_losing_semantic_roles():
 
     assert convention.dimension == 5
     assert convention.label(0b11111).name.variants == (
-        "e1e2e3eoeinf",
-        "e₁e₂e₃eₒe∞",
-        r"e_{1} e_{2} e_{3} e_{o} e_{\infty}",
+        "eoe1e2e3einf",
+        "eₒe₁e₂e₃e∞",
+        r"e_{o} e_{1} e_{2} e_{3} e_{\infty}",
     )
-    assert convention.resolve("origin") == BladeRef(0b01000)
+    assert convention.resolve("origin") == BladeRef(0b00001)
     assert convention.resolve("infinity") == BladeRef(0b10000)
-    assert algebra.pseudoscalar().latex() == r"e_{1} e_{2} e_{3} e_{o} e_{\infty}"
+    assert algebra.pseudoscalar().latex() == r"e_{o} e_{1} e_{2} e_{3} e_{\infty}"
 
 
 def test_local_policy_mapping_is_read_only_and_skips_nonidentifiers():

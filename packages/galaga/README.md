@@ -120,6 +120,23 @@ config = presets.euclidean(3).build()
 euclidean = Algebra(config=config)
 ```
 
+Native-null CGA now defaults to $(e_o,e_1,\ldots,e_n,e_\infty)$.
+Use `presets.cga(n, basis_order="euclidean-first")` for the former native
+coordinate order, including when loading old coefficient arrays.
+This is a real basis choice, not a display override: higher-grade coordinates
+must be converted as well as vector coordinates. The default has
+$e_o\wedge I_E\wedge e_\infty=\mathrm{algebra.I}$; the compatibility order
+retains the factor $(-1)^n$. Orthogonal and Lengyel CGA remain unchanged.
+The [CGA guide][cga-guide] explains orientation and migration.
+
+CGA presets display the native pseudoscalar as `I`. Opt into paired
+`IE`/`IC` Python names (LaTeX $I_E$/$I_C$) with `model_pseudoscalars=True`
+and name `eo ^ einf` as `E`
+with `pseudoscalar_null=True`. An explicit `pss="J"` overrides the native top
+label; `pss=None` uses automatic naming. These are naming choices only:
+in Euclidean-first 3D, native `I` displays as $-I_C$ when model names are
+selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
+
 The complete factories are `euclidean`, `sta`, `pga`, `cga`, `rga`,
 `lengyel_cga`, `complex`, `quaternion` and `exterior`. Complex and quaternion
 presets describe even subalgebras of real Euclidean algebras, not complex

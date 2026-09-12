@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-086: Native-Null CGA Is a Validated Model Layer
 
+Native-order update: [ADR-134](134-origin-first-native-null-cga.md) changes
+ordinary null CGA to origin-first with an explicit Euclidean-first option.
+Lengyel CGA retains its original coordinates; it no longer has the identical
+coordinate Gram matrix as the ordinary default. Model and dual contracts
+below remain unchanged.
+
 ## Context and problem statement
 
 The Gram-matrix core can already represent conformal geometric algebra in the
