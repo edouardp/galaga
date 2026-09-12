@@ -1,5 +1,119 @@
 # Changelog
 
+## 2.0.0a5 (2026-09-12)
+
+This fifth Galaga 2 alpha retires the remaining migration-only API adapters,
+refreshes the v2 documentation and executable examples, strengthens local
+validation, and adds an interactive lesson connecting real geometric-algebra
+spinors with ideals, matrix columns and chirality.
+
+Code using the temporary bridge modules or function spellings listed below
+must migrate to the canonical API. Permanent concise aliases and `p_*` preset
+factories remain supported. See the [migration guide](docs/v2/migration-guide.md).
+
+### Removed
+
+- **Migration-only bridge modules** — Removes `galaga.gram_bridge`,
+  `galaga.gram_bridge.facade` and `galaga.gram_bridge.catalog`. Import from
+  `galaga` or `galaga.facade`, and use `galaga.facade.catalog` for the operation
+  catalog. Source, fresh-process import and wheel/sdist checks now reject
+  these retired paths as well as the previously removed legacy engine.
+
+- **Temporary operation spellings** — Removes `involute` in favour of
+  `grade_involution`; `mag2`, `magnitude_squared` and `norm_squared` in favour
+  of `norm2`; and `normalise` and `normalize` in favour of `unit`. This also
+  removes `galaga.core.involute`. Explicit imports now fail instead of issuing
+  deprecation warnings. Canonical operations and their expression IDs are
+  unchanged.
+
+- **Obsolete adapter infrastructure** — Removes the adapter-only
+  `GalagaDeprecationWarning` and `DEPRECATED_OPERATION_ALIASES` exports and
+  their implementation. Compatibility inventories retain the historical API
+  evidence and canonical replacements without keeping the removed adapters
+  importable.
+
+### Added
+
+- **Spinor ideals and chirality teaching notebook** — Adds
+  [One spinor, three representations](examples/matrix/spinors_ideals_and_chirality.py)
+  to the executable Marimo gallery. The lesson connects minimal left ideals,
+  complex columns and real even-multivector representatives; distinguishes
+  left and right projector actions; demonstrates the rotation double cover
+  and reference-arm interference; and contrasts polar-vector plane reflections
+  with the axial-vector action induced by a spinor column.
+
+- **Real-GA chiral projection examples** — The new lesson derives the
+  spinor convention's right-acting complex structure, constructs chirality as
+  a two-sided real-GA operation, and builds its matrix from its action on
+  column basis states. Direct left/right GA projections are compared with
+  projected columns reconstructed in both Dirac and Weyl bases. Interactive
+  even, odd and mixed Clifford operators demonstrate chirality preservation
+  and exchange. The lesson explicitly distinguishes a matrix of a spinor-space
+  operation from the matrix of a single real Clifford element; no new runtime
+  projection API or complexification of real multivectors is introduced.
+
+- **Executable documentation and regression coverage** — Adds tests that
+  execute the main package README, companion examples and corrected mathematical
+  guides. New algebra-derived tests cover duality across Euclidean,
+  mixed-signature, oblique, null-pair, degenerate and native-null CGA metrics.
+  Spinor tests check basis-blade actions, projector identities, real-GA/column
+  roundtrips, basis covariance, zero inputs, reactive choices and rendered
+  output, including rejection of chiral projector matrices by `from_matrix`.
+
+### Changed
+
+- **Rewritten Galaga 2 package guide** — Replaces outdated README material
+  with current, executable examples of the eager top-level API, general Gram
+  metrics, complete and component presets, immutable naming and expression
+  provenance, explicit inner-product families, rotors and logarithms,
+  notebook rendering and tables, and native-null CGA and point-based RGA
+  models. Documents floating-point comparison boundaries, numeric-only use
+  and migration from retired APIs.
+
+- **Current companion and architecture documentation** — Refreshes
+  AnyWidget, Marimo, matrix and Mermaid examples, prerequisites and links.
+  Matrix documentation separates implemented general-Gram and named-basis
+  conversions from proposed native-CGA quaternion/Vahlen work. Historical
+  plans, surveys and design notes are identified as such rather than presented
+  as current API contracts. Mermaid remains independently versioned and
+  outside the joint four-package publication.
+
+- **More readable interactive teaching layouts** — The spinor notebook
+  places labels above matrices, uses at most two matrix panels per row, gives
+  wide operators their own rows, and renders controls alongside the results
+  they affect while defining them in upstream cells. Authoring guidance and
+  regression tests record these layout and reactivity rules.
+
+- **Explicit local release-validation policy** — Documents local validation
+  as the gate for prereleases and stable releases, without requiring CI.
+  Records source and installed-wheel checks, coverage, security, typing,
+  benchmarks and artifact evidence separately from approval to publish a
+  release candidate or final 2.0. API cleanup alone does not declare the stable
+  release ready.
+
+### Fixed
+
+- **Validation failures no longer become successful lint runs** —
+  `scripts/lint.sh` now propagates dependency-audit and type-check failures
+  instead of printing warnings and continuing. Type-check output is no longer
+  truncated. Release-workflow regression tests verify failure propagation,
+  successful runs and the formatting path.
+
+- **Duality and product documentation** — Corrects general-Gram
+  contraction/complement formulas to include the exterior extension of the
+  metric, restricts the simpler sign-only formulas to orthonormal Euclidean
+  metrics, and explains mixed grades and degenerate cases. Clarifies that
+  exterior complement is not geometric multiplication by the pseudoscalar.
+  Updates stale bracket scaling, scalar-versus-metric pairing and contraction
+  notation descriptions to match the existing implementation. These are
+  documentation corrections backed by tests, not changes to numerical
+  algorithms.
+
+- **Copyable examples and migration references** — Corrects stale imports,
+  removed operation names, incomplete companion setup examples and Marimo
+  document-builder variable shadowing. Updates mathematical and matrix
+  examples to use the public v2 naming, conversion and rendering APIs.
+
 ## 2.0.0a4 (2026-09-10)
 
 This fourth Galaga 2 alpha adds notebook-ready bilinear and wedge product
