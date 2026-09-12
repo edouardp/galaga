@@ -229,7 +229,10 @@ def _(mo):
     ## Include every basis blade
 
     `full=True` includes the scalar $1$, vectors, bivectors, and higher blades,
-    grouped by grade. In three dimensions there are $2^3=8$ basis blades,
+    in the algebra's display order: grade-then-lexicographic by default.
+    Preset and user overrides apply to both rows and columns of the full table;
+    vector-only tables keep native basis-vector order.
+    In three dimensions there are $2^3=8$ basis blades,
     so we can comfortably read the full $8\times8$ table.
 
     The scalar is the wedge identity: $1\wedge A=A\wedge1=A$.

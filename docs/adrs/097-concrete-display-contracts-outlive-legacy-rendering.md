@@ -6,6 +6,11 @@ deciders: edouard
 
 # ADR-097: Concrete Display Contracts Outlive Legacy Rendering
 
+[ADR-133](133-grade-lexicographic-default-display-order.md) supersedes the native
+bitmask display default recorded below with grade-then-lexicographic order.
+The table documents the migration-time behavior; numeric storage, native basis
+enumeration, and explicit preset/user orders are unchanged.
+
 ## Context and problem statement
 
 The remaining display-order and numeric-formatting suites still constructed

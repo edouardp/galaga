@@ -199,15 +199,23 @@ and [presentation notebook](../../examples/galaga_v2/presentation_contexts.py).
 
 `DisplayOrder` is a complete permutation of bitmasks. It affects rendering
 order only; coefficient storage, basis enumeration, and numeric equality
-remain native. Its default is ascending mask order. To group grades explicitly:
+remain native. Its default groups by grade, then lexicographically by numeric
+basis-index tuples: in four dimensions, bivectors display as
+`e12, e13, e14, e23, e24, e34`. It does not sort rendered labels or use bitmask
+order within a grade. Existing explicit preset orders (quaternion, RGA and
+Lengyel CGA) take precedence. To request native coefficient order explicitly:
 
 ```python
 from galaga import Algebra, DisplayOrder
 
 algebra = Algebra(3)
-masks = sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask))
-grade_sorted = algebra.with_display_order(DisplayOrder(algebra.n, masks))
+native_order = algebra.with_display_order(DisplayOrder(algebra.n, range(algebra.dim)))
 ```
+
+Any explicit complete permutation is preserved. To select the general
+grade-then-lexicographic order even for a preset with its own convention, use
+`algebra.with_display_order(DisplayOrder(algebra.n))`. See
+[ADR-133](../adrs/133-grade-lexicographic-default-display-order.md).
 
 Quaternion presets select conventional `1, i, j, k` display order, but
 `basis_blades(2)` still returns the native masks, labeled `k, j, i`. Obtain
@@ -336,7 +344,9 @@ which provides an explicit alternative to
 `value.without_expr().with_expr()` when a computed factorization should become
 a literal leaf in subsequent expressions.
 
-`blades(*values, expr=False)` is the ordered batch form of `blade()`. It
+`blades(*values, expr=None)` is the ordered batch form of `blade()`. Omitted
+or `None` inherits `algebra.expr` (false unless enabled at construction);
+an explicit boolean overrides that default. It
 accepts any mixture supported by the singular factory and applies one shared
 expression-provenance choice, so notebook code can use explicit unpacking
 without mutating `locals()`:
@@ -437,9 +447,11 @@ algebra.wedge_product_table()                       # Vector axes only.
 algebra.wedge_product_table(full=True, colour=True)  # Every exterior blade.
 ```
 
-Vector axes follow native order. Full axes include scalar `1` first, then
-all native exterior masks ordered by grade and bitmask, independently of
-multivector `DisplayOrder`. Signed headings and results agree with the
+Vector axes follow native order. Full axes include scalar `1` and every native
+exterior blade in the active multivector `DisplayOrder`: grade-then-lexicographic
+by default, or the exact preset/user override. Both rows and columns use this
+order, captured when the table is created. Scalar `1` occupies its selected
+position; it is first by default. Signed headings and results agree with the
 configured convention without changing the underlying native products.
 Neither the metric nor `zero_tolerance` affects exterior-product entries.
 

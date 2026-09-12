@@ -71,8 +71,10 @@ class BilinearFormTable(_DisplayTable):
 class WedgeProductTable(_DisplayTable):
     """Immutable exterior-product table, optionally coloured by result grade.
 
-    Rows multiply columns in that order. Labels, grade colouring and the
-    default target are captured when Algebra.wedge_product_table() is called.
+    Rows multiply columns in that order. Labels, axis order, grade colouring
+    and the default target are captured when Algebra.wedge_product_table()
+    is called. Full tables follow the algebra's display order; vector-only
+    tables retain native basis-vector order.
     """
 
 

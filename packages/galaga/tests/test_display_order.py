@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayOrder, DisplayPolicy, p_quaternion
+from galaga import Algebra, DisplayOrder, DisplayPolicy, p_quaternion, presets
 
 
 def _quaternion_units(algebra):
@@ -25,16 +25,112 @@ def test_valid_permutation_is_accepted_without_changing_blade_vocabulary() -> No
     assert changed.numeric is algebra.numeric
 
 
-def test_default_order_is_native_bitmask_order_and_grade_order_is_explicit() -> None:
+def test_default_order_is_grade_lexicographic_and_native_order_is_explicit() -> None:
     algebra = Algebra(3)
-    assert algebra.display_order == tuple(range(algebra.dim))
-    grade_order = tuple(sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask)))
-    changed = algebra.with_display_order(DisplayOrder(algebra.n, grade_order))
+    assert algebra.display_order == (0, 1, 2, 4, 3, 5, 6, 7)
+    changed = algebra.with_display_order(DisplayOrder(algebra.n, range(algebra.dim)))
     e1, e2, e3 = algebra.basis_vectors()
     value = 1 + e1 + e2 + (e1 ^ e2) + e3
-    assert str(value) == "1 + e₁ + e₂ + e₁₂ + e₃"
-    assert str(changed.multivector(value.data)) == "1 + e₁ + e₂ + e₃ + e₁₂"
+    assert str(value) == "1 + e₁ + e₂ + e₃ + e₁₂"
+    assert str(changed.multivector(value.data)) == "1 + e₁ + e₂ + e₁₂ + e₃"
     assert changed.multivector(value.data) == value
+
+
+@pytest.mark.parametrize("dimension", (0, 1, 2, 3, 4, 5, 10))
+def test_default_display_order_sorts_numeric_index_tuples_not_masks_or_labels(dimension) -> None:
+    masks = DisplayOrder(dimension).masks
+    assert len(masks) == 1 << dimension
+    assert set(masks) == set(range(1 << dimension))
+    keys = [(mask.bit_count(), tuple(i for i in range(dimension) if mask & (1 << i))) for mask in masks]
+    assert keys == sorted(keys)
+    if dimension >= 4:
+        assert masks.index(0b1001) < masks.index(0b0110), "e14 must precede e23"
+    if dimension == 10:
+        assert masks.index(1 << 1) < masks.index(1 << 9), "index 2 must precede index 10"
+
+
+@pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
+def test_four_dimensional_rendering_follows_wedge_derived_grade_lexicographic_order(target) -> None:
+    algebra = Algebra(config=presets.euclidean(4))
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    # Compute blades through the algebra before checking their displayed order.
+    terms = (algebra.identity, e1, e2, e3, e4, e1 ^ e2, e1 ^ e3, e1 ^ e4, e2 ^ e3, e2 ^ e4, e3 ^ e4)
+    value = sum(terms)
+    expected = " + ".join(term.display(f"value/{target}") for term in terms)
+    assert value.display(f"value/{target}") == expected
+    native = algebra.with_display_order(DisplayOrder(algebra.n, range(algebra.dim)))
+    other = native.multivector(value.data)
+    assert value == other and hash(value) == hash(other)
+    np.testing.assert_array_equal(value.data, other.data)
+    np.testing.assert_array_equal((value * value).data, (other * other).data)
+    native_bivector_masks = [mask for mask in range(algebra.dim) if mask.bit_count() == 2]
+    np.testing.assert_array_equal(
+        [blade.data for blade in algebra.basis_blades(2)], np.eye(algebra.dim)[native_bivector_masks]
+    )
+
+
+@pytest.mark.parametrize(
+    "recipe", (presets.euclidean(4), presets.sta(), presets.pga(), presets.cga(), presets.exterior(4))
+)
+def test_default_order_reaches_plain_algebras_and_presets_without_overrides(recipe) -> None:
+    configured = Algebra(config=recipe)
+    expected = DisplayOrder(configured.n).masks
+    assert configured.display_order == expected
+    assert Algebra(gram=configured.gram).display_order == expected
+    assert Algebra.from_numeric(configured.numeric).display_order == expected
+
+
+@pytest.mark.parametrize(
+    "recipe,expected",
+    (
+        (presets.rga(), (0, 1, 2, 4, 8, 6, 5, 3, 9, 10, 12, 14, 13, 11, 7, 15)),
+        (
+            presets.lengyel_cga(),
+            (
+                0,
+                1,
+                2,
+                4,
+                8,
+                16,
+                9,
+                10,
+                12,
+                6,
+                5,
+                3,
+                17,
+                18,
+                20,
+                24,
+                14,
+                13,
+                11,
+                7,
+                25,
+                26,
+                28,
+                22,
+                21,
+                19,
+                15,
+                30,
+                29,
+                27,
+                23,
+                31,
+            ),
+        ),
+        (presets.quaternion(), (0, 6, 5, 3, 1, 2, 4, 7)),
+    ),
+)
+def test_existing_preset_overrides_remain_exactly_unchanged(recipe, expected) -> None:
+    algebra = Algebra(config=recipe)
+    assert algebra.display_order == expected
+    assert algebra.with_display(DisplayPolicy(content="value")).display_order == expected
+    custom = DisplayOrder(algebra.n, reversed(range(algebra.dim)))
+    assert Algebra(config=recipe, display_order=custom).display_order == custom.masks
+    assert algebra.with_display_order(custom).display_order == custom.masks
 
 
 @pytest.mark.parametrize(

@@ -254,8 +254,9 @@ class Algebra:
         """Return a rich-display table of row blade wedged with column blade.
 
         By default the axes contain native basis vectors. With full=True,
-        include every native exterior blade, starting with scalar 1, ordered
-        by grade then bitmask. A full table has 4**n result cells.
+        include scalar 1 and every native exterior blade in the active
+        presentation's display order, including preset and user overrides.
+        A full table has 4**n result cells.
 
         Either color=True or colour=True enables LaTeX colouring by result
         grade. Exact zeros always remain grey (#bbbbbb); plain-text targets
@@ -269,11 +270,7 @@ class Algebra:
             if not isinstance(flag, bool):
                 raise TypeError(f"{name} must be a boolean")
         selected = self.presentation
-        masks = (
-            tuple(sorted(range(self.dim), key=lambda mask: (mask.bit_count(), mask)))
-            if full
-            else tuple(1 << index for index in range(self.n))
-        )
+        masks = selected.display_order.masks if full else tuple(1 << index for index in range(self.n))
         # Reuse the numeric core's exact exterior coefficients. No dense
         # multivector per cell or duplicate sign algorithm is needed.
         factors = dimension_metadata(self.n).wedge_factor

@@ -153,6 +153,7 @@ classes are no longer production alternatives.
 | [130](130-retire-migration-only-api-adapters.md) | Retire Migration-Only API Adapters | Accepted |
 | [131](131-local-only-stable-release-validation.md) | Local-Only Stable Release Validation | Accepted |
 | [132](132-algebra-expression-tracking-default.md) | Algebra-Level Expression Tracking Default | Accepted |
+| [133](133-grade-lexicographic-default-display-order.md) | Grade-Then-Lexicographic Default Display Order | Accepted |
 
 ## Creating New ADRs
 

@@ -79,11 +79,7 @@ def test_full_table_and_selected_table_entries_match_native_products(lesson):
         (values["euclidean"], values["full_wedge"], True),
         (values["selected_algebra"], values["selected_wedge"], selected_full),
     ):
-        masks = (
-            sorted(range(algebra.dim), key=lambda m: (m.bit_count(), m))
-            if full
-            else [1 << index for index in range(algebra.n)]
-        )
+        masks = algebra.display_order if full else [1 << index for index in range(algebra.n)]
         assert len(table.tree.headings) == len(masks)
         for row, left in zip(table.tree.rows, masks, strict=True):
             for cell, right in zip(row, masks, strict=True):

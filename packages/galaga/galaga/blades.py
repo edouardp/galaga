@@ -5,6 +5,7 @@ from __future__ import annotations
 import keyword
 from collections.abc import Iterable, Mapping, Sequence
 from dataclasses import dataclass
+from itertools import combinations
 from numbers import Real
 from types import MappingProxyType
 
@@ -43,7 +44,12 @@ class BladeLabel:
 
 @dataclass(frozen=True, slots=True, init=False)
 class DisplayOrder:
-    """A complete immutable permutation of exterior-basis masks."""
+    """A complete immutable permutation of exterior-basis masks.
+
+    By default, group by grade, then lexicographically by numeric basis-index
+    tuples (not rendered labels). Explicit masks retain their supplied order.
+    Use ``DisplayOrder(n, range(1 << n))`` for native coefficient order.
+    """
 
     dimension: int
     masks: tuple[int, ...]
@@ -51,7 +57,15 @@ class DisplayOrder:
     def __init__(self, dimension: int, masks: Iterable[int] | None = None) -> None:
         _validate_dimension(dimension)
         expected = tuple(range(1 << dimension))
-        normalized = expected if masks is None else tuple(masks)
+        normalized = (
+            tuple(
+                sum(1 << index for index in indices)
+                for grade in range(dimension + 1)
+                for indices in combinations(range(dimension), grade)
+            )
+            if masks is None
+            else tuple(masks)
+        )
         if (
             any(not isinstance(mask, int) or isinstance(mask, bool) for mask in normalized)
             or len(normalized) != len(expected)

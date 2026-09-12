@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-059: Custom Basis Blade Display Ordering
 
+The general display default is now grade-then-lexicographic, per
+[ADR-133](133-grade-lexicographic-default-display-order.md). Explicit preset and
+user overrides are retained; the bitmask-default rationale below is historical.
+
 For Galaga 2, the immutable presentation model in
 [ADR-076](076-immutable-presentation-configuration.md) supersedes the storage
 and enumeration details below. `DisplayOrder` affects rendering only;

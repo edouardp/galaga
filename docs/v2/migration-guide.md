@@ -1202,8 +1202,10 @@ with algebra.use_presentation(teaching_presentation):
 
 ## Migrate concrete display controls
 
-V2 uses native bitmask order by default. Select a `DisplayOrder` explicitly
-when grade grouping or another presentation order is wanted. This changes
+V2 uses grade-then-lexicographic display order by default, unless a preset or
+user supplies an explicit order. Lexicographic means numeric basis-index tuples,
+so `e14` precedes `e23`, not grade-then-bitmask sorting. Native storage order can
+be requested with `DisplayOrder(algebra.n, range(algebra.dim))`. This changes
 rendered terms, not `data` or `basis_blades()` enumeration. In particular,
 quaternion bivectors enumerate as `k, j, i`; use semantic roles for conventional
 unpacking:

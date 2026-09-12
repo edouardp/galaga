@@ -8,8 +8,10 @@ not Galaga 2 constructor or enumeration behavior. See the
 and [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
 
 The late-v1 implementation captured during migration used grade-sorted default
-display, despite Rule 2's original bitmask-order description. V2 defaults to
-native mask order, allows an explicit grade-sorted `DisplayOrder`, and never
+display, despite Rule 2's original bitmask-order description. V2 now defaults to
+grade-then-lexicographic order per
+[ADR-133](../adrs/133-grade-lexicographic-default-display-order.md), preserves
+explicit preset/user orders, and never
 reorders `basis_blades()` according to presentation. Quaternion names should
 be selected by semantic roles rather than assumed from enumeration order.
 

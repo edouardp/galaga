@@ -172,11 +172,7 @@ def test_native_null_notebook_scalar_equation_and_standalone_gram_display():
         ("full_wedge_table", Algebra(3), True),
     ):
         wedge_table = definitions[key]
-        masks = (
-            sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask))
-            if full
-            else [1 << index for index in range(algebra.n)]
-        )
+        masks = algebra.display_order if full else [1 << index for index in range(algebra.n)]
         assert len(wedge_table.tree.headings) == len(masks)
         for i, left in enumerate(masks):
             for j, right in enumerate(masks):

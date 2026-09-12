@@ -92,7 +92,7 @@ def test_concrete_display_matches_history_with_explicit_legacy_order(row, target
     _assert_coefficients(value.data, row["coefficients"])
     presentation = value.algebra.presentation
     if row["id"] == "mixed-default":
-        # Reproduce the old display explicitly; v2's default remains native order.
+        # Pin the historical grade-then-mask convention independently of defaults.
         masks = sorted(range(value.algebra.dim), key=lambda mask: (mask.bit_count(), mask))
         presentation = presentation.with_display_order(ga.DisplayOrder(value.algebra.n, masks))
         assert masks == ARCHIVE["orders"]["cl3-default"]

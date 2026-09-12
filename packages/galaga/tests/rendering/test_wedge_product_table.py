@@ -8,7 +8,7 @@ from dataclasses import FrozenInstanceError
 import numpy as np
 import pytest
 
-from galaga import Algebra, outer_product
+from galaga import Algebra, outer_product, presets
 from galaga.blades import BladeLabel, BladeRef, DisplayOrder, indexed_blade_convention
 from galaga.display import BilinearFormTable, WedgeProductTable, build_tree, emit, render
 from galaga.names import Name
@@ -24,6 +24,8 @@ from galaga.rendering._build import wedge_product_tree
         Algebra(0),
         Algebra(1),
         Algebra(3),
+        Algebra(4),
+        Algebra(4, display_order=DisplayOrder(4, reversed(range(16)))),
         Algebra(signature=(1, -1, 0)),
         Algebra(signature=(0, 0, 0)),
         Algebra(gram=[[2, 0.5], [0.5, -1]]),
@@ -31,16 +33,14 @@ from galaga.rendering._build import wedge_product_tree
         Algebra(config=p_cga(2, null_pair=-2)),
         Algebra(config=p_sta("mostly-minus")),
         Algebra(config=p_rga()),
+        Algebra(config=presets.lengyel_cga()),
+        Algebra(config=presets.quaternion()),
     ),
 )
 @pytest.mark.parametrize("full", (False, True))
 def test_table_entries_agree_with_computed_native_wedge_products(algebra, full):
     original = algebra.gram.copy()
-    masks = (
-        sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask))
-        if full
-        else [1 << index for index in range(algebra.n)]
-    )
+    masks = algebra.display_order if full else [1 << index for index in range(algebra.n)]
     blades = [algebra.blade(mask) for mask in masks]
     table = algebra.wedge_product_table(full)
     assert len(table.tree.headings) == len(table.tree.rows) == len(blades)
@@ -70,10 +70,27 @@ def test_cga_vector_table_matches_requested_layout():
     assert r"\newcommand" not in table.latex() and "$" not in table.latex()
 
 
-def test_full_table_starts_with_scalar_and_groups_all_native_blades_by_grade():
-    algebra = Algebra(3)
+def test_full_table_default_is_grade_then_lexicographic_not_grade_then_mask():
+    algebra = Algebra(4)
     table = algebra.wedge_product_table(full=True)
-    assert [emit(node, "ascii") for node in table.tree.headings] == ["1", "e1", "e2", "e3", "e12", "e13", "e23", "e123"]
+    assert [emit(node, "ascii") for node in table.tree.headings] == [
+        "1",
+        "e1",
+        "e2",
+        "e3",
+        "e4",
+        "e12",
+        "e13",
+        "e14",
+        "e23",
+        "e24",
+        "e34",
+        "e123",
+        "e124",
+        "e134",
+        "e234",
+        "e1234",
+    ]
     for index, heading in enumerate(table.tree.headings):
         assert table.tree.rows[0][index] == table.tree.rows[index][0] == heading
     assert len(Algebra(config=p_cga(3)).wedge_product_table(full=True).tree.rows) == 32
@@ -106,12 +123,46 @@ def test_signed_input_and_output_blade_names_match_actual_products(full):
 
 
 @pytest.mark.parametrize("full", (False, True))
-def test_metric_display_order_and_zero_tolerance_do_not_change_wedge_entries(full):
+def test_metric_and_zero_tolerance_do_not_change_wedge_entries(full):
     euclidean = Algebra(3)
     oblique = Algebra(gram=[[2, 0.5, 0], [0.5, -1, 0.25], [0, 0.25, 0]])
     hidden = oblique.with_display(DisplayPolicy(zero_tolerance=2, content="name"))
-    reordered = hidden.with_display_order(DisplayOrder(3, tuple(reversed(range(8)))))
-    assert euclidean.wedge_product_table(full) == reordered.wedge_product_table(full)
+    assert euclidean.wedge_product_table(full) == hidden.wedge_product_table(full)
+
+
+@pytest.mark.parametrize("color", (False, True))
+@pytest.mark.parametrize("masks", (tuple(reversed(range(16))), tuple(range(16))))
+def test_explicit_order_permutes_both_full_axes_and_cells_but_not_vector_tables(masks, color):
+    algebra = Algebra(config=p_rga())
+    reordered = algebra.with_display_order(DisplayOrder(algebra.n, masks))
+    original = algebra.wedge_product_table(full=True, color=color)
+    table = reordered.wedge_product_table(full=True, color=color)
+    indices = [algebra.display_order.index(mask) for mask in masks]
+    assert table.tree.headings == tuple(original.tree.headings[i] for i in indices)
+    assert table.tree.rows == tuple(tuple(original.tree.rows[i][j] for j in indices) for i in indices)
+    scalar_index = masks.index(0)
+    for i, heading in enumerate(table.tree.headings):
+        left = table.tree.rows[scalar_index][i]
+        right = table.tree.rows[i][scalar_index]
+        expected = GradeColor(heading, masks[i].bit_count()) if color else heading
+        assert left == right == expected
+    assert algebra.wedge_product_table(color=color) == reordered.wedge_product_table(color=color)
+    assert algebra.bilinear_form_table() == reordered.bilinear_form_table()
+
+
+def test_full_table_captures_scoped_order_without_reordering_previous_snapshots():
+    algebra = Algebra(4)
+    original = algebra.wedge_product_table(full=True)
+    before = original.latex()
+    order = DisplayOrder(algebra.n, reversed(range(algebra.dim)))
+    presentation = algebra.presentation.with_display_order(order)
+    with algebra.use_presentation(presentation):
+        table = algebra.wedge_product_table(full=True)
+        assert table == algebra.with_display_order(order).wedge_product_table(full=True)
+        assert table != original
+        assert original.latex() == before
+    assert algebra.wedge_product_table(full=True) == original
+    assert table.tree.headings[-1] == Literal(1)
 
 
 def test_table_captures_scoped_presentation_and_target():
@@ -128,8 +179,8 @@ def test_table_captures_scoped_presentation_and_target():
 
 
 @pytest.mark.parametrize("full", (False, True))
-def test_both_colour_spellings_enable_the_same_grade_decoration(full):
-    algebra = Algebra(3)
+@pytest.mark.parametrize("algebra", (Algebra(4), Algebra(config=p_rga())))
+def test_both_colour_spellings_enable_the_same_grade_decoration(full, algebra):
     plain = algebra.wedge_product_table(full)
     coloured = algebra.wedge_product_table(full, color=True)
     assert coloured == algebra.wedge_product_table(full, colour=True)
@@ -138,7 +189,7 @@ def test_both_colour_spellings_enable_the_same_grade_decoration(full):
     assert plain == algebra.wedge_product_table(full, color=False, colour=False)
     assert coloured.ascii() == plain.ascii() and coloured.unicode() == plain.unicode()
     assert coloured.tree.headings == plain.tree.headings
-    masks = sorted(range(algebra.dim), key=lambda mask: (mask.bit_count(), mask)) if full else [1, 2, 4]
+    masks = algebra.display_order if full else [1 << index for index in range(algebra.n)]
     for i, left in enumerate(masks):
         for j, right in enumerate(masks):
             product = outer_product(algebra.blade(left), algebra.blade(right))

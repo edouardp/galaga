@@ -28,9 +28,11 @@ the Gram and wedge wrappers remain distinct public types. Both retain the
 same raw/rich LaTeX, aligned text, formatting and Marimo block contracts.
 
 Each cell is **row blade wedged with column blade**. Vector-only axes use
-native vector order; full axes contain every native exterior mask sorted
-by grade then bitmask, with scalar `1` first. Do not apply multivector
-`DisplayOrder`. Signed convention labels describe the actual native
+native vector order. Full axes originally used grade-then-bitmask order;
+[ADR-133](133-grade-lexicographic-default-display-order.md) supersedes this
+with the active multivector `DisplayOrder` on both axes, including explicit
+preset and user overrides. Scalar `1` appears at its selected position, first
+by default. Signed convention labels describe the actual native
 blades, including signs in axis headings and results. The scalar identity
 is literal `1`, not a convention alias. These are exterior basis blades,
 not ordered geometric products in a nonorthogonal basis.

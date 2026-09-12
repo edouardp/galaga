@@ -163,6 +163,11 @@ and [presentation guide][presentation] for lower-level customization.
 
 ## Values, blades, names and expressions
 
+Multivector values display by grade, then lexicographically by numeric basis
+indices (`e12, e13, e14, e23, ...`). Explicit preset conventions, including RGA
+and quaternion order, are preserved. `DisplayOrder` controls presentation only;
+coefficient storage and basis enumeration remain in native bitmask order.
+
 ```python
 from galaga import Algebra, Name, exp
 from galaga.expression import evaluate
@@ -394,7 +399,8 @@ gram_table  # Last line of a notebook cell: rich display. Try vector_table/full_
 `bilinear_form_table()` labels the native Gram matrix; numeric entries remain
 available as `alg.gram`. `wedge_product_table()` shows **row blade wedged with
 column blade**, using basis vectors by default. `full=True` includes scalar
-`1` and all exterior blades, sorted by grade then bitmask. A full table has
+`1` and all exterior blades in the algebra's display order, including preset
+and user overrides (grade-then-lexicographic by default). A full table has
 `4**n` result cells: an 8-by-8 table for `Algebra(3)`, but 32-by-32 for 3D CGA.
 
 Both are immutable presentation snapshots with signed native blade headings.
