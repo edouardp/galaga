@@ -96,25 +96,32 @@ def _(
         [
             mo.hstack([dimension_control, order_control, display_control], wrap=True),
             gm.md(t"""
-## 1. Read the native frame from its table
+    ## 1. Read the native frame from its table
 
-Actual basis: **{_basis}**. The Gram table always follows native vector order.
+    Actual basis: **{_basis}**. The Gram table always follows native vector order.
 
-{algebra.bilinear_form_table():block}
+    {algebra.bilinear_form_table():block}
 
-$$I_E={euclidean_volume.latex(content="value")!s}.$$
+    $$I_E={euclidean_volume.latex(content="value")!s}.$$
 
-$$I_C=e_o\\wedge I_E\\wedge e_\\infty={conformal_volume.latex(content="value")!s}.$$
+    $$I_C=e_o\\wedge I_E\\wedge e_\\infty={conformal_volume.latex(content="value")!s}.$$
 
-$$I_{{\\mathrm{{native}}}}={algebra.I.latex(content="value")!s}.$$
+    $$I_{{\\mathrm{{native}}}}={algebra.I.latex(content="value")!s}.$$
 
-Computed ratio $I_C/I_{{\\mathrm{{native}}}}$: **{orientation_ratio:g}**.
-Try both dimensions: moving the origin past $n$ Euclidean vectors has
-sign $(-1)^n$. Changing only the display selector cannot alter this ratio.
-"""),
+    Computed ratio $I_C/I_{{\\mathrm{{native}}}}$: **{orientation_ratio:g}**.
+    Try both dimensions: moving the origin past $n$ Euclidean vectors has
+    sign $(-1)^n$. Changing only the display selector cannot alter this ratio.
+    """),
         ]
     )
-    return algebra, conformal_volume, euclidean_volume, model, orientation_ratio, selected_order, spatial_dimension
+    return (
+        algebra,
+        conformal_volume,
+        euclidean_volume,
+        model,
+        selected_order,
+        spatial_dimension,
+    )
 
 
 @app.cell(hide_code=True)
@@ -164,22 +171,22 @@ def _(
     mo.vstack(
         [
             gm.md(t"""
-**Selected frame: {selected_order}**
+    **Selected frame: {selected_order}**
 
-$$e_o\\wedge e_1={origin_axis_blade.latex(content="value")!s}.$$
+    $$e_o\\wedge e_1={origin_axis_blade.latex(content="value")!s}.$$
 
-$$M={mixed.latex(content="value")!s}.$$
-"""),
+    $$M={mixed.latex(content="value")!s}.$$
+    """),
             gm.md(t"""
-**Other frame: {other_order}**
+    **Other frame: {other_order}**
 
-$$e_o\\wedge e_1={other_origin_axis_blade.latex(content="value")!s}.$$
+    $$e_o\\wedge e_1={other_origin_axis_blade.latex(content="value")!s}.$$
 
-$$M={other_mixed.latex(content="value")!s}.$$
-"""),
+    $$M={other_mixed.latex(content="value")!s}.$$
+    """),
         ]
     )
-    return mixed, origin_axis_blade, other_algebra, other_mixed, other_model, other_order, other_origin_axis_blade
+    return mixed, other_algebra, other_mixed, other_model
 
 
 @app.cell
@@ -193,23 +200,23 @@ def _(DisplayOrder, algebra, dual, gm, mixed, mo, np):
     mo.vstack(
         [
             gm.md(t"""
-**Grade-then-lexicographic display**
+    **Grade-then-lexicographic display**
 
-{natural_display_value:block}
-"""),
+    {natural_display_value:block}
+    """),
             gm.md(t"""
-**Native-mask display of exactly the same coefficients**
+    **Native-mask display of exactly the same coefficients**
 
-{storage_display_value:block}
+    {storage_display_value:block}
 
-The arrays and duals agree exactly. The order of printed terms changes,
-not the order of factors inside a blade. An override is passed as
-`Algebra(config=..., display_order=DisplayOrder(...))` or applied via
-`with_display_order(...)`.
-"""),
+    The arrays and duals agree exactly. The order of printed terms changes,
+    not the order of factors inside a blade. An override is passed as
+    `Algebra(config=..., display_order=DisplayOrder(...))` or applied via
+    `with_display_order(...)`.
+    """),
         ]
     )
-    return natural_display_value, storage_display_value
+    return
 
 
 @app.cell(hide_code=True)
@@ -247,21 +254,21 @@ def _(algebra, gm, mixed, np, other_algebra, other_mixed):
     assert converted_mixed == other_mixed
     assert copied_mixed != other_mixed
     gm.md(t"""
-**Correctly converted**
+    **Correctly converted**
 
-{converted_mixed:block}
+    {converted_mixed:block}
 
-Agreement with the independently reconstructed expression: {conversion_residual:.2e}.
+    Agreement with the independently reconstructed expression: {conversion_residual:.2e}.
 
-**Incorrectly copied without conversion**
+    **Incorrectly copied without conversion**
 
-{copied_mixed:block}
+    {copied_mixed:block}
 
-The second expression is a different element. Persist the basis order,
-Gram matrix and normalization with coefficient arrays. To retain older
-arrays unchanged, select the Euclidean-first compatibility preset.
-""")
-    return conversion_residual, converted_mixed, copied_mixed, exterior_map
+    The second expression is a different element. Persist the basis order,
+    Gram matrix and normalization with coefficient arrays. To retain older
+    arrays unchanged, select the Euclidean-first compatibility preset.
+    """)
+    return (exterior_map,)
 
 
 @app.cell(hide_code=True)
@@ -303,9 +310,9 @@ def _(
     np,
     other_algebra,
     other_model,
+    outer_product,
     scalar_product,
     spatial_dimension,
-    outer_product,
 ):
     _zero = (0,) * spatial_dimension
     _axes = tuple(tuple(int(i == j) for i in range(spatial_dimension)) for j in range(spatial_dimension))
@@ -348,55 +355,38 @@ def _(
     mo.vstack(
         [
             gm.md(t"""
-**Directed line / plane**
+    **Directed line / plane**
 
-$$F={flat.latex(content="value")!s}.$$
+    $$F={flat.latex(content="value")!s}.$$
 
-$$\\operatorname{{dual}}(F)={flat_dual.latex(content="value")!s}.$$
+    $$\\operatorname{{dual}}(F)={flat_dual.latex(content="value")!s}.$$
 
-$$\\operatorname{{Hodge}}(F)={flat_hodge.latex(content="value")!s}.$$
+    $$\\operatorname{{Hodge}}(F)={flat_hodge.latex(content="value")!s}.$$
 
-Signed normal factors: **{flat_dual_factor:g}** and **{flat_hodge_factor:g}**.
-Evaluating the inverse-pseudoscalar dual at the probe on the positive
-last axis gives **{signed_probe:g}**. Swapping two defining points
-would reverse this sign.
-"""),
+    Signed normal factors: **{flat_dual_factor:g}** and **{flat_hodge_factor:g}**.
+    Evaluating the inverse-pseudoscalar dual at the probe on the positive
+    last axis gives **{signed_probe:g}**. Swapping two defining points
+    would reverse this sign.
+    """),
             gm.md(t"""
-**Unit circle / sphere**
+    **Unit circle / sphere**
 
-$$C={round_blade.latex(content="value")!s}.$$
+    $$C={round_blade.latex(content="value")!s}.$$
 
-$$\\operatorname{{dual}}(C)={round_dual.latex(content="value")!s}.$$
+    $$\\operatorname{{dual}}(C)={round_dual.latex(content="value")!s}.$$
 
-$$\\operatorname{{Hodge}}(C)={round_hodge.latex(content="value")!s}.$$
+    $$\\operatorname{{Hodge}}(C)={round_hodge.latex(content="value")!s}.$$
 
-Signed scale factors relative to $S=e_o-\\tfrac12 e_\\infty$:
-**{round_dual_factor:g}** and **{round_hodge_factor:g}**.
+    Signed scale factors relative to $S=e_o-\\tfrac12 e_\\infty$:
+    **{round_dual_factor:g}** and **{round_hodge_factor:g}**.
 
-Under the explicit map to the other native frame, the native duality
-orientation factor is **{orientation_map_factor:g}**. The assertions
-verify this for both operations and both geometric objects.
-"""),
+    Under the explicit map to the other native frame, the native duality
+    orientation factor is **{orientation_map_factor:g}**. The assertions
+    verify this for both operations and both geometric objects.
+    """),
         ]
     )
-    return (
-        flat,
-        flat_dual,
-        flat_dual_factor,
-        flat_hodge,
-        flat_hodge_factor,
-        normal,
-        normalized_sphere,
-        orientation_map_factor,
-        other_flat,
-        other_round,
-        round_blade,
-        round_dual,
-        round_dual_factor,
-        round_hodge,
-        round_hodge_factor,
-        signed_probe,
-    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -425,18 +415,18 @@ def _(Algebra, DisplayOrder, display_control, gm, mo, presets, selected_order):
     mo.vstack(
         [
             gm.md(t"""
-**Native vector axes**
+    **Native vector axes**
 
-{vector_table:block}
-"""),
+    {vector_table:block}
+    """),
             gm.md(t"""
-**All blades in the selected display order**
+    **All blades in the selected display order**
 
-{full_table:block}
-"""),
+    {full_table:block}
+    """),
         ]
     )
-    return full_table, table_algebra, vector_table
+    return
 
 
 @app.cell(hide_code=True)
@@ -518,49 +508,42 @@ def _(
         [
             mo.hstack([model_names_control, null_name_control, pss_control], wrap=True),
             gm.md(rt"""
-**Selected names and their expanded blade values**
+    **Selected names and their expanded blade values**
 
-$$I_E={named_euclidean_volume.latex(content="value")!s}={_expanded_ie.latex(content="value")!s}.$$
+    $$I_E={named_euclidean_volume.latex(content="value")!s}={_expanded_ie.latex(content="value")!s}.$$
 
-$$E={named_null_plane.latex(content="value")!s}={_expanded_e.latex(content="value")!s}.$$
+    $$E={named_null_plane.latex(content="value")!s}={_expanded_e.latex(content="value")!s}.$$
 
-$$I_C={named_conformal_volume.latex(content="value")!s}={_expanded_ic.latex(content="value")!s}.$$
+    $$I_C={named_conformal_volume.latex(content="value")!s}={_expanded_ic.latex(content="value")!s}.$$
 
-$$I_{{\mathrm{{native}}}}={naming_algebra.I.latex(content="value")!s}={_expanded.I.latex(content="value")!s}.$$
+    $$I_{{\mathrm{{native}}}}={naming_algebra.I.latex(content="value")!s}={_expanded.I.latex(content="value")!s}.$$
 
-$$I_E\wedge E={named_volume_product.latex(content="value")!s}.$$
+    $$I_E\wedge E={named_volume_product.latex(content="value")!s}.$$
 
-Canonical volume names in `locals()`: **{_local_names}**.
-`alg.I` and `alg.blade("I")` always return the native pseudoscalar.
-With model naming enabled, `blade("IC")` returns the oriented conformal
-volume even when the preferred top-grade label is a custom name.
+    Canonical volume names in `locals()`: **{_local_names}**.
+    `alg.I` and `alg.blade("I")` always return the native pseudoscalar.
+    With model naming enabled, `blade("IC")` returns the oriented conformal
+    volume even when the preferred top-grade label is a custom name.
 
-`locals()` includes canonical Python-safe names, not every alias.
-Custom `local_names=` policies and blade-only presentation overrides remain
-independent. Changing display order does not change any local binding.
+    `locals()` includes canonical Python-safe names, not every alias.
+    Custom `local_names=` policies and blade-only presentation overrides remain
+    independent. Changing display order does not change any local binding.
 
-**The 1D axis stays e1**
+    **The 1D axis stays e1**
 
-In 1D CGA, $I_E=e_1$: its displayed name remains ${_axis.latex(content="value")!s}$,
-and `locals()["e1"]` remains available. When model names are enabled,
-`blade("IE")` is a lookup alias only.
+    In 1D CGA, $I_E=e_1$: its displayed name remains ${_axis.latex(content="value")!s}$,
+    and `locals()["e1"]` remains available. When model names are enabled,
+    `blade("IE")` is a lookup alias only.
 
-Here is the full small 1D CGA table with the same naming choices. Its
-headings are native blades: a negative $I_C$ heading is intentional when
-that native blade has the opposite orientation.
+    Here is the full small 1D CGA table with the same naming choices. Its
+    headings are native blades: a negative $I_C$ heading is intentional when
+    that native blade has the opposite orientation.
 
-{naming_small_algebra.wedge_product_table(full=True, colour=True):block}
-"""),
+    {naming_small_algebra.wedge_product_table(full=True, colour=True):block}
+    """),
         ]
     )
-    return (
-        named_conformal_volume,
-        named_euclidean_volume,
-        named_null_plane,
-        named_volume_product,
-        naming_algebra,
-        naming_small_algebra,
-    )
+    return
 
 
 @app.cell(hide_code=True)
