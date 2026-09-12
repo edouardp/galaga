@@ -33,7 +33,7 @@ def evaluate(
         from ..facade.catalog import get_operation
 
         if get_operation(expression.operation_id).result_kind == "scalar":
-            return facade_algebra.scalar(result)
+            return facade_algebra.scalar(result, expr=False)
     return result
 
 

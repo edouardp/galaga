@@ -189,6 +189,20 @@ operations on named or tracked operands record provenance. `expr=True` on
 factories records construction provenance. Replay of symbols requires explicit
 bindings; expression history does not make coefficients symbolic.
 
+To opt in once, use `Algebra(..., expr=True)` (also with `config=`). The default
+is `False`. Factories inherit it unless overridden, as do `ConformalModel` and
+`RigidModel`; presentation-derived algebra views preserve it.
+
+```python
+from galaga import Algebra
+
+tracked_alg = Algebra(2, expr=True)
+a, b = tracked_alg.basis_vectors()
+assert (a * b).expr is not None
+plain = tracked_alg.vector([1, 2], expr=False)
+assert (plain + 1).expr is None
+```
+
 `Name` holds ASCII, Unicode and LaTeX spellings. Use `Name.from_latex(...)`
 for supported LaTeX-to-name conversion, or supply each spelling explicitly;
 ordinary strings are literal and are not automatically parsed as LaTeX.

@@ -38,11 +38,17 @@ if TYPE_CHECKING:
 
 
 class Algebra:
-    """An immutable numeric algebra with a cheap configurable presentation."""
+    """An eager algebra with configurable presentation and factory tracking.
+
+    ``expr=True`` makes public value factories infer expression provenance by
+    default. Per-factory ``expr=False`` opts out; omitted or ``None`` inherits.
+    This facade policy does not alter numeric evaluation or operation dispatch.
+    """
 
     __slots__ = (
         "_basis_vectors",
         "_default_presentation",
+        "_expr",
         "_model",
         "_numeric",
         "_presentation_override",
@@ -52,6 +58,7 @@ class Algebra:
         self,
         *args: Any,
         config: AlgebraConfig | Preset | None = None,
+        expr: bool = False,
         presentation: PresentationConfig | None = None,
         blades: BladeConvention | BladePreset | None = None,
         notation: Notation | None = None,
@@ -60,6 +67,8 @@ class Algebra:
         display: DisplayPolicy | None = None,
         **kwargs: Any,
     ) -> None:
+        _require_expr_flag(expr)
+        self._expr = expr
         if config is not None:
             if args or kwargs:
                 conflicting = [repr(value) for value in args]
@@ -117,10 +126,12 @@ class Algebra:
         *,
         presentation: PresentationConfig | None = None,
         model: ModelConfig | None = None,
+        expr: bool = False,
     ) -> Algebra:
         """Create a facade over an existing numeric algebra."""
         if not isinstance(numeric, core.Algebra):
             raise TypeError("numeric must be a core.Algebra")
+        _require_expr_flag(expr)
         selected = default_presentation(numeric.n) if presentation is None else _require_presentation(presentation)
         if selected.dimension != numeric.n:
             raise ValueError(
@@ -133,6 +144,7 @@ class Algebra:
                     raise ValueError(f"model role {name!r} refers to mask {ref.mask} outside the algebra dimension")
         instance = cls.__new__(cls)
         instance._numeric = numeric
+        instance._expr = expr
         instance._basis_vectors = None
         instance._default_presentation = selected
         instance._model = model
@@ -146,6 +158,17 @@ class Algebra:
     def numeric(self) -> core.Algebra:
         """The wrapped numeric algebra."""
         return self._numeric
+
+    @property
+    def expr(self) -> bool:
+        """Whether public value factories infer provenance by default."""
+        return self._expr
+
+    def _resolve_expr(self, expr: bool | None) -> bool:
+        if expr is None:
+            return self._expr
+        _require_expr_flag(expr)
+        return expr
 
     @property
     def default_presentation(self) -> PresentationConfig:
@@ -177,6 +200,7 @@ class Algebra:
             self._numeric,
             presentation=self.resolve_presentation(presentation),
             model=self._model,
+            expr=self._expr,
         )
 
     def with_blades(self, blades: BladeConvention | BladePreset) -> Algebra:
@@ -312,7 +336,7 @@ class Algebra:
 
     @property
     def identity(self) -> Multivector:
-        return self._wrap(self._numeric.identity)
+        return self.scalar(1)
 
     @property
     def I(self) -> Multivector:  # noqa: E743 - conventional pseudoscalar name
@@ -336,7 +360,7 @@ class Algebra:
         data: Any,
         *,
         name: Name | str | None = None,
-        expr: bool | Expr = False,
+        expr: bool | Expr | None = None,
     ) -> Multivector:
         return self._factory_wrap(self._numeric.multivector(data), name=name, expr=expr)
 
@@ -345,7 +369,7 @@ class Algebra:
         value: Real | float,
         *,
         name: Name | str | None = None,
-        expr: bool | Expr = False,
+        expr: bool | Expr | None = None,
     ) -> Multivector:
         return self._factory_wrap(self._numeric.scalar(value), name=name, expr=expr)
 
@@ -354,7 +378,7 @@ class Algebra:
         values: Any,
         *,
         name: Name | str | None = None,
-        expr: bool | Expr = False,
+        expr: bool | Expr | None = None,
     ) -> Multivector:
         return self._factory_wrap(self._numeric.vector(values), name=name, expr=expr)
 
@@ -363,7 +387,7 @@ class Algebra:
         blade: int | str | BladeRef | Multivector,
         *,
         name: Name | str | None = None,
-        expr: bool | Expr = False,
+        expr: bool | Expr | None = None,
     ) -> Multivector:
         """Construct or literalize one signed unit exterior-basis blade.
 
@@ -394,7 +418,7 @@ class Algebra:
     def blades(
         self,
         *blades: int | str | BladeRef | Multivector,
-        expr: bool = False,
+        expr: bool | None = None,
     ) -> tuple[Multivector, ...]:
         """Construct or literalize an ordered batch of basis blades.
 
@@ -402,7 +426,7 @@ class Algebra:
         singular factory's value, orientation, ownership, and provenance
         rules. The shared ``expr`` flag applies independently to every result.
         """
-        _require_expr_flag(expr)
+        expr = self._resolve_expr(expr)
         return tuple(self.blade(blade, expr=expr) for blade in blades)
 
     def _factory_wrap(
@@ -410,25 +434,27 @@ class Algebra:
         value: core.Multivector,
         *,
         name: Name | str | None,
-        expr: bool | Expr,
+        expr: bool | Expr | None,
     ) -> Multivector:
         normalized_name = _normalize_name(name)
         result = self._wrap(value, name=normalized_name)
+        if expr is None:
+            expr = self._expr
         if expr is False:
             return result
         if expr is True:
             return result.with_expr()
         if isinstance(expr, Expr):
             return result.with_expr(expr)
-        raise TypeError("expr must be a boolean or Expr")
+        raise TypeError("expr must be a boolean, Expr, or None")
 
     def blade_label(self, bitmask: int) -> BladeLabel:
         """Return the active convention's canonical label for a native mask."""
         return self.presentation.blades.label(bitmask)
 
-    def locals(self, *, expr: bool = False) -> MappingProxyType[str, Multivector]:
+    def locals(self, *, expr: bool | None = None) -> MappingProxyType[str, Multivector]:
         """Return a read-only mapping of configured Python names to values."""
-        _require_expr_flag(expr)
+        expr = self._resolve_expr(expr)
         return MappingProxyType(
             {name: self.blade(ref, name=name, expr=expr) for name, ref in self.presentation.local_names.entries}
         )
@@ -451,23 +477,23 @@ class Algebra:
             raise ValueError(f"blade mask must be in [0, {self.dim})")
         return ref
 
-    def basis_vectors(self, *, expr: bool = False) -> tuple[Multivector, ...]:
-        _require_expr_flag(expr)
+    def basis_vectors(self, *, expr: bool | None = None) -> tuple[Multivector, ...]:
+        expr = self._resolve_expr(expr)
         if self._basis_vectors is None:
             self._basis_vectors = tuple(self._wrap(value) for value in self._numeric.basis_vectors())
         if not expr:
             return self._basis_vectors
         return tuple(value.with_expr() for value in self._basis_vectors)
 
-    def basis_blades(self, value: int, *, expr: bool = False) -> tuple[Multivector, ...]:
-        _require_expr_flag(expr)
+    def basis_blades(self, value: int, *, expr: bool | None = None) -> tuple[Multivector, ...]:
+        expr = self._resolve_expr(expr)
         result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(value))
         if not expr:
             return result
         return tuple(blade.with_expr() for blade in result)
 
-    def pseudoscalar(self, *, expr: bool = False) -> Multivector:
-        _require_expr_flag(expr)
+    def pseudoscalar(self, *, expr: bool | None = None) -> Multivector:
+        expr = self._resolve_expr(expr)
         result = self._wrap(self._numeric.pseudoscalar())
         return result.with_expr() if expr else result
 
@@ -708,7 +734,7 @@ class Multivector:
         if isinstance(other, Multivector):
             return other
         if isinstance(other, Real):
-            return self._algebra.scalar(other)
+            return self._algebra.scalar(other, expr=False)
         return NotImplemented
 
     def __add__(self, other: object) -> Multivector | NotImplementedType:
@@ -764,7 +790,7 @@ class Multivector:
 
     def __rtruediv__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return _invoke("divide", self._algebra.scalar(other), self)
+            return _invoke("divide", self._algebra.scalar(other, expr=False), self)
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:

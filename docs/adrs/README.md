@@ -152,6 +152,7 @@ classes are no longer production alternatives.
 | [129](129-concise-complete-and-resolvable-blade-presets.md) | Concise Complete and Resolvable Blade Presets | Accepted |
 | [130](130-retire-migration-only-api-adapters.md) | Retire Migration-Only API Adapters | Accepted |
 | [131](131-local-only-stable-release-validation.md) | Local-Only Stable Release Validation | Accepted |
+| [132](132-algebra-expression-tracking-default.md) | Algebra-Level Expression Tracking Default | Accepted |
 
 ## Creating New ADRs
 

@@ -94,8 +94,9 @@ def test_blades_factory_accepts_mixed_singular_inputs_and_validates_shared_expr_
     assert tuple(value.expr for value in values) == (None, None, None)
     assert tuple(np.flatnonzero(value.data).item() for value in values) == (0b0110, 0b0101, 0b0011)
     assert algebra.blades() == ()
+    assert algebra.blades(expr=None) == ()
     with pytest.raises(TypeError, match="expr must be a boolean"):
-        algebra.blades(expr=None)  # type: ignore[arg-type]
+        algebra.blades(expr="yes")  # type: ignore[arg-type]
     with pytest.raises(ValueError, match="signed unit basis blade"):
         algebra.blades(e1 + e2, expr=True)
 

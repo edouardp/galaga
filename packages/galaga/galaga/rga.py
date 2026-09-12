@@ -45,9 +45,11 @@ class RigidModel:
         "_projective_ref",
     )
 
-    def __init__(self, algebra: Algebra, *, expr: bool = False) -> None:
+    def __init__(self, algebra: Algebra, *, expr: bool | None = None) -> None:
         if not isinstance(algebra, Algebra):
             raise TypeError("algebra must be a galaga Algebra")
+        if expr is None:
+            expr = algebra.expr
         _require_expr_flag(expr)
         model = algebra.model
         if model is None or model.id != "lengyel-rga":
@@ -85,7 +87,7 @@ class RigidModel:
 
     @property
     def expr(self) -> bool:
-        """Whether model-owned factories track expression provenance by default."""
+        """Model factory default, inherited from the algebra unless overridden."""
         return self._expr
 
     @property
@@ -130,8 +132,7 @@ class RigidModel:
         data = np.zeros(self._algebra.dim)
         for coordinate, ref in zip(coordinates, self._euclidean_refs, strict=True):
             data[ref.mask] = ref.orientation * coordinate
-        result = self._algebra.multivector(data)
-        return result.with_expr() if tracking else result
+        return self._algebra.multivector(data, expr=tracking)
 
     def point(
         self,
@@ -216,7 +217,7 @@ class RigidModel:
         weight = self.weight_norm(value, atol=atol)
         magnitude = self._blade_magnitude(
             weight,
-            self._algebra.blade(self._antiscalar_ref),
+            self._algebra.blade(self._antiscalar_ref, expr=False),
             name="weight norm",
             atol=atol,
         )
@@ -489,8 +490,8 @@ class RigidModel:
                 raise ValueError("expected a vector in the Euclidean subspace")
 
     def _validate_metric(self) -> None:
-        basis = tuple(self._algebra.blade(ref) for ref in self._euclidean_refs)
-        projective = self._algebra.blade(self._projective_ref)
+        basis = tuple(self._algebra.blade(ref, expr=False) for ref in self._euclidean_refs)
+        projective = self._algebra.blade(self._projective_ref, expr=False)
         gram = np.array([[float(scalar_product(left, right)) for right in basis] for left in basis])
         if not np.allclose(gram, np.eye(3), rtol=0.0, atol=1e-12):
             raise ValueError("RGA Euclidean roles must have an identity Gram block")
@@ -506,10 +507,10 @@ class RigidModel:
         scale = max(1.0, abs(coefficient))
         if coefficient < -atol * scale:
             raise ValueError(f"{name} is not real")
-        return self._algebra.scalar(math.sqrt(max(0.0, coefficient)))
+        return self._algebra.scalar(math.sqrt(max(0.0, coefficient)), expr=False)
 
     def _antiscalar_norm_root(self, value: Multivector, *, name: str, atol: float) -> Multivector:
-        basis = self._algebra.blade(self._antiscalar_ref)
+        basis = self._algebra.blade(self._antiscalar_ref, expr=False)
         coefficient = self._blade_magnitude(value, basis, name=f"{name} squared", atol=atol)
         scale = max(1.0, abs(coefficient))
         if coefficient < -atol * scale:
@@ -543,15 +544,15 @@ class RigidModel:
         return direction, moment
 
     def _line_from_components(self, direction: np.ndarray, moment: np.ndarray) -> Multivector:
-        result = self._algebra.scalar(0)
+        result = self._algebra.scalar(0, expr=False)
         for coefficient, name in zip(direction, ("e41", "e42", "e43"), strict=True):
-            result = result + float(coefficient) * self._algebra.blade(name)
+            result = result + float(coefficient) * self._algebra.blade(name, expr=False)
         for coefficient, name in zip(moment, ("e23", "e31", "e12"), strict=True):
-            result = result + float(coefficient) * self._algebra.blade(name)
+            result = result + float(coefficient) * self._algebra.blade(name, expr=False)
         return result
 
     def _component(self, value: Multivector, name: str) -> float:
-        blade = self._algebra.blade(name)
+        blade = self._algebra.blade(name, expr=False)
         mask = int(np.flatnonzero(blade.data)[0])
         return float(value.data[mask] / blade.data[mask])
 

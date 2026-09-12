@@ -72,11 +72,13 @@ class ConformalModel:
         self,
         algebra: Algebra,
         *,
-        expr: bool = False,
+        expr: bool | None = None,
         expression_form: CGAExpressionForm = "operator",
     ) -> None:
         if not isinstance(algebra, Algebra):
             raise TypeError("algebra must be a galaga Algebra")
+        if expr is None:
+            expr = algebra.expr
         _require_expr_flag(expr)
         selected_expression_form = _require_expression_form(expression_form)
         model = algebra.model
@@ -116,7 +118,7 @@ class ConformalModel:
 
     @property
     def expr(self) -> bool:
-        """Whether model-owned factories track expression provenance by default."""
+        """Model factory default, inherited from the algebra unless overridden."""
         return self._expr
 
     @property
@@ -188,8 +190,7 @@ class ConformalModel:
         data = np.zeros(self._algebra.dim)
         for coordinate, ref in zip(coordinates, self._euclidean_refs, strict=True):
             data[ref.mask] = ref.orientation * float(coordinate)
-        result = self._algebra.multivector(data)
-        return result.with_expr() if tracking else result
+        return self._algebra.multivector(data, expr=tracking)
 
     def round_point(
         self,
@@ -315,7 +316,7 @@ class ConformalModel:
         data = np.zeros(self._algebra.dim)
         for ref in self._euclidean_refs:
             data[ref.mask] = normalized.coefficient(ref.mask)
-        result = self._algebra.multivector(data)
+        result = self._algebra.multivector(data, expr=False)
         return self._semantic(
             result,
             "down",
@@ -744,12 +745,12 @@ class ConformalModel:
         weighted_radius = self.weighted_radius_norm(value, atol=atol, expression_form=selected)
         numerator = self._blade_magnitude(
             weighted_radius,
-            self._algebra.I,
+            self._algebra.pseudoscalar(expr=False),
             name="weighted radius norm",
             atol=atol,
         )
         denominator = self._round_weight_magnitude(value, atol=atol)
-        result = self._algebra.scalar(numerator / denominator)
+        result = self._algebra.scalar(numerator / denominator, expr=False)
         return self._semantic(
             result,
             "radius_norm",
@@ -1011,7 +1012,7 @@ class ConformalModel:
                 and bool(mask & self._infinity_ref.mask) is contains_infinity
             ):
                 data[mask] = coefficient
-        result = self._algebra.multivector(data)
+        result = self._algebra.multivector(data, expr=False)
         return self._semantic(
             result,
             operation_id,
@@ -1036,7 +1037,7 @@ class ConformalModel:
         for mask, coefficient in enumerate(value.data):
             if bool(mask & role.mask) is contains_role:
                 data[mask] = coefficient
-        result = self._algebra.multivector(data)
+        result = self._algebra.multivector(data, expr=False)
         return self._semantic(
             result,
             operation_id,
@@ -1052,14 +1053,15 @@ class ConformalModel:
         scale = max(1.0, abs(coefficient))
         if coefficient < -atol * scale:
             raise ValueError(f"{name} is not real")
-        return self._algebra.scalar(float(np.sqrt(max(0.0, coefficient))))
+        return self._algebra.scalar(float(np.sqrt(max(0.0, coefficient))), expr=False)
 
     def _antiscalar_norm_root(self, value: Multivector, *, name: str, atol: float) -> Multivector:
-        coefficient = self._blade_magnitude(value, self._algebra.I, name=f"{name} squared", atol=atol)
+        basis = self._algebra.pseudoscalar(expr=False)
+        coefficient = self._blade_magnitude(value, basis, name=f"{name} squared", atol=atol)
         scale = max(1.0, abs(coefficient))
         if coefficient < -atol * scale:
             raise ValueError(f"{name} is not real")
-        return float(np.sqrt(max(0.0, coefficient))) * self._algebra.I
+        return float(np.sqrt(max(0.0, coefficient))) * basis
 
     def _with_norm_expression(
         self,
@@ -1080,7 +1082,7 @@ class ConformalModel:
         )
 
     def _round_weight_magnitude(self, value: Multivector, *, atol: float) -> float:
-        basis = complement(self._algebra.blade(self._infinity_ref))
+        basis = complement(self._algebra.blade(self._infinity_ref, expr=False))
         magnitude = self._blade_magnitude(
             self.round_weight_norm(value, atol=atol),
             basis,
@@ -1224,9 +1226,9 @@ class ConformalModel:
                 raise ValueError("expected a vector in the embedded Euclidean subspace")
 
     def _validate_metric(self) -> float:
-        basis = tuple(self._algebra.blade(ref) for ref in self._euclidean_refs)
-        eo = self._algebra.blade(self._origin_ref)
-        einf = self._algebra.blade(self._infinity_ref)
+        basis = tuple(self._algebra.blade(ref, expr=False) for ref in self._euclidean_refs)
+        eo = self._algebra.blade(self._origin_ref, expr=False)
+        einf = self._algebra.blade(self._infinity_ref, expr=False)
         expected = np.eye(self.spatial_dim)
         euclidean_gram = np.array([[float(scalar_product(a, b)) for b in basis] for a in basis])
         if not np.allclose(euclidean_gram, expected, rtol=0.0, atol=1e-12):

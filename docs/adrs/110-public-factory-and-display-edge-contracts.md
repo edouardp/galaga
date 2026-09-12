@@ -40,7 +40,7 @@ output, result-object type and fixed-decimal formatting.
 
 | Concern | Existing v2 contract |
 |---|---|
-| Factory provenance | `expr=True` or `expr=False`; `lazy` and `symbolic` are rejected even when false |
+| Factory provenance | Explicit `expr=True` or `expr=False`; omission or `None` inherits the algebra default per [ADR-132](132-algebra-expression-tracking-default.md); `lazy` and `symbolic` are rejected even when false |
 | Scalar blade | Native mask `0` or label `"1"`; empty text is not an implicit scalar |
 | Lookup text | Declared labels, aliases and roles; unknown names raise `KeyError` rather than parsing metric-role strings |
 | Blade literalization | Preserve a signed unit blade's coefficients; drop name and prior provenance, optionally attaching a fresh literal |

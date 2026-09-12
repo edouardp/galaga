@@ -79,6 +79,47 @@ def _(gm, u, v):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
+    ## Opt in once at the algebra level
+
+    `Algebra(..., expr=False)` is the default. Set `expr=True` on the algebra
+    to give every value factory that default, including when using `config=`.
+    CGA and RGA models inherit it too. Individual factories or models can
+    override it with `expr=False`; omitted or `None` means inherit.
+
+    This controls provenance, not the calculation or the display style.
+    Arithmetic still tracks named or tracked operands: an unnamed, explicitly
+    untracked value stays untracked when combined with plain numbers.
+    """)
+    return
+
+
+@app.cell
+def _(Algebra, gm):
+    tracking_algebra = Algebra(2, expr=True)
+    _a, _b = tracking_algebra.basis_vectors()
+    default_product = (_a + 2 * _b) * (_a - _b)
+    explicit_plain = tracking_algebra.vector([1, 2], expr=False)
+    _core_a, _core_b = tracking_algebra.numeric.basis_vectors()
+    assert default_product.numeric == (_core_a + 2 * _core_b) * (_core_a - _core_b)
+    assert default_product.expr is not None
+    assert (explicit_plain + 1).expr is None
+
+    gm.md(t"""
+    The product retains its derivation without per-factory flags:
+
+    {default_product:full}
+
+    The explicitly untracked vector has the same eager numeric behavior,
+    but no expression history:
+
+    {explicit_plain:value}
+    """)
+    return default_product, explicit_plain, tracking_algebra
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
     ## Long operation names are the primary API
 
     Explicit names make mathematically different operations visible in code.

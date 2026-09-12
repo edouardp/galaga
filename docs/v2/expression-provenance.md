@@ -108,9 +108,35 @@ untracked = named_tracked.without_expr()  # name remains
 
 Factories accept `name=` and `expr=`. `expr=True` infers a symbol for a named
 value and a scalar, signed-blade, or full-multivector literal otherwise. An
-explicit `Expr` may be supplied instead. `basis_vectors(expr=True)` and the
-corresponding blade factories opt in explicitly. `locals()` returns named but
-untracked values by default.
+explicit `Expr` may be supplied instead. Alternatively, opt in once with
+`Algebra(..., expr=True)`, including alongside `config=presets.sta()`.
+The read-only `algebra.expr` property reports that default. All public value
+factories inherit it when their `expr` argument is omitted or `None`; an
+explicit `True`, `False`, or supported `Expr` overrides it. `identity` and `I`
+inherit too. Presentation views preserve the setting without changing numeric
+identity. Without constructor opt-in, `locals()` still returns named but
+untracked values.
+
+```python
+from galaga import Algebra, presets
+
+algebra = Algebra(config=presets.euclidean(2), expr=True)
+e1, e2 = algebra.basis_vectors()
+assert (e1 * e2).expr is not None
+plain = algebra.vector([1, 2], expr=False)
+assert plain.expr is None
+assert (plain + 1).expr is None
+assert algebra.with_notation(presets.notation.functional()).expr is True
+```
+
+This is a factory policy, not an arithmetic tracking switch or a display/config
+component. Named or tracked operands still enable operation provenance;
+unnamed/untracked operands do not, even if their algebra defaults to tracking.
+`without_expr()` still clears history, and expression replay still returns
+untracked numeric results. `ConformalModel` and `RigidModel` inherit the algebra
+default unless their own `expr` argument explicitly overrides it; per-call
+model factory flags take precedence over both. See
+[ADR-132](../adrs/132-algebra-expression-tracking-default.md).
 
 Names and expressions are excluded from mathematical equality and hashing.
 Use `same_expression()` when structural provenance equality is the question.
