@@ -156,6 +156,7 @@ classes are no longer production alternatives.
 | [133](133-grade-lexicographic-default-display-order.md) | Grade-Then-Lexicographic Default Display Order | Accepted |
 | [134](134-origin-first-native-null-cga.md) | Origin-First Native-Null CGA with an Explicit Compatibility Order | Accepted |
 | [135](135-cga-pseudoscalar-names-and-exact-orientations.md) | CGA Pseudoscalar Names and Exact Orientations | Accepted |
+| [136](136-witt-and-four-dimensional-rotor-lessons.md) | Witt Bases and Four-Dimensional Rotor Lessons | Accepted |
 
 ## Creating New ADRs
 

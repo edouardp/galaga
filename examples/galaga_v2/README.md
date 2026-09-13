@@ -65,6 +65,12 @@ inverse conjugation and explains the current logarithm's narrower domain.
 
 These lessons also use the v2 facade and participate in headless validation:
 
+- [Witt bases and null geometry](../algebra/witt_bases_and_null_geometry.py):
+  predict a moving receiver's Doppler shifts and build a finite fermionic
+  occupation-state model from null pairs; then compare CGA/PGA duality.
+- [Four-dimensional rotor planes](../algebra/four_dimensional_rotor_planes.py):
+  two-plane rotations and plots, principal logarithms, simple-plane extraction,
+  self-dual versus simple bivectors, isoclinic ambiguity, and higher dimensions.
 - [Dynamic notation](../basics/dynamic_notation.py): render the same reversal
   with a tilde, dagger, superscript, or function without changing its value.
 - [LaTeX layout and simplification](../basics/latex_rewrites_demo.py): script

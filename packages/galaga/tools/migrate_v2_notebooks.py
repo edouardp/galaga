@@ -62,6 +62,8 @@ MIGRATED_NOTEBOOKS = (
     "physics/coupled_oscillators_modes.py",
     "algebra/exterior_algebra_intuition.py",
     "algebra/duality_and_complements.py",
+    "algebra/witt_bases_and_null_geometry.py",
+    "algebra/four_dimensional_rotor_planes.py",
     "quantum/aharonov_bohm.py",
     "physics/one_g_travel_calculator.py",
     "physics/twin_paradox.py",
