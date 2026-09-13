@@ -226,7 +226,63 @@ def _(e1, e3, gm, metric_inner_product, np, oblique, scalar_product):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Include every basis blade
+    ## Extend the metric to every blade
+
+    `bilinear_form_table(full=True)` includes scalar $1$ and all exterior
+    basis blades. It uses the metric-induced pairing
+    $\langle A\widetilde{B}\rangle_0$, not the scalar part of $AB$.
+    Different grades pair to zero, and $\langle1,1\rangle=1$.
+    For equal-grade blades, each entry is a Gram minor:
+
+    $$\langle a_1\wedge\cdots\wedge a_r,\ b_1\wedge\cdots\wedge b_r\rangle
+      =\det\bigl[a_i\cdot b_j\bigr].$$
+
+    The full Euclidean table below looks almost boring: it is the identity!
+    The induced basis of oriented lengths, areas and volumes is orthonormal.
+    In particular, a unit Euclidean bivector has metric self-pairing $+1$,
+    although its geometric square is $-1$. Reversion makes the difference.
+
+    Compare it with the oblique table underneath. Move the pairing slider
+    here: vector pairings determine all the higher-grade entries through
+    determinants. The top-grade self-pairing is $\det G$.
+    For indefinite or degenerate metrics, the full table need not be positive
+    definite or invertible; it is not generally an identity matrix.
+    """)
+    return
+
+
+@app.cell
+def _(euclidean, gm, metric_slider, mo, np, oblique):
+    full_euclidean_metric = euclidean.bilinear_form_table(full=True)
+    full_oblique_metric = oblique.bilinear_form_table(full=True)
+    np.testing.assert_allclose(
+        [[_cell.value for _cell in _row] for _row in full_euclidean_metric.tree.rows],
+        np.eye(2**euclidean.n),
+        rtol=0,
+        atol=0,
+    )
+    mo.vstack(
+        [
+            gm.md(t"""
+    **Full orthonormal Euclidean metric**
+
+    {full_euclidean_metric:block}
+    """),
+            metric_slider,
+            gm.md(t"""
+    **Full oblique metric: same exterior basis, different pairings**
+
+    {full_oblique_metric:block}
+    """),
+        ]
+    )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Include every basis blade in the wedge table
 
     `full=True` includes the scalar $1$, vectors, bivectors, and higher blades,
     in the algebra's display order: grade-then-lexicographic by default.
@@ -354,7 +410,7 @@ def _(Algebra, full_toggle, geometry_selector, gm, presets):
         "Complex": presets.complex(),
     }
     selected_algebra = Algebra(config=_choices[geometry_selector.value])
-    _bilinear = selected_algebra.bilinear_form_table()
+    _bilinear = selected_algebra.bilinear_form_table(full=full_toggle.value)
     selected_wedge = selected_algebra.wedge_product_table(full=full_toggle.value, colour=True)
     gm.md(rt"""
     {_bilinear:block}

@@ -58,10 +58,42 @@ shared `render`/`build_tree` functions accept its value/full content; there
 is no invented name or expression. Rendering overrides cannot change a
 snapshot's presentation: create a new table from the configured algebra.
 
-Empty algebras produce a corner-only table. The display remains a view of
+By default, empty algebras produce a corner-only table. The display remains a view of
 an `n` by `n` bilinear form, not a full geometric-product multiplication
 table, Gram factorization, or implicit basis change. Raw numeric access
 remains `algebra.gram`.
+
+### Full exterior metric extension (2026-09-13)
+
+Add `bilinear_form_table(full: bool = False)`, accepting positional or keyword
+booleans and rejecting non-booleans like the wedge-table API. The default
+native-vector contract remains unchanged. Full mode includes scalar `1`
+and every exterior blade, with both axes in the active display order.
+Preset names, signed native headings and explicit order overrides apply.
+
+Choose the metric-induced exterior pairing
+$\langle A\widetilde{B}\rangle_0$, matching `metric_inner_product`, rather than
+$\langle AB\rangle_0$. Equal-grade pairings are Gram minors; different grades
+pair to zero. The scalar unit self-pairing is one, even in dimension zero.
+Thus an orthonormal Euclidean exterior basis gives an identity table, while
+oblique, indefinite and degenerate metrics retain their actual induced form.
+This distinction from geometric blade squares is an explicit teaching point.
+
+Reuse `extended_metric_matrix()` from the numeric core and reorder its two
+axes, rather than constructing a multivector product per cell or duplicating
+compound-matrix mathematics. The rendering builder accepts the selected masks
+and shares a private native-blade label primitive with wedge tables. It does
+not calculate products or hardcode CGA names. Full tables have `4**n` cells;
+this is an explicitly requested small-algebra display, not a scalable sparse
+matrix API. All existing snapshot, precision, exact-zero and rich-display
+contracts apply.
+
+Regression tests compare all full-table entries against actual
+`metric_inner_product` calls across Euclidean, oblique, degenerate, RGA and
+both CGA basis orders. They also cover scalar-only algebras, reordered axes,
+signed names, scoped presentation and subnormal-scale induced entries.
+The table lesson compares full Euclidean and slider-controlled oblique
+metrics, with executable checks of the identity and determinant claims.
 
 ## Verification and consequences
 

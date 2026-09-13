@@ -46,15 +46,26 @@ from .tree import (
 )
 
 
-def bilinear_form_tree(gram: Iterable[Iterable[float]], presentation: PresentationConfig) -> Table:
-    """Snapshot a native Gram matrix without tolerance-based entry elision."""
+def _table_blade(mask: int, presentation: PresentationConfig, sign: int = 1) -> Node:
+    """Render a native table blade, preserving scalar and signed-label meaning."""
+    if mask == 0:
+        return _literal(sign, presentation)
+    label = presentation.blades.label(mask)
+    heading = Identifier(label.name)
+    return _negated(heading) if sign * label.ref.orientation < 0 else heading
+
+
+def bilinear_form_tree(
+    gram: Iterable[Iterable[float]],
+    presentation: PresentationConfig,
+    *,
+    masks: tuple[int, ...] | None = None,
+) -> Table:
+    """Snapshot already-ordered metric entries without tolerance-based elision."""
     selected = _presentation(presentation)
-    headings: list[Node] = []
-    for index in range(selected.dimension):
-        label = selected.blades.label(1 << index)
-        heading = Identifier(label.name)
-        # The stored Gram entries pair native vectors, not their signed aliases.
-        headings.append(_negated(heading) if label.ref.orientation < 0 else heading)
+    if masks is None:
+        masks = tuple(1 << index for index in range(selected.dimension))
+    headings = tuple(_table_blade(mask, selected) for mask in masks)
     rows = tuple(tuple(_literal(value, selected) for value in row) for row in gram)
     return Table(headings, rows, corner=Identifier(Name(".", "•", r"\bullet")))
 
@@ -71,14 +82,7 @@ def wedge_product_tree(
     if len(factors) != len(masks) or any(len(row) != len(masks) for row in factors):
         raise ValueError("wedge factors must form a square matching the axis masks")
 
-    def blade(mask: int, sign: int = 1) -> Node:
-        if mask == 0:
-            return _literal(sign, selected)
-        label = selected.blades.label(mask)
-        heading = Identifier(label.name)
-        return _negated(heading) if sign * label.ref.orientation < 0 else heading
-
-    headings = tuple(blade(mask) for mask in masks)
+    headings = tuple(_table_blade(mask, selected) for mask in masks)
     rows: list[tuple[Node, ...]] = []
     for left, factors_row in zip(masks, factors, strict=True):
         cells: list[Node] = []
@@ -89,7 +93,7 @@ def wedge_product_tree(
                 if factor not in (-1, 1):
                     raise ValueError("native wedge factors must be -1, 0, or 1")
                 result_mask = left ^ right
-                cell = blade(result_mask, factor)
+                cell = _table_blade(result_mask, selected, factor)
                 if color:
                     cell = GradeColor(cell, result_mask.bit_count())
             cells.append(cell)

@@ -443,12 +443,24 @@ target at creation. Create a new table to use a different presentation;
 `.display(target="latex")`, `.unicode()` and `.ascii()` can still select
 an output format for an existing snapshot.
 
-Rows and columns always follow native Gram order, ignoring multivector
+By default, rows and columns follow native Gram order, ignoring multivector
 `DisplayOrder`. If a convention names `u = -e1`, the corresponding heading
 is `-u`, so the entry still represents the stored native pairing. Exact
 zeros alone are grey: `zero_tolerance` is deliberately ignored because
 hiding a small nonzero coupling would misrepresent the defining metric.
 Coefficient precision still controls significant digits.
+
+With `algebra.bilinear_form_table(full=True)`, include scalar `1` and every
+native exterior blade in the active `DisplayOrder`, just as in a full wedge
+table. Entries use `metric_inner_product(A, B) = <A * ~B>_0`, not
+`scalar_product(A, B)`. Different grades pair to zero; equal-grade pairings
+are minors of the vector Gram matrix, and the scalar unit pairs to one.
+The full table for an orthonormal Euclidean basis is the identity, even
+though bivectors have negative geometric squares. Non-Euclidean and oblique
+metrics need not give an identity. Numerical access is
+`algebra.extended_metric_matrix()` in native bitmap order; full tables reorder
+both axes for display. A full table has `4**n` cells. For `Algebra(0)`, the
+default table is empty while the full table contains the scalar pairing `1`.
 
 This is a display object, not a basis transformation or a `MatrixRepr`;
 raw numeric access remains `algebra.gram`. It adds no dependency on Marimo

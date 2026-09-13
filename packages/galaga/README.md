@@ -414,8 +414,11 @@ gram_table  # Last line of a notebook cell: rich display. Try vector_table/full_
 ```
 
 `bilinear_form_table()` labels the native Gram matrix; numeric entries remain
-available as `alg.gram`. `wedge_product_table()` shows **row blade wedged with
-column blade**, using basis vectors by default. `full=True` includes scalar
+available as `alg.gram`. Its `full=True` option shows the induced pairing
+`metric_inner_product(A, B) = <A * ~B>_0` on every blade, not geometric-product
+scalar extraction. An orthonormal Euclidean basis gives an identity table.
+`wedge_product_table()` shows **row blade wedged with
+column blade**, using basis vectors by default. For either table, `full=True` includes scalar
 `1` and all exterior blades in the algebra's display order, including preset
 and user overrides (grade-then-lexicographic by default). A full table has
 `4**n` result cells: an 8-by-8 table for `Algebra(3)`, but 32-by-32 for 3D CGA.

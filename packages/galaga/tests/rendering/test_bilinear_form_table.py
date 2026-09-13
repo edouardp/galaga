@@ -8,7 +8,7 @@ from dataclasses import FrozenInstanceError
 import numpy as np
 import pytest
 
-from galaga import Algebra, scalar_product
+from galaga import Algebra, metric_inner_product, presets, scalar_product
 from galaga.blades import BladeLabel, BladeRef, DisplayOrder, indexed_blade_convention
 from galaga.display import BilinearFormTable, build_tree, emit, render
 from galaga.names import Name
@@ -196,10 +196,11 @@ def test_invalid_display_table_and_builder_inputs_fail_explicitly():
 
 
 @pytest.mark.skipif(sys.version_info < (3, 14), reason="native template strings require Python 3.14")
-def test_marimo_standalone_and_template_rendering_have_one_math_wrapper():
+@pytest.mark.parametrize("full", (False, True))
+def test_marimo_standalone_and_template_rendering_have_one_math_wrapper(full):
     gm = pytest.importorskip("galaga_marimo")
     mo = pytest.importorskip("marimo")
-    table = Algebra(config=p_cga(3)).bilinear_form_table()
+    table = Algebra(config=p_cga(3)).bilinear_form_table(full=full)
     for output in (mo.as_html(table), gm.md(eval('t"{table}"')), gm.md(eval('t"{table:block}"'))):
         markup = html.unescape(output.text)
         equations = re.findall(r"<marimo-tex[^>]*>(.*?)</marimo-tex>", markup, flags=re.S)
@@ -213,3 +214,80 @@ def test_semantic_table_can_render_non_numeric_cells_without_zero_styling():
     tree = Table((Identifier("x"),), ((Identifier("z"),),), corner=Identifier("."))
     assert "x & z" in emit(tree, "latex")
     assert "#bbbbbb" not in emit(tree, "latex")
+
+
+@pytest.mark.parametrize(
+    "algebra",
+    (
+        Algebra(0),
+        Algebra(3),
+        Algebra(signature=(1, -1, 0)),
+        Algebra(gram=[[2, 0.5], [0.5, -1]]),
+        Algebra(config=presets.cga(2)),
+        Algebra(config=presets.cga(3, basis_order="euclidean-first", model_pseudoscalars=True)),
+        Algebra(config=presets.cga(1, null_pair=-2, pseudoscalar_null=True)),
+        Algebra(config=p_rga()),
+    ),
+)
+def test_full_entries_and_signed_headings_agree_with_computed_metric_products(algebra):
+    for masks in (algebra.display_order, tuple(reversed(algebra.display_order))):
+        view = algebra.with_display_order(DisplayOrder(algebra.n, masks))
+        table = view.bilinear_form_table(full=True)
+        assert len(table.tree.headings) == len(table.tree.rows) == 2**algebra.n
+        expected = np.array([[float(metric_inner_product(view.blade(i), view.blade(j))) for j in masks] for i in masks])
+        actual = np.array([[cell.value for cell in row] for row in table.tree.rows])
+        np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-12)
+        for i, mask in enumerate(masks):
+            for target in ("ascii", "unicode", "latex"):
+                assert emit(table.tree.headings[i], target) == view.blade(mask).display(content="value", target=target)
+            for j, other in enumerate(masks):
+                if mask.bit_count() != other.bit_count():
+                    assert actual[i, j] == 0
+        assert table.latex().count(r"{\color{#bbbbbb}0}") == np.count_nonzero(actual == 0)
+        assert view.bilinear_form_table() == algebra.bilinear_form_table(full=False)
+        assert view.bilinear_form_table(True) == table
+
+
+def test_full_euclidean_metric_is_identity_not_geometric_blade_squares():
+    algebra = Algebra(3)
+    table = algebra.bilinear_form_table(full=True)
+    np.testing.assert_array_equal([[cell.value for cell in row] for row in table.tree.rows], np.eye(8))
+    bivector = algebra.blade(3)
+    assert float(scalar_product(bivector, bivector)) == -1
+    assert float(metric_inner_product(bivector, bivector)) == 1
+    assert emit(table.tree.headings[0], "latex") == "1"
+
+
+def test_full_zero_dimensional_metric_contains_the_scalar_unit_pairing():
+    table = Algebra(0).bilinear_form_table(full=True)
+    assert len(table.tree.rows) == 1
+    assert table.tree.rows[0][0].value == 1
+    assert emit(table.tree.headings[0], "latex") == "1"
+
+
+@pytest.mark.parametrize("full", (None, 0, 1, "yes", np.bool_(True)))
+def test_full_option_requires_a_real_boolean(full):
+    with pytest.raises(TypeError, match="full must be a boolean"):
+        Algebra(2).bilinear_form_table(full)
+
+
+def test_full_snapshot_preserves_scoped_presentation_and_small_entries():
+    algebra = Algebra(gram=[[1, 1e-16], [1e-16, 0]])
+    original = algebra.bilinear_form_table(full=True)
+    selected = (
+        algebra.presentation.with_blades(
+            indexed_blade_convention(2, overrides={3: BladeLabel(Name("B"), BladeRef(3, -1))})
+        )
+        .with_display_order(DisplayOrder(2, (3, 2, 1, 0)))
+        .with_display(DisplayPolicy(target="ascii", zero_tolerance=1))
+    )
+    with algebra.use_presentation(selected):
+        captured = algebra.bilinear_form_table(full=True)
+        assert captured == algebra.with_presentation(selected).bilinear_form_table(full=True)
+    assert original == algebra.bilinear_form_table(full=True)
+    assert str(captured) == captured.ascii()
+    assert emit(captured.tree.headings[0], "latex") == "-B"
+    assert captured.tree.rows[1][2].value == 1e-16
+    assert captured.tree.rows[0][0].value != 0
+    assert "10^{" in captured.latex()
+    assert render(captured, "full/latex") == captured.latex()

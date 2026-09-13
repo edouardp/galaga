@@ -59,10 +59,12 @@ class _DisplayTable:
 
 @dataclass(frozen=True, slots=True, repr=False)
 class BilinearFormTable(_DisplayTable):
-    """Immutable labelled Gram-table snapshot, created by an Algebra.
+    """Immutable labelled vector or full exterior metric-table snapshot.
 
     Labels, coefficient precision and the default target are captured at
     creation. Only exact zeros are muted; display zero tolerance is ignored.
+    Full tables pair native blades with <A * ~B>_0 in active display order;
+    vector-only tables retain the stored Gram matrix's native vector order.
     Use this object directly in a notebook or in a galaga_marimo template.
     """
 

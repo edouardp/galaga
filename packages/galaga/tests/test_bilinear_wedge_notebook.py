@@ -9,6 +9,7 @@ from types import SimpleNamespace
 import numpy as np
 import pytest
 
+from galaga import metric_inner_product
 from galaga.display import emit
 from galaga.rendering import GradeColor
 
@@ -71,6 +72,23 @@ def test_bivector_pairings_follow_reversion_and_restricted_metric(lesson):
     assert float(metric) == pytest.approx(expected)
     assert values["restricted_determinant"] == pytest.approx(expected)
     assert float(scalar) == pytest.approx(-expected)
+
+
+def test_full_metric_lesson_identity_and_oblique_entries_follow_computed_pairings(lesson):
+    _, values, _ = lesson
+    for algebra_name, table_name in (
+        ("euclidean", "full_euclidean_metric"),
+        ("oblique", "full_oblique_metric"),
+    ):
+        algebra, table = values[algebra_name], values[table_name]
+        masks = algebra.display_order
+        actual = np.array([[cell.value for cell in row] for row in table.tree.rows])
+        expected = [[float(metric_inner_product(algebra.blade(i), algebra.blade(j))) for j in masks] for i in masks]
+        np.testing.assert_allclose(actual, expected, rtol=0, atol=1e-12)
+        if algebra_name == "euclidean":
+            np.testing.assert_array_equal(actual, np.eye(2**algebra.n))
+        top = masks.index(2**algebra.n - 1)
+        assert actual[top, top] == pytest.approx(np.linalg.det(algebra.gram))
 
 
 def test_full_table_and_selected_table_entries_match_native_products(lesson):

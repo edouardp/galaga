@@ -235,18 +235,32 @@ class Algebra:
     def gram(self) -> np.ndarray:
         return cast(np.ndarray, self._numeric.gram)
 
-    def bilinear_form_table(self) -> BilinearFormTable:
-        """Return a notebook-ready labelled table of the stored Gram matrix.
+    def bilinear_form_table(self, full: bool = False) -> BilinearFormTable:
+        """Return a notebook-ready labelled metric-pairing table.
 
-        Capture the active basis labels and coefficient precision in native
-        vector order. Exact zeros render in grey (#bbbbbb); tiny nonzeros are
-        never elided. This is a presentation snapshot, not a matrix conversion.
+        By default show the stored Gram matrix in native vector order.
+        With full=True, include scalar 1 and every native exterior blade in
+        active display order, pairing rows and columns with
+        metric_inner_product(A, B) = <A * ~B>_0, not scalar_product(A, B).
+        A full table has 4**n cells and uses the existing extended metric.
+
+        Capture active labels and coefficient precision. Exact zeros render
+        in grey (#bbbbbb); tiny nonzeros are never elided. This is a
+        presentation snapshot, not a matrix representation of multiplication.
         """
         from ..display import BilinearFormTable
         from ..rendering._build import bilinear_form_tree
 
+        if not isinstance(full, bool):
+            raise TypeError("full must be a boolean")
         selected = self.presentation
-        return BilinearFormTable(bilinear_form_tree(self.gram, selected), target=selected.display.target)
+        if full:
+            masks = selected.display_order.masks
+            matrix = self.extended_metric_matrix()[np.ix_(masks, masks)]
+            tree = bilinear_form_tree(matrix, selected, masks=masks)
+        else:
+            tree = bilinear_form_tree(self.gram, selected)
+        return BilinearFormTable(tree, target=selected.display.target)
 
     def wedge_product_table(
         self, full: bool = False, *, color: bool = False, colour: bool = False
