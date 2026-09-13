@@ -379,7 +379,24 @@ Explore the [logarithms and generators lesson][log-lesson].
 
 ## Rendering and notebook tables
 
-Rendering content (`name`, `expr`, `value`, `full`) is independent of the
+Default `auto` content shows a deduplicated expression/name = value equality
+when provenance or a name is present; unnamed, untracked values show just their
+value. Enable tracking once for a notebook:
+
+```python
+from galaga import Algebra, presets
+
+alg = Algebra(config=presets.euclidean(3), expr=True)
+e1, e2, e3 = alg.basis_vectors()
+result = (e1 + e2) ^ e3
+result  # Rich display: (e₁ + e₂) ∧ e₃ = e₁₃ + e₂₃
+```
+
+Use `result.latex(content="value")` for just the result, or set
+`display=DisplayPolicy(content="value")` on the algebra to keep provenance
+without displaying it by default.
+
+Rendering content (`auto`, `name`, `expr`, `value`, `full`) is independent of the
 target (`ascii`, `unicode`, `latex`). Persistent presentation changes return
 cheap algebra views; scoped changes are isolated by thread and async task:
 
@@ -400,6 +417,20 @@ print(x.display("value/ascii"))
 
 Rich notebook display works directly on multivectors and algebra tables.
 Raw `.latex()` output has no math delimiters; the rich-display hook adds them.
+
+To scope just operation notation, use `alg.use_notation(...)`. In Marimo,
+explicitly render inside the scope so the selected notation is still active:
+
+```python
+import marimo as mo
+from galaga import metric_inner_product as mip
+
+with alg.use_notation(presets.notation.lengyel()):
+    mo.output.replace(mo.as_html(mip(e1, e1)))
+```
+
+This preserves other presentation settings. A multivector displayed after the
+scope exits uses the restored notation, not the notation at calculation time.
 
 ```python
 from galaga import Algebra, presets

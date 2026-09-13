@@ -55,6 +55,10 @@ the renderer derives names.
 dimension. Its `with_*` operations return new configs and replace exactly one
 component.
 
+[ADR-138](138-scoped-notation-shortcut.md) adds `Algebra.use_notation(...)` as
+a scoped replacement of that single component, preserving all other currently
+effective presentation settings and the existing context-local semantics.
+
 The conventional notation uses the mirrored floor-symbol pair for
 contractions: left contraction renders as `⌋` / `\mathbin{\rfloor}` and right
 contraction as `⌊` / `\mathbin{\lfloor}` in Unicode / LaTeX. ASCII retains

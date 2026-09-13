@@ -418,6 +418,52 @@ with algebra.use_presentation(teaching_presentation):
 
 There is no process-global display mode and no mutation of a shared config.
 
+### Scoped notation and notebook output
+
+Use `algebra.use_notation(notation)` when only the operation symbols should
+change. It preserves the current blade names, local names, display order and
+display policy, including overrides from an enclosing presentation scope.
+Nested scopes and exceptions restore the previous settings.
+
+`presets.notation.lengyel()` renders `metric_inner_product` with a bullet in
+Unicode and LaTeX. In Marimo, explicitly render and display inside the scope:
+
+```python
+import marimo as mo
+from galaga import Algebra, metric_inner_product as mip, presets
+
+alg = Algebra(config=presets.euclidean(3), expr=True)
+e1, e2, e3 = alg.basis_vectors()
+
+with alg.use_notation(presets.notation.lengyel()):
+    mo.output.replace(mo.as_html(mip(e1, e1)))
+```
+
+An expression nested inside a `with` statement is not an automatic cell output.
+Assigning the multivector inside the scope and displaying it afterward also
+does not retain the scoped notation: presentation is selected at render time.
+`mo.as_html` inside the scope captures the rendering; the resulting HTML can
+also be stored and displayed later.
+
+Lengyel's preset changes other operators as well. To change only the LaTeX
+spelling of metric inner product, derive a custom notation:
+
+```python
+from galaga import RenderRule
+
+_notation = alg.presentation.notation.with_rule(
+    "metric_inner_product",
+    RenderRule("infix", symbol=r"\bullet", precedence=30),
+    target="latex",
+)
+with alg.use_notation(_notation):
+    mo.output.replace(mo.as_html(mip(e1, e1)))
+```
+
+For persistent notation instead, pass `notation=` to `Algebra` or construct a
+view with `alg.with_notation(...)`. `use_notation` yields the same algebra,
+just like `use_presentation`; it does not construct a persistent view.
+
 ## Labelled bilinear form tables
 
 The public facade provides a rich-display view of the stored Gram matrix:
@@ -543,8 +589,11 @@ LaTeX, content policy, format protocol, and rich hooks. See
 The original presentation invariants remain intact: changing a persistent,
 context-local, or per-render presentation does not change expression identity,
 evaluation, equality, hashing, or numeric coefficients. `DisplayPolicy` now
-also supports `content="auto"`; a name opts into an explanatory equality while
-expression tracking alone continues to display the concrete value by default.
+also supports `content="auto"`; a name or tracked expression opts into an
+explanatory full equality, with identical rendered parts deduplicated.
+Unnamed, untracked values display only their concrete value. Explicit content
+choices still take precedence; use `content="value"` to hide provenance without
+discarding it.
 Its `zero_tolerance` and `coefficient_precision` fields control visible numeric
 noise and significant digits only. Their compatibility defaults are `1e-12`
 and six, respectively; setting the tolerance to zero reveals every nonzero

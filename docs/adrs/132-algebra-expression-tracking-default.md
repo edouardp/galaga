@@ -22,6 +22,12 @@ not a numeric-core setting, display policy, or `AlgebraConfig` component.
 Complete presets keep describing metric, model metadata and presentation;
 `Algebra(config=presets.sta(), expr=True)` selects tracking separately.
 
+[ADR-137](137-automatic-expression-equalities.md) makes default `auto` display
+respond to an individual value's name or expression with a deduplicated full
+equality. This does not couple the factory default to the display policy:
+explicit `content="value"` still wins, and an unnamed, untracked factory opt-out
+still displays only its value.
+
 The following factories inherit the algebra default when `expr` is omitted
 or explicitly `None`: `scalar`, `vector`, `multivector`, `blade`, `blades`,
 `basis_vectors`, `basis_blades`, `pseudoscalar`, and `locals`. An explicit

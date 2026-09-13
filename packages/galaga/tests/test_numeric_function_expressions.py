@@ -98,8 +98,9 @@ def test_scalar_sqrt_builds_and_renders_an_expression() -> None:
     assert result.display("expr/ascii") == "sqrt(s)"
     assert result.display("expr/unicode") == HISTORY["scalar-root"]["renderings"]["unicode"]
     assert result.display("expr/latex") == HISTORY["scalar-root"]["renderings"]["latex"]
-    assert str(result) == "3"  # tracking alone does not replace concrete display
-    assert result.latex() == "3"
+    assert str(result) == "√(s) = 3"
+    assert result.latex() == r"\sqrt{s} \quad = \quad 3"
+    assert result.latex(content="value") == "3"
     assert float(evaluate(result.expr, algebra=algebra, environment={"s": 16})) == 4
     assert float(result) == 3  # replay with another environment never mutates it
     with pytest.raises(KeyError, match="s"):

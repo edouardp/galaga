@@ -1,9 +1,11 @@
 from __future__ import annotations
 
 import asyncio
+import sys
 
 import pytest
 
+from galaga import presets
 from galaga.display import build_tree, render
 from galaga.facade import Algebra, geometric_product
 from galaga.presentation import DisplayPolicy, Notation
@@ -44,7 +46,7 @@ def test_content_and_target_are_independent_axes(
     assert render(documented_value, f"{content}/{target}") == expected
 
 
-def test_automatic_content_uses_names_for_teaching_equalities_but_not_provenance_alone() -> None:
+def test_automatic_content_uses_metadata_and_deduplicates_literal_expressions() -> None:
     algebra = Algebra(1)
     anonymous = algebra.blade(1)
     named = anonymous.named("x")
@@ -55,6 +57,61 @@ def test_automatic_content_uses_names_for_teaching_equalities_but_not_provenance
     assert str(named) == "x = e₁"
     assert str(tracked) == "e₁"
     assert str(named_and_tracked) == "x = e₁"
+
+
+@pytest.mark.parametrize("algebra_default", (False, True))
+def test_auto_shows_anonymous_tracked_wedge_expression_and_computed_value(algebra_default):
+    algebra = Algebra(config=presets.euclidean(3), expr=algebra_default)
+    e1, e2, e3 = algebra.basis_vectors(**({} if algebra_default else {"expr": True}))
+    value = (e1 + e2) ^ e3
+    untracked = value.without_expr()
+    assert value == untracked and hash(value) == hash(untracked)
+    assert value.latex() == (r"\left(e_{1} + e_{2}\right) \wedge e_{3} \quad = \quad e_{13} + e_{23}")
+    for target in ("ascii", "unicode", "latex"):
+        assert render(value, target=target) == render(value, content="full", target=target)
+        assert render(untracked, target=target) == render(value, content="value", target=target)
+    assert str(value) == value.unicode() == format(value, "")
+    assert repr(value) == value.ascii()
+    assert value._repr_latex_() == "$" + value.latex() + "$"
+    assert value.latex(content="value") == r"e_{13} + e_{23}"
+    assert value.latex(content="expr") == r"\left(e_{1} + e_{2}\right) \wedge e_{3}"
+
+
+def test_explicit_and_scoped_value_policies_override_auto_without_losing_provenance():
+    algebra = Algebra(3, expr=True, display=DisplayPolicy(content="value"))
+    e1, e2, e3 = algebra.basis_vectors()
+    value = (e1 + e2) ^ e3
+    saved_expr = value.expr
+    assert value.latex() == r"e_{13} + e_{23}"
+    automatic = algebra.presentation.with_display(DisplayPolicy(content="auto"))
+    with algebra.use_presentation(automatic):
+        assert value.latex() == value.latex(content="full")
+        assert value.latex(content="value") == r"e_{13} + e_{23}"
+        assert value.display("value/latex") == r"e_{13} + e_{23}"
+        assert render(value, presentation=algebra.default_presentation, target="latex") == r"e_{13} + e_{23}"
+    assert value.latex() == r"e_{13} + e_{23}"
+    assert value.expr is saved_expr
+
+
+def test_factory_opt_out_remains_value_only_even_when_algebra_tracks_by_default():
+    algebra = Algebra(3, expr=True)
+    e1, e2, e3 = algebra.basis_vectors(expr=False)
+    value = (e1 + e2) ^ e3
+    assert value.expr is None
+    assert value.latex() == r"e_{13} + e_{23}"
+
+
+@pytest.mark.skipif(sys.version_info < (3, 14), reason="Native t-strings require Python 3.14")
+def test_marimo_auto_and_explicit_value_interpolation_use_the_same_policy():
+    gm = pytest.importorskip("galaga_marimo")
+    mo = pytest.importorskip("marimo")
+    algebra = Algebra(config=presets.euclidean(3), expr=True)
+    e1, e2, e3 = algebra.basis_vectors()
+    value = (e1 + e2) ^ e3
+    for output in (mo.as_html(value), gm.md(eval('t"{value}"'))):
+        assert r"\wedge" in output.text and " = " in output.text
+    explicit = gm.md(eval('t"{value:value}"'))
+    assert r"\wedge" not in explicit.text and " = " not in explicit.text
 
 
 def test_full_display_deduplicates_rendered_parts_without_changing_explicit_parts() -> None:

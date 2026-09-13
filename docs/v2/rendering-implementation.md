@@ -355,7 +355,7 @@ Content and target are independent:
 | `expr` | Provenance, falling back to the value |
 | `value` | Concrete coefficients and blade labels |
 | `full` | Distinct rendered name, expression, and value joined by equality |
-| `auto` | Value unless a name opts into an explanatory full equality |
+| `auto` | Deduplicated full equality when a name or expression exists; otherwise value |
 
 | Target | Meaning |
 |---|---|

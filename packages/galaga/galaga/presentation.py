@@ -862,7 +862,11 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
 
 @dataclass(frozen=True, slots=True)
 class DisplayPolicy:
-    """Default rendering content and target, independent of notation."""
+    """Default rendering content and target, independent of notation.
+
+    Auto shows a deduplicated full equality when a name or expression is
+    present, otherwise the value. Explicit content selections take precedence.
+    """
 
     content: str = "auto"
     target: str = "unicode"

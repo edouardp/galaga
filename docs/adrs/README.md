@@ -157,6 +157,8 @@ classes are no longer production alternatives.
 | [134](134-origin-first-native-null-cga.md) | Origin-First Native-Null CGA with an Explicit Compatibility Order | Accepted |
 | [135](135-cga-pseudoscalar-names-and-exact-orientations.md) | CGA Pseudoscalar Names and Exact Orientations | Accepted |
 | [136](136-witt-and-four-dimensional-rotor-lessons.md) | Witt Bases and Four-Dimensional Rotor Lessons | Accepted |
+| [137](137-automatic-expression-equalities.md) | Automatic Expression Equalities | Accepted |
+| [138](138-scoped-notation-shortcut.md) | Scoped Notation Shortcut | Accepted |
 
 ## Creating New ADRs
 

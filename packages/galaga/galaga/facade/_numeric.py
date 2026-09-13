@@ -231,6 +231,17 @@ class Algebra:
         finally:
             self._presentation_override.reset(token)
 
+    @contextmanager
+    def use_notation(self, notation: Notation) -> Generator[Algebra, None, None]:
+        """Temporarily replace only the current presentation's notation.
+
+        Other presentation components, including enclosing scoped overrides,
+        are preserved. Render inside the scope to use the selected notation;
+        results do not capture it for later display.
+        """
+        with self.use_presentation(self.presentation.with_notation(notation)):
+            yield self
+
     @property
     def gram(self) -> np.ndarray:
         return cast(np.ndarray, self._numeric.gram)

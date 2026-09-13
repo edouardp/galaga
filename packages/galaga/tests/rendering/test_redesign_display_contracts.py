@@ -27,7 +27,7 @@ def test_display_content_is_explicit_and_rendering_is_an_immutable_snapshot(inde
     separator = r" \quad = \quad " if target == "latex" else " = "
     full = separator.join(parts)
     assert value.display("full/" + target) == full
-    assert value.display(target) == (full if named else VALUES[index])
+    assert value.display(target) == (full if named or tracked else VALUES[index])
     assert isinstance(full, str) and not hasattr(full, "latex")
     renamed = value.named("new")
     assert value.display("full/" + target) == full

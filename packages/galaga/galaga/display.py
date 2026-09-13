@@ -199,9 +199,9 @@ def _parse_format_spec(spec: str) -> tuple[str | None, str | None]:
 
 
 def _automatic_content(value: Any) -> str:
-    # Names opt into an explanatory equality.  Expression tracking on its own
-    # remains provenance rather than a request to replace the concrete value.
-    return "full" if getattr(value, "name", None) is not None else "value"
+    # Use the metadata on this value, not its algebra's factory default.
+    # Explicit content policies bypass automatic selection altogether.
+    return "full" if getattr(value, "name", None) is not None or getattr(value, "expr", None) is not None else "value"
 
 
 def _presentation(value: Any) -> PresentationConfig:

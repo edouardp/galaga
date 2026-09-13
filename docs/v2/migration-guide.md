@@ -219,9 +219,11 @@ assert float(evaluate(energy.expr, algebra=algebra, environment={"m": 5, "p": 12
 assert float(energy) == 5  # replay does not mutate the eagerly computed value
 ```
 
-Use explicit `expr` content when you want the derivation. Tracking alone does
-not replace an anonymous value's concrete default display; a named value's
-default display is a teaching equality. Standalone replay requires an
+Use explicit `expr` content when you want only the derivation. Default `auto`
+content shows a deduplicated teaching equality for named or tracked values;
+unnamed, untracked values show only their concrete value. Select `value` content
+explicitly to retain value-only display without removing provenance.
+Standalone replay requires an
 environment for symbols, rather than a legacy `.eval()` call with hidden
 bindings.
 

@@ -51,9 +51,10 @@ Existing v2 differences remain explicit:
 
 - `named()` alone leaves the value untracked; applying an operation to a
   named or tracked operand starts or propagates provenance.
-- Request provenance with `display("expr/latex")` or another explicit target.
-  Anonymous tracked values display concrete coefficients by default; named
-  values use a deduplicated teaching equality.
+- Request provenance alone with `display("expr/latex")` or another explicit
+  target. As updated by [ADR-137](137-automatic-expression-equalities.md),
+  named or tracked values default to a deduplicated teaching equality.
+  Explicit `value` content retains concrete-only display.
 - ASCII uses ASCII-safe operators; Unicode uses combining accents and its
   own star spelling. Infix spacing, reverse accents, and conservative
   negated-product parentheses differ from some legacy outputs.

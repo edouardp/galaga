@@ -82,8 +82,8 @@ def test_near_minus_one_coefficients_are_suppressed_without_rounding_the_value()
     assert transformed.expr is not None
     np.testing.assert_allclose(transformed.data, (-e1 - e2).data, atol=1e-12, rtol=0)
     original = transformed.data.copy()
-    assert str(transformed) == "-e₁ - e₂"
-    assert transformed.latex() == r"-e_{1} - e_{2}"
+    assert transformed.unicode(content="value") == "-e₁ - e₂"
+    assert transformed.latex(content="value") == r"-e_{1} - e_{2}"
     # Also pin the floating-point boundary independently of platform libm.
     neighbor = algebra.multivector([0, -1.0, np.nextafter(-1.0, 0.0), 0, 0, 0, 0, 0])
     assert neighbor != -e1 - e2
