@@ -146,7 +146,7 @@ def test_lengyel_notation_rendering_snapshot():
     assert str(ga.complement(e1)) == "e₁̅"
     assert str(ga.left_complement(e1)) == "e₁̲"
     assert str(ga.reverse(e1)) == "e₁̃"
-    assert str(ga.conjugate(e1)) == "conjugate(e₁)"
+    assert str(ga.conjugate(e1)) == "clifford_conjugate(e₁)"
     assert ga.geometric_product(e1, e2).latex() == r"\mathbf{e}_{1} \mathbin{\text{⟑}} \mathbf{e}_{2}"
     assert ga.complement(e1).latex() == r"\overline{\mathbf{e}_{1}}"
     assert ga.left_complement(e1).latex() == r"\underline{\mathbf{e}_{1}}"

@@ -832,6 +832,18 @@ class Multivector:
             return NotImplemented
         return outer_product(converted, self)
 
+    def __lshift__(self, other: object) -> Multivector | NotImplementedType:
+        converted = self._coerce_additive(other)
+        if converted is NotImplemented:
+            return NotImplemented
+        return left_contraction(self, converted)
+
+    def __rlshift__(self, other: object) -> Multivector | NotImplementedType:
+        converted = self._coerce_additive(other)
+        if converted is NotImplemented:
+            return NotImplemented
+        return left_contraction(converted, self)
+
     def __or__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
         if converted is NotImplemented:
@@ -843,6 +855,18 @@ class Multivector:
         if converted is NotImplemented:
             return NotImplemented
         return doran_lasenby_inner(converted, self)
+
+    def __rshift__(self, other: object) -> Multivector | NotImplementedType:
+        converted = self._coerce_additive(other)
+        if converted is NotImplemented:
+            return NotImplemented
+        return right_contraction(self, converted)
+
+    def __rrshift__(self, other: object) -> Multivector | NotImplementedType:
+        converted = self._coerce_additive(other)
+        if converted is NotImplemented:
+            return NotImplemented
+        return right_contraction(converted, self)
 
     def __invert__(self) -> Multivector:
         return reverse(self)
@@ -1148,8 +1172,11 @@ def grade_involution(value: Multivector) -> Multivector:
     return _invoke("grade_involution", value)
 
 
-def conjugate(value: Multivector) -> Multivector:
-    return _invoke("conjugate", value)
+def clifford_conjugate(value: Multivector) -> Multivector:
+    return _invoke("clifford_conjugate", value)
+
+
+conjugate = clifford_conjugate
 
 
 def complement(value: Multivector) -> Multivector:
@@ -1346,6 +1373,7 @@ __all__ = [
     "bulk_part",
     "commutator",
     "complement",
+    "clifford_conjugate",
     "conjugate",
     "doran_lasenby_inner",
     "dual",

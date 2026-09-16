@@ -90,7 +90,7 @@ REVIEWED = {
     "scalar-product": ("scalar_product", "A * B", "A * B", "A * B"),
     "reverse": ("reverse", "~R", "R̃", "\\widetilde{R}"),
     "involution": ("grade_involution", "hat(v)", "v̂", "\\widehat{v}"),
-    "conjugate": ("conjugate", "bar(v)", "v̅", "\\overline{v}"),
+    "conjugate": ("clifford_conjugate", "bar(v)", "v̅", "\\overline{v}"),
     "dual": ("dual", "v^*", "v^★", "v^*"),
     "undual": ("undual", "v^*^-1", "v^(★⁻¹)", "v^{*^{-1}}"),
     "norm": ("norm", "||v||", "‖v‖", "\\lVert v \\rVert"),

@@ -123,7 +123,7 @@ def oracle(operation, gram, operands, parameters=()):
         return (-1.0) ** (degrees * (degrees - 1) // 2) * a
     if operation == "grade_involution":
         return (-1.0) ** degrees * a
-    if operation == "conjugate":
+    if operation in {"conjugate", "clifford_conjugate"}:
         return (-1.0) ** (degrees * (degrees + 1) // 2) * a
     if operation in {"grade", "grades", "even_grades", "odd_grades"}:
         if operation == "grade":
@@ -217,13 +217,14 @@ def check_grade_case(recipe, table=ARCHIVE["tables"][0]):
     algebra = ga.Algebra(signature=table["signature"])
     operands = tuple(algebra.multivector(x["data"]).named(x["name"]) for x in row["inputs"])
     operation = RENAMED.get(recipe, recipe)
+    expression_operation = "clifford_conjugate" if operation == "conjugate" else operation
     value = getattr(ga, operation)(*operands)
     gram = tuple(map(tuple, algebra.gram))
     expected = oracle(operation, gram, tuple(x.data for x in operands))
     assert_value(value, expected)
     assert_value(value, row["data"])
     assert value.homogeneous_grade() == support(expected)
-    assert value.expr == call(operation, *(ga.Symbol(x.name) for x in operands))
+    assert value.expr == call(expression_operation, *(ga.Symbol(x.name) for x in operands))
     assert_value(ga.evaluate(value.expr, algebra=algebra, environment={x.name: x for x in operands}), expected)
     return value
 
@@ -490,7 +491,8 @@ def test_grade_inspection_uses_computed_values_not_operation_or_symbol_assumptio
         assert value.expr is None
     else:
         leaves = tuple(ga.Symbol(x.name) if x.name else x.expr for x in operands)
-        assert value.expr == call(operation, *leaves)
+        expression_operation = "clifford_conjugate" if operation == "conjugate" else operation
+        assert value.expr == call(expression_operation, *leaves)
         changed = {"a": algebra.blade(1), "b": algebra.blade(2)}
         replay = ga.evaluate(value.expr, algebra=algebra, environment=changed)
         effective = tuple(changed[x.name.ascii].data if x.name else x.data for x in operands)

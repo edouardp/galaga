@@ -74,7 +74,9 @@ def test_archive_has_capture_provenance_and_complete_live_counterparts() -> None
         "core-facade-v2/cl3/full-unfiltered-12",
     } <= {case.algebra for case in _rendering_cases(display_test)}
     notation = _suite("test_rga_latex_contract.py")["LENGYEL_NOTATION"]
-    assert {row["operation"] for row in ARCHIVE["notation"]} <= {row.operation for row in notation}
+    aliases = {"conjugate": "clifford_conjugate"}
+    historical_operations = {aliases.get(row["operation"], row["operation"]) for row in ARCHIVE["notation"]}
+    assert historical_operations <= {row.operation for row in notation}
     assert len(ARCHIVE["notation"]) == 26
     assert len(_suite("test_rga_latex_contract.py")["RGA_BLADE_TABLE"]) == 16
     for row in ARCHIVE["expressions"]:

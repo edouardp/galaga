@@ -269,7 +269,7 @@ def _core_operations() -> tuple[OperationSpec, ...]:
         "antireverse",
         "bulk_part",
         "complement",
-        "conjugate",
+        "clifford_conjugate",
         "dual",
         "even_grades",
         "exp",
@@ -1473,6 +1473,7 @@ EXCLUDED_PUBLIC_NAMES: Mapping[str, str] = MappingProxyType(
 
 def get_operation(operation_id: str) -> OperationSpec:
     """Return one operation or raise a descriptive lookup error."""
+    operation_id = {"conjugate": "clifford_conjugate"}.get(operation_id, operation_id)
     try:
         return _expression_operation_dict[operation_id]
     except KeyError as error:

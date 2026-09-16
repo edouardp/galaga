@@ -352,7 +352,7 @@ with `half_anticommutator` providing the explicit factor of one half.
 | ------------------------------------------------ | ------------------------- |
 | $\tilde{A}$ (reverse)                            | `reverse(A)`              |
 | $\hat{A}$ (grade involution)                     | `grade_involution(A)`     |
-| $\bar{A}$ (Clifford conjugate)                   | `conjugate(A)`            |
+| $\bar{A}$ (Clifford conjugate)                   | `clifford_conjugate(A)` (alias: `conjugate(A)`) |
 | $\langle A \rangle_k$                            | `grade(A, k)`             |
 | $A \lfloor B$ (left contraction)                 | `left_contraction(A, B)`  |
 | $A \rfloor B$ (right contraction)                | `right_contraction(A, B)` |

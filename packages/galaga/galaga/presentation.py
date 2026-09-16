@@ -346,15 +346,22 @@ class Notation:
 
 _SHORT_FUNCTION_NAMES = {
     "antidot_product": "antidot",
+    "anticommutator": "anticomm",
+    "antireverse": "anti_rev",
     "attitude": "att",
     "carrier": "car",
     "center": "cen",
+    "clifford_conjugate": "conj",
+    "commutator": "comm",
     "cocarrier": "ccr",
     "container": "con",
+    "complement": "compl",
     "doran_lasenby_inner": "dl_inner",
-    "geometric_antiproduct": "gap",
+    "geometric_antiproduct": "anti_gp",
     "geometric_product": "gp",
-    "grade_involution": "invol",
+    "grade_involution": "gr_invol",
+    "half_anticommutator": "half_anticomm",
+    "half_commutator": "half_comm",
     "hestenes_inner": "h_inner",
     "left_contraction": "lc",
     "left_interior_product": "l_interior",
@@ -368,8 +375,13 @@ _SHORT_FUNCTION_NAMES = {
     "scalar_product": "sp",
     "sandwich": "sw",
     "partner": "par",
+    "power": "pow",
     "transwedge": "tw",
     "transwedge_antiproduct": "antitw",
+    "uncomplement": "uncompl",
+    "inverse": "inv",
+    "jordan_product": "jordan",
+    "lie_bracket": "lie",
 }
 
 
@@ -473,8 +485,8 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
             group_operand=False,
         ),
         "grade_involution": RenderRule("accent", symbol=Name("hat", "\u0302", r"\widehat")),
-        "conjugate": RenderRule("accent", symbol=Name("bar", "\u0305", r"\overline")),
-        ("conjugate", "latex"): RenderRule(
+        "clifford_conjugate": RenderRule("accent", symbol=Name("bar", "\u0305", r"\overline")),
+        ("clifford_conjugate", "latex"): RenderRule(
             "accent",
             symbol=Name("bar", "\u0305", r"\overline"),
             group_operand=False,
@@ -848,9 +860,9 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
 
     for target in _RULE_TARGETS:
         target_rule(
-            "conjugate",
+            "clifford_conjugate",
             target,
-            RenderRule("function", symbol="conjugate", scalable=False),
+            RenderRule("function", symbol="clifford_conjugate", scalable=False),
         )
         target_rule(
             "hestenes_inner",

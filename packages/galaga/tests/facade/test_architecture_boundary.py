@@ -141,7 +141,7 @@ def test_catalog_completeness_rejects_missing_unowned_or_misidentified_entries(m
     elif mutation == "extra":
         operations["unowned"] = replace(operations["reverse"], id="unowned")
     elif mutation == "wrong-id":
-        operations["reverse"] = operations["conjugate"]
+        operations["reverse"] = operations["clifford_conjugate"]
     elif mutation == "empty-exclusion":
         excluded["Algebra"] = ""
     else:

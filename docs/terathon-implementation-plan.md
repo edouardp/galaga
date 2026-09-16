@@ -293,7 +293,8 @@ Status: **DONE**
 - Hodge dual → A^★, weight dual → A^☆
 - LaTeX uses KaTeX-compatible commands and `\text{…}` glyphs rather than the
   unsupported `\unicode{…}` macro
-- Clifford conjugation → explicit `conjugate(A)` — the reviewed RGA sources do
+- Clifford conjugation → explicit `clifford_conjugate(A)` (alias:
+  `conjugate(A)`) — the reviewed RGA sources do
   not assign it a compact symbol, and overline belongs to right complement
 - Reverse → tilde, antireverse → `\utilde{…}` (tilde-below)
 

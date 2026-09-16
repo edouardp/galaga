@@ -580,7 +580,7 @@ This creates two implementation requirements:
    `left_complement()`. Use distinct nodes such as `RightComplement` and
    `LeftComplement`.
 2. `Notation.lengyel()` must move Clifford conjugation away from overline.
-   In this preset, rendering `conjugate(A)` as `\overline A` would be
+   In this preset, rendering `clifford_conjugate(A)` as `\overline A` would be
    mathematically misleading because overline is already the right complement.
 
 Recommended rendering behavior:
@@ -589,7 +589,7 @@ Recommended rendering behavior:
 |---|---|---|---|
 | `right_complement(A)` | `Ā` if reliable | `overline(A)` | `\overline{A}` |
 | `left_complement(A)` | `A̲` if reliable | `underline(A)` | `\underline{A}` |
-| `conjugate(A)` in Lengyel preset | `conj(A)` | `conj(A)` | `\operatorname{conj}(A)` |
+| `clifford_conjugate(A)` in Lengyel preset | `conj(A)` | `conj(A)` | `\operatorname{conj}(A)` |
 
 The combining-overline and combining-underline Unicode forms are acceptable for
 single-letter display names, but they are not robust for expressions such as

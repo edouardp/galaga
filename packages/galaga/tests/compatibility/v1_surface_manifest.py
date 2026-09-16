@@ -61,7 +61,6 @@ _CANONICAL_NUMERIC_EXPORTS = {
     "bulk_part",
     "commutator",
     "complement",
-    "conjugate",
     "doran_lasenby_inner",
     "dual",
     "even_grades",
@@ -119,6 +118,7 @@ _CANONICAL_NUMERIC_EXPORTS = {
 }
 
 CURATED_OPERATION_ALIASES = {
+    "conjugate": "clifford_conjugate",
     "dorst_inner": "doran_lasenby_inner",
     "gp": "geometric_product",
     "join": "outer_product",
@@ -647,6 +647,7 @@ ACCIDENTAL_PRIVATE_DEPENDENCIES = {
 
 
 V2_ADDITIONS = {
+    "clifford_conjugate",
     "half_anticommutator",
     "half_commutator",
     "scalar_part",

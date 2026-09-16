@@ -467,11 +467,12 @@ def reference_value(node, gram, environment):
                 }[operation]
                 result += a[i] * values[1][j] * np.where(degrees == target, product[:, i, j], 0)
         return result
-    if operation in {"reverse", "grade_involution", "conjugate"}:
+    if operation in {"reverse", "grade_involution", "conjugate", "clifford_conjugate"}:
         power = {
             "reverse": degrees * (degrees - 1) // 2,
             "grade_involution": degrees,
             "conjugate": degrees * (degrees + 1) // 2,
+            "clifford_conjugate": degrees * (degrees + 1) // 2,
         }[operation]
         return (-1.0) ** power * a
     if operation in {"dual", "undual"}:

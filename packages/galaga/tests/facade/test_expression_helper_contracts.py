@@ -69,7 +69,7 @@ def expected(expression, gram, bindings):
         return (-1.0) ** (degrees * (degrees - 1) // 2) * a
     if operation == "grade_involution":
         return (-1.0) ** degrees * a
-    if operation == "conjugate":
+    if operation in {"conjugate", "clifford_conjugate"}:
         return (-1.0) ** (degrees * (degrees + 1) // 2) * a
     if operation == "grade":
         return np.where(degrees == parameters["target"], a, 0)

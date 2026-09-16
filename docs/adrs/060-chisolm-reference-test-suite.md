@@ -124,7 +124,7 @@ Five test files in `packages/galaga/tests/`, totalling 309 tests:
 | dual(A) = A·I⁻¹ | `dual(A)` | |
 | A† (reverse) | `reverse(A)` | |
 | A* (grade involution) | `involute(A)` | |
-| A‡ (Clifford conjugate) | `conjugate(A)` | |
+| A‡ (Clifford conjugate) | `clifford_conjugate(A)` (alias: `conjugate(A)`) | |
 
 ### Test Design
 

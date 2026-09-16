@@ -12,7 +12,7 @@ def _():
     import numpy as np
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, metric_inner_product, presets, scalar_product
+    from galaga import Algebra, DisplayPolicy, metric_inner_product, presets, scalar_product, norm
 
     return (
         Algebra,
@@ -20,6 +20,7 @@ def _():
         gm,
         metric_inner_product,
         mo,
+        norm,
         np,
         presets,
         scalar_product,
@@ -102,20 +103,27 @@ def _(Algebra, DisplayPolicy, metric_inner_product, metric_slider, np):
     coordinate_pairing = float(np.array([2, 0, 1]) @ oblique.gram @ np.array([1, 1, -1]))
     algebra_pairing = metric_inner_product(vector_a, vector_b)
     np.testing.assert_allclose(float(algebra_pairing), coordinate_pairing, atol=1e-12, rtol=0)
-    return algebra_pairing, coordinate_pairing, e1, e3, oblique
+    return coordinate_pairing, e1, e3, oblique, vector_a, vector_b
 
 
 @app.cell
-def _(algebra_pairing, coordinate_pairing, gm, oblique):
+def _(
+    coordinate_pairing,
+    gm,
+    metric_inner_product,
+    oblique,
+    vector_a,
+    vector_b,
+):
     _table = oblique.bilinear_form_table()
     gm.md(rt"""
     {_table:block}
 
-    Coordinate calculation: $a\cdot b={coordinate_pairing:g}$.
+    Coordinate calculation: $\qquad a \overset{{\substack{{\textcolor{{seagreen}}{{\text{{metric}}}} \cr\textcolor{{seagreen}}{{\text{{inner}}}} \cr \textcolor{{seagreen}}{{\text{{product}}}} \cr \downarrow}}}}{{\bullet}} b \quad = \quad {coordinate_pairing:g}$.
 
     Computed algebra expression:
 
-    {algebra_pairing:block}
+    {metric_inner_product(vector_a, vector_b):block}
 
     A Gram matrix represents a bilinear form on **vectors**. It is not a
     matrix representation of multiplication by an arbitrary multivector.
@@ -417,6 +425,12 @@ def _(Algebra, full_toggle, geometry_selector, gm, presets):
 
     {selected_wedge:block}
     """)
+    return
+
+
+@app.cell
+def _(norm, oblique):
+    norm(oblique.I)
     return
 
 

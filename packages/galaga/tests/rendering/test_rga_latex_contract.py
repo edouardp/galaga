@@ -216,11 +216,11 @@ LENGYEL_NOTATION = (
         facade_latex=r"\mathbb{G}a",
     ),
     notation(
-        "conjugate",
+        "clifford_conjugate",
         1,
-        facade_ascii="conjugate(a)",
-        facade_unicode="conjugate(a)",
-        facade_latex=r"\operatorname{conjugate}(a)",
+        facade_ascii="clifford_conjugate(a)",
+        facade_unicode="clifford_conjugate(a)",
+        facade_latex=r"\operatorname{clifford\_conjugate}(a)",
     ),
     notation(
         "hestenes_inner",

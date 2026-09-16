@@ -87,7 +87,9 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
             expected = (
                 "~e1"
                 if operation == "reverse"
-                else (f"{'gp' if operation == 'geometric_product' else operation}({arguments})")
+                else (
+                    f"{'gp' if operation == 'geometric_product' else 'clifford_conjugate' if operation == 'conjugate' else operation}({arguments})"
+                )
             )
         else:
             expected = {
@@ -101,6 +103,8 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
             expected = "e₁ ∨ e₂"
         if row["kind"] == "nested":
             expected = "(e₁̅ ∨ e₂̅)̰"
+        if row.get("operation") == "conjugate":
+            expected = "clifford_conjugate(e₁)"
     if target == "latex":
         expected = expected.replace(r"\vphantom{Aft^6}", "").replace(r"\vphantom{gy_7}", "")
         if row.get("operation") == "reverse":
@@ -109,6 +113,8 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
             expected = r"\mathbf{e}_{1} \mathbin{\rfloor} \mathbf{e}_{2}"
         if row.get("operation") == "right_interior_product":
             expected = r"\mathbf{e}_{1} \mathbin{\lfloor} \mathbf{e}_{2}"
+        if row.get("operation") == "conjugate":
+            expected = r"\operatorname{clifford\_conjugate}(\mathbf{e}_{1})"
     assert result.display(f"expr/{target}") == expected
 
 

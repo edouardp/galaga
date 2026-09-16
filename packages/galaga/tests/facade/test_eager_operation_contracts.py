@@ -137,7 +137,7 @@ def expected_coefficients(recipe, gram, a, b):
         return (-1.0) ** grades * a
     if recipe == "reverse":
         return (-1.0) ** (grades * (grades - 1) // 2) * a
-    if recipe == "conjugate":
+    if recipe in {"conjugate", "clifford_conjugate"}:
         return (-1.0) ** (grades * (grades + 1) // 2) * a
     if recipe == "even_grades":
         return np.where(grades % 2 == 0, a, 0)
@@ -199,7 +199,8 @@ def expression_for(recipe, a, b):
         return ga.Call(
             "scalar_multiply" if recipe == "rmul" else "scalar_divide", leaves, {"scalar": 3 if recipe == "rmul" else 2}
         )
-    return ga.Call(recipe, leaves)
+    operation = "clifford_conjugate" if recipe == "conjugate" else recipe
+    return ga.Call(operation, leaves)
 
 
 def assert_coefficients(value, expected):
@@ -383,6 +384,16 @@ class TestRemainingSymbolicGaps:
         value = a | B
         assert value == algebra.blade(2)
         assert value.expr == ga.Call("doran_lasenby_inner", (ga.Symbol("a"), ga.Symbol("B")))
+        left = a << B
+        right = B >> a
+        assert left == ga.left_contraction(a, B)
+        assert right == ga.right_contraction(B, a)
+        assert left.expr == ga.Call("left_contraction", (ga.Symbol("a"), ga.Symbol("B")))
+        assert right.expr == ga.Call("right_contraction", (ga.Symbol("B"), ga.Symbol("a")))
+
+        conjugated = ga.conjugate(a)
+        assert ga.get_operation("conjugate") is ga.get_operation("clifford_conjugate")
+        assert conjugated.expr == ga.Call("clifford_conjugate", (ga.Symbol("a"),))
 
     def test_expr_mul_with_expr(self):
         check_recipe("geometric_product")

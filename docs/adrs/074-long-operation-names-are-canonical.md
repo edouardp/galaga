@@ -85,3 +85,5 @@ reviewed manually and are not eligible for the lexical codemod.
 This decision partially supersedes ADR-002 and ADR-009. Their decisions to use
 named operations and same-object aliases remain valid. Their choice of short
 names as the canonical API is superseded for Galaga 2.
+
+The later clarification of Clifford conjugation is recorded in ADR-141.

@@ -37,6 +37,7 @@ __all__ = [
     "bulk_part",
     "commutator",
     "complement",
+    "clifford_conjugate",
     "conjugate",
     "doran_lasenby_inner",
     "dorst_inner",
@@ -111,6 +112,7 @@ _SYMMETRY_ATOL = 1e-12
 OPERATION_ALIASES: Mapping[str, str] = MappingProxyType(
     {
         "dorst_inner": "doran_lasenby_inner",
+        "conjugate": "clifford_conjugate",
         "gp": "geometric_product",
         "join": "outer_product",
         "meet": "regressive_product",
@@ -175,7 +177,7 @@ class Multivector:
     @property
     def bar(self) -> Multivector:
         """Clifford conjugate."""
-        return conjugate(self)
+        return clifford_conjugate(self)
 
     @property
     def sq(self) -> Multivector:
@@ -334,6 +336,20 @@ class Multivector:
             return outer_product(other, self)
         return NotImplemented
 
+    def __lshift__(self, other: object) -> Multivector | NotImplementedType:
+        if isinstance(other, Multivector):
+            return left_contraction(self, other)
+        if isinstance(other, Real):
+            return left_contraction(self, self._algebra.scalar(float(other)))
+        return NotImplemented
+
+    def __rlshift__(self, other: object) -> Multivector | NotImplementedType:
+        if isinstance(other, Multivector):
+            return left_contraction(other, self)
+        if isinstance(other, Real):
+            return left_contraction(self._algebra.scalar(float(other)), self)
+        return NotImplemented
+
     def __or__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Multivector):
             return doran_lasenby_inner(self, other)
@@ -342,6 +358,20 @@ class Multivector:
                 self,
                 self._algebra.scalar(float(other)),
             )
+        return NotImplemented
+
+    def __rshift__(self, other: object) -> Multivector | NotImplementedType:
+        if isinstance(other, Multivector):
+            return right_contraction(self, other)
+        if isinstance(other, Real):
+            return right_contraction(self, self._algebra.scalar(float(other)))
+        return NotImplemented
+
+    def __rrshift__(self, other: object) -> Multivector | NotImplementedType:
+        if isinstance(other, Multivector):
+            return right_contraction(other, self)
+        if isinstance(other, Real):
+            return right_contraction(self._algebra.scalar(float(other)), self)
         return NotImplemented
 
     def __ror__(self, other: object) -> Multivector | NotImplementedType:
@@ -926,11 +956,14 @@ def grade_involution(value: Multivector) -> Multivector:
     return Multivector(value.algebra, value.data * value.algebra._involute_sign)
 
 
-def conjugate(value: Multivector) -> Multivector:
+def clifford_conjugate(value: Multivector) -> Multivector:
     """Apply Clifford conjugation, the composition of reverse and grade involution."""
     if not isinstance(value, Multivector):
-        raise TypeError("conjugate expects a Multivector")
+        raise TypeError("clifford_conjugate expects a Multivector")
     return Multivector(value.algebra, value.data * value.algebra._conjugate_sign)
+
+
+conjugate = clifford_conjugate
 
 
 def complement(value: Multivector) -> Multivector:

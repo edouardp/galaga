@@ -84,6 +84,7 @@ from ._numeric import (
     antireverse,
     antiwedge,
     bulk_part,
+    clifford_conjugate,
     commutator,
     complement,
     conjugate,
@@ -168,6 +169,7 @@ wedge = outer_product
 
 OPERATION_ALIASES = MappingProxyType(
     {
+        "conjugate": "clifford_conjugate",
         "dorst_inner": "doran_lasenby_inner",
         "gp": "geometric_product",
         "join": "outer_product",
@@ -243,6 +245,7 @@ __all__ = [
     "commutator",
     "complex_blade_convention",
     "complement",
+    "clifford_conjugate",
     "conjugate",
     "doran_lasenby_inner",
     "dorst_inner",

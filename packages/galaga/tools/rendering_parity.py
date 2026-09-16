@@ -364,7 +364,7 @@ CASES: tuple[RenderingCase, ...] = (
     _unary("reverse-atom", "reverse", _a, "reverse(a)"),
     _unary("reverse-sum", "reverse", _sum, "reverse(a + b)"),
     _unary("grade-involution", "grade_involution", _sum, "grade_involution(a + b)"),
-    _unary("conjugate", "conjugate", _sum, "conjugate(a + b)"),
+    _unary("conjugate", "clifford_conjugate", _sum, "conjugate(a + b)"),
     _unary("dual", "dual", _bivector, "dual(a wedge b)"),
     _unary("undual", "undual", lambda context: context.call("dual", context.bivector), "undual(dual(a wedge b))"),
     _unary("complement", "complement", _bivector, "complement(a wedge b)"),
@@ -546,7 +546,8 @@ DIFFERENCE_LEDGER: Mapping[str, str] = {
 
 def required_shared_operations() -> frozenset[str]:
     """Return captured shared operation IDs without silently dropping removals."""
-    return BASELINE.shared_operations
+    aliases = {"conjugate": "clifford_conjugate"}
+    return frozenset(aliases.get(operation, operation) for operation in BASELINE.shared_operations)
 
 
 def covered_operations() -> frozenset[str]:

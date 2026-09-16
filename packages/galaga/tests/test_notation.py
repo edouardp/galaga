@@ -180,7 +180,7 @@ FUNCTIONAL_LATEX = {
     "jordan_product": "\\operatorname{jordan\\_product}\\left(a, b\\right)",
     "reverse": "\\operatorname{reverse}\\left(a\\right)",
     "grade_involution": "\\operatorname{grade\\_involution}\\left(a\\right)",
-    "conjugate": "\\operatorname{conjugate}\\left(a\\right)",
+    "conjugate": "\\operatorname{clifford\\_conjugate}\\left(a\\right)",
     "dual": "\\operatorname{dual}\\left(a\\right)",
     "undual": "\\operatorname{undual}\\left(a\\right)",
     "complement": "\\operatorname{complement}\\left(a\\right)",
@@ -248,6 +248,8 @@ def test_functional_notation_preserves_history_replay_and_canonical_operation_na
     _assert_coefficients(data, expected)
     _assert_coefficients(evaluate(expression, algebra=algebra, environment={"a": a, "b": b, "s": s}).data, expected)
     text = "grade_involution(a)" if case_id == "grade_involution" else history["unicode"]
+    if case_id == "conjugate":
+        text = "clifford_conjugate(a)"
     expected_text = FUNCTIONAL_LATEX[case_id] if target == "latex" else text
     assert result.display(f"expr/{target}") == expected_text
     assert result.expr is expression and hash(result) == before_hash
@@ -388,10 +390,21 @@ def test_infix_product_override_preserves_values_and_explicit_replay(target):
     "operation, short, arity",
     (
         ("geometric_product", "gp", 2),
+        ("geometric_antiproduct", "anti_gp", 2),
         ("outer_product", "op", 2),
         ("left_contraction", "lc", 2),
         ("reverse", "rev", 1),
-        ("grade_involution", "invol", 1),
+        ("antireverse", "anti_rev", 1),
+        ("grade_involution", "gr_invol", 1),
+        ("complement", "compl", 1),
+        ("uncomplement", "uncompl", 1),
+        ("inverse", "inv", 1),
+        ("anticommutator", "anticomm", 2),
+        ("commutator", "comm", 2),
+        ("half_anticommutator", "half_anticomm", 2),
+        ("half_commutator", "half_comm", 2),
+        ("jordan_product", "jordan", 2),
+        ("lie_bracket", "lie", 2),
         ("doran_lasenby_inner", "dl_inner", 2),
         ("hestenes_inner", "h_inner", 2),
     ),
@@ -403,6 +416,19 @@ def test_short_functional_preset_has_explicit_unambiguous_spelling(operation, sh
     if target == "latex":
         escaped = short.replace("_", r"\_")
         expected = rf"\operatorname{{{escaped}}}\left({arguments}\right)"
+    for notation in (ga.Notation.functional(short=True), ga.Notation.functional_short()):
+        assert (
+            ga.render(expression, target=target, presentation=ga.Algebra(3).presentation.with_notation(notation))
+            == expected
+        )
+
+
+@pytest.mark.parametrize("target", TARGETS)
+def test_short_functional_preset_renders_power_parameter(target):
+    expression = Call("power", (Symbol("a"),), {"exponent": 2})
+    expected = "pow(a, 2)"
+    if target == "latex":
+        expected = r"\operatorname{pow}\left(a, 2\right)"
     for notation in (ga.Notation.functional(short=True), ga.Notation.functional_short()):
         assert (
             ga.render(expression, target=target, presentation=ga.Algebra(3).presentation.with_notation(notation))
