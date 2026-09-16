@@ -90,6 +90,12 @@ def build_tree(
     notation: Notation | None = None,
 ) -> tuple[Node, str]:
     """Resolve display policy and return a semantic tree plus output target."""
+    from .presenter import PresentedMultivector
+
+    if isinstance(value, PresentedMultivector):
+        if presentation is None:
+            presentation = value.presentation
+        value = value.value
     spec_content, spec_target = _parse_format_spec(format_spec)
     if content is not None and spec_content is not None and content != spec_content:
         raise ValueError("content= conflicts with the format specification")

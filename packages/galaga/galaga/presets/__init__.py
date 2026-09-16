@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any as _Any
 
 from . import notation as notation
+from . import presenters as presenters
 from ._implementation import (
     blades,
     cga,
@@ -27,6 +28,7 @@ __all__ = [
     "lengyel_cga",
     "notation",
     "pga",
+    "presenters",
     "quaternion",
     "rga",
     "sta",

@@ -159,6 +159,7 @@ classes are no longer production alternatives.
 | [136](136-witt-and-four-dimensional-rotor-lessons.md) | Witt Bases and Four-Dimensional Rotor Lessons | Accepted |
 | [137](137-automatic-expression-equalities.md) | Automatic Expression Equalities | Accepted |
 | [138](138-scoped-notation-shortcut.md) | Scoped Notation Shortcut | Accepted |
+| [139](139-reusable-presentation-views.md) | Reusable Presentation Views | Accepted |
 
 ## Creating New ADRs
 

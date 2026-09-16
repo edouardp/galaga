@@ -464,6 +464,75 @@ For persistent notation instead, pass `notation=` to `Algebra` or construct a
 view with `alg.with_notation(...)`. `use_notation` yields the same algebra,
 just like `use_presentation`; it does not construct a persistent view.
 
+## Reusable presenters
+
+Use a `Presenter` when a notebook needs to choose a presentation now and
+display the result later. A presenter is an immutable recipe; calling it on a
+multivector returns a notebook-renderable view that captures the resolved
+presentation. The underlying multivector is unchanged and remains the object
+to use for further arithmetic.
+
+```python
+from galaga import Presenter, presets
+
+lengyel = presets.presenters.lengyel()
+values = presets.presenters.values()
+
+_pairing = mip(e1, e1)
+bullet_pairing = lengyel(_pairing)
+numeric_pairing = values(_pairing)
+
+bullet_pairing      # e₁ • e₁ = 1
+numeric_pairing     # 1
+assert bullet_pairing.value is _pairing
+```
+
+This avoids a scope whose presentation has ended before a later Marimo cell
+renders its output. The view intentionally has no arithmetic operators:
+calculate with `bullet_pairing.value` (or the original multivector), then apply
+another presenter for the next display.
+
+### Recipes and overrides
+
+`presets.presenters` supplies one-line recipes:
+
+| Recipe | Presentation change |
+| --- | --- |
+| `default()` | Capture the value's currently effective presentation |
+| `values()` / `full()` | Select value-only / explanatory full content |
+| `functional()` / `short_functional()` / `lengyel()` | Select operation notation |
+| `grade_order()` / `bitmap_order()` | Select a display-order recipe per value dimension |
+
+For a custom recipe, pass any independent presentation component. Unspecified
+components inherit from the value at application time. `content=` takes
+precedence over the content inside `display=`:
+
+```python
+from galaga import DisplayPolicy, Name, Presenter, presets
+
+teaching = Presenter(
+    notation=presets.notation.functional(short=True),
+    blades=presets.blades.indexed(3, prefix=Name.from_latex(r"\mathbf{e}"), style="wedge"),
+    display_order="grade-lexicographic",
+    display=DisplayPolicy(target="latex", coefficient_precision=4),
+    content="full",
+)
+
+view = teaching(result)
+```
+
+Blade presets resolve against the actual Gram matrix when a presenter is
+applied. This makes portable notation recipes work for Euclidean, CGA, PGA and
+STA values, while rejecting incompatible metric-sensitive vocabulary such as an
+orthogonal CGA frame on a native-null CGA value. A signed name such as
+`\sigma_1 = \gamma_1\gamma_0` still renders the coefficient implied by the
+computed value; a presenter never handwaves an orientation sign.
+
+An explicit `presentation=` argument to `view.display(...)` overrides the
+captured snapshot for that one render, following normal render precedence.
+Applying another presenter to a view starts from the view's captured
+presentation, which makes deliberate comparison pipelines composable.
+
 ## Labelled bilinear form tables
 
 The public facade provides a rich-display view of the stored Gram matrix:

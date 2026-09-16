@@ -423,7 +423,10 @@ explicitly render inside the scope so the selected notation is still active:
 
 ```python
 import marimo as mo
-from galaga import metric_inner_product as mip
+from galaga import Algebra, metric_inner_product as mip, presets
+
+alg = Algebra(config=presets.euclidean(3), expr=True)
+e1, _, _ = alg.basis_vectors()
 
 with alg.use_notation(presets.notation.lengyel()):
     mo.output.replace(mo.as_html(mip(e1, e1)))
@@ -431,6 +434,29 @@ with alg.use_notation(presets.notation.lengyel()):
 
 This preserves other presentation settings. A multivector displayed after the
 scope exits uses the restored notation, not the notation at calculation time.
+
+For a reusable notebook display choice, use an immutable presenter. It captures
+the selected rendering on a view while leaving the mathematical value unchanged:
+
+```python
+from galaga import Algebra, Presenter, metric_inner_product as mip, presets
+
+alg = Algebra(config=presets.euclidean(3), expr=True)
+e1, e2, e3 = alg.basis_vectors()
+
+lengyel = presets.presenters.lengyel()
+teaching = Presenter(content="full")
+
+pairing_view = lengyel(mip(e1, e1))
+result_view = teaching((e1 + e2) ^ e3)
+pairing_view  # e₁ • e₁ = 1
+result_view   # (e₁ + e₂) ∧ e₃ = e₁₃ + e₂₃
+
+next_value = pairing_view.value + e1  # views deliberately are not arithmetic
+```
+
+See [presentation configuration](../../docs/v2/presentation-configuration.md#reusable-presenters)
+and the [reusable presenters lesson](../../examples/galaga_v2/reusable_presenters.py).
 
 ```python
 from galaga import Algebra, presets

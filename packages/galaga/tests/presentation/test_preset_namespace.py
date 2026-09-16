@@ -30,6 +30,7 @@ def test_package_preset_namespace_contains_only_public_recipe_factories():
         "lengyel_cga",
         "notation",
         "pga",
+        "presenters",
         "quaternion",
         "rga",
         "sta",

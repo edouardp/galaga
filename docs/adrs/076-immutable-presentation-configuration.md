@@ -59,6 +59,10 @@ component.
 a scoped replacement of that single component, preserving all other currently
 effective presentation settings and the existing context-local semantics.
 
+[ADR-139](139-reusable-presentation-views.md) adds immutable, non-arithmetic
+views for the complementary notebook workflow: capture a resolved presentation
+for one value now and display it after a scope or in a later cell.
+
 The conventional notation uses the mirrored floor-symbol pair for
 contractions: left contraction renders as `⌋` / `\mathbin{\rfloor}` and right
 contraction as `⌊` / `\mathbin{\lfloor}` in Unicode / LaTeX. ASCII retains

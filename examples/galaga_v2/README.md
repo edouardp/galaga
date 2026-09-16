@@ -65,6 +65,9 @@ inverse conjugation and explains the current logarithm's narrower domain.
 
 These lessons also use the v2 facade and participate in headless validation:
 
+- [Reusable presenters](reusable_presenters.py): one-line recipes for comparing
+  notation, content, blade order and spelling; metric-derived STA signs, CGA
+  frame validation, and stable views that can be displayed in a later cell.
 - [Witt bases and null geometry](../algebra/witt_bases_and_null_geometry.py):
   predict a moving receiver's Doppler shifts and build a finite fermionic
   occupation-state model from null pairs; then compare CGA/PGA duality.

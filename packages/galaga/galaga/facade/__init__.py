@@ -53,6 +53,7 @@ from ..presentation import (
     RenderRule,
     default_presentation,
 )
+from ..presenter import PresentedMultivector, Presenter
 from ..presets import (
     CGAPreset,
     ComplexPreset,
@@ -224,6 +225,8 @@ __all__ = [
     "ParameterSpec",
     "PGAPreset",
     "PresentationConfig",
+    "PresentedMultivector",
+    "Presenter",
     "RenderRule",
     "Preset",
     "QuaternionPreset",
