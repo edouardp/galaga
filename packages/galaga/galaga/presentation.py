@@ -358,7 +358,7 @@ _SHORT_FUNCTION_NAMES = {
     "hestenes_inner": "h_inner",
     "left_contraction": "lc",
     "left_interior_product": "l_interior",
-    "metric_inner_product": "metric_inner",
+    "metric_inner_product": "metric_ip",
     "outer_product": "op",
     "regressive_product": "meet",
     "reverse": "rev",

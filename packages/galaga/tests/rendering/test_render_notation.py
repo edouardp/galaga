@@ -57,7 +57,7 @@ def test_short_functional_notation_is_optional_and_keeps_inner_products_distinct
     assert rendered == {
         "doran_lasenby_inner": "dl_inner(a, b)",
         "hestenes_inner": "h_inner(a, b)",
-        "metric_inner_product": "metric_inner(a, b)",
+        "metric_inner_product": "metric_ip(a, b)",
         "scalar_product": "sp(a, b)",
     }
 
