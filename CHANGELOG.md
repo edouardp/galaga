@@ -1,5 +1,56 @@
 # Changelog
 
+## 2.0.0a6 (2026-09-16)
+
+This sixth Galaga 2 alpha expands the teaching examples and presentation
+tooling, makes CGA orientation choices explicit, and completes another round
+of expression and operation naming cleanup.
+
+### Added
+
+- **Reusable presentation views** — Adds presenter objects and concise
+  presentation presets for rendering the same multivector or expression in
+  different contexts, including notebook-friendly value and expression views.
+- **New teaching notebooks** — Adds lessons on Witt bases and null geometry,
+  four-dimensional rotor planes, CGA basis ordering and pseudoscalar
+  conventions, tracked expressions, and reusable presenters. Existing Gram,
+  wedge, spinor, and native-null CGA lessons are expanded with more worked
+  examples.
+- **CGA orientation and pseudoscalar configuration** — Adds explicit support
+  for origin-first basis conventions and named Euclidean, conformal, and null
+  pseudoscalars, including exact sign checks and configurable display names.
+- **Contraction operators** — Adds `<<` for left contraction and `>>` for
+  right contraction, with expression provenance and regression coverage.
+
+### Changed
+
+- **Natural blade display order** — The default multivector and full wedge
+  table order is now grade-then-lexicographic. Existing explicit display-order
+  overrides remain effective.
+- **Expression tracking defaults** — Algebra-level expression tracking can be
+  enabled once with `expr=True`, and tracked results now retain their
+  expression/value relationship more naturally in notebooks.
+- **Scoped notation and presenters** — Adds `use_notation(...)` and reusable
+  presenter workflows for teaching and documentation contexts, while keeping
+  algebra configuration and presentation choices separate.
+- **Functional short names** — Adds concise names for common operations,
+  including `metric_ip`, `conj`, `comm`, `anticomm`, `pow`, `inv`, `compl`,
+  and related product and involution names.
+- **Clifford conjugation naming** — Makes `clifford_conjugate(A)` the
+  canonical API and expression operation. `conjugate(A)` remains a compatible
+  alias, and `conj(A)` is the short functional rendering.
+- **Dependency lock** — Refreshes the locked development and notebook
+  dependencies.
+
+### Documentation
+
+- Adds ADRs documenting display ordering, CGA pseudoscalar conventions,
+  expression tracking, scoped notation, reusable presenters, contraction
+  operators, and the canonical Clifford-conjugation name.
+- Expands the CGA conventions guide and updates the package and mathematical
+  documentation to distinguish semantic basis order from display order while
+  keeping pseudoscalar signs explicit.
+
 ## 2.0.0a5 (2026-09-12)
 
 This fifth Galaga 2 alpha retires the remaining migration-only API adapters,
