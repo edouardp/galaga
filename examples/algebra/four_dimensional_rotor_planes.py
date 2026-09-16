@@ -137,8 +137,6 @@ def _(
             gm.md(rt"""
     **Constructed bivector (expression and value)**
 
-    {generator:expr}
-
     $$B={generator.latex(content="value")!s}.$$
 
     $$R={rotor.latex(content="value")!s}.$$
@@ -211,8 +209,7 @@ def _(mo):
 
     This formula is specific to an oriented orthonormal **Euclidean 4D**
     algebra, where $I^2=1$. Define
-    $$D=\operatorname{dual}(B),\quad S=-\langle B^2\rangle_0,\quad
-      T=(B\wedge B)/I,\quad \Delta=\sqrt{S^2-T^2}.$$
+    $$D=\operatorname{dual}(B),\quad S=-\langle B^2\rangle_0,\quad T=(B\wedge B)/I,\quad \Delta=\sqrt{S^2-T^2}.$$
     With Galaga's dual convention, $\operatorname{dual}(P)=-Q$.
     If $B=aP+bQ$, then $D=-bP-aQ$, $S=a^2+b^2$, $T=2ab$ and
     $\Delta=|a^2-b^2|$.
