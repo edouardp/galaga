@@ -1,5 +1,47 @@
 # Changelog
 
+## 2.0.0a7 (2026-09-17)
+
+This seventh Galaga 2 alpha adds the optional `galaga-annotation` companion
+package for semantic annotations and KaTeX teaching output, and extends the
+core renderer with the small extension points that package needs.
+
+### Added
+
+- **`galaga-annotation` package** — A new optional companion for semantic
+  annotations. Provides immutable annotation rules, reusable callable
+  annotators, and a KaTeX renderer that lowers labels, colours, fills,
+  borders, arrows, rules, braces, group accents, underlines, and boxes.
+  Semantic targets (whole value, expression path, operator, variable, grade,
+  term, and coefficient) survive changes to presentation, blade order, and
+  notation. Annotated views are rendering-only and numerically transparent.
+- **CGA object classification and highlights** — `classify_cga`, `cga_parts`,
+  and `highlight_cga` classify homogeneous conformal objects in three
+  dimensions and highlight their Lengyel component families. The highlighter
+  offers an incidence decomposition (carrier/cocarrier geometry) and a
+  component-role decomposition, with worked round-point, dipole, circle, and
+  sphere examples.
+- **Annotation teaching notebook** — Adds a Marimo gallery that annotates
+  metric and wedge products, grades, and conformal objects.
+
+### Changed
+
+- **Core rendering extension points** — Adds a renderer-owned `Decorated`
+  node, emitted verbatim by the LaTeX target and transparent to plain-text
+  targets while preserving its body's precedence. Adds a duck-typed
+  `__galaga_present__` presenter adapter hook so annotated views compose with
+  presenters. Core never imports the optional annotation package.
+- **Joint release set** — `galaga-annotation` is versioned and published with
+  the other jointly released packages; the build, artifact-check, and publish
+  workflows include it, and a complexity lint gate guards the package.
+
+### Documentation
+
+- Adds ADR-147 (KaTeX annotation lowering and decoration wrappers) and
+  ADR-148 (CGA object classification and highlight recipes), and specializes
+  SPEC-015 for the first annotation milestone, including the raw-label trust
+  boundary and the classifier's algebraic-family scope.
+
 ## 2.0.0a6 (2026-09-16)
 
 This sixth Galaga 2 alpha expands the teaching examples and presentation

@@ -1,6 +1,6 @@
 [project]
 name = "galaga-annotation"
-version = "2.0.0a6"
+version = "2.0.0a7"
 description = "Semantic annotations and KaTeX rendering for galaga calculations"
 readme = "README.md"
 requires-python = ">=3.11"
