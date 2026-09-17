@@ -37,7 +37,7 @@ prerequisites in ADR-143–146, not Galaga 1 history.
 | [SPEC-011](SPEC-011-display-ordering.md) | Accepted | Custom basis blade display ordering |
 | [SPEC-012](SPEC-012-algebra-symbolic-split.md) | Complete | Algebraic/symbolic split via operation registry |
 | [SPEC-013](SPEC-013-decoupled-symbolic-naming.md) | Accepted | Decoupled symbolic naming and expression trees |
-| [SPEC-015](SPEC-015-expression-and-matrix-annotations.md) | Proposed | Optional semantic annotations for expressions and matrix representations |
+| [SPEC-015](SPEC-015-expression-and-matrix-annotations.md) | Partial | Optional semantic annotations for expressions and matrix representations |
 
 ## Format
 

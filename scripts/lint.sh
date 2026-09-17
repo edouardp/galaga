@@ -13,6 +13,9 @@ else
     uv run ruff format --check --extend-exclude '*.md' .
 fi
 
+echo "=== Annotation complexity ==="
+uv run ruff check --select C901 packages/galaga_annotation/galaga_annotation
+
 echo "=== shellcheck ==="
 find scripts -name '*.sh' -exec shellcheck -x -e SC2016 -e SC1091 {} +
 

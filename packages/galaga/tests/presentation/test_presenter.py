@@ -272,3 +272,19 @@ def test_marimo_templates_and_direct_rich_display_use_the_view_snapshot():
         value_only = gm.md(eval('t"{view:value}"'))
         assert r"\bullet" not in value_only.text
         assert "<pre>" not in value_only.text
+
+
+def test_presenter_delegates_to_annotation_style_adapter_hooks():
+    class Adapted:
+        def __init__(self, value):
+            self.value = value
+            self.seen = None
+
+        def __galaga_present__(self, presenter):
+            self.seen = presenter
+            return ("adapted", presenter)
+
+    presenter = Presenter(content="value")
+    adapted = Adapted(Algebra(2).identity)
+    assert presenter(adapted) == ("adapted", presenter)
+    assert adapted.seen is presenter

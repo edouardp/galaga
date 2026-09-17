@@ -48,7 +48,7 @@ ignore = [
 "test_mermaid.py" = "py314"
 
 [tool.ruff.lint.isort]
-known-first-party = ["galaga", "galaga_anywidget", "galaga_marimo"]
+known-first-party = ["galaga", "galaga_annotation", "galaga_anywidget", "galaga_marimo"]
 
 [tool.pyrefly]
 search-path = ["packages/galaga"]

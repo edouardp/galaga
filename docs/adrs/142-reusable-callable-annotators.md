@@ -1,5 +1,5 @@
 ---
-status: proposed
+status: accepted
 date: 2026-09-16
 deciders: edouard
 ---
@@ -64,3 +64,7 @@ simplification removing a target, algebra compatibility, presenter composition,
 explicit and implicit operator anchors (including nested occurrences),
 unchanged numerical identity, and render-time semantic target resolution.
 See [SPEC-015](../specs/SPEC-015-expression-and-matrix-annotations.md).
+
+Implemented by `galaga_annotation`, with the KaTeX lowering, decoration
+wrapper node, presenter adapter hook and first milestone scope recorded in
+[ADR-147](147-katex-annotation-lowering-and-decoration-wrappers.md).

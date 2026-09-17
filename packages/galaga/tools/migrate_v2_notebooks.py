@@ -39,6 +39,7 @@ MIGRATED_NOTEBOOKS = (
     "galaga_v2/presentation_contexts.py",
     "galaga_v2/custom_functional_notation.py",
     "galaga_v2/numeric_core.py",
+    "annotation/annotated_lessons.py",
     "matrix/representations_and_roundtrips.py",
     "matrix/cga_via_gram_matrix.py",
     "matrix/cga_complex_and_quaternion.py",

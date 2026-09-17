@@ -614,6 +614,12 @@ COMPANION_TOUCHPOINTS = {
     "galaga_mermaid": SurfaceDisposition(
         "integration", "migrated", "galaga facade expression protocol", "phase-7-complete"
     ),
+    "galaga_annotation": SurfaceDisposition(
+        "integration",
+        "migrated",
+        "galaga rendering semantic-anchor and presenter adapter protocols",
+        "phase-7-complete",
+    ),
     "examples": SurfaceDisposition("integration", "migrate", "top-level Galaga 2 API", "phase-7"),
 }
 

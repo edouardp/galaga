@@ -97,7 +97,7 @@ def test_all_marimo_notebooks_are_repository_independent() -> None:
         assert make_notebook_portable(source) == source, notebook
 
 
-def test_run_marimo_uses_local_editable_packages_without_notebook_path_mutation() -> None:
+def test_run_marimo_uses_local_packages_without_notebook_path_mutation() -> None:
     result = subprocess.run(
         ["make", "--no-print-directory", "--dry-run", "run-marimo"],
         cwd=ROOT,
@@ -105,15 +105,23 @@ def test_run_marimo_uses_local_editable_packages_without_notebook_path_mutation(
         capture_output=True,
         text=True,
     )
-    command = shlex.split(result.stdout.replace("\\\n", " "))
+    annotation_path, *command = shlex.split(result.stdout.replace("\\\n", " "))
     option_pairs = set(zip(command, command[1:]))
 
+    # The annotation package requires the next core prerelease, so source-tree
+    # development injects only that package without weakening publish metadata.
+    assert annotation_path == "PYTHONPATH=./packages/galaga_annotation"
     assert command[:2] == ["uv", "run"]
     assert ("--python", "3.14") in option_pairs
-    for package in ("galaga", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
+    for package in (
+        "galaga",
+        "galaga_anywidget",
+        "galaga_marimo",
+        "galaga_matrix",
+        "galaga_mermaid",
+    ):
         assert ("--with-editable", f"./packages/{package}") in option_pairs
     launcher = command[command.index("marimo") :]
     assert launcher[:2] == ["marimo", "edit"]
     assert set(launcher[2:-1]) == {"--watch", "--no-token"}
     assert launcher[-1] == "examples"
-    assert "PYTHONPATH" not in result.stdout

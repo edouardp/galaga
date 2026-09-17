@@ -10,6 +10,7 @@ MARIMO_EDITABLES := --with-editable ./packages/galaga \
 	--with-editable ./packages/galaga_marimo \
 	--with-editable ./packages/galaga_matrix \
 	--with-editable ./packages/galaga_mermaid
+ANNOTATION_SOURCE := ./packages/galaga_annotation
 
 .PHONY: help
 help: ## Show this help message
@@ -34,7 +35,7 @@ install-hooks: ## Install pre-commit git hooks
 
 .PHONY: run-marimo
 run-marimo: ## Open the example gallery against all local packages
-	uv run --python 3.14 $(MARIMO_EDITABLES) \
+	PYTHONPATH=$(ANNOTATION_SOURCE) uv run --python 3.14 $(MARIMO_EDITABLES) \
 		marimo edit --watch --no-token examples
 
 # ============================================================================
@@ -66,7 +67,7 @@ security: ## Run security scans (bandit + pip-audit)
 # ============================================================================
 
 .PHONY: test
-test: test-release test-galaga test-galaga-anywidget test-galaga-marimo test-galaga-matrix test-galaga-mermaid ## Run all tests
+test: test-release test-galaga test-galaga-anywidget test-galaga-marimo test-galaga-matrix test-galaga-mermaid test-galaga-annotation ## Run all tests
 
 .PHONY: test-all
 test-all: test ## Alias for test
@@ -103,6 +104,15 @@ test-galaga-matrix: ## Run galaga-matrix tests
 test-galaga-mermaid: ## Run galaga-mermaid tests
 	PYTHONPATH=.:packages/galaga_mermaid uv run pytest packages/galaga_mermaid/tests/ -q
 
+.PHONY: test-galaga-annotation
+test-galaga-annotation: ## Run galaga-annotation tests with Python 3.14 and marimo
+	@TMPVENV=$$(mktemp -d)/gann-test && \
+	uv venv "$$TMPVENV" --python 3.14 && \
+	uv pip install --python "$$TMPVENV/bin/python" -e packages/galaga -e packages/galaga_marimo pytest && \
+	uv pip install --python "$$TMPVENV/bin/python" --no-deps -e packages/galaga_annotation && \
+	"$$TMPVENV/bin/pytest" packages/galaga_annotation/tests/ -v && \
+	rm -rf "$$TMPVENV"
+
 .PHONY: test-quick
 test-quick: ## Run core galaga tests stopping on first failure
 	uv run pytest packages/galaga/tests/ -x -q
@@ -130,6 +140,7 @@ build: ## Build package distributions
 	cd packages/galaga_marimo && uv build
 	cd packages/galaga_matrix && uv build
 	cd packages/galaga_mermaid && uv build
+	cd packages/galaga_annotation && uv build
 
 .PHONY: check check-artifacts
 check-artifacts: build ## Verify legacy-free Galaga wheel and source distribution
@@ -141,6 +152,7 @@ check: check-artifacts ## Build, verify runtime contents, and run twine checks
 	uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
 	uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
 	uvx twine check packages/galaga_mermaid/dist/galaga_mermaid-*
+	uvx twine check packages/galaga_annotation/dist/galaga_annotation-*
 
 # ============================================================================
 # Release

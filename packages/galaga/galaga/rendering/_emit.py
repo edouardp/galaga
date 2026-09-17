@@ -8,6 +8,7 @@ import unicodedata
 from .tree import (
     Accent,
     Call,
+    Decorated,
     Delimited,
     Equality,
     Fraction,
@@ -75,6 +76,11 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         body = _emit(node.body, target, compact_fractions=compact_fractions)
         color = _GRADE_COLORS[node.grade % len(_GRADE_COLORS)]
         return rf"{{\color{{{color}}}{body}}}" if target == "latex" else body
+    if isinstance(node, Decorated):
+        body = _emit(node.body, target, compact_fractions=compact_fractions)
+        if target == "latex":
+            return f"{node.opening}{body}{node.closing}"
+        return body
     if isinstance(node, Table):
         return _table(node, target)
     if isinstance(node, Text):

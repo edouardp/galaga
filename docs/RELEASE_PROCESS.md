@@ -174,6 +174,7 @@ exact release commit independently of the branch name.
 - `packages/galaga_anywidget/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_marimo/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_matrix/pyproject.toml` — version bumped + galaga dep pin updated
+- `packages/galaga_annotation/pyproject.toml` — version bumped + galaga dep pin updated
 - `packages/galaga_mermaid/pyproject.toml` — galaga dep pin updated; its own version is independent
 - `uv.lock` — regenerated for the workspace version
 - `CHANGELOG.md` — new section added
@@ -186,8 +187,9 @@ exact release commit independently of the branch name.
 | `galaga-anywidget` | <https://pypi.org/project/galaga-anywidget/> | `import galaga_anywidget.viz as viz` | ≥ 3.11 |
 | `galaga-matrix` | <https://pypi.org/project/galaga-matrix/> | `import galaga_matrix` | ≥ 3.11 |
 | `galaga-marimo` | <https://pypi.org/project/galaga-marimo/> | `import galaga_marimo as gm` | ≥ 3.14 |
+| `galaga-annotation` | <https://pypi.org/project/galaga-annotation/> | `import galaga_annotation as ga` | ≥ 3.11 |
 
-`galaga` is always published first because the three jointly released
+`galaga` is always published first because the four jointly released
 companion packages depend on it. `galaga-mermaid` remains experimental and
 independently versioned; the joint release updates its dependency floor but
 does not publish it.

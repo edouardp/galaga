@@ -4,12 +4,15 @@ import os
 import tomllib
 from pathlib import Path
 
+from packaging.version import Version
+
 ROOT = Path(__file__).resolve().parents[2]
 JOINT_PACKAGES = (
     "galaga",
     "galaga_anywidget",
     "galaga_marimo",
     "galaga_matrix",
+    "galaga_annotation",
 )
 
 
@@ -23,7 +26,10 @@ def test_joint_release_packages_share_a_version_and_core_dependency_floor() -> N
 
     assert {project["version"] for project in projects.values()} == {galaga_version}
     for package in JOINT_PACKAGES[1:]:
-        assert f"galaga>={galaga_version}" in projects[package]["dependencies"]
+        requirement = next(
+            dependency for dependency in projects[package]["dependencies"] if dependency.startswith("galaga>=")
+        )
+        assert Version(requirement.removeprefix("galaga>=")) >= Version(galaga_version)
 
 
 def test_release_workflow_tests_builds_checks_and_publishes_anywidget() -> None:
@@ -33,6 +39,19 @@ def test_release_workflow_tests_builds_checks_and_publishes_anywidget() -> None:
     assert "uv build --package galaga-anywidget --out-dir packages/galaga_anywidget/dist" in release
     assert "twine check packages/galaga_anywidget/dist/galaga_anywidget-*" in release
     assert "uv publish packages/galaga_anywidget/dist/galaga_anywidget-*" in release
+
+
+def test_release_workflow_builds_checks_and_publishes_annotation() -> None:
+    release = (ROOT / "scripts" / "release.sh").read_text()
+    makefile = (ROOT / "Makefile").read_text()
+    artifact = "packages/galaga_annotation/dist/galaga_annotation-*"
+
+    assert "packages/galaga_annotation/tests/" in release
+    assert 'cd "$ROOT/packages/galaga_annotation" && uv build' in release
+    assert f"twine check {artifact}" in release
+    assert f"uv publish {artifact}" in release
+    assert "cd packages/galaga_annotation && uv build" in makefile
+    assert f"twine check {artifact}" in makefile
 
 
 def test_marimo_launcher_supplies_widget_and_markdown_packages_separately() -> None:
@@ -58,6 +77,11 @@ def test_python_formatter_leaves_markdown_to_the_markdown_linter() -> None:
 
     assert lint.count("--extend-exclude '*.md'") == 2
     assert "rumdl" in lint
+
+
+def test_annotation_complexity_is_a_lint_gate() -> None:
+    lint = (ROOT / "scripts" / "lint.sh").read_text()
+    assert "ruff check --select C901 packages/galaga_annotation/galaga_annotation" in lint
 
 
 def test_release_checks_legacy_free_artifacts_before_credentials_or_publication() -> None:

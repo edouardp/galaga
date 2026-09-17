@@ -508,6 +508,36 @@ class Wrapper(Node):
 
 
 @dataclass(frozen=True, slots=True, init=False)
+class Decorated(Node):
+    """An opaque renderer-owned wrapper around a semantic subtree.
+
+    ``opening`` and ``closing`` are emitted verbatim by the LaTeX target
+    around the body; plain-text targets emit the body unchanged because
+    decoration spelling is renderer-specific. Optional presentation packages
+    (for example annotations) own these strings; core builders never emit
+    this node.
+    """
+
+    body: Node
+    opening: str
+    closing: str
+
+    def __init__(self, body: Node, opening: str, closing: str) -> None:
+        if not isinstance(opening, str) or not isinstance(closing, str):
+            raise TypeError("decoration opening and closing must be strings")
+        object.__setattr__(self, "body", _node(body, field="decoration body"))
+        object.__setattr__(self, "opening", opening)
+        object.__setattr__(self, "closing", closing)
+
+    @property
+    def precedence(self) -> int:
+        # The wrapper is absent from plain-text targets, so precedence must
+        # remain transparent when this node is composed into a larger tree.
+        # LaTeX wrappers provide their own syntactic grouping.
+        return self.body.precedence
+
+
+@dataclass(frozen=True, slots=True, init=False)
 class Delimited(Node):
     """A comma-separated sequence inside semantic delimiters."""
 
@@ -594,6 +624,7 @@ __all__ = [
     "Accent",
     "Associativity",
     "Call",
+    "Decorated",
     "Delimited",
     "Equality",
     "Fraction",

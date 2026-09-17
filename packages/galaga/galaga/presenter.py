@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, replace
-from typing import TYPE_CHECKING, Literal
+from typing import TYPE_CHECKING, Literal, cast
 
 from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
 from .presentation import DisplayPolicy, Notation, PresentationConfig
@@ -61,6 +61,11 @@ class Presenter:
         elif isinstance(value, Multivector):
             base = value.algebra.presentation
         else:
+            adapter = getattr(value, "__galaga_present__", None)
+            if callable(adapter):
+                # The adapter owns its concrete view type (for example an
+                # annotation view); the presenter contract stays unchanged.
+                return cast("PresentedMultivector", adapter(self))
             raise TypeError("Presenter expects a Galaga Multivector or PresentedMultivector")
         selected = self.presentation if self.presentation is not None else base
         # Resolve all components before validating their common dimension so a

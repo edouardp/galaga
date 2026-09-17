@@ -282,7 +282,14 @@ def test_migrated_notebooks_execute_headlessly(tmp_path: Path) -> None:
 def _notebook_import_paths() -> list[str]:
     """Keep subprocesses on the same installed/source packages as this test."""
     paths = [str(ROOT)]
-    for name in ("galaga", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid"):
+    for name in (
+        "galaga",
+        "galaga_annotation",
+        "galaga_anywidget",
+        "galaga_marimo",
+        "galaga_matrix",
+        "galaga_mermaid",
+    ):
         spec = find_spec(name)
         if spec is None or spec.origin is None:
             raise ImportError(f"notebook integration requires {name}")

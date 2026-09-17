@@ -2,21 +2,19 @@
 
 ## Status
 
-Proposed Galaga 2 extension specification. This document defines the intended
-boundary and rendering model for an optional `galaga_annotation` package. It
-does not add the package or change the core Galaga API.
+Partially implemented Galaga 2 extension specification. This document defines
+the boundary and rendering model for the optional `galaga_annotation` package
+in `packages/galaga_annotation`. The first milestone provides immutable rules,
+callable annotators, whole-expression / expression-path / operator / variable /
+grade / term / coefficient targets, and a KaTeX renderer with escaped plain
+labels plus an explicit trusted raw-label mode for colours, fills, borders,
+arrows, rules, braces, group accents, underlines and boxes.
+See [ADR-142](../adrs/142-reusable-callable-annotators.md) and
+[ADR-147](../adrs/147-katex-annotation-lowering-and-decoration-wrappers.md).
 
-Related implemented designs:
-
-- [presentation configuration](../v2/presentation-configuration.md)
-- [expression provenance](../v2/expression-provenance.md)
-- [semantic rendering](../v2/rendering-implementation.md)
-- [ADR-068: Recognize Known Multivectors](../adrs/068-recognize-known-mvs.md)
-- [ADR-139: Reusable Presentation Views](../adrs/139-reusable-presentation-views.md)
-
-Related proposed design:
-
-- [ADR-142: Reusable Callable Annotators](../adrs/142-reusable-callable-annotators.md)
+Sentence spans, sign-only targets, semantic-role targets, matrix-region
+annotations, expression-to-matrix provenance and arithmetic propagation remain
+later milestones.
 
 Implemented prerequisite: core `galaga.rendering.value_document` now supplies
 separate immutable anchors for visible concrete terms, coefficient magnitudes,
@@ -32,8 +30,17 @@ Expression-literal components are also anchored by original operand scope
 using `select(..., scope="expr", path=...)`, which selects components at or
 below the original occurrence path (`()` selects the whole expression
 subtree). See [ADR-146](../adrs/146-expression-component-anchor-scopes.md).
-Extension wrapper adapters and the annotation package itself are not yet
-implemented.
+Extension wrapper adapters and the annotation package are implemented in
+`packages/galaga_annotation`; the package participates in the joint release
+workflow and the teaching gallery.
+
+Related implemented designs:
+
+- [presentation configuration](../v2/presentation-configuration.md)
+- [expression provenance](../v2/expression-provenance.md)
+- [semantic rendering](../v2/rendering-implementation.md)
+- [ADR-068: Recognize Known Multivectors](../adrs/068-recognize-known-mvs.md)
+- [ADR-139: Reusable Presentation Views](../adrs/139-reusable-presentation-views.md)
 
 ## Intent
 
@@ -716,15 +723,21 @@ The conceptual fields are:
 class Annotation:
     target: Target
     label: str | None = None
+    label_latex: str | None = None
     role: str | None = None
     style: AnnotationStyle | None = None
-    side: Literal["above", "below"] = "above"
+    side: Literal["above", "below", "auto"] = "auto"
     description: str | None = None
+    missing: Literal["ignore", "error"] = "ignore"
+    join: bool = False
 ```
 
 Labels may contain multiple logical lines. A renderer decides how those lines
 are laid out. Labels intended for ordinary users should be plain text; an
-explicit trusted/raw mode may accept renderer-specific math markup.
+explicit trusted/raw mode may accept renderer-specific math markup. A plain
+`label` renders upright with its spaces preserved (for example
+`\text{carrier line}`) and newlines stack the lines; `label_latex` supplies
+trusted raw LaTeX for equation labels and is mutually exclusive with `label`.
 
 ### Styles
 
@@ -736,6 +749,7 @@ class AnnotationStyle:
     color: str | None = None
     background: str | None = None
     border: str | None = None
+    label_color: str | None = None
     emphasis: Literal["normal", "bold", "italic"] = "normal"
     marker: Literal[
         "none",
@@ -750,11 +764,23 @@ class AnnotationStyle:
         "overgroup",
     ] = "none"
     clearance: str | None = None
+    overlay: bool = False
 ```
 
 Semantic roles and visual styles remain separate. A notebook may render the
 role `metric` in green in one context and purple in another without changing
 the annotation's meaning.
+
+A rule with a `marker` colours its **chrome** -- the bracket glyph and label
+-- rather than the highlighted content, so a cyan overgroup does not recolour
+the blades it spans. `overlay=True` smashes the marker so it can protrude
+above an enclosing fill without inflating or splitting that fill; with
+`overlay=True`, `clearance` is the outward lift (for example `"4px"`),
+applied as a raised zero-width strut inside `\vphantom`, so the bracket rises
+while the terms stay on the baseline without serializing the selected subtree
+during transformation.
+`label_color` colours only the label text, so a span label can match its fill
+in a darker shade.
 
 ### Target selection
 
@@ -962,9 +988,10 @@ target. There is no mutable `.select(...)` state.
 markers determine their side: `underbrace`, `undergroup` and `underline`
 are below, while `overbrace` and `overgroup` are above; a contradictory
 explicit `side` is an error. Neutral markers (`none`, `arrow`, `rule`,
-`brace`, `box`) accept an explicit side, defaulting to `side="above"`;
-`brace` is a generic span marker lowered to `\overbrace` or `\underbrace`
-according to that side. `clearance` is the outward distance between the
+`brace`, `box`) accept an explicit side, defaulting to `side="auto"`, which
+resolves above unless the approximate layout solver moves the label to avoid
+a collision; `brace` is a generic span marker lowered to `\overbrace` or
+`\underbrace` according to that side. `clearance` is the outward distance between the
 target and its marker, not a shift of the mathematical content. `marker` and
 `clearance` are `AnnotationStyle` fields, so functional and fluent
 construction produce identical plans.
@@ -1011,6 +1038,13 @@ These are conveniences over target objects, not string searches in LaTeX.
 Matrix indices are zero-based and slices are half-open. Expression selectors
 require retained provenance; the extension must not reconstruct an operation
 from a numerical result.
+
+A rule with `join=True` renders adjacent selected terms as one continuous
+span: internal separators stay inside the fill, a label appears once for the
+run, and the span's leading sign stays inside the highlight. Rules without
+`join` render each placement separately. Distinct joined spans in one sum must
+nest or stay disjoint; crossing spans are rejected because their grouping is
+ambiguous.
 
 Value-component selectors default to the result side of an expression/value
 display. Selecting components within an expression operand needs an explicit
@@ -1193,8 +1227,10 @@ For example:
 }{e_1 \bullet e_2}
 ```
 
-`\colorbox` enters text mode in KaTeX. The backend must safely re-enter math
-mode when boxing mathematical content.
+`\colorbox` enters text mode in KaTeX. The backend re-enters math mode with
+`$ ... $` inside the box, and annotated views hand the resulting math to
+rich-display frontends as one inline block so Markdown `$` tokenizers cannot
+split it.
 
 ### Layout solving
 
@@ -1217,7 +1253,10 @@ renderer cannot place a target precisely.
 
 ### Safety and trust
 
-The default renderer must emit trusted-free KaTeX.
+The default plain-label path must emit trusted-free KaTeX. `label_latex` is an
+explicit advanced mode whose contents are trusted as KaTeX source, never as
+HTML; the complete equation must be HTML-escaped at any rich-display markup
+boundary.
 
 The following are not baseline requirements because they are unsupported or
 trust-sensitive in Marimo's KaTeX environment:

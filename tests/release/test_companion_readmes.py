@@ -10,7 +10,7 @@ from pathlib import Path
 import pytest
 
 ROOT = Path(__file__).resolve().parents[2]
-COMPANIONS = ("galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid")
+COMPANIONS = ("galaga_annotation", "galaga_anywidget", "galaga_marimo", "galaga_matrix", "galaga_mermaid")
 
 
 @pytest.mark.parametrize("package", COMPANIONS)

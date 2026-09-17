@@ -21,14 +21,16 @@ sed -i '' "s/^version = \"$CURRENT\"/version = \"$NEW\"/" \
     "$ROOT/packages/galaga/pyproject.toml" \
     "$ROOT/packages/galaga_anywidget/pyproject.toml" \
     "$ROOT/packages/galaga_marimo/pyproject.toml" \
-    "$ROOT/packages/galaga_matrix/pyproject.toml"
+    "$ROOT/packages/galaga_matrix/pyproject.toml" \
+    "$ROOT/packages/galaga_annotation/pyproject.toml"
 
 # --- Update galaga dependency floors in every companion package ---
 sed -i '' "s/\"galaga>=.*\"/\"galaga>=$NEW\"/" \
     "$ROOT/packages/galaga_marimo/pyproject.toml" \
     "$ROOT/packages/galaga_anywidget/pyproject.toml" \
     "$ROOT/packages/galaga_matrix/pyproject.toml" \
-    "$ROOT/packages/galaga_mermaid/pyproject.toml"
+    "$ROOT/packages/galaga_mermaid/pyproject.toml" \
+    "$ROOT/packages/galaga_annotation/pyproject.toml"
 
 # --- Regenerate lockfile to reflect version changes ---
 uv lock
@@ -78,6 +80,9 @@ uv run pytest packages/galaga/tests/ -v
 echo "==> Running galaga-matrix tests"
 PYTHONPATH=.:packages/galaga_matrix uv run pytest packages/galaga_matrix/tests/ -v
 
+echo "==> Running galaga-annotation tests"
+PYTHONPATH=.:packages/galaga_annotation uv run pytest packages/galaga_annotation/tests/ -v
+
 echo "==> Running galaga-anywidget tests (Python 3.11)"
 TMPVENV=$(mktemp -d)/release-anywidget-test
 uv venv "$TMPVENV" --python 3.11
@@ -94,12 +99,13 @@ rm -rf "$TMPVENV"
 
 # --- Build + check ---
 echo "==> Building"
-rm -rf dist/ packages/galaga_anywidget/dist/ packages/galaga_marimo/dist/ packages/galaga_matrix/dist/
+rm -rf dist/ packages/galaga_anywidget/dist/ packages/galaga_marimo/dist/ packages/galaga_matrix/dist/ packages/galaga_annotation/dist/
 cd packages/galaga && uv build
 cd "$ROOT"
 uv build --package galaga-anywidget --out-dir packages/galaga_anywidget/dist
 cd "$ROOT/packages/galaga_marimo" && uv build
 cd "$ROOT/packages/galaga_matrix" && uv build
+cd "$ROOT/packages/galaga_annotation" && uv build
 cd "$ROOT"
 
 echo "==> Twine check"
@@ -107,6 +113,7 @@ uvx twine check dist/galaga-*
 uvx twine check packages/galaga_anywidget/dist/galaga_anywidget-*
 uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
 uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
+uvx twine check packages/galaga_annotation/dist/galaga_annotation-*
 
 echo "==> Legacy-free Galaga artifact check"
 uv run python scripts/check_galaga_artifact.py --project packages/galaga dist/galaga-*
@@ -127,6 +134,9 @@ uv publish packages/galaga_marimo/dist/galaga_marimo-*
 
 echo "==> Publishing galaga-matrix"
 uv publish packages/galaga_matrix/dist/galaga_matrix-*
+
+echo "==> Publishing galaga-annotation"
+uv publish packages/galaga_annotation/dist/galaga_annotation-*
 
 # --- Tag + push + release ---
 echo "==> Tagging v$NEW"
