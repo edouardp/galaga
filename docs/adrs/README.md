@@ -160,6 +160,11 @@ classes are no longer production alternatives.
 | [137](137-automatic-expression-equalities.md) | Automatic Expression Equalities | Accepted |
 | [138](138-scoped-notation-shortcut.md) | Scoped Notation Shortcut | Accepted |
 | [139](139-reusable-presentation-views.md) | Reusable Presentation Views | Accepted |
+| [142](142-reusable-callable-annotators.md) | Reusable Callable Annotators | Proposed |
+| [143](143-concrete-render-documents-and-semantic-anchors.md) | Concrete Render Documents and Semantic Anchors | Accepted |
+| [144](144-expression-render-occurrence-anchors.md) | Expression Render Occurrence Anchors | Accepted |
+| [145](145-teaching-render-documents-and-presenter-capture.md) | Teaching Render Documents and Presenter Capture | Accepted |
+| [146](146-expression-component-anchor-scopes.md) | Expression Component Anchor Scopes | Accepted |
 
 ## Creating New ADRs
 
