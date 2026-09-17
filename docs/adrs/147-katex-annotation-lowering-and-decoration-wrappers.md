@@ -113,6 +113,10 @@ stages include the distribution.
 - Annotated views remain rendering-only. Arithmetic propagation is deferred.
 - Approximate placement may leave residual collisions; the solved layout is
   exposed for tests and debugging instead of silently shifting content.
+- Teaching notebooks define reusable semantic palettes at lesson scope rather
+  than assigning incidental colors per equation. The annotation package does
+  not impose a global palette; lessons must keep each concept's fill, marker,
+  and label colors stable across related displays.
 - The extension can grow new lowerings without changing core as long as it
   emits `Decorated` wrappers.
 
