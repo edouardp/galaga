@@ -29,8 +29,9 @@ See [ADR-144](../adrs/144-expression-render-occurrence-anchors.md).
 presenter views expose `render_document` with captured settings. See
 [ADR-145](../adrs/145-teaching-render-documents-and-presenter-capture.md).
 Expression-literal components are also anchored by original operand scope
-using `select(..., scope="expr", path=...)`. See
-[ADR-146](../adrs/146-expression-component-anchor-scopes.md).
+using `select(..., scope="expr", path=...)`, which selects components at or
+below the original occurrence path (`()` selects the whole expression
+subtree). See [ADR-146](../adrs/146-expression-component-anchor-scopes.md).
 Extension wrapper adapters and the annotation package itself are not yet
 implemented.
 
@@ -736,7 +737,19 @@ class AnnotationStyle:
     background: str | None = None
     border: str | None = None
     emphasis: Literal["normal", "bold", "italic"] = "normal"
-    marker: Literal["none", "arrow", "brace", "underline", "box"] = "none"
+    marker: Literal[
+        "none",
+        "arrow",
+        "rule",
+        "brace",
+        "underline",
+        "box",
+        "underbrace",
+        "overbrace",
+        "undergroup",
+        "overgroup",
+    ] = "none"
+    clearance: str | None = None
 ```
 
 Semantic roles and visual styles remain separate. A notebook may render the
@@ -851,16 +864,14 @@ does not recreate an eliminated operation or attach its label to a result.
 Matrix annotations use explicit regions rather than expression paths:
 
 ```python
-MatrixRegion(
-    rows=slice(0, 2),
-    columns=slice(2, 4),
-    label="right-chiral block",
-)
+MatrixRegion(rows=slice(0, 2), columns=slice(2, 4))
 ```
 
 Regions may identify rows, columns, rectangular blocks, individual entries,
 or named basis blocks. A matrix adapter must validate that a region belongs to
-the represented matrix shape.
+the represented matrix shape. A region is a target only; its label, style and
+side belong to the surrounding `Annotation` (the `annotate_region(...)`
+convenience above binds the two).
 
 ### Integration with Galaga values
 
@@ -947,12 +958,16 @@ target. There is no mutable `.select(...)` state.
 - `.label(text, target=whole(), ...)` appends a label and optional marker.
 - `.mark(target=whole(), ...)` appends a combined highlight and label rule.
 
-`on(...)` and `.mark(...)` accept the same annotation fields. Above/below
-markers determine their side; a contradictory explicit side is an error.
-Neutral markers such as `arrow` or `rule` accept an explicit side.
-The full style schema remains to be reconciled with Part I; `clearance`
-means outward distance between the target and marker, not a shift of the
-mathematical content.
+`on(...)` and `.mark(...)` accept the same annotation fields. Directional
+markers determine their side: `underbrace`, `undergroup` and `underline`
+are below, while `overbrace` and `overgroup` are above; a contradictory
+explicit `side` is an error. Neutral markers (`none`, `arrow`, `rule`,
+`brace`, `box`) accept an explicit side, defaulting to `side="above"`;
+`brace` is a generic span marker lowered to `\overbrace` or `\underbrace`
+according to that side. `clearance` is the outward distance between the
+target and its marker, not a shift of the mathematical content. `marker` and
+`clearance` are `AnnotationStyle` fields, so functional and fluent
+construction produce identical plans.
 
 ```python
 carrier_lesson = (
@@ -1119,18 +1134,21 @@ The ordinary Galaga `Presenter` must remain usable without installing the
 extension. The adapter may consume a lightweight optional annotation protocol
 or an annotation-aware view.
 
-### Integration with `MatrRepresentation`
+### Integration with `MatrixRepresentation`
 
-Matrix conversion must preserve enough provenance for the annotation adapter
-to relate a matrix to its source value and basis:
+Matrix annotations consume the provenance that `galaga_matrix` already owns
+(ADR-082) rather than defining a parallel annotation-owned type:
 
-```python
-MatrixProvenance(
-    source=value,
-    basis=...,
-    mode="compact",
-)
-```
+- `MatrixRepr` carries the source algebra, representation mode, basis,
+  coefficient domain and kind;
+- `MatrixRepresentation` (in `galaga_matrix.expr`) records the immutable
+  expression tree for tracked conversions;
+- `MatrixRepresentationPlan` records the algebra-derived conversion data
+  (descriptor, matrix shape, generators, coefficient indices and tolerances).
+
+The annotation adapter reads these public objects to relate a matrix to its
+source value and basis. It must not reimplement conversion or introduce a
+competing provenance class.
 
 There are two separate annotation classes:
 

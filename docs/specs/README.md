@@ -16,6 +16,10 @@ Statuses below describe completion against the Galaga 1 design at the time.
 Examples using `.name()`, `.symbolic()`, `.numeric()`, or `symbolic=True` are
 historical; Galaga 2 uses immutable `.named()` and `expr=True`.
 
+[SPEC-015](SPEC-015-expression-and-matrix-annotations.md) is the exception:
+it is a proposed Galaga 2 extension built on the implemented semantic-anchor
+prerequisites in ADR-143–146, not Galaga 1 history.
+
 ## Specs
 
 | Spec | Status | Description |
