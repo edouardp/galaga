@@ -120,20 +120,72 @@ def _expression_tree(
     presentation: PresentationConfig,
     *,
     target: str | None,
+    occurrences: list[tuple[tuple[int, ...], Expr, Node]] | None = None,
+    path: tuple[int, ...] = (),
+    literal_components: dict[tuple[int, ...], list[tuple[int, bool, Node | None, Node | None]]] | None = None,
+) -> Node:
+    if occurrences is not None:
+        # Keep all layout construction in the ordinary builder. Recording is
+        # opt-in and changes neither tree structure nor emitted output.
+        body = _expression_tree_recorded(
+            expression,
+            presentation,
+            target=target,
+            occurrences=occurrences,
+            path=path,
+            literal_components=literal_components,
+        )
+        occurrences.append((path, expression, body))
+        return body
+    return _expression_tree_recorded(
+        expression, presentation, target=target, occurrences=None, path=path, literal_components=literal_components
+    )
+
+
+def _expression_tree_recorded(
+    expression: Expr,
+    presentation: PresentationConfig,
+    *,
+    target: str | None,
+    occurrences: list[tuple[tuple[int, ...], Expr, Node]] | None,
+    path: tuple[int, ...],
+    literal_components: dict[tuple[int, ...], list[tuple[int, bool, Node | None, Node | None]]] | None,
 ) -> Node:
     if isinstance(expression, Symbol):
         return Identifier(expression.name)
     if isinstance(expression, ScalarLiteral):
-        return _signed_literal(expression.value, presentation)
+        body = _signed_literal(expression.value, presentation)
+        if literal_components is not None and expression.value != 0:
+            magnitude = body.operand if isinstance(body, Prefix) else body
+            literal_components[path] = [(0, expression.value < 0, magnitude, None)]
+        return body
     if isinstance(expression, BladeLiteral):
-        return _blade_term(expression.mask, float(expression.orientation), presentation)
+        components = [] if literal_components is not None else None
+        body = _blade_term(expression.mask, float(expression.orientation), presentation, components=components)
+        if literal_components is not None and components is not None:
+            literal_components[path] = components
+        return body
     if isinstance(expression, MultivectorLiteral):
-        return _coefficient_tree(expression.coefficients, presentation)
+        components = [] if literal_components is not None else None
+        body = _coefficient_tree(expression.coefficients, presentation, components=components)
+        if literal_components is not None and components is not None:
+            literal_components[path] = components
+        return body
     if isinstance(expression, ExpressionCall):
         # Resolve the operation before descending so a stale or foreign ID
         # fails in the semantic layer, independently of emitter selection.
         operation = _get_operation(expression.operation_id)
-        operands = tuple(_expression_tree(operand, presentation, target=target) for operand in expression.operands)
+        operands = tuple(
+            _expression_tree(
+                operand,
+                presentation,
+                target=target,
+                occurrences=occurrences,
+                path=(*path, index),
+                literal_components=literal_components,
+            )
+            for index, operand in enumerate(expression.operands)
+        )
         parameter_specs = {parameter.name: parameter for parameter in operation.parameters}
         parameters = tuple(
             (name, _parameter_tree(value, presentation))
@@ -191,7 +243,12 @@ def content_tree(
     return parts[0] if len(parts) == 1 else Equality(parts)
 
 
-def _coefficient_tree(coefficients: Sequence[float], presentation: PresentationConfig) -> Node:
+def _coefficient_tree(
+    coefficients: Sequence[float],
+    presentation: PresentationConfig,
+    *,
+    components: list[tuple[int, bool, Node | None, Node | None]] | None = None,
+) -> Node:
     expected = 1 << presentation.dimension
     if len(coefficients) != expected:
         raise ValueError(
@@ -206,13 +263,21 @@ def _coefficient_tree(coefficients: Sequence[float], presentation: PresentationC
         label = presentation.blades.label(mask)
         displayed_coefficient = coefficient * label.ref.orientation
         magnitude = abs(displayed_coefficient)
+        coefficient_node: Node | None = None
+        blade_node: Node | None = None
         if mask == 0:
             body: Node = _literal(magnitude, presentation)
+            coefficient_node = body
         elif _formats_as_one(magnitude, presentation.display.coefficient_precision):
             body = Identifier(label.name)
+            blade_node = body
         else:
-            body = Product((_literal(magnitude, presentation), Identifier(label.name)))
+            coefficient_node = _literal(magnitude, presentation)
+            blade_node = Identifier(label.name)
+            body = Product((coefficient_node, blade_node))
         terms.append(SumTerm(body, displayed_coefficient < 0))
+        if components is not None:
+            components.append((mask, displayed_coefficient < 0, coefficient_node, blade_node))
     if not terms:
         return _literal(0, presentation)
     if len(terms) == 1:
@@ -221,13 +286,19 @@ def _coefficient_tree(coefficients: Sequence[float], presentation: PresentationC
     return Sum(terms)
 
 
-def _blade_term(mask: int, coefficient: float, presentation: PresentationConfig) -> Node:
+def _blade_term(
+    mask: int,
+    coefficient: float,
+    presentation: PresentationConfig,
+    *,
+    components: list[tuple[int, bool, Node | None, Node | None]] | None = None,
+) -> Node:
     limit = 1 << presentation.dimension
     if not 0 <= mask < limit:
         raise ValueError(f"blade mask {mask} is outside presentation dimension {presentation.dimension}")
     coefficients = [0.0] * limit
     coefficients[mask] = coefficient
-    return _coefficient_tree(coefficients, presentation)
+    return _coefficient_tree(coefficients, presentation, components=components)
 
 
 def _literal(value: int | float, presentation: PresentationConfig) -> Literal:

@@ -11,6 +11,7 @@ from .presets._implementation import BladePreset
 
 if TYPE_CHECKING:
     from .facade._numeric import Multivector
+    from .rendering import RenderDocument
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -125,6 +126,19 @@ class PresentedMultivector:
     def latex(self, *, content: str | None = None) -> str:
         """Raw LaTeX; suitable for direct galaga_marimo interpolation."""
         return self.display(content=content, target="latex")
+
+    def render_document(
+        self,
+        *,
+        content: str | None = None,
+        target: str | None = None,
+        presentation: PresentationConfig | None = None,
+        notation: Notation | None = None,
+    ) -> RenderDocument:
+        """Build semantic anchors using this view's captured presentation."""
+        from .rendering import content_document
+
+        return content_document(self, content=content, target=target, presentation=presentation, notation=notation)
 
     def unicode(self, *, content: str | None = None) -> str:
         return self.display(content=content, target="unicode")

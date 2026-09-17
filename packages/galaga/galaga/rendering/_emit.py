@@ -217,9 +217,26 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         separator = r" \quad = \quad " if target == "latex" else " = "
         # Teaching display omits parts that become identical only after the
         # selected notation and target have been emitted.
-        rendered_parts = dict.fromkeys(_emit(part, target, compact_fractions=compact_fractions) for part in node.parts)
-        return separator.join(rendered_parts)
+        return separator.join(
+            rendered for _, rendered in _equality_parts(node, target, compact_fractions=compact_fractions)
+        )
     raise TypeError(f"unsupported semantic render node {type(node).__name__}")
+
+
+def _equality_indices(node: Equality, target: str, *, compact_fractions: bool = False) -> tuple[int, ...]:
+    """Shared visibility policy for emitters and semantic render documents."""
+    return tuple(index for index, _ in _equality_parts(node, target, compact_fractions=compact_fractions))
+
+
+def _equality_parts(node: Equality, target: str, *, compact_fractions: bool = False) -> tuple[tuple[int, str], ...]:
+    seen: set[str] = set()
+    indices = []
+    for index, part in enumerate(node.parts):
+        rendered = _emit(part, target, compact_fractions=compact_fractions)
+        if rendered not in seen:
+            seen.add(rendered)
+            indices.append((index, rendered))
+    return tuple(indices)
 
 
 def _table(node: Table, target: str) -> str:

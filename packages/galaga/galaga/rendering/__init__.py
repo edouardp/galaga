@@ -1,6 +1,15 @@
 """Format-neutral semantic rendering for the Galaga 2 facade."""
 
 from ._build import content_tree, expression_tree, value_tree
+from .document import (
+    ContentAnchor,
+    ExpressionAnchor,
+    RenderAnchor,
+    RenderDocument,
+    content_document,
+    expression_document,
+    value_document,
+)
 from .tree import (
     Accent,
     Associativity,
@@ -34,8 +43,10 @@ __all__ = [
     "Accent",
     "Associativity",
     "Call",
+    "ContentAnchor",
     "Delimited",
     "Equality",
+    "ExpressionAnchor",
     "Fraction",
     "GradeColor",
     "Group",
@@ -49,6 +60,8 @@ __all__ = [
     "Precedence",
     "Prefix",
     "Product",
+    "RenderAnchor",
+    "RenderDocument",
     "Subscript",
     "Sum",
     "SumTerm",
@@ -57,7 +70,10 @@ __all__ = [
     "Underset",
     "Wrapper",
     "content_tree",
+    "content_document",
     "expression_tree",
+    "expression_document",
     "grouped_child",
     "value_tree",
+    "value_document",
 ]

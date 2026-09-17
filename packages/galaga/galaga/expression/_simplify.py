@@ -83,4 +83,53 @@ def _is_zero(expression: Expr) -> bool:
     return isinstance(expression, ScalarLiteral) and expression.value == 0
 
 
+def _simplify_with_paths(expression: Expr) -> tuple[Expr, dict[tuple[int, ...], tuple[int, ...]]]:
+    """Track surviving occurrences using the same rewrites as ``simplify``.
+
+    Keys address the original tree; values address the simplified tree.
+    Folded operations keep their whole-expression occurrence, but discarded
+    operands have no entry. Consumers must separately check operation IDs.
+    """
+
+    def walk(node: Expr) -> tuple[Expr, dict[tuple[int, ...], tuple[int, ...]]]:
+        if not isinstance(node, Call):
+            return node, {(): ()}
+        children = tuple(walk(child) for child in node.operands)
+        operands = tuple(child for child, _ in children)
+        call = node if operands == node.operands else Call(node.operation_id, operands, node.parameters)
+        result = _rewrite(call)
+        paths: dict[tuple[int, ...], tuple[int, ...]] = {(): ()}
+        if result is call:
+            for index, (_, child_paths) in enumerate(children):
+                for old, new in child_paths.items():
+                    paths[(index, *old)] = (index, *new)
+        elif result is operands[0]:
+            for old, new in children[0][1].items():
+                paths[(0, *old)] = new
+        elif len(operands) > 1 and result is operands[1]:
+            for old, new in children[1][1].items():
+                paths[(1, *old)] = new
+        elif node.operation_id == "negate" and isinstance(operands[0], Call) and operands[0].operation_id == "negate":
+            for old, new in children[0][1].items():
+                if new[:1] == (0,):
+                    paths[(0, *old)] = new[1:]
+        elif isinstance(result, Call):
+            # scalar_multiply(x, -1) becomes negate(x), preserving its operand.
+            for index, (_, child_paths) in enumerate(children):
+                for old, new in child_paths.items():
+                    paths[(index, *old)] = (index, *new)
+        return result, paths
+
+    if not isinstance(expression, Expr):
+        raise TypeError("expression must be an Expr")
+    current = expression
+    mapping: dict[tuple[int, ...], tuple[int, ...]] | None = None
+    while True:
+        result, paths = walk(current)
+        mapping = paths if mapping is None else {old: paths[new] for old, new in mapping.items() if new in paths}
+        if result == current:
+            return result, mapping
+        current = result
+
+
 __all__ = ["simplify"]
