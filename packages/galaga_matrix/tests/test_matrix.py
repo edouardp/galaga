@@ -288,6 +288,12 @@ class TestMatrixRepr:
         assert r"\begin{pmatrix}" in latex
         assert r"\end{pmatrix}" in latex
 
+    def test_logical_shape_and_cell_latex(self):
+        mr = MatrixRepr(np.array([[1, 2], [3, 4]], dtype=complex))
+        assert mr.logical_shape == (2, 2)
+        assert mr.cell_latex(0, 0) == "1"
+        assert mr.cell_latex(1, 1) == "4"
+
     def test_latex_with_name(self):
         mat = np.eye(2, dtype=complex)
         mr = MatrixRepr(mat).name(latex=r"\sigma_1")
@@ -462,6 +468,13 @@ class TestQuaternionMatrix:
     def test_quat_latex(self):
         q = Quat(1, 0, -1, 0)
         assert q.latex() == "1-j"
+
+    def test_quaternion_logical_shape_and_cell_latex(self):
+        sta = Algebra(1, 3)
+        matrix = to_matrix(sta.basis_vectors()[0], mode="quaternion")
+        assert matrix.logical_shape == (2, 2)
+        assert matrix.cell_latex(0, 0) == "1"
+        assert matrix.cell_latex(1, 1) == "-1"
 
     def test_quat_repr(self):
         q = Quat(0, 0, 0, 1)

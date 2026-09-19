@@ -80,7 +80,9 @@ def test_clearance_adds_an_invisible_strut(value) -> None:
 
 def test_multiline_labels_become_a_substack(value) -> None:
     _, mv = value
-    assert ga.annotate(mv, label="first\nsecond").latex() == (r"\overset{\substack{\text{first} \\ \text{second}}}{e_{1} + e_{2}}")
+    assert ga.annotate(mv, label="first\nsecond").latex() == (
+        r"\overset{\substack{\text{first} \\ \text{second}}}{e_{1} + e_{2}}"
+    )
 
 
 def test_labels_are_escaped_for_latex(value) -> None:
@@ -94,33 +96,44 @@ def test_combined_styles_nest_labels_outside_boxes(value) -> None:
     assert rendered == r"\overset{\text{both}}{\colorbox{#e8f5e9}{$\textcolor{royalblue}{e_{1} + e_{2}}$}}"
 
 
-def test_marker_colour_applies_to_chrome_and_overlay_smashes(value) -> None:
+def test_marker_colour_applies_to_chrome_and_overlay_reserves_bounds(value) -> None:
     _, mv = value
     over = ga.annotate(mv, label="both", marker="overgroup", color="#0099cc", overlay=True)
-    assert over.latex() == (
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{both}}{\overgroup{\textcolor{black}{e_{1} + e_{2}}}}}}"
+    over_latex = over.latex()
+    assert over_latex.startswith(
+        r"\vphantom{\textcolor{#0099cc}{\overset{\mathclap{\text{both}}}{\overgroup{"
+        r"\textcolor{black}{\phantom{"
     )
+    assert r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{both}}}{\overgroup{" in over_latex
+    assert over_latex.endswith(r"e_{1} + e_{2}")
     under = ga.annotate(mv, label="both", marker="undergroup", color="#0099cc", overlay=True)
-    assert under.latex() == (
-        r"\smash[b]{\textcolor{#0099cc}{\underset{\text{both}}{\undergroup{\textcolor{black}{e_{1} + e_{2}}}}}}"
+    under_latex = under.latex()
+    assert under_latex.startswith(
+        r"\vphantom{\textcolor{#0099cc}{\underset{\mathclap{\text{both}}}{\undergroup{"
+        r"\textcolor{black}{\phantom{"
     )
+    assert r"\mathrlap{\smash[b]{\textcolor{#0099cc}{\underset{\mathclap{\text{both}}}{\undergroup{" in under_latex
+    assert under_latex.endswith(r"e_{1} + e_{2}")
     plain = ga.annotate(mv, label="both", marker="overgroup", color="#0099cc")
     assert plain.latex() == r"\textcolor{#0099cc}{\overset{\text{both}}{\overgroup{\textcolor{black}{e_{1} + e_{2}}}}}"
 
 
 def test_overlay_clearance_lifts_the_marker_not_the_terms(value) -> None:
     _, mv = value
-    lifted = ga.annotate(
-        mv, label="both", marker="overgroup", color="#0099cc", overlay=True, clearance="4px"
-    )
-    assert lifted.latex() == (
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{both}}{\overgroup{\textcolor{black}{"
-        r"\vphantom{\raisebox{4px}{\strut}}e_{1} + e_{2}}}}}}"
-    )
-    lowered = ga.annotate(
-        mv, label="both", marker="undergroup", color="#0099cc", overlay=True, clearance="4px"
-    )
-    assert r"\vphantom{\raisebox{-4px}{\strut}}" in lowered.latex()
+    lifted = ga.annotate(mv, label="both", marker="overgroup", color="#0099cc", overlay=True, clearance="4px")
+    lifted_latex = lifted.latex()
+    assert lifted_latex.count(r"\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}") == 2
+    assert r"\mathrlap{\smash[t]{" in lifted_latex
+    assert lifted_latex.endswith(r"e_{1} + e_{2}")
+    lowered = ga.annotate(mv, label="both", marker="undergroup", color="#0099cc", overlay=True, clearance="4px")
+    assert r"\vphantom{\raisebox{-4px}{\rule{0pt}{1em}}}" in lowered.latex()
+
+
+def test_vertical_clearance_does_not_inflate_estimated_label_width(value) -> None:
+    _, mv = value
+    ordinary = ga.annotate(mv, label="both", marker="overgroup", overlay=True).katex()
+    lifted = ga.annotate(mv, label="both", marker="overgroup", overlay=True, clearance="4px").katex()
+    assert lifted.labels[0].estimated_width == ordinary.labels[0].estimated_width
 
 
 def test_label_color_colours_only_the_label(value) -> None:
@@ -163,8 +176,8 @@ def test_adjacent_labels_alternate_sides_when_they_would_collide() -> None:
     result = view.katex()
     assert [label.side for label in result.labels] == ["above", "below"]
     assert [label.collided for label in result.labels] == [False, False]
-    assert r"\overset{\text{first}}{e_{1}}" in result.text
-    assert r"\underset{\text{second}}{e_{2}}" in result.text
+    assert r"\overset{\mathclap{\text{first}}}{\phantom{e_{1}}}" in result.text
+    assert r"\underset{\mathclap{\text{second}}}{\phantom{e_{2}}}" in result.text
 
 
 def test_raw_labels_and_generic_braces_follow_solved_layout() -> None:
@@ -176,8 +189,8 @@ def test_raw_labels_and_generic_braces_follow_solved_layout() -> None:
     )(e1 + e2)
     result = view.katex()
     assert [label.side for label in result.labels] == ["above", "below"]
-    assert r"\overset{\alpha + \beta}{e_{1}}" in result.text
-    assert r"\underbrace{e_{2}}_{\text{second}}" in result.text
+    assert r"\overset{\mathclap{\alpha + \beta}}{\phantom{e_{1}}}" in result.text
+    assert r"\underbrace{\textcolor{black}{\phantom{e_{2}}}}_{\mathclap{\text{second}}}" in result.text
 
 
 def test_no_placements_returns_the_plain_latex(value) -> None:

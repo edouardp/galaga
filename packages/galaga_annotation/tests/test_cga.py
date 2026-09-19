@@ -147,21 +147,32 @@ def test_dipole_highlight_keeps_contiguous_fills_with_overgroups_on_top() -> Non
     rendered = view.latex()
     assert rendered.count(r"\colorbox{#b8e6bf}") == 1
     assert rendered.count(r"\colorbox{#d8c4ee}") == 1
-    # Overgroups sit above a subset of their fill without splitting it.
+    # Labels and overgroups are independent overlays over one continuous fill.
     assert (
-        r"\underset{\textcolor{#2f7d4f}{\text{carrier line}}}{\colorbox{#b8e6bf}{$"
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{cocarrier normal}}{\overgroup{"
+        r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
+        r"\text{carrier line}}}}{\phantom{" in rendered
+    )
+    assert (
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}"
+        r"{\overgroup{" in rendered
+    )
+    assert (
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}{"
+        r"\overgroup{"
         r"\textcolor{black}{\vphantom{\raisebox{4px}{" in rendered
     )
     assert (
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{cocarrier position}}{\overgroup{"
-        r"\textcolor{black}{\vphantom{\raisebox{4px}{" in rendered
+        r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
+        r"\text{flat point}}}}{\phantom{" in rendered
     )
-    assert r"\underset{\textcolor{#6b4a9e}{\text{flat point}}}{\colorbox{#d8c4ee}{$" in rendered
     green_start = rendered.index(r"\colorbox{#b8e6bf}")
-    normal_start = rendered.index(r"\overset{\text{cocarrier normal}}")
+    normal_start = rendered.index(
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}"
+    )
     purple_start = rendered.index(r"\colorbox{#d8c4ee}")
-    position_start = rendered.index(r"\overset{\text{cocarrier position}}")
+    position_start = rendered.index(
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}"
+    )
     assert green_start < normal_start < purple_start < position_start
     # Marker chrome is coloured; the highlighted terms keep their own colour.
     assert r"\overgroup{\textcolor{#0099cc}{" not in rendered
@@ -175,7 +186,10 @@ def test_dipole_leading_negative_sign_stays_inside_the_span(cga: ConformalModel,
     # carrier highlight rather than the preceding separator.
     rendered = ga.highlight_cga(cga)(objects["dipole"]).latex()
     assert r"\colorbox{#b8e6bf}{$" in rendered
-    assert r"\overgroup{\textcolor{black}{\vphantom{\raisebox{4px}{\strut}}-\mathbf{e}_{41}" in rendered
+    assert (
+        r"\overgroup{\textcolor{black}{\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}"
+        r"\phantom{\mathord{-}\>\mathbf{e}_{41}" in rendered
+    )
 
 
 def test_circle_families_match_lengyel_blade_groups(cga: ConformalModel, objects) -> None:
@@ -213,3 +227,25 @@ def test_round_object_highlights_explain_component_families(cga: ConformalModel,
     assert all(label in rendered for label in labels)
     assert r"\colorbox" in rendered
     assert "- -" not in rendered
+
+
+@pytest.mark.parametrize("marker", ("overgroup", "overbrace", "overline", "overbracket"))
+def test_cocarrier_marker_style_is_configurable(cga: ConformalModel, objects, marker: str) -> None:
+    rendered = ga.highlight_cga(cga, over_marker=marker)(objects["dipole"]).latex()
+    # Two visible cocarrier callouts plus two invisible bounds reservations.
+    assert rendered.count("\\" + marker) == 4
+    for other in ("overgroup", "overbrace", "overline", "overbracket"):
+        if other != marker:
+            assert rendered.count("\\" + other) == 0
+
+
+def test_invalid_over_marker_is_rejected(cga: ConformalModel) -> None:
+    with pytest.raises(ValueError, match="over_marker"):
+        ga.highlight_cga(cga, over_marker="underbrace")
+
+
+def test_highlight_object_alias_matches_highlight_cga(cga: ConformalModel, objects) -> None:
+    alias = ga.highlight_object(cga, over_marker="overbrace")(objects["dipole"]).latex()
+    direct = ga.highlight_cga(cga, over_marker="overbrace")(objects["dipole"]).latex()
+    assert alias == direct
+    assert ga.OverMarker is not None

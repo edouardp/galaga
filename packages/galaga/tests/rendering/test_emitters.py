@@ -15,6 +15,7 @@ from galaga.presentation import default_presentation
 from galaga.rendering import (
     Accent,
     Call,
+    Decorated,
     Delimited,
     Equality,
     Fraction,
@@ -112,6 +113,21 @@ def test_every_semantic_node_is_consumed_by_all_three_emitters(
     assert emit(node, "ascii") == ascii  # type: ignore[arg-type]
     assert emit(node, "unicode") == unicode  # type: ignore[arg-type]
     assert emit(node, "latex") == latex  # type: ignore[arg-type]
+
+
+def test_sum_term_sign_override_replaces_only_the_emitted_glyph() -> None:
+    body = Sum((SumTerm(Identifier("a")), SumTerm(Identifier("b"), negative=True)))
+    assert emit(body, "latex") == "a - b"
+    assert emit(body, "ascii") == "a - b"
+    decorated = Sum(
+        (
+            SumTerm(Identifier("a")),
+            SumTerm(Identifier("b"), negative=True, sign=Decorated(Text("-"), r"\textcolor{red}{", "}")),
+        )
+    )
+    assert emit(decorated, "latex") == r"a \textcolor{red}{-} b"
+    # Decoration is renderer-specific; plain text keeps the semantic sign.
+    assert emit(decorated, "ascii") == "a - b"
 
 
 def test_teaching_equality_deduplicates_after_target_specific_rendering() -> None:

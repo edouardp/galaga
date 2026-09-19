@@ -73,12 +73,14 @@ available rather than forcing one interpretation:
   as plane part, center part, flat part, and flat weight.
 
 Both views use continuous green round-family and purple flat-family spans.
-Cyan overgroups in the incidence view use `overlay=True` with a `"4px"`
-clearance, so a raised phantom lifts each smashed bracket above its enclosing
-fill without moving the terms or splitting the fill. Sign placement follows
+Cyan overgroups in the incidence view use a `"4px"` clearance. Term-span
+markers lower automatically as independent overlays: a raised phantom lifts
+each smashed bracket above its enclosing fill, while an outer phantom reserves
+its KaTeX bounds without moving the terms or splitting the fill. Sign placement follows
 the joined-span rules: a span's leading sign stays inside its highlight and
-the separator between spans stays unhighlighted. Objects without a specialized
-incidence view fall back to their component-role labels.
+the separator between spans stays unhighlighted unless a matching sign-target
+fill explicitly fuses it into the following span. Objects without a
+specialized incidence view fall back to their component-role labels.
 
 ## Consequences
 
@@ -92,7 +94,8 @@ incidence view fall back to their component-role labels.
 - The classifier identifies algebraic families, not real/imaginary radius,
   tangent, or other degeneracy subclasses; those require additional center,
   carrier, weight and radius invariants.
-- Crossing joined spans remain rejected by the renderer (ADR-147).
+- Crossing content-style spans remain rejected until they have an overlap
+  policy. External callouts may cross highlights (ADR-154).
 
 ## Validation
 

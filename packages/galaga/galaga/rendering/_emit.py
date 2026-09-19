@@ -92,7 +92,10 @@ def _emit(node: Node, target: str, *, compact_fractions: bool = False) -> str:
         rendered: list[str] = []
         for index, term in enumerate(node.terms):
             body = _emit(term.body, target, compact_fractions=compact_fractions)
-            if index == 0:
+            if term.sign is not None:
+                sign = _emit(term.sign, target, compact_fractions=compact_fractions)
+                rendered.append(f"{sign}{body}" if index == 0 else f" {sign} {body}")
+            elif index == 0:
                 rendered.append(f"-{body}" if term.negative else body)
             else:
                 rendered.append((" - " if term.negative else " + ") + body)

@@ -30,6 +30,10 @@ class Annotator:
         object.__setattr__(self, "rules", rules)
 
     def __call__(self, value: Any):
+        from .matrix import AnnotatedMatrix, is_matrix
+
+        if is_matrix(value):
+            return AnnotatedMatrix(value, self.rules)
         from .view import Annotated
 
         return Annotated(value, self.rules)

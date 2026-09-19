@@ -10,7 +10,7 @@ import re
 from dataclasses import dataclass, field
 from typing import Any, Literal
 
-from .targets import TARGET_TYPES, WholeExpression
+from .targets import ANNOTATION_TARGET_TYPES, WholeExpression
 
 __all__ = [
     "Annotation",
@@ -32,13 +32,28 @@ Marker = Literal[
     "overbrace",
     "undergroup",
     "overgroup",
+    "overline",
+    "overbracket",
 ]
 Side = Literal["above", "below", "auto"]
 MissingPolicy = Literal["ignore", "error"]
 Emphasis = Literal["normal", "bold", "italic"]
 
 MARKERS: frozenset[str] = frozenset(
-    {"none", "arrow", "rule", "brace", "underline", "box", "underbrace", "overbrace", "undergroup", "overgroup"}
+    {
+        "none",
+        "arrow",
+        "rule",
+        "brace",
+        "underline",
+        "box",
+        "underbrace",
+        "overbrace",
+        "undergroup",
+        "overgroup",
+        "overline",
+        "overbracket",
+    }
 )
 DIRECTIONAL_MARKERS: dict[str, str] = {
     "underbrace": "below",
@@ -46,6 +61,8 @@ DIRECTIONAL_MARKERS: dict[str, str] = {
     "underline": "below",
     "overbrace": "above",
     "overgroup": "above",
+    "overline": "above",
+    "overbracket": "above",
 }
 
 _COLOR = re.compile(r"^(#[0-9a-fA-F]{3,8}|[a-zA-Z]{2,32})$")
@@ -142,7 +159,7 @@ class Annotation:
     join: bool = False
 
     def __post_init__(self) -> None:
-        if not isinstance(self.target, TARGET_TYPES):
+        if not isinstance(self.target, ANNOTATION_TARGET_TYPES):
             raise TypeError("annotation target must be a galaga_annotation target")
         if not isinstance(self.style, AnnotationStyle):
             raise TypeError("annotation style must be an AnnotationStyle")
@@ -183,7 +200,7 @@ def on(
 
     if target is None:
         target = WholeExpression()
-    if not isinstance(target, TARGET_TYPES):
+    if not isinstance(target, ANNOTATION_TARGET_TYPES):
         from .targets import ExpressionPath
 
         if isinstance(target, tuple) and all(

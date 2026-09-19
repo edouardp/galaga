@@ -1,4 +1,4 @@
-"""Joined term spans: opt-in continuous highlights and nested layers."""
+"""Joined content spans and independent external-callout layers."""
 
 from __future__ import annotations
 
@@ -24,9 +24,7 @@ def test_join_merges_adjacent_terms_into_one_continuous_span() -> None:
     algebra = Algebra(3)
     e1, e2, e3 = algebra.basis_vectors()
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
-    rendered = ga.annotate(
-        value, ga.on(ga.terms(e1, e2), background="#eee", join=True)
-    ).latex()
+    rendered = ga.annotate(value, ga.on(ga.terms(e1, e2), background="#eee", join=True)).latex()
     assert rendered == r"\colorbox{#eee}{$e_{1} + e_{2}$} + e_{3}"
 
 
@@ -34,10 +32,13 @@ def test_joined_span_shows_one_label_for_the_whole_run() -> None:
     algebra = Algebra(3)
     e1, e2, e3 = algebra.basis_vectors()
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
-    rendered = ga.annotate(
-        value, ga.on(ga.terms(e1, e2), background="#eee", label="pair", join=True)
-    ).latex()
-    assert rendered == r"\overset{\text{pair}}{\colorbox{#eee}{$e_{1} + e_{2}$}} + e_{3}"
+    rendered = ga.annotate(value, ga.on(ga.terms(e1, e2), background="#eee", label="pair", join=True)).latex()
+    assert rendered == (
+        r"\vphantom{\overset{\mathclap{\text{pair}}}{\phantom{e_{1} + e_{2}}}}"
+        r"\colorbox{#eee}{$\mathrlap{\smash[t]{\overset{\mathclap{\text{pair}}}{"
+        r"\phantom{e_{1} + e_{2}}}}}"
+        r"e_{1} + e_{2}$} + e_{3}"
+    )
 
 
 def test_unjoined_labels_stay_with_each_term() -> None:
@@ -45,9 +46,10 @@ def test_unjoined_labels_stay_with_each_term() -> None:
     e1, e2, e3 = algebra.basis_vectors()
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
     rendered = ga.annotate(value, ga.on(ga.terms(e1, e2), label="term")).latex()
-    assert r"\overset{\text{term}}{e_{1}}" in rendered
-    assert r"\underset{\text{term}}{e_{2}}" in rendered
-    assert rendered.count("term") == 2
+    assert r"\mathrlap{\smash[t]{\overset{\mathclap{\text{term}}}{\phantom{e_{1}}}}}e_{1}" in rendered
+    assert r"\mathrlap{\smash[b]{\underset{\mathclap{\text{term}}}{\phantom{e_{2}}}}}e_{2}" in rendered
+    # Each label occurs in the visible overlay and its invisible bounds copy.
+    assert rendered.count("term") == 4
 
 
 def test_joined_span_keeps_a_leading_sign_inside_the_highlight() -> None:
@@ -69,6 +71,32 @@ def test_separator_between_joined_spans_stays_unhighlighted() -> None:
     assert rendered == r"\colorbox{#b8e6bf}{$e_{1}$} - \colorbox{#d8c4ee}{$e_{2}$}"
 
 
+def test_matching_sign_fill_fuses_with_the_joined_span_that_follows_it() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotator(
+        ga.on(ga.terms(e2, e3), background="#eee", color="crimson", join=True),
+        ga.on(ga.sign(e2), background="#eee"),
+    )(e1 - e2 - e3).latex()
+    assert rendered == r"e_{1}  \colorbox{#eee}{$\textcolor{crimson}{-e_{2} - e_{3}}$}"
+
+
+def test_negative_nonleading_callout_owns_the_visible_sign() -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    rendered = ga.annotator(
+        ga.on(ga.term(e1), label="kept", marker="underbrace"),
+        ga.on(ga.term(e2), label="negated", marker="underbrace"),
+    )(e1 - e2).latex()
+    assert r"\phantom{\mathord{-}\>e_{2}}" in rendered
+    assert r"\mathrlap{\smash[b]{\underbrace" in rendered
+    assert rendered.endswith(
+        r"\mathbin{\mathrlap{\smash[b]{\underbrace"
+        r"{\textcolor{black}{\phantom{\mathord{-}\>e_{2}}}}_"
+        r"{\mathclap{\text{negated}}}}}\mathord{-}} e_{2}"
+    )
+
+
 def test_nested_joined_layers_keep_the_wide_span_continuous() -> None:
     algebra = Algebra(4)
     e1, e2, e3, e4 = algebra.basis_vectors()
@@ -78,7 +106,10 @@ def test_nested_joined_layers_keep_the_wide_span_continuous() -> None:
         ga.on(ga.terms(e1, e2), label="inner", marker="overgroup", join=True),
     )(value).latex()
     assert rendered == (
-        r"\colorbox{#b8e6bf}{$\overset{\text{inner}}{\overgroup{e_{1} + e_{2}}} + e_{3} + e_{4}$}"
+        r"\vphantom{\overset{\mathclap{\text{inner}}}{\overgroup{"
+        r"\textcolor{black}{\phantom{e_{1} + e_{2}}}}}}"
+        r"\colorbox{#b8e6bf}{$\mathrlap{\smash[t]{\overset{\mathclap{\text{inner}}}{\overgroup{"
+        r"\textcolor{black}{\phantom{e_{1} + e_{2}}}}}}}e_{1} + e_{2} + e_{3} + e_{4}$}"
     )
 
 
@@ -86,9 +117,7 @@ def test_non_contiguous_joined_terms_split_into_their_own_runs() -> None:
     algebra = Algebra(3)
     e1, e2, e3 = algebra.basis_vectors()
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
-    rendered = ga.annotate(
-        value, ga.on(ga.terms(e1, e3), background="#eee", join=True)
-    ).latex()
+    rendered = ga.annotate(value, ga.on(ga.terms(e1, e3), background="#eee", join=True)).latex()
     assert rendered == r"\colorbox{#eee}{$e_{1}$} + e_{2} + \colorbox{#eee}{$e_{3}$}"
 
 
@@ -112,13 +141,47 @@ def test_nested_layers_do_not_duplicate_leading_signs() -> None:
     )(value).latex()
     assert "- -" not in rendered
     assert "+ -" not in rendered
+    assert rendered.count(r"\colorbox{#b8e6bf}") == 1
+    assert rendered.count(r"\text{leading}") == 2
+    assert rendered.count(r"\text{inner}") == 2
+    assert rendered.count(r"\text{middle}") == 2
+    assert r"\phantom{\mathord{-}\>e_{1} + e_{2}}" in rendered
+
+
+def test_crossing_highlight_and_callout_spans_use_an_independent_overlay() -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [0.0] * 7)
+    rendered = ga.annotator(
+        ga.on(ga.terms(e1, e2, e3), background="#eee", join=True),
+        ga.on(ga.terms(e3, e4), label="crossing", marker="overbrace", join=True),
+    )(value).latex()
     assert rendered == (
-        r"\colorbox{#b8e6bf}{$\overset{\text{inner}}{\overgroup{\underset{\text{leading}}{-e_{1}} + "
-        r"\underset{\text{middle}}{\undergroup{e_{2}}}}} - e_{3} + e_{4}$}"
+        r"\vphantom{\overbrace{\textcolor{black}{\phantom{e_{3} + e_{4}}}}^"
+        r"{\mathclap{\text{crossing}}}}"
+        r"\colorbox{#eee}{$e_{1} + e_{2} + \mathrlap{\smash[t]{\overbrace{\textcolor{black}{"
+        r"\phantom{e_{3} + e_{4}}}}^{\mathclap{\text{crossing}}}}}e_{3}$} + e_{4}"
     )
 
 
-def test_crossing_joined_spans_are_rejected() -> None:
+def test_wide_callout_label_does_not_change_the_measured_span_width() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotator(
+        ga.on(ga.terms(e1, e2), background="#eee", join=True),
+        ga.on(
+            ga.terms(e1, e2),
+            label="a much wider explanatory annotation",
+            marker="overbrace",
+            join=True,
+        ),
+    )(e1 + e2 + e3).latex()
+    assert r"\phantom{e_{1} + e_{2}}" in rendered
+    assert r"^{\mathclap{\text{a much wider explanatory annotation}}}" in rendered
+    assert r"\phantom{\text{a much wider explanatory annotation}}" not in rendered
+
+
+def test_crossing_joined_body_styles_still_require_an_overlap_policy() -> None:
     algebra = Algebra(4)
     e1, e2, e3, e4 = algebra.basis_vectors()
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [0.0] * 7)
@@ -126,4 +189,57 @@ def test_crossing_joined_spans_are_rejected() -> None:
         ga.annotator(
             ga.on(ga.terms(e1, e2), background="#eee", join=True),
             ga.on(ga.terms(e2, e3), background="#ddd", join=True),
+        )(value).latex()
+
+
+def test_highlight_can_have_independent_over_and_under_spans() -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [0.0] * 7)
+    rendered = ga.annotator(
+        ga.on(ga.terms(e1, e2, e3), background="#eee", join=True),
+        ga.on(ga.terms(e2, e3, e4), label="above", marker="overbrace", join=True),
+        ga.on(ga.terms(e1, e2), label="below", marker="underbrace", join=True),
+    )(value).latex()
+    assert r"\colorbox{#eee}" in rendered
+    assert r"\mathrlap{\smash[t]{\overbrace" in rendered
+    assert r"\mathrlap{\smash[b]{\underbrace" in rendered
+
+
+@pytest.mark.parametrize(
+    ("highlight_names", "callout_names"),
+    (
+        (("e1", "e2", "e3"), ("e1", "e2", "e3")),  # equal
+        (("e1", "e2", "e3", "e4"), ("e2", "e3")),  # callout subset
+        (("e2", "e3"), ("e1", "e2", "e3", "e4")),  # highlight subset
+        (("e1", "e2"), ("e3", "e4")),  # disjoint
+        (("e1", "e2", "e3"), ("e3", "e4")),  # crossing
+    ),
+)
+def test_highlight_and_callout_share_one_interval_model(highlight_names, callout_names) -> None:
+    algebra = Algebra(4)
+    blades = dict(zip(("e1", "e2", "e3", "e4"), algebra.basis_vectors()))
+    value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [0.0] * 7)
+    rendered = ga.annotator(
+        ga.on(ga.terms(*(blades[name] for name in highlight_names)), background="#eee", join=True),
+        ga.on(
+            ga.terms(*(blades[name] for name in callout_names)),
+            label="callout",
+            marker="overbrace",
+            join=True,
+        ),
+    )(value).latex()
+    assert rendered.count(r"\colorbox{#eee}") == 1
+    assert rendered.count(r"\mathrlap{\smash[t]{\overbrace") == 1
+    assert rendered.count(r"\text{callout}") == 2
+
+
+def test_overlapping_callouts_on_one_side_require_multiple_lane_support() -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0] + [0.0] * 7)
+    with pytest.raises(ga.SpanLayoutError, match="above channel"):
+        ga.annotator(
+            ga.on(ga.terms(e1, e2, e3), label="first", marker="overbrace", join=True),
+            ga.on(ga.terms(e2, e3, e4), label="second", marker="overgroup", join=True),
         )(value).latex()

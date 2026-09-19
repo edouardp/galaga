@@ -32,6 +32,10 @@ sed -i '' "s/\"galaga>=.*\"/\"galaga>=$NEW\"/" \
     "$ROOT/packages/galaga_mermaid/pyproject.toml" \
     "$ROOT/packages/galaga_annotation/pyproject.toml"
 
+# galaga_annotation consumes matrix display hooks released in lockstep.
+sed -i '' "s/\"galaga-matrix>=.*\"/\"galaga-matrix>=$NEW\"/" \
+    "$ROOT/packages/galaga_annotation/pyproject.toml"
+
 # --- Regenerate lockfile to reflect version changes ---
 uv lock
 

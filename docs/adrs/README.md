@@ -165,8 +165,16 @@ classes are no longer production alternatives.
 | [144](144-expression-render-occurrence-anchors.md) | Expression Render Occurrence Anchors | Accepted |
 | [145](145-teaching-render-documents-and-presenter-capture.md) | Teaching Render Documents and Presenter Capture | Accepted |
 | [146](146-expression-component-anchor-scopes.md) | Expression Component Anchor Scopes | Accepted |
-| [147](147-katex-annotation-lowering-and-decoration-wrappers.md) | KaTeX Annotation Lowering and Decoration Wrappers | Accepted |
+| [147](147-katex-annotation-lowering-and-decoration-wrappers.md) | KaTeX Annotation Lowering and Decoration Wrappers | Partially superseded by 154 |
 | [148](148-cga-object-classification-and-highlight-recipes.md) | CGA Object Classification and Highlight Recipes | Accepted |
+| [149](149-matrix-cell-and-region-annotations.md) | Matrix Cell and Region Annotations | Accepted |
+| [150](150-sign-only-annotation-targets.md) | Sign-Only Annotation Targets | Accepted |
+| [151](151-content-part-annotation-targets.md) | Content-Part Annotation Targets | Accepted |
+| [152](152-subexpression-annotation-targets.md) | Subexpression Annotation Targets | Accepted |
+| [153](153-configurable-cga-cocarrier-markers.md) | Configurable CGA Cocarrier Markers and Over Markers | Accepted |
+| [154](154-independent-external-span-overlays.md) | Independent External Span Overlays | Accepted |
+| [155](155-internal-decoration-boundary-and-lockstep-dependency-floors.md) | Internal Decoration Boundary and Lockstep Dependency Floors | Accepted |
+| [156](156-headless-browser-geometry-contracts-for-katex.md) | Headless Browser Geometry Contracts for KaTeX | Accepted |
 
 ## Creating New ADRs
 

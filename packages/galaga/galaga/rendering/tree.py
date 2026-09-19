@@ -212,16 +212,23 @@ class Group(Node):
 
 @dataclass(frozen=True, slots=True, init=False)
 class SumTerm:
-    """One signed term in a :class:`Sum`."""
+    """One signed term in a :class:`Sum`.
+
+    ``sign`` optionally replaces the emitted sign glyph for presentation
+    packages that decorate the sign independently of the term body. The
+    ``negative`` flag remains the semantic sign in every case.
+    """
 
     body: Node
     negative: bool
+    sign: Node | None
 
-    def __init__(self, body: Node, negative: bool = False) -> None:
+    def __init__(self, body: Node, negative: bool = False, sign: Node | None = None) -> None:
         if not isinstance(negative, bool):
             raise TypeError("sum-term negative flag must be a boolean")
         object.__setattr__(self, "body", _node(body, field="sum-term body"))
         object.__setattr__(self, "negative", negative)
+        object.__setattr__(self, "sign", None if sign is None else _node(sign, field="sum-term sign"))
 
 
 @dataclass(frozen=True, slots=True, init=False)

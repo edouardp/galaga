@@ -106,12 +106,21 @@ test-galaga-mermaid: ## Run galaga-mermaid tests
 
 .PHONY: test-galaga-annotation
 test-galaga-annotation: ## Run galaga-annotation tests with Python 3.14 and marimo
-	@TMPVENV=$$(mktemp -d)/gann-test && \
+	@TMPVENV=$$(mktemp -d)/gann-test && trap 'rm -rf "$$TMPVENV"' EXIT && \
 	uv venv "$$TMPVENV" --python 3.14 && \
-	uv pip install --python "$$TMPVENV/bin/python" -e packages/galaga -e packages/galaga_marimo pytest && \
+	uv pip install --python "$$TMPVENV/bin/python" -e packages/galaga -e packages/galaga_matrix -e packages/galaga_marimo pytest && \
 	uv pip install --python "$$TMPVENV/bin/python" --no-deps -e packages/galaga_annotation && \
-	"$$TMPVENV/bin/pytest" packages/galaga_annotation/tests/ -v && \
-	rm -rf "$$TMPVENV"
+	"$$TMPVENV/bin/pytest" packages/galaga_annotation/tests/ -v
+
+.PHONY: install-browser-tests
+install-browser-tests: ## Install the pinned headless Chromium used by rendering tests
+	uv run --group browser-test playwright install --with-deps --only-shell chromium
+
+.PHONY: test-galaga-annotation-browser
+test-galaga-annotation-browser: install-browser-tests ## Run browser geometry tests against Marimo's KaTeX
+	GALAGA_REQUIRE_BROWSER_TESTS=1 PYTHONPATH=$(ANNOTATION_SOURCE) \
+		uv run --python 3.14 --group browser-test $(MARIMO_EDITABLES) \
+		pytest packages/galaga_annotation/tests/test_katex_browser.py -v
 
 .PHONY: test-quick
 test-quick: ## Run core galaga tests stopping on first failure
@@ -133,9 +142,13 @@ update-deps: ## Update dependencies (7-day lag for supply chain protection)
 # Build
 # ============================================================================
 
-.PHONY: build
-build: ## Build package distributions
+.PHONY: build build-core build-companions
+build: build-core build-companions ## Build package distributions
+
+build-core:
 	cd packages/galaga && uv build
+
+build-companions:
 	uv build --package galaga-anywidget --out-dir packages/galaga_anywidget/dist
 	cd packages/galaga_marimo && uv build
 	cd packages/galaga_matrix && uv build
@@ -147,12 +160,7 @@ check-artifacts: build ## Verify legacy-free Galaga wheel and source distributio
 	uv run python scripts/check_galaga_artifact.py --project packages/galaga dist/galaga-*
 
 check: check-artifacts ## Build, verify runtime contents, and run twine checks
-	uvx twine check dist/galaga-*
-	uvx twine check packages/galaga_anywidget/dist/galaga_anywidget-*
-	uvx twine check packages/galaga_marimo/dist/galaga_marimo-*
-	uvx twine check packages/galaga_matrix/dist/galaga_matrix-*
-	uvx twine check packages/galaga_mermaid/dist/galaga_mermaid-*
-	uvx twine check packages/galaga_annotation/dist/galaga_annotation-*
+	uvx twine check dist/galaga-* packages/galaga_anywidget/dist/galaga_anywidget-* packages/galaga_marimo/dist/galaga_marimo-* packages/galaga_matrix/dist/galaga_matrix-* packages/galaga_mermaid/dist/galaga_mermaid-* packages/galaga_annotation/dist/galaga_annotation-*
 
 # ============================================================================
 # Release

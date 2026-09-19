@@ -12,9 +12,20 @@ arrows, rules, braces, group accents, underlines and boxes.
 See [ADR-142](../adrs/142-reusable-callable-annotators.md) and
 [ADR-147](../adrs/147-katex-annotation-lowering-and-decoration-wrappers.md).
 
-Sentence spans, sign-only targets, semantic-role targets, matrix-region
-annotations, expression-to-matrix provenance and arithmetic propagation remain
-later milestones.
+Sentence spans, semantic-role targets, expression-to-matrix
+provenance and arithmetic propagation remain later milestones. Matrix cell and
+region annotations are implemented for content colour, fill, border, emphasis,
+cell labels and whole-matrix markers; region block callouts and separate
+row/column header labels remain a later refinement. See
+[ADR-149](../adrs/149-matrix-cell-and-region-annotations.md). Sign-only targets
+are implemented for visible sum signs; a singleton negative term has no
+separate sign slot and falls back to the term body. See
+[ADR-150](../adrs/150-sign-only-annotation-targets.md). Content-part targets
+select the displayed name, expression, or value side, following the active
+content setting. See
+[ADR-151](../adrs/151-content-part-annotation-targets.md). Subexpression targets
+find a provenance subtree structurally by value. See
+[ADR-152](../adrs/152-subexpression-annotation-targets.md).
 
 Implemented prerequisite: core `galaga.rendering.value_document` now supplies
 separate immutable anchors for visible concrete terms, coefficient magnitudes,
@@ -32,7 +43,8 @@ below the original occurrence path (`()` selects the whole expression
 subtree). See [ADR-146](../adrs/146-expression-component-anchor-scopes.md).
 Extension wrapper adapters and the annotation package are implemented in
 `packages/galaga_annotation`; the package participates in the joint release
-workflow and the teaching gallery.
+workflow and the teaching gallery. Matrix cell and region targets are
+documented in [ADR-149](../adrs/149-matrix-cell-and-region-annotations.md).
 
 Related implemented designs:
 
@@ -555,9 +567,11 @@ The initial target taxonomy is:
 | Target kind | What it selects | Typical teaching question |
 |---|---|---|
 | `WholeExpression` | The complete expression or value | “What is this result?” |
+| `ContentTarget` | One displayed content part: the name, expression, or value side | “Which side is the definition?” |
 | `ExpressionPath` | One expression-tree node or nested operand | “What role does this operand play?” |
 | `ExpressionSpan` | A contiguous semantic range of sibling nodes | “Which part of this sum/product is the input block?” |
 | `VariableTarget` | A named variable or symbolic value | “Which symbol is the rotor?” |
+| `SubexpressionTarget` | A provenance subtree occurrence, matched structurally | “Which factor is the reverse?” |
 | `OperationTarget` | A canonical operation node or operator occurrence | “What does this `\bullet` mean?” |
 | `RelationTarget` | An equality, assignment, implication, or transition relation | “Is this equality definitional or evaluated?” |
 | `MultivectorTerm` | One coefficient-plus-blade display term | “What is the bivector term?” |
@@ -762,6 +776,8 @@ class AnnotationStyle:
         "overbrace",
         "undergroup",
         "overgroup",
+        "overline",
+        "overbracket",
     ] = "none"
     clearance: str | None = None
     overlay: bool = False
@@ -773,12 +789,26 @@ the annotation's meaning.
 
 A rule with a `marker` colours its **chrome** -- the bracket glyph and label
 -- rather than the highlighted content, so a cyan overgroup does not recolour
-the blades it spans. `overlay=True` smashes the marker so it can protrude
-above an enclosing fill without inflating or splitting that fill; with
-`overlay=True`, `clearance` is the outward lift (for example `"4px"`),
-applied as a raised zero-width strut inside `\vphantom`, so the bracket rises
-while the terms stay on the baseline without serializing the selected subtree
-during transformation.
+the blades it spans. Labels and markers over sum-term spans are always lowered
+as independent zero-width overlays, so their interval may be equal to, nested
+in, disjoint from, or cross a joined highlight interval without splitting the
+fill. `clearance` is the outward lift (for example `"4px"`), applied through a
+raised zero-width `\rule{0pt}{1em}` inside `\vphantom`, so the bracket rises
+while the visible terms stay on the baseline. A separate outer `\vphantom`
+reserves the callout's height or depth without enlarging a joined background
+fill. `overlay=True` retains the same behavior for direct-node annotations
+that do not have a term interval.
+External labels use `\mathclap`, so a label wider than its target remains
+centred and visible but cannot widen the marker atom and shift its measured
+expression away from the visible annotated terms.
+For callouts, a visible negative sign is part of the selected term even when
+it also separates that term from a preceding sum term. The zero-width overlay
+and sign are emitted inside an explicit ordinary or binary math class, and the
+phantom reproduces the visible sign advance. Content-only fills continue to
+leave separators between disjoint spans outside both backgrounds.
+When a sign-only rule and the joined span beginning at that sign request the
+same background, they compose as one continuous fill rather than two adjacent
+boxes. Other sign styles remain independent.
 `label_color` colours only the label text, so a span label can match its fill
 in a darker shade.
 
@@ -791,8 +821,10 @@ identity. The initial target vocabulary is:
 Target = (
     ExpressionPath(...)
     | WholeExpression()
+    | ContentTarget(kind="expr")
     | ExpressionSpan(parent=..., start=..., stop=...)
     | VariableTarget(name=..., occurrence=...)
+    | SubexpressionTarget(expression=..., occurrence=...)
     | OperationTarget(operation_id="metric_inner_product")
     | RelationTarget(kind="equality")
     | MultivectorTerm(blade=...)
@@ -986,7 +1018,8 @@ target. There is no mutable `.select(...)` state.
 
 `on(...)` and `.mark(...)` accept the same annotation fields. Directional
 markers determine their side: `underbrace`, `undergroup` and `underline`
-are below, while `overbrace` and `overgroup` are above; a contradictory
+are below, while `overbrace`, `overgroup`, `overline` and `overbracket`
+are above; a contradictory
 explicit `side` is an error. Neutral markers (`none`, `arrow`, `rule`,
 `brace`, `box`) accept an explicit side, defaulting to `side="auto"`, which
 resolves above unless the approximate layout solver moves the label to avoid
@@ -1023,9 +1056,11 @@ Public selector factories construct the semantic targets described above:
 | Factory | Semantic selection |
 |---|---|
 | `whole()` | Complete displayed expression or value |
+| `content(kind)` | Displayed `name`, `expr`, or `value` part |
 | `operand(index)` / `path(*indices)` | Root operand / nested expression node |
 | `operator(operation_id)` | Operator occurrences by canonical ID |
 | `variable(name)` | Recorded named-symbol occurrences, not Python variable discovery |
+| `subexpression(value, occurrence=...)` | Provenance subtree occurrences that match `value` structurally |
 | `term(blade)` / `terms(*blades)` | Complete coefficient-plus-blade terms |
 | `coefficient(blade)` / `coefficients(*blades)` | Coefficients only |
 | `grade(r)` / `grades(*r)` | Complete terms of selected grades |
@@ -1041,10 +1076,14 @@ from a numerical result.
 
 A rule with `join=True` renders adjacent selected terms as one continuous
 span: internal separators stay inside the fill, a label appears once for the
-run, and the span's leading sign stays inside the highlight. Rules without
-`join` render each placement separately. Distinct joined spans in one sum must
-nest or stay disjoint; crossing spans are rejected because their grouping is
-ambiguous.
+run, and a sign leading the complete sum stays inside the highlight. A sign at
+a later span boundary remains the surrounding sum's separator unless a
+matching sign fill explicitly fuses it into the span. Rules without `join`
+render each placement separately. Content styles form the visible base layer
+and must currently nest or stay disjoint. Labels and markers occupy independent
+above/below overlay channels and may cross the base highlight. One overlapping
+callout is supported per side; overlapping callouts competing for the same
+side raise `SpanLayoutError` until multi-lane stacking is added.
 
 Value-component selectors default to the result side of an expression/value
 display. Selecting components within an expression operand needs an explicit
@@ -1215,7 +1254,7 @@ The baseline lowering vocabulary is:
 | Label below | `\underset` |
 | Multi-line label | `\substack` |
 | Directional relationship | `\uparrow`, `\downarrow` |
-| Span grouping | `\underbrace`, `\overbrace`, underline, brackets |
+| Span grouping | `\underbrace`, `\overbrace`, `\overbracket`, `\overline`, `\overgroup`, underline, brackets |
 | Cancellation | `\cancel`, `\bcancel`, `\xcancel` |
 | Derivation transition | `aligned`, `cases`, extensible arrows |
 
@@ -1237,6 +1276,13 @@ split it.
 KaTeX reserves width for `\overset` and `\underset`, so annotations should
 remain centred on their semantic anchors. The solver must not apply arbitrary
 horizontal offsets that fight KaTeX's own spacing.
+
+Browser geometry is the final alignment contract. Playwright loads Marimo's
+actual KaTeX JavaScript and CSS in pinned headless Chromium and compares target,
+marker and label bounding boxes. String snapshots and standalone KaTeX parsing
+remain earlier, faster layers; screenshots are diagnostic unless generated in
+one fixed browser/OS/font environment. See
+[ADR-156](../adrs/156-headless-browser-geometry-contracts-for-katex.md).
 
 The initial solver should:
 

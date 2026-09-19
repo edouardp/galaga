@@ -6,9 +6,10 @@ tree through the shared Galaga emitter. Only the LaTeX target is decorated;
 plain-text targets keep the undecorated rendering.
 
 Adjacent terms carrying the same rule form a *span layer*: the rule wraps the
-whole run once, so a fill stays continuous across internal separators and a
-label appears once per run. Independent rules form independent layers, which
-may nest, allowing a wide highlight to contain narrower brackets.
+whole run once, so a fill stays continuous across internal separators.
+External labels and markers are measured against phantom copies and lowered as
+independent overlays, so their intervals may nest, cross, or remain disjoint
+from content spans.
 """
 
 from __future__ import annotations
@@ -16,16 +17,16 @@ from __future__ import annotations
 from collections.abc import Iterable
 from copy import copy as _copy
 from dataclasses import dataclass, fields, is_dataclass
-from typing import Any, Literal
+from typing import Any
 
 from galaga.rendering import Decorated, Node, RenderDocument, Sum, SumTerm, Text, emit
 
+from ._decoration import ResolvedSide, decorate, default_side, external_parts
 from .model import DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
 from .plan import AnnotationPlan, Placement, resolve
 
 __all__ = ["KatexResult", "LabelPlacement", "SpanLayoutError", "render_katex"]
 
-ResolvedSide = Literal["above", "below"]
 Path = tuple[str | int, ...]
 
 
@@ -41,7 +42,7 @@ class LabelPlacement:
 
 
 class SpanLayoutError(ValueError):
-    """Two joined term spans overlap without nesting or staying disjoint."""
+    """Requested span layers cannot be represented without a policy choice."""
 
 
 @dataclass(frozen=True, slots=True)
@@ -62,6 +63,7 @@ class _Span:
     stop: int
     annotation: Annotation
     order: int
+    include_leading_sign: bool = False
 
 
 @dataclass(frozen=True, slots=True)
@@ -79,8 +81,10 @@ _Entry = _Span | _Direct
 @dataclass(frozen=True, slots=True)
 class _RebuildContext:
     spans_by_container: dict[Path, tuple[_Span, ...]]
+    overlays_by_container: dict[Path, tuple[_Span, ...]]
     direct_by_path: dict[Path, tuple[_Direct, ...]]
     sides: dict[_Entry, ResolvedSide]
+    signs_by_sum_path: dict[Path, dict[int, tuple[Placement, ...]]]
 
 
 def _entry_path(entry: _Entry) -> Path:
@@ -93,172 +97,6 @@ def _has_label(annotation: Annotation) -> bool:
     """Return whether an annotation has either supported label form."""
 
     return annotation.label is not None or annotation.label_latex is not None
-
-
-def _label_lines(annotation: Annotation) -> list[str]:
-    if annotation.label_latex is not None:
-        return [annotation.label_latex]
-    if annotation.label is None:
-        return []
-    return [rf"\text{{{emit(Text(line), 'latex')}}}" for line in annotation.label.splitlines()] or [r"\text{}"]
-
-
-def _substack(lines: list[str]) -> str:
-    if not lines:
-        return ""
-    if len(lines) == 1:
-        return lines[0]
-    return r"\substack{" + r" \\ ".join(lines) + "}"
-
-
-def _brace_marker(node: Node, marker: str, side: ResolvedSide, text: str | None) -> tuple[Node, ResolvedSide]:
-    effective_side = side
-    if marker == "underbrace":
-        effective_side = "below"
-    elif marker == "overbrace":
-        effective_side = "above"
-    command = r"\overbrace" if effective_side == "above" else r"\underbrace"
-    if text is None:
-        return Decorated(node, f"{command}{{", "}"), effective_side
-    script = f"}}^{{{text}}}" if effective_side == "above" else f"}}_{{{text}}}"
-    return Decorated(node, f"{command}{{", script), effective_side
-
-
-def _group_marker(node: Node, marker: str, text: str | None) -> tuple[Node, ResolvedSide]:
-    side: ResolvedSide = "below" if marker == "undergroup" else "above"
-    group = r"\undergroup" if side == "below" else r"\overgroup"
-    if text is None:
-        return Decorated(node, f"{group}{{", "}"), side
-    placement = r"\underset" if side == "below" else r"\overset"
-    return Decorated(node, rf"{placement}{{{text}}}{{{group}{{", "}}"), side
-
-
-def _underline_marker(node: Node, text: str | None) -> tuple[Node, ResolvedSide]:
-    if text is None:
-        return Decorated(node, r"\underline{", "}"), "below"
-    return Decorated(node, rf"\underset{{{text}}}{{\underline{{", "}}"), "below"
-
-
-def _box_marker(node: Node, side: ResolvedSide, text: str | None) -> tuple[Node, ResolvedSide]:
-    if text is None:
-        return Decorated(node, r"\boxed{", "}"), side
-    placement = r"\overset" if side == "above" else r"\underset"
-    return Decorated(node, rf"{placement}{{{text}}}{{\boxed{{", "}}"), side
-
-
-def _callout_symbol(marker: str, side: ResolvedSide) -> str | None:
-    if marker == "arrow":
-        return r"\downarrow" if side == "above" else r"\uparrow"
-    if marker == "rule":
-        return r"\rule[0.2em]{0.4pt}{1em}"
-    return None
-
-
-def _callout_parts(marker: str, side: ResolvedSide, text: str | None, clearance: str | None) -> list[str]:
-    symbol = _callout_symbol(marker, side)
-    strut = rf"\rule{{0pt}}{{{clearance}}}" if clearance is not None else None
-    ordered = (text, symbol, strut) if side == "above" else (strut, symbol, text)
-    return [part for part in ordered if part is not None]
-
-
-def _callout_marker(
-    node: Node, marker: str, side: ResolvedSide, text: str | None, clearance: str | None
-) -> tuple[Node, ResolvedSide]:
-    parts = _callout_parts(marker, side, text, clearance)
-    if not parts:
-        return node, side
-    placement = r"\overset" if side == "above" else r"\underset"
-    return Decorated(node, rf"{placement}{{{_substack(parts)}}}{{", "}"), side
-
-
-def _marker_wrap(
-    node: Node, marker: str, side: ResolvedSide, text: str | None, clearance: str | None
-) -> tuple[Node, ResolvedSide]:
-    """Wrap a body with one marker and return the effective side."""
-
-    if marker in {"brace", "underbrace", "overbrace"}:
-        return _brace_marker(node, marker, side, text)
-    if marker in {"undergroup", "overgroup"}:
-        return _group_marker(node, marker, text)
-    if marker == "underline":
-        return _underline_marker(node, text)
-    if marker == "box":
-        return _box_marker(node, side, text)
-    return _callout_marker(node, marker, side, text, clearance)
-
-
-def _label_text(annotation: Annotation) -> str | None:
-    lines = _label_lines(annotation)
-    if not lines:
-        return None
-    text = _substack(lines)
-    if annotation.style.label_color is not None:
-        return rf"\textcolor{{{annotation.style.label_color}}}{{{text}}}"
-    return text
-
-
-def _style_body(node: Node, style: AnnotationStyle, *, marked: bool) -> Node:
-    emphasis = {"bold": r"\mathbf{", "italic": r"\mathit{"}.get(style.emphasis)
-    if emphasis is not None:
-        node = Decorated(node, emphasis, "}")
-    if not marked and style.color is not None:
-        node = Decorated(node, rf"\textcolor{{{style.color}}}{{", "}")
-    if style.border is not None:
-        background = style.background or "transparent"
-        return Decorated(node, rf"\fcolorbox{{{style.border}}}{{{background}}}{{$", "$}")
-    if style.background is not None:
-        return Decorated(node, rf"\colorbox{{{style.background}}}{{$", "$}")
-    return node
-
-
-def _color_marker(node: Node, color: str | None) -> Node:
-    if color is None:
-        return node
-    return Decorated(node, rf"\textcolor{{{color}}}{{", "}")
-
-
-def _overlay_marker(node: Node, style: AnnotationStyle, side: ResolvedSide, text: str | None) -> Node:
-    if style.clearance is not None:
-        lift = style.clearance if side == "above" else f"-{style.clearance}"
-        node = Decorated(node, rf"\vphantom{{\raisebox{{{lift}}}{{\strut}}}}", "")
-    node = Decorated(node, r"\textcolor{black}{", "}")
-    node, effective_side = _marker_wrap(node, style.marker, side, text, None)
-    node = _color_marker(node, style.color)
-    smash = r"\smash[t]{" if effective_side == "above" else r"\smash[b]{"
-    return Decorated(node, smash, "}")
-
-
-def _ordinary_marker(node: Node, style: AnnotationStyle, side: ResolvedSide, text: str | None) -> Node:
-    marked = style.marker != "none"
-    if marked and style.color is not None:
-        # This reset is a temporary limitation of opaque prefix/suffix
-        # wrappers; typed decoration IR can preserve inherited foreground.
-        node = Decorated(node, r"\textcolor{black}{", "}")
-    if not marked and text is None:
-        return node
-    node, _ = _marker_wrap(node, style.marker, side, text, style.clearance)
-    return _color_marker(node, style.color if marked else None)
-
-
-def _wrap(node: Node, annotation: Annotation, side: ResolvedSide) -> Node:
-    """Apply content styling, then one ordinary or overlay marker."""
-
-    style = annotation.style
-    marked = style.marker != "none"
-    node = _style_body(node, style, marked=marked)
-    text = _label_text(annotation)
-    if marked and style.overlay:
-        return _overlay_marker(node, style, side, text)
-    return _ordinary_marker(node, style, side, text)
-
-
-def _default_side(annotation: Annotation) -> ResolvedSide:
-    direction = DIRECTIONAL_MARKERS.get(annotation.style.marker)
-    if direction is not None:
-        return direction  # type: ignore[return-value]
-    if annotation.side in {"above", "below"}:
-        return annotation.side
-    return "above"
 
 
 def _estimate_width(annotation: Annotation) -> float:
@@ -277,8 +115,6 @@ def _estimate_width(annotation: Annotation) -> float:
     width = max((len(line.strip()) for line in lines), default=0) * character_width + 0.3
     if annotation.style.marker in {"arrow", "rule"}:
         width += 0.5
-    if annotation.style.clearance is not None:
-        width += 0.4
     return width
 
 
@@ -321,6 +157,25 @@ def _solve(entries: tuple[_Entry, ...]) -> tuple[tuple[LabelPlacement, ...], dic
     return tuple(labels), sides
 
 
+def _validate_overlay_channels(overlays: tuple[_Span, ...], sides: dict[_Entry, ResolvedSide]) -> None:
+    """Reject overlapping callouts competing for the same vertical channel."""
+
+    for index, left in enumerate(overlays):
+        left_side = sides.get(left) or default_side(left.annotation)
+        for right in overlays[index + 1 :]:
+            if left.container != right.container:
+                continue
+            right_side = sides.get(right) or default_side(right.annotation)
+            if left_side != right_side:
+                continue
+            disjoint = left.stop <= right.start or right.stop <= left.start
+            if not disjoint:
+                raise SpanLayoutError(
+                    f"annotation spans {left.start}:{left.stop} and {right.start}:{right.stop} in "
+                    f"{left.container!r} overlap in the {left_side} channel; use opposite sides or fewer callouts"
+                )
+
+
 def _term_positions(body: Node) -> dict[Path, tuple[Path, int]]:
     """Map direct term-body paths to ``(sum path, term index)``."""
 
@@ -348,16 +203,22 @@ def _term_positions(body: Node) -> dict[Path, tuple[Path, int]]:
     return positions
 
 
+def _spans_cross(left: _Span, right: _Span) -> bool:
+    """Return whether two intervals overlap without being laminar."""
+
+    disjoint = left.stop <= right.start or right.stop <= left.start
+    nested = (left.start <= right.start and right.stop <= left.stop) or (
+        right.start <= left.start and left.stop <= right.stop
+    )
+    return not disjoint and not nested
+
+
 def _validate_spans(spans: list[_Span], container: Path) -> None:
     """Joined spans must nest or stay disjoint; crossing spans are ambiguous."""
 
     for index, left in enumerate(spans):
         for right in spans[index + 1 :]:
-            disjoint = left.stop <= right.start or right.stop <= left.start
-            nested = (left.start <= right.start and right.stop <= left.stop) or (
-                right.start <= left.start and left.stop <= right.stop
-            )
-            if not disjoint and not nested:
+            if _spans_cross(left, right):
                 raise SpanLayoutError(
                     f"joined spans {left.start}:{left.stop} and {right.start}:{right.stop} in {container!r} "
                     "overlap without nesting; split the rules or disable join"
@@ -410,7 +271,83 @@ def _validate_span_groups(spans: list[_Span]) -> None:
         _validate_spans([span for span in spans if span.container == container], container)
 
 
-def _collect(plan: AnnotationPlan, body: Node) -> tuple[tuple[_Span, ...], tuple[_Direct, ...]]:
+def _has_external_decoration(annotation: Annotation) -> bool:
+    return _has_label(annotation) or annotation.style.marker != "none"
+
+
+def _content_only_annotation(annotation: Annotation) -> Annotation | None:
+    """Return the body-style part of a callout rule, if it has one."""
+
+    style = annotation.style
+    content_color = style.color if style.marker == "none" else None
+    if content_color is None and style.background is None and style.border is None and style.emphasis == "normal":
+        return None
+    return Annotation(
+        target=annotation.target,
+        role=annotation.role,
+        style=AnnotationStyle(
+            color=content_color,
+            background=style.background,
+            border=style.border,
+            emphasis=style.emphasis,
+        ),
+        description=annotation.description,
+        missing=annotation.missing,
+        join=annotation.join,
+    )
+
+
+def _overlay_only_annotation(annotation: Annotation) -> Annotation:
+    """Return the label/marker part of a rule for independent overlay lowering."""
+
+    style = annotation.style
+    marker_color = style.color if style.marker != "none" else None
+    return Annotation(
+        target=annotation.target,
+        label=annotation.label,
+        label_latex=annotation.label_latex,
+        role=annotation.role,
+        style=AnnotationStyle(
+            color=marker_color,
+            label_color=style.label_color,
+            marker=style.marker,
+            clearance=style.clearance,
+            overlay=style.marker != "none",
+        ),
+        side=annotation.side,
+        description=annotation.description,
+        missing=annotation.missing,
+        join=annotation.join,
+    )
+
+
+def _partition_span_layers(spans: list[_Span]) -> tuple[list[_Span], list[_Span]]:
+    """Separate base content styles from independent external callouts.
+
+    Labels and markers do not own visible content. They are overlays measured
+    against a phantom copy of their interval, whether their range is equal to,
+    nested in, disjoint from, or crossing another interval. Body styles remain
+    in the laminar render tree, where crossing fills still require an explicit
+    overlap policy.
+    """
+
+    body_spans: list[_Span] = []
+    overlays: list[_Span] = []
+    for span in spans:
+        if not _has_external_decoration(span.annotation):
+            body_spans.append(span)
+            continue
+        overlays.append(
+            _Span(span.container, span.start, span.stop, _overlay_only_annotation(span.annotation), span.order)
+        )
+        content = _content_only_annotation(span.annotation)
+        if content is not None:
+            body_spans.append(_Span(span.container, span.start, span.stop, content, span.order))
+    _validate_span_groups(body_spans)
+    return body_spans, overlays
+
+
+def _collect(plan: AnnotationPlan, body: Node) -> tuple[tuple[_Span, ...], tuple[_Span, ...], tuple[_Direct, ...]]:
     """Separate direct placements from contiguous, optionally joined spans."""
 
     positions = _term_positions(body)
@@ -421,8 +358,68 @@ def _collect(plan: AnnotationPlan, body: Node) -> tuple[tuple[_Span, ...], tuple
         _record_placements(path, placements, positions, spans, directs, joinable)
     for (container, annotation), entries in joinable.items():
         spans.extend(_contiguous_spans(container, annotation, entries))
-    _validate_span_groups(spans)
-    return tuple(spans), tuple(directs)
+    body_spans, overlays = _partition_span_layers(spans)
+    _validate_span_groups(body_spans)
+    return tuple(body_spans), tuple(overlays), tuple(directs)
+
+
+def _can_fuse_sign_fill(placement: Placement, span: _Span) -> bool:
+    """Return whether a sign-only fill can become a span's leading fill."""
+
+    annotation = placement.annotation
+    style = annotation.style
+    return (
+        annotation.label is None
+        and annotation.label_latex is None
+        and style.marker == "none"
+        and style.color is None
+        and style.background is not None
+        and style.background == span.annotation.style.background
+        and style.border is None
+        and style.emphasis == "normal"
+    )
+
+
+def _fuse_leading_sign_fills(
+    spans: tuple[_Span, ...],
+    sign_slots: dict[Path, dict[int, tuple[Placement, ...]]],
+) -> tuple[tuple[_Span, ...], dict[Path, dict[int, tuple[Placement, ...]]]]:
+    """Absorb a compatible sign fill into the joined span that follows it.
+
+    A sign and a term body are separate semantic targets, but two adjacent
+    ``colorbox`` wrappers cannot form one continuous visual fill.  When a
+    sign-only rule requests exactly the background already owned by a joined
+    body span, the sign is instead emitted inside that span.  Other sign
+    decorations remain independent.
+    """
+
+    rebuilt_spans = list(spans)
+    rebuilt_slots: dict[Path, dict[int, tuple[Placement, ...]]] = {}
+    for container, by_index in sign_slots.items():
+        rebuilt_by_index: dict[int, tuple[Placement, ...]] = {}
+        for index, placements in by_index.items():
+            remaining = list(placements)
+            candidates = [
+                (span_index, span)
+                for span_index, span in enumerate(rebuilt_spans)
+                if span.container == container and span.start == index
+            ]
+            # The narrowest compatible span is the sign's immediate visual
+            # owner; any enclosing span will naturally wrap that result.
+            candidates.sort(key=lambda entry: (entry[1].stop - entry[1].start, entry[1].order))
+            for placement in placements:
+                matches = [entry for entry in candidates if _can_fuse_sign_fill(placement, entry[1])]
+                if not matches:
+                    continue
+                span_index, span = matches[0]
+                rebuilt_spans[span_index] = _clone_with(span, {"include_leading_sign": True})
+                remaining.remove(placement)
+                break
+            if remaining:
+                rebuilt_by_index[index] = tuple(remaining)
+        if rebuilt_by_index:
+            rebuilt_slots[container] = rebuilt_by_index
+    return tuple(rebuilt_spans), rebuilt_slots
 
 
 def _clone_with(node: Any, changes: dict[str, Any]) -> Any:
@@ -474,18 +471,55 @@ def _rebuild_fields(node: Node, path: Path, context: _RebuildContext) -> dict[st
 
 def _apply_directs(node: Node, path: Path, context: _RebuildContext) -> Node:
     for entry in context.direct_by_path.get(path, ()):
-        side = context.sides.get(entry) or _default_side(entry.annotation)
-        node = _wrap(node, entry.annotation, side)
+        side = context.sides.get(entry) or default_side(entry.annotation)
+        node = decorate(node, entry.annotation, side)
     return node
 
 
 def _rebuild(node: Node, path: Path, context: _RebuildContext) -> Node:
+    if isinstance(node, Sum):
+        signs = context.signs_by_sum_path.get(path)
+        if signs is not None:
+            node = _apply_signs(node, signs)
     spans = context.spans_by_container.get(path)
-    if isinstance(node, Sum) and spans is not None:
-        rebuilt = _render_sum(node, path, spans, context)
+    overlays = context.overlays_by_container.get(path)
+    if isinstance(node, Sum) and (spans is not None or overlays is not None):
+        rebuilt = _render_sum(node, path, spans or (), overlays or (), context)
     else:
         rebuilt = _clone_with(node, _rebuild_fields(node, path, context))
     return _apply_directs(rebuilt, path, context)
+
+
+def _apply_signs(node: Sum, entries: dict[int, tuple[Placement, ...]]) -> Sum:
+    """Replace a term's emitted sign glyph with its decorated annotation."""
+
+    terms = list(node.terms)
+    for index, placements in entries.items():
+        term = terms[index]
+        glyph: Node = Text("-") if term.negative else Text("+")
+        for placement in sorted(placements, key=lambda entry: entry.order):
+            glyph = decorate(glyph, placement.annotation, default_side(placement.annotation))
+        terms[index] = _clone_with(term, {"sign": glyph})
+    return _clone_with(node, {"terms": tuple(terms)})
+
+
+def _partition_signs(
+    placements: tuple[Placement, ...],
+) -> tuple[dict[Path, dict[int, tuple[Placement, ...]]], tuple[Placement, ...]]:
+    """Split sign-slot placements from the term-body layout pipeline."""
+
+    signs: dict[Path, dict[int, list[Placement]]] = {}
+    rest: list[Placement] = []
+    for placement in placements:
+        path = placement.path
+        term_index = path[-2] if len(path) >= 3 else None
+        if len(path) >= 3 and path[-3] == "terms" and path[-1] == "sign" and isinstance(term_index, int):
+            signs.setdefault(path[:-3], {}).setdefault(term_index, []).append(placement)
+        else:
+            rest.append(placement)
+    return {
+        path: {index: tuple(entries) for index, entries in by_index.items()} for path, by_index in signs.items()
+    }, tuple(rest)
 
 
 @dataclass(slots=True)
@@ -493,25 +527,85 @@ class _SumLayout:
     terms: tuple[SumTerm, ...]
     bodies: list[Node]
     sides: dict[_Entry, ResolvedSide]
+    included_leading_signs: frozenset[int]
 
     def plain(self, start: int, stop: int, leading_inside: bool) -> Node:
+        term = self.terms[start]
         if stop - start == 1:
             body = self.bodies[start]
-            return Sum((SumTerm(body, negative=True),)) if leading_inside and self.terms[start].negative else body
+            if leading_inside and (term.negative or term.sign is not None):
+                return Sum((SumTerm(body, negative=term.negative, sign=term.sign),))
+            return body
         terms = (
             SumTerm(
                 self.bodies[index],
                 negative=self.terms[index].negative if index > start or leading_inside else False,
+                sign=self.terms[index].sign if index > start or leading_inside else None,
             )
             for index in range(start, stop)
         )
         return Sum(tuple(terms))
 
+    def callout_measure(self, start: int, stop: int) -> Node:
+        """Reproduce the visible sign class while measuring a callout span."""
+
+        measured = self.plain(start, stop, leading_inside=True)
+        term = self.terms[start]
+        if not (term.negative or term.sign is not None):
+            return measured
+        if not isinstance(measured, Sum):
+            raise RuntimeError("signed callout measurement must retain its Sum container")
+        terms = list(measured.terms)
+        first = terms[0]
+        # Measurement copies semantic ink, not its decorations.  In
+        # particular, a colorbox inside KaTeX's vphantom can still paint its
+        # background and cover unrelated visible content at the origin.
+        sign = Text("-" if term.negative else "+")
+        # Keep the sign glyph ordinary inside the isolated phantom. KaTeX's
+        # visible sign atom has one medium-space more horizontal advance than
+        # that isolated glyph, for both leading and non-leading signs; retain
+        # the same advance so the marker ends at the visible body's far edge.
+        measured_sign = Decorated(sign, r"\mathord{", r"}\>")
+        terms[0] = _clone_with(first, {"sign": measured_sign})
+        return Sum(tuple(terms))
+
     def wrap(self, body: Node, spans: list[_Span]) -> Node:
         for span in sorted(spans, key=lambda entry: entry.order):
-            side = self.sides.get(span) or _default_side(span.annotation)
-            body = _wrap(body, span.annotation, side)
+            side = self.sides.get(span) or default_side(span.annotation)
+            body = decorate(body, span.annotation, side)
         return body
+
+    def add_overlays(self, overlays: tuple[_Span, ...]) -> tuple[str, ...]:
+        """Attach callouts at interval starts and return outer reservations."""
+
+        prefixes: dict[int, list[str]] = {}
+        reservations: list[str] = []
+        for span in sorted(overlays, key=lambda entry: entry.order):
+            # A negative coefficient is part of the annotated component even
+            # when its emitted minus also separates it from the preceding sum
+            # term.  Measure from that visible sign and attach the callout
+            # before it.  Body fills retain their separate policy: adjacent
+            # fill spans do not absorb the separator between them.
+            term = self.terms[span.start]
+            measured = self.callout_measure(span.start, span.stop)
+            phantom = Decorated(measured, r"\phantom{", "}")
+            side = self.sides.get(span) or default_side(span.annotation)
+            reserved, overlaid = external_parts(phantom, span.annotation, side)
+            reservations.append(reserved)
+            prefixes.setdefault(span.start, []).append(overlaid)
+        for start, values in prefixes.items():
+            prefix = "".join(values)
+            term = self.terms[start]
+            if term.negative or term.sign is not None:
+                sign = term.sign or Text("-")
+                math_class = r"\mathord{" if start == 0 else r"\mathbin{"
+                decorated_sign = Decorated(sign, math_class + prefix + r"\mathord{", "}}")
+                terms = list(self.terms)
+                terms[start] = _clone_with(term, {"sign": decorated_sign})
+                self.terms = tuple(terms)
+            else:
+                self.bodies[start] = Decorated(self.bodies[start], prefix, "")
+        return tuple(reservations)
 
     @staticmethod
     def segments(start: int, stop: int, pivot: _Span) -> list[tuple[int, int]]:
@@ -524,15 +618,24 @@ class _SumLayout:
             nested = [span for span in active if span.start < segment_stop and span.stop > segment_start]
             segment_leading = leading_inside if index == 0 else False
             body = self.region(segment_start, segment_stop, segment_leading, nested)
-            negative = self.terms[segment_start].negative if index > 0 else False
-            terms.append(SumTerm(body, negative=negative))
+            sign_is_inside = segment_start in self.included_leading_signs
+            negative = self.terms[segment_start].negative if index > 0 and not sign_is_inside else False
+            if index > 0 and sign_is_inside:
+                # The nested body emits its own leading sign.  An explicit
+                # empty separator prevents the outer Sum from adding a second
+                # plus/minus glyph in front of that body.
+                sign = Text("")
+            else:
+                sign = self.terms[segment_start].sign if index > 0 else None
+            terms.append(SumTerm(body, negative=negative, sign=sign))
         return Sum(tuple(terms))
 
     def region(self, start: int, stop: int, leading_inside: bool, active: list[_Span]) -> Node:
         covering = [span for span in active if span.start == start and span.stop == stop]
         remaining = [span for span in active if span not in covering]
         if covering:
-            return self.wrap(self.region(start, stop, leading_inside, remaining), covering)
+            owns_sign = any(span.include_leading_sign for span in covering)
+            return self.wrap(self.region(start, stop, leading_inside or owns_sign, remaining), covering)
         inside = [span for span in remaining if span.start < stop and span.stop > start]
         if not inside:
             return self.plain(start, stop, leading_inside)
@@ -540,11 +643,23 @@ class _SumLayout:
         return self.split(start, stop, leading_inside, inside, pivot)
 
 
-def _render_sum(node: Sum, path: Path, spans: tuple[_Span, ...], context: _RebuildContext) -> Node:
-    """Render nested span layers while preserving sign ownership."""
+def _render_sum(
+    node: Sum,
+    path: Path,
+    spans: tuple[_Span, ...],
+    overlays: tuple[_Span, ...],
+    context: _RebuildContext,
+) -> Node:
+    """Render base span layers and independent external callouts."""
 
     bodies = [_rebuild(term.body, (*path, "terms", index, "body"), context) for index, term in enumerate(node.terms)]
-    return _SumLayout(node.terms, bodies, context.sides).region(0, len(node.terms), True, list(spans))
+    included_leading_signs = frozenset(span.start for span in spans if span.include_leading_sign)
+    layout = _SumLayout(node.terms, bodies, context.sides, included_leading_signs)
+    reservations = layout.add_overlays(overlays)
+    rendered = layout.region(0, len(node.terms), True, list(spans))
+    if reservations:
+        rendered = Decorated(rendered, "".join(reservations), "")
+    return rendered
 
 
 def render_katex(document: RenderDocument, rules: Iterable[Annotation], *, value: Any = None) -> KatexResult:
@@ -553,18 +668,26 @@ def render_katex(document: RenderDocument, rules: Iterable[Annotation], *, value
     plan = resolve(document, rules, value=value)
     if not plan.placements:
         return KatexResult(emit(document.body, "latex"), (), plan.missing)
-    spans, directs = _collect(plan, document.body)
-    labels, sides = _solve((*spans, *directs))
+    sign_slots, term_body_placements = _partition_signs(plan.placements)
+    spans, overlays, directs = _collect(AnnotationPlan(term_body_placements, plan.missing), document.body)
+    spans, sign_slots = _fuse_leading_sign_fills(spans, sign_slots)
+    labels, sides = _solve((*overlays, *directs))
+    _validate_overlay_channels(overlays, sides)
     spans_by_container: dict[Path, list[_Span]] = {}
     for span in spans:
         spans_by_container.setdefault(span.container, []).append(span)
+    overlays_by_container: dict[Path, list[_Span]] = {}
+    for overlay in overlays:
+        overlays_by_container.setdefault(overlay.container, []).append(overlay)
     direct_by_path: dict[Path, list[_Direct]] = {}
     for direct in directs:
         direct_by_path.setdefault(direct.path, []).append(direct)
     context = _RebuildContext(
         {container: tuple(entries) for container, entries in spans_by_container.items()},
+        {container: tuple(entries) for container, entries in overlays_by_container.items()},
         {path: tuple(entries) for path, entries in direct_by_path.items()},
         sides,
+        sign_slots,
     )
     body = _rebuild(document.body, (), context)
     return KatexResult(emit(body, "latex"), labels, plan.missing)

@@ -1,10 +1,16 @@
 ---
-status: accepted
+status: partially superseded by ADR-154
 date: 2026-09-18
 deciders: edouard
 ---
 
 # ADR-147: KaTeX Annotation Lowering and Decoration Wrappers
+
+> **Update:** ADR-154 replaces the nested-wrapper model for labels and markers
+> attached to sum-term spans. Direct-node decorations and base content-style
+> wrappers continue to follow this decision. ADR-155 extracts the shared
+> lowering behind a package-private interface consumed by both expression and
+> matrix renderers.
 
 ## Context
 
@@ -52,10 +58,12 @@ later milestones; the specialization follows SPEC-015.
 
 Adjacent terms carrying the same rule join into one continuous span only when
 the rule sets `join=True`; otherwise every placement renders separately. A
-joined span keeps its internal separators and leading sign inside the
-highlight and shows one label for the run. Independent rules form independent
-layers, so a wide fill may contain narrower brackets. Crossing (partially
-overlapping) spans in one sum are rejected as ambiguous.
+joined span keeps its internal separators and an expression-leading sign
+inside the highlight and shows one label for the run. A sign at a later span
+boundary remains the surrounding sum's separator unless a compatible
+sign-target fill explicitly fuses it into the span (ADR-150). Independent
+rules form independent layers, so a wide fill may contain narrower brackets.
+Crossing (partially overlapping) spans in one sum are rejected as ambiguous.
 
 Fill and overlay lowering re-enter math mode with `$...$` inside
 `\colorbox` and `\fcolorbox`, the spelling KaTeX expects there. A border with
@@ -73,12 +81,13 @@ colour. Plain labels render upright with `\text{...}` so word spacing is
 preserved, and newlines stack lines; `label_latex` is an explicit trusted
 mode for equation labels. This raw mode is a deliberate KaTeX trust boundary;
 ordinary `label` values remain escaped text. `label_color` colours only a label,
-so a span label can match its fill in a darker shade. `overlay=True` smashes the marker
-(`\smash[t]` above, `\smash[b]` below) so it protrudes over an enclosing
-fill instead of inflating or splitting it. Overlay `clearance` becomes an
-outward lift implemented by a raised zero-width strut inside `\vphantom`, so
-the marker rises while the visible terms stay on the baseline without
-serializing the subtree during transformation.
+so a span label can match its fill in a darker shade. The original
+`overlay=True` lowering smashed the marker (`\smash[t]` above, `\smash[b]`
+below) so it protruded over an enclosing fill instead of inflating it. Its
+`clearance` used a raised zero-width `\rule{0pt}{1em}` inside `\vphantom`;
+this avoids the unsupported LaTeX `\strut` command. ADR-154 retains those
+visual properties but replaces the whole-subtree smash with a phantom-measured
+overlay and an outer bounds reservation.
 
 Label placement is approximate and greedy: labels stay centred on their
 anchors; adjacent same-side labels whose estimated widths overlap alternate to
@@ -127,6 +136,9 @@ stages include the distribution.
 - Extension tests cover target resolution, empty selections, algebra
   compatibility, escaping, marker lowering, label layout and numerical
   transparency.
+- Runtime contract tests pass representative output for every marker and
+  composed span style through Marimo's bundled KaTeX parser using Node. This
+  catches unsupported commands that string snapshots cannot detect.
 - Repository linting enforces Ruff C901 on the annotation implementation so
   selection, lowering, and span-layout responsibilities cannot silently grow
   back into high-complexity functions.

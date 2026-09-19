@@ -727,19 +727,31 @@ class MatrixRepr:
 
     # ── Rendering ──
 
-    def _body_latex(self) -> str:
-        if self.mode == "quaternion":
-            qm = self.quat
-            lines = []
-            for row in qm:
-                cells = [q.latex() for q in row]
-                lines.append(" & ".join(cells))
-            return " \\\\\n".join(lines)
+    @property
+    def logical_shape(self) -> tuple[int, int]:
+        """The displayed cell-grid shape.
+
+        Quaternion mode stores each displayed entry as a 2x2 complex block, so
+        its logical shape is half the underlying array.
+        """
         rows, cols = self.mat.shape
-        lines = []
-        for i in range(rows):
-            cells = [_fmt(self.mat[i, j]) for j in range(cols)]
-            lines.append(" & ".join(cells))
+        if self.mode == "quaternion":
+            return rows // 2, cols // 2
+        return rows, cols
+
+    def cell_latex(self, row: int, column: int) -> str:
+        """Return the LaTeX body of one logical display entry.
+
+        This is the public cell-formatting hook used by annotation lowering, so
+        it never re-implements the quaternion or complex formatting rules.
+        """
+        if self.mode == "quaternion":
+            return self.quat[row][column].latex()
+        return _fmt(self.mat[row, column])
+
+    def _body_latex(self) -> str:
+        rows, cols = self.logical_shape
+        lines = [" & ".join(self.cell_latex(i, j) for j in range(cols)) for i in range(rows)]
         return " \\\\\n".join(lines)
 
     def latex(self, wrap: str | None = None) -> str:

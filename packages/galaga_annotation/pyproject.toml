@@ -24,6 +24,10 @@ dependencies = [
     "numpy>=1.24",
 ]
 
+[project.optional-dependencies]
+# Matrix cell/region annotations; galaga_matrix is an optional companion.
+matrix = ["galaga-matrix>=2.0.0a7"]
+
 [project.urls]
 Homepage = "https://github.com/edouardp/galaga"
 Repository = "https://github.com/edouardp/galaga"

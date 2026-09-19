@@ -24,9 +24,19 @@ from .annotator import annotator
 from .model import on
 from .targets import TermTarget, terms
 
-__all__ = ["CGAObject", "HighlightDecomposition", "cga_parts", "classify_cga", "highlight_cga"]
+__all__ = [
+    "CGAObject",
+    "HighlightDecomposition",
+    "OverMarker",
+    "cga_parts",
+    "classify_cga",
+    "highlight_cga",
+    "highlight_object",
+]
 
 HighlightDecomposition = Literal["incidence", "components"]
+OverMarker = Literal["overgroup", "overbrace", "overline", "overbracket"]
+OVER_MARKERS: tuple[OverMarker, ...] = ("overgroup", "overbrace", "overline", "overbracket")
 
 _FAMILIES = ("round_weight", "round_bulk", "flat_bulk", "flat_weight")
 
@@ -239,7 +249,9 @@ def _combined_target(value: Multivector, parts: dict[str, TermTarget], families:
     return _terms_for(value, masks) if masks else None
 
 
-def _layered_rules(value: Multivector, parts: dict[str, TermTarget], labels: _LayeredLabels) -> list[Any]:
+def _layered_rules(
+    value: Multivector, parts: dict[str, TermTarget], labels: _LayeredLabels, over_marker: OverMarker
+) -> list[Any]:
     """Build Lengyel carrier/flat fills with cocarrier overlays.
 
     The round-weight family is the directional cocarrier subset of the full
@@ -267,9 +279,8 @@ def _layered_rules(value: Multivector, parts: dict[str, TermTarget], labels: _La
             on(
                 parts["round_weight"],
                 label=labels.round_cocarrier,
-                marker="overgroup",
+                marker=over_marker,
                 color="#0099cc",
-                overlay=True,
                 clearance="4px",
                 join=True,
             )
@@ -290,9 +301,8 @@ def _layered_rules(value: Multivector, parts: dict[str, TermTarget], labels: _La
             on(
                 parts["flat_weight"],
                 label=labels.flat_cocarrier,
-                marker="overgroup",
+                marker=over_marker,
                 color="#0099cc",
-                overlay=True,
                 clearance="4px",
                 join=True,
             )
@@ -306,12 +316,13 @@ def _annotate(
     *,
     atol: float,
     decomposition: HighlightDecomposition,
+    over_marker: OverMarker,
 ) -> Any:
     obj = classify_cga(value, model, atol=atol)
     parts = cga_parts(value, model, atol=atol)
     layered_labels = _LAYERED_LABELS.get(obj.kind) if decomposition == "incidence" else None
     if layered_labels is not None and parts:
-        return annotator(*_layered_rules(value, parts, layered_labels))(value)
+        return annotator(*_layered_rules(value, parts, layered_labels, over_marker))(value)
     styles = _KIND_STYLES.get(obj.kind, _DEFAULT_STYLES)
     grouped: dict[tuple[str, str], list[TermTarget]] = {}
     order: list[tuple[str, str]] = []
@@ -351,6 +362,7 @@ def highlight_cga(
     *,
     decomposition: HighlightDecomposition = "incidence",
     atol: float = 1e-9,
+    over_marker: OverMarker = "overgroup",
 ) -> Callable[[Multivector], Any]:
     """Return a callable that classifies and highlights one CGA object.
 
@@ -358,6 +370,10 @@ def highlight_cga(
     supported objects. ``decomposition="components"`` keeps the
     object-specific component-role vocabulary derived from Lengyel's four
     round/flat bulk/weight families.
+
+    ``over_marker`` selects the callout style for incidence cocarrier brackets:
+    ``"overgroup"`` (default), ``"overbrace"``, ``"overline"``, or
+    ``"overbracket"``.
 
     Usage::
 
@@ -371,9 +387,23 @@ def highlight_cga(
         raise ValueError("highlight_cga currently supports three-dimensional conformal models")
     if decomposition not in {"incidence", "components"}:
         raise ValueError("decomposition must be 'incidence' or 'components'")
+    if over_marker not in OVER_MARKERS:
+        raise ValueError(f"over_marker must be one of {OVER_MARKERS}")
     atol = _checked_tolerance(atol)
 
     def highlight(value: Multivector) -> Any:
-        return _annotate(value, model, atol=atol, decomposition=decomposition)
+        return _annotate(value, model, atol=atol, decomposition=decomposition, over_marker=over_marker)
 
     return highlight
+
+
+def highlight_object(
+    model: ConformalModel,
+    *,
+    decomposition: HighlightDecomposition = "incidence",
+    atol: float = 1e-9,
+    over_marker: OverMarker = "overgroup",
+) -> Callable[[Multivector], Any]:
+    """Alias of :func:`highlight_cga` for the object-level highlight recipe."""
+
+    return highlight_cga(model, decomposition=decomposition, atol=atol, over_marker=over_marker)

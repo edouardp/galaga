@@ -31,6 +31,10 @@ def test_joint_release_packages_share_a_version_and_core_dependency_floor() -> N
         )
         assert Version(requirement.removeprefix("galaga>=")) >= Version(galaga_version)
 
+    matrix_requirement = projects["galaga_annotation"]["optional-dependencies"]["matrix"][0]
+    assert matrix_requirement.startswith("galaga-matrix>=")
+    assert Version(matrix_requirement.removeprefix("galaga-matrix>=")) >= Version(projects["galaga_matrix"]["version"])
+
 
 def test_release_workflow_tests_builds_checks_and_publishes_anywidget() -> None:
     release = (ROOT / "scripts" / "release.sh").read_text()
@@ -50,6 +54,7 @@ def test_release_workflow_builds_checks_and_publishes_annotation() -> None:
     assert 'cd "$ROOT/packages/galaga_annotation" && uv build' in release
     assert f"twine check {artifact}" in release
     assert f"uv publish {artifact}" in release
+    assert 's/\\"galaga-matrix>=.*\\"/\\"galaga-matrix>=$NEW\\"/' in release
     assert "cd packages/galaga_annotation && uv build" in makefile
     assert f"twine check {artifact}" in makefile
 
