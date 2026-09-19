@@ -91,8 +91,8 @@ def test_annotation_notebook_brackets_a_lengyel_cga_dipole() -> None:
     rendered = nested.latex()
     assert r"\overgroup" in rendered
     assert r"\undergroup" in rendered
-    assert r"\overset{\text{cocarrier normal}}{\overgroup{" in rendered
-    assert r"\underset{\text{cocarrier position}}{\undergroup{" in rendered
+    assert r"\overset{\mathclap{\text{cocarrier normal}}}{\overgroup{" in rendered
+    assert r"\underset{\mathclap{\text{cocarrier position}}}{\undergroup{" in rendered
     assert "cocarrier normal" in rendered
     assert "cocarrier position" in rendered
 
@@ -103,15 +103,22 @@ def test_annotation_notebook_brackets_a_lengyel_cga_dipole() -> None:
     assert classified_text.count(r"\colorbox{#b8e6bf}") == 1
     assert classified_text.count(r"\colorbox{#d8c4ee}") == 1
     assert (
-        r"\underset{\textcolor{#2f7d4f}{\text{carrier line}}}{\colorbox{#b8e6bf}{$"
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{cocarrier normal}}{\overgroup{"
+        r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
+        r"\text{carrier line}}}}{\phantom{" in classified_text
+    )
+    assert (
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}{"
+        r"\overgroup{" in classified_text
+    )
+    assert (
+        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}{"
+        r"\overgroup{"
         r"\textcolor{black}{\vphantom{\raisebox{4px}{" in classified_text
     )
     assert (
-        r"\smash[t]{\textcolor{#0099cc}{\overset{\text{cocarrier position}}{\overgroup{"
-        r"\textcolor{black}{\vphantom{\raisebox{4px}{" in classified_text
+        r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
+        r"\text{flat point}}}}{\phantom{" in classified_text
     )
-    assert r"\underset{\textcolor{#6b4a9e}{\text{flat point}}}{\colorbox{#d8c4ee}{$" in classified_text
     assert r"\overgroup{\textcolor{#0099cc}{" not in classified_text
     assert "- -" not in classified_text and "+ -" not in classified_text
 

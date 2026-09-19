@@ -104,7 +104,7 @@ def _(mo):
 
 @app.cell
 def _(area, ga, gm):
-    view_whole = ga.annotate(area, label="oriented area")
+    view_whole = ga.annotate(area, ga.on(ga.content("expr"), label="oriented area"))
     transparent = view_whole.plain is area and view_whole.plain == area
     gm.md(t"""
     _Transparent:_ {transparent}
@@ -448,6 +448,14 @@ def _(d):
 @app.cell
 def _(d, highlight_object):
     highlight_object( d )
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    $$ \overbracket{e_1 + e_2} $$
+    """)
     return
 
 

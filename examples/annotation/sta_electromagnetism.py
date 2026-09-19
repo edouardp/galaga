@@ -286,6 +286,7 @@ def _(
     return
 
 
+
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
@@ -312,12 +313,6 @@ def _(mo):
     magnetic_x_control = mo.ui.slider(-2.0, 2.0, step=0.05, value=0.15, label="Bₓ")
     magnetic_y_control = mo.ui.slider(-2.0, 2.0, step=0.05, value=-0.4, label="Bᵧ")
     magnetic_z_control = mo.ui.slider(-2.0, 2.0, step=0.05, value=0.8, label="B_z")
-    mo.vstack(
-        [
-            mo.hstack([electric_x_control, electric_y_control, electric_z_control]),
-            mo.hstack([magnetic_x_control, magnetic_y_control, magnetic_z_control]),
-        ]
-    )
     return (
         electric_x_control,
         electric_y_control,
@@ -343,6 +338,7 @@ def _(
     magnetic_x_control,
     magnetic_y_control,
     magnetic_z_control,
+    mo,
     np,
     rotation_planes,
     sta_presenter,
@@ -379,14 +375,20 @@ def _(
         ),
     )
     faraday_view = sta_presenter(field_annotator(faraday_field))
-    gm.md(rt"""
+    mo.vstack(
+        [
+            mo.hstack([electric_x_control, electric_y_control, electric_z_control]),
+            mo.hstack([magnetic_x_control, magnetic_y_control, magnetic_z_control]),
+            gm.md(rt"""
     **One field, two observer-relative parts:**
 
     {faraday_view:block}
 
     Red terms lie in boost planes; blue terms lie in spatial-rotation planes.
     A different observer changes this split, but not the spacetime bivector.
-    """)
+    """),
+        ]
+    )
     return (
         electric_coefficients,
         faraday_field,
@@ -485,7 +487,6 @@ def _(mo):
 @app.cell
 def _(mo):
     speed_control = mo.ui.slider(0.0, 0.95, step=0.01, value=0.6, label="particle speed v/c along γ₁")
-    speed_control
     return (speed_control,)
 
 
@@ -503,6 +504,7 @@ def _(
     gm,
     hestenes_inner,
     magnetic_z_control,
+    mo,
     np,
     scalar_product,
     sigma1,
@@ -549,7 +551,10 @@ def _(
     magnetic_force_view = sta_presenter(
         ga.annotate(magnetic_force, label_latex="K_B", background=MAGNETIC_FILL, label_color=MAGNETIC_BLUE)
     )
-    gm.md(rt"""
+    mo.vstack(
+        [
+            speed_control,
+            gm.md(rt"""
     **Electric contribution:** {electric_force_view:block}
 
     **Magnetic contribution:** {magnetic_force_view:block}
@@ -559,7 +564,9 @@ def _(
     Linearity verified: **{force_linearity_verified}**.
     Orthogonality $u\cdot K=0$ and zero magnetic power verified:
     **{force_geometry_verified}**.
-    """)
+    """),
+        ]
+    )
     return
 
 
@@ -578,7 +585,6 @@ def _(mo):
 @app.cell
 def _(mo):
     field_boost_control = mo.ui.slider(-1.2, 1.2, step=0.05, value=0.45, label="field boost rapidity along γ₂")
-    field_boost_control
     return (field_boost_control,)
 
 
@@ -591,6 +597,7 @@ def _(
     field_square,
     gm,
     grade,
+    mo,
     sandwich,
     sigma2,
     sta_presenter,
@@ -603,13 +610,18 @@ def _(
     boosted_invariants_verified = grade(boosted_field_square, 0).almost_equal(grade(field_square, 0)) and grade(
         boosted_field_square, 4
     ).almost_equal(grade(field_square, 4))
-    gm.md(rt"""
+    mo.vstack(
+        [
+            field_boost_control,
+            gm.md(rt"""
     **Original observer split:** {sta_presenter(field_annotator(faraday_field)):block}
 
     **Boosted observer split:** {boosted_field_view:block}
 
     Same scalar and pseudoscalar invariants: **{boosted_invariants_verified}**.
-    """)
+    """),
+        ]
+    )
     return
 
 
