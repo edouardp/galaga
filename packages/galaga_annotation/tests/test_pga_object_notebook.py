@@ -26,7 +26,8 @@ def test_pga_notebook_defaults_to_a_motor_split(lesson) -> None:
     _, definitions = lesson
     assert set(definitions["objects"]) == {"point", "line", "plane", "rotor", "motor"}
     rendered = definitions["view"].latex(content="value")
-    assert r"\overgroup" in rendered and r"\undergroup" in rendered
+    assert r"\overbrace" in rendered and r"\underbrace" in rendered
+    assert r"\overgroup" not in rendered and r"\undergroup" not in rendered
     assert "Euclidean" in rendered and "projective (e0)" in rendered
 
 
@@ -46,13 +47,13 @@ def test_pga_notebook_object_and_decomposition_controls(lesson) -> None:
         defs={"object_choice": SimpleNamespace(value="rotor")}
     )
     rotor = rotor_definitions["view"].latex(content="value")
-    assert r"\undergroup" not in rotor  # a rotor has no projective part
+    assert r"\underbrace" not in rotor  # a rotor has no projective part
 
     _, grade_definitions = runpy.run_path(str(NOTEBOOK))["app"].run(
         defs={"decomposition_choice": SimpleNamespace(value="grade")}
     )
     graded = grade_definitions["view"].latex(content="value")
-    assert r"\overgroup" not in graded and r"\undergroup" not in graded
+    assert r"\overbrace" not in graded and r"\underbrace" not in graded
     assert r"\textcolor{#111827}{" in graded and r"\textcolor{#D55E00}{" in graded
 
 

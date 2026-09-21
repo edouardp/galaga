@@ -39,6 +39,9 @@ def _brace_marker(node: Node, marker: str, side: ResolvedSide, text: str | None)
     if marker == "underbrace":
         effective_side: ResolvedSide = "below"
         command = r"\underbrace"
+    elif marker == "underbracket":
+        effective_side = "below"
+        command = r"\underbracket"
     elif marker == "overbracket":
         effective_side = "above"
         command = r"\overbracket"
@@ -110,7 +113,7 @@ def _callout_marker(
 def _marker_wrap(
     node: Node, marker: str, side: ResolvedSide, text: str | None, clearance: str | None
 ) -> tuple[Node, ResolvedSide]:
-    if marker in {"brace", "underbrace", "overbrace", "overbracket"}:
+    if marker in {"brace", "underbrace", "underbracket", "overbrace", "overbracket"}:
         return _brace_marker(node, marker, side, text)
     if marker in {"undergroup", "overgroup"}:
         return _group_marker(node, marker, text)

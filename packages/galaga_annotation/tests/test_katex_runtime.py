@@ -131,6 +131,7 @@ def test_every_marker_compiles_with_standalone_katex(katex_module_url: str) -> N
         "underline",
         "box",
         "underbrace",
+        "underbracket",
         "overbrace",
         "undergroup",
         "overgroup",
@@ -249,7 +250,8 @@ def test_cga_cocarrier_callouts_reserve_their_height(katex_module_url: str) -> N
     incidence = ga.highlight_cga(cga, decomposition="incidence")(dipole).latex()
     components = ga.highlight_cga(cga, decomposition="components")(dipole).latex()
 
-    assert r"\vphantom{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}" in incidence
+    assert r"\vphantom{\textcolor{#0099cc}{\overbrace{" in incidence
+    assert r"^{\mathclap{\text{cocarrier normal}}}" in incidence
     dimensions = _measure_katex(
         katex_module_url,
         {"incidence": incidence, "components": components},

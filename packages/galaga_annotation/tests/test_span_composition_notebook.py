@@ -35,10 +35,9 @@ def test_lesson_combines_highlight_above_and_below(lesson) -> None:
     _, definitions = lesson
     rendered = definitions["three_layer_view"].latex()
     assert rendered.count(r"\colorbox{#b8e6bf}") == 1
-    assert (
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{structure above}}}{"
-        r"\overgroup" in rendered
-    )
+    assert r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overbracket{" in rendered
+    assert r"^{\mathclap{\text{structure above}}}" in rendered
+    assert r"\overgroup" not in rendered
     assert r"\mathrlap{\smash[b]{\textcolor{#7c3aed}{\underbrace" in rendered
     assert rendered.startswith(r"\vphantom{")
 

@@ -89,7 +89,7 @@ def _(e0_bit, ga, np):
                     background="#FDE7D9",
                     label="projective (e0)",
                     color="#D55E00",
-                    marker="undergroup",
+                    marker="underbrace",
                     join=True,
                 )
             )
@@ -121,8 +121,8 @@ def _(mo):
 @app.cell
 def _(mo):
     over_marker = mo.ui.dropdown(
-        ["overgroup", "overbrace", "overline", "overbracket"],
-        value="overgroup",
+        ["overbrace", "overbracket", "overline", "overgroup"],
+        value="overbrace",
         label="Over marker",
     )
     return (over_marker,)
@@ -185,16 +185,16 @@ def _(euclidean_projective_rules, ga, gm, objects):
     motor = objects["motor"]
     views = {
         marker: ga.annotator(*euclidean_projective_rules(motor, marker))(motor)
-        for marker in ("overgroup", "overbrace", "overline", "overbracket")
+        for marker in ("overbrace", "overbracket", "overline", "overgroup")
     }
     gm.md(t"""
-    **overgroup:** {views["overgroup"]:block}
-
     **overbrace:** {views["overbrace"]:block}
+
+    **overbracket:** {views["overbracket"]:block}
 
     **overline:** {views["overline"]:block}
 
-    **overbracket:** {views["overbracket"]:block}
+    **overgroup:** {views["overgroup"]:block}
     """)
     return (views,)
 
@@ -206,8 +206,9 @@ def _(mo):
 
     - The split is derived from the basis, not hardcoded: a blade belongs to
       the projective part exactly when it contains the degenerate $e_0$.
-    - `over_marker` selects the callout style for the Euclidean label; the
-      projective label keeps its under-group.
+    - `over_marker` defaults to an overbrace for the Euclidean label; the
+      projective label uses an underbrace. Group accents remain explicit
+      alternatives.
     - The same recipe covers objects (point, line, plane) and transformations
       (rotor, motor).
     """)

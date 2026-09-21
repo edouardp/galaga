@@ -64,3 +64,22 @@ def test_sta_lesson_reuses_semantic_colours_and_annotations(lesson) -> None:
         "magnetic force",
     ):
         assert label in markup
+
+
+def test_sta_lesson_uses_braces_instead_of_group_accents(lesson) -> None:
+    _, definitions = lesson
+    rendered = "\n".join(
+        definitions[name].latex()
+        for name in (
+            "generator_view",
+            "selected_generators_view",
+            "faraday_view",
+            "invariant_view",
+            "force_view",
+            "boosted_field_view",
+        )
+    )
+    assert r"\overbrace" in rendered
+    assert r"\underbrace" in rendered
+    assert r"\overgroup" not in rendered
+    assert r"\undergroup" not in rendered

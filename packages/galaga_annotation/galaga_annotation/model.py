@@ -29,6 +29,7 @@ Marker = Literal[
     "underline",
     "box",
     "underbrace",
+    "underbracket",
     "overbrace",
     "undergroup",
     "overgroup",
@@ -48,6 +49,7 @@ MARKERS: frozenset[str] = frozenset(
         "underline",
         "box",
         "underbrace",
+        "underbracket",
         "overbrace",
         "undergroup",
         "overgroup",
@@ -57,6 +59,7 @@ MARKERS: frozenset[str] = frozenset(
 )
 DIRECTIONAL_MARKERS: dict[str, str] = {
     "underbrace": "below",
+    "underbracket": "below",
     "undergroup": "below",
     "underline": "below",
     "overbrace": "above",

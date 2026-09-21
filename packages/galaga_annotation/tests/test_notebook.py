@@ -89,10 +89,10 @@ def test_annotation_notebook_brackets_a_lengyel_cga_dipole() -> None:
     nested = definitions["view_nested"]
     assert nested.plain is dipole
     rendered = nested.latex()
-    assert r"\overgroup" in rendered
-    assert r"\undergroup" in rendered
-    assert r"\overset{\mathclap{\text{cocarrier normal}}}{\overgroup{" in rendered
-    assert r"\underset{\mathclap{\text{cocarrier position}}}{\undergroup{" in rendered
+    assert r"\overbracket" in rendered
+    assert r"\underbrace" in rendered
+    assert r"\overgroup" not in rendered
+    assert r"\undergroup" not in rendered
     assert "cocarrier normal" in rendered
     assert "cocarrier position" in rendered
 
@@ -106,20 +106,15 @@ def test_annotation_notebook_brackets_a_lengyel_cga_dipole() -> None:
         r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
         r"\text{carrier line}}}}{\phantom{" in classified_text
     )
-    assert (
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}{"
-        r"\overgroup{" in classified_text
-    )
-    assert (
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}{"
-        r"\overgroup{"
-        r"\textcolor{black}{\vphantom{\raisebox{4px}{" in classified_text
-    )
+    assert classified_text.count(r"\overbrace") == 4
+    assert "cocarrier normal" in classified_text
+    assert "cocarrier position" in classified_text
     assert (
         r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
         r"\text{flat point}}}}{\phantom{" in classified_text
     )
-    assert r"\overgroup{\textcolor{#0099cc}{" not in classified_text
+    assert r"\overbrace{\textcolor{#0099cc}{" not in classified_text
+    assert r"\overgroup" not in classified_text
     assert "- -" not in classified_text and "+ -" not in classified_text
 
     examples = (

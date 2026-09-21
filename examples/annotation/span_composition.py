@@ -213,7 +213,7 @@ def _(e1, e2, e3, e4, ga, gm, value):
         ga.on(
             ga.terms(e2, e3, e4),
             label="structure above",
-            marker="overgroup",
+            marker="overbracket",
             color="#0099cc",
             clearance="2px",
             join=True,
@@ -230,7 +230,7 @@ def _(e1, e2, e3, e4, ga, gm, value):
     gm.md(t"""
     {three_layer_view:block}
 
-    The raised overgroup is visually outside the green fill. Its invisible
+    The raised overbracket is visually outside the green fill. Its invisible
     reservation still contributes to the equation's outer KaTeX bounds, so it
     does not intrude into the notebook content above it.
     """)
@@ -283,7 +283,7 @@ def _(mo):
     # Raises SpanLayoutError: two overlapping callouts compete above.
     ga.annotator(
         ga.on(ga.terms(e1, e2, e3), label="first", marker="overbrace", join=True),
-        ga.on(ga.terms(e2, e3, e4), label="second", marker="overgroup", join=True),
+        ga.on(ga.terms(e2, e3, e4), label="second", marker="overbracket", join=True),
     )(value).latex()
     ```
 

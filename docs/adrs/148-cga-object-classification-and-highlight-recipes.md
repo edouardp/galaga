@@ -73,7 +73,7 @@ available rather than forcing one interpretation:
   as plane part, center part, flat part, and flat weight.
 
 Both views use continuous green round-family and purple flat-family spans.
-Cyan overgroups in the incidence view use a `"4px"` clearance. Term-span
+Cyan overbraces in the incidence view use a `"4px"` clearance. Term-span
 markers lower automatically as independent overlays: a raised phantom lifts
 each smashed bracket above its enclosing fill, while an outer phantom reserves
 its KaTeX bounds without moving the terms or splitting the fill. Sign placement follows

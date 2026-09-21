@@ -22,11 +22,11 @@ def lesson():
     return outputs, definitions
 
 
-def test_marker_notebook_defaults_to_overgroup(lesson) -> None:
+def test_marker_notebook_defaults_to_overbrace(lesson) -> None:
     _, definitions = lesson
     rendered = definitions["view"].latex()
-    assert rendered.count(r"\overgroup") == 4
-    for marker in ("overbrace", "overline", "overbracket"):
+    assert rendered.count(r"\overbrace") == 4
+    for marker in ("overgroup", "overline", "overbracket"):
         assert "\\" + marker not in rendered
 
 

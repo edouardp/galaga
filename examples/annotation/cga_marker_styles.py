@@ -25,9 +25,9 @@ def _(mo):
     # Cocarrier marker styles
 
     `ga.highlight_cga(model, over_marker=...)` chooses how the cocarrier
-    callouts bracket their terms. The four supported styles are `overgroup`,
-    `overbrace`, `overline`, and `overbracket`. Change the controls and the
-    highlight updates in place.
+    callouts bracket their terms. The default `overbrace` and the alternative
+    `overbracket` give the most reliable teaching layouts. `overline` and
+    `overgroup` remain available for lessons that explicitly want them.
     """)
     return
 
@@ -72,8 +72,8 @@ def _(mo):
 @app.cell
 def _(mo):
     over_marker = mo.ui.dropdown(
-        ["overgroup", "overbrace", "overline", "overbracket"],
-        value="overgroup",
+        ["overbrace", "overbracket", "overline", "overgroup"],
+        value="overbrace",
         label="Cocarrier marker",
     )
     return (over_marker,)
@@ -159,16 +159,16 @@ def _(mo):
 def _(cga, ga, gm, objects):
     comparison = {
         marker: ga.highlight_cga(cga, over_marker=marker)(objects["dipole"])
-        for marker in ("overgroup", "overbrace", "overline", "overbracket")
+        for marker in ("overbrace", "overbracket", "overline", "overgroup")
     }
     gm.md(t"""
-    **overgroup:** {comparison["overgroup"]:block}
-
     **overbrace:** {comparison["overbrace"]:block}
+
+    **overbracket:** {comparison["overbracket"]:block}
 
     **overline:** {comparison["overline"]:block}
 
-    **overbracket:** {comparison["overbracket"]:block}
+    **overgroup:** {comparison["overgroup"]:block}
     """)
     return
 
@@ -178,8 +178,9 @@ def _(mo):
     mo.md(r"""
     ## Takeaways
 
-    - `over_marker` selects `overgroup`, `overbrace`, `overline`, or
-      `overbracket`; anything else raises `ValueError`.
+    - `over_marker` defaults to `overbrace`; `overbracket`, `overline`, and
+      `overgroup` remain explicit alternatives. Anything else raises
+      `ValueError`.
     - It only affects the incidence decomposition. Component-role views label
       families below and have no over markers.
     - `ga.highlight_object` is an alias of `ga.highlight_cga`.

@@ -26,7 +26,8 @@ def test_rga_notebook_defaults_to_a_motor_bulk_weight_split(lesson) -> None:
     _, definitions = lesson
     assert set(definitions["objects"]) == {"point", "line", "plane", "motor", "flector"}
     rendered = definitions["view"].latex(content="value")
-    assert r"\overgroup" in rendered and r"\undergroup" in rendered
+    assert r"\overbrace" in rendered and r"\underbrace" in rendered
+    assert r"\overgroup" not in rendered and r"\undergroup" not in rendered
     assert "bulk (attitude)" in rendered and "weight (moment)" in rendered
 
 
@@ -54,7 +55,7 @@ def test_rga_notebook_object_and_decomposition_controls(lesson) -> None:
         defs={"decomposition_choice": SimpleNamespace(value="grade")}
     )
     graded = grade_definitions["view"].latex(content="value")
-    assert r"\overgroup" not in graded and r"\undergroup" not in graded
+    assert r"\overbrace" not in graded and r"\underbrace" not in graded
     assert r"\textcolor{#111827}{" in graded and r"\textcolor{#D55E00}{" in graded
 
 

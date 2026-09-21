@@ -36,7 +36,7 @@ __all__ = [
 
 HighlightDecomposition = Literal["incidence", "components"]
 OverMarker = Literal["overgroup", "overbrace", "overline", "overbracket"]
-OVER_MARKERS: tuple[OverMarker, ...] = ("overgroup", "overbrace", "overline", "overbracket")
+OVER_MARKERS: tuple[OverMarker, ...] = ("overbrace", "overbracket", "overline", "overgroup")
 
 _FAMILIES = ("round_weight", "round_bulk", "flat_bulk", "flat_weight")
 
@@ -362,7 +362,7 @@ def highlight_cga(
     *,
     decomposition: HighlightDecomposition = "incidence",
     atol: float = 1e-9,
-    over_marker: OverMarker = "overgroup",
+    over_marker: OverMarker = "overbrace",
 ) -> Callable[[Multivector], Any]:
     """Return a callable that classifies and highlights one CGA object.
 
@@ -372,8 +372,9 @@ def highlight_cga(
     round/flat bulk/weight families.
 
     ``over_marker`` selects the callout style for incidence cocarrier brackets:
-    ``"overgroup"`` (default), ``"overbrace"``, ``"overline"``, or
-    ``"overbracket"``.
+    ``"overbrace"`` (default), ``"overbracket"``, ``"overline"``, or
+    ``"overgroup"``. Group accents remain available explicitly, but braces
+    provide more reliable KaTeX spacing for ordinary teaching callouts.
 
     Usage::
 
@@ -402,7 +403,7 @@ def highlight_object(
     *,
     decomposition: HighlightDecomposition = "incidence",
     atol: float = 1e-9,
-    over_marker: OverMarker = "overgroup",
+    over_marker: OverMarker = "overbrace",
 ) -> Callable[[Multivector], Any]:
     """Alias of :func:`highlight_cga` for the object-level highlight recipe."""
 

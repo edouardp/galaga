@@ -82,7 +82,7 @@ def _(bulk_part, ga, np, weight_part):
                     background="#FDE7D9",
                     label="weight (moment)",
                     color="#D55E00",
-                    marker="undergroup",
+                    marker="underbrace",
                     join=True,
                 )
             )
@@ -114,8 +114,8 @@ def _(mo):
 @app.cell
 def _(mo):
     over_marker = mo.ui.dropdown(
-        ["overgroup", "overbrace", "overline", "overbracket"],
-        value="overgroup",
+        ["overbrace", "overbracket", "overline", "overgroup"],
+        value="overbrace",
         label="Over marker",
     )
     return (over_marker,)
@@ -174,16 +174,16 @@ def _(bulk_weight_rules, ga, gm, objects):
     motor = objects["motor"]
     views = {
         marker: ga.annotator(*bulk_weight_rules(motor, marker))(motor)
-        for marker in ("overgroup", "overbrace", "overline", "overbracket")
+        for marker in ("overbrace", "overbracket", "overline", "overgroup")
     }
     gm.md(t"""
-    **overgroup:** {views["overgroup"]:block}
-
     **overbrace:** {views["overbrace"]:block}
+
+    **overbracket:** {views["overbracket"]:block}
 
     **overline:** {views["overline"]:block}
 
-    **overbracket:** {views["overbracket"]:block}
+    **overgroup:** {views["overgroup"]:block}
     """)
     return (views,)
 
@@ -195,8 +195,8 @@ def _(mo):
 
     - The object is split from the validated `RigidModel`, not by hardcoded
       blade names: `bulk_part` and `weight_part` decide the terms.
-    - `over_marker` selects the callout style for the bulk label; the weight
-      label keeps its under-group.
+    - `over_marker` defaults to an overbrace for the bulk label; the weight
+      label uses an underbrace. Group accents remain explicit alternatives.
     - Motors and flectors satisfy their RGA constraints and are annotated the
       same way as the pure geometric objects.
     """)

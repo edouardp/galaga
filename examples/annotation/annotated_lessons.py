@@ -359,18 +359,18 @@ def _(
     view_nested = ga.annotator(
         ga.on(terms_for(carrier_masks), background="#b8e6bf", join=True),
         ga.on(ga.term(lengyel_algebra.blade(carrier_lead)), label="carrier line", side="below"),
-        ga.on(terms_for(other_directions), marker="overgroup", color="#0099cc", join=True),
+        ga.on(terms_for(other_directions), marker="overbracket", color="#0099cc", join=True),
         ga.on(
             ga.term(lengyel_algebra.blade(direction_lead)),
             label="cocarrier normal",
-            marker="overgroup",
+            marker="overbracket",
             color="#0099cc",
         ),
         ga.on(terms_for(flat_point_masks), background="#d8c4ee", join=True),
         ga.on(ga.term(lengyel_algebra.blade(flat_lead)), label="flat point", side="below"),
-        ga.on(terms_for(position_masks), label="cocarrier position", marker="undergroup", color="#0099cc"),
+        ga.on(terms_for(position_masks), label="cocarrier position", marker="underbrace", color="#0099cc"),
     )(dipole)
-    gm.md(t"**Highlighted spans with over- and under-group brackets:** {view_nested:block}")
+    gm.md(t"**Highlighted spans with an overbracket and underbrace:** {view_nested:block}")
     return
 
 
@@ -464,13 +464,13 @@ def _(dipole, ga, gm, lengyel_algebra):
     position_term_rule = ga.on(
         ga.term(lengyel_algebra.blade("e45")),
         label="position term",
-        marker="overgroup",
+        marker="overbrace",
         color="#0099cc",
     )
     position_weight_rule = ga.on(
         ga.coefficient(lengyel_algebra.blade("e45")),
         label="position weight",
-        marker="overgroup",
+        marker="overbrace",
         color="#0099cc",
     )
     gm.md(t"""
@@ -553,7 +553,7 @@ def _(e1, e2, ga, gm):
     view_equation_label = ga.annotate(
         e1 ^ e2,
         label_latex=r"\substack{\text{carrier line} \\ e_{1} \wedge e_{2}}",
-        marker="overgroup",
+        marker="overbrace",
         overlay=True,
         clearance="4px",
         color="#0099cc",

@@ -72,6 +72,12 @@ Operator targets use the displayed glyph or function name when one exists.
 For notation with an implicit operator, such as geometric-product
 juxtaposition, the label spans the whole product occurrence.
 
+Span markers include paired structural brackets:
+`marker="overbracket"` lowers to
+`\overbracket{body}^{label}`, while `marker="underbracket"` lowers to
+`\underbracket{body}_{label}`. Their directions are fixed; passing the
+contradictory explicit `side` is an error.
+
 ## Targeting a subtree
 
 `ga.subexpression(value, occurrence=...)` finds a subtree by its recorded
@@ -192,12 +198,8 @@ assert ga.classify_cga(dipole, cga).kind == "dipole"
 object_view = object_highlight(dipole)
 assert object_view.latex().count(r"\colorbox{#b8e6bf}") == 1
 assert object_view.latex().count(r"\colorbox{#d8c4ee}") == 1
-assert (
-    r"\underset{\textcolor{#2f7d4f}{\text{carrier line}}}{\colorbox{#b8e6bf}{$"
-    r"\smash[t]{\textcolor{#0099cc}{\overset{\text{cocarrier normal}}{\overgroup{"
-    r"\textcolor{black}{\vphantom{\raisebox{4px}{" in object_view.latex()
-)
-assert r"\overgroup{\textcolor{#0099cc}{" not in object_view.latex()
+assert object_view.latex().count(r"\overbrace") == 4
+assert r"\overgroup" not in object_view.latex()
 
 round_point = cga.up((0.5, -0.75, 1.25)).without_expr()
 p = cga.up((0.75, 1.0, 2.0))
@@ -240,7 +242,7 @@ incidence view labels the carrier plane, flat line, cocarrier direction, and
 cocarrier moment shown in Lengyel's classification. The incidence view of a
 dipole shows its carrier line and flat
 point as contiguous highlights, with "cocarrier normal" and "cocarrier
-position" overgroups overlaid above subsets of those highlights. Term-span
+position" overbraces overlaid above subsets of those highlights. Term-span
 markers choose overlay lowering automatically: a raised phantom inside the
 bracket body lifts it by `clearance`, while an outer zero-width phantom makes
 KaTeX reserve the callout's height without enlarging the enclosing fill. Their
@@ -252,8 +254,10 @@ See [`examples/annotation/span_composition.py`](../../examples/annotation/span_c
 for equal, nested, disjoint and crossing intervals, including one highlight
 with independent callouts above and below.
 
-The cocarrier callout style is selectable with `over_marker`: `"overgroup"`
-(the default), `"overbrace"`, `"overline"`, or `"overbracket"`.
+The cocarrier callout style is selectable with `over_marker`: `"overbrace"`
+(the default), `"overbracket"`, `"overline"`, or `"overgroup"`. Braces and
+brackets are preferred for teaching layouts; group accents remain available
+when their distinct appearance is intentional.
 `ga.highlight_object` is an alias of `ga.highlight_cga`.
 
 ```python

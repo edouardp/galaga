@@ -773,6 +773,7 @@ class AnnotationStyle:
         "underline",
         "box",
         "underbrace",
+        "underbracket",
         "overbrace",
         "undergroup",
         "overgroup",
@@ -983,7 +984,7 @@ vector_lesson = ga.annotator(
     ga.on(
         ga.grade(1),
         label="vector part",
-        marker="undergroup",
+        marker="underbrace",
         color="#888888",
         clearance="4px",
     ),
@@ -999,7 +1000,7 @@ vector_lesson = (
     .label(
         "vector part",
         target=ga.grade(1),
-        marker="undergroup",
+        marker="underbrace",
         color="#888888",
         clearance="4px",
     )
@@ -1017,8 +1018,8 @@ target. There is no mutable `.select(...)` state.
 - `.mark(target=whole(), ...)` appends a combined highlight and label rule.
 
 `on(...)` and `.mark(...)` accept the same annotation fields. Directional
-markers determine their side: `underbrace`, `undergroup` and `underline`
-are below, while `overbrace`, `overgroup`, `overline` and `overbracket`
+markers determine their side: `underbrace`, `underbracket`, `undergroup` and
+`underline` are below, while `overbrace`, `overgroup`, `overline` and `overbracket`
 are above; a contradictory
 explicit `side` is an error. Neutral markers (`none`, `arrow`, `rule`,
 `brace`, `box`) accept an explicit side, defaulting to `side="auto"`, which
@@ -1028,6 +1029,12 @@ a collision; `brace` is a generic span marker lowered to `\overbrace` or
 target and its marker, not a shift of the mathematical content. `marker` and
 `clearance` are `AnnotationStyle` fields, so functional and fluent
 construction produce identical plans.
+
+Reusable annotators and teaching notebooks should prefer `underbrace`,
+`underbracket`, `overbrace`, and `overbracket`. Group accents remain supported
+for explicit stylistic use, but are not defaults because KaTeX gives them less
+predictable spacing when labels are wide or spans are composed with
+highlights.
 
 ```python
 carrier_lesson = (
@@ -1042,7 +1049,7 @@ carrier_lesson = (
     .label(
         "Cocarrier normal",
         target=ga.terms(e41, e42, e43),
-        marker="overgroup",
+        marker="overbracket",
         color="#888888",
         clearance="4px",
     )
@@ -1254,7 +1261,7 @@ The baseline lowering vocabulary is:
 | Label below | `\underset` |
 | Multi-line label | `\substack` |
 | Directional relationship | `\uparrow`, `\downarrow` |
-| Span grouping | `\underbrace`, `\overbrace`, `\overbracket`, `\overline`, `\overgroup`, underline, brackets |
+| Span grouping | `\underbrace`, `\underbracket`, `\overbrace`, `\overbracket`, `\overline`, `\overgroup`, underline |
 | Cancellation | `\cancel`, `\bcancel`, `\xcancel` |
 | Derivation transition | `aligned`, `cases`, extensible arrows |
 

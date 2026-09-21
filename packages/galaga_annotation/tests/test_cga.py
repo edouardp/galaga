@@ -139,7 +139,7 @@ def test_dipole_without_a_weight_family_still_highlights(cga: ConformalModel) ->
     assert r"\colorbox{#d8c4ee}{" in view.latex()
 
 
-def test_dipole_highlight_keeps_contiguous_fills_with_overgroups_on_top() -> None:
+def test_dipole_highlight_keeps_contiguous_fills_with_overbraces_on_top() -> None:
     cga = ConformalModel(Algebra(config=presets.lengyel_cga(), expr=True), expr=True)
     dipole = outer_product(cga.up((0.75, 1.0, 2.0)), cga.up((-0.25, 0.1, 0.2)))
     view = ga.highlight_cga(cga)(dipole)
@@ -147,35 +147,26 @@ def test_dipole_highlight_keeps_contiguous_fills_with_overgroups_on_top() -> Non
     rendered = view.latex()
     assert rendered.count(r"\colorbox{#b8e6bf}") == 1
     assert rendered.count(r"\colorbox{#d8c4ee}") == 1
-    # Labels and overgroups are independent overlays over one continuous fill.
+    # Labels and overbraces are independent overlays over one continuous fill.
     assert (
         r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
         r"\text{carrier line}}}}{\phantom{" in rendered
     )
-    assert (
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}"
-        r"{\overgroup{" in rendered
-    )
-    assert (
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}{"
-        r"\overgroup{"
-        r"\textcolor{black}{\vphantom{\raisebox{4px}{" in rendered
-    )
+    assert rendered.count(r"\overbrace") == 4
+    assert r"\overgroup" not in rendered
+    assert "cocarrier normal" in rendered
+    assert "cocarrier position" in rendered
     assert (
         r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
         r"\text{flat point}}}}{\phantom{" in rendered
     )
     green_start = rendered.index(r"\colorbox{#b8e6bf}")
-    normal_start = rendered.index(
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier normal}}}"
-    )
+    normal_start = rendered.rindex("cocarrier normal")
     purple_start = rendered.index(r"\colorbox{#d8c4ee}")
-    position_start = rendered.index(
-        r"\mathrlap{\smash[t]{\textcolor{#0099cc}{\overset{\mathclap{\text{cocarrier position}}}"
-    )
+    position_start = rendered.rindex("cocarrier position")
     assert green_start < normal_start < purple_start < position_start
     # Marker chrome is coloured; the highlighted terms keep their own colour.
-    assert r"\overgroup{\textcolor{#0099cc}{" not in rendered
+    assert r"\overbrace{\textcolor{#0099cc}{" not in rendered
     assert r"\textcolor{#0099cc}{-\mathbf{e}_{41}" not in rendered
     assert "- -" not in rendered
     assert "+ -" not in rendered
@@ -187,9 +178,17 @@ def test_dipole_leading_negative_sign_stays_inside_the_span(cga: ConformalModel,
     rendered = ga.highlight_cga(cga)(objects["dipole"]).latex()
     assert r"\colorbox{#b8e6bf}{$" in rendered
     assert (
-        r"\overgroup{\textcolor{black}{\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}"
+        r"\overbrace{\textcolor{black}{\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}"
         r"\phantom{\mathord{-}\>\mathbf{e}_{41}" in rendered
     )
+
+
+def test_cga_highlight_default_is_the_explicit_overbrace(cga: ConformalModel, objects) -> None:
+    default = ga.highlight_cga(cga)(objects["dipole"]).latex()
+    explicit = ga.highlight_cga(cga, over_marker="overbrace")(objects["dipole"]).latex()
+    assert default == explicit
+    assert r"\overbrace" in default
+    assert r"\overgroup" not in default
 
 
 def test_circle_families_match_lengyel_blade_groups(cga: ConformalModel, objects) -> None:

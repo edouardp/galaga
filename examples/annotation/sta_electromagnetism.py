@@ -143,7 +143,7 @@ def _(
             label="boost planes\nsquare +1",
             background=BOOST_FILL,
             label_color=BOOST_BLUE,
-            marker="overgroup",
+            marker="overbrace",
             color=BOOST_BLUE,
             join=True,
         ),
@@ -152,7 +152,7 @@ def _(
             label="rotation planes\nsquare -1",
             background=ROTATION_FILL,
             label_color=ROTATION_ORANGE,
-            marker="undergroup",
+            marker="underbrace",
             color=ROTATION_ORANGE,
             join=True,
         ),
@@ -229,7 +229,7 @@ def _(
             label="boost generator",
             background=BOOST_FILL,
             label_color=BOOST_BLUE,
-            marker="overgroup",
+            marker="overbrace",
             color=BOOST_BLUE,
         ),
         ga.on(
@@ -237,7 +237,7 @@ def _(
             label="rotation generator",
             background=ROTATION_FILL,
             label_color=ROTATION_ORANGE,
-            marker="undergroup",
+            marker="underbrace",
             color=ROTATION_ORANGE,
         ),
     )
@@ -249,7 +249,7 @@ def _(
                 label="time–space mixing",
                 background=BOOST_FILL,
                 label_color=BOOST_BLUE,
-                marker="overgroup",
+                marker="overbrace",
                 color=BOOST_BLUE,
                 join=True,
             )
@@ -262,7 +262,7 @@ def _(
                 label="spatial rotation",
                 background=ROTATION_FILL,
                 label_color=ROTATION_ORANGE,
-                marker="undergroup",
+                marker="underbrace",
                 color=ROTATION_ORANGE,
                 join=True,
             )
@@ -284,7 +284,6 @@ def _(
         ]
     )
     return
-
 
 
 @app.cell(hide_code=True)
@@ -360,7 +359,7 @@ def _(
             label="electric part E",
             background=ELECTRIC_FILL,
             label_color=ELECTRIC_RED,
-            marker="overgroup",
+            marker="overbrace",
             color=ELECTRIC_RED,
             join=True,
         ),
@@ -369,7 +368,7 @@ def _(
             label="magnetic part I B",
             background=MAGNETIC_FILL,
             label_color=MAGNETIC_BLUE,
-            marker="undergroup",
+            marker="underbrace",
             color=MAGNETIC_BLUE,
             join=True,
         ),
@@ -446,7 +445,7 @@ def _(
             label_latex=r"\lVert E\rVert^2-\lVert B\rVert^2",
             background=ELECTRIC_FILL,
             label_color=ELECTRIC_RED,
-            marker="overgroup",
+            marker="overbrace",
             color=ELECTRIC_RED,
         ),
         ga.on(
@@ -454,7 +453,7 @@ def _(
             label_latex=r"2I(E\cdot B)",
             background=MAGNETIC_FILL,
             label_color=MAGNETIC_BLUE,
-            marker="undergroup",
+            marker="underbrace",
             color=MAGNETIC_BLUE,
         ),
     )
@@ -531,7 +530,7 @@ def _(
             label="electric force:\nwork + acceleration",
             background=ELECTRIC_FILL,
             label_color=ELECTRIC_RED,
-            marker="overgroup",
+            marker="overbrace",
             color=ELECTRIC_RED,
             join=True,
         ),
@@ -540,7 +539,7 @@ def _(
             label="magnetic force:\ntransverse",
             background=MAGNETIC_FILL,
             label_color=MAGNETIC_BLUE,
-            marker="undergroup",
+            marker="underbrace",
             color=MAGNETIC_BLUE,
         ),
     )
