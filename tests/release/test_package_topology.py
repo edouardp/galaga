@@ -56,7 +56,8 @@ def test_release_workflow_builds_checks_and_publishes_annotation() -> None:
     assert f"uv publish {artifact}" in release
     assert 's/\\"galaga-matrix>=.*\\"/\\"galaga-matrix>=$NEW\\"/' in release
     assert "cd packages/galaga_annotation && uv build" in makefile
-    assert f"twine check {artifact}" in makefile
+    makefile_twine_checks = (line for line in makefile.splitlines() if "twine check" in line)
+    assert any(artifact in line for line in makefile_twine_checks)
 
 
 def test_marimo_launcher_supplies_widget_and_markdown_packages_separately() -> None:
