@@ -1,5 +1,93 @@
 # Changelog
 
+## 2.0.0a8 (2026-09-23)
+
+This eighth Galaga 2 alpha develops `galaga-annotation` from its initial
+semantic-highlighting milestone into a broad teaching toolkit. It adds
+composable expression and matrix annotations, automatic cancellation of
+zero-valued subexpressions, browser-verified KaTeX layout, and a substantial
+set of executable lessons covering foundational and applied geometric
+algebra.
+
+### Added
+
+- **Richer semantic annotation targets** — Annotations can now address content
+  parts, signs, tracked subexpressions, selected occurrences, and zero-valued
+  expression subtrees as well as variables, operators, grades, terms, and
+  coefficients. Term annotations can deliberately include or exclude their
+  leading sign, including the suppressed positive sign on the first term.
+- **Composable span annotations** — Independent highlights and external
+  markers can cover equal, nested, adjacent, or partially overlapping spans.
+  Joined fills, rules, arrows, braces, brackets, groups, underlines, boxes,
+  and cancellation marks share one layout model while retaining independent
+  colours, labels, sides, spacing, and sign policy.
+- **Automatic cancellation of zero subexpressions** — Adds
+  `zero_subexpressions(...)` and the reusable `cancel_zeros(...)` annotator.
+  The selector evaluates tracked expression provenance, prefers explanatory
+  innermost zero calls, preserves flattened sum/product intervals, skips
+  unresolved symbolic subtrees, and supports exact or explicitly tolerant
+  matching with `cancel`, `bcancel`, and `xcancel` markers.
+- **Matrix annotations** — Adds semantic cell, row, column, and rectangular
+  block targets for `MatrixRepr`, including foreground colour, individual or
+  continuous block backgrounds, borders, labels, and missing-target policy.
+  Quaternion matrices are addressed using their logical displayed cell grid
+  rather than their underlying complex storage.
+- **Annotation teaching notebooks** — Adds executable lessons for expression
+  provenance, content parts, signs, nested span composition, matrix regions,
+  CGA/PGA/RGA object styles, and cancellation. A detailed STA electromagnetism
+  lesson uses annotations to teach generators, field decomposition,
+  invariants, four-force, and observer changes.
+- **Foundational GA lessons** — Adds annotated notebooks on reversion and the
+  other involutions, exterior algebra inside Clifford algebra, inner and
+  interior products, covectors and metric identification, and plane- and
+  point-based PGA decompositions. Each lesson includes computed identities and
+  headless regression tests.
+
+### Changed
+
+- **KaTeX lowering and geometry** — External labels now reserve layout space
+  without moving fills away from the expressions they annotate. Decorations
+  remain centred when labels are wider than their targets, and sign placement,
+  joined highlights, nested spans, and above/below markers use consistent
+  rendered bounds.
+- **Expression provenance rendering** — Core render documents retain semantic
+  source intervals through flattened sums, products, and infix expressions.
+  This allows annotations to select an earlier expression layer while the
+  displayed equation still shows its final computed value.
+- **CGA annotation recipes** — Carrier/cocarrier and component-role recipes
+  now expose configurable marker styles and use braces or brackets where they
+  communicate grouping more clearly. Their algebraic classification remains
+  independent of presentation and blade ordering.
+- **Matrix rendering hooks** — `MatrixRepr.logical_shape` and
+  `MatrixRepr.cell_latex(...)` provide reusable public display hooks for real,
+  complex, and quaternion matrix annotations without duplicating matrix
+  formatting rules.
+- **Release and development tooling** — Adds a pinned headless-browser test
+  target for Marimo's KaTeX, strengthens annotation artifact and package
+  topology checks, and keeps the optional `galaga-matrix` annotation extra on
+  the jointly released version floor. The development environment also gains
+  Novita-backed Marimo AI configuration.
+
+### Fixed
+
+- Keeps highlights and braces, brackets, or rules on the same exact signed or
+  unsigned term span instead of allowing their visual extents to disagree.
+- Prevents wide over/under labels from disconnecting their markers from
+  highlighted multivector terms, including joined negative-grade terms.
+- Preserves nested zero-valued expression intervals so cancellation marks the
+  explanatory identity rather than consuming neighbouring nonzero terms.
+- Removes noisy Bandit suppression diagnostics while retaining narrow,
+  documented exceptions for Pytest assertions and fixed local Git commands.
+
+### Documentation
+
+- Expands SPEC-015 and the annotation ADR set with sign policy, content and
+  subexpression targets, matrix regions, independent span overlays, marker
+  conventions, package boundaries, and browser geometry contracts.
+- Adds `INTRODUCING_GALAGA_V2.md`, a comprehensive overview of Galaga 2's
+  numeric scope, metric support, operation coverage, expression tracking,
+  presentation system, optional companion packages, and pedagogical goals.
+
 ## 2.0.0a7 (2026-09-17)
 
 This seventh Galaga 2 alpha adds the optional `galaga-annotation` companion

@@ -1,6 +1,6 @@
 [project]
 name = "galaga-annotation"
-version = "2.0.0a7"
+version = "2.0.0a8"
 description = "Semantic annotations and KaTeX rendering for galaga calculations"
 readme = "README.md"
 requires-python = ">=3.11"
@@ -20,13 +20,13 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
-    "galaga>=2.0.0a7",
+    "galaga>=2.0.0a8",
     "numpy>=1.24",
 ]
 
 [project.optional-dependencies]
 # Matrix cell/region annotations; galaga_matrix is an optional companion.
-matrix = ["galaga-matrix>=2.0.0a7"]
+matrix = ["galaga-matrix>=2.0.0a8"]
 
 [project.urls]
 Homepage = "https://github.com/edouardp/galaga"
