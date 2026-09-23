@@ -6,6 +6,7 @@ import pytest
 
 import galaga_annotation as ga
 from galaga import Algebra
+from galaga.rendering import content_document
 
 
 @pytest.fixture()
@@ -71,6 +72,20 @@ def test_cancel_zeros_leaves_nonzero_calls_undecorated(symbols) -> None:
     _, e1, e2, _ = symbols
     value = ((e1 | e1) + (e1 ^ e2)).named("c")
     assert r"\cancel" not in ga.cancel_zeros()(value).latex()
+
+
+def test_zero_subexpression_target_honors_the_missing_policy(symbols) -> None:
+    _, e1, e2, _ = symbols
+    value = ((e1 | e1) + (e1 ^ e2)).named("c")
+    document = content_document(value, content="full", target="latex")
+    target = ga.zero_subexpressions()
+
+    ignored = ga.resolve(document, [ga.on(target)], value=value)
+    assert ignored.placements == ()
+    assert [annotation.target for annotation in ignored.missing] == [target]
+
+    with pytest.raises(ga.MissingTargetError, match="matched no visible content"):
+        ga.resolve(document, [ga.on(target, missing="error")], value=value)
 
 
 def test_cancel_zeros_skips_unresolved_named_subtrees_but_keeps_independent_matches(symbols) -> None:

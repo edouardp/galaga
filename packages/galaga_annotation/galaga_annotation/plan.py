@@ -289,6 +289,50 @@ def _select(document: RenderDocument, target: Any, value: Any) -> tuple[Path, ..
     raise TypeError(f"unsupported annotation target {type(target).__name__}")
 
 
+def _path_order(document: RenderDocument) -> dict[Path, int]:
+    order: dict[Path, int] = {}
+    for index, path in enumerate(_ordered_paths(document.body)):
+        order.setdefault(path, index)
+    return order
+
+
+def _placement(
+    rule: Annotation,
+    path: Path,
+    order: dict[Path, int],
+    *,
+    start: int | None = None,
+    stop: int | None = None,
+) -> Placement:
+    return Placement(rule, path, order.get(path, len(order)), start=start, stop=stop)
+
+
+def _resolve_rule(
+    document: RenderDocument,
+    rule: Annotation,
+    value: Any,
+    order: dict[Path, int],
+) -> tuple[Placement, ...]:
+    if isinstance(rule.target, ZeroSubexpressionTarget):
+        return tuple(
+            _placement(
+                rule,
+                _expression_path(anchor),
+                order,
+                start=anchor.start,
+                stop=anchor.stop,
+            )
+            for anchor in _zero_subexpression_anchors(document, rule.target, value)
+        )
+    return tuple(_placement(rule, path, order) for path in _select(document, rule.target, value))
+
+
+def _record_missing(rule: Annotation, missing: list[Annotation]) -> None:
+    if rule.missing == "error":
+        raise MissingTargetError(f"annotation target {rule.target!r} matched no visible content")
+    missing.append(rule)
+
+
 def resolve(document: RenderDocument, rules: Iterable[Annotation], *, value: Any = None) -> AnnotationPlan:
     """Resolve annotation rules against one render document.
 
@@ -298,39 +342,15 @@ def resolve(document: RenderDocument, rules: Iterable[Annotation], *, value: Any
 
     if not isinstance(document, RenderDocument):
         raise TypeError("resolve expects a RenderDocument")
-    order: dict[Path, int] = {}
-    for index, path in enumerate(_ordered_paths(document.body)):
-        order.setdefault(path, index)
+    order = _path_order(document)
     placements: list[Placement] = []
     missing: list[Annotation] = []
     for rule in rules:
         if not isinstance(rule, Annotation):
             raise TypeError("annotation rules must be Annotation instances")
-        if isinstance(rule.target, ZeroSubexpressionTarget):
-            anchors = _zero_subexpression_anchors(document, rule.target, value)
-            if not anchors:
-                if rule.missing == "error":
-                    raise MissingTargetError(f"annotation target {rule.target!r} matched no visible content")
-                missing.append(rule)
-                continue
-            for anchor in anchors:
-                path = _expression_path(anchor)
-                placements.append(
-                    Placement(
-                        rule,
-                        path,
-                        order.get(path, len(order)),
-                        start=anchor.start,
-                        stop=anchor.stop,
-                    )
-                )
-            continue
-        paths = _select(document, rule.target, value)
-        if not paths:
-            if rule.missing == "error":
-                raise MissingTargetError(f"annotation target {rule.target!r} matched no visible content")
-            missing.append(rule)
-            continue
-        for path in paths:
-            placements.append(Placement(rule, path, order.get(path, len(order))))
+        resolved = _resolve_rule(document, rule, value, order)
+        if resolved:
+            placements.extend(resolved)
+        else:
+            _record_missing(rule, missing)
     return AnnotationPlan(tuple(placements), tuple(missing))
