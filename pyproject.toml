@@ -6,6 +6,7 @@ exclude = ["packages/galaga_marimo"]
 dev = [
     "galaga",
     "marimo>=0.23.14",
+    "pydantic-ai>=1.107.0",
     "matplotlib>=3.10.8",
     "pytest>=9.0.2",
     "pytest-cov>=7.1.0",
