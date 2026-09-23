@@ -150,7 +150,7 @@ def test_dipole_highlight_keeps_contiguous_fills_with_overbraces_on_top() -> Non
     # Labels and overbraces are independent overlays over one continuous fill.
     assert (
         r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
-        r"\text{carrier line}}}}{\phantom{" in rendered
+        r"\text{carrier line}}}}{\smash[t]{\vphantom{\colorbox{transparent}{$" in rendered
     )
     assert rendered.count(r"\overbrace") == 4
     assert r"\overgroup" not in rendered
@@ -158,7 +158,7 @@ def test_dipole_highlight_keeps_contiguous_fills_with_overbraces_on_top() -> Non
     assert "cocarrier position" in rendered
     assert (
         r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
-        r"\text{flat point}}}}{\phantom{" in rendered
+        r"\text{flat point}}}}{\smash[t]{\vphantom{\colorbox{transparent}{$" in rendered
     )
     green_start = rendered.index(r"\colorbox{#b8e6bf}")
     normal_start = rendered.rindex("cocarrier normal")
@@ -179,7 +179,7 @@ def test_dipole_leading_negative_sign_stays_outside_the_default_span(cga: Confor
     assert r"\colorbox{#b8e6bf}{$" in rendered
     assert (
         r"\overbrace{\textcolor{black}{\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}"
-        r"\phantom{\mathbf{e}_{41}" in rendered
+        r"\smash[b]{\vphantom{\colorbox{transparent}{$\mathbf{e}_{41}" in rendered
     )
     assert r"\phantom{\mathord{-}\>\mathbf{e}_{41}" not in rendered
 

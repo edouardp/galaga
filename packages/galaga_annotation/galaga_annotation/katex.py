@@ -14,14 +14,14 @@ from content spans.
 
 from __future__ import annotations
 
-from collections.abc import Iterable
+from collections.abc import Callable, Iterable
 from copy import copy as _copy
 from dataclasses import dataclass, fields, is_dataclass
 from typing import Any
 
 from galaga.rendering import Decorated, Infix, Node, Product, RenderDocument, Sum, SumTerm, Text, emit
 
-from ._decoration import ResolvedSide, decorate, default_side, external_parts
+from ._decoration import ResolvedSide, box_extent, decorate, default_side, external_parts
 from .model import CANCELLATION_MARKERS, DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
 from .plan import AnnotationPlan, Placement, resolve
 from .targets import TermTarget
@@ -434,6 +434,72 @@ def _collect(plan: AnnotationPlan, body: Node) -> tuple[tuple[_Span, ...], tuple
     return tuple(body_spans), tuple(overlays), tuple(directs)
 
 
+@dataclass(slots=True)
+class _FillBox:
+    """One content box and its immediate nested boxes, in wrapping order."""
+
+    span: _Span
+    children: list[_FillBox]
+
+    def extent(self, body: Callable[[int, int], Node]) -> Node:
+        measured = body(self.span.start, self.span.stop)
+        if self.children:
+            # Sibling phantoms share a baseline, so KaTeX takes their maximum
+            # height/depth before adding this parent's padding.  Each child
+            # contributes its own complete subtree, even outside the callout.
+            children = "".join(emit(child.extent(body), "latex") for child in self.children)
+            measured = Decorated(measured, children, "")
+        return box_extent(measured, self.span.annotation.style)
+
+
+def _fill_roots(content_spans: tuple[_Span, ...], container: Path) -> list[_FillBox]:
+    """Build the laminar fill forest, including descendants outside a callout."""
+
+    fills = [
+        span
+        for span in content_spans
+        if span.container == container
+        and (span.annotation.style.background is not None or span.annotation.style.border is not None)
+    ]
+    # Larger intervals wrap smaller ones.  For equal intervals, later rules
+    # wrap earlier ones, matching the visible layout's wrap() methods.
+    ordered = sorted(fills, key=lambda span: (span.start, -span.stop, -span.order))
+    roots: list[_FillBox] = []
+    parents: list[_FillBox] = []
+    for span in ordered:
+        while parents and not (parents[-1].span.start <= span.start and span.stop <= parents[-1].span.stop):
+            parents.pop()
+        box = _FillBox(span, [])
+        if parents:
+            parents[-1].children.append(box)
+        else:
+            roots.append(box)
+        parents.append(box)
+    return roots
+
+
+def _fill_extents(
+    content_spans: tuple[_Span, ...],
+    overlay: _Span,
+    side: ResolvedSide,
+    body: Callable[[int, int], Node],
+) -> tuple[Node, ...]:
+    """Measure full overlapping fill trees without changing visible content.
+
+    Only outer boxes intersecting the callout contribute, but their dimensions
+    depend on every descendant.  The copy is smashed on the inward side so
+    only the marker's outward height/depth gains padding; the visible fill and
+    the marker's horizontal mathematical extent remain unchanged.
+    """
+
+    inward_smash = r"\smash[b]{" if side == "above" else r"\smash[t]{"
+    return tuple(
+        Decorated(root.extent(body), inward_smash, "}")
+        for root in _fill_roots(content_spans, overlay.container)
+        if root.span.start < overlay.stop and overlay.start < root.span.stop
+    )
+
+
 def _can_fuse_sign_fill(placement: Placement, span: _Span) -> bool:
     """Return whether a sign-only fill can become a span's leading fill."""
 
@@ -606,12 +672,15 @@ class _SequenceLayout:
         ]
         return self.combine(pieces)
 
-    def add_overlays(self, overlays: tuple[_Span, ...]) -> tuple[str, ...]:
+    def add_overlays(self, overlays: tuple[_Span, ...], content_spans: tuple[_Span, ...]) -> tuple[str, ...]:
         prefixes: dict[int, list[str]] = {}
         reservations: list[str] = []
         for span in sorted(overlays, key=lambda entry: entry.order):
-            measured = Decorated(self.plain(span.start, span.stop), r"\phantom{", "}")
             side = self.sides.get(span) or default_side(span.annotation)
+            measured = Decorated(self.plain(span.start, span.stop), r"\phantom{", "}")
+            extents = _fill_extents(content_spans, span, side, self.plain)
+            if extents:
+                measured = Decorated(measured, "".join(emit(extent, "latex") for extent in extents), "")
             reserved, overlaid = external_parts(measured, span.annotation, side)
             reservations.append(reserved)
             prefixes.setdefault(span.start, []).append(overlaid)
@@ -631,7 +700,7 @@ def _render_sequence(
     source = getattr(node, field_name)
     members = [_rebuild(member, (*path, field_name, index), context) for index, member in enumerate(source)]
     layout = _SequenceLayout(node, field_name, members, context.sides)
-    reservations = layout.add_overlays(overlays)
+    reservations = layout.add_overlays(overlays, spans)
     rendered = layout.region(0, len(members), list(spans))
     if reservations:
         rendered = Decorated(rendered, "".join(reservations), "")
@@ -780,6 +849,14 @@ class _SumLayout:
             )
             phantom = Decorated(measured, r"\phantom{", "}")
             side = self.sides.get(span) or default_side(span.annotation)
+            extents = _fill_extents(
+                content_spans,
+                span,
+                side,
+                lambda start, stop: self.plain(start, stop, leading_inside=False),
+            )
+            if extents:
+                phantom = Decorated(phantom, "".join(emit(extent, "latex") for extent in extents), "")
             reserved, overlaid = external_parts(phantom, span.annotation, side)
             reservations.append(reserved)
             prefixes.setdefault(span.start, []).append((overlaid, span.include_leading_sign))

@@ -118,6 +118,61 @@ def _center_x(box: dict[str, float]) -> float:
     return box["x"] + box["width"] / 2
 
 
+def _painted_fills(page: Any) -> list[dict[str, float]]:
+    """Return content boxes that paint, excluding transparent measurements."""
+
+    return page.locator(".katex-html .colorbox, .katex-html .fcolorbox").evaluate_all(
+        """
+        (elements) => elements
+          .filter((element) => {
+            const style = getComputedStyle(element);
+            const paintedBackground = style.backgroundColor !== 'rgba(0, 0, 0, 0)';
+            const paintedBorder = style.borderTopWidth !== '0px' && style.borderTopColor !== 'rgba(0, 0, 0, 0)';
+            return paintedBackground || paintedBorder;
+          })
+          .map((element) => element.getBoundingClientRect().toJSON())
+        """
+    )
+
+
+def _visible_fill(page: Any) -> dict[str, float]:
+    """Return the one content fill that actually paints in the current render."""
+
+    fills = _painted_fills(page)
+    assert len(fills) == 1, f"expected one visible fill, found {len(fills)}"
+    return fills[0]
+
+
+def _visible_brace(page: Any) -> dict[str, float]:
+    """Return the painted brace, excluding the transparent extent copies."""
+
+    return _box(page, ".katex-html .stretchy:not(.colorbox):not(.fcolorbox)", last=True)
+
+
+def _render_with_unchanged_fills(page: Any, highlighted: str, annotated: str) -> list[dict[str, float]]:
+    """Compare boxes relative to an unannotated e5 outside the selected spans."""
+
+    geometries = []
+    for source in (highlighted, annotated):
+        _render(page, _tag_last(source, r"e_{5}", "baseline-reference"))
+        anchor = _box(page, ".katex-html #baseline-reference")
+        fills = _painted_fills(page)
+        geometries.append(
+            [(fill["x"] - anchor["x"], fill["y"] - anchor["y"], fill["width"], fill["height"]) for fill in fills]
+        )
+    assert len(geometries[0]) == len(geometries[1])
+    for original, with_callout in zip(*geometries):
+        assert with_callout == pytest.approx(original, abs=0.1)
+    return fills
+
+
+def _brace_gap(page: Any, fill: dict[str, float], marker: str) -> float:
+    brace = _visible_brace(page)
+    if marker == "underbrace":
+        return brace["y"] - fill["y"] - fill["height"]
+    return fill["y"] - brace["y"] - brace["height"]
+
+
 def test_reversion_bivector_callout_excludes_the_separator_by_default(browser_page) -> None:
     algebra = Algebra(2)
     e1, e2 = algebra.basis_vectors()
@@ -316,3 +371,136 @@ def test_sign_fill_measurement_does_not_cover_an_earlier_scalar(browser_page) ->
     scalar_start = scalar["x"]
     scalar_stop = scalar["x"] + scalar["width"]
     assert all(box["x"] >= scalar_stop or box["x"] + box["width"] <= scalar_start for box in backgrounds)
+
+
+def test_below_callout_clears_a_shared_highlight_without_moving_it(browser_page) -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    value = e1 + e2 + e3
+    highlighted = ga.annotate(
+        value,
+        ga.on(ga.terms(e1, e2), background="#E3F4E8", join=True),
+    ).latex()
+    callout = ga.annotate(
+        value,
+        ga.on(
+            ga.terms(e1, e2),
+            background="#E3F4E8",
+            label="pair",
+            marker="underbrace",
+            join=True,
+        ),
+    ).latex()
+
+    _render(browser_page, callout)
+    fill = _visible_fill(browser_page)
+    brace = _visible_brace(browser_page)
+    # The brace sits below the fill rather than across its bottom padding.
+    assert brace["y"] >= fill["y"] + fill["height"] - 0.5
+
+    _render(browser_page, highlighted)
+    plain = _visible_fill(browser_page)
+    # The fill geometry is unchanged by the callout extent copy.
+    assert fill["height"] == pytest.approx(plain["height"], abs=0.1)
+    assert fill["width"] == pytest.approx(plain["width"], abs=0.1)
+
+
+def test_above_callout_clears_a_shared_highlight(browser_page) -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    value = e1 + e2 + e3
+    rendered = ga.annotate(
+        value,
+        ga.on(
+            ga.terms(e1, e2),
+            background="#E3F4E8",
+            label="pair",
+            marker="overbrace",
+            join=True,
+        ),
+    ).latex()
+
+    _render(browser_page, rendered)
+    fill = _visible_fill(browser_page)
+    brace = _visible_brace(browser_page)
+    assert brace["y"] + brace["height"] <= fill["y"] + 0.5
+
+
+def test_bordered_highlight_padding_is_cleared_by_its_callout(browser_page) -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    value = e1 + e2 + e3
+    rendered = ga.annotate(
+        value,
+        ga.on(
+            ga.terms(e1, e2),
+            background="#E3F4E8",
+            border="#2F7D4F",
+            label="pair",
+            marker="underbrace",
+            join=True,
+        ),
+    ).latex()
+
+    _render(browser_page, rendered)
+    fill = _visible_fill(browser_page)
+    brace = _visible_brace(browser_page)
+    assert brace["y"] >= fill["y"] + fill["height"] - 0.5
+
+
+def test_callout_crossing_a_fill_boundary_clears_the_fill(browser_page) -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    value = e1 + e2 + e3 + e4
+    rendered = ga.annotate(
+        value,
+        ga.on(ga.terms(e1, e2, e3), background="#E3F4E8", join=True),
+        ga.on(ga.terms(e3, e4), label="crossing", marker="underbrace", join=True),
+    ).latex()
+
+    _render(browser_page, rendered)
+    fill = _visible_fill(browser_page)
+    brace = _visible_brace(browser_page)
+    assert brace["y"] >= fill["y"] + fill["height"] - 0.5
+
+
+@pytest.mark.parametrize("marker", ["overbrace", "underbrace"])
+@pytest.mark.parametrize("border", [None, "#2F7D4F"], ids=["fill", "bordered-fill"])
+def test_callout_clears_outer_fill_with_nested_box_outside_its_interval(browser_page, marker, border) -> None:
+    algebra = Algebra(5)
+    e1, e2, e3, e4, e5 = algebra.basis_vectors()
+    value = e1 + e2 + e3 + e4 + e5
+    fills = (
+        ga.on(ga.terms(e1, e2, e3, e4), background="#E3F4E8", border=border, join=True),
+        ga.on(ga.terms(e1, e2), background="#DDEBFF", join=True),
+    )
+    highlighted = ga.annotate(value, *fills).latex()
+    annotated = ga.annotate(value, *fills, ga.on(ga.terms(e3, e4), label="selected", marker=marker, join=True)).latex()
+
+    boxes = _render_with_unchanged_fills(browser_page, highlighted, annotated)
+    assert len(boxes) == 2
+    outer = max(boxes, key=lambda box: box["width"])
+    assert _brace_gap(browser_page, outer, marker) >= -0.5
+
+
+@pytest.mark.parametrize("marker", ["overbrace", "underbrace"])
+def test_sibling_fills_do_not_add_extra_nesting_to_a_callout(browser_page, marker) -> None:
+    algebra = Algebra(5)
+    e1, e2, e3, e4, e5 = algebra.basis_vectors()
+    value = e1 + e2 + e3 + e4 + e5
+    outer = ga.on(ga.terms(e1, e2, e3, e4), background="#E3F4E8", join=True)
+    merged = ga.on(ga.terms(e1, e2, e3, e4), background="#DDEBFF", join=True)
+    left = ga.on(ga.terms(e1, e2), background="#DDEBFF", join=True)
+    right = ga.on(ga.terms(e3, e4), background="#DDEBFF", join=True)
+    callout = ga.on(ga.terms(e1, e2, e3, e4), label="selected", marker=marker, join=True)
+    measurements = []
+    # Equal-interval rules wrap in rule order, so the green box is last.
+    for fills in ((merged, outer), (outer, left, right)):
+        highlighted = ga.annotate(value, *fills).latex()
+        annotated = ga.annotate(value, *fills, callout).latex()
+        boxes = _render_with_unchanged_fills(browser_page, highlighted, annotated)
+        outer_box = max(boxes, key=lambda box: box["width"])
+        measurements.append((outer_box["height"], _brace_gap(browser_page, outer_box, marker)))
+
+    assert measurements[1] == pytest.approx(measurements[0], abs=0.5)
+    assert measurements[1][1] >= -0.5

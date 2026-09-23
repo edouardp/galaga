@@ -101,7 +101,8 @@ def test_high_grade_reverse_sign_pattern(lesson) -> None:
     assert highlighted.count(r"\colorbox{#FDE7D9}") == 2
     assert r"\colorbox{#FDE7D9}{$-$}" not in highlighted
     reservation, visible = highlighted.split(r"\mathrlap", maxsplit=1)
-    assert r"\colorbox" not in reservation
+    assert r"\colorbox{#FDE7D9}" not in reservation
+    assert r"\colorbox{transparent}" in reservation
     final_fill = visible.rsplit(r"\colorbox{#FDE7D9}", maxsplit=1)[1]
     assert r"\textcolor{#D55E00}{-" in final_fill
     assert r"2.8 e_{123456}" in final_fill

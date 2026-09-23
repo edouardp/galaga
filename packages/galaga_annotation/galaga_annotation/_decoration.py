@@ -14,7 +14,7 @@ from galaga.rendering import Decorated, Node, Text, emit
 
 from .model import CANCELLATION_MARKERS, DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
 
-__all__ = ["ResolvedSide", "decorate", "default_side", "external_parts", "style_body"]
+__all__ = ["ResolvedSide", "box_extent", "decorate", "default_side", "external_parts", "style_body"]
 
 ResolvedSide = Literal["above", "below"]
 
@@ -160,6 +160,32 @@ def style_body(node: Node, style: AnnotationStyle, *, marked: bool) -> Node:
     if style.background is not None:
         return Decorated(node, rf"\colorbox{{{style.background}}}{{$", "$}")
     return node
+
+
+# A transparent fill keeps the box geometry KaTeX computes for a highlight
+# without painting a second background at the callout's zero-width origin.
+_BOX_EXTENT_FILL = "transparent"
+
+
+def box_extent(node: Node, style: AnnotationStyle) -> Node:
+    """Return a zero-width, invisible copy of a content fill's vertical extent.
+
+    External callouts measure semantic ink so their horizontal span excludes
+    fill padding.  They still need to clear the fill's padding and border
+    vertically; this shape supplies that geometry without repainting the fill.
+    """
+
+    if style.border is not None:
+        boxed = Decorated(
+            node,
+            rf"\fcolorbox{{{_BOX_EXTENT_FILL}}}{{{_BOX_EXTENT_FILL}}}{{$",
+            "$}",
+        )
+    elif style.background is not None:
+        boxed = Decorated(node, rf"\colorbox{{{_BOX_EXTENT_FILL}}}{{$", "$}")
+    else:
+        return node
+    return Decorated(boxed, r"\vphantom{", "}")
 
 
 def _color_marker(node: Node, color: str | None) -> Node:

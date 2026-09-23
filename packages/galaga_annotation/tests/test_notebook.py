@@ -104,14 +104,14 @@ def test_annotation_notebook_brackets_a_lengyel_cga_dipole() -> None:
     assert classified_text.count(r"\colorbox{#d8c4ee}") == 1
     assert (
         r"\colorbox{#b8e6bf}{$\mathord{\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#2f7d4f}{"
-        r"\text{carrier line}}}}{\phantom{" in classified_text
+        r"\text{carrier line}}}}{\smash[t]{\vphantom{\colorbox{transparent}{$" in classified_text
     )
     assert classified_text.count(r"\overbrace") == 4
     assert "cocarrier normal" in classified_text
     assert "cocarrier position" in classified_text
     assert (
         r"\colorbox{#d8c4ee}{$\mathrlap{\smash[b]{\underset{\mathclap{\textcolor{#6b4a9e}{"
-        r"\text{flat point}}}}{\phantom{" in classified_text
+        r"\text{flat point}}}}{\smash[t]{\vphantom{\colorbox{transparent}{$" in classified_text
     )
     assert r"\overbrace{\textcolor{#0099cc}{" not in classified_text
     assert r"\overgroup" not in classified_text

@@ -13,6 +13,7 @@ import runpy
 import shutil
 import subprocess
 import sys
+from functools import partial
 from pathlib import Path
 
 import pytest
@@ -20,6 +21,9 @@ import pytest
 import galaga_annotation as ga
 from galaga import Algebra, outer_product, presets
 from galaga.cga import ConformalModel
+from galaga.names import Name
+from galaga.rendering import Fraction, Infix, Product, SumTerm, Text, emit
+from galaga_annotation.katex import _fill_extents, _SequenceLayout, _Span, _SumLayout
 
 ROOT = Path(__file__).resolve().parents[3]
 
@@ -246,6 +250,58 @@ def test_wide_external_label_has_zero_horizontal_layout_width(katex_module_url: 
     # KaTeX lowers mathclap to a centred zero-width mpadded node. The label
     # remains visible, but cannot widen and recenter the brace's phantom body.
     assert markup.count('<mpadded lspace="-0.5width" width="0px">') >= 2
+
+
+@pytest.mark.parametrize("kind", ["sum", "product", "wedge"])
+@pytest.mark.parametrize("side", ["above", "below"])
+@pytest.mark.parametrize(
+    ("intervals", "selected"),
+    [
+        (((0, 6), (0, 2)), (4, 6)),
+        (((0, 6), (0, 2), (2, 4), (4, 6)), (0, 6)),
+        (((0, 6), (0, 4), (0, 2), (2, 4)), (4, 6)),
+        (((0, 6), (0, 6), (0, 2)), (4, 6)),
+    ],
+    ids=["child-outside", "siblings", "deep-branches", "equal-intervals"],
+)
+def test_fill_extent_matches_visible_box_tree(katex_module_url: str, kind, side, intervals, selected) -> None:
+    # Exercise resolved rendering intervals directly, independently of which
+    # public selector produced them. Unequal member heights also ensure that
+    # measurement uses the complete highlighted body, not just its padding.
+    members = [Text(letter) for letter in "abcdef"]
+    members[0] = Fraction(Text("a"), Text("g"))
+    spans = tuple(
+        _Span(
+            (),
+            start,
+            stop,
+            ga.on(ga.whole(), background="#E3F4E8", border="#2F7D4F" if order % 2 else None),
+            order,
+        )
+        for order, (start, stop) in enumerate(intervals)
+    )
+    overlay = _Span((), *selected, ga.on(ga.whole(), label="selected"), len(spans))
+    if kind == "sum":
+        layout = _SumLayout(tuple(SumTerm(member) for member in members), members, {}, frozenset())
+        body = partial(layout.plain, leading_inside=False)
+        visible = layout.region(0, len(members), False, list(spans))
+    else:
+        template = Product(members) if kind == "product" else Infix(members, Name("^", "∧", r"\wedge"))
+        sequence = _SequenceLayout(template, "factors" if kind == "product" else "operands", members, {})
+        body = sequence.plain
+        visible = sequence.region(0, len(members), list(spans))
+
+    # The independent ground truth is the actual visible nested-box renderer.
+    # Compare only vertical geometry: the extent copy must have zero width.
+    inward = "b" if side == "above" else "t"
+    dimensions = _measure_katex(
+        katex_module_url,
+        {
+            "visible": rf"\smash[{inward}]{{\vphantom{{{emit(visible, 'latex')}}}}}",
+            "measured": "".join(emit(node, "latex") for node in _fill_extents(spans, overlay, side, body)),
+        },
+    )
+    assert dimensions["measured"] == pytest.approx(dimensions["visible"], abs=1e-10)
 
 
 def test_cga_cocarrier_callouts_reserve_their_height(katex_module_url: str) -> None:

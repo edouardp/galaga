@@ -60,9 +60,26 @@ phantom inside the label width and disconnect the marker from the visible terms
 at the overlay anchor. External labels are wrapped in `\mathclap`: their ink
 and vertical extent remain, but their horizontal layout width is zero. The
 marker width is consequently determined only by the selected expression.
-Term-span phantoms do not include a surrounding highlight because the overlay
-is inserted at the highlighted content origin; including the box would add its
-padding and misstate the selected mathematical extent.
+Term-span phantoms do not include a surrounding highlight horizontally because
+the overlay is inserted at the highlighted content origin; including the box
+would add its padding and misstate the selected mathematical extent. They do
+include the fill's vertical extent: when a callout overlaps a span carrying a
+background or border, the marker measures an invisible, zero-width copy of the
+fill box. The copy substitutes `transparent` for the real fill colours, so it
+cannot paint at the zero-width origin, and it is `\smash`ed on the side facing
+back into the expression. A below marker therefore gains only depth and an
+above marker only height. The marker clears the fill padding and border while
+the visible highlight keeps exactly its original box.
+
+Fill intervals form a forest of nested boxes with disjoint siblings. Measure
+each outer box intersecting the callout using its complete subtree, including
+descendants outside the callout interval: those descendants still determine
+the enclosing box's height and depth. Each box combines its undecorated content
+with its children's zero-width extents on the same baseline before adding its
+own transparent padding and border. KaTeX therefore takes the maximum extent
+of siblings and adds padding only through actual parent/child nesting. For
+equal intervals, later rules wrap earlier ones, matching the visible renderer.
+Apply the inward-side smash only after measuring the complete outer box.
 
 The base layer continues to require content-style spans to nest or stay
 disjoint. Crossing fills need a separate overlap policy because two different
@@ -88,6 +105,11 @@ term-span callouts choose overlay lowering automatically.
   visible expression. KaTeX represents those copies with `mphantom` semantics.
 - Overlay ink contributes to the equation's outer KaTeX bounds while the base
   highlight retains its original height and depth (GitHub issue #12).
+- A label, arrow, rule, brace or group over a highlighted span is placed
+  outside the fill's padding and border instead of crossing into it, without
+  changing the fill's own geometry.
+- Transparent extent copies are visible only to layout; they paint no ink and
+  add no horizontal width.
 - Same-side multi-lane layouts and crossing body-style conflict policies remain
   explicit future work rather than producing accidental collisions.
 
@@ -96,12 +118,25 @@ term-span callouts choose overlay lowering automatically.
 - Span tests cover all interval relationships, explicit signed and unsigned
   leading terms (including a suppressed leading plus), continuous fills,
   simultaneous above/below overlays, and rejection of overlapping same-side
-  callouts and crossing body styles.
+  callouts and crossing body styles. They also cover the transparent extent
+  copies: depth-only for below markers, height-only for above markers, frame
+  padding for bordered fills, full-fill extents for partial overlap, and no
+  copy for disjoint intervals.
+- Browser geometry tests assert that underbraces and overbraces sit outside a
+  shared highlight's bottom and top edges, including a bordered fill and a
+  crossing interval, and that the visible fill's height and width are
+  unchanged by the extent copy. Nested-fill regressions also compare every
+  painted box's position relative to an untouched basis blade. They cover a
+  nested fill outside the callout interval and disjoint sibling fills inside
+  the same outer box.
 - Runtime tests compile the generated overlays with Marimo's bundled KaTeX
   0.16.47 through Node and inspect its render-tree height/depth to verify the
   outer bounds reservation. They also inspect KaTeX's MathML lowering for the
   zero-width `mpadded` node produced by `\mathclap` on a deliberately wide
-  label.
+  label. Nested sum, product, and wedge-expression regressions compare the
+  measured extents against the actual visible box tree, including descendants
+  outside the callout, siblings, deeper branches, equal intervals, borders,
+  and unequal member heights.
 - Playwright tests load the same JavaScript and CSS in headless Chromium and
   compare the target, brace and label bounding boxes for leading and
   non-leading signs and a deliberately over-wide label. See ADR-156.

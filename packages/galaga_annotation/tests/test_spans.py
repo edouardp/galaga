@@ -45,9 +45,10 @@ def test_joined_span_shows_one_label_for_the_whole_run() -> None:
     value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
     rendered = ga.annotate(value, ga.on(ga.terms(e1, e2), background="#eee", label="pair", join=True)).latex()
     assert rendered == (
-        r"\vphantom{\overset{\mathclap{\text{pair}}}{\phantom{e_{1} + e_{2}}}}"
-        r"\colorbox{#eee}{$\mathrlap{\smash[t]{\overset{\mathclap{\text{pair}}}{"
-        r"\phantom{e_{1} + e_{2}}}}}"
+        r"\vphantom{\overset{\mathclap{\text{pair}}}{\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2}$}}}"
+        r"\phantom{e_{1} + e_{2}}}}"
+        r"\colorbox{#eee}{$\mathrlap{\smash[t]{\overset{\mathclap{\text{pair}}}{\smash[b]{\vphantom{"
+        r"\colorbox{transparent}{$e_{1} + e_{2}$}}}\phantom{e_{1} + e_{2}}}}}"
         r"e_{1} + e_{2}$} + e_{3}"
     )
 
@@ -183,7 +184,10 @@ def test_leading_term_include_sign_respects_suppressed_plus() -> None:
         ),
     ).latex()
 
-    assert positive.startswith(r"\vphantom{\underbrace{\textcolor{black}{\phantom{e_{1}}}")
+    assert positive.startswith(
+        r"\vphantom{\underbrace{\textcolor{black}{\smash[t]{\vphantom{\colorbox{transparent}{$e_{1}$}}}"
+    )
+    assert r"\phantom{e_{1}}" in positive
     assert r"\colorbox{#eee}{$\mathrlap" in positive
     assert r"\mathord{+}" not in positive
     assert r"\phantom{\mathord{-}e_{1}}" in negative
@@ -225,9 +229,11 @@ def test_nested_joined_layers_keep_the_wide_span_continuous() -> None:
     )(value).latex()
     assert rendered == (
         r"\vphantom{\overset{\mathclap{\text{inner}}}{\overgroup{"
-        r"\textcolor{black}{\phantom{e_{1} + e_{2}}}}}}"
+        r"\textcolor{black}{\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2} + e_{3} + e_{4}$}}}"
+        r"\phantom{e_{1} + e_{2}}}}}}"
         r"\colorbox{#b8e6bf}{$\mathrlap{\smash[t]{\overset{\mathclap{\text{inner}}}{\overgroup{"
-        r"\textcolor{black}{\phantom{e_{1} + e_{2}}}}}}}e_{1} + e_{2} + e_{3} + e_{4}$}"
+        r"\textcolor{black}{\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2} + e_{3} + e_{4}$}}}"
+        r"\phantom{e_{1} + e_{2}}}}}}}e_{1} + e_{2} + e_{3} + e_{4}$}"
     )
 
 
@@ -276,11 +282,73 @@ def test_crossing_highlight_and_callout_spans_use_an_independent_overlay() -> No
         ga.on(ga.terms(e3, e4), label="crossing", marker="overbrace", join=True),
     )(value).latex()
     assert rendered == (
-        r"\vphantom{\overbrace{\textcolor{black}{\phantom{e_{3} + e_{4}}}}^"
-        r"{\mathclap{\text{crossing}}}}"
+        r"\vphantom{\overbrace{\textcolor{black}{\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2} + e_{3}$}}}"
+        r"\phantom{e_{3} + e_{4}}}}^{\mathclap{\text{crossing}}}}"
         r"\colorbox{#eee}{$e_{1} + e_{2} + \mathrlap{\smash[t]{\overbrace{\textcolor{black}{"
-        r"\phantom{e_{3} + e_{4}}}}^{\mathclap{\text{crossing}}}}}e_{3}$} + e_{4}"
+        r"\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2} + e_{3}$}}}\phantom{e_{3} + e_{4}}}}^{\mathclap{\text{crossing}}}}}e_{3}$} + e_{4}"
     )
+
+
+def test_callout_measures_the_vertical_extent_of_an_overlapping_fill() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + e2 + e3,
+        ga.on(ga.terms(e1, e2), background="#eee", label="pair", marker="underbrace", join=True),
+    ).latex()
+    # A below callout clears the fill with a depth-only, zero-width box copy.
+    assert r"\smash[t]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2}$}}}" in rendered
+    # The fill itself is unchanged and still wraps only the semantic terms.
+    assert r"\colorbox{#eee}{$\mathrlap" in rendered
+
+
+def test_above_callout_uses_a_height_only_fill_copy() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + e2 + e3,
+        ga.on(ga.terms(e1, e2), background="#eee", label="pair", marker="overbrace", join=True),
+    ).latex()
+    assert r"\smash[b]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2}$}}}" in rendered
+
+
+def test_bordered_fill_copy_keeps_the_frame_padding_without_painting() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + e2 + e3,
+        ga.on(
+            ga.terms(e1, e2),
+            background="#eee",
+            border="#333",
+            label="pair",
+            marker="underbrace",
+            join=True,
+        ),
+    ).latex()
+    assert r"\smash[t]{\vphantom{\fcolorbox{transparent}{transparent}{$e_{1} + e_{2}$}}}" in rendered
+
+
+def test_callout_disjoint_from_a_fill_needs_no_extent_copy() -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + e2 + e3 + e4,
+        ga.on(ga.terms(e1, e2), background="#eee", join=True),
+        ga.on(ga.terms(e3, e4), label="tail", marker="underbrace", join=True),
+    ).latex()
+    assert r"\colorbox{transparent}" not in rendered
+
+
+def test_partially_overlapping_callout_uses_the_whole_fill_extent() -> None:
+    algebra = Algebra(4)
+    e1, e2, e3, e4 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + e2 + e3 + e4,
+        ga.on(ga.terms(e1, e2, e3), background="#eee", join=True),
+        ga.on(ga.terms(e3, e4), label="crossing", marker="underbrace", join=True),
+    ).latex()
+    assert r"\smash[t]{\vphantom{\colorbox{transparent}{$e_{1} + e_{2} + e_{3}$}}}" in rendered
 
 
 def test_wide_callout_label_does_not_change_the_measured_span_width() -> None:
