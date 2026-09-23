@@ -63,7 +63,8 @@ def render_test(*cases: RenderingTestCase) -> Callable[[ExpressionTest], Any]:
                 target=_rendering_case.target,
                 content=_rendering_case.content,
             )
-            assert actual == _rendering_case.expected  # nosec B101 - this is a Pytest assertion helper
+            # This callable becomes a Pytest test, so an assertion is intentional.
+            assert actual == _rendering_case.expected  # nosec B101
 
         execute.__name__ = expression.__name__
         execute.__qualname__ = expression.__qualname__

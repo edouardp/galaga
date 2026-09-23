@@ -9,7 +9,9 @@ command share both the parity ledger and the reviewed-facade regression gate.
 from __future__ import annotations
 
 import json
-import subprocess  # nosec B404 - the audit invokes fixed local Git commands only
+
+# This audit uses subprocess only for the fixed local Git commands in _git_metadata.
+import subprocess  # nosec B404
 from collections.abc import Callable, Iterable, Mapping
 from dataclasses import dataclass
 from datetime import datetime
@@ -815,30 +817,35 @@ def default_report_path(repository: Path, generated_at: datetime | None = None) 
 
 
 def _git_metadata(repository: Path) -> str:
+    # Every command uses a fixed executable and argument tuple without a shell
+    # or untrusted input.
     try:
-        branch = subprocess.run(  # nosec B603 - fixed executable and arguments
+        branch_result = subprocess.run(  # nosec B603
             ("git", "branch", "--show-current"),
             cwd=repository,
             check=True,
             capture_output=True,
             text=True,
-        ).stdout.strip()
-        commit = subprocess.run(  # nosec B603 - fixed executable and arguments
+        )
+        commit_result = subprocess.run(  # nosec B603
             ("git", "rev-parse", "--short", "HEAD"),
             cwd=repository,
             check=True,
             capture_output=True,
             text=True,
-        ).stdout.strip()
-        dirty = subprocess.run(  # nosec B603 - fixed executable and arguments
+        )
+        dirty_result = subprocess.run(  # nosec B603
             ("git", "status", "--short"),
             cwd=repository,
             check=True,
             capture_output=True,
             text=True,
-        ).stdout.strip()
+        )
     except (OSError, subprocess.CalledProcessError):
         return "unavailable"
+    branch = branch_result.stdout.strip()
+    commit = commit_result.stdout.strip()
+    dirty = dirty_result.stdout.strip()
     return f"{branch}@{commit}{' (dirty)' if dirty else ''}"
 
 
