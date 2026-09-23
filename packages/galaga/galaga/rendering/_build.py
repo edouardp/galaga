@@ -248,6 +248,7 @@ def _coefficient_tree(
     presentation: PresentationConfig,
     *,
     components: list[tuple[int, bool, Node | None, Node | None]] | None = None,
+    preserve_singleton_sum: bool = False,
 ) -> Node:
     expected = 1 << presentation.dimension
     if len(coefficients) != expected:
@@ -280,7 +281,7 @@ def _coefficient_tree(
             components.append((mask, displayed_coefficient < 0, coefficient_node, blade_node))
     if not terms:
         return _literal(0, presentation)
-    if len(terms) == 1:
+    if len(terms) == 1 and not preserve_singleton_sum:
         term = terms[0]
         return _negated_coefficient_term(term.body) if term.negative else term.body
     return Sum(terms)

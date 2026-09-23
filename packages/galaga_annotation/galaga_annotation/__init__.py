@@ -5,7 +5,7 @@ expressions, values and multivector components. This package is optional:
 importing ``galaga`` never imports ``galaga_annotation``.
 """
 
-from .annotator import Annotator, annotate, annotator
+from .annotator import Annotator, annotate, annotator, cancel_zeros
 from .cga import CGAObject, HighlightDecomposition, OverMarker, cga_parts, classify_cga, highlight_cga, highlight_object
 from .katex import KatexResult, LabelPlacement, SpanLayoutError, render_katex
 from .matrix import (
@@ -37,6 +37,7 @@ from .targets import (
     TermTarget,
     VariableTarget,
     WholeExpression,
+    ZeroSubexpressionTarget,
     blade_mask,
     block,
     cell,
@@ -58,6 +59,7 @@ from .targets import (
     terms,
     variable,
     whole,
+    zero_subexpressions,
 )
 from .view import Annotated
 
@@ -96,12 +98,14 @@ __all__ = [
     "TermTarget",
     "VariableTarget",
     "WholeExpression",
+    "ZeroSubexpressionTarget",
     "annotate",
     "annotator",
     "blade_mask",
     "block",
     "cell",
     "cga_parts",
+    "cancel_zeros",
     "classify_cga",
     "coefficient",
     "coefficients",
@@ -129,4 +133,5 @@ __all__ = [
     "terms",
     "variable",
     "whole",
+    "zero_subexpressions",
 ]

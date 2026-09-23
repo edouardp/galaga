@@ -173,7 +173,12 @@ def value_document(value: Any, presentation: PresentationConfig | None = None) -
         raise TypeError("value must be a core-backed facade Multivector")
     selected = _presentation(resolve(presentation))
     components: list[tuple[int, bool, Node | None, Node | None]] = []
-    body = _coefficient_tree(tuple(float(coefficient) for coefficient in data), selected, components=components)
+    body = _coefficient_tree(
+        tuple(float(coefficient) for coefficient in data),
+        selected,
+        components=components,
+        preserve_singleton_sum=True,
+    )
     anchors: list[RenderAnchor] = []
     for index, (mask, negative, coefficient, blade) in enumerate(components):
         term_index = index if isinstance(body, Sum) else None

@@ -35,6 +35,9 @@ Marker = Literal[
     "overgroup",
     "overline",
     "overbracket",
+    "cancel",
+    "bcancel",
+    "xcancel",
 ]
 Side = Literal["above", "below", "auto"]
 MissingPolicy = Literal["ignore", "error"]
@@ -55,8 +58,12 @@ MARKERS: frozenset[str] = frozenset(
         "overgroup",
         "overline",
         "overbracket",
+        "cancel",
+        "bcancel",
+        "xcancel",
     }
 )
+CANCELLATION_MARKERS: frozenset[str] = frozenset({"cancel", "bcancel", "xcancel"})
 DIRECTIONAL_MARKERS: dict[str, str] = {
     "underbrace": "below",
     "underbracket": "below",
@@ -133,6 +140,8 @@ def _validate_style_context(style: AnnotationStyle, *, has_label: bool) -> None:
         raise ValueError("label_color requires label or label_latex")
     if style.overlay and style.marker == "none":
         raise ValueError("overlay requires a marker")
+    if style.overlay and style.marker in CANCELLATION_MARKERS:
+        raise ValueError("overlay is not supported for cancellation markers")
     if style.clearance is not None and not has_label and style.marker == "none":
         raise ValueError("clearance requires a label or marker")
 

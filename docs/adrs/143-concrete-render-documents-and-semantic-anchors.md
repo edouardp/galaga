@@ -24,8 +24,10 @@ builder used by `value_tree`; never reconstruct blade identities from labels.
 
 Anchors select terms, coefficient magnitudes, displayed signs, or blade
 symbols by native mask. Grade derives from that mask. A term or sign in a
-`Sum` references the shared sum node and its term index. Singleton terms
-reference their final node. Coefficient and blade anchors reference actual
+`Sum` references the shared sum node and its term index. Value documents retain
+a one-term `Sum` for a visible singleton so its optional sign remains a real
+slot; the ordinary `value_tree` may still collapse that structural wrapper.
+Both forms emit identical text. Coefficient and blade anchors reference actual
 nodes in the document. Displayed orientation composes the native coefficient
 with the blade label's orientation.
 
@@ -40,7 +42,8 @@ extension. No numerical object or expression tree acquires annotation nodes.
 
 ## Consequences
 
-- Existing render trees and emitted output remain identical.
+- Existing emitted output remains identical. A value document deliberately
+  retains one extra semantic `Sum` wrapper for a singleton term.
 - The extension can store multiple independent selections over one sum.
 - Native identity survives presentation ordering and signed blade labels.
 - The core has no dependency on the annotation package.
@@ -56,7 +59,8 @@ initial concrete-value milestone, not the current expression document API.
 
 ## Validation
 
-Unit tests compare documents against ordinary trees and all three emitters,
+Unit tests compare document and ordinary-tree output through all three
+emitters, verify the singleton sign slot without a synthetic leading plus,
 check that referenced nodes belong to the document, derive RGA sign checks
 from actual algebra coefficients and blade orientations, and exercise display
 ordering, tolerance, rounded unit coefficients, empty selections, immutability,

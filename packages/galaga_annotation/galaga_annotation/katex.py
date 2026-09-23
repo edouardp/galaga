@@ -19,11 +19,12 @@ from copy import copy as _copy
 from dataclasses import dataclass, fields, is_dataclass
 from typing import Any
 
-from galaga.rendering import Decorated, Node, RenderDocument, Sum, SumTerm, Text, emit
+from galaga.rendering import Decorated, Infix, Node, Product, RenderDocument, Sum, SumTerm, Text, emit
 
 from ._decoration import ResolvedSide, decorate, default_side, external_parts
-from .model import DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
+from .model import CANCELLATION_MARKERS, DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
 from .plan import AnnotationPlan, Placement, resolve
+from .targets import TermTarget
 
 __all__ = ["KatexResult", "LabelPlacement", "SpanLayoutError", "render_katex"]
 
@@ -241,15 +242,39 @@ def _record_placements(
     joinable: dict[tuple[Path, Annotation], list[tuple[int, int]]],
 ) -> None:
     position = positions.get(path)
-    if position is None:
-        directs.extend(_Direct(path, placement.annotation, placement.order) for placement in placements)
-        return
-    container, index = position
     for placement in placements:
+        if placement.start is not None:
+            if placement.stop is None or placement.stop <= placement.start:
+                raise RuntimeError("expression span placement must have a nonempty interval")
+            spans.append(
+                _Span(
+                    path,
+                    placement.start,
+                    placement.stop,
+                    placement.annotation,
+                    placement.order,
+                )
+            )
+            continue
+        if position is None:
+            directs.append(_Direct(path, placement.annotation, placement.order))
+            continue
+        container, index = position
+        target = placement.annotation.target
+        include_sign = isinstance(target, TermTarget) and target.include_sign
         if placement.annotation.join:
             joinable.setdefault((container, placement.annotation), []).append((index, placement.order))
         else:
-            spans.append(_Span(container, index, index + 1, placement.annotation, placement.order))
+            spans.append(
+                _Span(
+                    container,
+                    index,
+                    index + 1,
+                    placement.annotation,
+                    placement.order,
+                    include_leading_sign=include_sign,
+                )
+            )
 
 
 def _contiguous_spans(container: Path, annotation: Annotation, entries: list[tuple[int, int]]) -> list[_Span]:
@@ -257,12 +282,32 @@ def _contiguous_spans(container: Path, annotation: Annotation, entries: list[tup
     order = min(entry_order for _, entry_order in entries)
     runs: list[_Span] = []
     start = previous = indices[0]
+    target = annotation.target
+    include_sign = isinstance(target, TermTarget) and target.include_sign
     for index in indices[1:]:
         if index != previous + 1:
-            runs.append(_Span(container, start, previous + 1, annotation, order))
+            runs.append(
+                _Span(
+                    container,
+                    start,
+                    previous + 1,
+                    annotation,
+                    order,
+                    include_leading_sign=include_sign,
+                )
+            )
             start = index
         previous = index
-    runs.append(_Span(container, start, previous + 1, annotation, order))
+    runs.append(
+        _Span(
+            container,
+            start,
+            previous + 1,
+            annotation,
+            order,
+            include_leading_sign=include_sign,
+        )
+    )
     return runs
 
 
@@ -272,15 +317,23 @@ def _validate_span_groups(spans: list[_Span]) -> None:
 
 
 def _has_external_decoration(annotation: Annotation) -> bool:
-    return _has_label(annotation) or annotation.style.marker != "none"
+    marker = annotation.style.marker
+    return _has_label(annotation) or (marker != "none" and marker not in CANCELLATION_MARKERS)
 
 
 def _content_only_annotation(annotation: Annotation) -> Annotation | None:
     """Return the body-style part of a callout rule, if it has one."""
 
     style = annotation.style
-    content_color = style.color if style.marker == "none" else None
-    if content_color is None and style.background is None and style.border is None and style.emphasis == "normal":
+    content_marker = style.marker if style.marker in CANCELLATION_MARKERS else "none"
+    content_color = style.color if style.marker == "none" or content_marker != "none" else None
+    if (
+        content_marker == "none"
+        and content_color is None
+        and style.background is None
+        and style.border is None
+        and style.emphasis == "normal"
+    ):
         return None
     return Annotation(
         target=annotation.target,
@@ -290,6 +343,7 @@ def _content_only_annotation(annotation: Annotation) -> Annotation | None:
             background=style.background,
             border=style.border,
             emphasis=style.emphasis,
+            marker=content_marker,
         ),
         description=annotation.description,
         missing=annotation.missing,
@@ -301,7 +355,8 @@ def _overlay_only_annotation(annotation: Annotation) -> Annotation:
     """Return the label/marker part of a rule for independent overlay lowering."""
 
     style = annotation.style
-    marker_color = style.color if style.marker != "none" else None
+    external_marker = style.marker if style.marker not in CANCELLATION_MARKERS else "none"
+    marker_color = style.color if external_marker != "none" else None
     return Annotation(
         target=annotation.target,
         label=annotation.label,
@@ -310,9 +365,9 @@ def _overlay_only_annotation(annotation: Annotation) -> Annotation:
         style=AnnotationStyle(
             color=marker_color,
             label_color=style.label_color,
-            marker=style.marker,
+            marker=external_marker,
             clearance=style.clearance,
-            overlay=style.marker != "none",
+            overlay=external_marker != "none",
         ),
         side=annotation.side,
         description=annotation.description,
@@ -338,11 +393,27 @@ def _partition_span_layers(spans: list[_Span]) -> tuple[list[_Span], list[_Span]
             body_spans.append(span)
             continue
         overlays.append(
-            _Span(span.container, span.start, span.stop, _overlay_only_annotation(span.annotation), span.order)
+            _Span(
+                span.container,
+                span.start,
+                span.stop,
+                _overlay_only_annotation(span.annotation),
+                span.order,
+                include_leading_sign=span.include_leading_sign,
+            )
         )
         content = _content_only_annotation(span.annotation)
         if content is not None:
-            body_spans.append(_Span(span.container, span.start, span.stop, content, span.order))
+            body_spans.append(
+                _Span(
+                    span.container,
+                    span.start,
+                    span.stop,
+                    content,
+                    span.order,
+                    include_leading_sign=span.include_leading_sign,
+                )
+            )
     _validate_span_groups(body_spans)
     return body_spans, overlays
 
@@ -422,6 +493,21 @@ def _fuse_leading_sign_fills(
     return tuple(rebuilt_spans), rebuilt_slots
 
 
+def _propagate_leading_signs_to_overlays(
+    spans: tuple[_Span, ...],
+    overlays: tuple[_Span, ...],
+) -> tuple[_Span, ...]:
+    """Keep a split callout aligned with a body span that absorbed its sign."""
+
+    signed = {(span.container, span.start, span.stop, span.order) for span in spans if span.include_leading_sign}
+    return tuple(
+        _clone_with(overlay, {"include_leading_sign": True})
+        if (overlay.container, overlay.start, overlay.stop, overlay.order) in signed
+        else overlay
+        for overlay in overlays
+    )
+
+
 def _clone_with(node: Any, changes: dict[str, Any]) -> Any:
     """Shallow-copy a frozen render node and replace selected fields.
 
@@ -476,6 +562,82 @@ def _apply_directs(node: Node, path: Path, context: _RebuildContext) -> Node:
     return node
 
 
+@dataclass(slots=True)
+class _SequenceLayout:
+    """Render annotation intervals over flattened Product/Infix members."""
+
+    template: Product | Infix
+    field_name: str
+    members: list[Node]
+    sides: dict[_Entry, ResolvedSide]
+
+    def combine(self, members: list[Node]) -> Node:
+        if len(members) == 1:
+            return members[0]
+        return _clone_with(self.template, {self.field_name: tuple(members)})
+
+    def plain(self, start: int, stop: int) -> Node:
+        return self.combine(self.members[start:stop])
+
+    def wrap(self, body: Node, spans: list[_Span]) -> Node:
+        for span in sorted(spans, key=lambda entry: entry.order):
+            side = self.sides.get(span) or default_side(span.annotation)
+            body = decorate(body, span.annotation, side)
+        return body
+
+    def region(self, start: int, stop: int, active: list[_Span]) -> Node:
+        covering = [span for span in active if span.start == start and span.stop == stop]
+        remaining = [span for span in active if span not in covering]
+        if covering:
+            return self.wrap(self.region(start, stop, remaining), covering)
+        inside = [span for span in remaining if span.start < stop and span.stop > start]
+        if not inside:
+            return self.plain(start, stop)
+        pivot = max(inside, key=lambda span: (span.stop - span.start, -span.start))
+        bounds = sorted({start, pivot.start, pivot.stop, stop})
+        pieces = [
+            self.region(
+                left,
+                right,
+                [span for span in inside if span.start < right and span.stop > left],
+            )
+            for left, right in zip(bounds, bounds[1:])
+            if left < right
+        ]
+        return self.combine(pieces)
+
+    def add_overlays(self, overlays: tuple[_Span, ...]) -> tuple[str, ...]:
+        prefixes: dict[int, list[str]] = {}
+        reservations: list[str] = []
+        for span in sorted(overlays, key=lambda entry: entry.order):
+            measured = Decorated(self.plain(span.start, span.stop), r"\phantom{", "}")
+            side = self.sides.get(span) or default_side(span.annotation)
+            reserved, overlaid = external_parts(measured, span.annotation, side)
+            reservations.append(reserved)
+            prefixes.setdefault(span.start, []).append(overlaid)
+        for start, values in prefixes.items():
+            self.members[start] = Decorated(self.members[start], "".join(values), "")
+        return tuple(reservations)
+
+
+def _render_sequence(
+    node: Product | Infix,
+    path: Path,
+    spans: tuple[_Span, ...],
+    overlays: tuple[_Span, ...],
+    context: _RebuildContext,
+) -> Node:
+    field_name = "factors" if isinstance(node, Product) else "operands"
+    source = getattr(node, field_name)
+    members = [_rebuild(member, (*path, field_name, index), context) for index, member in enumerate(source)]
+    layout = _SequenceLayout(node, field_name, members, context.sides)
+    reservations = layout.add_overlays(overlays)
+    rendered = layout.region(0, len(members), list(spans))
+    if reservations:
+        rendered = Decorated(rendered, "".join(reservations), "")
+    return rendered
+
+
 def _rebuild(node: Node, path: Path, context: _RebuildContext) -> Node:
     if isinstance(node, Sum):
         signs = context.signs_by_sum_path.get(path)
@@ -485,6 +647,8 @@ def _rebuild(node: Node, path: Path, context: _RebuildContext) -> Node:
     overlays = context.overlays_by_container.get(path)
     if isinstance(node, Sum) and (spans is not None or overlays is not None):
         rebuilt = _render_sum(node, path, spans or (), overlays or (), context)
+    elif isinstance(node, (Product, Infix)) and (spans is not None or overlays is not None):
+        rebuilt = _render_sequence(node, path, spans or (), overlays or (), context)
     else:
         rebuilt = _clone_with(node, _rebuild_fields(node, path, context))
     return _apply_directs(rebuilt, path, context)
@@ -535,23 +699,40 @@ class _SumLayout:
             body = self.bodies[start]
             if leading_inside and (term.negative or term.sign is not None):
                 return Sum((SumTerm(body, negative=term.negative, sign=term.sign),))
+            if leading_inside and start > 0:
+                return Sum((SumTerm(body, sign=term.sign or Text("+")),))
             return body
         terms = (
             SumTerm(
                 self.bodies[index],
                 negative=self.terms[index].negative if index > start or leading_inside else False,
-                sign=self.terms[index].sign if index > start or leading_inside else None,
+                sign=(self.terms[index].sign if index > start or leading_inside else None)
+                or (
+                    Text("+")
+                    if index == start and leading_inside and start > 0 and not self.terms[index].negative
+                    else None
+                ),
             )
             for index in range(start, stop)
         )
         return Sum(tuple(terms))
 
-    def callout_measure(self, start: int, stop: int) -> Node:
-        """Reproduce the visible sign class while measuring a callout span."""
+    def callout_measure(
+        self,
+        start: int,
+        stop: int,
+        include_leading_sign: bool,
+        *,
+        sign_has_medium_advance: bool,
+    ) -> Node:
+        """Measure exactly the term extent selected by the callout target."""
 
-        measured = self.plain(start, stop, leading_inside=True)
+        measured = self.plain(start, stop, leading_inside=include_leading_sign)
+        if not include_leading_sign:
+            return measured
         term = self.terms[start]
-        if not (term.negative or term.sign is not None):
+        sign_is_visible = term.negative or term.sign is not None or start > 0
+        if not sign_is_visible:
             return measured
         if not isinstance(measured, Sum):
             raise RuntimeError("signed callout measurement must retain its Sum container")
@@ -561,11 +742,13 @@ class _SumLayout:
         # particular, a colorbox inside KaTeX's vphantom can still paint its
         # background and cover unrelated visible content at the origin.
         sign = Text("-" if term.negative else "+")
-        # Keep the sign glyph ordinary inside the isolated phantom. KaTeX's
-        # visible sign atom has one medium-space more horizontal advance than
-        # that isolated glyph, for both leading and non-leading signs; retain
-        # the same advance so the marker ends at the visible body's far edge.
-        measured_sign = Decorated(sign, r"\mathord{", r"}\>")
+        # Keep the sign glyph ordinary inside the isolated phantom. A sign in
+        # the surrounding sum has one medium-space of advance before its body.
+        # A sign moved to the start of a content wrapper (notably colorbox)
+        # does not: TeX reclassifies that leading binary atom as ordinary.
+        # Measure the form that the base layer will actually display.
+        suffix = r"}\>" if sign_has_medium_advance else "}"
+        measured_sign = Decorated(sign, r"\mathord{", suffix)
         terms[0] = _clone_with(first, {"sign": measured_sign})
         return Sum(tuple(terms))
 
@@ -575,36 +758,59 @@ class _SumLayout:
             body = decorate(body, span.annotation, side)
         return body
 
-    def add_overlays(self, overlays: tuple[_Span, ...]) -> tuple[str, ...]:
+    def add_overlays(
+        self,
+        overlays: tuple[_Span, ...],
+        content_spans: tuple[_Span, ...],
+    ) -> tuple[str, ...]:
         """Attach callouts at interval starts and return outer reservations."""
 
-        prefixes: dict[int, list[str]] = {}
+        prefixes: dict[int, list[tuple[str, bool]]] = {}
         reservations: list[str] = []
         for span in sorted(overlays, key=lambda entry: entry.order):
-            # A negative coefficient is part of the annotated component even
-            # when its emitted minus also separates it from the preceding sum
-            # term.  Measure from that visible sign and attach the callout
-            # before it.  Body fills retain their separate policy: adjacent
-            # fill spans do not absorb the separator between them.
             term = self.terms[span.start]
-            measured = self.callout_measure(span.start, span.stop)
+            sign_starts_content = any(
+                content.start == span.start and content.include_leading_sign for content in content_spans
+            )
+            measured = self.callout_measure(
+                span.start,
+                span.stop,
+                include_leading_sign=span.include_leading_sign,
+                sign_has_medium_advance=not sign_starts_content,
+            )
             phantom = Decorated(measured, r"\phantom{", "}")
             side = self.sides.get(span) or default_side(span.annotation)
             reserved, overlaid = external_parts(phantom, span.annotation, side)
             reservations.append(reserved)
-            prefixes.setdefault(span.start, []).append(overlaid)
+            prefixes.setdefault(span.start, []).append((overlaid, span.include_leading_sign))
         for start, values in prefixes.items():
-            prefix = "".join(values)
             term = self.terms[start]
-            if term.negative or term.sign is not None:
-                sign = term.sign or Text("-")
+            sign_is_visible = term.negative or term.sign is not None or start > 0
+            sign_prefix = "".join(prefix for prefix, include_sign in values if include_sign)
+            body_prefix = "".join(prefix for prefix, include_sign in values if not include_sign)
+            if sign_prefix and sign_is_visible:
+                sign = term.sign or Text("-" if term.negative else "+")
                 math_class = r"\mathord{" if start == 0 else r"\mathbin{"
-                decorated_sign = Decorated(sign, math_class + prefix + r"\mathord{", "}}")
+                decorated_sign = Decorated(
+                    sign,
+                    math_class + sign_prefix + r"\mathord{",
+                    "}}",
+                )
                 terms = list(self.terms)
                 terms[start] = _clone_with(term, {"sign": decorated_sign})
                 self.terms = tuple(terms)
             else:
-                self.bodies[start] = Decorated(self.bodies[start], prefix, "")
+                body_prefix = sign_prefix + body_prefix
+            if body_prefix:
+                # A zero-width overlay between a leading unary sign and its
+                # body can change KaTeX's atom classification and shift the
+                # visible coefficient away from the phantom.  Preserve the
+                # body's ordinary class while keeping the excluded sign
+                # outside both the overlay and any content decoration.
+                ordinary = start == 0 and (term.negative or term.sign is not None)
+                prefix = (r"\mathord{" if ordinary else "") + body_prefix
+                suffix = "}" if ordinary else ""
+                self.bodies[start] = Decorated(self.bodies[start], prefix, suffix)
         return tuple(reservations)
 
     @staticmethod
@@ -635,12 +841,25 @@ class _SumLayout:
         remaining = [span for span in active if span not in covering]
         if covering:
             owns_sign = any(span.include_leading_sign for span in covering)
-            return self.wrap(self.region(start, stop, leading_inside or owns_sign, remaining), covering)
+            body = self.wrap(self.region(start, stop, owns_sign, remaining), covering)
+            if leading_inside and not owns_sign:
+                return self.plain_with_body(start, body)
+            return body
         inside = [span for span in remaining if span.start < stop and span.stop > start]
         if not inside:
             return self.plain(start, stop, leading_inside)
         pivot = max(inside, key=lambda span: (span.stop - span.start, -span.start))
         return self.split(start, stop, leading_inside, inside, pivot)
+
+    def plain_with_body(self, start: int, body: Node) -> Node:
+        """Emit the original visible leading sign outside a wrapped body."""
+
+        term = self.terms[start]
+        if term.negative or term.sign is not None:
+            return Sum((SumTerm(body, negative=term.negative, sign=term.sign),))
+        if start > 0:
+            return Sum((SumTerm(body, sign=Text("+")),))
+        return body
 
 
 def _render_sum(
@@ -655,7 +874,7 @@ def _render_sum(
     bodies = [_rebuild(term.body, (*path, "terms", index, "body"), context) for index, term in enumerate(node.terms)]
     included_leading_signs = frozenset(span.start for span in spans if span.include_leading_sign)
     layout = _SumLayout(node.terms, bodies, context.sides, included_leading_signs)
-    reservations = layout.add_overlays(overlays)
+    reservations = layout.add_overlays(overlays, spans)
     rendered = layout.region(0, len(node.terms), True, list(spans))
     if reservations:
         rendered = Decorated(rendered, "".join(reservations), "")
@@ -671,6 +890,7 @@ def render_katex(document: RenderDocument, rules: Iterable[Annotation], *, value
     sign_slots, term_body_placements = _partition_signs(plan.placements)
     spans, overlays, directs = _collect(AnnotationPlan(term_body_placements, plan.missing), document.body)
     spans, sign_slots = _fuse_leading_sign_fills(spans, sign_slots)
+    overlays = _propagate_leading_signs_to_overlays(spans, overlays)
     labels, sides = _solve((*overlays, *directs))
     _validate_overlay_channels(overlays, sides)
     spans_by_container: dict[Path, list[_Span]] = {}

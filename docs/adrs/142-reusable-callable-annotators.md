@@ -42,6 +42,22 @@ occurrence (`ab`). The renderer records this distinction explicitly. An
 operation removed by simplification or hidden by the content mode remains
 an empty selection, rather than invoking this fallback.
 
+`zero_subexpressions(atol=0)` is a deliberately value-dependent semantic
+target. At resolution time it walks retained expression provenance, evaluates
+self-contained operation subtrees against the value's algebra, and selects
+the innermost calls whose coefficients are all within the absolute tolerance.
+Innermost selection explains the first vanishing operations without producing
+nested cancellation wrappers around every zero-valued ancestor. Literal zeros
+are not selected. Calls that depend on unresolved named symbols are skipped,
+while independently evaluable descendants remain eligible. The convenience
+factory `cancel_zeros(...)` is ordinary immutable `Annotator` construction over
+that target with a cancellation marker.
+
+Flattened expression containers retain their semantic half-open interval in a
+resolved placement. The annotation renderer wraps only that sum-term,
+product-factor, or infix-operand interval; it does not widen a nested zero
+subexpression to the complete flattened expression.
+
 ## Consequences
 
 - Parameterized annotation factories are ordinary Python functions.
@@ -54,6 +70,8 @@ an empty selection, rather than invoking this fallback.
 - Existing presenter support needs an explicit adapter contract; this ADR
   does not claim that integration is already implemented.
 - Comparison rules and arithmetic propagation remain deferred.
+- Automatic zero cancellation is rendering-only numeric inspection of existing
+  provenance, not symbolic simplification and not arithmetic propagation.
 
 ## Validation
 

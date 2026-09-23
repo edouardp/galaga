@@ -28,6 +28,17 @@ def test_join_merges_adjacent_terms_into_one_continuous_span() -> None:
     assert rendered == r"\colorbox{#eee}{$e_{1} + e_{2}$} + e_{3}"
 
 
+def test_joined_terms_can_be_cancelled_as_one_content_span() -> None:
+    algebra = Algebra(3)
+    e1, e2, _ = algebra.basis_vectors()
+    value = _value(algebra, [0.0, 1.0, 1.0, 0.0, 1.0, 0.0, 0.0, 0.0])
+    rendered = ga.annotate(
+        value,
+        ga.on(ga.terms(e1, e2), marker="cancel", color="lightgrey", join=True),
+    ).latex()
+    assert rendered == r"\cancel{\textcolor{lightgrey}{e_{1} + e_{2}}} + e_{3}"
+
+
 def test_joined_span_shows_one_label_for_the_whole_run() -> None:
     algebra = Algebra(3)
     e1, e2, e3 = algebra.basis_vectors()
@@ -52,11 +63,22 @@ def test_unjoined_labels_stay_with_each_term() -> None:
     assert rendered.count("term") == 4
 
 
-def test_joined_span_keeps_a_leading_sign_inside_the_highlight() -> None:
+def test_joined_span_excludes_a_leading_sign_from_the_highlight_by_default() -> None:
     algebra = Algebra(3)
     e1, e2 = algebra.basis_vectors()[:2]
     value = _value(algebra, [0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
     rendered = ga.annotate(value, ga.on(ga.terms(e1, e2), background="#eee", join=True)).latex()
+    assert rendered == r"-\colorbox{#eee}{$e_{1} + e_{2}$}"
+
+
+def test_joined_span_can_include_a_visible_leading_sign() -> None:
+    algebra = Algebra(3)
+    e1, e2 = algebra.basis_vectors()[:2]
+    value = _value(algebra, [0.0, -1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0])
+    rendered = ga.annotate(
+        value,
+        ga.on(ga.terms(e1, e2, include_sign=True), background="#eee", join=True),
+    ).latex()
     assert rendered == r"\colorbox{#eee}{$-e_{1} + e_{2}$}"
 
 
@@ -81,20 +103,116 @@ def test_matching_sign_fill_fuses_with_the_joined_span_that_follows_it() -> None
     assert rendered == r"e_{1}  \colorbox{#eee}{$\textcolor{crimson}{-e_{2} - e_{3}}$}"
 
 
-def test_negative_nonleading_callout_owns_the_visible_sign() -> None:
+def test_matching_sign_fill_extends_the_split_callout_to_the_same_span() -> None:
+    algebra = Algebra(3)
+    e1, e2, e3 = algebra.basis_vectors()
+    rendered = ga.annotator(
+        ga.on(
+            ga.terms(e2, e3),
+            background="#eee",
+            label="signed run",
+            marker="underbrace",
+            join=True,
+        ),
+        ga.on(ga.sign(e2), background="#eee"),
+    )(e1 - e2 - e3).latex()
+
+    assert rendered.count(r"\colorbox{#eee}") == 1
+    assert r"\phantom{\mathord{-}e_{2} - e_{3}}" in rendered
+    assert r"\phantom{e_{2} - e_{3}}" not in rendered
+
+
+def test_negative_nonleading_callout_excludes_the_sign_by_default() -> None:
     algebra = Algebra(2)
     e1, e2 = algebra.basis_vectors()
-    rendered = ga.annotator(
-        ga.on(ga.term(e1), label="kept", marker="underbrace"),
-        ga.on(ga.term(e2), label="negated", marker="underbrace"),
-    )(e1 - e2).latex()
-    assert r"\phantom{\mathord{-}\>e_{2}}" in rendered
-    assert r"\mathrlap{\smash[b]{\underbrace" in rendered
-    assert rendered.endswith(
-        r"\mathbin{\mathrlap{\smash[b]{\underbrace"
-        r"{\textcolor{black}{\phantom{\mathord{-}\>e_{2}}}}_"
-        r"{\mathclap{\text{negated}}}}}\mathord{-}} e_{2}"
-    )
+    rendered = ga.annotate(
+        e1 - e2,
+        ga.on(
+            ga.term(e2),
+            background="#eee",
+            label="negated",
+            marker="underbrace",
+        ),
+    ).latex()
+
+    assert r"\phantom{e_{2}}" in rendered
+    assert r"\phantom{\mathord{-}\>e_{2}}" not in rendered
+    assert r"- \colorbox{#eee}{$\mathrlap{\smash[b]{\underbrace" in rendered
+
+
+@pytest.mark.parametrize(("value_sign", "glyph"), [(-1, "-"), (1, "+")])
+def test_nonleading_term_can_include_its_visible_sign(
+    value_sign: int,
+    glyph: str,
+) -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 + value_sign * e2,
+        ga.on(
+            ga.term(e2, include_sign=True),
+            background="#eee",
+            label="signed term",
+            marker="underbrace",
+        ),
+    ).latex()
+
+    assert rf"\phantom{{\mathord{{{glyph}}}e_{{2}}}}" in rendered
+    assert rf"\mathord{{{glyph}}}}}e_{{2}}$}}" in rendered
+
+
+def test_leading_term_include_sign_respects_suppressed_plus() -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    positive = ga.annotate(
+        e1 + e2,
+        ga.on(
+            ga.term(e1, include_sign=True),
+            background="#eee",
+            label="first",
+            marker="underbrace",
+        ),
+    ).latex()
+    negative = ga.annotate(
+        -e1 + e2,
+        ga.on(
+            ga.term(e1, include_sign=True),
+            background="#eee",
+            label="first",
+            marker="underbrace",
+        ),
+    ).latex()
+
+    assert positive.startswith(r"\vphantom{\underbrace{\textcolor{black}{\phantom{e_{1}}}")
+    assert r"\colorbox{#eee}{$\mathrlap" in positive
+    assert r"\mathord{+}" not in positive
+    assert r"\phantom{\mathord{-}e_{1}}" in negative
+    assert r"\mathord{-}}e_{1}$}" in negative
+
+
+def test_singleton_term_can_include_or_exclude_its_negative_sign() -> None:
+    algebra = Algebra(1)
+    (e1,) = algebra.basis_vectors()
+    value = -2 * e1
+    unsigned = ga.annotate(
+        value,
+        ga.on(ga.term(e1), background="#eee", label="term", marker="rule"),
+    ).latex()
+    signed = ga.annotate(
+        value,
+        ga.on(
+            ga.term(e1, include_sign=True),
+            background="#eee",
+            label="term",
+            marker="rule",
+        ),
+    ).latex()
+
+    assert r"\phantom{2 e_{1}}" in unsigned
+    assert r"\phantom{\mathord{-}\>2 e_{1}}" not in unsigned
+    assert r"-\colorbox{#eee}{$\mathord{\mathrlap" in unsigned
+    assert r"\phantom{\mathord{-}2 e_{1}}" in signed
+    assert signed.endswith(r"\mathord{-}}2 e_{1}$}")
 
 
 def test_nested_joined_layers_keep_the_wide_span_continuous() -> None:
@@ -145,7 +263,8 @@ def test_nested_layers_do_not_duplicate_leading_signs() -> None:
     assert rendered.count(r"\text{leading}") == 2
     assert rendered.count(r"\text{inner}") == 2
     assert rendered.count(r"\text{middle}") == 2
-    assert r"\phantom{\mathord{-}\>e_{1} + e_{2}}" in rendered
+    assert r"\phantom{e_{1} + e_{2}}" in rendered
+    assert r"\phantom{\mathord{-}\>e_{1} + e_{2}}" not in rendered
 
 
 def test_crossing_highlight_and_callout_spans_use_an_independent_overlay() -> None:

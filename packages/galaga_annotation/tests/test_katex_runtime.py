@@ -137,8 +137,12 @@ def test_every_marker_compiles_with_standalone_katex(katex_module_url: str) -> N
         "overgroup",
         "overline",
         "overbracket",
+        "cancel",
+        "bcancel",
+        "xcancel",
     )
     expressions = [ga.annotate(value, label="concept", marker=marker).latex() for marker in markers]
+    expressions.append(ga.annotate(value, marker="cancel", color="lightgrey").latex())
     _compile_katex(katex_module_url, expressions)
 
 

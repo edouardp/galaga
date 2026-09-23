@@ -143,7 +143,7 @@ def _(
             label="boost planes\nsquare +1",
             background=BOOST_FILL,
             label_color=BOOST_BLUE,
-            marker="overbrace",
+            marker="rule",
             color=BOOST_BLUE,
             join=True,
         ),
@@ -152,7 +152,7 @@ def _(
             label="rotation planes\nsquare -1",
             background=ROTATION_FILL,
             label_color=ROTATION_ORANGE,
-            marker="underbrace",
+            marker="rule",
             color=ROTATION_ORANGE,
             join=True,
         ),
@@ -229,7 +229,7 @@ def _(
             label="boost generator",
             background=BOOST_FILL,
             label_color=BOOST_BLUE,
-            marker="overbrace",
+            marker="rule",
             color=BOOST_BLUE,
         ),
         ga.on(
@@ -237,7 +237,7 @@ def _(
             label="rotation generator",
             background=ROTATION_FILL,
             label_color=ROTATION_ORANGE,
-            marker="underbrace",
+            marker="rule",
             color=ROTATION_ORANGE,
         ),
     )
@@ -249,7 +249,9 @@ def _(
                 label="time–space mixing",
                 background=BOOST_FILL,
                 label_color=BOOST_BLUE,
-                marker="overbrace",
+                #marker="rule",
+                side="below",
+                clearance="3px",
                 color=BOOST_BLUE,
                 join=True,
             )
@@ -262,7 +264,9 @@ def _(
                 label="spatial rotation",
                 background=ROTATION_FILL,
                 label_color=ROTATION_ORANGE,
-                marker="underbrace",
+                #marker="rule",
+                side="below",
+                clearance="3px",
                 color=ROTATION_ORANGE,
                 join=True,
             )
@@ -273,13 +277,13 @@ def _(
         [
             mo.hstack([rapidity_control, angle_control], justify="space-around"),
             gm.md(rt"""
-        **The generators:** {selected_generators_view:block}
+    **The generators:** {selected_generators_view:block}
 
-        **Boosted time axis:** {boosted_time_view:block}
+    **Boosted time axis:** {boosted_time_view:block}
 
-        **Rotated spatial axis:** {rotated_axis_view:block}
+    **Rotated spatial axis:** {rotated_axis_view:block}
 
-        Both rotors satisfy $R\widetilde R=1$: **{rotors_verified}**.
+    Both rotors satisfy $R\widetilde R=1$: **{rotors_verified}**.
         """),
         ]
     )
@@ -359,7 +363,9 @@ def _(
             label="electric part E",
             background=ELECTRIC_FILL,
             label_color=ELECTRIC_RED,
-            marker="overbrace",
+            #marker="overbrace",
+            side="below",
+            clearance="3px",
             color=ELECTRIC_RED,
             join=True,
         ),
@@ -368,7 +374,9 @@ def _(
             label="magnetic part I B",
             background=MAGNETIC_FILL,
             label_color=MAGNETIC_BLUE,
-            marker="underbrace",
+            #marker="overbrace",
+            side="below",
+            clearance="3px",
             color=MAGNETIC_BLUE,
             join=True,
         ),
@@ -530,16 +538,16 @@ def _(
             label="electric force:\nwork + acceleration",
             background=ELECTRIC_FILL,
             label_color=ELECTRIC_RED,
-            marker="overbrace",
+            marker="rule",
             color=ELECTRIC_RED,
             join=True,
         ),
         ga.on(
-            ga.term(g2),
+            ga.term(g2, include_sign=False),
             label="magnetic force:\ntransverse",
             background=MAGNETIC_FILL,
             label_color=MAGNETIC_BLUE,
-            marker="underbrace",
+            marker="rule",
             color=MAGNETIC_BLUE,
         ),
     )

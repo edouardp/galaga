@@ -37,6 +37,17 @@ def test_expression_path_rejects_malformed_indices() -> None:
         ga.ExpressionPath((True,))
 
 
+def test_zero_subexpression_target_validates_absolute_tolerance() -> None:
+    assert ga.zero_subexpressions() == ga.ZeroSubexpressionTarget(0.0)
+    assert ga.zero_subexpressions(atol=1e-12).atol == 1e-12
+    with pytest.raises(TypeError, match="real number"):
+        ga.zero_subexpressions(atol=True)
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        ga.zero_subexpressions(atol=-1)
+    with pytest.raises(ValueError, match="finite and non-negative"):
+        ga.zero_subexpressions(atol=float("inf"))
+
+
 def test_blade_targets_accept_scaled_basis_blades_and_raw_masks(algebra: Algebra) -> None:
     e1, e2, _ = algebra.basis_vectors()
     assert ga.blade_mask(e1) == (1, algebra)
@@ -44,7 +55,12 @@ def test_blade_targets_accept_scaled_basis_blades_and_raw_masks(algebra: Algebra
     assert ga.blade_mask(2) == (2, None)
     assert ga.term(e1).masks == (1,)
     assert ga.terms(e1, e2).masks == (1, 2)
+    assert ga.term(e1).include_sign is False
+    assert ga.term(e1, include_sign=True).include_sign is True
+    assert ga.terms(e1, e2, include_sign=True).include_sign is True
     assert ga.coefficient(e2).masks == (2,)
+    with pytest.raises(TypeError, match="include_sign"):
+        ga.TermTarget((1,), algebra, include_sign=1)
 
 
 def test_blade_targets_reject_mixed_terms(algebra: Algebra) -> None:

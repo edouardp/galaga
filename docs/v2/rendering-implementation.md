@@ -88,9 +88,11 @@ bivectors = document.select("term", grade=2)
 coefficients = document.select("coefficient", mask=1)
 ```
 
-Term/sign anchors in a sum identify a slot using the sum node and
-`term_index`; singleton terms identify their final node. Coefficient and
-blade anchors reference their actual render nodes. Signs are separate from
+Term/sign anchors identify a slot using the sum node and `term_index`.
+`value_document` retains a semantic one-term `Sum` for a visible singleton,
+even though the ordinary value tree may collapse that wrapper; their emitted
+text is identical. Coefficient and blade anchors reference their actual render
+nodes. Signs are separate from
 coefficient magnitudes. No anchor is created for omitted unit coefficients,
 implicit leading plus signs, or terms hidden by zero/tolerance rules. A
 valid selector with no visible matches returns `()`. The rendered zero

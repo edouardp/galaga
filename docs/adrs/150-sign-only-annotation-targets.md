@@ -34,11 +34,11 @@ only selectable when it is visible: omitted unit coefficients, implicit
 leading plus signs, and terms hidden by display tolerance have no anchor, so
 those rules match nothing under the ordinary `missing` policy.
 
-A singleton negative term has no separate sign slot in the concrete value
-tree; its sign is fused into the coefficient prefix. In that one case the sign
-target falls back to the term body and the decoration applies to the whole
-term. This is the only representation where a sign cannot be isolated, and it
-is documented rather than guessed at.
+Concrete value documents preserve a semantic one-term `Sum`, including its
+sign slot, even though ordinary value rendering still collapses to the familiar
+singleton text. A singleton negative term can therefore expose and decorate
+only its sign. This avoids a representation-dependent fallback in which the
+same selector unexpectedly decorated the entire term.
 
 The KaTeX lowerer partitions sign placements out of the term/span pipeline
 before layout. It applies them to the owning `SumTerm` (resolving a label or
@@ -68,8 +68,9 @@ lowers through the shared wrappers and emitter.
 - The three value-component selectors now read as a set:
   `sign(blade)`, `coefficient(blade)`, and `term(blade)` address the sign, the
   magnitude, and the whole term.
-- Sign rules on a singleton negative term decorate the term body; splitting the
-  fused coefficient prefix into a true sign slot remains future work.
+- Sign rules isolate the glyph consistently for singleton and multi-term
+  values; preserving the semantic singleton `Sum` does not change ordinary
+  emitted output.
 - Sign placements do not participate in the approximate label-collision
   solver. Labels still render on the sign; residual collisions are not
   staggered for signs alone.

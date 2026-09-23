@@ -23,6 +23,14 @@ def test_styles_validate_colors_dimensions_and_markers() -> None:
         ga.AnnotationStyle(emphasis="loud")
 
 
+def test_cancellation_markers_are_inline_and_reject_external_overlay_mode() -> None:
+    assert ga.AnnotationStyle(marker="cancel").marker == "cancel"
+    assert ga.AnnotationStyle(marker="bcancel").marker == "bcancel"
+    assert ga.AnnotationStyle(marker="xcancel").marker == "xcancel"
+    with pytest.raises(ValueError, match="cancellation markers"):
+        ga.on(ga.whole(), marker="cancel", overlay=True)
+
+
 def test_directional_markers_reject_contradictory_sides() -> None:
     assert ga.on(ga.whole(), marker="underbrace").side == "auto"
     assert ga.on(ga.whole(), marker="underbrace", side="below").side == "below"

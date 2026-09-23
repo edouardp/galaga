@@ -187,7 +187,7 @@ def _(ann, np):
                 ann.grade(grade_number),
                 background=grade_palette[grade_number],
                 label=f"grade {grade_number}",
-                marker="underbrace",
+                marker="rule",
                 join=True,
             )
             for grade_number in range(value.algebra.n + 1)

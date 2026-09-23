@@ -78,6 +78,67 @@ Span markers include paired structural brackets:
 `\underbracket{body}_{label}`. Their directions are fixed; passing the
 contradictory explicit `side` is an error.
 
+Cancellation is an inline marker, so it can cross exactly one selected
+subexpression while a foreground colour de-emphasises that same content:
+
+```python
+v = ((e1 | e2) + (e1 ^ e2)).named("v")
+cancel_inner = ga.annotator(
+    ga.on(
+        ga.subexpression(e1 | e2),
+        color="lightgrey",
+        marker="cancel",
+    )
+)
+cancel_inner(v)
+```
+
+This lowers the selected subtree to
+`\cancel{\textcolor{lightgrey}{e_1 \cdot e_2}}`. The related `bcancel` and
+`xcancel` markers are also available. They are content decorations, so
+`overlay=True` is intentionally rejected.
+
+To discover those operations from retained provenance rather than naming each
+subtree manually, build a reusable automatic recipe:
+
+```python
+cancel_zero_operations = ga.cancel_zeros(color="#aaaf")
+cancel_zero_operations(v)
+```
+
+`ga.cancel_zeros()` uses exact coefficient zero by default and crosses out the
+innermost zero-valued operation subtrees. Use an explicit absolute tolerance
+for numerical lessons, for example `ga.cancel_zeros(atol=1e-12)`. It does not
+cancel literal zeros or symbolically rewrite the expression. Subtrees that
+depend on unresolved named symbols are skipped; independently evaluable
+descendants can still match. The underlying selector is available as
+`ga.zero_subexpressions(atol=...)` for composing a different rule.
+
+## Revealing named-variable definitions
+
+Named intermediates keep a large expression readable. A variable annotation
+can reveal one provenance layer without expanding the expression itself:
+
+```python
+u = (e1 + e2).named("u")
+v = (e2 - e3).named("v")
+B = (u ^ v).named("B")
+x = (e1 + 2 * e3).named("x")
+a = (B * x).named("a")
+
+layered = ga.annotate(
+    a,
+    ga.on(ga.variable("B"), label_latex=B.latex(content="expr"), marker="rule"),
+    ga.on(ga.variable("x"), label_latex=x.latex(content="expr"), marker="rule"),
+)
+```
+
+The labels come from the named values' retained expressions rather than
+handwritten copies. Apply the same pattern to `B` to reveal `u` and `v` one
+layer further back. See
+[`examples/annotation/expression_provenance_layers.py`](../../examples/annotation/expression_provenance_layers.py)
+for the complete teaching notebook.
+
 ## Targeting a subtree
 
 `ga.subexpression(value, occurrence=...)` finds a subtree by its recorded
@@ -111,11 +172,20 @@ A sign is only selectable when it is visible, so a positive leading term
 matches nothing. Sign decorations reuse the ordinary styles and markers and
 compose with grade fills and joined term spans.
 
-Term and grade callouts include a visible negative sign in their measured
-extent, including the minus on a non-leading term. Content-only backgrounds
-continue to leave the separator between two disjoint highlights uncoloured.
-To extend a joined fill through its leading sign, select that sign with the
-same background; the renderer fuses the two targets into one continuous box.
+Term targets exclude their sign by default, and that boundary is shared by
+the fill, marker, and label measurement. Opt into a signed term explicitly:
+
+```python
+unsigned = ga.term(e2)
+signed = ga.term(e2, include_sign=True)
+```
+
+For `signed`, a visible leading or non-leading `+`/`-` is included in every
+visual layer. A first positive term still has no displayed `+`, so none is
+invented. Grade targets and ordinary term targets leave the sign outside.
+To extend a joined fill through its leading sign independently, select that
+sign with the same background; the renderer fuses the two targets into one
+continuous box and gives a callout split from that rule the same extent.
 
 ## Targeting the name, expression, and value
 

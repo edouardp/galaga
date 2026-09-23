@@ -11,10 +11,10 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Any
 
-from .model import Annotation, on
-from .targets import WholeExpression
+from .model import CANCELLATION_MARKERS, Annotation, Marker, on
+from .targets import WholeExpression, zero_subexpressions
 
-__all__ = ["Annotator", "annotate", "annotator"]
+__all__ = ["Annotator", "annotate", "annotator", "cancel_zeros"]
 
 
 @dataclass(frozen=True, slots=True)
@@ -77,6 +77,30 @@ class Annotator:
 def annotator(*rules: Annotation) -> Annotator:
     """Construct an immutable, callable annotation recipe."""
     return Annotator(tuple(rules))
+
+
+def cancel_zeros(
+    *,
+    atol: float = 0.0,
+    color: str | None = "#aaaf",
+    marker: Marker = "cancel",
+) -> Annotator:
+    """Return an annotator cancelling innermost zero-valued operations.
+
+    Evaluation follows retained expression provenance. ``atol=0`` requires
+    exact zero coefficients; use a positive absolute tolerance deliberately
+    when teaching with computed floating-point inputs.
+    """
+
+    if marker not in CANCELLATION_MARKERS:
+        raise ValueError("cancel_zeros marker must be 'cancel', 'bcancel', or 'xcancel'")
+    return annotator(
+        on(
+            zero_subexpressions(atol=atol),
+            color=color,
+            marker=marker,
+        )
+    )
 
 
 def annotate(value: Any, *rules: Annotation, **fields: Any):

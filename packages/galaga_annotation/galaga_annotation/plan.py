@@ -14,8 +14,8 @@ from typing import Any
 import numpy as np
 
 from galaga.expression import Call as ExpressionCall
-from galaga.expression import Expr
-from galaga.rendering import ExpressionAnchor, Node, RenderAnchor, RenderDocument, Sum
+from galaga.expression import Expr, evaluate
+from galaga.rendering import ExpressionAnchor, Infix, Node, Product, RenderAnchor, RenderDocument, Sum
 
 from .model import Annotation
 from .targets import (
@@ -30,6 +30,7 @@ from .targets import (
     TermTarget,
     VariableTarget,
     WholeExpression,
+    ZeroSubexpressionTarget,
 )
 
 __all__ = ["AnnotationPlan", "MissingTargetError", "Placement", "resolve"]
@@ -43,11 +44,13 @@ class MissingTargetError(ValueError):
 
 @dataclass(frozen=True, slots=True)
 class Placement:
-    """One resolved rule bound to one displayed layout path."""
+    """One resolved rule bound to a layout path and optional sequence interval."""
 
     annotation: Annotation
     path: Path
     order: int
+    start: int | None = None
+    stop: int | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -175,6 +178,63 @@ def _select_subexpression(document: RenderDocument, target: SubexpressionTarget,
     return unique[target.occurrence : target.occurrence + 1]
 
 
+def _evaluates_to_zero(expression: ExpressionCall, value: Any, atol: float) -> bool | None:
+    """Return zero status, or ``None`` when named symbols prevent evaluation."""
+
+    algebra = getattr(value, "algebra", None)
+    if algebra is None:
+        raise ValueError("zero-subexpression targets require a value with an algebra")
+    try:
+        result = evaluate(expression, algebra=algebra)
+    except KeyError:
+        return None
+    coefficients = getattr(result, "data", None)
+    if coefficients is None:
+        return None
+    data = np.asarray(coefficients)
+    return bool(data.size and np.all(np.abs(data) <= atol))
+
+
+def _innermost_zero_paths(expression: Expr, value: Any, atol: float) -> tuple[tuple[int, ...], ...]:
+    """Return non-overlapping zero-call paths, preferring explanatory leaves."""
+
+    def walk(node: Expr, path: tuple[int, ...]) -> tuple[bool, tuple[tuple[int, ...], ...]]:
+        if not isinstance(node, ExpressionCall):
+            return False, ()
+        descendant_is_zero = False
+        selected: list[tuple[int, ...]] = []
+        for index, operand in enumerate(node.operands):
+            child_is_zero, child_paths = walk(operand, (*path, index))
+            descendant_is_zero = descendant_is_zero or child_is_zero
+            selected.extend(child_paths)
+        current_is_zero = _evaluates_to_zero(node, value, atol) is True
+        if current_is_zero and not descendant_is_zero:
+            return True, (path,)
+        return current_is_zero or descendant_is_zero, tuple(selected)
+
+    return walk(expression, ())[1]
+
+
+def _zero_subexpression_anchors(
+    document: RenderDocument,
+    target: ZeroSubexpressionTarget,
+    value: Any,
+) -> tuple[ExpressionAnchor, ...]:
+    expression = getattr(value, "expr", None)
+    if not isinstance(expression, Expr):
+        raise ValueError("zero-subexpression targets require a tracked value with expression provenance")
+    selected = frozenset(_innermost_zero_paths(expression, value, target.atol))
+    anchors = (
+        anchor
+        for anchor in document.select_expression("expression")
+        if anchor.path in selected and (anchor.start is None or isinstance(anchor.node, (Sum, Product, Infix)))
+    )
+    unique: dict[tuple[Path, int | None, int | None], ExpressionAnchor] = {}
+    for anchor in anchors:
+        unique.setdefault((_expression_path(anchor), anchor.start, anchor.stop), anchor)
+    return tuple(unique.values())
+
+
 def _select_grade(document: RenderDocument, target: GradeTarget, _value_algebra: Any) -> tuple[Path, ...]:
     anchors = (anchor for grade in target.grades for anchor in document.select("term", grade=grade))
     return _unique(_term_path(anchor) for anchor in anchors)
@@ -232,7 +292,8 @@ def _select(document: RenderDocument, target: Any, value: Any) -> tuple[Path, ..
 def resolve(document: RenderDocument, rules: Iterable[Annotation], *, value: Any = None) -> AnnotationPlan:
     """Resolve annotation rules against one render document.
 
-    ``value`` supplies the source algebra used to validate blade-bound rules.
+    ``value`` supplies the source algebra used to validate blade-bound rules
+    and evaluate value-dependent expression selectors.
     """
 
     if not isinstance(document, RenderDocument):
@@ -245,6 +306,25 @@ def resolve(document: RenderDocument, rules: Iterable[Annotation], *, value: Any
     for rule in rules:
         if not isinstance(rule, Annotation):
             raise TypeError("annotation rules must be Annotation instances")
+        if isinstance(rule.target, ZeroSubexpressionTarget):
+            anchors = _zero_subexpression_anchors(document, rule.target, value)
+            if not anchors:
+                if rule.missing == "error":
+                    raise MissingTargetError(f"annotation target {rule.target!r} matched no visible content")
+                missing.append(rule)
+                continue
+            for anchor in anchors:
+                path = _expression_path(anchor)
+                placements.append(
+                    Placement(
+                        rule,
+                        path,
+                        order.get(path, len(order)),
+                        start=anchor.start,
+                        stop=anchor.stop,
+                    )
+                )
+            continue
         paths = _select(document, rule.target, value)
         if not paths:
             if rule.missing == "error":

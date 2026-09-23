@@ -7,7 +7,9 @@ dataclasses; the renderer resolves them against a semantic render document.
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
+from numbers import Real
 from typing import Any, Literal
 
 import numpy as np
@@ -30,6 +32,7 @@ __all__ = [
     "TermTarget",
     "VariableTarget",
     "WholeExpression",
+    "ZeroSubexpressionTarget",
     "blade_mask",
     "block",
     "cell",
@@ -51,6 +54,7 @@ __all__ = [
     "terms",
     "variable",
     "whole",
+    "zero_subexpressions",
 ]
 
 
@@ -189,6 +193,26 @@ class SubexpressionTarget:
 
 
 @dataclass(frozen=True, slots=True)
+class ZeroSubexpressionTarget:
+    """Innermost operation subtrees whose evaluated coefficients are zero.
+
+    Only self-contained expression calls can match. A subtree that depends on
+    an unresolved named symbol is skipped, while its independently evaluable
+    descendants remain candidates.
+    """
+
+    atol: float = 0.0
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.atol, Real) or isinstance(self.atol, bool):
+            raise TypeError("zero-subexpression atol must be a real number")
+        tolerance = float(self.atol)
+        if not math.isfinite(tolerance) or tolerance < 0:
+            raise ValueError("zero-subexpression atol must be finite and non-negative")
+        object.__setattr__(self, "atol", tolerance)
+
+
+@dataclass(frozen=True, slots=True)
 class GradeTarget:
     """Complete displayed terms of the selected grades."""
 
@@ -203,13 +227,16 @@ class GradeTarget:
 
 @dataclass(frozen=True, slots=True)
 class TermTarget:
-    """Complete coefficient-plus-blade display terms."""
+    """Coefficient-plus-blade display terms, optionally including visible signs."""
 
     masks: tuple[int, ...]
     algebra: Any = field(default=None, compare=False, repr=False)
+    include_sign: bool = False
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "masks", _checked_masks(self.masks, field_name="term target"))
+        if not isinstance(self.include_sign, bool):
+            raise TypeError("term target include_sign must be a boolean")
 
 
 @dataclass(frozen=True, slots=True)
@@ -281,6 +308,12 @@ def subexpression(value: Any, occurrence: int | Literal["all"] = "all") -> Subex
     return SubexpressionTarget(expression, occurrence)
 
 
+def zero_subexpressions(*, atol: float = 0.0) -> ZeroSubexpressionTarget:
+    """Select innermost self-contained operation subtrees evaluating to zero."""
+
+    return ZeroSubexpressionTarget(atol)
+
+
 def grade(*grades: int) -> GradeTarget:
     """Select complete terms of one or more grades."""
     return GradeTarget(tuple(grades))
@@ -291,14 +324,14 @@ def grades(*grades: int) -> GradeTarget:
     return GradeTarget(tuple(grades))
 
 
-def term(blade: Any) -> TermTarget:
-    """Select one complete coefficient-plus-blade term."""
+def term(blade: Any, *, include_sign: bool = False) -> TermTarget:
+    """Select one coefficient-plus-blade term and optionally its visible sign."""
     mask, algebra = blade_mask(blade)
-    return TermTarget((mask,), algebra)
+    return TermTarget((mask,), algebra, include_sign)
 
 
-def terms(*blades: Any) -> TermTarget:
-    """Select several complete coefficient-plus-blade terms."""
+def terms(*blades: Any, include_sign: bool = False) -> TermTarget:
+    """Select coefficient-plus-blade terms and optionally their visible signs."""
     masks = []
     algebra = None
     for blade in blades:
@@ -308,7 +341,7 @@ def terms(*blades: Any) -> TermTarget:
         elif blade_algebra is not None and blade_algebra is not algebra:
             raise ValueError("term targets must share one algebra")
         masks.append(mask)
-    return TermTarget(tuple(masks), algebra)
+    return TermTarget(tuple(masks), algebra, include_sign)
 
 
 def coefficient(blade: Any) -> CoefficientTarget:
@@ -358,6 +391,7 @@ TARGET_TYPES = (
     OperationTarget,
     VariableTarget,
     SubexpressionTarget,
+    ZeroSubexpressionTarget,
     GradeTarget,
     TermTarget,
     CoefficientTarget,

@@ -25,18 +25,33 @@ def _nodes(node: Node):
 
 
 @pytest.mark.parametrize("coefficients", [(0, 0, 0, 0), (2, 0, 0, 0), (0, -2, 0, 0), (0, -1, 0, 0), (1, -2, 1, 3)])
-def test_document_keeps_existing_tree_output_and_references_actual_nodes(coefficients):
+def test_document_keeps_existing_output_and_references_actual_nodes(coefficients):
     algebra = Algebra(config=presets.euclidean(2))
     value = algebra.multivector(coefficients)
     before = tuple(value.data)
     document = value_document(value)
-    assert document.body == value_tree(value)
     for emitter in (ascii_renderer, unicode, latex):
         assert emitter.emit(document.body) == emitter.emit(value_tree(value))
     nodes = tuple(_nodes(document.body))
     assert all(any(anchor.node is node for node in nodes) for anchor in document.anchors)
     assert tuple(value.data) == before
     assert document.presentation is algebra.presentation
+
+
+@pytest.mark.parametrize(("coefficient", "has_sign"), [(2, False), (-2, True)])
+def test_singleton_document_keeps_a_sign_slot_without_showing_a_leading_plus(
+    coefficient,
+    has_sign,
+):
+    algebra = Algebra(config=presets.euclidean(1))
+    value = coefficient * algebra.basis_vectors()[0]
+    document = value_document(value)
+
+    assert isinstance(document.body, Sum)
+    assert len(document.body.terms) == 1
+    assert [anchor.term_index for anchor in document.select("term")] == [0]
+    assert bool(document.select("sign")) is has_sign
+    assert latex.emit(document.body) == value.latex(content="value")
 
 
 def test_terms_and_signs_are_slots_in_the_shared_sum():

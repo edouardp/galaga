@@ -12,7 +12,7 @@ from typing import Literal
 
 from galaga.rendering import Decorated, Node, Text, emit
 
-from .model import DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
+from .model import CANCELLATION_MARKERS, DIRECTIONAL_MARKERS, Annotation, AnnotationStyle
 
 __all__ = ["ResolvedSide", "decorate", "default_side", "external_parts", "style_body"]
 
@@ -85,6 +85,14 @@ def _box_marker(node: Node, side: ResolvedSide, text: str | None) -> tuple[Node,
     return Decorated(node, rf"{placement}{{{text}}}{{\boxed{{", "}}"), side
 
 
+def _cancellation_marker(node: Node, marker: str, side: ResolvedSide, text: str | None) -> tuple[Node, ResolvedSide]:
+    cancelled = Decorated(node, rf"\{marker}{{", "}")
+    if text is None:
+        return cancelled, side
+    placement = r"\overset" if side == "above" else r"\underset"
+    return Decorated(cancelled, rf"{placement}{{{text}}}{{", "}"), side
+
+
 def _callout_symbol(marker: str, side: ResolvedSide) -> str | None:
     if marker == "arrow":
         return r"\downarrow" if side == "above" else r"\uparrow"
@@ -123,6 +131,8 @@ def _marker_wrap(
         return _overline_marker(node, text)
     if marker == "box":
         return _box_marker(node, side, text)
+    if marker in CANCELLATION_MARKERS:
+        return _cancellation_marker(node, marker, side, text)
     return _callout_marker(node, marker, side, text, clearance)
 
 
@@ -180,14 +190,15 @@ def _overlay_marker(
 
 def _ordinary_marker(node: Node, style: AnnotationStyle, side: ResolvedSide, text: str | None) -> Node:
     marked = style.marker != "none"
-    if marked and style.color is not None:
+    content_marker = style.marker in CANCELLATION_MARKERS
+    if marked and not content_marker and style.color is not None:
         # Opaque prefix/suffix wrappers cannot preserve inherited foreground;
         # typed decoration IR can remove this reset in a later design.
         node = Decorated(node, r"\textcolor{black}{", "}")
     if not marked and text is None:
         return node
     node, _ = _marker_wrap(node, style.marker, side, text, style.clearance)
-    return _color_marker(node, style.color if marked else None)
+    return _color_marker(node, style.color if marked and not content_marker else None)
 
 
 def _external_callout(node: Node, annotation: Annotation, side: ResolvedSide, *, smash: bool) -> Node:
@@ -225,7 +236,8 @@ def decorate(node: Node, annotation: Annotation, side: ResolvedSide) -> Node:
 
     style = annotation.style
     marked = style.marker != "none"
-    node = style_body(node, style, marked=marked)
+    content_marker = style.marker in CANCELLATION_MARKERS
+    node = style_body(node, style, marked=marked and not content_marker)
     text = _label_text(annotation)
     if marked and style.overlay:
         measured = Decorated(node, r"\phantom{", "}")

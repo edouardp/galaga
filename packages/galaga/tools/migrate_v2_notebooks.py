@@ -54,6 +54,7 @@ MIGRATED_NOTEBOOKS = (
     "annotation/covectors_and_metric_identification.py",
     "annotation/inner_and_interior_products.py",
     "annotation/span_composition.py",
+    "annotation/expression_provenance_layers.py",
     "matrix/representations_and_roundtrips.py",
     "matrix/cga_via_gram_matrix.py",
     "matrix/cga_complex_and_quaternion.py",

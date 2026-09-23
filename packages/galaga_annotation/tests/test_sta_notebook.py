@@ -66,6 +66,15 @@ def test_sta_lesson_reuses_semantic_colours_and_annotations(lesson) -> None:
         assert label in markup
 
 
+def test_magnetic_force_fill_and_rule_exclude_the_separator_together(lesson) -> None:
+    _, definitions = lesson
+    rendered = definitions["force_view"].latex()
+
+    assert r"\phantom{0.6 \gamma_{2}}" in rendered
+    assert r"\phantom{\mathord{-}\>0.6 \gamma_{2}}" not in rendered
+    assert r"- \colorbox{#DDEAF7}{$\mathrlap" in rendered
+
+
 def test_sta_lesson_uses_braces_instead_of_group_accents(lesson) -> None:
     _, definitions = lesson
     rendered = "\n".join(

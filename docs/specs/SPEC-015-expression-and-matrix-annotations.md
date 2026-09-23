@@ -18,8 +18,9 @@ region annotations are implemented for content colour, fill, border, emphasis,
 cell labels and whole-matrix markers; region block callouts and separate
 row/column header labels remain a later refinement. See
 [ADR-149](../adrs/149-matrix-cell-and-region-annotations.md). Sign-only targets
-are implemented for visible sum signs; a singleton negative term has no
-separate sign slot and falls back to the term body. See
+are implemented for visible sum signs. Concrete value documents retain a
+semantic one-term `Sum`, so a singleton negative term also has an independently
+selectable sign while its ordinary emitted form remains unchanged. See
 [ADR-150](../adrs/150-sign-only-annotation-targets.md). Content-part targets
 select the displayed name, expression, or value side, following the active
 content setting. See
@@ -241,7 +242,15 @@ the target.
 An annotation may explain why a term vanishes or changes form:
 
 ```python
-cancel(e1 ^ e1, reason="alternating product")
+cancelled = ga.annotator(
+    ga.on(
+        ga.subexpression(e1 ^ e1),
+        color="lightgrey",
+        marker="cancel",
+        label="alternating product",
+    )
+)
+cancelled((e1 ^ e1).named("zero"))
 ```
 
 Possible renderings include:
@@ -261,6 +270,32 @@ e_1 \wedge e_1
 Cancellation should be an explicit teaching annotation. The annotation system
 must not infer that a numerical zero is mathematically interesting without a
 user or higher-level helper requesting it.
+
+`cancel`, `bcancel`, and `xcancel` are **content markers**: unlike braces,
+rules, and arrows, they wrap the selected visible expression rather than
+forming an external callout layer. Consequently `color=` continues to style
+the selected content while the cancellation stroke keeps the surrounding
+foreground colour. This permits, for example,
+`\cancel{\textcolor{lightgrey}{...}}`. Cancellation markers do not support
+`overlay=True`; their meaning depends on crossing the visible content.
+
+For repeated teaching use, automatic zero cancellation is a value-dependent
+semantic recipe:
+
+```python
+cancel_zero_operations = ga.cancel_zeros(color="#aaaf")
+cancel_zero_operations(v)
+```
+
+This is equivalent to placing a cancellation rule on
+`ga.zero_subexpressions(atol=0)`. Resolution evaluates retained operation
+subtrees and selects the innermost zero-valued calls, so zero ancestors do not
+produce nested cancellation strokes. It does not select literal `0`, perform
+symbolic rewriting, or alter the eager value. Exact zero is the default;
+floating-point lessons must opt into an absolute tolerance. Subtrees requiring
+values for unresolved named symbols are skipped. When display flattening has
+removed a nested sum, product, or infix container, its recorded half-open
+interval remains the annotation extent.
 
 ### 9. Show a derivation or transition
 
@@ -779,6 +814,9 @@ class AnnotationStyle:
         "overgroup",
         "overline",
         "overbracket",
+        "cancel",
+        "bcancel",
+        "xcancel",
     ] = "none"
     clearance: str | None = None
     overlay: bool = False
@@ -788,10 +826,12 @@ Semantic roles and visual styles remain separate. A notebook may render the
 role `metric` in green in one context and purple in another without changing
 the annotation's meaning.
 
-A rule with a `marker` colours its **chrome** -- the bracket glyph and label
--- rather than the highlighted content, so a cyan overgroup does not recolour
-the blades it spans. Labels and markers over sum-term spans are always lowered
-as independent zero-width overlays, so their interval may be equal to, nested
+A rule with an external `marker` colours its **chrome** -- the bracket glyph
+and label -- rather than the highlighted content, so a cyan overgroup does not
+recolour the blades it spans. Cancellation markers are the deliberate
+exception: they are inline content wrappers, and `color=` styles their selected
+content. Labels and external markers over sum-term spans are lowered as
+independent zero-width overlays, so their interval may be equal to, nested
 in, disjoint from, or cross a joined highlight interval without splitting the
 fill. `clearance` is the outward lift (for example `"4px"`), applied through a
 raised zero-width `\rule{0pt}{1em}` inside `\vphantom`, so the bracket rises
@@ -802,14 +842,22 @@ that do not have a term interval.
 External labels use `\mathclap`, so a label wider than its target remains
 centred and visible but cannot widen the marker atom and shift its measured
 expression away from the visible annotated terms.
-For callouts, a visible negative sign is part of the selected term even when
-it also separates that term from a preceding sum term. The zero-width overlay
-and sign are emitted inside an explicit ordinary or binary math class, and the
-phantom reproduces the visible sign advance. Content-only fills continue to
-leave separators between disjoint spans outside both backgrounds.
+Term signs obey one extent policy across every visual layer. By default,
+`term(blade)` and `terms(*blades)` select the coefficient-plus-blade body but
+exclude its sign. A fill, border, marker, and label generated by one rule must
+therefore all use that same unsigned extent. Passing `include_sign=True`
+includes the term's visible sign in every layer, including the phantom used to
+size and centre an external marker or label. This includes a leading unary
+minus and a non-leading `+` or `-`; it never manufactures the suppressed `+`
+of the first positive term. The zero-width overlay and an included sign are
+emitted inside an explicit ordinary or binary math class so the phantom
+reproduces the visible sign advance. Separators excluded from the target stay
+outside content backgrounds and callout measurements alike.
 When a sign-only rule and the joined span beginning at that sign request the
 same background, they compose as one continuous fill rather than two adjacent
-boxes. Other sign styles remain independent.
+boxes. That fusion also extends any external callout split from the same rule,
+so its marker remains centred on the now-signed fill. Other sign styles remain
+independent.
 `label_color` colours only the label text, so a span label can match its fill
 in a darker shade.
 
@@ -1068,7 +1116,8 @@ Public selector factories construct the semantic targets described above:
 | `operator(operation_id)` | Operator occurrences by canonical ID |
 | `variable(name)` | Recorded named-symbol occurrences, not Python variable discovery |
 | `subexpression(value, occurrence=...)` | Provenance subtree occurrences that match `value` structurally |
-| `term(blade)` / `terms(*blades)` | Complete coefficient-plus-blade terms |
+| `zero_subexpressions(atol=0)` | Innermost self-contained operation subtrees whose evaluated coefficients are zero within an explicit absolute tolerance |
+| `term(blade, include_sign=False)` / `terms(*blades, include_sign=False)` | Coefficient-plus-blade terms, optionally including each run's visible leading sign |
 | `coefficient(blade)` / `coefficients(*blades)` | Coefficients only |
 | `grade(r)` / `grades(*r)` | Complete terms of selected grades |
 | `sign(blade)` | Displayed sign belonging to a term |
@@ -1082,11 +1131,11 @@ require retained provenance; the extension must not reconstruct an operation
 from a numerical result.
 
 A rule with `join=True` renders adjacent selected terms as one continuous
-span: internal separators stay inside the fill, a label appears once for the
-run, and a sign leading the complete sum stays inside the highlight. A sign at
-a later span boundary remains the surrounding sum's separator unless a
-matching sign fill explicitly fuses it into the span. Rules without `join`
-render each placement separately. Content styles form the visible base layer
+span: internal separators stay inside the fill and a label appears once for
+the run. Its leading sign is outside the span by default and inside it when the
+term selector uses `include_sign=True`; a compatible sign-only fill may also
+fuse that sign into the span. The first positive term remains signless in both
+modes. Rules without `join` render each placement separately. Content styles form the visible base layer
 and must currently nest or stay disjoint. Labels and markers occupy independent
 above/below overlay channels and may cross the base highlight. One overlapping
 callout is supported per side; overlapping callouts competing for the same

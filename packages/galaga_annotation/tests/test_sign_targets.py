@@ -57,10 +57,11 @@ def test_implicit_leading_plus_and_singleton_follow_the_slot_policy(algebra: Alg
     with pytest.raises(ga.MissingTargetError):
         ga.annotate(positive_lead, ga.on(ga.sign(algebra.blade(0)), missing="error")).latex()
 
-    # A singleton negative term has no separate slot; it falls back to the term.
+    # A singleton negative term retains a semantic sign slot even though its
+    # ordinary rendering does not need a surrounding sum.
     singleton = (-2 * e1).named("B")
     single_plan = ga.resolve(_document(singleton), [ga.on(ga.sign(e1))], value=singleton)
-    assert [placement.path for placement in single_plan.placements] == [("parts", 1)]
+    assert [placement.path for placement in single_plan.placements] == [("parts", 1, "terms", 0, "sign")]
 
 
 def test_sign_decoration_replaces_only_the_glyph(algebra: Algebra, value) -> None:
@@ -72,6 +73,9 @@ def test_sign_decoration_replaces_only_the_glyph(algebra: Algebra, value) -> Non
     minus = ga.annotate(value, ga.on(ga.sign(e1 ^ e2), color="crimson")).latex()
     assert r"\textcolor{crimson}{-}" in minus
     assert r"\textcolor{crimson}{+}" not in minus
+
+    singleton = ga.annotate(-2 * e1, ga.on(ga.sign(e1), background="#fff3cd")).latex()
+    assert singleton == r"\colorbox{#fff3cd}{$-$}2 e_{1}"
 
 
 def test_sign_label_anchors_on_the_glyph(algebra: Algebra, value) -> None:

@@ -97,6 +97,19 @@ def test_subexpression_annotation_wraps_the_subtree(symbols) -> None:
     assert r"\overset{\text{reverse factor}}{\colorbox{#e8f5e9}{$\widetilde{R}$}}" in rendered
 
 
+def test_subexpression_can_be_coloured_and_cancelled() -> None:
+    algebra = Algebra(2, expr=True)
+    e1, e2 = algebra.basis_vectors()
+    value = ((e1 | e2) + (e1 ^ e2)).named("v")
+
+    rendered = ga.annotator(
+        ga.on(ga.subexpression(e1 | e2), color="lightgrey", marker="cancel"),
+    )(value).latex()
+
+    assert r"\cancel{\textcolor{lightgrey}{e_{1} \cdot e_{2}}}" in rendered
+    assert r"\cancel{e_{1} \wedge e_{2}}" not in rendered
+
+
 def test_subexpression_accepts_a_bare_provenance_node(symbols) -> None:
     R, v = symbols
     value = (R * v * ~R).named("w")

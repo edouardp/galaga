@@ -52,7 +52,7 @@ def test_lesson_keeps_a_wide_label_centred_without_moving_its_brace(lesson) -> N
 def test_lesson_keeps_a_leading_minus_inside_the_selected_run(lesson) -> None:
     _, definitions = lesson
     rendered = definitions["negative_view"].latex()
-    assert r"\phantom{\mathord{-}\>e_{1} + 2 e_{2}}" in rendered
+    assert r"\phantom{\mathord{-}e_{1} + 2 e_{2}}" in rendered
     assert "- -" not in rendered and "+ -" not in rendered
 
 

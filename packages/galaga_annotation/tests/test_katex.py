@@ -71,6 +71,18 @@ def test_marker_lowering(value) -> None:
     )
 
 
+@pytest.mark.parametrize("marker", ["cancel", "bcancel", "xcancel"])
+def test_cancellation_markers_wrap_visible_content(marker, value) -> None:
+    _, mv = value
+    assert ga.annotate(mv, marker=marker).latex() == rf"\{marker}{{e_{{1}} + e_{{2}}}}"
+
+
+def test_cancellation_preserves_content_colour_and_places_a_label_outside(value) -> None:
+    _, mv = value
+    rendered = ga.annotate(mv, marker="cancel", color="lightgrey", label="vanishes").latex()
+    assert rendered == r"\overset{\text{vanishes}}{\cancel{\textcolor{lightgrey}{e_{1} + e_{2}}}}"
+
+
 def test_clearance_adds_an_invisible_strut(value) -> None:
     _, mv = value
     assert ga.annotate(mv, label="both", clearance="4px").latex() == (

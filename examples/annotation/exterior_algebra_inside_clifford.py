@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium")
 
 
@@ -100,15 +100,9 @@ def _(Algebra, outer_product):
     exterior_metric_table = exterior_algebra.bilinear_form_table()
     exterior_wedge_table = exterior_algebra.wedge_product_table()
     return (
-        exterior_a,
-        exterior_algebra,
         exterior_all_basis_products_agree,
-        exterior_b,
         exterior_basis_product_count,
         exterior_basis_squares_are_zero,
-        exterior_e1,
-        exterior_e2,
-        exterior_e3,
         exterior_metric_table,
         exterior_product,
         exterior_products_agree,
@@ -123,7 +117,7 @@ def _(ann, exterior_product, exterior_wedge):
         ann.on(
             ann.operator("geometric_product"),
             label="Clifford product",
-            marker="overbrace",
+            marker="overbracket",
             color="#6F42C1",
         ),
         ann.on(
@@ -139,7 +133,7 @@ def _(ann, exterior_product, exterior_wedge):
         ann.on(
             ann.operator("outer_product"),
             label="wedge product",
-            marker="overbrace",
+            marker="overbracket",
             color="#0072B2",
         ),
         ann.on(
@@ -204,15 +198,24 @@ def _(
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    Alternation is now a consequence of the Clifford relation. Since
+    Alternation is now a consequence of the Clifford relation. Every vector
+    square vanishes because the quadratic form is identically zero: the
+    defining relation is
 
     $$
-    (u+v)^2=u^2+uv+vu+v^2=0,
+    v^2=Q(v)\mathbf{1},
     $$
 
-    and both vector squares vanish, $uv=-vu$. Repeated directions vanish and
-    exchanging two directions changes orientation—the familiar exterior
-    algebra rules.
+    and in $\operatorname{Cl}(0,0,3)$ the bilinear form—and therefore the
+    quadratic form $Q$—is zero on every vector, so $v^2=0$ for all $v$.
+    Thus $u^2=v^2=0$, and expanding
+
+    $$
+    (u+v)^2=u^2+uv+vu+v^2=0
+    $$
+
+    gives $uv=-vu$. Repeated directions vanish and exchanging two directions
+    changes orientation—the familiar exterior algebra rules.
     """)
     return
 
@@ -239,19 +242,12 @@ def _(Algebra, exterior_wedge, outer_product):
         (exterior_wedge.data == euclidean_wedge.data).all()
     )
     return (
-        euclidean_a,
-        euclidean_algebra,
-        euclidean_b,
-        euclidean_e1,
-        euclidean_e2,
-        euclidean_e3,
         euclidean_metric_table,
         euclidean_orthogonal_product,
         euclidean_orthogonal_products_agree,
         euclidean_product,
         euclidean_split_holds,
         euclidean_square,
-        euclidean_wedge,
         same_exterior_coefficients_zero_euclidean,
     )
 
@@ -262,7 +258,7 @@ def _(ann, euclidean_product, euclidean_square):
         ann.on(
             ann.grade(0),
             label="metric overlap",
-            marker="underbrace",
+            marker="rule",
             background="#FFF3CD",
             label_color="#9A6700",
             join=True,
@@ -270,7 +266,8 @@ def _(ann, euclidean_product, euclidean_square):
         ann.on(
             ann.grade(2),
             label="unchanged exterior part",
-            marker="underbrace",
+            #marker="underbrace",
+            clearance="6px",
             background="#E3F4E8",
             label_color="#2F7D4F",
             join=True,
@@ -356,13 +353,11 @@ def _(Algebra, exterior_wedge, metric_inner_product, outer_product):
         (exterior_wedge.data == oblique_coordinate_wedge.data).all()
     )
     return (
-        oblique_algebra,
         oblique_basis_pairing,
         oblique_basis_product,
         oblique_basis_wedge,
         oblique_e1,
         oblique_e2,
-        oblique_e3,
         oblique_metric_table,
         oblique_split_holds,
         same_exterior_coefficients_zero_oblique,
@@ -375,14 +370,14 @@ def _(ann, oblique_basis_product):
         ann.on(
             ann.grade(0),
             label="basis vectors are not orthogonal",
-            marker="underbrace",
+            marker="rule",
             background="#FFF3CD",
             label_color="#9A6700",
         ),
         ann.on(
             ann.grade(2),
             label="oriented plane",
-            marker="underbrace",
+            marker="rule",
             background="#E3F4E8",
             label_color="#2F7D4F",
         ),
@@ -475,7 +470,8 @@ def _(ann, antisymmetric_part, symmetric_part):
         ann.on(
             ann.grade(0),
             label="symmetric metric part",
-            marker="underbrace",
+            #marker="underbrace",
+            side="below",
             background="#FFF3CD",
             label_color="#9A6700",
         ),
@@ -485,7 +481,8 @@ def _(ann, antisymmetric_part, symmetric_part):
         ann.on(
             ann.grade(2),
             label="antisymmetric exterior part",
-            marker="underbrace",
+            #marker="underbrace",
+            side="below",
             background="#E3F4E8",
             label_color="#2F7D4F",
         ),
@@ -494,7 +491,12 @@ def _(ann, antisymmetric_part, symmetric_part):
 
 
 @app.cell
-def _(antisymmetric_part_view, gm, symmetric_part_view, vector_product_identities_hold):
+def _(
+    antisymmetric_part_view,
+    gm,
+    symmetric_part_view,
+    vector_product_identities_hold,
+):
     gm.md(rt"""
     Galaga verifies both identities in the oblique basis:
 
@@ -520,7 +522,15 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ann, gm, metric_coupling, metric_inner_product, mo, outer_product):
+def _(
+    Algebra,
+    ann,
+    gm,
+    metric_coupling,
+    metric_inner_product,
+    mo,
+    outer_product,
+):
     metric_parameter = metric_coupling.value
     parameter_algebra = Algebra(
         gram=[[1, metric_parameter], [metric_parameter, 1]],
@@ -538,14 +548,14 @@ def _(Algebra, ann, gm, metric_coupling, metric_inner_product, mo, outer_product
         ann.on(
             ann.grade(0),
             label="moves with the metric",
-            marker="underbrace",
+            marker="rule",
             background="#FFF3CD",
             label_color="#9A6700",
         ),
         ann.on(
             ann.grade(2),
             label="stays fixed",
-            marker="underbrace",
+            marker="rule",
             background="#E3F4E8",
             label_color="#2F7D4F",
         ),
@@ -556,30 +566,20 @@ def _(Algebra, ann, gm, metric_coupling, metric_inner_product, mo, outer_product
             gm.md(rt"""
             ## 5. Vary the metric, not the exterior algebra
 
-            Move the off-diagonal Gram entry while retaining the same ordered
-            basis and coordinate vectors:
+    Move the off-diagonal Gram entry while retaining the same ordered
+    basis and coordinate vectors:
 
             {parameter_metric_table:block}
 
             {parameter_product_view:block}
 
-            The scalar coefficient follows $g_{{12}}$; the $e_{{12}}$
-            coefficient remains $1$. The decomposition is still exact:
-            **{parameter_decomposition_holds}**.
+    The scalar coefficient follows $g_{{12}}$; the $e_{{12}}$
+    coefficient remains $1$. The decomposition is still exact:
+    **{parameter_decomposition_holds}**.
             """),
         ]
     )
-    return (
-        metric_parameter,
-        parameter_algebra,
-        parameter_decomposition_holds,
-        parameter_e1,
-        parameter_e2,
-        parameter_pairing,
-        parameter_product,
-        parameter_product_view,
-        parameter_wedge,
-    )
+    return
 
 
 @app.cell(hide_code=True)
@@ -635,17 +635,9 @@ def _(Algebra, grade, outer_product):
     zero_routing_wedge = outer_product(zero_routing_A, zero_routing_B)
     zero_routing_products_agree = zero_routing_product.almost_equal(zero_routing_wedge)
     return (
-        routing_A,
-        routing_B,
-        routing_algebra,
-        routing_grade_four,
-        routing_grade_two,
         routing_product,
         routing_top_grade_is_wedge,
         routing_wedge,
-        zero_routing_A,
-        zero_routing_B,
-        zero_routing_algebra,
         zero_routing_product,
         zero_routing_products_agree,
     )
@@ -657,14 +649,14 @@ def _(ann, routing_product, zero_routing_product):
         ann.on(
             ann.grade(2),
             label="metric resolves the overlap",
-            marker="underbrace",
+            marker="rule",
             background="#FFF3CD",
             label_color="#9A6700",
         ),
         ann.on(
             ann.grade(4),
             label="exterior product",
-            marker="underbrace",
+            marker="rule",
             background="#E3F4E8",
             label_color="#2F7D4F",
         ),
@@ -674,7 +666,7 @@ def _(ann, routing_product, zero_routing_product):
         ann.on(
             ann.grade(4),
             label="only the disjoint directions survive",
-            marker="underbrace",
+            marker="rule",
             background="#E3F4E8",
             label_color="#2F7D4F",
         ),

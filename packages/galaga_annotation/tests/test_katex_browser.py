@@ -114,33 +114,11 @@ def _box(page: Any, selector: str, *, last: bool = False) -> dict[str, float]:
     return box
 
 
-def _leaf_text_box(page: Any, text: str, *, last: bool = False) -> dict[str, float]:
-    boxes = page.locator(".katex-html span").evaluate_all(
-        """
-        (elements, expected) => elements
-          .filter((element) => element.childElementCount === 0 && element.textContent === expected)
-          .map((element) => {
-            const rect = element.getBoundingClientRect();
-            return {x: rect.x, y: rect.y, width: rect.width, height: rect.height};
-          })
-        """,
-        text,
-    )
-    assert boxes, f"missing browser geometry for leaf text {text!r}"
-    return boxes[-1] if last else boxes[0]
-
-
 def _center_x(box: dict[str, float]) -> float:
     return box["x"] + box["width"] / 2
 
 
-def _union_x(left: dict[str, float], right: dict[str, float]) -> dict[str, float]:
-    start = min(left["x"], right["x"])
-    stop = max(left["x"] + left["width"], right["x"] + right["width"])
-    return {"x": start, "width": stop - start}
-
-
-def test_reversion_bivector_callout_is_centred_on_its_visible_term(browser_page) -> None:
+def test_reversion_bivector_callout_excludes_the_separator_by_default(browser_page) -> None:
     algebra = Algebra(2)
     e1, e2 = algebra.basis_vectors()
     value = algebra.scalar(0.573576) - 0.819152 * (e1 ^ e2)
@@ -152,16 +130,14 @@ def test_reversion_bivector_callout_is_centred_on_its_visible_term(browser_page)
     _render(browser_page, rendered)
 
     unsigned_body = _box(browser_page, ".katex-html #bivector-target")
-    sign = _box(browser_page, ".katex-html .mbin", last=True)
-    target = _union_x(sign, unsigned_body)
     brace = _box(browser_page, ".katex-html .stretchy", last=True)
     label = _box(browser_page, ".katex-html .clap .text", last=True)
-    assert _center_x(brace) == pytest.approx(_center_x(target), abs=0.5)
-    assert _center_x(label) == pytest.approx(_center_x(target), abs=0.5)
-    assert brace["width"] == pytest.approx(target["width"], abs=0.5)
+    assert _center_x(brace) == pytest.approx(_center_x(unsigned_body), abs=0.5)
+    assert _center_x(label) == pytest.approx(_center_x(unsigned_body), abs=0.5)
+    assert brace["width"] == pytest.approx(unsigned_body["width"], abs=0.5)
 
 
-def test_leading_negative_callout_preserves_unary_sign_geometry(browser_page) -> None:
+def test_leading_negative_callout_excludes_unary_sign_by_default(browser_page) -> None:
     algebra = Algebra(1)
     (e1,) = algebra.basis_vectors()
     value = algebra.scalar(-0.573576) + e1
@@ -173,14 +149,117 @@ def test_leading_negative_callout_preserves_unary_sign_geometry(browser_page) ->
     _render(browser_page, rendered)
 
     unsigned_body = _box(browser_page, ".katex-html #scalar-target")
-    sign = _leaf_text_box(browser_page, "−", last=True)
-    target = _union_x(sign, unsigned_body)
     brace = _box(browser_page, ".katex-html .stretchy", last=True)
     label = _box(browser_page, ".katex-html .clap .text", last=True)
 
-    assert _center_x(brace) == pytest.approx(_center_x(target), abs=0.5)
+    assert _center_x(brace) == pytest.approx(_center_x(unsigned_body), abs=0.5)
+    assert _center_x(label) == pytest.approx(_center_x(unsigned_body), abs=0.5)
+    assert brace["width"] == pytest.approx(unsigned_body["width"], abs=0.5)
+
+
+def test_explicit_signed_term_moves_fill_marker_and_label_together(browser_page) -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 - 0.6 * e2,
+        ga.on(
+            ga.term(e2, include_sign=True),
+            background="#DDEAF7",
+            label="magnetic force",
+            marker="rule",
+        ),
+    ).latex()
+    assert r"\mathord{+}" not in rendered
+    rendered = _tag_last(rendered, r"0.6 e_{2}", "signed-term-body")
+    rendered = _tag_last(rendered, r"\mathord{-}", "signed-term-sign")
+    rendered = _tag_last(rendered, r"\rule[0.2em]{0.4pt}{1em}", "signed-term-rule")
+    _render(browser_page, rendered)
+
+    body = _box(browser_page, ".katex-html #signed-term-body")
+    sign = _box(browser_page, ".katex-html #signed-term-sign")
+    rule = _box(browser_page, ".katex-html #signed-term-rule")
+    label = _box(browser_page, ".katex-html .clap .text", last=True)
+    backgrounds = browser_page.locator(".katex-html span").evaluate_all(
+        """
+        (elements) => elements
+          .filter((element) => getComputedStyle(element).backgroundColor === 'rgb(221, 234, 247)')
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {x: rect.x, width: rect.width};
+          })
+          .filter((rect) => rect.width > 0)
+        """
+    )
+    fill = max(backgrounds, key=lambda box: box["width"])
+
+    assert _center_x(rule) == pytest.approx(_center_x(fill), abs=0.5)
+    assert _center_x(label) == pytest.approx(_center_x(fill), abs=0.5)
+    assert fill["x"] <= sign["x"]
+    assert fill["x"] + fill["width"] >= body["x"] + body["width"]
+
+
+def test_unsigned_term_fill_rule_and_label_share_the_body_centre(browser_page) -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 - 0.6 * e2,
+        ga.on(
+            ga.term(e2),
+            background="#DDEAF7",
+            label="magnetic force: transverse",
+            marker="rule",
+        ),
+    ).latex()
+    assert r"\phantom{0.6 e_{2}}" in rendered
+    assert r"\phantom{\mathord{-}\>0.6 e_{2}}" not in rendered
+    assert r"- \colorbox{#DDEAF7}" in rendered
+    rendered = _tag_last(rendered, r"0.6 e_{2}", "unsigned-term-body")
+    rendered = _tag_last(rendered, r"\rule[0.2em]{0.4pt}{1em}", "unsigned-term-rule")
+    _render(browser_page, rendered)
+
+    body = _box(browser_page, ".katex-html #unsigned-term-body")
+    rule = _box(browser_page, ".katex-html #unsigned-term-rule")
+    label = _box(browser_page, ".katex-html .clap .text", last=True)
+    backgrounds = browser_page.locator(".katex-html span").evaluate_all(
+        """
+        (elements) => elements
+          .filter((element) => getComputedStyle(element).backgroundColor === 'rgb(221, 234, 247)')
+          .map((element) => {
+            const rect = element.getBoundingClientRect();
+            return {x: rect.x, width: rect.width};
+          })
+          .filter((rect) => rect.width > 0)
+        """
+    )
+    fill = max(backgrounds, key=lambda box: box["width"])
+
+    assert _center_x(rule) == pytest.approx(_center_x(body), abs=0.5)
+    assert _center_x(label) == pytest.approx(_center_x(body), abs=0.5)
+    assert _center_x(fill) == pytest.approx(_center_x(body), abs=0.5)
+
+
+def test_first_positive_term_never_gains_a_suppressed_plus(browser_page) -> None:
+    algebra = Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    rendered = ga.annotate(
+        e1 - e2,
+        ga.on(
+            ga.term(e1, include_sign=True),
+            background="#DDEAF7",
+            label="first term",
+            marker="rule",
+        ),
+    ).latex()
+    assert r"\mathord{+}" not in rendered
+    rendered = _tag_last(rendered, r"e_{1}", "first-positive-term")
+    rendered = _tag_last(rendered, r"\rule[0.2em]{0.4pt}{1em}", "first-positive-rule")
+    _render(browser_page, rendered)
+
+    target = _box(browser_page, ".katex-html #first-positive-term")
+    rule = _box(browser_page, ".katex-html #first-positive-rule")
+    label = _box(browser_page, ".katex-html .clap .text", last=True)
+    assert _center_x(rule) == pytest.approx(_center_x(target), abs=0.5)
     assert _center_x(label) == pytest.approx(_center_x(target), abs=0.5)
-    assert brace["width"] == pytest.approx(target["width"], abs=0.5)
 
 
 def test_wide_label_does_not_widen_or_shift_its_marker(browser_page) -> None:

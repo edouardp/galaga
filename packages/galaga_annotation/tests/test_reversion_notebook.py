@@ -96,14 +96,15 @@ def test_high_grade_reverse_sign_pattern(lesson) -> None:
     highlighted = definitions["highlighted_reverse"].latex()
     for grade in range(7):
         assert f"grade {grade}" in highlighted
-    assert r"\underbrace" in highlighted
+    assert r"\rule[0.2em]{0.4pt}{1em}" in highlighted
     assert r"\colorbox{#FDE7D9}{$" in highlighted
     assert highlighted.count(r"\colorbox{#FDE7D9}") == 2
     assert r"\colorbox{#FDE7D9}{$-$}" not in highlighted
     reservation, visible = highlighted.split(r"\mathrlap", maxsplit=1)
     assert r"\colorbox" not in reservation
     final_fill = visible.rsplit(r"\colorbox{#FDE7D9}", maxsplit=1)[1]
-    assert r"\mathord{-}}2.8 e_{123456}" in final_fill
+    assert r"\textcolor{#D55E00}{-" in final_fill
+    assert r"2.8 e_{123456}" in final_fill
 
 
 def test_general_reversion_law_reverses_and_transforms_both_factors(lesson) -> None:

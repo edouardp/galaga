@@ -172,15 +172,16 @@ def test_dipole_highlight_keeps_contiguous_fills_with_overbraces_on_top() -> Non
     assert "+ -" not in rendered
 
 
-def test_dipole_leading_negative_sign_stays_inside_the_span(cga: ConformalModel, objects) -> None:
-    # The sample dipole starts with -e41, so its leading sign belongs to the
-    # carrier highlight rather than the preceding separator.
+def test_dipole_leading_negative_sign_stays_outside_the_default_span(cga: ConformalModel, objects) -> None:
+    # Recipe term targets use the public unsigned default, so the sample
+    # dipole's leading minus is outside both its carrier fill and callout.
     rendered = ga.highlight_cga(cga)(objects["dipole"]).latex()
     assert r"\colorbox{#b8e6bf}{$" in rendered
     assert (
         r"\overbrace{\textcolor{black}{\vphantom{\raisebox{4px}{\rule{0pt}{1em}}}"
-        r"\phantom{\mathord{-}\>\mathbf{e}_{41}" in rendered
+        r"\phantom{\mathbf{e}_{41}" in rendered
     )
+    assert r"\phantom{\mathord{-}\>\mathbf{e}_{41}" not in rendered
 
 
 def test_cga_highlight_default_is_the_explicit_overbrace(cga: ConformalModel, objects) -> None:

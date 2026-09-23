@@ -39,14 +39,16 @@ external channel without changing the base expression's dimensions. A second,
 unsmashed copy is wrapped in an outer zero-width `\vphantom`. This makes KaTeX
 reserve the marker's height or depth without placing that reservation inside a
 joined `\colorbox`. The visible expression is emitted once; only invisible
-measurement structures are repeated. A visible negative sign belongs to a
-callout's selected component whether it is leading or separates a later term.
-The overlay is inserted inside an explicit ordinary or binary math-class atom
-so its zero-width prefix cannot change KaTeX's classification of the sign.
-The isolated phantom keeps the sign ordinary and includes the corresponding
-medium sign advance; this reproduces the visible extent instead of shifting a
-brace by half of the missing space. Content fills retain their separate
-policy: separators between disjoint fills remain unhighlighted.
+measurement structures are repeated. A term target excludes its sign by
+default or includes it explicitly with `include_sign=True`; base content and
+its split external callout use that same extent. When included, the overlay is
+inserted inside an explicit ordinary or binary math-class atom so its
+zero-width prefix cannot change KaTeX's classification of the sign. The
+isolated phantom keeps the sign ordinary and includes the corresponding
+medium sign advance; this reproduces the visible signed extent. When excluded,
+the marker measures only the coefficient-plus-blade body, just like its fill.
+An implicit leading `+` is never synthesized. Separators between disjoint
+fills remain unhighlighted.
 Measurement uses the undecorated semantic sign glyph. Copying a decorated
 sign into KaTeX's `\vphantom` is not visually inert: a nested `\colorbox` can
 still paint its background at the zero-width reservation origin and obscure
@@ -91,7 +93,8 @@ term-span callouts choose overlay lowering automatically.
 
 ## Validation
 
-- Span tests cover all interval relationships, leading signs, continuous fills,
+- Span tests cover all interval relationships, explicit signed and unsigned
+  leading terms (including a suppressed leading plus), continuous fills,
   simultaneous above/below overlays, and rejection of overlapping same-side
   callouts and crossing body styles.
 - Runtime tests compile the generated overlays with Marimo's bundled KaTeX

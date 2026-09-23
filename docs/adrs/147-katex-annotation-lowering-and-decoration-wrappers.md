@@ -64,6 +64,12 @@ boundary remains the surrounding sum's separator unless a compatible
 sign-target fill explicitly fuses it into the span (ADR-150). Independent
 rules form independent layers, so a wide fill may contain narrower brackets.
 Crossing (partially overlapping) spans in one sum are rejected as ambiguous.
+Expression anchors may also retain a half-open interval when presentation
+flattening removes an original sum, product, or infix container. Resolved
+placements preserve that interval, and the renderer rebuilds only those terms,
+factors, or operands under the decoration. Dropping the interval would make a
+nested annotation incorrectly cover non-target siblings in the flattened
+container.
 
 Fill and overlay lowering re-enter math mode with `$...$` inside
 `\colorbox` and `\fcolorbox`, the spelling KaTeX expects there. A border with
@@ -77,7 +83,13 @@ inject sibling markup.
 
 Marker rules colour their chrome rather than their content: the bracket glyph
 and label take the rule's colour, while the highlighted terms keep their own
-colour. Plain labels render upright with `\text{...}` so word spacing is
+colour. The `cancel`, `bcancel`, and `xcancel` markers are an explicit
+exception because their glyphs cross the selected content instead of forming
+external chrome. They remain in the content layer, wrap exactly the selected
+subtree or joined term span, and leave `color` available for the content; the
+cancellation stroke therefore retains the surrounding foreground colour.
+Cancellation cannot use external `overlay=True` lowering. Plain labels render
+upright with `\text{...}` so word spacing is
 preserved, and newlines stack lines; `label_latex` is an explicit trusted
 mode for equation labels. This raw mode is a deliberate KaTeX trust boundary;
 ordinary `label` values remain escaped text. `label_color` colours only a label,

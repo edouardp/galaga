@@ -240,12 +240,12 @@ def _(e1, e2, e3, e4, ga, gm, value):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Signs belong to the rendered interval
+    ## Signs can belong to the rendered interval
 
-    A minus sign on the first selected term is included in a leading span. A
-    sign at a later boundary remains the separator owned by the surrounding
-    sum. The marker and highlight therefore agree about where the selected run
-    begins without duplicating signs.
+    Term targets exclude their sign by default. Passing
+    `include_sign=True` opts the leading visible sign into the span. The marker
+    and highlight use that same choice, so the selected run begins in one
+    place without duplicating signs. A suppressed leading plus stays absent.
     """)
     return
 
@@ -254,9 +254,9 @@ def _(mo):
 def _(e1, e2, e3, ga, gm):
     negative_value = (-e1 + 2 * e2 - 3 * e3).without_expr()
     negative_view = ga.annotator(
-        ga.on(ga.terms(e1, e2), background="#dbeafe", join=True),
+        ga.on(ga.terms(e1, e2, include_sign=True), background="#dbeafe", join=True),
         ga.on(
-            ga.terms(e1, e2),
+            ga.terms(e1, e2, include_sign=True),
             label="the leading minus is part of this run",
             marker="underbrace",
             join=True,

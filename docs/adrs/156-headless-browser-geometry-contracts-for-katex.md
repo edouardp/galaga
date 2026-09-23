@@ -58,10 +58,12 @@ insufficient.
 
 ## Validation
 
-- A non-leading negative bivector callout must cover the visible minus,
-  coefficient and blade with matching marker and label centres.
-- A leading unary minus must retain its unary spacing while its callout matches
-  the complete signed term.
+- A default non-leading negative bivector callout must exclude the separator,
+  with marker and label centred on the same unsigned body as its fill.
+- An explicit `include_sign=True` callout must move its fill, marker, and label
+  together to cover the visible sign and body.
+- A first positive term must not gain a synthetic leading `+`, even when sign
+  inclusion is requested; a visible leading unary minus remains selectable.
 - A label wider than its selected expression must remain centred without
   widening or shifting the marker.
 - A decorated sign copied for callout measurement must not paint a phantom
