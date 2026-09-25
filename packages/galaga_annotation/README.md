@@ -18,6 +18,7 @@ expression evaluation, equality or hashing. The package is optional; importing
 - [ADR-152: Subexpression Annotation Targets](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/152-subexpression-annotation-targets.md)
 - [ADR-153: Configurable CGA Cocarrier Markers](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/153-configurable-cga-cocarrier-markers.md)
 - [ADR-154: Independent External Span Overlays](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/154-independent-external-span-overlays.md)
+- [ADR-155: Internal Decoration Boundary and Lockstep Dependency Floors](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/155-internal-decoration-boundary-and-lockstep-dependency-floors.md)
 - [ADR-156: Headless Browser Geometry Contracts](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/156-headless-browser-geometry-contracts-for-katex.md)
 
 ## Quick start
@@ -313,9 +314,14 @@ cocarrier moment shown in Lengyel's classification. The incidence view of a
 dipole shows its carrier line and flat
 point as contiguous highlights, with "cocarrier normal" and "cocarrier
 position" overbraces overlaid above subsets of those highlights. Term-span
-markers choose overlay lowering automatically: a raised phantom inside the
-bracket body lifts it by `clearance`, while an outer zero-width phantom makes
-KaTeX reserve the callout's height without enlarging the enclosing fill. Their
+markers choose overlay lowering automatically. When a callout overlaps a
+highlighted span, its measurement includes a zero-width transparent copy of
+the fill's padding and border, including any nested fills, smashed toward the
+expression so only the marker's outward side grows. The bracket or label
+therefore sits outside the highlight instead of crossing into it, while the
+fill's visible box and the marker's horizontal extent stay unchanged.
+`clearance` remains available when a lesson wants additional separation from
+the terms. Their
 cyan colour applies to the bracket chrome only, and the "carrier line"/"flat
 point" labels use darkened matching shades via `label_color`. `cga_parts`
 exposes the Lengyel component families for custom recipes.

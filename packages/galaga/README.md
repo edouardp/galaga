@@ -569,6 +569,7 @@ These are separate installations, not dependencies of the numeric package:
 | Package | Python | Purpose |
 |---|---|---|
 | [galaga-matrix][matrix] | 3.11+ | Rich matrix representations, conversions and supported spinor/quaternion modes |
+| [galaga-annotation][annotation] | 3.11+ | Semantic annotations and KaTeX callouts for expressions and matrices |
 | [galaga-marimo][marimo] | 3.14+ | T-string Markdown interpolation and notebook helpers |
 | [galaga-anywidget][anywidget] | 3.11+ | Interactive geometric visualizations |
 | [galaga-mermaid][mermaid] | 3.11+ | Expression-tree diagrams |
@@ -627,6 +628,7 @@ construction, naming, provenance and operation replacements.
 [rga-guide]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/rga-convention-layer.md
 [cga-gram]: https://github.com/edouardp/galaga/blob/galaga_v2/examples/matrix/cga_via_gram_matrix.py
 [matrix]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_matrix/README.md
+[annotation]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_annotation/README.md
 [marimo]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_marimo/README.md
 [anywidget]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_anywidget/README.md
 [mermaid]: https://github.com/edouardp/galaga/blob/galaga_v2/packages/galaga_mermaid/README.md

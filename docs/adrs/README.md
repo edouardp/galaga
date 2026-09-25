@@ -160,6 +160,8 @@ classes are no longer production alternatives.
 | [137](137-automatic-expression-equalities.md) | Automatic Expression Equalities | Accepted |
 | [138](138-scoped-notation-shortcut.md) | Scoped Notation Shortcut | Accepted |
 | [139](139-reusable-presentation-views.md) | Reusable Presentation Views | Accepted |
+| [140](140-contraction-shift-operators.md) | Shift Operators for Contractions | Accepted |
+| [141](141-clifford-conjugate-canonical-name.md) | `clifford_conjugate` as the Canonical Conjugation Operation | Accepted |
 | [142](142-reusable-callable-annotators.md) | Reusable Callable Annotators | Accepted |
 | [143](143-concrete-render-documents-and-semantic-anchors.md) | Concrete Render Documents and Semantic Anchors | Accepted |
 | [144](144-expression-render-occurrence-anchors.md) | Expression Render Occurrence Anchors | Accepted |

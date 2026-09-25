@@ -74,9 +74,12 @@ available rather than forcing one interpretation:
 
 Both views use continuous green round-family and purple flat-family spans.
 Cyan overbraces in the incidence view use a `"4px"` clearance. Term-span
-markers lower automatically as independent overlays: a raised phantom lifts
-each smashed bracket above its enclosing fill, while an outer phantom reserves
-its KaTeX bounds without moving the terms or splitting the fill. Sign placement
+markers lower automatically as independent overlays: each overlapping fill
+contributes a zero-width transparent copy of its padding and border, smashed
+toward the expression, so a marker starts outside the enclosing fill without
+moving the terms or splitting the fill. An outer phantom reserves the
+marker's KaTeX bounds, and `clearance` remains the recipe's explicit
+additional lift. Sign placement
 follows the joined-span rules: recipe term targets exclude their leading sign,
 so both the highlight and marker begin at the coefficient-plus-blade body. A
 matching sign-target fill can explicitly fuse the sign into the following span

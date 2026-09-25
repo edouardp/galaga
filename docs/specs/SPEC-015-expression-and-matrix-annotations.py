@@ -289,6 +289,14 @@ def _(mo):
     above the terms, lifting the bracket and its label without moving the
     visible coefficients, blades, or highlight.
 
+    This gallery spells the geometry out by hand. The semantic API performs
+    the equivalent extent handling automatically: a callout that overlaps a
+    filled span measures a zero-width `transparent` copy of the fill's padding
+    and border, smashed toward the expression, so the bracket clears the
+    highlight without changing it. An explicit `clearance` is then only needed
+    for extra separation from the terms. See
+    [ADR-154](../adrs/154-independent-external-span-overlays.md).
+
     For a semantic API, the two highlights select complete term sets. The
     brackets select subsets of those same sets, so both annotations must be
     allowed to attach to a term at once:

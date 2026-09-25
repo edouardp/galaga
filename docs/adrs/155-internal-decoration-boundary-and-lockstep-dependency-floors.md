@@ -25,10 +25,12 @@ after the next release bump.
 
 Extract target-independent KaTeX decoration lowering into the deliberately
 package-private `galaga_annotation._decoration` module. It exposes a small
-named internal interface—`decorate`, `style_body`, `default_side`, and
-`external_parts`—to the expression and matrix renderers. Its lower-level
-marker construction remains private to that module. None of these names are
-re-exported from `galaga_annotation`.
+named internal interface—`decorate`, `style_body`, `default_side`,
+`external_parts`, and `box_extent`—to the expression and matrix renderers.
+`box_extent` supplies the invisible, zero-width copy of a content fill's
+padding and border that lets external callouts clear a highlight without
+repainting it. Its lower-level marker construction remains private to that
+module. None of these names are re-exported from `galaga_annotation`.
 
 Add an architecture test that rejects imports of underscore-prefixed names
 from sibling modules. Private implementation modules may therefore be shared,

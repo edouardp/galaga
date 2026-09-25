@@ -8,7 +8,7 @@ in `packages/galaga_annotation`. The first milestone provides immutable rules,
 callable annotators, whole-expression / expression-path / operator / variable /
 grade / term / coefficient targets, and a KaTeX renderer with escaped plain
 labels plus an explicit trusted raw-label mode for colours, fills, borders,
-arrows, rules, braces, group accents, underlines and boxes.
+arrows, rules, braces, brackets, group accents, underlines and boxes.
 See [ADR-142](../adrs/142-reusable-callable-annotators.md) and
 [ADR-147](../adrs/147-katex-annotation-lowering-and-decoration-wrappers.md).
 
@@ -830,15 +830,23 @@ A rule with an external `marker` colours its **chrome** -- the bracket glyph
 and label -- rather than the highlighted content, so a cyan overgroup does not
 recolour the blades it spans. Cancellation markers are the deliberate
 exception: they are inline content wrappers, and `color=` styles their selected
-content. Labels and external markers over sum-term spans are lowered as
-independent zero-width overlays, so their interval may be equal to, nested
-in, disjoint from, or cross a joined highlight interval without splitting the
-fill. `clearance` is the outward lift (for example `"4px"`), applied through a
-raised zero-width `\rule{0pt}{1em}` inside `\vphantom`, so the bracket rises
-while the visible terms stay on the baseline. A separate outer `\vphantom`
-reserves the callout's height or depth without enlarging a joined background
-fill. `overlay=True` retains the same behavior for direct-node annotations
-that do not have a term interval.
+content. Labels and external markers over sum-term spans are lowered as independent
+zero-width overlays, so their interval may be equal to, nested in, disjoint
+from, or cross a joined highlight interval without splitting the fill. When a
+callout overlaps a span carrying a background or border, its measurement also
+includes an invisible zero-width copy of that fill's box: a `\colorbox` or
+`\fcolorbox` with `transparent` substituted for the fill colours, including
+nested fills so their padding accumulates through the real parent/child
+nesting. The copy is smashed on the side facing back into the expression, so a
+below marker gains only depth and an above marker only height. The marker
+therefore clears the fill's padding and border while the visible fill keeps
+exactly its original box, and the copy adds no horizontal width. `clearance`
+remains an explicit additional outward lift (for example `"4px"`), applied
+through a raised zero-width `\rule{0pt}{1em}` inside `\vphantom`. A separate
+outer `\vphantom` reserves the callout's height or depth without enlarging a
+joined background fill. `overlay=True` retains the same behavior for
+direct-node annotations that do not have a term interval. See
+[ADR-154](../adrs/154-independent-external-span-overlays.md).
 External labels use `\mathclap`, so a label wider than its target remains
 centred and visible but cannot widen the marker atom and shift its measured
 expression away from the visible annotated terms.
