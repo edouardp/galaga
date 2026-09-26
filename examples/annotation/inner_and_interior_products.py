@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium")
 
 
@@ -195,7 +195,7 @@ def _(
         ann.on(
             ann.grade(1),
             label="grade lowering",
-            marker="underbrace",
+            marker="rule",
             background="#DDEBFF",
             label_color="#005EA8",
             join=True,
@@ -203,7 +203,7 @@ def _(
         ann.on(
             ann.grade(3),
             label="grade raising",
-            marker="underbrace",
+            marker="rule",
             background="#E3F4E8",
             label_color="#2F7D4F",
             join=True,
@@ -351,7 +351,7 @@ def _(
         ann.on(
             ann.content("expr"),
             label="scalar pair omitted",
-            marker="underbrace",
+            marker="overbrace",
             color="#6B7280",
         ),
     )(hestenes_scalar_vector)
@@ -842,7 +842,7 @@ def _(
             ann.on(
                 ann.grade(0),
                 label="grade 0",
-                marker="underbrace",
+                marker="rule",
                 background="#ECEFF3",
                 label_color="#4B5563",
                 join=True,
@@ -850,7 +850,7 @@ def _(
             ann.on(
                 ann.grade(1),
                 label="grade 1",
-                marker="underbrace",
+                marker="rule",
                 background="#DDEBFF",
                 label_color="#005EA8",
                 join=True,
@@ -858,7 +858,7 @@ def _(
             ann.on(
                 ann.grade(2),
                 label="grade 2",
-                marker="underbrace",
+                marker="rule",
                 background="#FDE7D9",
                 label_color="#A33A00",
                 join=True,
@@ -866,7 +866,7 @@ def _(
             ann.on(
                 ann.grade(3),
                 label="grade 3",
-                marker="underbrace",
+                marker="rule",
                 background="#E3F4E8",
                 label_color="#2F7D4F",
                 join=True,
@@ -882,7 +882,6 @@ def _(
             **Inputs**
 
             {functional_full(mixed_left):block}
-
             {functional_full(mixed_right):block}
 
             **Result**

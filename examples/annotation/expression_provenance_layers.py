@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium")
 
 
@@ -80,16 +80,18 @@ def _(B, a, full_presenter, ga, gm, provenance_verified, x):
             ga.on(
                 ga.variable("B"),
                 label_latex=B_definition,
-                marker="rule",
+                #marker="rule",
                 color="#0072B2",
                 label_color="#0072B2",
+                clearance="3px",
             ),
             ga.on(
                 ga.variable("x"),
                 label_latex=x_definition,
-                marker="rule",
+                #marker="rule",
                 color="#D55E00",
                 label_color="#D55E00",
+                clearance="3px",
             ),
         )
     )
@@ -98,7 +100,7 @@ def _(B, a, full_presenter, ga, gm, provenance_verified, x):
 
     Numeric identity checked independently: **{provenance_verified}**.
     """)
-    return B_definition, top_view, x_definition
+    return
 
 
 @app.cell(hide_code=True)
@@ -143,7 +145,7 @@ def _(B, full_presenter, ga, gm, u, v):
     gm.md(t"""
     {plane_view:block}
     """)
-    return plane_view, u_definition, v_definition
+    return
 
 
 @app.cell(hide_code=True)

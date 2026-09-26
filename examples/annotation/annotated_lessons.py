@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium")
 
 
@@ -555,7 +555,6 @@ def _(e1, e2, ga, gm):
         label_latex=r"\substack{\text{carrier line} \\ e_{1} \wedge e_{2}}",
         marker="overbrace",
         overlay=True,
-        clearance="4px",
         color="#0099cc",
     )
     gm.md(t"**Equation labels, stacked over two lines:** {view_equation_label:block}")
