@@ -44,7 +44,7 @@ def test_top_expression_labels_each_variable_with_its_definition(lesson) -> None
     assert definitions["x_definition"] == r"e_{1} + 2 e_{3}"
     assert r"\textcolor{#0072B2}{u \wedge v}" in rendered
     assert r"\textcolor{#D55E00}{e_{1} + 2 e_{3}}" in rendered
-    assert rendered.count(r"\rule[0.2em]{0.4pt}{1em}") == 2
+    assert rendered.count(r"\rule{0pt}{3px}") == 2
     assert [label.path for label in definitions["top_view"].katex().labels] == [
         ("parts", 1, "factors", 0),
         ("parts", 1, "factors", 1),
