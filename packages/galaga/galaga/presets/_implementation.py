@@ -192,6 +192,47 @@ class EuclideanPreset:
 
 
 @dataclass(frozen=True, slots=True)
+class ObliquePlanePreset:
+    """Unit-length Euclidean plane basis vectors separated by an angle."""
+
+    angle: float | None = None
+    degrees: float | None = None
+
+    def __post_init__(self) -> None:
+        if (self.angle is None) == (self.degrees is None):
+            raise ValueError("specify exactly one of angle or degrees")
+        value = self.angle if self.angle is not None else self.degrees
+        if value is None:
+            raise ValueError("specify exactly one of angle or degrees")
+        upper = math.pi if self.angle is not None else 180
+        unit = "angle" if self.angle is not None else "degrees"
+        if (
+            isinstance(value, bool)
+            or not isinstance(value, (int, float))
+            or not math.isfinite(value)
+            or not 0 < value < upper
+        ):
+            raise ValueError(f"{unit} must be finite and strictly between 0 and {upper}")
+        radians = value if self.angle is not None else math.radians(value)
+        if abs(math.cos(radians)) == 1.0:
+            raise ValueError(f"{unit} is too close to an endpoint for independent basis vectors")
+
+    def build(self) -> AlgebraConfig:
+        radians = self.angle
+        if radians is None:
+            if self.degrees is None:
+                raise ValueError("specify exactly one of angle or degrees")
+            radians = math.radians(self.degrees)
+        cosine = 0.0 if radians == math.pi / 2 else math.cos(radians)
+        blades = euclidean_blade_convention(2)
+        return AlgebraConfig(
+            definition=AlgebraDefinition(((1.0, cosine), (cosine, 1.0)), id="oblique-plane"),
+            presentation=_presentation(blades, notation=Notation("euclidean")),
+            model=_model("euclidean", blades),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class SpacetimePreset:
     """Time-first spacetime algebra with optional metric-derived STA names."""
 
@@ -400,6 +441,11 @@ def p_euclidean(spatial_dim: int = 3) -> EuclideanPreset:
     return EuclideanPreset(spatial_dim)
 
 
+def oblique_plane(*, angle: float | None = None, degrees: float | None = None) -> ObliquePlanePreset:
+    """Return a unit-length plane using radians or degrees, exclusively."""
+    return ObliquePlanePreset(angle=angle, degrees=degrees)
+
+
 def p_sta(
     signature: Literal["mostly-minus", "mostly-plus"] = "mostly-minus",
     *,
@@ -590,6 +636,7 @@ __all__ = [
     "euclidean",
     "exterior",
     "lengyel_cga",
+    "oblique_plane",
     "pga",
     "quaternion",
     "rga",

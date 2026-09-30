@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 import pytest
 
@@ -11,9 +13,11 @@ from galaga.presets import (
     ExteriorPreset,
     LengyelCGAPreset,
     LengyelRGAPreset,
+    ObliquePlanePreset,
     PGAPreset,
     QuaternionPreset,
     SpacetimePreset,
+    oblique_plane,
     p_cga,
     p_complex,
     p_euclidean,
@@ -63,6 +67,7 @@ def test_preset_expansion_matches_explicit_numeric_and_presentation_configuratio
         CGAPreset(2, frame="orthogonal"),
         LengyelCGAPreset(),
         LengyelRGAPreset(),
+        ObliquePlanePreset(math.pi / 3),
         ComplexPreset(),
         QuaternionPreset(),
         ExteriorPreset(3),
@@ -90,6 +95,60 @@ def test_preset_parameters_are_validated():
         LengyelCGAPreset(2)
     with pytest.raises(ValueError, match="dimension must be a positive integer"):
         ExteriorPreset(0)
+
+
+@pytest.mark.parametrize("angle", [0, math.pi, -0.1, math.nan, math.inf, -math.inf, True, "1.0", 1e-300])
+def test_oblique_plane_rejects_invalid_or_numerically_collapsed_angles(angle):
+    with pytest.raises(ValueError, match="angle"):
+        ObliquePlanePreset(angle)
+
+
+@pytest.mark.parametrize("degrees", [0, 180, -1, 181, math.nan, math.inf, -math.inf, True, "60", 1e-300])
+def test_oblique_plane_rejects_invalid_or_numerically_collapsed_degrees(degrees):
+    with pytest.raises(ValueError, match="degrees"):
+        oblique_plane(degrees=degrees)
+
+
+def test_oblique_plane_requires_exactly_one_angle_unit():
+    with pytest.raises(ValueError, match="exactly one"):
+        oblique_plane()
+    with pytest.raises(ValueError, match="exactly one"):
+        oblique_plane(angle=math.pi / 3, degrees=60)
+
+
+def test_oblique_plane_degrees_preserves_input_and_matches_radian_metric():
+    preset = oblique_plane(degrees=60)
+    assert preset == ObliquePlanePreset(degrees=60)
+    assert preset.degrees == 60
+    assert preset.angle is None
+    degrees_algebra = Algebra(config=preset)
+    radians_algebra = Algebra(config=oblique_plane(angle=math.pi / 3))
+    np.testing.assert_allclose(degrees_algebra.gram, radians_algebra.gram)
+    e1, e2 = degrees_algebra.basis_vectors()
+    assert e1 * e2 == (e1 ^ e2) + math.cos(math.radians(60))
+
+
+def test_oblique_plane_metric_and_geometric_product_agree_with_explicit_gram():
+    preset = ObliquePlanePreset(math.pi / 3)
+    algebra = Algebra(config=preset)
+    explicit = Algebra(gram=((1.0, 0.5), (0.5, 1.0)))
+    e1, e2 = algebra.basis_vectors()
+    x1, x2 = explicit.basis_vectors()
+
+    np.testing.assert_allclose(algebra.gram, explicit.gram)
+    assert e1 * e1 == 1
+    assert e2 * e2 == 1
+    assert e1 * e2 == (e1 ^ e2) + math.cos(preset.angle)
+    assert x1 * x2 == (x1 ^ x2) + 0.5
+    assert algebra.model is not None
+    assert algebra.model.id == "euclidean"
+
+
+def test_oblique_plane_right_angle_has_exactly_diagonal_metric():
+    algebra = Algebra(config=ObliquePlanePreset(math.pi / 2))
+    np.testing.assert_array_equal(algebra.gram, np.eye(2))
+    degrees_algebra = Algebra(config=oblique_plane(degrees=90))
+    np.testing.assert_array_equal(degrees_algebra.gram, np.eye(2))
 
 
 def test_complex_quaternion_and_exterior_presets_define_their_numeric_models():

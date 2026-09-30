@@ -29,6 +29,7 @@ def test_package_preset_namespace_contains_only_public_recipe_factories():
         "exterior",
         "lengyel_cga",
         "notation",
+        "oblique_plane",
         "pga",
         "presenters",
         "quaternion",
@@ -39,6 +40,7 @@ def test_package_preset_namespace_contains_only_public_recipe_factories():
     assert presets.__all__ == expected
     assert hasattr(presets, "CGAPreset")
     assert hasattr(presets, "p_cga")
+    assert presets.oblique_plane(angle=np.pi / 3) == presets.ObliquePlanePreset(np.pi / 3)
 
 
 def test_compatibility_imports_work_without_polluting_public_namespace():
