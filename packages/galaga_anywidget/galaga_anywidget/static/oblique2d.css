@@ -1,0 +1,7 @@
+.galaga-oblique2d { display: block; width: 100%; max-width: 760px; }
+.galaga-oblique2d svg { display: block; width: 100%; height: auto; background: #fff; border: 1px solid #d1d5db; border-radius: 8px; font: 14px system-ui, sans-serif; }
+.galaga-oblique2d text { fill: #111827; }
+.galaga-oblique2d .axis { stroke: #d1d5db; stroke-width: 1; }
+.galaga-oblique2d line.basis, .galaga-oblique2d line.vector { stroke-width: 2.5; }
+.galaga-oblique2d .bivector { fill-opacity: .22; stroke: #7c3aed; stroke-width: 2; }
+.galaga-oblique2d .area { fill: #4b5563; font-size: 12px; }

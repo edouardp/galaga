@@ -72,5 +72,26 @@ For compact static or one-cell views, use
 `CGA2DPlot` API supports explicit keys, replacements, dependent geometry, and
 solid, dashed, or dotted line styles.
 
+## Oblique metric plane
+
+`oblique2d` visualizes a positive-definite two-dimensional Gram metric. It
+embeds the stored basis in a Euclidean drawing plane, so the lengths and angle
+of the displayed basis arrows are implied by the Gram matrix. Grade-1
+values are arrows; grade-2 values are oriented parallelograms whose signed
+area follows the bivector coefficient:
+
+```python
+from galaga import Algebra
+from galaga_anywidget import oblique2d
+
+algebra = Algebra(gram=[[1.0, 0.5], [0.5, 1.0]])
+e1, e2 = algebra.basis_vectors()
+plane = oblique2d(algebra, [2 * e1 + e2, (e1 ^ e2).named("area")])
+plane
+```
+
+Indefinite or degenerate metrics are rejected because they do not have this
+faithful Euclidean 2D interpretation.
+
 The design and interaction lessons are recorded in
 [GALAGA_ANYWIDGET.md](https://github.com/edouardp/galaga/blob/galaga_v2/GALAGA_ANYWIDGET.md).
