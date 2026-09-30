@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
+from ..composition import NotationPatch as _NotationPatch
 from ..presentation import Notation as _Notation
 
 __all__ = [
@@ -12,6 +15,7 @@ __all__ = [
     "hestenes",
     "lengyel",
     "lengyel_rga",
+    "override",
 ]
 
 
@@ -48,6 +52,11 @@ def lengyel() -> _Notation:
 def lengyel_rga() -> _Notation:
     """Return Lengyel's RGA notation."""
     return _Notation.lengyel_rga()
+
+
+def override(*, reverse: Literal["tilde", "dagger"]) -> _NotationPatch:
+    """Change a common operation style while retaining the base notation."""
+    return _NotationPatch(reverse=reverse)
 
 
 def __dir__() -> list[str]:

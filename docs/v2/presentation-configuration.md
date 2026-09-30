@@ -312,6 +312,17 @@ missing right-hand keys do not remove left-hand keys. In particular,
 has no explicit rules; use `functional()` alone to select it as a complete
 notation.
 
+For a single reverse-symbol change, compose a sparse patch with a preset:
+
+```python
+sta = Algebra(config=presets.sta() | presets.notation.override(reverse="dagger"))
+```
+
+The patch keeps the preset's other notation rules and presentation settings.
+`reverse="tilde"` restores the conventional reverse symbol. A later patch
+wins when both set `reverse`; a complete notation on the right replaces the
+notation slot. See the [notation override notebook](../../examples/galaga_v2/notation_overrides.py).
+
 | Preset | Numeric definition | Presentation highlights |
 |---|---|---|
 | `EuclideanPreset(n)` | `Cl(n, 0)` | Indexed Euclidean roles |
@@ -560,6 +571,35 @@ teaching = Presenter(
 
 view = teaching(result)
 ```
+
+The short forms `Presenter(blades=presets.blades.sta())` and
+`Presenter(notation=presets.notation.functional())` work on their own. To
+reuse a composed set of components, pass a `PresentationRecipe` as `config=`:
+
+```python
+recipe = (
+    presets.blades.sta(sigmas=True)
+    | presets.notation.override(reverse="dagger")
+    | DisplayPolicy(content="value", coefficient_precision=4)
+)
+teaching = Presenter(config=recipe)
+view = teaching(spatial * time)
+```
+
+The recipe inherits unspecified settings from the value's current
+presentation and resolves blade presets against its Gram matrix when called.
+Explicit `Presenter(blades=..., notation=..., display=..., content=...)`
+keywords override the same slots in `config=`; `content=` remains the last
+display override. `config=` accepts presentation recipes, not complete algebra
+presets with a numeric metric. See [ADR-166](../adrs/166-composed-presenter-recipes.md).
+
+The same recipe may update a persistent algebra view with
+`algebra.with_presentation(recipe)` or a temporary scope with
+`with algebra.use_presentation(recipe):`. For a single sparse notation change,
+`algebra.with_notation(presets.notation.override(reverse="dagger"))` and
+`algebra.use_notation(...)` apply the patch to the current notation.
+`Presenter(notation=presets.notation.override(reverse="dagger"))` likewise
+applies a sparse patch to the value's notation when called.
 
 Blade presets resolve against the actual Gram matrix when a presenter is
 applied. This makes portable notation recipes work for Euclidean, CGA, PGA and

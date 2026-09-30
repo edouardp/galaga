@@ -20,6 +20,7 @@ import numpy as np
 
 from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
+from ..composition import NotationPatch, PresentationRecipe
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
 from ..names import Name
 from ..presentation import (
@@ -199,11 +200,16 @@ class Algebra:
             raise ValueError(f"presentation dimension {selected.dimension} does not match numeric dimension {self.n}")
         return selected
 
-    def with_presentation(self, presentation: PresentationConfig) -> Algebra:
-        """Return a cheap view sharing numeric identity with a new presentation."""
+    def with_presentation(self, presentation: PresentationConfig | PresentationRecipe) -> Algebra:
+        """Return a cheap view with a complete presentation or applied recipe."""
+        selected = (
+            presentation.apply_to(self.presentation, self.gram)
+            if isinstance(presentation, PresentationRecipe)
+            else self.resolve_presentation(presentation)
+        )
         return Algebra.from_numeric(
             self._numeric,
-            presentation=self.resolve_presentation(presentation),
+            presentation=selected,
             model=self._model,
             expr=self._expr,
         )
@@ -214,8 +220,9 @@ class Algebra:
             raise TypeError("blades must be a BladeConvention or a resolvable blade preset")
         return self.with_presentation(self.presentation.with_blades(resolved))
 
-    def with_notation(self, notation: Notation) -> Algebra:
-        return self.with_presentation(self.presentation.with_notation(notation))
+    def with_notation(self, notation: Notation | NotationPatch) -> Algebra:
+        selected = notation.apply(self.presentation.notation) if isinstance(notation, NotationPatch) else notation
+        return self.with_presentation(self.presentation.with_notation(selected))
 
     def with_local_names(self, local_names: LocalNamePolicy) -> Algebra:
         return self.with_presentation(self.presentation.with_local_names(local_names))
@@ -227,9 +234,13 @@ class Algebra:
         return self.with_presentation(self.presentation.with_display(display))
 
     @contextmanager
-    def use_presentation(self, presentation: PresentationConfig) -> Generator[Algebra, None, None]:
-        """Temporarily override presentation in the current thread or async task."""
-        selected = self.resolve_presentation(presentation)
+    def use_presentation(self, presentation: PresentationConfig | PresentationRecipe) -> Generator[Algebra, None, None]:
+        """Temporarily select a complete presentation or apply a recipe."""
+        selected = (
+            presentation.apply_to(self.presentation, self.gram)
+            if isinstance(presentation, PresentationRecipe)
+            else self.resolve_presentation(presentation)
+        )
         token = self._presentation_override.set(selected)
         try:
             yield self
@@ -237,14 +248,15 @@ class Algebra:
             self._presentation_override.reset(token)
 
     @contextmanager
-    def use_notation(self, notation: Notation) -> Generator[Algebra, None, None]:
+    def use_notation(self, notation: Notation | NotationPatch) -> Generator[Algebra, None, None]:
         """Temporarily replace only the current presentation's notation.
 
         Other presentation components, including enclosing scoped overrides,
         are preserved. Render inside the scope to use the selected notation;
         results do not capture it for later display.
         """
-        with self.use_presentation(self.presentation.with_notation(notation)):
+        selected = notation.apply(self.presentation.notation) if isinstance(notation, NotationPatch) else notation
+        with self.use_presentation(self.presentation.with_notation(selected)):
             yield self
 
     @property

@@ -62,6 +62,7 @@ def test_notation_namespace_exposes_named_immutable_notation_recipes():
         "hestenes",
         "lengyel",
         "lengyel_rga",
+        "override",
     ]
     assert presets.notation.__all__ == dir(presets.notation)
     assert presets.notation.functional() == presets.notation.functional()

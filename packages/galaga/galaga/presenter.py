@@ -6,6 +6,7 @@ from dataclasses import dataclass, replace
 from typing import TYPE_CHECKING, Literal, cast
 
 from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
+from .composition import NotationPatch, PresentationRecipe
 from .presentation import DisplayPolicy, Notation, PresentationConfig
 from .presets._implementation import BladePreset
 
@@ -19,14 +20,16 @@ class Presenter:
     """Override selected presentation components when applied to a value.
 
     Unspecified components come from the value's current presentation. Recipes
-    are resolved against its actual algebra, then captured in the returned
-    view. No setting propagates through arithmetic or mutates the algebra.
-    ``content`` overrides the content in ``display`` when both are supplied.
+    in ``config`` are resolved against its actual algebra before explicit
+    component keywords, then captured in the returned view. No setting
+    propagates through arithmetic or mutates the algebra. ``content`` overrides
+    the content in ``display`` when both are supplied.
     """
 
     presentation: PresentationConfig | None = None
+    config: PresentationRecipe | None = None
     blades: BladeConvention | BladePreset | None = None
-    notation: Notation | None = None
+    notation: Notation | NotationPatch | None = None
     local_names: LocalNamePolicy | None = None
     display_order: DisplayOrder | Literal["grade-lexicographic", "bitmap"] | None = None
     display: DisplayPolicy | None = None
@@ -35,8 +38,9 @@ class Presenter:
     def __post_init__(self) -> None:
         for field, expected in (
             ("presentation", PresentationConfig),
+            ("config", PresentationRecipe),
             ("blades", (BladeConvention, BladePreset)),
-            ("notation", Notation),
+            ("notation", (Notation, NotationPatch)),
             ("local_names", LocalNamePolicy),
             ("display", DisplayPolicy),
         ):
@@ -68,6 +72,8 @@ class Presenter:
                 return cast("PresentedMultivector", adapter(self))
             raise TypeError("Presenter expects a Galaga Multivector or PresentedMultivector")
         selected = self.presentation if self.presentation is not None else base
+        if self.config is not None:
+            selected = self.config.apply_to(selected, value.algebra.gram)
         # Resolve all components before validating their common dimension so a
         # complete, consistent set of overrides can replace a supplied base.
         blades = self.blades
@@ -80,10 +86,13 @@ class Presenter:
         display = self.display if self.display is not None else selected.display
         if self.content is not None:
             display = replace(display, content=self.content)
+        notation = self.notation
+        if isinstance(notation, NotationPatch):
+            notation = notation.apply(selected.notation)
         selected = replace(
             selected,
             blades=blades if blades is not None else selected.blades,
-            notation=self.notation if self.notation is not None else selected.notation,
+            notation=notation if notation is not None else selected.notation,
             local_names=self.local_names if self.local_names is not None else selected.local_names,
             display_order=order if order is not None else selected.display_order,
             display=display,

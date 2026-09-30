@@ -5,7 +5,16 @@ import math
 import numpy as np
 import pytest
 
-from galaga import Algebra, ConfiguredPreset, DisplayPolicy, Notation, PresentationRecipe, RenderRule, presets
+from galaga import (
+    Algebra,
+    ConfiguredPreset,
+    DisplayPolicy,
+    Notation,
+    NotationPatch,
+    PresentationRecipe,
+    RenderRule,
+    presets,
+)
 from galaga.blades import DisplayOrder, LocalNamePolicy
 
 
@@ -42,6 +51,47 @@ def test_notation_union_preserves_absent_rules_and_respects_named_preset_overlap
     assert combined.rule("hestenes_inner", "latex") == hestenes.rule("hestenes_inner", "latex")
     assert combined.rule("reverse", "latex") == doran.rule("reverse", "latex")
     assert hestenes.rule("reverse", "latex") != combined.rule("reverse", "latex")
+
+
+def test_sparse_reverse_patch_preserves_base_notation_and_replaces_latex_override():
+    base = presets.notation.default()
+    patch = presets.notation.override(reverse="dagger")
+    patched = base | patch
+
+    assert isinstance(patch, NotationPatch)
+    assert patched.id == base.id
+    assert patched.rule("geometric_product", "latex") == base.rule("geometric_product", "latex")
+    assert patched.rule("reverse", "ascii") == presets.notation.hestenes().rule("reverse", "ascii")
+    assert patched.rule("reverse", "latex") == presets.notation.hestenes().rule("reverse", "latex")
+    assert patched.rule("reverse", "latex") != base.rule("reverse", "latex")
+    assert base.rule("reverse", "latex") == presets.notation.default().rule("reverse", "latex")
+
+
+def test_reverse_patch_resolves_against_complete_preset_and_composes_right_biased():
+    dagger = presets.notation.override(reverse="dagger")
+    tilde = presets.notation.override(reverse="tilde")
+    base = presets.sta()
+    configured = base | dagger
+    patched = Algebra(config=configured)
+    reverted = Algebra(config=base | dagger | tilde)
+
+    assert configured.presentation.notation == dagger
+    assert patched.presentation.notation.id == Algebra(config=base).presentation.notation.id
+    assert patched.presentation.notation.rule("reverse", "latex") == presets.notation.hestenes().rule(
+        "reverse", "latex"
+    )
+    assert reverted.presentation.notation.rule("reverse", "latex") == presets.notation.default().rule(
+        "reverse", "latex"
+    )
+    assert dagger | tilde == tilde
+    np.testing.assert_array_equal(patched.gram, Algebra(config=base).gram)
+
+
+def test_sparse_reverse_patch_validates_style_and_type():
+    with pytest.raises(ValueError, match="reverse"):
+        presets.notation.override(reverse="star")  # type: ignore[arg-type]
+    with pytest.raises(TypeError, match="Notation"):
+        NotationPatch(reverse="dagger").apply("not notation")  # type: ignore[arg-type]
 
 
 def test_different_component_classes_promote_to_an_immutable_right_biased_recipe():

@@ -177,6 +177,12 @@ left-hand entry intact. When a presentation slot appears twice, the right-hand
 component replaces it. Two complete algebra presets cannot be combined with
 `|` because that would leave the numeric metric ambiguous.
 
+To change only the reverse symbol of a complete preset, use
+`presets.notation.override(reverse="dagger")` or `reverse="tilde"`. For example,
+`Algebra(config=presets.sta() | presets.notation.override(reverse="dagger"))`
+keeps the preset's other notation rules. See the
+[notation override notebook](../../examples/galaga_v2/notation_overrides.py).
+
 Select only blade names or operation notation when the metric is already known:
 
 ```python
@@ -208,7 +214,8 @@ orthogonal frame. Blade-only recipes do not install model metadata or change
 the metric; arbitrary vocabulary choices do not guarantee model semantics.
 
 `presets.notation` offers `default()`, `functional()`, `functional_short()`,
-`doran_lasenby()`, `hestenes()`, `lengyel()` and `lengyel_rga()`. These change
+`doran_lasenby()`, `hestenes()`, `lengyel()`, `lengyel_rga()` and `override()`.
+These change
 rendering, not the operation called. See the [preset lesson][preset-lesson]
 and [presentation guide][presentation] for lower-level customization.
 

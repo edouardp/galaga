@@ -2,7 +2,7 @@
 
 import marimo
 
-__generated_with = "0.24.0"
+__generated_with = "0.24.2"
 app = marimo.App(width="medium")
 
 
@@ -64,34 +64,32 @@ def _(Algebra, presets):
     lengyel = presets.presenters.lengyel()
     functional = presets.presenters.functional()
     values = presets.presenters.values()
-    return alg, e1, e2, e3, functional, lengyel, values
+    return alg, e1, e2, e3, functional, lengyel
 
 
 @app.cell
-def _(e1, metric_ip):
+def _(e1, e2, metric_ip):
     pairing = metric_ip(e1, e1)
+    product = e1*e2
     assert pairing == e1.algebra.scalar(e1.algebra.gram[0, 0])
-    return (pairing,)
+    return pairing, product
 
 
 @app.cell
-def _(functional, gm, lengyel, mo, pairing, values):
+def _(functional, gm, lengyel, mo, pairing, product):
     mo.vstack(
         [
             mo.hstack(
                 [
-                    mo.vstack([mo.md("**Lengyel notation**"), lengyel(pairing)]),
-                    mo.vstack([mo.md("**Functional notation**"), functional(pairing)]),
+                    mo.vstack([mo.md("**Lengyel notation**"), lengyel(pairing), lengyel(product)]),
+                    mo.vstack([mo.md("**Functional notation**"), functional(pairing), functional(product)]),
                 ],
                 wrap=True,
                 gap=2,
             ),
             gm.md(rt"""
-        Both views show the **same metric inner product**. With values only:
-        {values(pairing)}.
-
-        `lengyel(pairing)` is a display view, not a new calculation.
-        It also works directly inside `gm.md` interpolation.
+            `lengyel(pairing)` is a display view, not a new calculation.
+             It also works directly inside `gm.md` interpolation.
         """),
         ]
     )
@@ -207,7 +205,78 @@ def _(
             """),
         ]
     )
-    return chosen_gp_view, chosen_presenter, chosen_view, gp_result, wedge_result
+    return
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## Compose once, apply in several places
+
+    Blade names, notation, and display policy can be joined with `|`. The
+    result is a presentation recipe, with no metric of its own. A `Presenter`
+    resolves it against the value when called. The same recipe can make a
+    persistent algebra view or a temporary presentation scope.
+
+    Direct `Presenter(blades=...)` and `Presenter(notation=...)` remain useful
+    when only one component needs changing. A direct keyword overrides the
+    same component inside `config=`.
+    """)
+    return
+
+
+@app.cell
+def _(DisplayPolicy, Presenter, alg, e1, e2, gm, presets):
+    _bivector = e1 ^ e2
+    _calculation = ~_bivector
+    assert _calculation == -_bivector
+    recipe = (
+        presets.blades.indexed(3, style="wedge")
+        | presets.notation.override(reverse="dagger")
+        | DisplayPolicy(content="full", coefficient_precision=4)
+    )
+    composed_presenter = Presenter(config=recipe)
+    composed_view = composed_presenter(_calculation)
+    direct_presenter = Presenter(notation=presets.notation.override(reverse="dagger"))
+    direct_view = direct_presenter(_calculation)
+    persistent_algebra = alg.with_presentation(recipe)
+    with alg.use_presentation(recipe):
+        _scoped_result = _calculation.latex()
+    assert persistent_algebra.numeric is alg.numeric
+    assert composed_view.value is _calculation
+    assert composed_view.presentation == persistent_algebra.presentation
+    assert _scoped_result == composed_view.latex()
+    assert alg.presentation != persistent_algebra.presentation
+    gm.md(rt"""
+    **Original calculation:** {_calculation}
+
+    **Composed presenter:** {composed_view}
+
+    **Direct notation patch:** {direct_view}
+
+    The scoped result matches the composed presenter: **{_scoped_result == composed_view.latex()}**.<br/>
+    The persistent algebra view shares the original numeric algebra:
+    **{persistent_algebra.numeric is alg.numeric}**.
+    """)
+    return
+
+
+@app.cell
+def _(alg, e1, gm, presets):
+    _patch = presets.notation.override(reverse="dagger")
+    _persistent_notation = alg.with_notation(_patch)
+    with alg.use_notation(_patch):
+        _scoped_notation = (~e1).latex()
+    assert _persistent_notation.presentation.notation == _patch.apply(alg.presentation.notation)
+    assert _scoped_notation == (~e1).latex(presentation=_persistent_notation.presentation)
+    gm.md(rt"""
+    The narrower `with_notation(patch)` and `use_notation(patch)` methods apply
+    that one rule to the current notation. Their resulting notation agrees:
+    **{_persistent_notation.presentation.notation == _patch.apply(alg.presentation.notation)}**.
+    The scoped reverse expression matches the persistent view:
+    **{_scoped_notation == (~e1).latex(presentation=_persistent_notation.presentation)}**.
+    """)
+    return
 
 
 @app.cell(hide_code=True)
@@ -238,19 +307,16 @@ def _(alg, presets):
 
 
 @app.cell
-def _(bitmap_view, gm, grade_view, mo):
-    mo.vstack(
-        [
-            gm.md(rt"""**Grade, then lexicographic order**
+def _(bitmap_view, gm, grade_view):
+    gm.md(rt"""
+    **Grade, then lexicographic order**
 
-        {grade_view}
-        """),
-            gm.md(rt"""**Native bitmap order**
+    {grade_view}
 
-        {bitmap_view}
-        """),
-        ]
-    )
+    **Native bitmap order**
+
+    {bitmap_view}
+    """)
     return
 
 

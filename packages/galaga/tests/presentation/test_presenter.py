@@ -50,6 +50,58 @@ def test_views_and_presenters_are_immutable_and_not_arithmetic():
     assert presenter.content is None
 
 
+def test_composed_presenter_config_resolves_against_value_and_preserves_metric() -> None:
+    algebra = Algebra(config=presets.sta(), expr=True)
+    time, spatial, *_ = algebra.basis_vectors()
+    product = spatial * time
+    assert product == -(time * spatial)
+    recipe = (
+        presets.blades.sta(sigmas=True)
+        | presets.notation.override(reverse="dagger")
+        | DisplayPolicy(content="value", coefficient_precision=4)
+    )
+    presenter = Presenter(config=recipe)
+    view = presenter(product)
+
+    assert view.presentation.blades.resolve("s1") is not None
+    assert algebra.blade(view.presentation.blades.resolve("s1")) == product
+    assert view.latex() == r"\sigma_{1}"
+    assert view.presentation.notation != algebra.presentation.notation
+    assert view.presentation.display.content == "value"
+    assert view.value is product
+    assert algebra.presentation.display.content != "value"
+    assert presenter.config is recipe
+
+
+def test_presenter_explicit_keywords_override_composed_recipe() -> None:
+    algebra = Algebra(2)
+    value = algebra.basis_vectors()[0]
+    recipe = presets.notation.functional() | DisplayPolicy(content="full")
+    presenter = Presenter(
+        config=recipe,
+        notation=presets.notation.lengyel(),
+        display=DisplayPolicy(content="value"),
+        content="expr",
+    )
+    view = presenter(value)
+
+    assert view.presentation.notation == presets.notation.lengyel()
+    assert view.presentation.display.content == "expr"
+    assert value.algebra.presentation.display.content != "expr"
+
+
+def test_presenter_direct_notation_patch_preserves_recipe_notation():
+    algebra = Algebra(2)
+    value = algebra.basis_vectors()[0]
+    notation = presets.notation.functional()
+    patch = presets.notation.override(reverse="dagger")
+    view = Presenter(config=notation | DisplayPolicy(content="value"), notation=patch)(value)
+
+    assert view.presentation.notation == patch.apply(notation)
+    assert view.presentation.display.content == "value"
+    assert algebra.presentation.notation != view.presentation.notation
+
+
 def test_presenter_binds_on_application_view_ignores_later_scopes():
     algebra = Algebra(2, expr=True)
     e1, e2 = algebra.basis_vectors()
@@ -196,6 +248,8 @@ def test_render_protocols_and_explicit_value_content():
     [
         ({"notation": "lengyel"}, TypeError),
         ({"presentation": 1}, TypeError),
+        ({"config": "not a recipe"}, TypeError),
+        ({"config": presets.sta()}, TypeError),
         ({"blades": "sta"}, TypeError),
         ({"local_names": {}}, TypeError),
         ({"display": {}}, TypeError),

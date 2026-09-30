@@ -29,7 +29,7 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
-from ..composition import ConfiguredPreset, PresentationRecipe
+from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe
 from ..display import build_tree as build_render_tree
 from ..display import render
 from ..expression import (
@@ -229,6 +229,7 @@ __all__ = [
     "MultivectorLiteral",
     "Name",
     "Notation",
+    "NotationPatch",
     "OPERATION_ALIASES",
     "OPERATIONS",
     "OperationSpec",

@@ -55,6 +55,40 @@ def test_notation_scope_restores_after_exception():
     assert algebra.presentation is original
 
 
+def test_sparse_notation_patch_applies_to_current_scope_and_persistent_view():
+    algebra = Algebra(config=presets.sta())
+    original = algebra.presentation
+    patch = presets.notation.override(reverse="dagger")
+    persistent = algebra.with_notation(patch)
+    expected = patch.apply(original.notation)
+
+    assert persistent.presentation.notation == expected
+    assert persistent.numeric is algebra.numeric
+    assert algebra.presentation is original
+    with algebra.use_notation(patch):
+        assert algebra.presentation.notation == expected
+        assert algebra.presentation.blades is original.blades
+    assert algebra.presentation is original
+
+
+def test_composed_recipe_can_be_used_in_persistent_and_scoped_presentation():
+    algebra = Algebra(config=presets.sta())
+    original = algebra.presentation
+    recipe = presets.blades.sta(sigmas=True) | presets.notation.override(reverse="dagger")
+    persistent = algebra.with_presentation(recipe)
+    time, spatial, *_ = algebra.basis_vectors()
+    product = spatial * time
+
+    assert product == -(time * spatial)
+    assert algebra.blade(persistent.presentation.blades.resolve("s1")) == product
+    assert persistent.presentation.notation == recipe.notation.apply(original.notation)
+    assert persistent.numeric is algebra.numeric
+    with algebra.use_presentation(recipe):
+        assert algebra.presentation == persistent.presentation
+        assert algebra.blade(algebra.presentation.blades.resolve("s1")) == product
+    assert algebra.presentation is original
+
+
 @pytest.mark.parametrize("invalid", [None, "lengyel", 3, presets.euclidean(2)])
 def test_notation_scope_rejects_invalid_input_without_changing_presentation(invalid):
     algebra = Algebra(2)
