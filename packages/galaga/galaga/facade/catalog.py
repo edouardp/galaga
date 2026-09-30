@@ -258,7 +258,9 @@ def _structural_operations() -> tuple[OperationSpec, ...]:
             2,
             lambda value, exponent: value**exponent,
             expression_arity=1,
-            parameters=(ParameterSpec("exponent", positional=True, required=True, normalize=_normalize_integer),),
+            parameters=(
+                ParameterSpec("exponent", positional=True, required=True, normalize=_normalize_power_exponent),
+            ),
         ),
     )
 
@@ -1404,6 +1406,12 @@ def _normalize_integer(value: Any) -> int:
     if not isinstance(value, Integral) or isinstance(value, bool):
         raise TypeError("expression parameter must be an integer")
     return int(value)
+
+
+def _normalize_power_exponent(value: Any) -> int | float:
+    if isinstance(value, Integral) and not isinstance(value, bool):
+        return int(value)
+    return _normalize_real(value)
 
 
 def _normalize_blade_role(value: Any) -> tuple[int, int]:

@@ -154,6 +154,12 @@ For a metric-free exterior algebra on three generators, use
 `Algebra(config=presets.exterior(dimension=3))`. The default dimension is 3;
 `dimension` counts generators rather than spatial metric directions. Its Gram
 matrix is zero, so geometric and exterior products of basis vectors agree.
+For a multivector with positive scalar part, this also gives a finite
+binomial expression for every real power: `x ** 0.5`, `x ** 1.5`, and
+`x ** (-1 / 3)` are supported. The square root agrees with `sqrt(x)`.
+Integer powers work in every algebra; noninteger `**` on other metrics
+remains unsupported. The [exterior algebra lesson](../../examples/algebra/exterior_algebra_intuition.py)
+compares these cases and their zero-scalar boundaries.
 
 Presentation components compose with `|` using right-hand precedence:
 

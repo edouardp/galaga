@@ -303,11 +303,12 @@ class Multivector:
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:
-        if not isinstance(exponent, Integral) or isinstance(
-            exponent,
-            (bool, np.bool_),
-        ):
+        if isinstance(exponent, (bool, np.bool_)):
             return NotImplemented
+        if not isinstance(exponent, Integral):
+            if not isinstance(exponent, Real) or np.any(self._algebra.gram):
+                return NotImplemented
+            return _all_null_real_power(self, float(exponent))
         power = int(exponent)
         factor = self
         if power < 0:
@@ -1162,12 +1163,12 @@ def scalar_sqrt(value: Real | Multivector) -> float | Multivector:
 
 
 def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivector:
-    """Return the principal real square root of a Study number.
+    """Return a principal real square root on the supported algebraic domains.
 
     A non-scalar multivector must have the form ``a + N`` with scalar ``a``
-    and scalar ``N*N``. This includes simple elliptic and hyperbolic rotors as
-    well as null PGA translators. The returned value lies in the same
-    two-dimensional subalgebra and squares to ``value``.
+    and scalar ``N*N``, or belong to an all-null exterior algebra with positive
+    scalar part. The latter uses the finite binomial polynomial in ``N``.
+    The returned value squares to ``value`` within the numeric tolerance.
     """
     if not isinstance(value, Multivector):
         if isinstance(value, Real):
@@ -1178,6 +1179,11 @@ def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivect
 
     scalar = value.scalar_part
     nonscalar = value - value.algebra.scalar(scalar)
+    if not np.any(value.algebra.gram):
+        result = _all_null_real_power(value, 0.5)
+        if not np.allclose(squared(result).data, value.data, rtol=10 * atol, atol=10 * atol):
+            raise ValueError("all-null square root could not be resolved numerically")
+        return result
     nonscalar_square = squared(nonscalar)
     if not is_scalar(nonscalar_square, atol=atol):
         raise ValueError("sqrt requires a Study number whose nonscalar part squares to a scalar")
@@ -1203,6 +1209,33 @@ def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivect
         atol=10 * atol,
     ):
         raise ValueError("Study-number square root could not be resolved numerically")
+    return result
+
+
+def _all_null_real_power(value: Multivector, exponent: float) -> Multivector:
+    """Evaluate a finite binomial power in ``Cl(0,0,n)``."""
+    if not np.isfinite(exponent):
+        raise ValueError("all-null real power exponent must be finite")
+    if not np.any(value.data):
+        if exponent < 0:
+            raise ValueError("zero multivector has no negative real power")
+        return value.algebra.identity if exponent == 0 else value.algebra.scalar(0)
+    scalar = value.scalar_part
+    if scalar <= 0:
+        raise ValueError("all-null real power requires a positive scalar part for the principal real branch")
+    nonscalar = value - value.algebra.scalar(scalar)
+    relative = nonscalar / scalar
+    power = value.algebra.identity
+    series = power
+    coefficient = 1.0
+    for order in range(1, value.algebra.n + 1):
+        power = geometric_product(power, relative)
+        coefficient *= (exponent - order + 1) / order
+        series = series + coefficient * power
+    with np.errstate(over="ignore", under="ignore", invalid="ignore"):
+        result = float(np.power(scalar, exponent)) * series
+    if not np.all(np.isfinite(result.data)):
+        raise ValueError("all-null real power could not be resolved numerically")
     return result
 
 

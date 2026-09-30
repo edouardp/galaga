@@ -2,6 +2,9 @@
 
 from __future__ import annotations
 
+from fractions import Fraction
+from math import pi
+
 import numpy as np
 import pytest
 
@@ -78,6 +81,52 @@ class TestSquareRoots:
         assert (root * root).almost_equal(translator)
         assert root.almost_equal(pga.identity + 0.25 * (e0 ^ e1))
 
+    @pytest.mark.parametrize("backend", ("auto", "reference", "packed", "lazy"))
+    def test_all_null_sqrt_handles_mixed_grades_with_nonscalar_square(self, backend: str) -> None:
+        algebra = Algebra(signature=(0, 0, 0), product_backend=backend)
+        e1, e2, e3 = algebra.basis_vectors()
+        nilpotent = e1 + (e2 ^ e3)
+        assert nilpotent * nilpotent == 2 * algebra.I
+        value = algebra.identity + nilpotent
+
+        root = sqrt(value)
+        expected = algebra.identity + nilpotent / 2 - (nilpotent * nilpotent) / 8
+        assert root.almost_equal(expected)
+        assert (root * root).almost_equal(value)
+        assert root.scalar_part > 0
+        assert ((-root) * (-root)).almost_equal(value)
+        assert (-root).scalar_part < 0
+
+    def test_all_null_sqrt_includes_the_highest_nonzero_binomial_term(self) -> None:
+        algebra = Algebra(signature=(0,) * 6)
+        e1, e2, e3, e4, e5, e6 = algebra.basis_vectors()
+        nilpotent = (e1 ^ e2) + (e3 ^ e4) + (e5 ^ e6)
+        assert nilpotent * nilpotent * nilpotent == 6 * algebra.I
+        value = 4 + nilpotent
+
+        root = sqrt(value)
+        relative = nilpotent / 4
+        expected = 2 * (
+            algebra.identity + relative / 2 - (relative * relative) / 8 + (relative * relative * relative) / 16
+        )
+        assert root.almost_equal(expected)
+        assert (root * root).almost_equal(value)
+
+    def test_all_null_sqrt_real_branch_boundaries(self) -> None:
+        algebra = Algebra(signature=(0, 0, 0, 0))
+        e1, e2, e3, e4 = algebra.basis_vectors()
+        assert sqrt(algebra.scalar(0)) == algebra.scalar(0)
+        with pytest.raises(ValueError, match="positive scalar part"):
+            sqrt(-1 + e1)
+        with pytest.raises(ValueError, match="positive scalar part"):
+            sqrt(e1)
+
+        # A zero-scalar input can have roots, but no selected principal root.
+        possible_root = ((e1 ^ e2) + (e3 ^ e4)) / np.sqrt(2)
+        assert (possible_root * possible_root).almost_equal(algebra.I)
+        with pytest.raises(ValueError, match="positive scalar part"):
+            sqrt(algebra.I)
+
     def test_study_sqrt_rejects_unsupported_real_branches(self) -> None:
         algebra = Algebra(3)
         e1, e2, e3 = algebra.basis_vectors()
@@ -96,6 +145,45 @@ class TestSquareRoots:
             sqrt(ep)
         with pytest.raises(ValueError, match="no principal real square root"):
             sqrt(-2 + ep)
+
+
+class TestAllNullRealPowers:
+    def test_finite_binomial_powers_agree_with_square_root_inverse_and_log(self) -> None:
+        algebra = Algebra(signature=(0, 0, 0))
+        e1, e2, e3 = algebra.basis_vectors()
+        value = 2 + e1 + (e2 ^ e3)
+
+        assert (value**0.5).almost_equal(sqrt(value))
+        assert ((value**1.5) * (value**1.5)).almost_equal(value**3)
+        assert ((value ** Fraction(-1, 3)) * (value ** Fraction(1, 3))).almost_equal(algebra.identity)
+        assert (value**-1.0).almost_equal(value**-1)
+        assert (value**pi).almost_equal(exp(pi * log(value)))
+        assert (value**2.0).almost_equal(value**2)
+
+    def test_zero_and_unsupported_real_power_branches(self) -> None:
+        exterior = Algebra(signature=(0, 0))
+        e1, _ = exterior.basis_vectors()
+        zero = exterior.scalar(0)
+
+        assert zero**0.5 == zero
+        assert zero**0.0 == exterior.identity
+        with pytest.raises(ValueError, match="negative real power"):
+            zero**-0.5
+        with pytest.raises(ValueError, match="positive scalar part"):
+            e1**0.5
+        with pytest.raises(ValueError, match="positive scalar part"):
+            (-1 + e1) ** 0.5
+        with pytest.raises(ValueError, match="finite"):
+            (1 + e1) ** np.inf
+        with pytest.raises(TypeError):
+            e1**True
+        with pytest.raises(TypeError):
+            e1 ** (1 + 0j)
+
+        regular = Algebra(2)
+        with pytest.raises(TypeError):
+            regular.identity**0.5
+        assert regular.identity**2 == regular.identity
 
 
 class TestGeometricExponential:

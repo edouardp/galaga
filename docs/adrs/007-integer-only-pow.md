@@ -1,10 +1,13 @@
 ---
-status: accepted
+status: partially superseded by ADR-165
 date: 2026-03-25
 deciders: edouard
 ---
 
 # ADR-007: Integer-Only Multivector Exponentiation
+
+ADR-165 extends `**` to finite real exponents for positive-scalar values in
+all-null algebras. The integer rule here remains valid for every metric.
 
 ## Context and Problem Statement
 

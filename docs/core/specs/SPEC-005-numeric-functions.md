@@ -22,7 +22,7 @@ multivector in the same algebra, respectively.
 Negative inputs, nonscalar multivectors, and non-real values must raise. The
 function does not introduce complex coefficients.
 
-## Study-number square root
+## Geometric square root
 
 For
 
@@ -41,8 +41,46 @@ $$
 
 The result must square back to the input within the numeric tolerance. This
 domain includes simple elliptic and hyperbolic rotors and null PGA translators
-with positive scalar part. A non-Study input, a negative pure scalar, a branch
-with no real result, or a singular selected branch must raise `ValueError`.
+with positive scalar part.
+
+When the entire stored Gram matrix is zero, the geometric product equals the
+exterior product. Every positive-grade $N$ is nilpotent, with $N^{n+1}=0$.
+For $a>0$, `sqrt(a + N)` evaluates the finite principal-branch polynomial
+
+$$
+\sqrt{a+N}=\sqrt a\sum_{k=0}^{n}\binom{1/2}{k}(N/a)^k.
+$$
+
+Its result is the unique square root with positive scalar coefficient. Zero
+returns zero. An all-null input with negative scalar coefficient has no real
+root; a nonzero input with zero scalar coefficient has no selected principal
+branch, even when roots exist. Both cases raise `ValueError`. On other metrics,
+a non-Study input, a negative pure scalar, a branch with no real result, or a
+singular selected branch raises `ValueError`. See [ADR-164](../../adrs/164-exterior-algebra-square-roots.md)
+for the mathematical proof and branch rationale.
+
+## Real powers in all-null algebras
+
+Integer `x ** k` remains available for every metric; negative integers use
+the geometric inverse. For a finite real exponent supplied as a non-integer
+numeric type, `**` is supported only when the entire stored Gram matrix is
+zero. If $x=a+N$ has $a>0$ and positive-grade $N$, then
+
+$$
+x^\alpha=a^\alpha\sum_{k=0}^{n}\binom{\alpha}{k}(N/a)^k.
+$$
+
+The sum terminates because $N^{n+1}=0$. The $\alpha=1/2$ case is the
+all-null branch of `sqrt(x)`; the $\alpha=-1$ case agrees with the existing
+integer inverse path. In exact arithmetic, powers of the same positive-scalar
+value obey $x^\alpha x^\beta=x^{\alpha+\beta}$.
+
+For the zero multivector, a positive real exponent returns zero, exponent
+zero returns identity, and a negative exponent raises. Nonzero all-null
+values with nonpositive scalar part raise for noninteger exponents. Other
+metrics continue to reject noninteger `**` with `TypeError`; `sqrt` retains
+its separate Study-number domain on those metrics. See
+[ADR-165](../../adrs/165-real-powers-in-all-null-algebras.md).
 
 ## Geometric exponential
 

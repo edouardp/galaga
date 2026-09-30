@@ -893,7 +893,9 @@ class Multivector:
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:
-        if not isinstance(exponent, Integral) or isinstance(exponent, (bool, np.bool_)):
+        if isinstance(exponent, (bool, np.bool_)):
+            return NotImplemented
+        if not isinstance(exponent, Integral) and (not isinstance(exponent, Real) or np.any(self._algebra.gram)):
             return NotImplemented
         return _invoke("power", self, exponent)
 

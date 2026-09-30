@@ -18,6 +18,7 @@ from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga.core as core
 import galaga.facade as facade
+from galaga import presets
 
 BASELINE_PATH = Path(__file__).parents[2] / "tools/baselines/numeric-contract-v1.json"
 BASELINE = json.loads(BASELINE_PATH.read_text())
@@ -28,6 +29,26 @@ def assert_coefficients_close(actual: Any, expected: Any, *, atol: float = 1e-12
 
 
 class TestFacadeNumericContract:
+    def test_exterior_preset_exposes_the_all_null_square_root(self) -> None:
+        algebra = facade.Algebra(config=presets.exterior(3), expr=True)
+        e1, e2, e3 = algebra.basis_vectors()
+        value = (1 + e1 + (e2 ^ e3)).named("x")
+
+        root = facade.sqrt(value)
+
+        assert_coefficients_close(root * root, value)
+        assert_coefficients_close(root, 1 + (e1 + (e2 ^ e3)) / 2 - algebra.I / 4)
+        assert root.expr is not None and root.expr.operation_id == "sqrt"
+
+        power = value**1.5
+        assert_coefficients_close(power * power, value**3)
+        assert power.expr is not None and power.expr.operation_id == "power"
+        assert power.expr.parameters == (("exponent", 1.5),)
+        assert "1.5" in power.latex(content="expr")
+
+        with pytest.raises(TypeError):
+            facade.Algebra(3).identity ** 1.5
+
     def test_algebra_construction_and_factories(self) -> None:
         algebra: Any = facade.Algebra(2, 1, 1)
 
