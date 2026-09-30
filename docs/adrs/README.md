@@ -26,7 +26,7 @@ classes are no longer production alternatives.
 | [004](004-two-layer-architecture.md) | Two-Layer Architecture (Numeric + Symbolic) | Superseded by 018 |
 | [005](005-separate-marimo-helper-package.md) | Separate Marimo Notebook Helper Package | Accepted |
 | [006](006-renderer-supports-repr-latex.md) | Renderer Supports Both .latex() and _repr_latex_() | Accepted |
-| [007](007-integer-only-pow.md) | Integer-Only Multivector Exponentiation | Accepted |
+| [007](007-integer-only-pow.md) | Integer-Only Multivector Exponentiation | Partially superseded by 165 |
 | [008](008-commutator-family.md) | Commutator Family — Four Named Functions, No Flags | Accepted |
 | [009](009-aliases-are-convenience.md) | Aliases Are Convenience, Not Separate Implementations | Partially superseded by 074 |
 | [010](010-complement-vs-dual.md) | Complement vs Dual — Metric-Independent Duality | Accepted |
@@ -182,7 +182,11 @@ classes are no longer production alternatives.
 | [159](159-ipython-plain-display-follows-target.md) | IPython Plain Display Follows the Presentation Target | Accepted |
 | [160](160-oblique-plane-angle-preset.md) | Angle-Based Oblique Plane Preset | Accepted |
 | [161](161-right-biased-presentation-composition.md) | Right-Biased Presentation Composition | Accepted |
+| [162](162-sparse-notation-overrides.md) | Sparse Notation Overrides | Accepted |
+| [163](163-metric-derived-oblique-plane-widget.md) | Metric-Derived Oblique Plane Widget | Accepted |
 | [164](164-exterior-algebra-square-roots.md) | Square Roots in an All-Null Exterior Algebra | Accepted; extends 053 |
+| [165](165-real-powers-in-all-null-algebras.md) | Real Powers in All-Null Algebras | Accepted; extends 164 |
+| [166](166-composed-presenter-recipes.md) | Composed Presenter Recipes | Accepted; extends 161 |
 
 ## Creating New ADRs
 

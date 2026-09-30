@@ -24,8 +24,61 @@ def test_new_example_notebooks_compile():
             assert '__generated_with = "' in source
 
 
+def test_presentation_and_oblique_lessons_cover_their_live_displays() -> None:
+    notation = (EXAMPLES / "galaga_v2/notation_overrides.py").read_text()
+    oblique = (EXAMPLES / "galaga_v2/oblique_plane.py").read_text()
+    gallery = (EXAMPLES / "galaga_v2/display_gallery.py").read_text()
+
+    assert "presets.sta() | notation_patch" in notation
+    assert "presets.notation.override(reverse=reverse_style.value)" in notation
+    assert "presets.oblique_plane(degrees=angle_degrees.value)" in oblique
+    assert "oblique2d(oblique, [sample_vector, sample_bivector]" in oblique
+    for display in (
+        "basis_vectors(expr=True)",
+        "basis_blades(2, expr=True)",
+        "wedge_product_table(colour=True)",
+        "bilinear_form_table()",
+        "bilinear_form_table(full=True)",
+    ):
+        assert display in gallery
+
+
 def test_spinor_ideals_lesson_is_in_the_executable_gallery():
     assert EXAMPLES / "matrix/spinors_ideals_and_chirality.py" in migrated_notebook_paths(ROOT)
+
+
+def test_exterior_algebra_lesson_compares_real_powers_and_metric_boundaries() -> None:
+    source = (EXAMPLES / "algebra/exterior_algebra_intuition.py").read_text()
+
+    assert "presets.exterior(3)" in source
+    assert "Algebra(3, expr=True)" in source
+    assert "nilpotent * nilpotent" in source
+    assert "_cube == 0" in source
+    assert "x**1.5" in source
+    assert "x ** (-1 / 3)" in source
+    assert "sqrt(_null_value)" in source
+    assert "_regular_value**1.5" in source
+    assert "_zero**0.5" in source
+    assert '("zero scalar part", e1, 0.5)' in source
+    assert '("negative scalar part", -1 + e1, 0.5)' in source
+    assert "dual(e1)" in source
+    assert "## Interactive oriented area" in source
+    assert "${" not in source
+    assert "{_u:block}" in source
+    assert "{_v:block}" in source
+
+
+def test_reusable_presenters_lesson_shows_composed_and_scoped_recipes() -> None:
+    source = (EXAMPLES / "galaga_v2/reusable_presenters.py").read_text()
+
+    assert 'presets.blades.indexed(3, style="wedge")' in source
+    assert 'presets.notation.override(reverse="dagger")' in source
+    assert "Presenter(config=recipe)" in source
+    assert "Presenter(notation=presets.notation.override" in source
+    assert "alg.with_presentation(recipe)" in source
+    assert "alg.use_presentation(recipe)" in source
+    assert "alg.with_notation(_patch)" in source
+    assert "alg.use_notation(_patch)" in source
 
 
 def test_new_example_notebooks_use_v2_facade_teaching_pattern():

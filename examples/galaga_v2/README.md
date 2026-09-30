@@ -42,7 +42,7 @@ notebooks exercise uncommitted source without containing repository-specific
 path setup. The same files run unchanged against installed releases outside
 the checkout.
 
-All five notebooks are part of the executable example ledger. The test suite
+These notebooks are part of the executable example ledger. The test suite
 compiles them, validates their Marimo dependency graphs, and executes them
 headlessly.
 
@@ -66,8 +66,16 @@ inverse conjugation and explains the current logarithm's narrower domain.
 These lessons also use the v2 facade and participate in headless validation:
 
 - [Reusable presenters](reusable_presenters.py): one-line recipes for comparing
-  notation, content, blade order and spelling; metric-derived STA signs, CGA
-  frame validation, and stable views that can be displayed in a later cell.
+  notation, content, blade order and spelling; composed blade, notation and
+  display presets used with presenters and algebra scopes; metric-derived STA
+  signs, CGA frame validation, and stable views for later cells.
+- [Display gallery](display_gallery.py): rich algebra displays, basis vectors
+  and bivectors, wedge tables, and vector/full bilinear form tables.
+- [Notation overrides](notation_overrides.py): change the reverse symbol of a
+  complete STA preset while keeping its metric, blade names, and other rules.
+- [Oblique plane](oblique_plane.py): vary the angle between basis vectors,
+  inspect the Gram and bilinear displays, and draw vectors and bivectors in a
+  metric-derived plane with the optional anywidget package.
 - [Witt bases and null geometry](../algebra/witt_bases_and_null_geometry.py):
   predict a moving receiver's Doppler shifts and build a finite fermionic
   occupation-state model from null pairs; then compare CGA/PGA duality.

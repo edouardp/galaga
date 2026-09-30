@@ -12,7 +12,7 @@ def _():
     import galaga_marimo as gm
     from galaga import (
         Algebra,
-        DisplayPolicy,
+        DisplayPolicy, PresentationConfig,
         Notation,
         geometric_product,
         metric_inner_product,
@@ -96,8 +96,8 @@ def _(mo):
 @app.cell
 def _(Algebra, np):
     euclidean_counts = Algebra(3)
-    spacetime_signature = Algebra(signature=(1, -1, -1, -1), id="sta-example")
-    projective_signature = Algebra(signature=(1, 1, 1, 0))
+    spacetime_signature = Algebra(signature=[1, -1, -1, -1], id="sta-example")
+    projective_signature = Algebra(signature=[1, 1, 1, 0])
     oblique_metric = Algebra(
         gram=np.array(
             [
@@ -192,12 +192,12 @@ def _(conformal_model, gm, projective_model, rga_model, spacetime_model):
     gm.md(rt"""
     The model-specific basis vocabulary is immediately available:
 
-    | Preset | Representative configured blades |
-    |---|---|
-    | spacetime | {_gamma_0}, {_gamma_1} |
-    | projective | {_pga_e1}, {_pga_e0} |
-    | conformal native-null | {_cga_e1}, {_origin}, {_infinity} |
-    | Lengyel RGA | {_rga_e1}, {_rga_e4} |
+    |         Preset        |    Representative configured blades    |
+    |-----------------------|----------------------------------------|
+    | spacetime             | {_gamma_0}, {_gamma_1}                 |
+    | projective            | {_pga_e1}, {_pga_e0}                   |
+    | conformal native-null | {_cga_e1}, {_origin}, {_infinity}      |
+    | Lengyel RGA           | {_rga_e1}, {_rga_e4}                   |
     """)
     return
 
@@ -545,11 +545,6 @@ def _(example):
 @app.cell
 def _(example, lengyal):
     lengyal(example)
-    return
-
-
-@app.cell
-def _():
     return
 
 
