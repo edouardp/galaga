@@ -177,6 +177,11 @@ classes are no longer production alternatives.
 | [154](154-independent-external-span-overlays.md) | Independent External Span Overlays | Accepted |
 | [155](155-internal-decoration-boundary-and-lockstep-dependency-floors.md) | Internal Decoration Boundary and Lockstep Dependency Floors | Accepted |
 | [156](156-headless-browser-geometry-contracts-for-katex.md) | Headless Browser Geometry Contracts for KaTeX | Accepted |
+| [157](157-canonical-algebra-metric-display.md) | Display Algebras by Their Simplest Exact Metric Form | Accepted |
+| [158](158-renderable-basis-factory-sequences.md) | Renderable Basis Factory Sequences | Accepted |
+| [159](159-ipython-plain-display-follows-target.md) | IPython Plain Display Follows the Presentation Target | Accepted |
+| [160](160-oblique-plane-angle-preset.md) | Angle-Based Oblique Plane Preset | Accepted |
+| [161](161-right-biased-presentation-composition.md) | Right-Biased Presentation Composition | Accepted |
 
 ## Creating New ADRs
 

@@ -10,6 +10,7 @@ from numbers import Real
 from types import MappingProxyType
 from typing import Literal
 
+from .composition import PresentationComposable
 from .names import Name
 
 _SUBSCRIPT_TRANSLATION = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")
@@ -44,7 +45,7 @@ class BladeLabel:
 
 
 @dataclass(frozen=True, slots=True, init=False)
-class DisplayOrder:
+class DisplayOrder(PresentationComposable):
     """A complete immutable permutation of exterior-basis masks.
 
     By default, group by grade, then lexicographically by numeric basis-index
@@ -81,7 +82,7 @@ class DisplayOrder:
 
 
 @dataclass(frozen=True, slots=True, init=False)
-class BladeConvention:
+class BladeConvention(PresentationComposable):
     """Complete names, signed aliases, and semantic roles for one dimension."""
 
     dimension: int
@@ -168,7 +169,7 @@ class BladeConvention:
 
 
 @dataclass(frozen=True, slots=True, init=False)
-class LocalNamePolicy:
+class LocalNamePolicy(PresentationComposable):
     """An immutable mapping from Python identifiers to signed blades."""
 
     dimension: int

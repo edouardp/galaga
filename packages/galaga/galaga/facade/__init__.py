@@ -29,6 +29,7 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
+from ..composition import ConfiguredPreset, PresentationRecipe
 from ..display import build_tree as build_render_tree
 from ..display import render
 from ..expression import (
@@ -209,6 +210,7 @@ __all__ = [
     "Call",
     "CGAPreset",
     "ComplexPreset",
+    "ConfiguredPreset",
     "DisplayOrder",
     "DisplayPolicy",
     "EXCLUDED_PUBLIC_NAMES",
@@ -233,6 +235,7 @@ __all__ = [
     "ParameterSpec",
     "PGAPreset",
     "PresentationConfig",
+    "PresentationRecipe",
     "PresentedMultivector",
     "Presenter",
     "RenderRule",

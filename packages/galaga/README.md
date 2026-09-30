@@ -137,11 +137,39 @@ label; `pss=None` uses automatic naming. These are naming choices only:
 in Euclidean-first 3D, native `I` displays as $-I_C$ when model names are
 selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
 
-The complete factories are `euclidean`, `sta`, `pga`, `cga`, `rga`,
+The complete factories are `euclidean`, `oblique_plane`, `sta`, `pga`, `cga`, `rga`,
 `lengyel_cga`, `complex`, `quaternion` and `exterior`. Complex and quaternion
 presets describe even subalgebras of real Euclidean algebras, not complex
 coefficient storage. The older `p_*` factories remain explicit compatibility
 imports; new code should use `presets`.
+
+For two unit basis vectors separated by an angle, use
+`Algebra(config=presets.oblique_plane(degrees=60))` or
+`Algebra(config=presets.oblique_plane(angle=math.pi / 3))`. Specify exactly one:
+`degrees` takes degrees and `angle` takes radians. The preset derives the Gram
+matrix with `cos(angle)` off the diagonal; the angle must lie strictly between
+zero and 180 degrees so the basis vectors remain independent.
+
+For a metric-free exterior algebra on three generators, use
+`Algebra(config=presets.exterior(dimension=3))`. The default dimension is 3;
+`dimension` counts generators rather than spatial metric directions. Its Gram
+matrix is zero, so geometric and exterior products of basis vectors agree.
+
+Presentation components compose with `|` using right-hand precedence:
+
+```python
+from galaga import Algebra, DisplayPolicy, presets
+
+notation = presets.notation.hestenes() | presets.notation.doran_lasenby()
+recipe = presets.blades.euclidean(2) | notation | DisplayPolicy(coefficient_precision=4)
+algebra = Algebra(config=presets.oblique_plane(degrees=60) | recipe)
+```
+
+The recipe changes presentation only. Notation unions merge tokens by operation
+ID and rules by `(operation_id, target)`; an absent right-hand entry leaves the
+left-hand entry intact. When a presentation slot appears twice, the right-hand
+component replaces it. Two complete algebra presets cannot be combined with
+`|` because that would leave the numeric metric ambiguous.
 
 Select only blade names or operation notation when the metric is already known:
 

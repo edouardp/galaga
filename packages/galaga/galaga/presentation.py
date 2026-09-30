@@ -9,6 +9,7 @@ from numbers import Integral, Real
 from typing import cast
 
 from .blades import BladeConvention, BladeRef, DisplayOrder, LocalNamePolicy
+from .composition import PresentationComposable
 from .names import Name
 
 _RULE_KINDS = {
@@ -177,7 +178,7 @@ class RenderRule:
 
 
 @dataclass(frozen=True, slots=True, init=False)
-class Notation:
+class Notation(PresentationComposable):
     """Immutable rendering rules keyed by stable operation ID and target."""
 
     id: str
@@ -873,7 +874,7 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
 
 
 @dataclass(frozen=True, slots=True)
-class DisplayPolicy:
+class DisplayPolicy(PresentationComposable):
     """Default rendering content and target, independent of notation.
 
     Auto shows a deduplicated full equality when a name or expression is

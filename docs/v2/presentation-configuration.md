@@ -223,6 +223,13 @@ semantic units with `blade("quaternion_i")`, `blade("quaternion_j")`, and
 `blade("quaternion_k")`. This differs from v1's presentation-ordered
 enumeration; the underlying quaternion values and products are unchanged.
 
+`basis_vectors()` and `basis_blades(k)` are unpackable, indexable sequences.
+In notebooks they render a table of sequence indices and blade values. The
+table rows follow `display_order`, while sequence indices retain native mask
+order. Only the grade requested by `basis_blades(k)` appears in its table.
+Terminal IPython shows the same sequence as a plain-text table in the selected
+ASCII or Unicode display target.
+
 The quaternion coordinates are `i=e23`, `j=e13`, `k=e12` in Euclidean
 `Cl(3,0)`. Scalars plus bivectors form its even subalgebra; bivectors alone
 are not closed under multiplication. Complex numbers similarly occupy the
@@ -283,9 +290,32 @@ A preset is a frozen object with inspectable parameters and a deterministic
 `build()` method. It expands once into public configuration; the resulting
 algebra is not permanently in a hidden preset mode.
 
+Presentation components can be joined before construction with `|`:
+
+```python
+recipe = presets.blades.sta() | presets.notation.hestenes() | DisplayPolicy(coefficient_precision=4)
+algebra = Algebra(config=presets.sta() | recipe)
+```
+
+The immutable `PresentationRecipe` stores optional slots until it is applied
+to a complete preset or `AlgebraConfig`. On overlap, the right-hand component
+replaces the left-hand slot. A blade recipe resolves against the complete
+config's Gram matrix at build time; the numeric definition and model stay
+intact. Joining two complete algebra presets is unsupported.
+
+Joining two `Notation` objects instead merges their token maps and their
+rule maps using dictionary-style right-hand precedence. A rule key is the
+pair `(operation_id, target)`, including `target=None` for generic rules. A
+right-hand generic rule does not erase an existing LaTeX-specific rule, and
+missing right-hand keys do not remove left-hand keys. In particular,
+`default() | functional()` retains the default rules because `functional()`
+has no explicit rules; use `functional()` alone to select it as a complete
+notation.
+
 | Preset | Numeric definition | Presentation highlights |
 |---|---|---|
 | `EuclideanPreset(n)` | `Cl(n, 0)` | Indexed Euclidean roles |
+| `ObliquePlanePreset(angle=... / degrees=...)` | Unit two-vector Gram matrix with off-diagonal cosine | Indexed Euclidean names in a nonorthogonal frame |
 | `SpacetimePreset(...)` | Mostly-minus or mostly-plus `Cl(1, 3)` ordering | Gamma vocabulary, pseudoscalar `i`, and time/space roles |
 | `PGAPreset(n)` | `n` positive vectors plus a final native null vector | Projective role |
 | `CGAPreset(n, frame="null")` | Origin-first native null pair with configurable nonzero mutual product | Actual origin/Euclidean/infinity roles |
@@ -299,6 +329,14 @@ algebra is not permanently in a hidden preset mode.
 The concise `presets.*` functions are preferred for new code; the ergonomic
 `p_*` functions remain compatibility spellings and return the same preset
 objects. They do not construct a second kind of configuration.
+
+`presets.oblique_plane(angle=math.pi / 3)` takes radians, while
+`presets.oblique_plane(degrees=60)` takes degrees. Specify exactly one. Both
+build the Gram matrix `((1, cos(θ)), (cos(θ), 1))`, where θ is the angle in
+radians. Angles must be finite and strictly between zero and pi radians (or
+zero and 180 degrees); a right angle gives the ordinary orthogonal Euclidean
+plane. The preset changes the basis metric, so `e1 * e2` has scalar part
+`cos(θ)`.
 
 ```python
 from galaga import Algebra, Notation, presets
@@ -388,7 +426,9 @@ call `named()` on those values when names are wanted.
 
 `basis_vectors()`, `basis_blades()`, and `pseudoscalar()` remain native numeric
 factories. `blade_label()` exposes the active canonical label. `locals()`
-builds a read-only mapping using the independent local-name policy.
+builds a read-only mapping using the independent local-name policy. Its
+notebook representation lists each Python name beside the corresponding
+rendered basis blade in the captured presentation.
 
 `with_presentation()` and the component-specific `with_*` methods create a
 new facade algebra sharing the exact same `core.Algebra`. Consequently values
@@ -589,6 +629,8 @@ returns an immutable `galaga.display.WedgeProductTable` with the same
 snapshot, formatting, exact-zero and rich-display contracts as the Gram
 table. The corner is a wedge; each cell contains the row blade's exterior
 product with the column blade, in that order.
+In terminal IPython, both tables use the captured `DisplayPolicy.target` for
+plain-text output; their LaTeX rich representation remains available.
 
 ```python
 algebra.wedge_product_table()                       # Vector axes only.

@@ -28,6 +28,7 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
+from ..composition import PresentationComposable
 from ..names import Name
 from ..presentation import (
     AlgebraConfig,
@@ -48,7 +49,7 @@ class Preset(Protocol):
 
 
 @dataclass(frozen=True, slots=True)
-class BladePreset:
+class BladePreset(PresentationComposable):
     """A blade-vocabulary recipe resolved against one algebra's Gram matrix."""
 
     kind: str
