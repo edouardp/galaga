@@ -13,6 +13,7 @@ pytest.importorskip("string.templatelib", reason="galaga-marimo requires Python 
 
 from string.templatelib import Interpolation, Template
 
+from galaga import Algebra, presets
 from galaga_marimo.api import Doc, block, block_latex, doc, inline, latex, md, text
 from galaga_marimo.renderer import (
     Rendered,
@@ -89,6 +90,90 @@ class ReprLatexOnly:
 # ---------------------------------------------------------------------------
 # _repr_latex_ / Jupyter protocol support tests
 # ---------------------------------------------------------------------------
+
+
+def test_marimo_formats_an_algebra_gram_as_an_inline_matrix():
+    from marimo._output.formatting import get_formatter
+
+    algebra = Algebra(gram=[[1, 0.125], [0.125, -2]])
+    formatter = get_formatter(algebra)
+
+    assert formatter is not None
+    mime_type, html = formatter(algebra)
+    assert mime_type == "text/html"
+    assert r"\begin{smallmatrix}1 &amp; 0.125 \\ 0.125 &amp; -2\end{smallmatrix}" in html
+    assert r"\mathrm{non\_diagonal}=\mathrm{True}" in html
+    assert "is_degenerate" not in html
+    assert "object at" not in html
+
+
+def test_marimo_greys_exact_zero_gram_entries():
+    from marimo._output.formatting import get_formatter
+
+    algebra = Algebra(gram=[[2, 0], [0, -1]])
+    formatter = get_formatter(algebra)
+
+    assert formatter is not None
+    mime_type, html = formatter(algebra)
+    assert mime_type == "text/html"
+    assert html.count(r"{\color{#bbbbbb}0}") == 2
+
+
+def test_marimo_greys_zero_pqr_counts():
+    from marimo._output.formatting import get_formatter
+
+    algebra = Algebra(2, 0, 1)
+    formatter = get_formatter(algebra)
+
+    assert formatter is not None
+    mime_type, html = formatter(algebra)
+    assert mime_type == "text/html"
+    assert r"{\color{#bbbbbb}q=0}" in html
+    assert r"q={\color{#bbbbbb}0}" not in html
+    assert "p=2" in html and "r=1" in html
+
+
+@pytest.mark.parametrize(
+    ("preset", "expected"),
+    (
+        (
+            presets.sta(sigmas=True, pseudovectors=True),
+            (r"\texttt{g0}", r"\gamma_{0}", r"\texttt{ig3}", r"i\gamma_{3}"),
+        ),
+        (presets.cga(), (r"\texttt{eo}", r"e_{o}", r"\texttt{einf}", r"e_{\infty}")),
+    ),
+)
+def test_marimo_formats_local_bindings_as_variable_and_blade_table(preset, expected):
+    from marimo._output.formatting import get_formatter
+
+    values = Algebra(config=preset).locals()
+    formatter = get_formatter(values)
+
+    assert formatter is not None
+    mime_type, html = formatter(values)
+    assert mime_type == "text/html"
+    assert all(fragment in html for fragment in expected)
+    assert "mappingproxy(" not in html
+
+
+@pytest.mark.parametrize("preset", (presets.sta(), presets.cga()))
+@pytest.mark.parametrize("factory", ("basis_vectors", "basis_blades"))
+def test_marimo_formats_basis_sequences_as_indexed_blade_tables(preset, factory):
+    from marimo._output.formatting import get_formatter
+
+    algebra = Algebra(config=preset)
+    values = algebra.basis_vectors() if factory == "basis_vectors" else algebra.basis_blades(2)
+    formatter = get_formatter(values)
+
+    assert formatter is not None
+    mime_type, html = formatter(values)
+    assert mime_type == "text/html"
+    assert r"\text{Index} &amp; \text{basis blade}" in html
+    assert r"\texttt{[0]}" in html
+    if preset == presets.sta():
+        assert r"\gamma_{0}" in html
+    else:
+        assert (r"e_{o}" if factory == "basis_vectors" else r"e_{o1}") in html
 
 
 class TestReprLatexProtocol:

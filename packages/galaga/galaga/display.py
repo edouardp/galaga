@@ -53,6 +53,10 @@ class _DisplayTable:
     def __repr__(self) -> str:
         return self.ascii()
 
+    def _repr_pretty_(self, printer: Any, cycle: bool) -> None:
+        """Show the captured target in terminal IPython."""
+        printer.text("..." if cycle else self.display())
+
     def __format__(self, format_spec: str) -> str:
         return self.display(format_spec)
 

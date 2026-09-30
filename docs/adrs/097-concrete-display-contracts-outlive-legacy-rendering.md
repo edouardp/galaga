@@ -6,6 +6,9 @@ deciders: edouard
 
 # ADR-097: Concrete Display Contracts Outlive Legacy Rendering
 
+[ADR-157](157-canonical-algebra-metric-display.md) replaces the algebra-repr
+contract recorded below with a metric-derived `p,q,r`, `sig`, or `gram` display.
+
 [ADR-133](133-grade-lexicographic-default-display-order.md) supersedes the native
 bitmask display default recorded below with grade-then-lexicographic order.
 The table documents the migration-time behavior; numeric storage, native basis
@@ -49,14 +52,18 @@ The following distinctions are explicit rather than presented as v1 parity:
 | Default concrete order | Grade-sorted | Native bitmask order; grade order can be selected explicitly |
 | Quaternion basis enumeration | Display-ordered `i, j, k` | Native masks give `k, j, i`; named roles select semantic units |
 | Coefficient formatting | Numeric specs such as `.3f` | Significant digits through `DisplayPolicy`; format specs select content/target |
-| Multivector repr | Unicode by default | ASCII; `str` remains Unicode by default |
-| Algebra repr | `Cl(p,q,r)` summary | Diagnostic numeric-owner wrapper, not a stable serialization |
+| Multivector repr | Unicode by default | ASCII; `str` and terminal IPython's `text/plain` display follow `DisplayPolicy.target` |
+| Algebra repr | `Cl(p,q,r)` summary | At migration time, a diagnostic numeric-owner wrapper; later replaced by ADR-157 |
 
 In particular, significant digits do not provide fixed decimal places or
 trailing-zero padding. V2 currently rejects numeric multivector format specs;
 this is a compatibility limitation, not equivalent support under a new name.
-Adding fixed-decimal formatting or a compact algebra repr would be separate
+Adding fixed-decimal formatting or a compact algebra repr was separate
 production work, not a prerequisite for removing these tests' live v1 imports.
+
+Terminal IPython uses the multivector `_repr_pretty_` hook for `text/plain`,
+which follows the selected presentation target. Python `repr()` stays ASCII,
+and the separate LaTeX rich-display hook remains available to notebooks.
 
 Current sample values are computed from public operations, not reconstructed
 from archived coefficients. Numeric comparisons require matching shapes,

@@ -1,4 +1,4 @@
-from types import MappingProxyType
+from collections.abc import Mapping
 
 import numpy as np
 import pytest
@@ -115,7 +115,7 @@ def test_locals_are_read_only_and_follow_signed_local_name_policy():
 
     values = algebra.locals()
 
-    assert isinstance(values, MappingProxyType)
+    assert isinstance(values, Mapping)
     assert values["e31"].coefficient(5) == -1
     with pytest.raises(TypeError):
         values["replacement"] = algebra.identity  # type: ignore[index]

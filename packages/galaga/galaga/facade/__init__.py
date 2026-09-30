@@ -78,6 +78,8 @@ from ..presets import (
 )
 from ._numeric import (
     Algebra,
+    BasisMultivectors,
+    LocalMultivectors,
     Multivector,
     anticommutator,
     antidot_product,
@@ -196,6 +198,8 @@ def __getattr__(name: str) -> object:
 
 __all__ = [
     "Algebra",
+    "BasisMultivectors",
+    "LocalMultivectors",
     "AlgebraConfig",
     "AlgebraDefinition",
     "BladeConvention",

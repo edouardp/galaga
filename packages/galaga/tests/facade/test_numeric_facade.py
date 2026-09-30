@@ -192,7 +192,7 @@ class TestConstructionAndValues:
         assert algebra.left_action(algebra.identity).shape == (algebra.dim, algebra.dim)
         assert algebra.extended_metric_matrix().shape == (algebra.dim, algebra.dim)
         assert algebra.metric_antiexomorphism_matrix().shape == (algebra.dim, algebra.dim)
-        assert "Algebra(numeric=" in repr(algebra)
+        assert repr(algebra) == "Algebra(p=2, q=1, r=0) [n=3]"
 
         with pytest.raises(ValueError, match="only defined for normalized diagonal metrics"):
             _ = Algebra(gram=[[1.0, 0.25], [0.25, 1.0]]).signature

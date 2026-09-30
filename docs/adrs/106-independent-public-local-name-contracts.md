@@ -35,6 +35,12 @@ It was captured at `2856245` on 2026-09-08 using Python 3.14.4 / NumPy 2.5.2.
 - `locals()` returns read-only named values in policy insertion order.
   Policies snapshot their input; keys are validated Python identifiers, not
   inferred or sanitized labels. Explicit scalar and Unicode bindings are valid.
+  The result implements `Mapping`, backed by a private mapping proxy, and
+  renders a captured-presentation LaTeX table of Python names and blade labels.
+  Table rows follow the presentation's blade display order, including custom
+  orders; mapping iteration retains policy insertion order.
+  Consumers should type against the mapping protocol rather than the concrete
+  `mappingproxy` type.
 - Replace `locals(grades=...)` by filtering policy entries on
   `ref.mask.bit_count()` and applying `with_local_names`. Preserve the whole
   signed reference. Replace `prefix=` and `variable_hints` with explicitly

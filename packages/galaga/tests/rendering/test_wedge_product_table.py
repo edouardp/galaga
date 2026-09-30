@@ -248,6 +248,20 @@ def test_rich_display_protocol_and_shared_dispatch_are_unchanged():
         render(table, presentation=default_presentation(2))
 
 
+@pytest.mark.parametrize("method", ("wedge_product_table", "bilinear_form_table"))
+@pytest.mark.parametrize("target", ("ascii", "unicode"))
+def test_ipython_plain_text_uses_the_captured_table_target(method, target):
+    formatters = pytest.importorskip("IPython.core.formatters")
+    algebra = Algebra(2, display=DisplayPolicy(target=target))
+    table = getattr(algebra, method)()
+
+    formatted, _ = formatters.DisplayFormatter().format(table)
+
+    assert formatted["text/plain"] == table.display() == getattr(table, target)()
+    assert formatted["text/latex"] == table._repr_latex_()
+    assert repr(table) == table.ascii()
+
+
 def test_table_construction_and_rendering_do_not_allocate_or_evaluate_multivectors(monkeypatch):
     import galaga.core as core
 

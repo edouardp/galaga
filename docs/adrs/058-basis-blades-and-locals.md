@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-058: basis_blades(k) and locals() for Bulk Blade Access
 
+The tuple return type below is refined by
+[ADR-158](158-renderable-basis-factory-sequences.md): Galaga 2 basis factories
+return a tuple-compatible sequence with a LaTeX table display. Native value
+enumeration is unchanged. The legacy `locals()` details below are superseded
+by [ADR-106](106-independent-public-local-name-contracts.md).
+
 ## Context
 
 Notebooks frequently need named variables for higher-grade basis blades.

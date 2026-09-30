@@ -5,15 +5,105 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayPolicy, exp, p_sta
+from galaga import Algebra, DisplayPolicy, exp, p_cga, p_sta, presets
 
 
-@pytest.mark.parametrize("signature", ((1, 1, 1), (1, -1, -1, -1), (1, 1, 1, 0)))
-def test_algebra_repr_identifies_its_numeric_owner_and_metric_metadata(signature) -> None:
-    algebra = Algebra(signature)
-    assert repr(algebra) == f"Algebra(numeric={algebra.numeric!r})"
-    assert algebra.signature == signature
-    np.testing.assert_array_equal(algebra.gram, np.diag(signature))
+@pytest.mark.parametrize(
+    ("algebra", "expected"),
+    (
+        (Algebra(3, 0, 1), "Algebra(p=3, q=0, r=1) [n=4, is_degenerate=True]"),
+        (Algebra(2, 1), "Algebra(p=2, q=1, r=0) [n=3]"),
+        (Algebra(sig=[1, 1, 1, 0]), "Algebra(sig=[1, 1, 1, 0]) [n=4, is_degenerate=True]"),
+        (Algebra(sig=[1, 0, -1]), "Algebra(sig=[1, 0, -1]) [n=3, is_degenerate=True]"),
+        (Algebra(sig=[0, 1, -1]), "Algebra(p=1, q=1, r=1) [n=3, is_degenerate=True]"),
+        (Algebra(gram=[[0, 0], [0, 1]]), "Algebra(p=1, q=0, r=1) [n=2, is_degenerate=True]"),
+        (Algebra(gram=[[1, 0], [0, 0]]), "Algebra(sig=[1, 0]) [n=2, is_degenerate=True]"),
+        (
+            Algebra(gram=[[1, 0, -1], [0, 1, 0], [-1, 0, 1]]),
+            "Algebra(gram=[[1, 0, -1], [0, 1, 0], [-1, 0, 1]]) [n=3, is_degenerate=True, non_diagonal=True]",
+        ),
+        (Algebra(gram=[[2, 0], [0, -1]]), "Algebra(gram=[[2, 0], [0, -1]]) [n=2]"),
+        (Algebra(0), "Algebra(p=0, q=0, r=0) [n=0]"),
+    ),
+)
+def test_algebra_repr_uses_the_stored_metric_and_derived_annotations(algebra, expected) -> None:
+    assert repr(algebra) == expected
+    assert ("is_degenerate=True" in repr(algebra)) == algebra.is_degenerate
+    assert ("non_diagonal=True" in repr(algebra)) == (not algebra.is_orthogonal_basis)
+    assert "object at" not in repr(algebra)
+
+
+def test_algebra_rich_repr_displays_gram_as_an_inline_matrix() -> None:
+    algebra = Algebra(gram=[[1, 0.125], [0.125, -2]])
+
+    assert repr(algebra) == "Algebra(gram=[[1, 0.125], [0.125, -2]]) [n=2, non_diagonal=True]"
+    assert algebra._repr_latex_() == (
+        r"$\operatorname{Algebra}\!\left(\mathrm{gram}=\left["
+        r"\begin{smallmatrix}1 & 0.125 \\ 0.125 & -2\end{smallmatrix}"
+        r"\right]\right)\;\left[\mathrm{n}=2,\;\mathrm{non\_diagonal}=\mathrm{True}\right]$"
+    )
+
+
+def test_gram_latex_colours_only_exact_zeros_like_the_product_tables() -> None:
+    algebra = Algebra(gram=[[2, 0], [0, -1]])
+    grey_zero = r"{\color{#bbbbbb}0}"
+
+    assert grey_zero in algebra.wedge_product_table().latex()
+    assert algebra._repr_latex_().count(grey_zero) == int(np.count_nonzero(algebra.gram == 0))
+    assert repr(algebra) == "Algebra(gram=[[2, 0], [0, -1]]) [n=2]"
+
+    tiny_nonzero = Algebra(gram=[[2, 1e-12], [1e-12, -1]])
+    assert grey_zero not in tiny_nonzero._repr_latex_()
+    assert r"10^{-12}" in tiny_nonzero._repr_latex_()
+
+
+def test_oblique_algebra_and_bilinear_table_share_display_precision() -> None:
+    default = Algebra(config=presets.oblique_plane(degrees=30))
+    concise = Algebra(config=presets.oblique_plane(degrees=30), display=DisplayPolicy(coefficient_precision=3))
+
+    assert "0.866025" in default._repr_latex_()
+    assert "0.866025" in default.bilinear_form_table().latex()
+    assert "0.8660254037844387" not in default._repr_latex_()
+    assert "0.866" in concise._repr_latex_()
+    assert "0.866" in concise.bilinear_form_table().latex()
+    assert "0.866025" not in concise._repr_latex_()
+    assert "0.866025" not in concise.bilinear_form_table().latex()
+    assert "0.866" in repr(concise)
+
+
+@pytest.mark.parametrize("counts", ((2, 0, 1), (0, 1, 0), (0, 0, 0)))
+def test_pqr_latex_colours_zero_counts_without_changing_the_plain_repr(counts) -> None:
+    algebra = Algebra(*counts)
+    grey_prefix = r"{\color{#bbbbbb}"
+    labels = dict(zip(("p", "q", "r"), counts, strict=True))
+
+    assert algebra._repr_latex_().count(grey_prefix) == counts.count(0)
+    for label, count in labels.items():
+        shown = f"{grey_prefix}{label}=0}}" if count == 0 else f"{label}={count}"
+        assert shown in algebra._repr_latex_()
+        assert f"{label}={count}" in repr(algebra)
+    assert grey_prefix not in repr(algebra)
+
+
+def test_algebra_rich_repr_preserves_signature_order_and_view_metric() -> None:
+    algebra = Algebra(sig=[1, 1, 1, 0])
+    view = Algebra.from_numeric(algebra.numeric)
+
+    assert view._repr_latex_() == (
+        r"$\operatorname{Algebra}\!\left(\mathrm{sig}=\left[1, 1, 1, 0\right]\right)"
+        r"\;\left[\mathrm{n}=4,\;\mathrm{is\_degenerate}=\mathrm{True}\right]$"
+    )
+    assert repr(view) == repr(algebra)
+
+
+def test_cga_reports_its_non_diagonal_stored_gram_without_claiming_degeneracy() -> None:
+    algebra = Algebra(config=p_cga())
+
+    assert not algebra.is_degenerate
+    assert not algebra.is_orthogonal_basis
+    assert repr(algebra).startswith("Algebra(gram=[[0, 0, 0, 0, -1],")
+    assert repr(algebra).endswith("[n=5, non_diagonal=True]")
+    assert "is_degenerate" not in repr(algebra)
 
 
 def test_multivector_repr_is_ascii_while_str_uses_unicode() -> None:
@@ -26,6 +116,20 @@ def test_multivector_repr_is_ascii_while_str_uses_unicode() -> None:
     g0, g1, _, _ = Algebra(config=p_sta()).basis_vectors()
     assert repr(g0 * g1) == "g0g1"
     assert str(g0 * g1) == "γ₀γ₁"
+
+
+@pytest.mark.parametrize("target, expected", (("unicode", "2e₁ + e₂"), ("ascii", "2e1 + e2")))
+def test_ipython_plain_text_uses_the_selected_multivector_target(target, expected) -> None:
+    formatters = pytest.importorskip("IPython.core.formatters")
+    algebra = Algebra(2, display=DisplayPolicy(target=target))
+    e1, e2 = algebra.basis_vectors()
+    value = 2 * e1 + e2
+
+    formatted, _ = formatters.DisplayFormatter().format(value)
+
+    assert formatted["text/plain"] == expected
+    assert repr(value) == "2e1 + e2"
+    assert formatted["text/latex"] == value._repr_latex_()
 
 
 @pytest.mark.parametrize("precision, expected", ((4, "3.142e₁ + 2.718e₂"), (2, "3.1e₁ + 2.7e₂")))

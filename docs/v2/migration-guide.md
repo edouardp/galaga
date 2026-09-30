@@ -692,8 +692,11 @@ rga_model = RigidModel(rga, expr=True)
 ## Migrate local bindings
 
 V2's `locals()` returns a read-only mapping from an independent
-`LocalNamePolicy`. Replace `grades=` by selecting signed references, and
-`prefix=` or `variable_hints` by explicitly choosing keys. For example:
+`LocalNamePolicy`. Displaying the mapping renders a LaTeX table of Python
+variable names and their basis blades in the algebra's display order. Mapping
+iteration retains policy insertion order. Replace `grades=` by selecting signed
+references and `prefix=` or `variable_hints` by explicitly choosing keys. For
+example:
 
 ```python
 from galaga import Algebra, LocalNamePolicy, p_sta
@@ -1253,10 +1256,15 @@ individual scalar coefficient, ordinary Python `format(float(grade(value, 0)),
 ".3f")` remains available.
 
 Multivector `repr(value)` is ASCII, while `str(value)` is Unicode by default.
-`repr(algebra)` is a diagnostic numeric-owner wrapper, not the old `Cl(p,q,r)`
-summary or a stable serialized format. Use explicit `signature` and `gram`
-metadata for those properties. These are existing v2 differences, not changes
-to arithmetic. See [ADR-097](../adrs/097-concrete-display-contracts-outlive-legacy-rendering.md).
+`repr(algebra)` now summarizes the stored metric in the simplest exact form:
+`Algebra(p=..., q=..., r=...)` for the default ordered unit signature,
+`Algebra(sig=[...])` for other ordered unit signatures, or
+`Algebra(gram=[[...], ...])` otherwise. It reports `n`, and adds
+`is_degenerate=True` or `non_diagonal=True` when applicable. Here `n` counts
+basis vectors; `dim` is `2**n`. Notebook display renders a general Gram matrix
+inline. This is diagnostic display, not a stable serialization of the full
+presentation or backend. See
+[ADR-157](../adrs/157-canonical-algebra-metric-display.md).
 
 ### Rendered strings are snapshots
 

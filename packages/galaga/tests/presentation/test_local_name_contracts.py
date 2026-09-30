@@ -1,13 +1,15 @@
 """Archived bindings and coefficient-first ownership for independent locals."""
 
 import json
+import re
+from collections.abc import Mapping
 from pathlib import Path
-from types import MappingProxyType
 
 import numpy as np
 import pytest
 
 import galaga as ga
+from galaga import presets
 from galaga.expression import BladeLiteral, Symbol, evaluate
 
 ARCHIVE = json.loads((Path(__file__).parents[2] / "tools/baselines/locals-contracts-v1.json").read_text())
@@ -157,13 +159,55 @@ def test_policy_mapping_and_returned_values_are_read_only_snapshots():
     entries["plane"] = ga.BladeRef(3)
     assert list(old) == ["plane", "x"]
     assert old["plane"] == -algebra.blade(3)
-    assert isinstance(old, MappingProxyType)
+    assert isinstance(old, Mapping)
     with pytest.raises(TypeError):
         old["plane"] = algebra.blade(3)
+    with pytest.raises(AttributeError):
+        old._values = {}
     with pytest.raises(TypeError):
         policy.mapping["plane"] = ga.BladeRef(3)
     assert algebra.locals()["plane"] is not old["plane"]
     assert algebra.locals()["plane"] == old["plane"]
+
+
+def test_local_bindings_render_python_names_and_preset_blades_as_a_latex_table():
+    sta = ga.Algebra(config=presets.sta(sigmas=True, pseudovectors=True)).locals()
+    cga = ga.Algebra(config=presets.cga()).locals()
+
+    assert isinstance(sta, ga.LocalMultivectors)
+    assert isinstance(cga, ga.LocalMultivectors)
+    sta_latex = sta.latex()
+    cga_latex = cga.latex()
+
+    assert r"\texttt{g0} & \gamma_{0}" in sta_latex
+    assert r"\texttt{s1} & \sigma_{1}" in sta_latex
+    assert r"\texttt{ig3} & i\gamma_{3}" in sta_latex
+    assert r"\texttt{is3} & i\sigma_{3}" in sta_latex
+    assert r"\texttt{i} & i" in sta_latex
+    assert r"\texttt{eo} & e_{o}" in cga_latex
+    assert r"\texttt{einf} & e_{\infty}" in cga_latex
+    assert r"\texttt{I} & I" in cga_latex
+    assert sta._repr_latex_() == "$" + sta_latex + "$"
+    assert cga._repr_latex_() == "$" + cga_latex + "$"
+
+
+@pytest.mark.parametrize(
+    "algebra",
+    (
+        ga.Algebra(3),
+        ga.Algebra(config=presets.sta(sigmas=True, pseudovectors=True)),
+        ga.Algebra(config=presets.cga()),
+        ga.Algebra(3).with_display_order(ga.DisplayOrder(3, (0, 4, 2, 1, 6, 5, 3, 7))),
+    ),
+)
+def test_local_bindings_table_follows_algebra_display_order(algebra):
+    local_values = algebra.locals()
+    entries = algebra.presentation.local_names.entries
+    expected = [name for mask in algebra.display_order for name, ref in entries if ref.mask == mask]
+    rendered = re.findall(r"\\texttt\{([^}]*)\} &", local_values.latex())
+
+    assert rendered == expected
+    assert list(local_values) == [name for name, _ in entries]
 
 
 @pytest.mark.parametrize(

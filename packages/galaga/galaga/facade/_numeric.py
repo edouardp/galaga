@@ -8,9 +8,10 @@ numeric evaluation.
 
 from __future__ import annotations
 
-from collections.abc import Generator, Iterable
+from collections.abc import Generator, Iterable, Iterator, Mapping
 from contextlib import contextmanager
 from contextvars import ContextVar
+from dataclasses import dataclass
 from numbers import Integral, Real
 from types import MappingProxyType, NotImplementedType
 from typing import TYPE_CHECKING, Any, cast
@@ -30,6 +31,7 @@ from ..presentation import (
     PresentationConfig,
     default_presentation,
 )
+from ..rendering._emit import _number
 from .catalog import LeftFoldCall, get_operation
 
 if TYPE_CHECKING:
@@ -47,6 +49,7 @@ class Algebra:
 
     __slots__ = (
         "_basis_vectors",
+        "_basis_vector_views",
         "_default_presentation",
         "_expr",
         "_model",
@@ -114,6 +117,7 @@ class Algebra:
                 f"{self._default_presentation.dimension} does not match numeric dimension {self._numeric.n}"
             )
         self._basis_vectors: tuple[Multivector, ...] | None = None
+        self._basis_vector_views: dict[PresentationConfig, BasisMultivectors] = {}
         self._presentation_override: ContextVar[PresentationConfig | None] = ContextVar(
             f"galaga_presentation_{id(self)}",
             default=None,
@@ -146,6 +150,7 @@ class Algebra:
         instance._numeric = numeric
         instance._expr = expr
         instance._basis_vectors = None
+        instance._basis_vector_views = {}
         instance._default_presentation = selected
         instance._model = model
         instance._presentation_override = ContextVar(
@@ -474,11 +479,14 @@ class Algebra:
         """Return the active convention's canonical label for a native mask."""
         return self.presentation.blades.label(bitmask)
 
-    def locals(self, *, expr: bool | None = None) -> MappingProxyType[str, Multivector]:
-        """Return a read-only mapping of configured Python names to values."""
+    def locals(self, *, expr: bool | None = None) -> LocalMultivectors:
+        """Return read-only local values with a notebook table display."""
         expr = self._resolve_expr(expr)
-        return MappingProxyType(
-            {name: self.blade(ref, name=name, expr=expr) for name, ref in self.presentation.local_names.entries}
+        presentation = self.presentation
+        values = {name: self.blade(ref, name=name, expr=expr) for name, ref in presentation.local_names.entries}
+        return LocalMultivectors(
+            values,
+            presentation=presentation,
         )
 
     @property
@@ -499,20 +507,36 @@ class Algebra:
             raise ValueError(f"blade mask must be in [0, {self.dim})")
         return ref
 
-    def basis_vectors(self, *, expr: bool | None = None) -> tuple[Multivector, ...]:
+    def basis_vectors(self, *, expr: bool | None = None) -> BasisMultivectors:
         expr = self._resolve_expr(expr)
         if self._basis_vectors is None:
             self._basis_vectors = tuple(self._wrap(value) for value in self._numeric.basis_vectors())
+        selected = self.presentation
         if not expr:
-            return self._basis_vectors
-        return tuple(value.with_expr() for value in self._basis_vectors)
+            cached = self._basis_vector_views.get(selected)
+            if cached is None:
+                cached = BasisMultivectors(
+                    self._basis_vectors,
+                    masks=(1 << index for index in range(self.n)),
+                    presentation=selected,
+                )
+                self._basis_vector_views[selected] = cached
+            return cached
+        return BasisMultivectors(
+            (value.with_expr() for value in self._basis_vectors),
+            masks=(1 << index for index in range(self.n)),
+            presentation=selected,
+        )
 
-    def basis_blades(self, value: int, *, expr: bool | None = None) -> tuple[Multivector, ...]:
+    def basis_blades(self, value: int, *, expr: bool | None = None) -> BasisMultivectors:
         expr = self._resolve_expr(expr)
         result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(value))
-        if not expr:
-            return result
-        return tuple(blade.with_expr() for blade in result)
+        values = tuple(blade.with_expr() for blade in result) if expr else result
+        return BasisMultivectors(
+            values,
+            masks=(mask for mask in range(self.dim) if mask.bit_count() == value),
+            presentation=self.presentation,
+        )
 
     def pseudoscalar(self, *, expr: bool | None = None) -> Multivector:
         expr = self._resolve_expr(expr)
@@ -535,8 +559,61 @@ class Algebra:
         if value.numeric.algebra is not self._numeric:
             raise ValueError("multivector belongs to a different numeric algebra")
 
+    def _metric_display(self, *, latex: bool) -> str:
+        """Describe the stored metric without losing basis order or Gram entries."""
+        try:
+            signature = self.signature
+        except ValueError:
+            precision = self.presentation.display.coefficient_precision
+            rows = [[_metric_number(entry, latex=latex, precision=precision) for entry in row] for row in self.gram]
+            if latex:
+                matrix = r" \\ ".join(" & ".join(row) for row in rows)
+                return rf"\mathrm{{gram}}=\left[\begin{{smallmatrix}}{matrix}\end{{smallmatrix}}\right]"
+            matrix = ", ".join("[" + ", ".join(row) + "]" for row in rows)
+            return f"gram=[{matrix}]"
+
+        p, q, r = signature.count(1), signature.count(-1), signature.count(0)
+        if signature == (0,) * r + (1,) * p + (-1,) * q:
+            if latex:
+                return ", ".join(
+                    rf"{{\color{{#bbbbbb}}{name}=0}}" if value == 0 else f"{name}={value}"
+                    for name, value in (("p", p), ("q", q), ("r", r))
+                )
+            return f"p={p}, q={q}, r={r}"
+        values = ", ".join(str(value) for value in signature)
+        return rf"\mathrm{{sig}}=\left[{values}\right]" if latex else f"sig=[{values}]"
+
+    def _metric_annotations(self) -> tuple[tuple[str, int | bool], ...]:
+        annotations: list[tuple[str, int | bool]] = [("n", self.n)]
+        if self.is_degenerate:
+            annotations.append(("is_degenerate", True))
+        if not self.is_orthogonal_basis:
+            annotations.append(("non_diagonal", True))
+        return tuple(annotations)
+
     def __repr__(self) -> str:
-        return f"Algebra(numeric={self._numeric!r})"
+        annotations = ", ".join(f"{name}={value}" for name, value in self._metric_annotations())
+        return f"Algebra({self._metric_display(latex=False)}) [{annotations}]"
+
+    def _repr_latex_(self) -> str:
+        metric = self._metric_display(latex=True)
+        parts = []
+        for name, value in self._metric_annotations():
+            label = name.replace("_", r"\_")
+            rendered = str(value) if isinstance(value, int) and not isinstance(value, bool) else rf"\mathrm{{{value}}}"
+            parts.append(rf"\mathrm{{{label}}}={rendered}")
+        annotations = r",\;".join(parts)
+        return (
+            rf"$\operatorname{{Algebra}}\!\left({metric}\right)"
+            rf"\;\left[{annotations}\right]$"
+        )
+
+
+def _metric_number(value: float, *, latex: bool, precision: int) -> str:
+    """Format a Gram entry with the active coefficient precision."""
+    if value == 0:
+        return r"{\color{#bbbbbb}0}" if latex else "0"
+    return _number(float(value), "latex" if latex else "ascii", precision)
 
 
 def _expand_config(value: Any) -> AlgebraConfig:
@@ -958,9 +1035,117 @@ class Multivector:
     def __repr__(self) -> str:
         return self.display(target="ascii")
 
+    def _repr_pretty_(self, printer: Any, cycle: bool) -> None:
+        """Use the selected plain-text target in terminal IPython."""
+        printer.text("..." if cycle else self.display())
+
     def _repr_latex_(self) -> str:
         """Jupyter and Marimo rich-display hook."""
         return self.latex(wrap="$")
+
+
+@dataclass(frozen=True, slots=True, init=False, eq=False)
+class LocalMultivectors(Mapping[str, Multivector]):
+    """Read-only local bindings with a presentation-aware notebook table."""
+
+    _presentation: PresentationConfig
+    _values: MappingProxyType[str, Multivector]
+
+    def __init__(self, values: Mapping[str, Multivector], *, presentation: PresentationConfig) -> None:
+        object.__setattr__(self, "_values", MappingProxyType(dict(values)))
+        object.__setattr__(self, "_presentation", presentation)
+
+    def __getitem__(self, key: str) -> Multivector:
+        return self._values[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self._values)
+
+    def __len__(self) -> int:
+        return len(self._values)
+
+    def _ordered_items(self) -> list[tuple[str, Multivector]]:
+        positions = {mask: index for index, mask in enumerate(self._presentation.display_order.masks)}
+        masks = {name: ref.mask for name, ref in self._presentation.local_names.entries}
+        return sorted(self._values.items(), key=lambda item: positions.get(masks.get(item[0]), len(positions)))
+
+    def latex(self) -> str:
+        """Render Python local names beside their captured basis-blade labels."""
+        rows = [r"\text{Python name} & \text{basis blade}"]
+        for name, value in self._ordered_items():
+            safe_name = name.replace("_", r"\_")
+            blade = value.latex(content="value", presentation=self._presentation)
+            rows.append(rf"\texttt{{{safe_name}}} & {blade}")
+        body = r" \\ ".join(rows)
+        return rf"\begin{{array}}{{c|l}}{body}\end{{array}}"
+
+    def _repr_latex_(self) -> str:
+        return f"${self.latex()}$"
+
+    def _repr_pretty_(self, printer: Any, cycle: bool) -> None:
+        if cycle:
+            printer.text("...")
+            return
+        entries = self._ordered_items()
+        width = max((len(name) for name, _ in entries), default=0)
+        width = max(width, len("Python name"))
+        rows = [f"{'Python name':<{width}} | basis blade"]
+        target = self._presentation.display.target
+        for name, value in entries:
+            blade = value.display(content="value", target=target, presentation=self._presentation)
+            rows.append(f"{name:<{width}} | {blade}")
+        printer.text("\n".join(rows))
+
+    def __repr__(self) -> str:
+        return f"LocalMultivectors({dict(self._values)!r})"
+
+
+class BasisMultivectors(tuple[Multivector, ...]):
+    """Tuple-compatible basis values with a presentation-aware notebook table."""
+
+    def __new__(
+        cls,
+        values: Iterable[Multivector],
+        *,
+        masks: Iterable[int],
+        presentation: PresentationConfig,
+    ) -> BasisMultivectors:
+        result = super().__new__(cls, values)
+        result._masks = tuple(masks)
+        if len(result) != len(result._masks):
+            raise ValueError("basis values and masks must have equal lengths")
+        result._presentation = presentation
+        return result
+
+    def _ordered_indices(self) -> list[int]:
+        positions = {mask: index for index, mask in enumerate(self._presentation.display_order.masks)}
+        return sorted(range(len(self)), key=lambda item: positions[self._masks[item]])
+
+    def latex(self) -> str:
+        """Show native sequence indices and blades in captured display order."""
+        rows = [r"\text{Index} & \text{basis blade}"]
+        for index in self._ordered_indices():
+            blade = self[index].latex(content="value", presentation=self._presentation)
+            rows.append(rf"\texttt{{[{index}]}} & {blade}")
+        body = r" \\ ".join(rows)
+        return rf"\begin{{array}}{{c|l}}{body}\end{{array}}"
+
+    def _repr_latex_(self) -> str:
+        return f"${self.latex()}$"
+
+    def _repr_pretty_(self, printer: Any, cycle: bool) -> None:
+        if cycle:
+            printer.text("...")
+            return
+        indices = self._ordered_indices()
+        width = max((len(f"[{index}]") for index in indices), default=0)
+        width = max(width, len("Index"))
+        rows = [f"{'Index':<{width}} | basis blade"]
+        target = self._presentation.display.target
+        for index in indices:
+            blade = self[index].display(content="value", target=target, presentation=self._presentation)
+            rows.append(f"{f'[{index}]':<{width}} | {blade}")
+        printer.text("\n".join(rows))
 
 
 def _literal_expression(value: Multivector) -> Expr:
