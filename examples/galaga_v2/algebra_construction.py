@@ -1,6 +1,6 @@
 import marimo
 
-__generated_with = "0.23.14"
+__generated_with = "0.24.2"
 app = marimo.App()
 
 
@@ -15,11 +15,13 @@ def _():
         DisplayPolicy,
         Notation,
         geometric_product,
+        metric_inner_product,
         p_cga,
         p_euclidean,
         p_pga,
         p_rga,
         p_sta,
+        presets
     )
 
     return (
@@ -28,6 +30,7 @@ def _():
         Notation,
         geometric_product,
         gm,
+        metric_inner_product,
         mo,
         np,
         p_cga,
@@ -35,6 +38,7 @@ def _():
         p_pga,
         p_rga,
         p_sta,
+        presets,
     )
 
 
@@ -397,6 +401,155 @@ def _(Algebra, gm):
     applying `LocalNamePolicy.from_convention(...)` makes it
     `{_local_after!s}`, without changing the numeric algebra.
     """)
+    return (naming_algebra,)
+
+
+@app.cell
+def _(Algebra):
+    Algebra(3,1)
+    return
+
+
+@app.cell
+def _(Algebra):
+    Algebra([1,-1,-1,-1])
+    return
+
+
+@app.cell
+def _(Algebra):
+    Algebra([1,1,1,0])
+    return
+
+
+@app.cell
+def _(naming_algebra):
+    naming_algebra
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.lengyel_cga(3))
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.sta(sigmas=True, pseudovectors=True))
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.sta()).basis_blades(2)
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    locals().update(Algebra(config=presets.sta(sigmas=True, pseudovectors=True)).locals())
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.cga(3)).basis_vectors()
+    return
+
+
+@app.cell
+def _():
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    alg = Algebra(config=presets.cga(3), expr=True)
+    eo,e1,e2,e3,einf = alg.basis_vectors()
+    return e1, e2, e3, einf, eo
+
+
+@app.cell
+def _(e1, e2, e3, einf, eo):
+    eo,e1,e2,e3,einf
+    return
+
+
+@app.cell
+def _(einf, eo):
+    eo|einf
+    return
+
+
+@app.cell
+def _(einf, eo, metric_inner_product):
+    metric_inner_product(eo,einf)
+    return
+
+
+@app.cell
+def _(e1, e2):
+    ~e1+e2
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.exterior(3))
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.oblique_plane(degrees=45))
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(config=presets.cga(3, frame="null"))
+    return
+
+
+@app.cell
+def _(presets):
+    presets.blades.indexed(3, start=0)
+    return
+
+
+@app.cell
+def _(Algebra, presets):
+    Algebra(sig=[0,1,1,1], blades=presets.blades.indexed(4, start=0)).basis_vectors()
+    return
+
+
+@app.cell
+def _(presets):
+    lengyal = presets.presenters.lengyel()
+    return (lengyal,)
+
+
+@app.cell
+def _(e1, einf, eo):
+    example = eo+e1*einf
+    return (example,)
+
+
+@app.cell
+def _(example):
+    example
+    return
+
+
+@app.cell
+def _(example, lengyal):
+    lengyal(example)
+    return
+
+
+@app.cell
+def _():
     return
 
 
