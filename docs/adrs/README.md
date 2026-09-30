@@ -182,6 +182,7 @@ classes are no longer production alternatives.
 | [159](159-ipython-plain-display-follows-target.md) | IPython Plain Display Follows the Presentation Target | Accepted |
 | [160](160-oblique-plane-angle-preset.md) | Angle-Based Oblique Plane Preset | Accepted |
 | [161](161-right-biased-presentation-composition.md) | Right-Biased Presentation Composition | Accepted |
+| [164](164-exterior-algebra-square-roots.md) | Square Roots in an All-Null Exterior Algebra | Accepted; extends 053 |
 
 ## Creating New ADRs
 
