@@ -175,6 +175,7 @@ classes are no longer production alternatives.
 | [154](154-independent-external-span-overlays.md) | Independent External Span Overlays | Accepted |
 | [155](155-internal-decoration-boundary-and-lockstep-dependency-floors.md) | Internal Decoration Boundary and Lockstep Dependency Floors | Accepted |
 | [156](156-headless-browser-geometry-contracts-for-katex.md) | Headless Browser Geometry Contracts for KaTeX | Accepted |
+| [164](164-exterior-algebra-square-roots.md) | Square Roots in an All-Null Exterior Algebra | Accepted; extends 053 |
 
 ## Creating New ADRs
 

@@ -2,7 +2,7 @@
 
 ## Status
 
-Accepted
+Accepted; extended by [ADR-164](164-exterior-algebra-square-roots.md) for all-null exterior algebras
 
 ## Context
 
