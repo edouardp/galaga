@@ -75,7 +75,7 @@ from galaga import Algebra, metric_inner_product
 
 euclidean = Algebra(3)                  # Cl(3, 0)
 spacetime = Algebra(1, 3)                # Ordered squares: +1, -1, -1, -1.
-projective = Algebra(3, 0, 1)            # Three positive, then one null vector.
+projective = Algebra(3, 0, 1)            # One null vector, then three positive vectors.
 time_first = Algebra((-1, 1, 1, 1))     # Explicit ordered signature.
 
 oblique = Algebra(gram=[[2.0, 1.0], [1.0, 3.0]])
@@ -86,9 +86,13 @@ assert e1 * e2 == oblique.gram[0, 1] + (e1 ^ e2)
 
 The defining identity is $e_i e_j + e_j e_i = 2G_{ij}$. Use `gram=` for
 scaled or nonorthogonal metrics; ordered signatures contain only `+1`, `-1`
-and `0`. `Algebra(p, q, r)` puts positive, negative, then null vectors in
-that order. Thus `Algebra(3, 1)` is **not** the time-first mostly-plus frame
-`Algebra((-1, 1, 1, 1))`.
+and `0`. `Algebra(p, q, r)` counts positive, negative, and null vectors,
+but orders their basis squares as **null, positive, negative**. For example,
+`Algebra(3, 0, 1)` has Gram diagonal `(0, 1, 1, 1)`. The complete
+`presets.pga(spatial_dim=3)` preset instead uses `(1, 1, 1, 0)`, placing
+its null vector last. Use `signature=` to choose a different explicit order.
+Thus `Algebra(3, 1)` is **not** the time-first mostly-plus frame
+`Algebra(signature=(-1, 1, 1, 1))`.
 
 Coefficients are real `float64` values in the **native exterior basis**.
 In a nonorthogonal basis, `e1 ^ e2` is a pure bivector while `e1 * e2` also
@@ -163,18 +167,24 @@ compares these cases and their zero-scalar boundaries.
 Presentation components compose with `|` using right-hand precedence:
 
 ```python
-from galaga import Algebra, DisplayPolicy, presets
+from galaga import Algebra, presets
 
 notation = presets.notation.hestenes() | presets.notation.doran_lasenby()
-recipe = presets.blades.euclidean(2) | notation | DisplayPolicy(coefficient_precision=4)
+recipe = presets.blades.euclidean(2) | notation | presets.display.override(coefficient_precision=4)
 algebra = Algebra(config=presets.oblique_plane(degrees=60) | recipe)
 ```
 
 The recipe changes presentation only. Notation unions merge tokens by operation
 ID and rules by `(operation_id, target)`; an absent right-hand entry leaves the
 left-hand entry intact. When a presentation slot appears twice, the right-hand
-component replaces it. Two complete algebra presets cannot be combined with
+component replaces it; display overrides merge supplied fields instead.
+Two complete algebra presets cannot be combined with
 `|` because that would leave the numeric metric ambiguous.
+
+`presets.display.override(content="full", coefficient_precision=4)` changes
+only those two choices. Omitted target and zero tolerance settings inherit from
+the algebra or an earlier recipe. `DisplayPolicy(...)` remains available for
+direct `display=` arguments and has the same sparse override behavior.
 
 To change only the reverse symbol of a complete preset, use
 `presets.notation.override(reverse="dagger")` or `reverse="tilde"`. For example,
