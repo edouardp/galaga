@@ -5,20 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
+from ._composition_base import PresentationComposable
+from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
+from .presentation import AlgebraConfig, DisplayPolicy, Notation, PresentationConfig, RenderRule
+
 if TYPE_CHECKING:
-    from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-    from .presentation import AlgebraConfig, DisplayPolicy, Notation, PresentationConfig, RenderRule
     from .presets import BladePreset, Preset
-
-
-class PresentationComposable:
-    """Provide ``|`` without coupling component modules to one another."""
-
-    def __or__(self, other: object) -> Any:
-        return compose(self, other)
-
-    def __ror__(self, other: object) -> Any:
-        return compose(other, self)
 
 
 @dataclass(frozen=True, slots=True)
@@ -31,8 +23,6 @@ class NotationPatch(PresentationComposable):
     def __post_init__(self) -> None:
         if self.reverse not in (None, "tilde", "dagger"):
             raise ValueError("reverse must be 'tilde' or 'dagger'")
-        from .presentation import RenderRule
-
         seen: set[tuple[str, str | None]] = set()
         for operation_id, target, rule in self.rules:
             if not isinstance(operation_id, str) or not operation_id:
@@ -48,8 +38,6 @@ class NotationPatch(PresentationComposable):
 
     def apply(self, notation: Notation) -> Notation:
         """Change only requested operation rules, including target overrides."""
-        from .presentation import Notation
-
         if not isinstance(notation, Notation):
             raise TypeError("notation patch requires a Notation")
         rules = {(operation_id, target): rule for operation_id, target, rule in notation.rules}
@@ -101,8 +89,6 @@ class LocalNameRecipe(PresentationComposable):
     entries: tuple[tuple[str, Any], ...] = ()
 
     def resolve(self, blades: BladeConvention) -> LocalNamePolicy:
-        from .blades import LocalNamePolicy
-
         if self.from_blades:
             return LocalNamePolicy.from_convention(blades)
         return LocalNamePolicy(blades.dimension, dict(self.entries))
@@ -116,8 +102,6 @@ class DisplayOrderRecipe(PresentationComposable):
     masks: tuple[int, ...] = ()
 
     def resolve(self, dimension: int) -> DisplayOrder:
-        from .blades import DisplayOrder
-
         if self.kind == "grade-lexicographic":
             return DisplayOrder(dimension)
         if self.kind == "bitmap":
@@ -138,8 +122,6 @@ class PresentationRecipe(PresentationComposable):
     display: DisplayPolicy | None = None
 
     def __post_init__(self) -> None:
-        from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-        from .presentation import DisplayPolicy, Notation
         from .presets import BladePreset
 
         expected = (
@@ -155,17 +137,12 @@ class PresentationRecipe(PresentationComposable):
 
     def apply(self, config: AlgebraConfig) -> AlgebraConfig:
         """Return a config with supplied slots replaced and its metric intact."""
-        from .presentation import AlgebraConfig
-
         if not isinstance(config, AlgebraConfig):
             raise TypeError("presentation recipe requires an AlgebraConfig")
         return config.with_presentation(self.apply_to(config.presentation, config.definition.gram))
 
     def apply_to(self, presentation: PresentationConfig, gram: Any) -> PresentationConfig:
         """Resolve optional slots against an existing presentation and Gram matrix."""
-        from .blades import BladeConvention
-        from .presentation import PresentationConfig
-
         if not isinstance(presentation, PresentationConfig):
             raise TypeError("presentation recipe requires a PresentationConfig")
         if self.blades is not None:
@@ -203,16 +180,12 @@ class ConfiguredPreset(PresentationComposable):
     presentation: PresentationRecipe
 
     def __post_init__(self) -> None:
-        from .presentation import AlgebraConfig
-
         if not isinstance(self.base, AlgebraConfig) and not callable(getattr(self.base, "build", None)):
             raise TypeError("configured preset base must be a complete algebra preset or config")
         if not isinstance(self.presentation, PresentationRecipe):
             raise TypeError("configured preset presentation must be a PresentationRecipe")
 
     def build(self) -> AlgebraConfig:
-        from .presentation import AlgebraConfig
-
         config = self.base if isinstance(self.base, AlgebraConfig) else self.base.build()
         if not isinstance(config, AlgebraConfig):
             raise TypeError("complete preset build() must return an AlgebraConfig")
@@ -221,33 +194,14 @@ class ConfiguredPreset(PresentationComposable):
 
 def compose(left: object, right: object) -> Any:
     """Merge rule maps or presentation slots with right-hand precedence."""
-    from .presentation import AlgebraConfig, DisplayPolicy, Notation
-
     if isinstance(left, NotationPatch) and isinstance(right, NotationPatch):
-        reverse = right.reverse if right.reverse is not None else left.reverse
-        rules = {(operation_id, target): rule for operation_id, target, rule in left.rules}
-        if right.reverse is not None:
-            rules.pop(("reverse", None), None)
-            rules.pop(("reverse", "latex"), None)
-        rules.update({(operation_id, target): rule for operation_id, target, rule in right.rules})
-        return NotationPatch(reverse=reverse, rules=tuple((op, target, rule) for (op, target), rule in rules.items()))
+        return _merge_notation_patches(left, right)
     if isinstance(left, Notation) and isinstance(right, NotationPatch):
         return right.apply(left)
     if isinstance(left, NotationPatch) and isinstance(right, Notation):
         return right
     if isinstance(left, Notation) and isinstance(right, Notation):
-        tokens = dict(left.tokens) | dict(right.tokens)
-        rules = {
-            (operation_id if target is None else (operation_id, target)): rule
-            for operation_id, target, rule in left.rules
-        }
-        rules.update(
-            {
-                (operation_id if target is None else (operation_id, target)): rule
-                for operation_id, target, rule in right.rules
-            }
-        )
-        return Notation(right.id, tokens, rules=rules)
+        return _merge_notations(left, right)
     if isinstance(left, DisplayPolicy) and isinstance(right, DisplayPolicy):
         return left.merge(right)
 
@@ -256,43 +210,60 @@ def compose(left: object, right: object) -> Any:
         return NotImplemented
     left_recipe = _as_recipe(left)
     if left_recipe is not None:
-        notation = right_recipe.notation if right_recipe.notation is not None else left_recipe.notation
-        if isinstance(notation, NotationPatch) and left_recipe.notation is not None:
-            notation = compose(left_recipe.notation, notation)
-        return PresentationRecipe(
-            blades=right_recipe.blades if right_recipe.blades is not None else left_recipe.blades,
-            notation=notation,
-            local_names=right_recipe.local_names if right_recipe.local_names is not None else left_recipe.local_names,
-            display_order=(
-                right_recipe.display_order if right_recipe.display_order is not None else left_recipe.display_order
-            ),
-            display=(
-                left_recipe.display.merge(right_recipe.display)
-                if left_recipe.display is not None and right_recipe.display is not None
-                else right_recipe.display
-                if right_recipe.display is not None
-                else left_recipe.display
-            ),
-        )
+        return _merge_recipes(left_recipe, right_recipe)
     if isinstance(left, ConfiguredPreset):
-        return ConfiguredPreset(left.base, compose(left.presentation, right_recipe))
+        return ConfiguredPreset(left.base, _merge_recipes(left.presentation, right_recipe))
     if isinstance(left, AlgebraConfig) or callable(getattr(left, "build", None)):
         return ConfiguredPreset(left, right_recipe)
     return NotImplemented
 
 
+def _merge_notation_patches(left: NotationPatch, right: NotationPatch) -> NotationPatch:
+    rules = {(operation_id, target): rule for operation_id, target, rule in left.rules}
+    if right.reverse is not None:
+        rules.pop(("reverse", None), None)
+        rules.pop(("reverse", "latex"), None)
+    rules.update({(operation_id, target): rule for operation_id, target, rule in right.rules})
+    reverse = right.reverse if right.reverse is not None else left.reverse
+    return NotationPatch(reverse=reverse, rules=tuple((op, target, rule) for (op, target), rule in rules.items()))
+
+
+def _merge_notations(left: Notation, right: Notation) -> Notation:
+    tokens = dict(left.tokens) | dict(right.tokens)
+    rules = {
+        operation_id if target is None else (operation_id, target): rule
+        for notation in (left, right)
+        for operation_id, target, rule in notation.rules
+    }
+    return Notation(right.id, tokens, rules=rules)
+
+
+def _merge_recipes(left: PresentationRecipe, right: PresentationRecipe) -> PresentationRecipe:
+    notation = right.notation if right.notation is not None else left.notation
+    if isinstance(notation, NotationPatch) and left.notation is not None:
+        notation = compose(left.notation, notation)
+
+    display = right.display if right.display is not None else left.display
+    if left.display is not None and right.display is not None:
+        display = left.display.merge(right.display)
+
+    return PresentationRecipe(
+        blades=right.blades if right.blades is not None else left.blades,
+        notation=notation,
+        local_names=right.local_names if right.local_names is not None else left.local_names,
+        display_order=right.display_order if right.display_order is not None else left.display_order,
+        display=display,
+    )
+
+
 def _as_recipe(value: object) -> PresentationRecipe | None:
-    from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-    from .presentation import DisplayPolicy, Notation
     from .presets import BladePreset
 
     if isinstance(value, PresentationRecipe):
         return value
     if isinstance(value, (BladeConvention, BladePreset)):
         return PresentationRecipe(blades=value)
-    if isinstance(value, Notation):
-        return PresentationRecipe(notation=value)
-    if isinstance(value, NotationPatch):
+    if isinstance(value, (Notation, NotationPatch)):
         return PresentationRecipe(notation=value)
     if isinstance(value, LocalNamePolicy):
         return PresentationRecipe(local_names=value)

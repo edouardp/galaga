@@ -17,6 +17,7 @@ from galaga.presentation import (
     ModelConfig,
     Notation,
     PresentationConfig,
+    RenderRule,
     default_presentation,
 )
 
@@ -204,6 +205,39 @@ def test_notation_and_display_policy_validate_their_own_concerns():
         DisplayPolicy(coefficient_precision=0)
     with pytest.raises(ValueError, match="between 1 and 17"):
         DisplayPolicy(coefficient_precision=18)
+
+
+def test_notation_normalizes_iterable_tokens_and_target_rules():
+    generic = RenderRule("function", symbol="reverse")
+    latex = RenderRule("superscript", symbol=r"\dagger")
+    notation = Notation(
+        "custom",
+        iter((("reverse", "rev"),)),
+        rules=iter((("reverse", generic), (("reverse", "latex"), latex))),
+    )
+
+    assert notation.tokens == (("reverse", "rev"),)
+    assert notation.rules == (("reverse", None, generic), ("reverse", "latex", latex))
+    assert notation.rule("reverse", "ascii") is generic
+    assert notation.rule("reverse", "latex") is latex
+
+    with pytest.raises(ValueError, match="duplicate notation rule"):
+        Notation("duplicate", rules=(("reverse", generic), ("reverse", latex)))
+
+
+@pytest.mark.parametrize(
+    ("kwargs", "error", "message"),
+    [
+        ({"argument_order": (0, 0)}, ValueError, "must not repeat"),
+        ({"argument_order": (True,)}, ValueError, "non-negative integers"),
+        ({"flatten": 1}, TypeError, "flatten flag"),
+        ({"script_style": True}, ValueError, "only by wrapper"),
+        ({"parameter_position": "above"}, ValueError, "parameter_position"),
+    ],
+)
+def test_render_rule_options_keep_specific_validation_errors(kwargs, error, message):
+    with pytest.raises(error, match=message):
+        RenderRule("function", symbol="f", **kwargs)
 
 
 def test_configuration_type_boundaries_fail_before_partial_objects_escape():

@@ -10,7 +10,7 @@ from numbers import Real
 from types import MappingProxyType
 from typing import Literal
 
-from .composition import PresentationComposable
+from ._composition_base import PresentationComposable
 from .names import Name
 
 _SUBSCRIPT_TRANSLATION = str.maketrans("0123456789+-", "₀₁₂₃₄₅₆₇₈₉₊₋")

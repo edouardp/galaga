@@ -16,6 +16,7 @@ from galaga import (
     RenderRule,
     presets,
 )
+from galaga._composition_base import PresentationComposable
 from galaga.blades import DisplayOrder, LocalNamePolicy
 
 
@@ -218,3 +219,23 @@ def test_complete_presets_cannot_be_implicitly_merged():
 def test_public_recipe_rejects_unknown_component_types():
     with pytest.raises(TypeError, match="blades"):
         PresentationRecipe(blades="sta")  # type: ignore[arg-type]
+
+
+def test_leaf_composition_hook_dispatches_across_component_modules():
+    blade_preset = presets.blades.indexed(2, prefix="v")
+    notation = presets.notation.hestenes()
+    display = DisplayPolicy(coefficient_precision=3)
+
+    assert PresentationComposable.__module__ == "galaga._composition_base"
+    assert isinstance(blade_preset, PresentationComposable)
+    assert isinstance(notation, PresentationComposable)
+    assert isinstance(display, PresentationComposable)
+
+    recipe = blade_preset | notation | display
+    algebra = Algebra(config=presets.euclidean(2) | recipe)
+    assert algebra.presentation.blades.label(1).name.ascii == "v1"
+    assert algebra.presentation.notation == notation
+    assert algebra.presentation.display.coefficient_precision == 3
+
+    with pytest.raises(TypeError):
+        _ = blade_preset | object()

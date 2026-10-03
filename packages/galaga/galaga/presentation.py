@@ -8,8 +8,8 @@ from dataclasses import dataclass, field, replace
 from numbers import Integral, Real
 from typing import cast
 
+from ._composition_base import PresentationComposable
 from .blades import BladeConvention, BladeRef, DisplayOrder, LocalNamePolicy
-from .composition import PresentationComposable
 from .names import Name
 
 _RULE_KINDS = {
@@ -56,6 +56,64 @@ def _render_name(value: Name | str | None, *, field: str) -> Name | None:
     if isinstance(value, str):
         return Name(value)
     raise TypeError(f"{field} must be a Name, string, or None")
+
+
+def _validate_rule_layout(
+    kind: str,
+    symbol: Name | None,
+    opening: Name | None,
+    closing: Name | None,
+    numerator_closing: Name | None,
+    denominator_closing: Name | None,
+) -> None:
+    if kind in {"accent", "function", "infix", "postfix", "prefix", "underaccent"} and symbol is None:
+        raise ValueError(f"{kind} render rules require a symbol")
+    if kind == "wrapper" and (opening is None or closing is None):
+        raise ValueError("wrapper render rules require opening and closing names")
+    if kind == "wrapper_fraction" and (opening is None or numerator_closing is None or denominator_closing is None):
+        raise ValueError(
+            "wrapper_fraction render rules require opening, numerator_closing, and denominator_closing names"
+        )
+
+
+def _argument_order(value: Iterable[int] | None) -> tuple[int, ...] | None:
+    if value is None:
+        return None
+    order = tuple(value)
+    if any(not isinstance(index, int) or isinstance(index, bool) or index < 0 for index in order):
+        raise ValueError("render-rule argument order must contain non-negative integers")
+    if len(set(order)) != len(order):
+        raise ValueError("render-rule argument order must not repeat an index")
+    return order
+
+
+def _validate_rule_options(
+    *,
+    associativity: str,
+    parameter: str | None,
+    flatten: bool,
+    scalable: bool,
+    script_style: bool,
+    group_operand: bool,
+    parameter_position: str,
+    kind: str,
+) -> None:
+    if associativity not in _RULE_ASSOCIATIVITY:
+        raise ValueError("render-rule associativity must be 'none', 'left', 'right', or 'associative'")
+    if parameter is not None and (not isinstance(parameter, str) or not parameter):
+        raise ValueError("render-rule parameter must be a non-empty string or None")
+    for name, value in (
+        ("flatten", flatten),
+        ("scalable", scalable),
+        ("script_style", script_style),
+        ("group_operand", group_operand),
+    ):
+        if not isinstance(value, bool):
+            raise TypeError(f"render-rule {name} flag must be a boolean")
+    if script_style and kind != "wrapper":
+        raise ValueError("script_style is supported only by wrapper render rules")
+    if parameter_position not in {"subscript", "underscript"}:
+        raise ValueError("render-rule parameter_position must be 'subscript' or 'underscript'")
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -122,44 +180,30 @@ class RenderRule:
             denominator_closing,
             field="render-rule denominator_closing",
         )
-        required_symbol = {"accent", "function", "infix", "postfix", "prefix", "underaccent"}
-        if kind in required_symbol and selected_symbol is None:
-            raise ValueError(f"{kind} render rules require a symbol")
-        if kind == "wrapper" and (selected_opening is None or selected_closing is None):
-            raise ValueError("wrapper render rules require opening and closing names")
-        if kind == "wrapper_fraction" and (
-            selected_opening is None or selected_numerator_closing is None or selected_denominator_closing is None
-        ):
-            raise ValueError(
-                "wrapper_fraction render rules require opening, numerator_closing, and denominator_closing names"
-            )
+        _validate_rule_layout(
+            kind,
+            selected_symbol,
+            selected_opening,
+            selected_closing,
+            selected_numerator_closing,
+            selected_denominator_closing,
+        )
         selected_precedence = _DEFAULT_PRECEDENCE[kind] if precedence is None else precedence
         if not isinstance(selected_precedence, int) or isinstance(selected_precedence, bool):
             raise TypeError("render-rule precedence must be an integer")
         if selected_precedence < 0:
             raise ValueError("render-rule precedence must be non-negative")
-        if associativity not in _RULE_ASSOCIATIVITY:
-            raise ValueError("render-rule associativity must be 'none', 'left', 'right', or 'associative'")
-        if parameter is not None and (not isinstance(parameter, str) or not parameter):
-            raise ValueError("render-rule parameter must be a non-empty string or None")
-        selected_order = None if argument_order is None else tuple(argument_order)
-        if selected_order is not None:
-            if any(not isinstance(index, int) or isinstance(index, bool) or index < 0 for index in selected_order):
-                raise ValueError("render-rule argument order must contain non-negative integers")
-            if len(set(selected_order)) != len(selected_order):
-                raise ValueError("render-rule argument order must not repeat an index")
-        if not isinstance(flatten, bool):
-            raise TypeError("render-rule flatten flag must be a boolean")
-        if not isinstance(scalable, bool):
-            raise TypeError("render-rule scalable flag must be a boolean")
-        if not isinstance(script_style, bool):
-            raise TypeError("render-rule script_style flag must be a boolean")
-        if script_style and kind != "wrapper":
-            raise ValueError("script_style is supported only by wrapper render rules")
-        if not isinstance(group_operand, bool):
-            raise TypeError("render-rule group_operand flag must be a boolean")
-        if parameter_position not in {"subscript", "underscript"}:
-            raise ValueError("render-rule parameter_position must be 'subscript' or 'underscript'")
+        selected_order = _argument_order(argument_order)
+        _validate_rule_options(
+            associativity=associativity,
+            parameter=parameter,
+            flatten=flatten,
+            scalable=scalable,
+            script_style=script_style,
+            group_operand=group_operand,
+            parameter_position=parameter_position,
+            kind=kind,
+        )
         object.__setattr__(self, "kind", kind)
         object.__setattr__(self, "symbol", selected_symbol)
         object.__setattr__(self, "precedence", selected_precedence)
@@ -175,6 +219,61 @@ class RenderRule:
         object.__setattr__(self, "script_style", script_style)
         object.__setattr__(self, "group_operand", group_operand)
         object.__setattr__(self, "parameter_position", parameter_position)
+
+
+def _normalize_tokens(
+    tokens: Mapping[str, str] | Iterable[tuple[str, str]],
+) -> tuple[tuple[str, str], ...]:
+    items = tokens.items() if isinstance(tokens, Mapping) else tokens
+    seen: set[str] = set()
+    normalized: list[tuple[str, str]] = []
+    for operation_id, token in items:
+        if not isinstance(operation_id, str) or not isinstance(token, str) or not operation_id or not token:
+            raise ValueError("notation operation ids and tokens must be non-empty strings")
+        if operation_id in seen:
+            raise ValueError(f"duplicate notation token for {operation_id!r}")
+        seen.add(operation_id)
+        normalized.append((operation_id, token))
+    return tuple(normalized)
+
+
+def _normalize_rules(
+    rules: Mapping[str | tuple[str, str], RenderRule] | Iterable[tuple[str | tuple[str, str], RenderRule]] | None,
+) -> tuple[tuple[str, str | None, RenderRule], ...]:
+    if rules is None:
+        items = _conventional_rules().items()
+    elif isinstance(rules, Mapping):
+        items = rules.items()
+    else:
+        items = rules
+    seen: set[tuple[str, str | None]] = set()
+    normalized: list[tuple[str, str | None, RenderRule]] = []
+    for key, rule in items:
+        operation_id, target, validated_rule = _normalize_rule_entry(key, rule)
+        normalized_key = (operation_id, target)
+        if normalized_key in seen:
+            raise ValueError(f"duplicate notation rule for {operation_id!r} and target {target!r}")
+        seen.add(normalized_key)
+        normalized.append((operation_id, target, validated_rule))
+    return tuple(normalized)
+
+
+def _normalize_rule_entry(key: str | tuple[str, str], rule: RenderRule) -> tuple[str, str | None, RenderRule]:
+    if isinstance(key, tuple):
+        if len(key) != 2:
+            raise ValueError("target-specific notation keys must be (operation_id, target) pairs")
+        operation_id, target = key
+    else:
+        operation_id, target = key, None
+    if not isinstance(operation_id, str) or not operation_id:
+        raise ValueError("notation rule operation ids must be non-empty strings")
+    if target is not None and target not in _RULE_TARGETS:
+        raise ValueError("notation rule target must be 'ascii', 'unicode', or 'latex'")
+    if not isinstance(rule, RenderRule):
+        raise TypeError("notation rules must be RenderRule values")
+    if rule.kind == "unit_fraction" and operation_id != "unit":
+        raise ValueError("unit_fraction notation is defined only for the 'unit' operation")
+    return operation_id, target, rule
 
 
 @dataclass(frozen=True, slots=True, init=False)
@@ -196,53 +295,9 @@ class Notation(PresentationComposable):
     ) -> None:
         if not isinstance(id, str) or not id.strip():
             raise ValueError("notation id must be a non-empty string")
-        items: tuple[tuple[str, str], ...]
-        if isinstance(tokens, Mapping):
-            items = tuple(cast(Mapping[str, str], tokens).items())
-        else:
-            items = tuple(tokens)
-        seen: set[str] = set()
-        normalized: list[tuple[str, str]] = []
-        for operation_id, token in items:
-            if not isinstance(operation_id, str) or not isinstance(token, str) or not operation_id or not token:
-                raise ValueError("notation operation ids and tokens must be non-empty strings")
-            if operation_id in seen:
-                raise ValueError(f"duplicate notation token for {operation_id!r}")
-            seen.add(operation_id)
-            normalized.append((operation_id, token))
         object.__setattr__(self, "id", id)
-        object.__setattr__(self, "tokens", tuple(normalized))
-
-        rule_items: Iterable[tuple[str | tuple[str, str], RenderRule]]
-        if rules is None:
-            rule_items = _conventional_rules().items()
-        elif isinstance(rules, Mapping):
-            rule_items = cast(Mapping[str | tuple[str, str], RenderRule], rules).items()
-        else:
-            rule_items = rules
-        normalized_rules: list[tuple[str, str | None, RenderRule]] = []
-        rule_keys: set[tuple[str, str | None]] = set()
-        for key, rule in rule_items:
-            if isinstance(key, tuple):
-                if len(key) != 2:
-                    raise ValueError("target-specific notation keys must be (operation_id, target) pairs")
-                operation_id, target = key
-            else:
-                operation_id, target = key, None
-            if not isinstance(operation_id, str) or not operation_id:
-                raise ValueError("notation rule operation ids must be non-empty strings")
-            if target is not None and target not in _RULE_TARGETS:
-                raise ValueError("notation rule target must be 'ascii', 'unicode', or 'latex'")
-            if not isinstance(rule, RenderRule):
-                raise TypeError("notation rules must be RenderRule values")
-            if rule.kind == "unit_fraction" and operation_id != "unit":
-                raise ValueError("unit_fraction notation is defined only for the 'unit' operation")
-            normalized_key = (operation_id, target)
-            if normalized_key in rule_keys:
-                raise ValueError(f"duplicate notation rule for {operation_id!r} and target {target!r}")
-            rule_keys.add(normalized_key)
-            normalized_rules.append((operation_id, target, rule))
-        object.__setattr__(self, "rules", tuple(normalized_rules))
+        object.__setattr__(self, "tokens", _normalize_tokens(tokens))
+        object.__setattr__(self, "rules", _normalize_rules(rules))
 
     def token(self, operation_id: str, default: str | None = None) -> str | None:
         """Return legacy token metadata without selecting layout semantics."""
@@ -658,22 +713,8 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
     return rules
 
 
-def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
-    rules = _conventional_rules()
-
-    for operation_id, short_name in (
-        ("attitude", "att"),
-        ("carrier", "car"),
-        ("cocarrier", "ccr"),
-        ("center", "cen"),
-        ("container", "con"),
-        ("partner", "par"),
-    ):
-        rules[operation_id] = RenderRule("function", symbol=short_name, scalable=False)
-
-    def target_rule(operation_id: str, target: str, rule: RenderRule) -> None:
-        rules[(operation_id, target)] = rule
-
+def _add_lengyel_binary_rules(rules: dict[str | tuple[str, str], RenderRule]) -> None:
+    """Install ASCII names and the Unicode/LaTeX infix forms together."""
     rga_binary = {
         "geometric_product": ("gp", Name("gp", "⟑", r"\mathbin{\text{⟑}}")),
         "geometric_antiproduct": (
@@ -704,30 +745,19 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
             "geometric_antiproduct",
             "geometric_product",
         }
-        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
-        target_rule(
-            operation_id,
-            "unicode",
-            RenderRule(
+        rules[(operation_id, "ascii")] = RenderRule("function", symbol=ascii_name)
+        for target in ("unicode", "latex"):
+            rules[(operation_id, target)] = RenderRule(
                 "infix",
                 symbol=symbol,
                 precedence=30,
                 associativity="associative" if associative else "none",
                 flatten=associative,
-            ),
-        )
-        target_rule(
-            operation_id,
-            "latex",
-            RenderRule(
-                "infix",
-                symbol=symbol,
-                precedence=30,
-                associativity="associative" if associative else "none",
-                flatten=associative,
-            ),
-        )
+            )
 
+
+def _add_lengyel_transwedge_rules(rules: dict[str | tuple[str, str], RenderRule]) -> None:
+    """Use an underscript for the LaTeX order parameter."""
     for operation_id, ascii_name, symbol in (
         ("transwedge", "transwedge", Name("transwedge", "⩓", r"\text{⩓}")),
         (
@@ -736,23 +766,31 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
             Name("transwedge_antiproduct", "⩔", r"\text{⩔}"),
         ),
     ):
-        target_rule(operation_id, "ascii", RenderRule("function", symbol=ascii_name))
-        target_rule(
-            operation_id,
-            "unicode",
-            RenderRule("infix", symbol=symbol, parameter="order", precedence=30),
+        rules[(operation_id, "ascii")] = RenderRule("function", symbol=ascii_name)
+        rules[(operation_id, "unicode")] = RenderRule("infix", symbol=symbol, parameter="order", precedence=30)
+        rules[(operation_id, "latex")] = RenderRule(
+            "infix", symbol=symbol, parameter="order", parameter_position="underscript", precedence=30
         )
-        target_rule(
-            operation_id,
-            "latex",
-            RenderRule(
-                "infix",
-                symbol=symbol,
-                parameter="order",
-                parameter_position="underscript",
-                precedence=30,
-            ),
-        )
+
+
+def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
+    rules = _conventional_rules()
+
+    for operation_id, short_name in (
+        ("attitude", "att"),
+        ("carrier", "car"),
+        ("cocarrier", "ccr"),
+        ("center", "cen"),
+        ("container", "con"),
+        ("partner", "par"),
+    ):
+        rules[operation_id] = RenderRule("function", symbol=short_name, scalable=False)
+
+    def target_rule(operation_id: str, target: str, rule: RenderRule) -> None:
+        rules[(operation_id, target)] = rule
+
+    _add_lengyel_binary_rules(rules)
+    _add_lengyel_transwedge_rules(rules)
 
     for operation_id, ascii_name, accent, kind in (
         ("complement", "complement", Name("bar", "\u0305", r"\overline"), "accent"),
@@ -873,6 +911,9 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
     return rules
 
 
+_DISPLAY_FIELDS = ("content", "target", "zero_tolerance", "coefficient_precision")
+
+
 @dataclass(frozen=True, slots=True, init=False, repr=False)
 class DisplayPolicy(PresentationComposable):
     """Rendering choices with sparse override intent and concrete defaults.
@@ -896,16 +937,13 @@ class DisplayPolicy(PresentationComposable):
         zero_tolerance: float | None = None,
         coefficient_precision: int | None = None,
     ) -> None:
-        specified = frozenset(
-            name
-            for name, value in (
-                ("content", content),
-                ("target", target),
-                ("zero_tolerance", zero_tolerance),
-                ("coefficient_precision", coefficient_precision),
-            )
-            if value is not None
-        )
+        supplied = {
+            "content": content,
+            "target": target,
+            "zero_tolerance": zero_tolerance,
+            "coefficient_precision": coefficient_precision,
+        }
+        specified = frozenset(name for name, value in supplied.items() if value is not None)
         content = "auto" if content is None else content
         target = "unicode" if target is None else target
         zero_tolerance = 1e-12 if zero_tolerance is None else zero_tolerance
@@ -937,13 +975,12 @@ class DisplayPolicy(PresentationComposable):
         return DisplayPolicy(
             **{
                 name: getattr(self, name) if name in self._specified else getattr(base, name)
-                for name in ("content", "target", "zero_tolerance", "coefficient_precision")
+                for name in _DISPLAY_FIELDS
             }
         )
 
     def __repr__(self) -> str:
-        fields = ("content", "target", "zero_tolerance", "coefficient_precision")
-        arguments = ", ".join(f"{name}={getattr(self, name)!r}" for name in fields if name in self._specified)
+        arguments = ", ".join(f"{name}={getattr(self, name)!r}" for name in _DISPLAY_FIELDS if name in self._specified)
         return f"DisplayPolicy({arguments})"
 
     def merge(self, later: DisplayPolicy) -> DisplayPolicy:
@@ -985,7 +1022,7 @@ class PresentationConfig:
         # PresentationConfig is a complete snapshot even when constructed from
         # a sparse display override. Raw dataclass replacement starts from the
         # default policy; with_display() is the inheritance-aware API.
-        if len(self.display._specified) != 4:
+        if len(self.display._specified) != len(_DISPLAY_FIELDS):
             object.__setattr__(self, "display", self.display.apply_to(DisplayPolicy()))
 
     @property

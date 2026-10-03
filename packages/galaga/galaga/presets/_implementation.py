@@ -7,6 +7,7 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Literal, Protocol
 
+from .._composition_base import PresentationComposable
 from ..blades import (
     BladeConvention,
     DisplayOrder,
@@ -28,7 +29,6 @@ from ..blades import (
     rga_display_order,
     spacetime_blade_convention,
 )
-from ..composition import PresentationComposable
 from ..names import Name
 from ..presentation import (
     AlgebraConfig,
