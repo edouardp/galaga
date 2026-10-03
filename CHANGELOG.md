@@ -1,5 +1,67 @@
 # Changelog
 
+## 2.0.0b1 (2026-10-03)
+
+This first Galaga 2 beta extends the public presentation API, adds real powers
+for all-null exterior algebras, and broadens the executable geometry lessons.
+It also prepares the five jointly released packages for beta installation and
+validation.
+
+### Added
+
+- **Composable presentation recipes** — Combine blade conventions, local
+  names, display order, notation, and display policy with right-biased `|`
+  overrides. Sparse notation recipes can change selected operation names;
+  presenters and algebra views can consume the same composed configuration.
+- **Renderable algebra and basis views** — Algebra objects display their metric
+  in the simplest available `p, q, r`, signature, or Gram form. Basis-vector
+  and grade-selected basis-blade collections remain unpackable sequences while
+  rendering useful notebook tables; local-name tables follow the algebra's
+  display order. Plain IPython output respects the selected display target.
+- **Oblique-plane tools** — `presets.oblique_plane` accepts radians through
+  `angle=` or degrees through `degrees=` and derives its Gram matrix from the
+  chosen angle. The optional `Oblique2D` widget draws coordinates using that
+  metric, with an accompanying notebook and display gallery.
+- **Witt and conformal-spacetime lessons** — New Marimo notebooks develop a
+  one-pair Witt plane and conformal spacetime events, transformations, and a
+  scoped object-classification worksheet. The spacetime examples explain
+  accelerated worldlines, causal reception, three-event wedges, and physical
+  unit conversions while checking the algebraic identities in code.
+
+### Changed
+
+- **All-null real powers** — For an algebra with an entirely zero Gram matrix,
+  a multivector with positive scalar part supports finite real exponents via
+  a terminating binomial polynomial. This includes `x ** 0.5`, which agrees
+  with `sqrt(x)`, and negative real powers. Integer powers retain their
+  existing behavior in every algebra; noninteger powers remain unsupported
+  for other metrics. Zero and nonpositive-scalar branch boundaries are checked
+  explicitly. The exterior-algebra lesson compares these rules with regular
+  Clifford algebras.
+- **Notebook display** — Gram and bilinear-form output uses the algebra's
+  decimal-place policy; exact zero entries are visually muted in the metric
+  display. Algebra construction and notation notebooks demonstrate the new
+  displays and presentation composition.
+- **Development dependencies** — Removes unused `pydantic-ai` and its MCP/JWT
+  dependency chain, updates the lockfile, and clears the dependency audit.
+
+### Fixed
+
+- Keeps annotation callout boxes and nested highlights aligned with their
+  rendered KaTeX spans.
+- Updates the KaTeX runtime checks for Marimo builds that expose KaTeX through
+  a named JavaScript export, and repairs release validation contracts for the
+  composed presentation module and real power parameters.
+
+### Documentation and release
+
+- Records the square-root and real-power arguments for all-null exterior
+  algebras, and the presentation, oblique-plane, Witt, and conformal-spacetime
+  decisions in ADRs.
+- Updates beta classifiers and installation guidance for `galaga`,
+  `galaga-anywidget`, `galaga-marimo`, `galaga-matrix`, and
+  `galaga-annotation`. The release guide now covers all five packages.
+
 ## 2.0.0a8 (2026-09-23)
 
 This eighth Galaga 2 alpha develops `galaga-annotation` from its initial
