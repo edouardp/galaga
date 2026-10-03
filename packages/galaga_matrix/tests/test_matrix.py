@@ -1484,6 +1484,31 @@ class TestMatrixReprFactory:
         expected = np.kron(np.eye(2), [[1, 2], [3, 4]])
         assert np.allclose(K.mat, expected)
 
+    def test_kron_across_algebras_drops_link(self):
+        a = Algebra(1)
+        b = Algebra(2)
+        left = to_matrix(a.basis_vectors()[0], mode="left-regular")
+        right = to_matrix(b.basis_vectors()[0], mode="compact")
+
+        result = left.kron(right)
+
+        assert isinstance(result, MatrixRepr)
+        assert np.allclose(result.mat, np.kron(left.mat, right.mat))
+        assert result.algebra is None
+        with pytest.raises(ValueError, match="No algebra reference"):
+            _ = result.mv
+
+    def test_kron_across_representation_modes_drops_link(self):
+        alg = Algebra(1)
+        vector = alg.basis_vectors()[0]
+        left = to_matrix(vector, mode="left-regular")
+        right = to_matrix(vector, mode="compact")
+
+        result = left.kron(right)
+
+        assert np.allclose(result.mat, np.kron(left.mat, right.mat))
+        assert result.algebra is None
+
 
 class TestMatrixReprMetadata:
     """Metadata propagation through operations."""

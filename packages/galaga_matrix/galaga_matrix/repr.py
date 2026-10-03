@@ -740,7 +740,6 @@ class MatrixRepr:
 
     def kron(self, other: MatrixRepr) -> MatrixRepr:
         """Kronecker product, without an inherited algebra interpretation."""
-        self._check_operand_context(other)
         result = np.kron(self._require_mat(), _unwrap(other))
         wrapped = MatrixRepr(result)
         if self._is_symbolic_with(other):

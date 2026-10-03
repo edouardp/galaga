@@ -122,7 +122,9 @@ example test ledger.
 - **Escape hatch** — `.mat` gives the raw numpy array
 - **Roundtrip** — `.mv` converts back to a `Multivector` (requires `algebra=`). Conversion checks that the entire matrix is in the selected representation's image; a matching shape alone is insufficient.
 - **Factories** — `MatrixRepr.identity(k)`, `MatrixRepr.zeros((m,n))`, `.kron(other)`
-- **Tensor products across algebras** — use `np.kron(A.mat, B.mat)` to work with raw matrix data. The result needs its own algebra and representation interpretation before conversion to a multivector.
+- **Tensor products across algebras** — `A.kron(B)` accepts different bound
+  contexts and returns an unbound `MatrixRepr`. The result needs its own
+  algebra and representation interpretation before multivector conversion.
 
 ### Auto-naming
 

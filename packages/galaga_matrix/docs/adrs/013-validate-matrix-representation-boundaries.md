@@ -16,7 +16,7 @@ look like proof that an arbitrary matrix represented a Clifford element.
 
 ## Decision
 
-Before binary operations and NumPy ufuncs, bound `MatrixRepr` inputs and
+Before ordinary binary operations and NumPy ufuncs, bound `MatrixRepr` inputs and
 ufunc output wrappers must share numeric algebra identity, representation
 mode, basis, and source domain.
 Presentation views of the same numeric algebra are compatible. If exactly
@@ -29,8 +29,9 @@ that claim. If both operands are unbound, the result remains unbound.
 matrix multiplication involving a spinor ket or bra, a full-domain operator
 may act on an even-domain spinor; the source-domain check applies to ordinary
 operator pairs and other operations. An operator acting on a bound ket returns
-a ket with the ket's context. A Kronecker product has no inherited algebra
-context, since its tensor representation is not determined by either operand.
+a ket with the ket's context. A Kronecker product accepts operands with
+different algebra and representation contexts and returns an unbound wrapper,
+since its tensor representation is not determined by either operand.
 
 `from_matrix(alg, wrapper)` rejects a conflicting bound algebra. For a
 left-regular inverse, use the first column to construct a candidate, then
@@ -51,6 +52,6 @@ Compatible bound products retain the algebra link and satisfy
 `from_matrix(to_matrix(A) @ to_matrix(B)) == A * B` in supported representation
 modes.
 
-To form tensor products across different algebras, use raw `.mat` arrays and
-choose the result's algebra context explicitly; neither input context alone
-describes the tensor product.
+Tensor products can be formed directly with `A.kron(B)` even when `A` and `B`
+belong to different algebras. Choose an algebra and representation explicitly
+before interpreting the resulting matrix as a multivector.

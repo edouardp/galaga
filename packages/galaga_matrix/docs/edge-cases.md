@@ -69,10 +69,9 @@ not by itself certify membership in a Clifford representation. Conversion back
 to a multivector performs that check. `.kron()` returns an unbound wrapper
 because its result needs a separate tensor representation.
 
-For a tensor product of matrices from different algebras, operate on their
-`.mat` arrays with `np.kron(A.mat, B.mat)`. The resulting array has no inherited
-Galaga algebra context; attach one only after choosing a representation of the
-tensor-product algebra.
+For a tensor product of matrices from different algebras, use `A.kron(B)`.
+The resulting `MatrixRepr` has no inherited Galaga algebra context; attach
+one only after choosing a representation of the tensor-product algebra.
 
 ### General Gram matrices use an equivalent compact basis
 
