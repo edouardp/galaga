@@ -148,6 +148,18 @@ class TestSquareRoots:
 
 
 class TestAllNullRealPowers:
+    def test_fractional_power_preserves_scalar_coefficient_and_finite_data(self) -> None:
+        algebra = Algebra(signature=(0, 0, 0))
+        e1, e2, _ = algebra.basis_vectors()
+        value = 16 + e1 + (e1 ^ e2)
+
+        result = value**0.25
+
+        assert isinstance(result, type(value))
+        assert result.scalar_part == 2
+        assert np.isfinite(result.data).all()
+        assert (result**4).almost_equal(value)
+
     def test_finite_binomial_powers_agree_with_square_root_inverse_and_log(self) -> None:
         algebra = Algebra(signature=(0, 0, 0))
         e1, e2, e3 = algebra.basis_vectors()

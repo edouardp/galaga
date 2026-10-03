@@ -472,6 +472,7 @@ SUBMODULE_DISPOSITIONS = {
     "galaga.blade_convention": SurfaceDisposition("presentation", "compatibility-reexport", "galaga.blades", "phase-7"),
     "galaga.blades": SurfaceDisposition("presentation", "retain", "galaga.blades", "permanent"),
     "galaga.cga": SurfaceDisposition("model", "retain", "galaga.cga", "permanent"),
+    "galaga.composition": SurfaceDisposition("presentation", "retain", "galaga.composition", "permanent"),
     "galaga.core": SurfaceDisposition("core", "retain", "galaga.core", "permanent"),
     "galaga.display": SurfaceDisposition("rendering", "retain", "galaga.display", "permanent"),
     "galaga.expr": SurfaceDisposition("expression", "compatibility-reexport", "galaga.expression", "phase-7"),
@@ -554,6 +555,7 @@ SUPPORTED_SUBMODULES = {
     for name in (
         "galaga.blades",
         "galaga.cga",
+        "galaga.composition",
         "galaga.core",
         "galaga.display",
         "galaga.expression",

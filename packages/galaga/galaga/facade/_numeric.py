@@ -1081,7 +1081,12 @@ class LocalMultivectors(Mapping[str, Multivector]):
     def _ordered_items(self) -> list[tuple[str, Multivector]]:
         positions = {mask: index for index, mask in enumerate(self._presentation.display_order.masks)}
         masks = {name: ref.mask for name, ref in self._presentation.local_names.entries}
-        return sorted(self._values.items(), key=lambda item: positions.get(masks.get(item[0]), len(positions)))
+
+        def display_position(item: tuple[str, Multivector]) -> int:
+            mask = masks.get(item[0])
+            return positions.get(mask, len(positions)) if mask is not None else len(positions)
+
+        return sorted(self._values.items(), key=display_position)
 
     def latex(self) -> str:
         """Render Python local names beside their captured basis-blade labels."""
@@ -1116,6 +1121,9 @@ class LocalMultivectors(Mapping[str, Multivector]):
 
 class BasisMultivectors(tuple[Multivector, ...]):
     """Tuple-compatible basis values with a presentation-aware notebook table."""
+
+    _masks: tuple[int, ...]
+    _presentation: PresentationConfig
 
     def __new__(
         cls,

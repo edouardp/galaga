@@ -210,6 +210,14 @@ def test_local_bindings_table_follows_algebra_display_order(algebra):
     assert list(local_values) == [name for name, _ in entries]
 
 
+def test_local_bindings_without_a_presentation_name_sort_after_known_blades():
+    algebra = ga.Algebra(2)
+    e1, e2 = algebra.basis_vectors()
+    values = ga.LocalMultivectors({"extra": e2, "e1": e1}, presentation=algebra.presentation)
+
+    assert re.findall(r"\\texttt\{([^}]*)\} &", values.latex()) == ["e1", "extra"]
+
+
 @pytest.mark.parametrize(
     "style, names", (("compact", ["v1", "v2", "v12"]), ("wedge", ["v1", "v2"]), ("juxtapose", ["v1", "v2", "v1v2"]))
 )

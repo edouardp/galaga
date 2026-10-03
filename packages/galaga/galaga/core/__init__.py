@@ -1233,7 +1233,7 @@ def _all_null_real_power(value: Multivector, exponent: float) -> Multivector:
         coefficient *= (exponent - order + 1) / order
         series = series + coefficient * power
     with np.errstate(over="ignore", under="ignore", invalid="ignore"):
-        result = float(np.power(scalar, exponent)) * series
+        result = Multivector(value.algebra, float(np.power(scalar, exponent)) * series.data)
     if not np.all(np.isfinite(result.data)):
         raise ValueError("all-null real power could not be resolved numerically")
     return result

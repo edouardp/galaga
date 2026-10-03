@@ -38,15 +38,17 @@ def katex_module_url() -> str:
     if not candidates:
         pytest.skip("Marimo installation does not expose its KaTeX bundle")
 
-    # Vite emits a tiny default-export shim beside the large implementation.
-    # Importing the shim also resolves its hashed sibling relative to itself.
+    # Older Marimo builds include a tiny default-export shim; newer builds
+    # expose only the implementation module with a named export.
     module = min(candidates, key=lambda path: path.stat().st_size)
     return module.as_uri()
 
 
 def _compile_katex(module_url: str, expressions: list[str], *, strict: str = "error") -> None:
     script = r"""
-const katex = (await import(process.argv[1])).default;
+const katex = Object.values(await import(process.argv[1])).find(
+  (value) => value && typeof value.renderToString === "function"
+);
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const { expressions, strict } = JSON.parse(input);
@@ -72,7 +74,9 @@ for (const expression of expressions) {
 
 def _measure_katex(module_url: str, expressions: dict[str, str]) -> dict[str, tuple[float, float]]:
     script = r"""
-const katex = (await import(process.argv[1])).default;
+const katex = Object.values(await import(process.argv[1])).find(
+  (value) => value && typeof value.renderToString === "function"
+);
 let input = "";
 for await (const chunk of process.stdin) input += chunk;
 const expressions = JSON.parse(input);
@@ -101,7 +105,9 @@ process.stdout.write(JSON.stringify(dimensions));
 
 def _render_katex_markup(module_url: str, expression: str) -> str:
     script = r"""
-const katex = (await import(process.argv[1])).default;
+const katex = Object.values(await import(process.argv[1])).find(
+  (value) => value && typeof value.renderToString === "function"
+);
 let expression = "";
 for await (const chunk of process.stdin) expression += chunk;
 process.stdout.write(katex.renderToString(expression, {

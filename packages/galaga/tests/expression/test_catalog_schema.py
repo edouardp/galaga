@@ -87,7 +87,7 @@ def test_parameter_families_have_canonical_immutable_forms() -> None:
 
     with pytest.raises(TypeError, match="iterable"):
         OPERATIONS["grades"].normalize_expression_parameters({"targets": "0,2"})
-    with pytest.raises(TypeError, match="integer"):
+    with pytest.raises(TypeError, match="real number"):
         OPERATIONS["power"].normalize_expression_parameters({"exponent": True})
 
 
