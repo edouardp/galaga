@@ -79,6 +79,9 @@ These lessons also use the v2 facade and participate in headless validation:
 - [Witt bases and null geometry](../algebra/witt_bases_and_null_geometry.py):
   predict a moving receiver's Doppler shifts and build a finite fermionic
   occupation-state model from null pairs; then compare CGA/PGA duality.
+- [The Witt plane in null coordinates](../algebra/witt_plane_from_null_coordinates.py):
+  compare signed null-pair metrics with Euclidean 2D, recover an orthogonal
+  frame, and derive split-complex projectors and real matrix units.
 - [Four-dimensional rotor planes](../algebra/four_dimensional_rotor_planes.py):
   two-plane rotations and plots, principal logarithms, simple-plane extraction,
   self-dual versus simple bivectors, isoclinic ambiguity, and higher dimensions.

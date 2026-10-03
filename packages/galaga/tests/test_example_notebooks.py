@@ -81,6 +81,38 @@ def test_reusable_presenters_lesson_shows_composed_and_scoped_recipes() -> None:
     assert "alg.use_notation(_patch)" in source
 
 
+def test_witt_plane_lesson_derives_geometry_and_matrix_units_from_both_null_pair_signs() -> None:
+    from galaga import Algebra, metric_inner_product
+
+    source = (EXAMPLES / "algebra/witt_plane_from_null_coordinates.py").read_text()
+    assert '"−1 (CGA-style)": -1, "+1": 1' in source
+    assert "MatrixRepr(raising_matrix)" in source
+    assert "np.linalg.lstsq(_basis_columns, _action" in source
+    assert "witt.gram[0, 1]" in source
+
+    for sign in (-1, 1):
+        algebra = Algebra(gram=((0, sign), (sign, 0)))
+        p, q = algebra.basis_vectors()
+        vector = 1.2 * p + 0.8 * q
+        projector = p * q / (2 * sign)
+        complement = q * p / (2 * sign)
+        raising = p / (2**0.5 * sign)
+        lowering = q / 2**0.5
+
+        assert not algebra.is_degenerate
+        assert (p * p, q * q, p * q + q * p) == (0, 0, 2 * sign)
+        assert abs(float(vector * vector) - 2 * sign * 1.2 * 0.8) < 1e-12
+        assert abs(float(metric_inner_product(vector, q / sign)) - 1.2) < 1e-12
+        assert abs(float(metric_inner_product(vector, p / sign)) - 0.8) < 1e-12
+        assert projector * projector == projector
+        assert complement * complement == complement
+        assert projector + complement == 1
+        assert projector * complement == 0
+        assert raising * raising == lowering * lowering == 0
+        assert (raising * lowering).almost_equal(projector)
+        assert (lowering * raising).almost_equal(complement)
+
+
 def test_new_example_notebooks_use_v2_facade_teaching_pattern():
     """Check the ledgered gallery uses expression provenance over eager values."""
     for notebook in migrated_notebook_paths(ROOT):

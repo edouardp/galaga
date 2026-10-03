@@ -82,6 +82,7 @@ MIGRATED_NOTEBOOKS = (
     "algebra/exterior_algebra_intuition.py",
     "algebra/duality_and_complements.py",
     "algebra/witt_bases_and_null_geometry.py",
+    "algebra/witt_plane_from_null_coordinates.py",
     "algebra/four_dimensional_rotor_planes.py",
     "galaga_v2/reusable_presenters.py",
     "quantum/aharonov_bohm.py",

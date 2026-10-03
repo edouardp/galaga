@@ -187,6 +187,7 @@ classes are no longer production alternatives.
 | [164](164-exterior-algebra-square-roots.md) | Square Roots in an All-Null Exterior Algebra | Accepted; extends 053 |
 | [165](165-real-powers-in-all-null-algebras.md) | Real Powers in All-Null Algebras | Accepted; extends 164 |
 | [166](166-composed-presenter-recipes.md) | Composed Presenter Recipes | Accepted; extends 161 |
+| [167](167-one-pair-witt-plane-lesson.md) | One-Pair Witt Plane Lesson | Accepted; extends 136 |
 
 ## Creating New ADRs
 
