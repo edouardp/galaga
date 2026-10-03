@@ -6,10 +6,10 @@ Clifford algebras.
 
 > **Status**: published to PyPI alongside galaga. Released as part of the monorepo.
 
-During the Galaga 2 prerelease train:
+For the Galaga 2 beta, opt into prereleases:
 
 ```bash
-python -m pip install --pre "galaga-matrix>=2.0.0a4,<3"
+python -m pip install --pre "galaga-matrix>=2.0.0b1,<3"
 ```
 
 ## What it does

@@ -63,10 +63,11 @@
 
 ## Current status
 
-Galaga `2.0.0a4` has been published from the `galaga_v2` release line. Phases
-0 through 8 of the core cutover plan are complete. The
-proven Gram-matrix implementation lives in `galaga.core`; the exhaustive v1
-replacement contract is checked in and executable; `galaga.facade` owns the
+The Galaga 2 alpha line advanced through `2.0.0a8`. These docs describe the
+beta API targeted by `2.0.0b1`. Phases 0 through 8 of the core cutover plan are
+complete. The proven Gram-matrix implementation lives in `galaga.core`; the
+exhaustive v1 replacement contract is checked in and executable;
+`galaga.facade` owns the
 complete eager numeric facade; and the applicable legacy numeric contract has
 been migrated to or rerun against that facade. The migration-only
 `galaga.gram_bridge` package is removed after `2.0.0a4`. The facade now
@@ -92,7 +93,7 @@ multiplication tables. Mermaid and Marimo now consume public expression,
 display, and naming protocols, and the first maintained v2 examples are
 executable. `MatrixRepr` now owns frozen matrix-domain provenance and adapts
 only public facade names, expressions, and presentations. Installed-wheel
-integration gates pass. The 68 maintained Marimo notebooks now use the
+integration gates pass. The maintained Marimo notebooks now use the
 promoted top-level API, pass Marimo dependency validation, and execute
 headlessly under Python 3.14.
 

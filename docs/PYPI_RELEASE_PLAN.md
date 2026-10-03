@@ -10,11 +10,10 @@ The authoritative operational guide is
 
 ## Current Galaga 2 Major-Release Train
 
-The Galaga 2 train uses explicit, complete releases:
+The Galaga 2 train uses explicit, complete releases. Alpha releases advanced
+through `2.0.0a8`; the later stages use these commands:
 
 ```bash
-make release VERSION=2.0.0a1
-make release VERSION=2.0.0a2
 make release VERSION=2.0.0b1
 make release VERSION=2.0.0rc1
 make release VERSION=2.0.0

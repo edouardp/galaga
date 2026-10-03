@@ -7,10 +7,10 @@ Requires Python 3.14+ for t-string support.
 `galaga` itself remains Python 3.11+. The t-string requirement belongs only to
 this optional adapter package.
 
-During the Galaga 2 prerelease train:
+For the Galaga 2 beta, opt into prereleases:
 
 ```bash
-python -m pip install --pre "galaga-marimo>=2.0.0a4,<3"
+python -m pip install --pre "galaga-marimo>=2.0.0b1,<3"
 ```
 
 ## Usage

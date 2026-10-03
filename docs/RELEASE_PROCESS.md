@@ -67,12 +67,11 @@ require the current source version to be stable.
 
 ### Major-Release Alpha, Beta, RC, and Final Train
 
-A breaking major release is a sequence of complete releases. For Galaga 2, run
-this train in order:
+A breaking major release is a sequence of complete releases. The Galaga 2
+alpha train advanced through `2.0.0a8`. The later stages use these exact
+commands in order:
 
 ```bash
-make release VERSION=2.0.0a1
-make release VERSION=2.0.0a2
 make release VERSION=2.0.0b1
 make release VERSION=2.0.0rc1
 make release VERSION=2.0.0
@@ -87,8 +86,6 @@ when validation finds work that needs another public iteration.
 
 | Stage | Command | Purpose |
 |---|---|---|
-| First alpha | `make release VERSION=2.0.0a1` | First public build of the breaking release |
-| Second alpha | `make release VERSION=2.0.0a2` | Incorporate early API and migration feedback |
 | Beta | `make release VERSION=2.0.0b1` | Feature-complete external validation |
 | Release candidate | `make release VERSION=2.0.0rc1` | Final release-shaped validation |
 | Final | `make release VERSION=2.0.0` | Publish the stable major release |
@@ -124,19 +121,20 @@ for an already published project/version pair to be replaced.
 |---|---|---|
 | 1. Guard | Resolve the current branch/upstream and check the working tree | Detached HEAD, missing upstream, or dirty repo |
 | 2. Resolve | Calculate a stable bump or validate an exact stable/prerelease version | Invalid or repeated version |
-| 3. Synchronize | Update the four released packages and all companion galaga dependency floors | — |
+| 3. Synchronize | Update the five jointly released packages and all companion galaga dependency floors | — |
 | 4. Changelog | Open `$EDITOR` for release notes, auto-fix markdown | Placeholder not replaced |
 | 5. Commit | `git commit -m "Release vX.Y.Z"` | Pre-commit hooks fail |
 | 6. Test release workflow | `python -m pytest tests/release/` | Any repository-tooling test failure |
 | 7. Test galaga | `pytest packages/galaga/tests/` | Any test failure |
 | 8. Test galaga-matrix | `pytest packages/galaga_matrix/tests/` | Any test failure |
-| 9. Test galaga-anywidget | `pytest` in a temporary Python 3.11 venv | Any test failure |
-| 10. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
-| 11. Build | `uv build` all four released packages | Build failure |
-| 12. Artifact checks | Validate metadata/README and source-identical legacy-free Galaga runtime contents | Bad metadata, missing/changed runtime files, or retained legacy modules |
-| 13. Publish | Publish galaga, then AnyWidget, Marimo, and matrix companions | Auth failure or version conflict |
-| 14. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
-| 15. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
+| 9. Test galaga-annotation | `pytest` against the local source packages | Any test failure |
+| 10. Test galaga-anywidget | `pytest` in a temporary Python 3.11 venv | Any test failure |
+| 11. Test galaga-marimo | `pytest` in a temporary Python 3.14 venv | Any test failure |
+| 12. Build | `uv build` all five released packages | Build failure |
+| 13. Artifact checks | Validate metadata/README and source-identical legacy-free Galaga runtime contents | Bad metadata, missing/changed runtime files, or retained legacy modules |
+| 14. Publish | Publish galaga, then AnyWidget, Marimo, matrix, and annotation companions | Auth failure or version conflict |
+| 15. Push and tag | Push the commit and `vX.Y.Z` tag | Git failure |
+| 16. GitHub release | Create from CHANGELOG; mark non-final versions as prereleases | GitHub failure |
 
 If any step fails, the script stops. Nothing is published or tagged until all
 tests and artifact checks pass. Publication itself is sequential rather than
@@ -159,7 +157,7 @@ prerelease train run directly from `galaga_v2`:
 git switch galaga_v2
 git status --short --branch
 git branch --verbose --verbose
-make release VERSION=2.0.0a1
+make release VERSION=2.0.0b1
 ```
 
 Before continuing, verify that the status is clean and that the branch tracks
@@ -234,6 +232,7 @@ Before every release, the script enforces:
 - [ ] Repository release-workflow tests pass
 - [ ] All galaga tests pass (release environment, Python ≥3.11)
 - [ ] All galaga-matrix tests pass (Python 3.11+)
+- [ ] All galaga-annotation tests pass (Python 3.11+)
 - [ ] All galaga-anywidget tests pass (Python 3.11+)
 - [ ] All galaga-marimo tests pass (Python 3.14)
 - [ ] Pre-commit hooks pass (ruff, shellcheck, bandit, rumdl, checkmake)
@@ -307,24 +306,25 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 
 ### Metadata and installation guidance at the actual release
 
-Do not mark the current alpha stable during preparation. The release script
+Do not mark the current beta stable during preparation. The release script
 updates versions and dependency floors, **not classifiers or README wording**.
 Make and review those stage-specific edits in a separate preparation commit
 before invoking the release command:
 
-| Release stage | Four jointly released package classifiers | Installation guidance |
+| Release stage | Five jointly released package classifiers | Installation guidance |
 |---|---|---|
 | Alpha | `Development Status :: 3 - Alpha` | Prerelease opt-in; exact published alpha for reproducibility |
 | Beta or RC | `Development Status :: 4 - Beta` | Prerelease opt-in; exact published candidate for evaluation |
 | Final | `Development Status :: 5 - Production/Stable` | Stable install commands first; no `--pre` required |
 
-For final, update `packages/galaga/README.md`, the AnyWidget, Marimo and matrix
-READMEs, and `docs/v2/migration-guide.md`. The leading commands should become:
+For final, update the root README, all five jointly released package READMEs,
+and `docs/v2/migration-guide.md`. The leading commands should become:
 
 ```bash
 python -m pip install "galaga>=2.0.0,<3"
 python -m pip install "galaga-anywidget>=2.0.0,<3"
 python -m pip install "galaga-matrix>=2.0.0,<3"
+python -m pip install "galaga-annotation>=2.0.0,<3"
 # Python 3.14+ only:
 python -m pip install "galaga-marimo>=2.0.0,<3"
 ```

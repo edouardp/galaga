@@ -18,15 +18,14 @@ obtained; it is not a deferred symbolic algebra system.
 
 ## Installation and status
 
-Galaga 2 is an **alpha release**. This guide uses the APIs available in
-`2.0.0a4`; opt into the v2 prerelease train explicitly:
+Galaga 2 is in beta. To install the `2.0.0b1` release, opt into prereleases:
 
 ```bash
-python -m pip install --pre "galaga>=2.0.0a4,<3"
+python -m pip install --pre "galaga>=2.0.0b1,<3"
 ```
 
 For reproducible notebooks, pin the version you tested, for example
-`galaga==2.0.0a4`. The core package requires **Python 3.11+ and NumPy**.
+`galaga==2.0.0b1`. The core package requires **Python 3.11+ and NumPy**.
 It does not require Marimo, Jupyter or a matrix package.
 
 The examples below are self-contained Python snippets. Only the
@@ -529,7 +528,7 @@ Text output has no colour escapes. Unlike Gram entries, exterior products in
 the fixed native basis are independent of the metric.
 
 On **Python 3.14+**, install the helper with
-`python -m pip install --pre "galaga-marimo>=2.0.0a4,<3"`, then interpolate
+`python -m pip install --pre "galaga-marimo>=2.0.0b1,<3"`, then interpolate
 values and tables into dynamic Markdown:
 
 ```python
@@ -616,7 +615,7 @@ These are separate installations, not dependencies of the numeric package:
 | [galaga-mermaid][mermaid] | 3.11+ | Expression-tree diagrams |
 
 For example, install `galaga-matrix` with
-`python -m pip install --pre "galaga-matrix>=2.0.0a4,<3"`. Its left-regular
+`python -m pip install --pre "galaga-matrix>=2.0.0b1,<3"`. Its left-regular
 representation supports any symmetric Gram matrix; compact conversion is
 explicit for numerically suitable general nondegenerate Gram metrics and
 round-trips only when the selected representation is injective. Complex matrices

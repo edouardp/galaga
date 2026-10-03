@@ -7,10 +7,10 @@ two-dimensional conformal model. It owns semantic Euclidean point coordinates,
 so browser drags participate in Marimo's normal reactive execution while the
 notebook keeps all geometric constructions in Python.
 
-During the Galaga 2 prerelease train:
+For the Galaga 2 beta, opt into prereleases:
 
 ```bash
-python -m pip install --pre "galaga-anywidget>=2.0.0a4,<3"
+python -m pip install --pre "galaga-anywidget>=2.0.0b1,<3"
 ```
 
 ## Persistent reactive construction

@@ -7,6 +7,14 @@ Annotations are presentation metadata: they never change numerical values,
 expression evaluation, equality or hashing. The package is optional; importing
 `galaga` never imports `galaga_annotation`.
 
+## Install
+
+For the Galaga 2 beta, opt into prereleases:
+
+```bash
+python -m pip install --pre "galaga-annotation>=2.0.0b1,<3"
+```
+
 - [Package source](https://github.com/edouardp/galaga/tree/galaga_v2/packages/galaga_annotation)
 - [SPEC-015: Expression and Matrix Annotations](https://github.com/edouardp/galaga/blob/galaga_v2/docs/specs/SPEC-015-expression-and-matrix-annotations.md)
 - [ADR-142: Reusable Callable Annotators](https://github.com/edouardp/galaga/blob/galaga_v2/docs/adrs/142-reusable-callable-annotators.md)
