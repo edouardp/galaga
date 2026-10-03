@@ -142,7 +142,7 @@ class ConfiguredPreset(PresentationComposable):
 
 def compose(left: object, right: object) -> Any:
     """Merge rule maps or presentation slots with right-hand precedence."""
-    from .presentation import AlgebraConfig, Notation
+    from .presentation import AlgebraConfig, DisplayPolicy, Notation
 
     if isinstance(left, NotationPatch) and isinstance(right, NotationPatch):
         return NotationPatch(reverse=right.reverse if right.reverse is not None else left.reverse)
@@ -163,6 +163,8 @@ def compose(left: object, right: object) -> Any:
             }
         )
         return Notation(right.id, tokens, rules=rules)
+    if isinstance(left, DisplayPolicy) and isinstance(right, DisplayPolicy):
+        return left.merge(right)
 
     right_recipe = _as_recipe(right)
     if right_recipe is None:
@@ -179,7 +181,13 @@ def compose(left: object, right: object) -> Any:
             display_order=(
                 right_recipe.display_order if right_recipe.display_order is not None else left_recipe.display_order
             ),
-            display=right_recipe.display if right_recipe.display is not None else left_recipe.display,
+            display=(
+                left_recipe.display.merge(right_recipe.display)
+                if left_recipe.display is not None and right_recipe.display is not None
+                else right_recipe.display
+                if right_recipe.display is not None
+                else left_recipe.display
+            ),
         )
     if isinstance(left, ConfiguredPreset):
         return ConfiguredPreset(left.base, compose(left.presentation, right_recipe))

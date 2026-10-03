@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable, Mapping, Sequence
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
 from numbers import Integral, Real
 from typing import cast
 
@@ -873,36 +873,85 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
     return rules
 
 
-@dataclass(frozen=True, slots=True)
+@dataclass(frozen=True, slots=True, init=False, repr=False)
 class DisplayPolicy(PresentationComposable):
-    """Default rendering content and target, independent of notation.
+    """Rendering choices with sparse override intent and concrete defaults.
 
     Auto shows a deduplicated full equality when a name or expression is
-    present, otherwise the value. Explicit content selections take precedence.
+    present, otherwise the value. Omitted fields inherit from the policy to
+    which this one is applied; direct attribute access always returns a
+    concrete value.
     """
 
     content: str = "auto"
     target: str = "unicode"
     zero_tolerance: float = 1e-12
     coefficient_precision: int = 6
+    _specified: frozenset[str] = field(default_factory=frozenset, init=False, repr=False)
 
-    def __post_init__(self) -> None:
-        if self.content not in {"auto", "name", "expr", "value", "full"}:
+    def __init__(
+        self,
+        content: str | None = None,
+        target: str | None = None,
+        zero_tolerance: float | None = None,
+        coefficient_precision: int | None = None,
+    ) -> None:
+        specified = frozenset(
+            name
+            for name, value in (
+                ("content", content),
+                ("target", target),
+                ("zero_tolerance", zero_tolerance),
+                ("coefficient_precision", coefficient_precision),
+            )
+            if value is not None
+        )
+        content = "auto" if content is None else content
+        target = "unicode" if target is None else target
+        zero_tolerance = 1e-12 if zero_tolerance is None else zero_tolerance
+        coefficient_precision = 6 if coefficient_precision is None else coefficient_precision
+        if content not in {"auto", "name", "expr", "value", "full"}:
             raise ValueError("display content must be 'auto', 'name', 'expr', 'value', or 'full'")
-        if self.target not in {"ascii", "unicode", "latex"}:
+        if target not in {"ascii", "unicode", "latex"}:
             raise ValueError("display target must be 'ascii', 'unicode', or 'latex'")
-        if not isinstance(self.zero_tolerance, Real) or isinstance(self.zero_tolerance, bool):
+        if not isinstance(zero_tolerance, Real) or isinstance(zero_tolerance, bool):
             raise TypeError("display zero_tolerance must be a real number")
-        tolerance = float(self.zero_tolerance)
+        tolerance = float(zero_tolerance)
         if not math.isfinite(tolerance) or tolerance < 0:
             raise ValueError("display zero_tolerance must be finite and non-negative")
-        if not isinstance(self.coefficient_precision, Integral) or isinstance(self.coefficient_precision, bool):
+        if not isinstance(coefficient_precision, Integral) or isinstance(coefficient_precision, bool):
             raise TypeError("display coefficient_precision must be an integer")
-        precision = int(self.coefficient_precision)
+        precision = int(coefficient_precision)
         if not 1 <= precision <= 17:
             raise ValueError("display coefficient_precision must be between 1 and 17")
+        object.__setattr__(self, "content", content)
+        object.__setattr__(self, "target", target)
         object.__setattr__(self, "zero_tolerance", tolerance)
         object.__setattr__(self, "coefficient_precision", precision)
+        object.__setattr__(self, "_specified", specified)
+
+    def apply_to(self, base: DisplayPolicy) -> DisplayPolicy:
+        """Apply only explicitly supplied fields to a concrete display policy."""
+        if not isinstance(base, DisplayPolicy):
+            raise TypeError("display override requires a DisplayPolicy")
+        return DisplayPolicy(
+            **{
+                name: getattr(self, name) if name in self._specified else getattr(base, name)
+                for name in ("content", "target", "zero_tolerance", "coefficient_precision")
+            }
+        )
+
+    def __repr__(self) -> str:
+        fields = ("content", "target", "zero_tolerance", "coefficient_precision")
+        arguments = ", ".join(f"{name}={getattr(self, name)!r}" for name in fields if name in self._specified)
+        return f"DisplayPolicy({arguments})"
+
+    def merge(self, later: DisplayPolicy) -> DisplayPolicy:
+        """Combine sparse overrides; explicit fields on the right win."""
+        if not isinstance(later, DisplayPolicy):
+            raise TypeError("display override requires a DisplayPolicy")
+        names = self._specified | later._specified
+        return DisplayPolicy(**{name: getattr(later if name in later._specified else self, name) for name in names})
 
 
 @dataclass(frozen=True, slots=True)
@@ -933,6 +982,11 @@ class PresentationConfig:
         }
         if len(dimensions) != 1:
             raise ValueError("blade, local-name, and display-order dimensions must match")
+        # PresentationConfig is a complete snapshot even when constructed from
+        # a sparse display override. Raw dataclass replacement starts from the
+        # default policy; with_display() is the inheritance-aware API.
+        if len(self.display._specified) != 4:
+            object.__setattr__(self, "display", self.display.apply_to(DisplayPolicy()))
 
     @property
     def dimension(self) -> int:
@@ -951,7 +1005,9 @@ class PresentationConfig:
         return replace(self, display_order=display_order)
 
     def with_display(self, display: DisplayPolicy) -> PresentationConfig:
-        return replace(self, display=display)
+        if not isinstance(display, DisplayPolicy):
+            raise TypeError("display must be a DisplayPolicy")
+        return replace(self, display=display.apply_to(self.display))
 
 
 @dataclass(frozen=True, slots=True, init=False)

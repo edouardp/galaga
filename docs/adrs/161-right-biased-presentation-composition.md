@@ -31,6 +31,10 @@ whose `build()` resolves blade recipes against the numeric Gram matrix and
 returns a validated `AlgebraConfig`. The numeric definition and model remain
 those of the base preset. Combining two complete algebra presets is undefined.
 
+[ADR-169](169-sparse-display-overrides.md) refines repeated display-policy
+composition: supplied display fields merge with right-hand precedence instead
+of replacing the whole display slot.
+
 ## Consequences
 
 Users can write `Algebra(config=presets.sta() | (presets.blades.sta() |

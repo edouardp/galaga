@@ -189,6 +189,7 @@ classes are no longer production alternatives.
 | [166](166-composed-presenter-recipes.md) | Composed Presenter Recipes | Accepted; extends 161 |
 | [167](167-one-pair-witt-plane-lesson.md) | One-Pair Witt Plane Lesson | Accepted; extends 136 |
 | [168](168-conformal-spacetime-lessons.md) | Conformal Spacetime Teaching Notebooks | Accepted |
+| [169](169-sparse-display-overrides.md) | Sparse Display Overrides | Accepted; extends 076 and 161 |
 
 ## Creating New ADRs
 

@@ -97,7 +97,9 @@ def test_each_presentation_component_has_an_independent_copy_operation():
     assert with_locals.blades is original.blades
     assert with_order.display_order is order
     assert with_order.notation is original.notation
-    assert with_display.display is display
+    assert with_display.display.content == display.content
+    assert with_display.display.target == display.target
+    assert with_display.display.coefficient_precision == original.display.coefficient_precision
     assert with_display.display_order is original.display_order
 
 
@@ -176,6 +178,9 @@ def test_notation_and_display_policy_validate_their_own_concerns():
     assert notation.token("missing", "?") == "?"
     assert DisplayPolicy().zero_tolerance == 1e-12
     assert DisplayPolicy().coefficient_precision == 6
+    assert repr(DisplayPolicy()) == "DisplayPolicy()"
+    assert repr(DisplayPolicy(content="auto")) == "DisplayPolicy(content='auto')"
+    assert DisplayPolicy() != DisplayPolicy(content="auto")
 
     with pytest.raises(ValueError, match="duplicate notation"):
         Notation("bad", (("gp", "*"), ("gp", "×")))

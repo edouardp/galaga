@@ -116,9 +116,9 @@ class Presenter:
         if isinstance(order, str):
             n = value.algebra.n
             order = DisplayOrder(n, range(1 << n)) if order == "bitmap" else DisplayOrder(n)
-        display = self.display if self.display is not None else selected.display
+        display = self.display.apply_to(selected.display) if self.display is not None else selected.display
         if self.content is not None:
-            display = replace(display, content=self.content)
+            display = DisplayPolicy(content=self.content).apply_to(display)
         notation = self.notation
         if isinstance(notation, NotationPatch):
             notation = notation.apply(selected.notation)

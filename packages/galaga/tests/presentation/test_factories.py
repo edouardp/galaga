@@ -160,7 +160,8 @@ def test_all_fine_grained_facade_views_share_the_same_numeric_algebra():
     assert views[0].presentation.blades is blades
     assert views[1].locals()["x"] == original.blade(1)
     assert views[2].display_order == order.masks
-    assert views[3].presentation.display is display
+    assert views[3].presentation.display.content == display.content
+    assert views[3].presentation.display.target == display.target
 
 
 def test_direct_complete_config_and_scalar_algebra_paths_are_supported():

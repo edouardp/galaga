@@ -25,6 +25,7 @@ def test_package_preset_namespace_contains_only_public_recipe_factories():
         "blades",
         "cga",
         "complex",
+        "display",
         "euclidean",
         "exterior",
         "lengyel_cga",

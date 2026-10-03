@@ -131,8 +131,14 @@ zero tolerance, and coefficient precision. `BladePreset` is a factory for a
 convention that may need the actual Gram matrix. `NotationPatch` changes part
 of an existing notation, such as its reverse symbol.
 
+Use `presets.display.override(...)` for composable display changes. A policy
+records which fields were supplied, so a precision change does not reset an
+earlier content or target choice. Supplying a default value explicitly resets
+that choice. `PresentationConfig.display` always contains all four resolved
+values for rendering.
+
 ```python
-from galaga import Algebra, DisplayPolicy, Presenter, presets
+from galaga import Algebra, Presenter, presets
 
 recipe = presets.blades.indexed(3, prefix="v") | presets.notation.functional_short()
 algebra = Algebra(config=presets.euclidean(3) | recipe, expr=True)
@@ -140,7 +146,7 @@ e1, e2, _ = algebra.basis_vectors()
 
 # The same partial recipe can be applied to an existing algebra or value.
 alternate = Algebra(3, expr=True).with_presentation(recipe)
-presenter = Presenter(config=recipe) | DisplayPolicy(content="full")
+presenter = Presenter(config=recipe) | presets.display.override(content="full")
 view = presenter(e1 * e2)
 assert view.value == e1 * e2
 ```
@@ -161,7 +167,7 @@ named = presets.presenters.short_functional() | presets.blades.indexed(3, prefix
 assert isinstance(named, Presenter)
 assert named(e1 * e2).ascii() == "gp(v1, v2) = v12"
 
-full = presets.presenters.values() | DisplayPolicy(content="full")
+full = presets.presenters.values() | presets.display.override(content="full")
 assert full(e1).presentation.display.content == "full"
 ```
 
@@ -424,9 +430,9 @@ blades + notation + local_names + display_order + display
 ```
 
 All dimensioned components must agree. `with_blades`, `with_notation`,
-`with_local_names`, `with_display_order`, and `with_display` use dataclass
-replacement: the selected component changes and all others retain their object
-identity.
+`with_local_names`, and `with_display_order` replace one complete component.
+`with_display` applies only the display fields supplied in its argument. All
+other components retain their object identity.
 
 ### Complete algebra configuration
 
@@ -450,15 +456,18 @@ algebra is not permanently in a hidden preset mode.
 Presentation components can be joined before construction with `|`:
 
 ```python
-recipe = presets.blades.sta() | presets.notation.hestenes() | DisplayPolicy(coefficient_precision=4)
+recipe = presets.blades.sta() | presets.notation.hestenes() | presets.display.override(coefficient_precision=4)
 algebra = Algebra(config=presets.sta() | recipe)
 ```
 
 The immutable `PresentationRecipe` stores optional slots until it is applied
 to a complete preset or `AlgebraConfig`. On overlap, the right-hand component
-replaces the left-hand slot. A blade recipe resolves against the complete
-config's Gram matrix at build time; the numeric definition and model stay
-intact. Joining two complete algebra presets is unsupported.
+replaces the left-hand slot, except that display overrides merge their
+explicitly supplied fields. `presets.display.override(coefficient_precision=4)`
+therefore preserves an earlier content, target, and zero tolerance. An explicit
+default such as `content="auto"` resets that choice. A blade recipe resolves
+against the complete config's Gram matrix at build time; the numeric definition
+and model stay intact. Joining two complete algebra presets is unsupported.
 
 Joining two `Notation` objects instead merges their token maps and their
 rule maps using dictionary-style right-hand precedence. A rule key is the

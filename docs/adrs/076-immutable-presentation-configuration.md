@@ -53,7 +53,9 @@ the renderer derives names.
 
 `PresentationConfig` groups those components and validates their common vector
 dimension. Its `with_*` operations return new configs and replace exactly one
-component.
+component. [ADR-169](169-sparse-display-overrides.md) refines `with_display()`
+to apply only supplied display choices while retaining a complete policy in
+the resulting configuration.
 
 [ADR-138](138-scoped-notation-shortcut.md) adds `Algebra.use_notation(...)` as
 a scoped replacement of that single component, preserving all other currently

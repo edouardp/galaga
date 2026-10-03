@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any as _Any
 
+from . import display as display
 from . import notation as notation
 from . import presenters as presenters
 from ._implementation import (
@@ -24,6 +25,7 @@ __all__ = [
     "blades",
     "cga",
     "complex",
+    "display",
     "euclidean",
     "exterior",
     "lengyel_cga",

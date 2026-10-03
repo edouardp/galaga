@@ -12,6 +12,7 @@ from galaga import (
     Notation,
     NotationPatch,
     PresentationRecipe,
+    Presenter,
     RenderRule,
     presets,
 )
@@ -106,10 +107,62 @@ def test_different_component_classes_promote_to_an_immutable_right_biased_recipe
 
     assert isinstance(recipe, PresentationRecipe)
     assert recipe.notation is notation
-    assert recipe.display is last_display
+    assert recipe.display == last_display
     assert recipe.local_names is local_names
     assert recipe.display_order is order
     assert first.display is first_display
+
+
+def test_sparse_display_overrides_preserve_unmentioned_choices() -> None:
+    base = Algebra(2, display=DisplayPolicy(content="full", target="latex", zero_tolerance=0))
+    precision = presets.display.override(coefficient_precision=4)
+    selected = base.with_display(precision).presentation.display
+
+    assert selected.content == "full"
+    assert selected.target == "latex"
+    assert selected.zero_tolerance == 0
+    assert selected.coefficient_precision == 4
+    assert base.presentation.display.coefficient_precision == 6
+
+    configured = Algebra(
+        config=presets.euclidean(2).build().with_presentation(base.presentation),
+        display=precision,
+    ).presentation.display
+    assert configured.content == "full"
+    assert configured.target == "latex"
+    assert configured.zero_tolerance == 0
+    assert configured.coefficient_precision == 4
+
+    recipe = presets.display.override(target="ascii") | precision
+    composed = base.with_display(recipe).presentation.display
+    assert composed.content == "full"
+    assert composed.target == "ascii"
+    assert composed.zero_tolerance == 0
+    assert composed.coefficient_precision == 4
+
+    reset = base.with_display(presets.display.override(content="auto"))
+    assert reset.presentation.display.content == "auto"
+
+
+def test_display_preset_is_sparse_for_presenter_factories() -> None:
+    algebra = Algebra(2)
+    value = algebra.basis_vectors()[0]
+    presenter = presets.presenters.values() | presets.display.override(coefficient_precision=4)
+    policy = presenter(value).presentation.display
+    assert policy.content == "value"
+    assert policy.coefficient_precision == 4
+    assert policy.target == algebra.presentation.display.target
+    assert dir(presets.display) == ["override"]
+
+
+def test_direct_presenter_display_override_keeps_captured_policy() -> None:
+    algebra = Algebra(2, display=DisplayPolicy(content="full", target="latex", zero_tolerance=0))
+    value = algebra.basis_vectors()[0]
+    view = Presenter(display=presets.display.override(coefficient_precision=4))(value)
+    assert view.presentation.display.content == "full"
+    assert view.presentation.display.target == "latex"
+    assert view.presentation.display.zero_tolerance == 0
+    assert view.presentation.display.coefficient_precision == 4
 
 
 def test_recipe_applied_to_preset_preserves_metric_model_and_products():
@@ -139,7 +192,7 @@ def test_direct_preset_composition_replaces_repeated_presentation_slots():
     assert isinstance(updated, ConfiguredPreset)
     assert updated.base is base
     assert updated.presentation.notation == presets.notation.doran_lasenby()
-    assert updated.presentation.display == DisplayPolicy(coefficient_precision=2)
+    assert updated.presentation.display.coefficient_precision == 2
     assert first.presentation.notation == presets.notation.hestenes()
     assert Algebra(config=updated).presentation.notation == presets.notation.doran_lasenby()
 
