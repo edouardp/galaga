@@ -23,5 +23,11 @@ def reject_cached_legacy_modules():
     assert_no_legacy_modules()
 
 
+@pytest.fixture(autouse=True)
+def isolate_user_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Keep repository tests independent of a developer's personal YAML file."""
+    monkeypatch.setenv("GALAGA_CONFIG", "none")
+
+
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:
     assert_no_legacy_modules()

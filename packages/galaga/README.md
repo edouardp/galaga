@@ -228,6 +228,32 @@ These change
 rendering, not the operation called. See the [preset lesson][preset-lesson]
 and [presentation guide][presentation] for lower-level customization.
 
+## Save presentation preferences in YAML
+
+Galaga reads `~/.config/galaga_python/config.yaml` and any `.galaga_python`
+files from the filesystem root through the working directory when it creates
+a facade `Algebra`. Closer files override earlier preferences. For example:
+
+```yaml
+version: 1
+defaults:
+  presentation:
+    display: {coefficient_precision: 4}
+    notation: {ref: textbook}
+notations:
+  textbook:
+    rules:
+      right_hodge_dual:
+        latex: {kind: superscript, symbol: '\star'}
+```
+
+Named presentations, presenters, and algebras are available through
+`from galaga import config` and `settings = config.load()`. A complete
+`AlgebraConfig` is an exact snapshot and bypasses file defaults. Set
+`GALAGA_CONFIG=none` to use built-in defaults. See the
+[user configuration guide](../../docs/v2/user-configuration-spec.md) for the
+file schema and precedence rules.
+
 ## Values, blades, names and expressions
 
 Multivector values display by grade, then lexicographically by numeric basis

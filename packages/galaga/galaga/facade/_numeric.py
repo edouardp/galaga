@@ -20,7 +20,7 @@ import numpy as np
 
 from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
-from ..composition import NotationPatch, PresentationRecipe
+from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
 from ..names import Name
 from ..presentation import (
@@ -79,7 +79,23 @@ class Algebra:
                 conflicting.extend(f"{name}=" for name in sorted(kwargs))
                 details = ", ".join(conflicting)
                 raise TypeError(f"config= defines the numeric algebra and cannot be combined with {details}")
-            expanded = _expand_config(config)
+            if isinstance(config, ConfiguredPreset):
+                expanded = _expand_config(config.base)
+                if not isinstance(config.base, AlgebraConfig):
+                    from ..config import apply_defaults
+
+                    expanded = expanded.with_presentation(
+                        apply_defaults(expanded.presentation, expanded.definition.gram)
+                    )
+                expanded = config.presentation.apply(expanded)
+            else:
+                expanded = _expand_config(config)
+                if not isinstance(config, AlgebraConfig):
+                    from ..config import apply_defaults
+
+                    expanded = expanded.with_presentation(
+                        apply_defaults(expanded.presentation, expanded.definition.gram)
+                    )
             self._numeric = _numeric_from_definition(expanded.definition)
             base_presentation = expanded.presentation
             self._model = expanded.model
@@ -99,6 +115,9 @@ class Algebra:
                     args = ()
             self._numeric = core.Algebra(*args, **kwargs)
             base_presentation = default_presentation(self._numeric.n)
+            from ..config import apply_defaults
+
+            base_presentation = apply_defaults(base_presentation, self._numeric.gram)
             self._model = None
 
         if presentation is not None:
@@ -137,7 +156,12 @@ class Algebra:
         if not isinstance(numeric, core.Algebra):
             raise TypeError("numeric must be a core.Algebra")
         _require_expr_flag(expr)
-        selected = default_presentation(numeric.n) if presentation is None else _require_presentation(presentation)
+        if presentation is None:
+            from ..config import apply_defaults
+
+            selected = apply_defaults(default_presentation(numeric.n), numeric.gram)
+        else:
+            selected = _require_presentation(presentation)
         if selected.dimension != numeric.n:
             raise ValueError(
                 f"presentation dimension {selected.dimension} does not match numeric dimension {numeric.n}"

@@ -12,6 +12,7 @@ second shipped implementation.
 
 from __future__ import annotations
 
+from . import config as config
 from . import facade as facade
 from . import presets as presets
 from .facade import *  # noqa: F401,F403

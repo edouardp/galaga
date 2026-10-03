@@ -189,6 +189,7 @@ classes are no longer production alternatives.
 | [167](167-one-pair-witt-plane-lesson.md) | One-Pair Witt Plane Lesson | Accepted; extends 136 |
 | [169](169-sparse-display-overrides.md) | Sparse Display Overrides | Accepted; extends 076 and 161 |
 | [170](170-retire-migration-scaffolding-before-stable-2.md) | Retire Migration Scaffolding Before Stable Galaga 2 | Accepted; updates 083, 090, 129 and matrix 005 |
+| [171](171-layered-yaml-presentation-preferences.md) | Layered YAML Presentation Preferences | Accepted; extends 076, 161, 162 and 169 |
 
 ## Creating New ADRs
 

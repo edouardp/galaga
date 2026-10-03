@@ -21,6 +21,8 @@
 - [Presentation configuration implementation](presentation-configuration.md)
   decomposes the implemented immutable components, presets, signed blade
   lookup, facade factories, and context-local override behavior.
+- [User configuration files](user-configuration-spec.md) specify
+  global and project YAML preferences and reusable named profiles.
 - [Expression provenance implementation](expression-provenance.md) explains
   the immutable nodes, independent value state, catalog-driven propagation and
   evaluation, variadic lowering, and conservative simplifier.

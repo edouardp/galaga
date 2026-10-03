@@ -7,7 +7,7 @@ from typing import TYPE_CHECKING, Any, Literal
 
 if TYPE_CHECKING:
     from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-    from .presentation import AlgebraConfig, DisplayPolicy, Notation, PresentationConfig
+    from .presentation import AlgebraConfig, DisplayPolicy, Notation, PresentationConfig, RenderRule
     from .presets import BladePreset, Preset
 
 
@@ -26,10 +26,25 @@ class NotationPatch(PresentationComposable):
     """A small change to an existing notation, resolved when it is applied."""
 
     reverse: Literal["tilde", "dagger"] | None = None
+    rules: tuple[tuple[str, str | None, RenderRule], ...] = ()
 
     def __post_init__(self) -> None:
         if self.reverse not in (None, "tilde", "dagger"):
             raise ValueError("reverse must be 'tilde' or 'dagger'")
+        from .presentation import RenderRule
+
+        seen: set[tuple[str, str | None]] = set()
+        for operation_id, target, rule in self.rules:
+            if not isinstance(operation_id, str) or not operation_id:
+                raise ValueError("notation patch operation IDs must be non-empty strings")
+            if target not in (None, "ascii", "unicode", "latex"):
+                raise ValueError("notation patch target must be ascii, unicode, or latex")
+            if not isinstance(rule, RenderRule):
+                raise TypeError("notation patch rules must be RenderRule values")
+            key = (operation_id, target)
+            if key in seen:
+                raise ValueError(f"duplicate notation patch rule for {key!r}")
+            seen.add(key)
 
     def apply(self, notation: Notation) -> Notation:
         """Change only requested operation rules, including target overrides."""
@@ -37,16 +52,16 @@ class NotationPatch(PresentationComposable):
 
         if not isinstance(notation, Notation):
             raise TypeError("notation patch requires a Notation")
-        if self.reverse is None:
-            return notation
         rules = {(operation_id, target): rule for operation_id, target, rule in notation.rules}
-        source = Notation.hestenes() if self.reverse == "dagger" else Notation.default()
-        reverse_rules = {(operation_id, target): rule for operation_id, target, rule in source.rules}
-        rules[("reverse", None)] = reverse_rules[("reverse", None)]
-        if self.reverse == "dagger":
-            rules.pop(("reverse", "latex"), None)
-        else:
-            rules[("reverse", "latex")] = reverse_rules[("reverse", "latex")]
+        if self.reverse is not None:
+            source = Notation.hestenes() if self.reverse == "dagger" else Notation.default()
+            reverse_rules = {(operation_id, target): rule for operation_id, target, rule in source.rules}
+            rules[("reverse", None)] = reverse_rules[("reverse", None)]
+            if self.reverse == "dagger":
+                rules.pop(("reverse", "latex"), None)
+            else:
+                rules[("reverse", "latex")] = reverse_rules[("reverse", "latex")]
+        rules.update({(operation_id, target): rule for operation_id, target, rule in self.rules})
         encoded = {
             operation_id if target is None else (operation_id, target): rule
             for (operation_id, target), rule in rules.items()
@@ -55,13 +70,71 @@ class NotationPatch(PresentationComposable):
 
 
 @dataclass(frozen=True, slots=True)
+class BladeRecipe(PresentationComposable):
+    """A blade preset whose dimension is inferred from the target algebra."""
+
+    preset: str
+    args: tuple[tuple[str, Any], ...] = ()
+
+    def resolve(self, gram: Any) -> BladeConvention:
+        from .presets import blades
+
+        dimension = len(gram)
+        factory = getattr(blades, self.preset)
+        kwargs = dict(self.args)
+        if self.preset in {"indexed", "euclidean", "exterior"}:
+            value = factory(dimension, **kwargs)
+        elif self.preset == "pga":
+            value = factory(dimension - 1, **kwargs)
+        elif self.preset == "cga":
+            value = factory(dimension - 2, **kwargs)
+        else:
+            value = factory(**kwargs)
+        return value.resolve(gram)
+
+
+@dataclass(frozen=True, slots=True)
+class LocalNameRecipe(PresentationComposable):
+    """Dimension-independent local-name selection."""
+
+    from_blades: bool = False
+    entries: tuple[tuple[str, Any], ...] = ()
+
+    def resolve(self, blades: BladeConvention) -> LocalNamePolicy:
+        from .blades import LocalNamePolicy
+
+        if self.from_blades:
+            return LocalNamePolicy.from_convention(blades)
+        return LocalNamePolicy(blades.dimension, dict(self.entries))
+
+
+@dataclass(frozen=True, slots=True)
+class DisplayOrderRecipe(PresentationComposable):
+    """Dimension-independent ordering selection."""
+
+    kind: str
+    masks: tuple[int, ...] = ()
+
+    def resolve(self, dimension: int) -> DisplayOrder:
+        from .blades import DisplayOrder
+
+        if self.kind == "grade-lexicographic":
+            return DisplayOrder(dimension)
+        if self.kind == "bitmap":
+            return DisplayOrder(dimension, range(1 << dimension))
+        if self.kind == "explicit":
+            return DisplayOrder(dimension, self.masks)
+        raise ValueError(f"unknown display order {self.kind!r}")
+
+
+@dataclass(frozen=True, slots=True)
 class PresentationRecipe(PresentationComposable):
     """Optional presentation slots resolved against a complete algebra config."""
 
-    blades: BladeConvention | BladePreset | None = None
+    blades: BladeConvention | BladePreset | BladeRecipe | None = None
     notation: Notation | NotationPatch | None = None
-    local_names: LocalNamePolicy | None = None
-    display_order: DisplayOrder | None = None
+    local_names: LocalNamePolicy | LocalNameRecipe | None = None
+    display_order: DisplayOrder | DisplayOrderRecipe | None = None
     display: DisplayPolicy | None = None
 
     def __post_init__(self) -> None:
@@ -70,10 +143,10 @@ class PresentationRecipe(PresentationComposable):
         from .presets import BladePreset
 
         expected = (
-            ("blades", self.blades, (BladeConvention, BladePreset)),
+            ("blades", self.blades, (BladeConvention, BladePreset, BladeRecipe)),
             ("notation", self.notation, (Notation, NotationPatch)),
-            ("local_names", self.local_names, (LocalNamePolicy,)),
-            ("display_order", self.display_order, (DisplayOrder,)),
+            ("local_names", self.local_names, (LocalNamePolicy, LocalNameRecipe)),
+            ("display_order", self.display_order, (DisplayOrder, DisplayOrderRecipe)),
             ("display", self.display, (DisplayPolicy,)),
         )
         for name, value, types in expected:
@@ -108,9 +181,15 @@ class PresentationRecipe(PresentationComposable):
             )
             presentation = presentation.with_notation(notation)
         if self.local_names is not None:
-            presentation = presentation.with_local_names(self.local_names)
+            local_names = self.local_names
+            if isinstance(local_names, LocalNameRecipe):
+                local_names = local_names.resolve(presentation.blades)
+            presentation = presentation.with_local_names(local_names)
         if self.display_order is not None:
-            presentation = presentation.with_display_order(self.display_order)
+            order = self.display_order
+            if isinstance(order, DisplayOrderRecipe):
+                order = order.resolve(presentation.dimension)
+            presentation = presentation.with_display_order(order)
         if self.display is not None:
             presentation = presentation.with_display(self.display)
         return presentation
@@ -145,7 +224,13 @@ def compose(left: object, right: object) -> Any:
     from .presentation import AlgebraConfig, DisplayPolicy, Notation
 
     if isinstance(left, NotationPatch) and isinstance(right, NotationPatch):
-        return NotationPatch(reverse=right.reverse if right.reverse is not None else left.reverse)
+        reverse = right.reverse if right.reverse is not None else left.reverse
+        rules = {(operation_id, target): rule for operation_id, target, rule in left.rules}
+        if right.reverse is not None:
+            rules.pop(("reverse", None), None)
+            rules.pop(("reverse", "latex"), None)
+        rules.update({(operation_id, target): rule for operation_id, target, rule in right.rules})
+        return NotationPatch(reverse=reverse, rules=tuple((op, target, rule) for (op, target), rule in rules.items()))
     if isinstance(left, Notation) and isinstance(right, NotationPatch):
         return right.apply(left)
     if isinstance(left, NotationPatch) and isinstance(right, Notation):
