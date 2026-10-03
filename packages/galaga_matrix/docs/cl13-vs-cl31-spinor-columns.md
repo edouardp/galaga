@@ -19,10 +19,10 @@ selected reference column $u$.
 
 For the current implementation:
 
-| Algebra | Real algebra type | Even dof | Reference-column rank | Result |
-|---|---|---:|---:|---|
-| $Cl(1,3)$ | $M(2,\mathbb H)$ | 8 | 8 | supported |
-| $Cl(3,1)$ | $M(4,\mathbb R)$ | 8 | 4 | rejected |
+| Algebra   | Real algebra type | Even dof | Reference-column rank | Result    |
+| --------- | ----------------- | -------: | --------------------: | --------- |
+| $Cl(1,3)$ | $M(2,\mathbb H)$  |        8 |                     8 | supported |
+| $Cl(3,1)$ | $M(4,\mathbb R)$  |        8 |                     4 | rejected  |
 
 So $Cl(3,1)$ is not rejected because it is useless for STA. It is rejected
 because the currently selected reference column loses half of the even

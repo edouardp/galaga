@@ -62,12 +62,12 @@ The recommendation is:
 There are four closely related spinor columns that can look deceptively
 similar:
 
-| Object | Column size | Main group/action | Common use |
-|---|---:|---|---|
-| Pauli spinor | $2$ complex | spatial rotations, $SU(2)$ | nonrelativistic spin-$\frac12$ |
-| Weyl spinor | $2$ complex | one chiral $SL(2,\mathbb C)$ representation | massless relativistic spin-$\frac12$ |
-| Dirac spinor | $4$ complex | full Lorentz spin representation | massive relativistic spin-$\frac12$ |
-| Majorana spinor | $4$ real in a Majorana basis | Lorentz spin representation with a reality condition | neutral relativistic spin-$\frac12$ |
+| Object          |                  Column size | Main group/action                                    | Common use                           |
+| --------------- | ---------------------------: | ---------------------------------------------------- | ------------------------------------ |
+| Pauli spinor    |                  $2$ complex | spatial rotations, $SU(2)$                           | nonrelativistic spin-$\frac12$       |
+| Weyl spinor     |                  $2$ complex | one chiral $SL(2,\mathbb C)$ representation          | massless relativistic spin-$\frac12$ |
+| Dirac spinor    |                  $4$ complex | full Lorentz spin representation                     | massive relativistic spin-$\frac12$  |
+| Majorana spinor | $4$ real in a Majorana basis | Lorentz spin representation with a reality condition | neutral relativistic spin-$\frac12$  |
 
 A Pauli spinor and a Weyl spinor are both two-component complex columns, but
 they are not the same concept. A Pauli spinor is naturally tied to spatial
@@ -636,16 +636,16 @@ must preserve the already-tested Dirac bilinears.
 
 Use these names carefully:
 
-| Name | Meaning |
-|---|---|
-| Dirac basis | current standard gamma-matrix basis with diagonal $\Gamma^0$ |
-| Weyl basis | gamma-matrix basis with diagonal $\Gamma^5$ |
-| chiral basis | synonym for Weyl basis in this context |
-| Majorana basis | gamma-matrix basis where charge conjugation is ordinary complex conjugation |
-| Weyl spinor | one two-component chiral piece, $\psi_L$ or $\psi_R$ |
-| Dirac spinor | four-component column containing both chiral pieces |
+| Name            | Meaning                                                                                 |
+| --------------- | --------------------------------------------------------------------------------------- |
+| Dirac basis     | current standard gamma-matrix basis with diagonal $\Gamma^0$                            |
+| Weyl basis      | gamma-matrix basis with diagonal $\Gamma^5$                                             |
+| chiral basis    | synonym for Weyl basis in this context                                                  |
+| Majorana basis  | gamma-matrix basis where charge conjugation is ordinary complex conjugation             |
+| Weyl spinor     | one two-component chiral piece, $\psi_L$ or $\psi_R$                                    |
+| Dirac spinor    | four-component column containing both chiral pieces                                     |
 | Majorana spinor | Dirac spinor satisfying $\psi^c=\psi$, represented by a real column in a Majorana basis |
-| Pauli spinor | nonrelativistic or spatial-rotation two-component spinor |
+| Pauli spinor    | nonrelativistic or spatial-rotation two-component spinor                                |
 
 Avoid saying "the upper two components are the Weyl spinor" unless the current
 column is explicitly in the Weyl/chiral basis.

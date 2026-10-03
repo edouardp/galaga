@@ -31,12 +31,12 @@ flowchart TD
 
 ## Module map
 
-| Module | Responsibility |
-|---|---|
-| `galaga.core` | Public `Algebra`, `Multivector`, operators, and named numeric operations |
+| Module                  | Responsibility                                                                                         |
+| ----------------------- | ------------------------------------------------------------------------------------------------------ |
+| `galaga.core`           | Public `Algebra`, `Multivector`, operators, and named numeric operations                               |
 | `galaga.core._metadata` | Metric-independent bitmask, grade, involution, wedge, and complement arrays shared by vector dimension |
-| `galaga.core._backends` | Diagonal, packed, lazy, and dense-reference geometric-product implementations |
-| `galaga.core._metric` | Exterior metric and antimetric matrices built from ordinary and complementary minors |
+| `galaga.core._backends` | Diagonal, packed, lazy, and dense-reference geometric-product implementations                          |
+| `galaga.core._metric`   | Exterior metric and antimetric matrices built from ordinary and complementary minors                   |
 
 The private modules are implementation details. Their interfaces exist to keep
 the public algebra independent of storage strategy, not as extension APIs.
@@ -166,12 +166,12 @@ would obscure the separation between exterior and metric structure.
 
 ## Product backends
 
-| Backend | Metric | Storage | Intended role |
-|---|---|---|---|
-| `diagonal` | Exactly diagonal | One output and factor for every input pair | Production fast path |
-| `packed` | Any | CSR-like expansion of every blade pair | Production general-metric path for moderate dimensions |
-| `lazy` | Any | Fixed scalar/vector actions plus bounded LRU cache of higher left actions | Production fallback before large eager allocations |
-| `reference` | Any | Dense cube of left-action matrices | Correctness oracle for small dimensions |
+| Backend     | Metric           | Storage                                                                   | Intended role                                          |
+| ----------- | ---------------- | ------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `diagonal`  | Exactly diagonal | One output and factor for every input pair                                | Production fast path                                   |
+| `packed`    | Any              | CSR-like expansion of every blade pair                                    | Production general-metric path for moderate dimensions |
+| `lazy`      | Any              | Fixed scalar/vector actions plus bounded LRU cache of higher left actions | Production fallback before large eager allocations     |
+| `reference` | Any              | Dense cube of left-action matrices                                        | Correctness oracle for small dimensions                |
 
 The lazy cache is protected by a reentrant lock. `product_cache_info` reports
 only retained higher-grade actions as `(entries, bytes, budget)`; fixed vector
