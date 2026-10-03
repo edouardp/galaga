@@ -73,6 +73,39 @@ def test_composed_presenter_config_resolves_against_value_and_preserves_metric()
     assert presenter.config is recipe
 
 
+def test_presenter_factory_composes_with_blade_preset_in_either_order() -> None:
+    algebra = Algebra(3, expr=True)
+    a, b, _ = algebra.basis_vectors()
+    value = a * b
+    factory = presets.presenters.short_functional()
+    blades = presets.blades.indexed(3, prefix="v")
+
+    for presenter in (factory | blades, blades | factory):
+        assert isinstance(presenter, Presenter)
+        view = presenter(value)
+        assert view.ascii() == "gp(v1, v2) = v12"
+        assert view.value is value
+    assert factory.notation == presets.notation.functional_short()
+    with pytest.raises(KeyError, match="unknown blade"):
+        algebra.presentation.blades.resolve("v1")
+
+
+def test_presenter_composition_applies_display_and_other_presenters_in_order() -> None:
+    value = Algebra(2).basis_vectors()[0]
+    values = presets.presenters.values()
+    full = DisplayPolicy(content="full")
+
+    assert (values | full)(value).presentation.display.content == "full"
+    assert (full | values)(value).presentation.display.content == "value"
+    assert (values | presets.presenters.full())(value).presentation.display.content == "full"
+    assert (presets.presenters.full() | values)(value).presentation.display.content == "value"
+
+
+def test_presenter_composition_rejects_metric_presets() -> None:
+    with pytest.raises(TypeError):
+        _ = presets.presenters.values() | presets.euclidean(2)
+
+
 def test_presenter_explicit_keywords_override_composed_recipe() -> None:
     algebra = Algebra(2)
     value = algebra.basis_vectors()[0]

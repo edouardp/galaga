@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, replace
+from dataclasses import dataclass, field, replace
+from types import NotImplementedType
 from typing import TYPE_CHECKING, Literal, cast
 
 from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-from .composition import NotationPatch, PresentationRecipe
+from .composition import NotationPatch, PresentationRecipe, _as_recipe
 from .presentation import DisplayPolicy, Notation, PresentationConfig
 from .presets._implementation import BladePreset
 
@@ -23,7 +24,8 @@ class Presenter:
     in ``config`` are resolved against its actual algebra before explicit
     component keywords, then captured in the returned view. No setting
     propagates through arithmetic or mutates the algebra. ``content`` overrides
-    the content in ``display`` when both are supplied.
+    the content in ``display`` when both are supplied. The ``|`` operator
+    composes presenters and presentation components in left-to-right order.
     """
 
     presentation: PresentationConfig | None = None
@@ -34,9 +36,10 @@ class Presenter:
     display_order: DisplayOrder | Literal["grade-lexicographic", "bitmap"] | None = None
     display: DisplayPolicy | None = None
     content: str | None = None
+    _stages: tuple[Presenter | PresentationRecipe, ...] = field(default=(), repr=False)
 
     def __post_init__(self) -> None:
-        for field, expected in (
+        for name, expected in (
             ("presentation", PresentationConfig),
             ("config", PresentationRecipe),
             ("blades", (BladeConvention, BladePreset)),
@@ -44,9 +47,9 @@ class Presenter:
             ("local_names", LocalNamePolicy),
             ("display", DisplayPolicy),
         ):
-            value = getattr(self, field)
+            value = getattr(self, name)
             if value is not None and not isinstance(value, expected):
-                raise TypeError(f"invalid presenter {field}: {type(value).__name__}")
+                raise TypeError(f"invalid presenter {name}: {type(value).__name__}")
         order = self.display_order
         if isinstance(order, str):
             if order not in {"grade-lexicographic", "bitmap"}:
@@ -55,6 +58,23 @@ class Presenter:
             raise TypeError("display_order must be a DisplayOrder or an ordering recipe")
         if self.content is not None:
             DisplayPolicy(content=self.content)
+
+    def __or__(self, other: object) -> Presenter | NotImplementedType:
+        stage = other if isinstance(other, Presenter) else _as_recipe(other)
+        if stage is None:
+            return NotImplemented
+        return Presenter(
+            _stages=(*self._flatten(), *stage._flatten()) if isinstance(stage, Presenter) else (*self._flatten(), stage)
+        )
+
+    def __ror__(self, other: object) -> Presenter | NotImplementedType:
+        stage = _as_recipe(other)
+        if stage is None:
+            return NotImplemented
+        return Presenter(_stages=(stage, *self._flatten()))
+
+    def _flatten(self) -> tuple[Presenter | PresentationRecipe, ...]:
+        return self._stages if self._stages else (self,)
 
     def __call__(self, value: Multivector | PresentedMultivector) -> PresentedMultivector:
         from .facade._numeric import Multivector
@@ -71,6 +91,19 @@ class Presenter:
                 # annotation view); the presenter contract stays unchanged.
                 return cast("PresentedMultivector", adapter(self))
             raise TypeError("Presenter expects a Galaga Multivector or PresentedMultivector")
+        if self._stages:
+            selected = base
+            for stage in self._stages:
+                selected = (
+                    stage._apply_to(selected, value)
+                    if isinstance(stage, Presenter)
+                    else stage.apply_to(selected, value.algebra.gram)
+                )
+        else:
+            selected = self._apply_to(base, value)
+        return PresentedMultivector(value, selected)
+
+    def _apply_to(self, base: PresentationConfig, value: Multivector) -> PresentationConfig:
         selected = self.presentation if self.presentation is not None else base
         if self.config is not None:
             selected = self.config.apply_to(selected, value.algebra.gram)
@@ -97,7 +130,7 @@ class Presenter:
             display_order=order if order is not None else selected.display_order,
             display=display,
         )
-        return PresentedMultivector(value, selected)
+        return selected
 
 
 @dataclass(frozen=True, slots=True, repr=False)

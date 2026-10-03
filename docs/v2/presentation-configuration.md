@@ -2,16 +2,15 @@
 
 ## Purpose
 
-Galaga 2 now has a presentation layer over the completed numeric facade. It
-answers two different user needs with one architecture:
+Galaga's presentation layer sits over the numeric facade. It supports two
+common tasks:
 
 - “construct the conventional algebra for me”; and
 - “let me replace exactly one naming, notation, local, ordering, or display
   choice.”
 
-The completed implementation supplies immutable objects, signed blade
-semantics, preset expansion, facade factories, context-safe selection, and the
-configuration consumed by the shared expression/value renderer.
+It supplies immutable configuration objects, signed blade semantics, presets,
+context-local selection, and a shared expression and value renderer.
 
 ## System boundary
 
@@ -41,6 +40,164 @@ flowchart LR
 The dependency rule remains strict: `galaga.core` knows nothing about names,
 presets, notation, contexts, or rendering. The facade composes those objects
 around one core algebra.
+
+## Configuration and rendering object map
+
+`PresentationConfig` holds a complete set of display choices.
+`PresentationRecipe` holds optional changes to those choices. `Presenter`
+applies them to a value and returns a `PresentedMultivector` with the selected
+presentation captured for later display.
+
+```mermaid
+flowchart TD
+    AD[AlgebraDefinition<br/>Gram matrix and backend] --> AC[AlgebraConfig]
+    MC[ModelConfig<br/>semantic roles] --> AC
+    PC[PresentationConfig<br/>complete display choices] --> AC
+    BC[BladeConvention] --> PC
+    N[Notation<br/>RenderRule entries] --> PC
+    LN[LocalNamePolicy] --> PC
+    DO[DisplayOrder] --> PC
+    DP[DisplayPolicy] --> PC
+    BP[BladePreset<br/>resolved with Gram matrix] --> PR[PresentationRecipe<br/>optional slots]
+    NP[NotationPatch] --> PR
+    BC --> PR
+    N --> PR
+    LN --> PR
+    DO --> PR
+    DP --> PR
+    PR --> CP[ConfiguredPreset<br/>complete preset plus changes]
+    FP[Complete preset<br/>builds AlgebraConfig] --> CP
+    AC --> CP
+    CP --> A[Algebra]
+    AC --> A
+    PR --> P[Presenter]
+    PC --> P
+    P --> PV[PresentedMultivector]
+    A --> MV[Multivector]
+    MV --> PV
+```
+
+The arrows show what each object contains, accepts, or produces; they are not
+Python inheritance. A `presets.sta()` style factory supplies a complete preset
+with `build()`. `ConfiguredPreset` pairs it with a recipe, and
+`Algebra(config=...)` expands the result. `AlgebraDefinition` and `ModelConfig`
+are absent from a presenter because displaying a value cannot change its
+metric or semantic model.
+
+The smaller Python inheritance hierarchy is separate:
+
+```mermaid
+classDiagram
+    PresentationComposable <|-- BladeConvention
+    PresentationComposable <|-- DisplayOrder
+    PresentationComposable <|-- LocalNamePolicy
+    PresentationComposable <|-- Notation
+    PresentationComposable <|-- DisplayPolicy
+    PresentationComposable <|-- BladePreset
+    PresentationComposable <|-- NotationPatch
+    PresentationComposable <|-- PresentationRecipe
+    PresentationComposable <|-- ConfiguredPreset
+    _DisplayTable <|-- BilinearFormTable
+    _DisplayTable <|-- WedgeProductTable
+    Node <|-- Identifier
+    Node <|-- Sum
+    Node <|-- Product
+    Node <|-- Equality
+    Node <|-- Table
+```
+
+`Presenter` implements `|` directly and is not a subclass of
+`PresentationComposable`. `_DisplayTable` is internal; its two concrete table
+types are returned by algebra table methods. The listed `Node` types are
+representative; the renderer has more node shapes for calls, fractions,
+scripts, accents, and delimiters.
+
+| Object | Complete or partial? | Typical use |
+| --- | --- | --- |
+| `AlgebraDefinition` | Complete numeric definition | Explicit Gram matrix, signature, or `p, q, r` plus backend choice |
+| `ModelConfig` | Optional model metadata | Semantic basis roles such as `origin` or `time` |
+| `AlgebraConfig` | Complete algebra setup | Pass to `Algebra(config=...)` |
+| `PresentationConfig` | Complete presentation snapshot | Pass as `presentation=` or obtain from `algebra.presentation` |
+| `PresentationRecipe` | Partial presentation override | Compose independent components with `|` |
+| `ConfiguredPreset` | Complete preset plus partial override | Pass `presets.sta() | recipe` to `Algebra(config=...)` |
+| `Presenter` | Deferred value display choice | Call on a multivector or compose a presenter factory with `|` |
+| `PresentedMultivector` | Value plus captured presentation | Display later; use `.value` for arithmetic |
+
+The five `PresentationConfig` components have separate jobs: `BladeConvention`
+names and resolves signed blades; `Notation` maps operation IDs and targets to
+`RenderRule` objects; `LocalNamePolicy` chooses names for `locals()`;
+`DisplayOrder` chooses blade order; and `DisplayPolicy` chooses content, target,
+zero tolerance, and coefficient precision. `BladePreset` is a factory for a
+convention that may need the actual Gram matrix. `NotationPatch` changes part
+of an existing notation, such as its reverse symbol.
+
+```python
+from galaga import Algebra, DisplayPolicy, Presenter, presets
+
+recipe = presets.blades.indexed(3, prefix="v") | presets.notation.functional_short()
+algebra = Algebra(config=presets.euclidean(3) | recipe, expr=True)
+e1, e2, _ = algebra.basis_vectors()
+
+# The same partial recipe can be applied to an existing algebra or value.
+alternate = Algebra(3, expr=True).with_presentation(recipe)
+presenter = Presenter(config=recipe) | DisplayPolicy(content="full")
+view = presenter(e1 * e2)
+assert view.value == e1 * e2
+```
+
+At algebra construction, `|` merges component slots with right-hand
+precedence. Two `Notation` objects merge token and rule maps; a
+`NotationPatch` changes only its specified rules. A complete algebra preset
+may be on the left of a recipe, but two complete presets cannot be joined.
+`Algebra.with_presentation(recipe)` returns an algebra view, while
+`Algebra.use_presentation(recipe)` applies it within a context.
+
+For presenters, `|` creates a `Presenter` whose stages apply left to right
+when it sees a value. The value's current presentation supplies unspecified
+components. The later stage wins on overlap, including `content`:
+
+```python
+named = presets.presenters.short_functional() | presets.blades.indexed(3, prefix="v")
+assert isinstance(named, Presenter)
+assert named(e1 * e2).ascii() == "gp(v1, v2) = v12"
+
+full = presets.presenters.values() | DisplayPolicy(content="full")
+assert full(e1).presentation.display.content == "full"
+```
+
+The `Presenter` constructor also takes `presentation=` for a complete base
+snapshot, `config=` for a partial recipe, and direct `blades=`, `notation=`,
+`local_names=`, `display_order=`, `display=`, and `content=` overrides. Within
+one constructor call, the complete base comes first, then `config=`, then
+direct fields, with `content=` last. Within a `|` chain, each entire presenter
+or component applies after its left neighbor. A presenter composition cannot
+take a complete algebra preset, because the value's metric must stay fixed.
+
+### Rendering classes and flow
+
+```mermaid
+flowchart LR
+    V[Multivector or PresentedMultivector] --> B[build_render_tree / render]
+    PC[PresentationConfig] --> B
+    B --> T[Semantic Node tree]
+    T --> EA[ASCII emitter]
+    T --> EU[Unicode emitter]
+    T --> EL[LaTeX emitter]
+    T --> RD[RenderDocument<br/>optional semantic anchors]
+    A[Algebra] --> BT[BilinearFormTable or WedgeProductTable]
+    BT --> T
+```
+
+`galaga.render(value, target="latex")` returns a string. `build_render_tree`
+returns a format-neutral tree and selected target for advanced consumers.
+The tree's `Node` subclasses, such as `Identifier`, `Sum`, `Product`,
+`Fraction`, `Equality`, and `Table`, and the `RenderDocument` anchor classes
+live in `galaga.rendering`. Most notebook code uses `.latex()`, `.unicode()`,
+`.ascii()`, or rich display on a value or presenter view. Use
+`view.render_document()` when a consumer needs semantic anchors. Tables from
+`algebra.bilinear_form_table()` and `algebra.wedge_product_table()` are
+immutable display snapshots; their target can be selected for each render,
+while their labels and rows are captured when created.
 
 ## Component decomposition
 
@@ -588,6 +745,18 @@ view = teaching(spatial * time)
 
 The recipe inherits unspecified settings from the value's current
 presentation and resolves blade presets against its Gram matrix when called.
+Presenter factories can be composed directly as well:
+
+```python
+presenter = presets.presenters.short_functional() | presets.blades.indexed(3, prefix="v")
+view = presenter(e1 * e2)
+```
+
+Composition returns a `Presenter`, which also works as the base of a
+`galaga_annotation.AnnotationPresenter`. Component-first composition and
+`Presenter | Presenter` are supported. Each stage is applied in order; a
+later display policy can override an earlier `values()` presenter.
+
 Explicit `Presenter(blades=..., notation=..., display=..., content=...)`
 keywords override the same slots in `config=`; `content=` remains the last
 display override. `config=` accepts presentation recipes, not complete algebra
@@ -725,22 +894,18 @@ Run it from the repository root:
 uv run pytest packages/galaga/tests/presentation -q
 ```
 
-Exact historic test counts and coverage percentages are intentionally not part
-of this living guide; release gates measure them from the current tree.
+## Expression provenance and rendering
 
-## Later layers now built on this foundation
+Expression provenance records how a value was formed when requested; see
+[Expression provenance](expression-provenance.md). `Notation` holds immutable
+`RenderRule` values, which the shared render tree uses to produce ASCII,
+Unicode, and LaTeX output. See [Semantic rendering](rendering-implementation.md)
+for the tree, content policy, format protocol, and rich display hooks.
 
-Phase 5 added optional expression provenance; see
-[Expression provenance implementation](expression-provenance.md). Phase 6 has
-now extended `Notation` from stable token metadata to immutable semantic
-`RenderRule` values and implemented the shared render tree, ASCII, Unicode,
-LaTeX, content policy, format protocol, and rich hooks. See
-[Semantic rendering implementation](rendering-implementation.md).
-
-The original presentation invariants remain intact: changing a persistent,
-context-local, or per-render presentation does not change expression identity,
-evaluation, equality, hashing, or numeric coefficients. `DisplayPolicy` now
-also supports `content="auto"`; a name or tracked expression opts into an
+Changing a persistent, context-local, or per-render presentation does not
+change expression identity, evaluation, equality, hashing, or numeric
+coefficients. With
+`DisplayPolicy(content="auto")`, a name or tracked expression produces an
 explanatory full equality, with identical rendered parts deduplicated.
 Unnamed, untracked values display only their concrete value. Explicit content
 choices still take precedence; use `content="value"` to hide provenance without
@@ -751,6 +916,6 @@ and six, respectively; setting the tolerance to zero reveals every nonzero
 stored coefficient.
 
 Precision counts significant digits, not decimal places, and does not pad
-trailing zeros. V2 multivector format specs select content and target, such as
-`value/latex`; legacy numeric specs such as `.3f` currently raise `ValueError`.
+trailing zeros. Multivector format specs select content and target, such as
+`value/latex`; numeric specs such as `.3f` raise `ValueError`.
 See the [concrete-display migration notes](migration-guide.md#migrate-concrete-display-controls).

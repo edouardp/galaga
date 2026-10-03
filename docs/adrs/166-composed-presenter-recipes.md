@@ -46,3 +46,21 @@ presentation, using the algebra's Gram matrix. The narrower
 `NotationPatch` as well as complete `Notation` values; the patch applies to
 the current notation. Rendering entry points still require a complete
 `PresentationConfig` for explicit per-render overrides.
+
+## Amendment: composing presenter factories
+
+Presenter factories return `Presenter` objects, so allow a `Presenter` to join
+presentation components, a `PresentationRecipe`, or another `Presenter` with
+`|`. A presentation component may also be on the left. The result remains a
+`Presenter`, including for annotation adapters that require that type. Resolve
+each operand from left to right against the value's presentation when called;
+later operands override earlier ones. This preserves the existing meaning of
+`Presenter(content=...)`, including when a later `DisplayPolicy` changes the
+content again. Do not accept complete algebra presets in this composition:
+they would change the metric, which a presenter cannot do.
+
+Composition stores ordered immutable stages rather than merging all fields into
+one `PresentationRecipe`. That recipe has no `content` slot, and flattening a
+presenter's direct keywords into one recipe would lose their override order.
+The final view still captures one validated `PresentationConfig`; no stage
+mutates the algebra or numeric value.

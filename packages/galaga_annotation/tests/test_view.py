@@ -74,6 +74,19 @@ def test_ordinary_presenters_compose_through_the_adapter_protocol() -> None:
     assert composed.latex() == view.latex()
 
 
+def test_composed_presenter_keeps_annotation_rules_and_blade_names() -> None:
+    algebra = Algebra(3, expr=True)
+    e1, e2, _ = algebra.basis_vectors()
+    annotated = ga.annotate(e1 * e2, label="product")
+    presenter = presets.presenters.short_functional() | presets.blades.indexed(3, prefix="v")
+
+    for result in (presenter(annotated), ga.AnnotationPresenter(base=presenter)(annotated)):
+        assert isinstance(result, ga.Annotated)
+        assert result.rules == annotated.rules
+        assert isinstance(result.value, PresentedMultivector)
+        assert result.value.ascii() == "gp(v1, v2) = v12"
+
+
 def test_repr_paths_render_one_marimo_math_block() -> None:
     mo = pytest.importorskip("marimo")
     _, mv = _value()

@@ -486,11 +486,14 @@ e1, e2, e3 = alg.basis_vectors()
 
 lengyel = presets.presenters.lengyel()
 teaching = Presenter(content="full")
+named = presets.presenters.short_functional() | presets.blades.indexed(3, prefix="v")
 
 pairing_view = lengyel(mip(e1, e1))
 result_view = teaching((e1 + e2) ^ e3)
+named_view = named(e1 * e2)
 pairing_view  # e₁ • e₁ = 1
 result_view   # (e₁ + e₂) ∧ e₃ = e₁₃ + e₂₃
+named_view.ascii()  # gp(v1, v2) = v12
 
 next_value = pairing_view.value + e1  # views deliberately are not arithmetic
 ```
