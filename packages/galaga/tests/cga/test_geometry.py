@@ -3,13 +3,13 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, outer_product, p_cga, scalar_product
+from galaga import Algebra, outer_product, presets, scalar_product
 from galaga.cga import ConformalModel
 
 
 @pytest.fixture
 def cga() -> ConformalModel:
-    return ConformalModel(Algebra(config=p_cga()))
+    return ConformalModel(Algebra(config=presets.cga()))
 
 
 def test_direct_objects_use_wedges_of_round_points_and_native_infinity(cga: ConformalModel) -> None:
@@ -165,14 +165,14 @@ def test_conventional_short_forms_are_exact_class_aliases() -> None:
 
 
 def test_up_is_a_distinct_zero_radius_operation_with_round_point_values() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
 
     assert ConformalModel.up is not ConformalModel.round_point
     assert cga.up((1.0, 2.0, 3.0)) == cga.round_point((1.0, 2.0, 3.0))
 
 
 def test_semantic_operations_reject_mixed_values_and_invalid_expansion_grades(cga: ConformalModel) -> None:
-    other = ConformalModel(Algebra(config=p_cga()))
+    other = ConformalModel(Algebra(config=presets.cga()))
     p = cga.round_point((0.0, 0.0, 0.0))
     q = cga.round_point((1.0, 0.0, 0.0))
 

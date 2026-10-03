@@ -2,12 +2,12 @@ from __future__ import annotations
 
 import numpy as np
 
-from galaga import Algebra, inverse, outer_product, p_lengyel_cga
+from galaga import Algebra, inverse, outer_product, presets
 from galaga.cga import ConformalModel
 
 
 def test_plane_reflection_uses_the_ordinary_odd_versor_action() -> None:
-    cga = ConformalModel(Algebra(config=p_lengyel_cga()))
+    cga = ConformalModel(Algebra(config=presets.lengyel_cga()))
     e1, _, _ = cga.euclidean_basis_vectors()
     plane = e1 + cga.infinity
     point = cga.round_point((3, 2, 0))
@@ -18,7 +18,7 @@ def test_plane_reflection_uses_the_ordinary_odd_versor_action() -> None:
 
 
 def test_sphere_inversion_matches_the_euclidean_formula_and_is_involutive() -> None:
-    cga = ConformalModel(Algebra(config=p_lengyel_cga()))
+    cga = ConformalModel(Algebra(config=presets.lengyel_cga()))
     sphere = cga.round_point((1, 0, 0), radius_squared=-4)
     point = cga.round_point((5, 0, 0))
 
@@ -30,7 +30,7 @@ def test_sphere_inversion_matches_the_euclidean_formula_and_is_involutive() -> N
 
 
 def test_inverting_a_line_away_from_the_center_produces_a_circle_through_the_center() -> None:
-    cga = ConformalModel(Algebra(config=p_lengyel_cga()))
+    cga = ConformalModel(Algebra(config=presets.lengyel_cga()))
     sphere = cga.round_point((0, 0, 0), radius_squared=-1)
     a = cga.round_point((-2, 1, 0))
     b = cga.round_point((2, 1, 0))

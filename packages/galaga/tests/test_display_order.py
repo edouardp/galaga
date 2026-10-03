@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayOrder, DisplayPolicy, p_quaternion, presets
+from galaga import Algebra, DisplayOrder, DisplayPolicy, presets
 
 
 def _quaternion_units(algebra):
@@ -156,7 +156,7 @@ def test_default_vector_rendering_is_unchanged() -> None:
 @pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
 @pytest.mark.parametrize("negative", (False, True))
 def test_quaternion_rendering_uses_conventional_order_and_preserves_signs(target: str, negative: bool) -> None:
-    algebra = Algebra(config=p_quaternion())
+    algebra = Algebra(config=presets.quaternion())
     i, j, k = _quaternion_units(algebra)
     value = 1 - 2 * i + 3 * j - 4 * k if negative else 1 + 2 * i + 3 * j + 4 * k
     expected = "1 - 2i + 3j - 4k" if negative else "1 + 2i + 3j + 4k"
@@ -167,7 +167,7 @@ def test_quaternion_rendering_uses_conventional_order_and_preserves_signs(target
 
 
 def test_precision_policy_keeps_quaternion_term_order() -> None:
-    algebra = Algebra(config=p_quaternion(), display=DisplayPolicy(coefficient_precision=3))
+    algebra = Algebra(config=presets.quaternion(), display=DisplayPolicy(coefficient_precision=3))
     i, j, k = _quaternion_units(algebra)
     value = 1 + 2.3456 * i + 3.4567 * j + 4.5678 * k
     assert str(value) == "1 + 2.35i + 3.46j + 4.57k"
@@ -177,7 +177,7 @@ def test_precision_policy_keeps_quaternion_term_order() -> None:
 @pytest.mark.parametrize("grade", (0, 1, 2, 3))
 @pytest.mark.parametrize("tracked", (False, True))
 def test_basis_blades_remain_native_masks_despite_display_order(grade: int, tracked: bool) -> None:
-    algebra = Algebra(config=p_quaternion())
+    algebra = Algebra(config=presets.quaternion())
     blades = algebra.basis_blades(grade, expr=tracked)
     masks = [mask for mask in range(algebra.dim) if mask.bit_count() == grade]
     np.testing.assert_array_equal([blade.data for blade in blades], np.eye(algebra.dim)[masks])
@@ -196,7 +196,7 @@ def test_default_basis_blades_retain_native_names() -> None:
 
 
 def test_quaternion_data_and_products_are_independent_of_display_order() -> None:
-    algebra = Algebra(config=p_quaternion())
+    algebra = Algebra(config=presets.quaternion())
     i, j, k = _quaternion_units(algebra)
     # Compute products independently through the public numeric left action.
     for left, right, expected in ((i, j, k), (j, k, i), (k, i, j), (i, i, -algebra.identity)):

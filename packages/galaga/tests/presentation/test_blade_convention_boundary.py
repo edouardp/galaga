@@ -10,7 +10,6 @@ from itertools import product
 from pathlib import Path
 
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -63,10 +62,6 @@ def test_archive_covers_both_time_first_metrics_and_the_distinct_counts_order():
             assert type(label["orientation"]) is int and label["orientation"] in (-1, 1)
             assert all(isinstance(label[target], str) and label[target] for target in ("ascii", "unicode", "latex"))
     assert TABLES["ASCII_CHANGES"] == {"iy0": "ig0", "iy1": "ig1", "iy2": "ig2", "iy3": "ig3"}
-
-
-def test_blade_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_blade_suites_run_with_legacy_imports_blocked():

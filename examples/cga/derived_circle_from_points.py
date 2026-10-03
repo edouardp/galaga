@@ -10,10 +10,10 @@ def _():
 
     import galaga_anywidget.viz as viz
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, p_cga, sqrt
+    from galaga import Algebra, DisplayPolicy, presets, sqrt
     from galaga.cga import ConformalModel
 
-    return Algebra, ConformalModel, DisplayPolicy, gm, mo, p_cga, sqrt, viz
+    return Algebra, ConformalModel, DisplayPolicy, gm, mo, presets, sqrt, viz
 
 
 @app.cell(hide_code=True)
@@ -30,9 +30,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     circle_algebra = Algebra(
-        config=p_cga(spatial_dim=2),
+        config=presets.cga(spatial_dim=2),
         display=DisplayPolicy(content="full"),
     )
     circle_cga = ConformalModel(circle_algebra, expr=True)

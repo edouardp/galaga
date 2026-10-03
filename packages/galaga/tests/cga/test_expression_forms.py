@@ -5,14 +5,14 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayPolicy, Multivector, outer_product, p_lengyel_cga
+from galaga import Algebra, DisplayPolicy, Multivector, outer_product, presets
 from galaga.cga import CGAExpressionForm, ConformalModel
 from galaga.expression import Call, evaluate
 
 
 def _model(*, expression_form: CGAExpressionForm = "operator") -> ConformalModel:
     algebra = Algebra(
-        config=p_lengyel_cga(),
+        config=presets.lengyel_cga(),
         display=DisplayPolicy(content="full"),
     )
     return ConformalModel(
@@ -118,7 +118,7 @@ def test_explicit_expr_false_suppresses_both_expression_forms() -> None:
 def test_role_parts_forward_only_the_role_selector_and_replay_new_bindings(
     method, operation_id, role_name, contains_role, tracking, expression_form
 ) -> None:
-    cga = ConformalModel(Algebra(config=p_lengyel_cga()), expr=tracking)
+    cga = ConformalModel(Algebra(config=presets.lengyel_cga()), expr=tracking)
     point = cga.up((1, 2, 3))
     if tracking:
         point = point.named("P")

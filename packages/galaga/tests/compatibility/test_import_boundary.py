@@ -1,90 +1,18 @@
-"""Positive/negative controls for the deletion-ready test import boundary."""
+"""Positive and negative controls for the retired import boundary."""
 
-import ast
-import copy
-import hashlib
 import importlib
-import json
 import runpy
 import subprocess
 import sys
 from pathlib import Path
 from types import ModuleType, SimpleNamespace
 
-import numpy as np
 import pytest
 
-import galaga as ga
 from tools import legacy_import_boundary as boundary
 
 TEST_ROOT = Path(__file__).parents[1]
-ARCHIVE = json.loads((TEST_ROOT.parent / "tools/baselines/namespace-boundaries-v1.json").read_text())
 MANIFEST = runpy.run_path(str(Path(__file__).with_name("v1_surface_manifest.py")))
-RENAMED = {
-    "test_explicit_legacy_namespace_preserves_a_coherent_v1_domain": "test_public_values_use_only_the_owned_core_domain",
-    "test_unledgered_tests_poison_legacy_construction": "test_retired_imports_fail_before_numeric_construction",
-    "test_v1_and_v2_values_do_not_mix_implicitly": "test_foreign_value_domains_do_not_mix_implicitly",
-    "test_explicit_v1_numeric_aliases_remain_the_same_function_objects": "test_archived_v1_aliases_do_not_define_the_public_v2_catalog",
-    "test_legacy_numeric_constructor_guard_is_active": "test_numeric_values_use_core_storage_without_importing_legacy",
-    "test_core_facade_and_bridge_import_in_either_order": "test_core_facade_and_public_api_import_in_either_order",
-    "test_gram_bridge_reexports_the_facade_objects_without_a_fork": "test_public_api_reexports_the_facade_objects_without_a_fork",
-}
-
-
-def check_source_ownership(sources):
-    count = 0
-    for path, row in sources.items():
-        assert hashlib.sha256(row["source"].encode()).hexdigest() == row["sha256"]
-        historical = [
-            node.name
-            for node in ast.parse(row["source"]).body
-            if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
-        ]
-        assert historical == row["test_ids"]
-        current = {
-            node.name
-            for node in ast.parse((TEST_ROOT / path).read_text()).body
-            if isinstance(node, ast.FunctionDef) and node.name.startswith("test_")
-        }
-        for name in historical:
-            assert RENAMED.get(name, name) in current, (path, name)
-        count += len(historical)
-    assert count == 29
-
-
-def test_namespace_and_symbolic_source_evidence_retains_every_public_owner():
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "0499fa49800950503467cac60eb9d199231458c0"
-    assert ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    assert len(ARCHIVE["sources"]) == 7
-    check_source_ownership(ARCHIVE["sources"])
-    legacy = ARCHIVE["legacy_domain"]
-    assert legacy["algebra_module"] == legacy["multivector_module"] == "galaga.algebra"
-    algebra = ga.Algebra(2)
-    a, b = algebra.basis_vectors()
-    np.testing.assert_array_equal([a.data, b.data], legacy["basis"])
-    np.testing.assert_array_equal((a * b).data, legacy["product"])
-    assert a * b == algebra.blade(3) and b * a == -algebra.blade(3)
-    assert legacy["mixed_error"]["type"] == "TypeError"
-    assert ARCHIVE["arithmetic"] == {"add": 6, "scalar_multiply": 12, "scalar_divide": 2}
-    assert ARCHIVE["domain"]["registered_product"] == 2 * 5
-
-
-@pytest.mark.parametrize("corruption", ("source", "identity", "owner", "missing_file"))
-def test_source_ownership_rejects_corruption_and_unowned_historical_tests(corruption, monkeypatch):
-    sources = copy.deepcopy(ARCHIVE["sources"])
-    row = sources["test_symbolic_core.py"]
-    if corruption == "source":
-        row["source"] += "\n# changed"
-    elif corruption == "identity":
-        row["test_ids"].pop()
-    elif corruption == "owner":
-        monkeypatch.setitem(RENAMED, row["test_ids"][0], "test_missing")
-    else:
-        del sources["test_symbolic_core.py"]
-    with pytest.raises(AssertionError):
-        check_source_ownership(sources)
 
 
 def test_guard_roots_cover_the_complete_retirement_inventory_without_v2_false_positives():
@@ -184,24 +112,15 @@ def test_installation_refuses_a_cached_module_without_mutating_the_cache_or_find
     boundary.assert_no_legacy_modules()
 
 
-def test_pytest_hooks_install_clean_up_and_reject_retired_markers_or_ledger_entries(monkeypatch):
+def test_pytest_hooks_install_clean_up_and_check_cached_modules():
     hooks = runpy.run_path(str(TEST_ROOT / "conftest.py"))
-    cleanups, markers = [], []
-    config = SimpleNamespace(add_cleanup=cleanups.append, addinivalue_line=lambda *args: markers.append(args))
+    cleanups = []
+    config = SimpleNamespace(add_cleanup=cleanups.append)
     before = list(sys.meta_path)
     hooks["pytest_configure"](config)
-    assert len(sys.meta_path) == len(before) + 1 and len(cleanups) == 1 and markers
+    assert len(sys.meta_path) == len(before) + 1 and len(cleanups) == 1
     cleanups[0]()
     assert sys.meta_path == before
-    plain = SimpleNamespace(nodeid="plain", get_closest_marker=lambda name: None)
-    marked = SimpleNamespace(nodeid="marked", get_closest_marker=lambda name: True)
-    hooks["pytest_collection_modifyitems"]([plain])
-    with pytest.raises(pytest.UsageError, match="markers are retired"):
-        hooks["pytest_collection_modifyitems"]([marked])
-    globals_ = hooks["pytest_configure"].__globals__
-    monkeypatch.setitem(globals_, "LEGACY_ORACLE_TESTS", ("test_old.py",))
-    with pytest.raises(pytest.UsageError, match="empty legacy-construction ledger"):
-        hooks["pytest_configure"](config)
     hooks["pytest_collection_finish"](None)
     hooks["pytest_sessionfinish"](None, 0)
     fixture = hooks["reject_cached_legacy_modules"].__wrapped__()
@@ -226,14 +145,6 @@ FAILURES = {
     "optional_fallback": (
         "def test_probe():\n    try:\n        import galaga.legacy\n    except ImportError:\n        pass\n",
         "retired Galaga import",
-    ),
-    "function_marker": (
-        "import pytest\n@pytest.mark.legacy_oracle\ndef test_probe(): pass\n",
-        "markers are retired",
-    ),
-    "module_marker": (
-        "import pytest\npytestmark = pytest.mark.legacy_oracle\ndef test_probe(): pass\n",
-        "markers are retired",
     ),
     "cached_collection": (
         "import sys\nsys.modules['galaga.legacy'] = None\ndef test_probe(): pass\n",
@@ -285,14 +196,9 @@ def test_real_pytest_rejects_legacy_dependencies_at_every_lifecycle_stage(tmp_pa
     assert message in result.stdout + result.stderr, result.stdout + result.stderr
 
 
-@pytest.mark.parametrize(
-    "suffix, message",
-    (
-        ("\nimport sys\nsys.modules['galaga.legacy'] = None\n", "already loaded"),
-        ("\nLEGACY_ORACLE_TESTS = ('test_probe.py',)\n", "empty legacy-construction ledger"),
-    ),
-)
-def test_real_pytest_refuses_preloaded_modules_and_new_construction_exemptions(tmp_path, suffix, message):
+def test_real_pytest_refuses_preloaded_modules(tmp_path):
+    suffix = "\nimport sys\nsys.modules['galaga.legacy'] = None\n"
+    message = "already loaded"
     result = run_isolated_pytest(tmp_path, "def test_probe(): pass\n", suffix=suffix)
     assert result.returncode != 0 and message in result.stdout + result.stderr
 

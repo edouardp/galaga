@@ -2,8 +2,6 @@
 
 import ast
 import copy
-import hashlib
-import inspect
 import runpy
 import subprocess
 import sys
@@ -11,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -19,43 +16,6 @@ TEST_ROOT = Path(__file__).parents[1]
 PUBLIC_FILE = "facade/test_expression_helper_contracts.py"
 CONTRACT = runpy.run_path(str(TEST_ROOT / PUBLIC_FILE))
 ARCHIVE = CONTRACT["ARCHIVE"]
-
-
-def test_seventeen_helper_identities_have_complete_source_evidence_and_public_owners():
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "4f8b1660323192b07679cc70d67b389930f13b05"
-    assert ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    assert ARCHIVE["source_path"] == "packages/galaga/tests/test_coverage.py"
-    assert ARCHIVE["public_owner"] == PUBLIC_FILE
-    assert ARCHIVE["sha256"] == "ef65c3104f49824ff1963058ceaa5f81560ae46c5fba8e9397b23f36c6a5e545"
-    assert hashlib.sha256(ARCHIVE["source"].encode()).hexdigest() == ARCHIVE["sha256"]
-    source = ast.parse(ARCHIVE["source"])
-    ids = [
-        f"{cls.name}.{method.name}"
-        for cls in source.body
-        if isinstance(cls, ast.ClassDef)
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    ]
-    assert ids == ARCHIVE["all_source_test_ids"] and len(set(ids)) == 89
-    owners = {
-        f"TestCoverageGaps.{name}"
-        for name, function in inspect.getmembers(CONTRACT["TestCoverageGaps"], inspect.isfunction)
-        if name.startswith("test_")
-    }
-    assert owners == set(ARCHIVE["test_ids"]) and len(owners) == 17
-    assert owners <= set(ids)
-    current = ast.parse((TEST_ROOT / "test_coverage.py").read_text())
-    remaining = {
-        f"{cls.name}.{method.name}"
-        for cls in current.body
-        if isinstance(cls, ast.ClassDef)
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    }
-    assert not owners & remaining
-    assert PUBLIC_FILE not in LEGACY_ORACLE_TESTS
 
 
 def test_archive_keeps_actual_private_behavior_instead_of_misleading_test_comments():
@@ -196,36 +156,3 @@ assert not any(forbidden(name) for name in sys.modules)
         timeout=60,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="notebook uses Python 3.14 t-strings")
-def test_notebook_distinguishes_numeric_structural_rendered_and_float_equality():
-    notebook = TEST_ROOT.parents[2] / "examples/galaga_v2/eager_values_and_expressions.py"
-    outputs, definitions = runpy.run_path(str(notebook))["app"].run()
-    left, right = definitions["identity_left"], definitions["identity_right"]
-    assert definitions["identity_values_equal"] is True
-    assert definitions["identity_histories_equal"] is False
-    assert definitions["identity_renderings_equal"] is True
-    assert left == right and hash(left) == hash(right) and left.expr != right.expr
-    assert left.expr == ga.Call("scalar_multiply", (ga.Symbol(ga.Name("left", "left", "x")),), {"scalar": 5})
-    assert right.expr == ga.Call("scalar_multiply", (ga.Symbol(ga.Name("right", "right", "x")),), {"scalar": 5})
-    assert left.display("expr/latex") == right.display("expr/latex") == "5 x"
-    algebra = definitions["algebra"]
-    CONTRACT["assert_value"](left, 5 * algebra.vector((1, 2, -1)).data)
-    CONTRACT["assert_value"](definitions["identity_rebound"], 5 * algebra.vector((2, 0, 1)).data)
-    assert definitions["identity_rebound"] != right
-    first, second = definitions["adjacent_literals"]
-    assert first.value == 1 and second.value == np.nextafter(1.0, 2.0) and first != second
-    assert definitions["adjacent_literals_equal"] is False
-    CONTRACT["assert_equal_nodes"](*definitions["signed_zero_literals"])
-    assert definitions["signed_zero_lookup"] == "same key"
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    for text in (
-        "Three different meanings of equality",
-        "Expression histories",
-        "False",
-        "1.0000000000000002",
-        "same key",
-    ):
-        assert text in html
-    assert definitions["identity_rebound"].display("value/latex") in html

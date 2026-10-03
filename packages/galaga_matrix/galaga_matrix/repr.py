@@ -873,7 +873,3 @@ class MatrixRepr:
         if self.mode == "quaternion":
             return repr(self)
         return str(self.mat)
-
-
-# Backward compatibility alias
-QuatMatrixRepr = MatrixRepr

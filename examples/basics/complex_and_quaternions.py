@@ -24,8 +24,7 @@ def _():
         inverse,
         log,
         norm,
-        p_complex,
-        p_quaternion,
+        presets,
         reverse,
         unit,
     )
@@ -40,8 +39,7 @@ def _():
         log,
         norm,
         np,
-        p_complex,
-        p_quaternion,
+        presets,
         reverse,
         unit,
     )
@@ -52,7 +50,7 @@ def _(mo):
     mo.md(r"""
     # Complex Numbers and Quaternions in Geometric Algebra
 
-    Galaga provides the complete `p_complex()` and `p_quaternion()` presets,
+    Galaga provides the complete `presets.complex()` and `presets.quaternion()` presets,
     which combine the numeric algebra, blade convention, display order, and
     notation needed to work with complex numbers and quaternions directly as
     Clifford algebra elements. Both use bivectors as imaginary units.
@@ -73,8 +71,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, gm, p_complex):
-    alg_c = Algebra(config=p_complex(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, gm, presets):
+    alg_c = Algebra(config=presets.complex(), display=DisplayPolicy(content="full"))
     _e1, _e2 = alg_c.basis_vectors()
     _expected_i = _e1 ^ _e2
     assert _expected_i * _expected_i == -1
@@ -213,7 +211,7 @@ def _(mo):
     ## Quaternions — Cl(3,0) even subalgebra
 
     The three bivectors of Cl(3,0) square to $-1$ and satisfy Hamilton's
-    identities. `p_quaternion()` names them $i$, $j$, $k$ and sets the
+    identities. `presets.quaternion()` names them $i$, $j$, $k$ and sets the
     display order so terms render conventionally. A quaternion includes a
     scalar part: the bivectors alone are not closed under multiplication,
     since an imaginary unit squares to a scalar.
@@ -226,8 +224,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_quaternion):
-    alg_q = Algebra(config=p_quaternion(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, presets):
+    alg_q = Algebra(config=presets.quaternion(), display=DisplayPolicy(content="full"))
     _e1, _e2, _e3 = alg_q.basis_vectors()
     _expected_units = (_e2 ^ _e3, _e1 ^ _e3, _e1 ^ _e2)
     i, j, k = alg_q.blades(

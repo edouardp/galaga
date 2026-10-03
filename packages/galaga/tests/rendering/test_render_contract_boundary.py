@@ -10,7 +10,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -63,10 +62,6 @@ def test_archive_keeps_numeric_and_presentation_differences_explicit():
     assert any(rows["TestCommutators.test_lie_bracket"]["coefficients"])
     assert not any(rows["TestCommutators.test_jordan_product"]["coefficients"])
     assert rows["TestLatex.test_sandwich_latex"]["bindings"]["R"] == [0, 0, 0, 1, 0, 0, 0, 0]
-
-
-def test_rendering_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_rendering_suites_run_with_legacy_imports_blocked():

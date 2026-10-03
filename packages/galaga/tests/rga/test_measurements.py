@@ -5,13 +5,13 @@ import math
 import numpy as np
 import pytest
 
-from galaga import Algebra, p_rga
+from galaga import Algebra, presets
 from galaga.rga import RigidModel
 
 
 @pytest.fixture
 def model() -> RigidModel:
-    return RigidModel(Algebra(config=p_rga()))
+    return RigidModel(Algebra(config=presets.rga()))
 
 
 def test_paired_norms_and_homogeneous_distance_match_rga_definitions(model: RigidModel) -> None:

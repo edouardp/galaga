@@ -8,7 +8,7 @@ from galaga import (
     geometric_product,
     left_contraction,
     outer_product,
-    p_cga,
+    presets,
     reverse,
     scalar_product,
 )
@@ -26,7 +26,7 @@ def assert_projectively_equal(actual, expected, *, atol: float = 1e-12) -> None:
 
 
 def test_conformal_model_has_no_representation_state() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=2))
+    algebra = Algebra(config=presets.cga(spatial_dim=2))
     cga = ConformalModel(algebra)
 
     assert not hasattr(cga, "with_representation")
@@ -40,7 +40,7 @@ def test_cga_dual_uses_the_complete_conformal_metric(
     spatial_dim: int,
     null_pair: float,
 ) -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=spatial_dim, null_pair=null_pair))
+    algebra = Algebra(config=presets.cga(spatial_dim=spatial_dim, null_pair=null_pair))
     cga = ConformalModel(algebra)
     conformal_dimension = spatial_dim + 2
 
@@ -55,7 +55,7 @@ def test_cga_dual_uses_the_complete_conformal_metric(
 
 
 def test_cga_dual_is_reverse_times_the_full_conformal_pseudoscalar() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=2))
+    algebra = Algebra(config=presets.cga(spatial_dim=2))
     cga = ConformalModel(algebra)
     e1, e2 = cga.euclidean_basis_vectors()
 
@@ -69,7 +69,7 @@ def test_cga_dual_is_reverse_times_the_full_conformal_pseudoscalar() -> None:
 
 
 def test_direct_circle_dualizes_to_its_analytic_ipns_vector() -> None:
-    cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     radius = 1.0
     center = cga.up(0.0, 0.0)
     p = cga.up(-radius, 0.0)
@@ -105,7 +105,7 @@ def test_direct_circle_dualizes_to_its_analytic_ipns_vector() -> None:
 
 
 def test_direct_line_dualizes_to_its_ipns_normal_vector() -> None:
-    cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     _, e2 = cga.euclidean_basis_vectors()
     p = cga.up(-1.0, 0.0)
     q = cga.up(1.0, 0.0)
@@ -117,7 +117,7 @@ def test_direct_line_dualizes_to_its_ipns_normal_vector() -> None:
 
 
 def test_point_has_distinct_strict_dual_and_zero_sphere_forms() -> None:
-    cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     point = cga.up(-1.0, 0.0)
     strict_dual = cga.dual(point)
 

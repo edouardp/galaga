@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -76,10 +75,6 @@ def test_archive_retains_intentional_layout_differences_and_retired_api_evidence
     assert "1.2e-07" in rows["TestScientificNotation.test_scalar_raw_style"]["source"]
     assert "_inner_expr" in rows["TestSymProperties.test_inner_expr_preserved"]["source"]
     assert not rows["TestScientificNotation.test_scalar_cdot_style"]["latex_observations"]
-
-
-def test_latex_contracts_are_not_exempt_from_legacy_construction_guard():
-    assert not set(CONTRACT_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_latex_contracts_execute_with_all_legacy_imports_blocked():

@@ -1216,11 +1216,6 @@ def to_spinor_column(mv: Multivector) -> MatrixRepr:
     return result
 
 
-def to_spinor_matrix(mv: Multivector) -> MatrixRepr:
-    """Compatibility alias for to_spinor_column."""
-    return to_spinor_column(mv)
-
-
 def _solve_spinor_system(
     alg: Algebra,
     spinor: np.ndarray,
@@ -1306,11 +1301,6 @@ def from_spinor_column(alg_or_spinor, spinor=None) -> Multivector:
     except NotImplementedError as exc:
         raise _unsupported_spinor_error(alg) from exc
     return _solve_spinor_system(alg, spinor, A, even_indices)
-
-
-def from_spinor_matrix(alg: Algebra, spinor: np.ndarray) -> Multivector:
-    """Compatibility alias for from_spinor_column."""
-    return from_spinor_column(alg, spinor)
 
 
 # ── Quaternion spinor (column vector) representation ──

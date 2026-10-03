@@ -8,31 +8,26 @@ app = marimo.App()
 def _():
     import marimo as mo
     import numpy as np
-
-    from galaga import Algebra, spacetime_blade_convention, exp, reverse
-    import galaga_marimo as gm
     from galaga_matrix import (
         MatrixRepr,
-        QuatMatrixRepr,
         from_spinor_column,
-        from_spinor_matrix,
         from_spinor_quaternion,
         to_matrix,
         to_spinor_column,
-        to_spinor_matrix,
         to_spinor_quaternion,
     )
     from galaga_matrix.matrix import compact_basis
 
+    import galaga_marimo as gm
+    from galaga import Algebra, exp, reverse, spacetime_blade_convention
+
     return (
         Algebra,
         MatrixRepr,
-        QuatMatrixRepr,
         spacetime_blade_convention,
         compact_basis,
         exp,
         from_spinor_column,
-        from_spinor_matrix,
         from_spinor_quaternion,
         gm,
         mo,
@@ -40,7 +35,6 @@ def _():
         reverse,
         to_matrix,
         to_spinor_column,
-        to_spinor_matrix,
         to_spinor_quaternion,
     )
 
@@ -57,9 +51,7 @@ def _(mo):
     - `to_spinor_quaternion`: even multivector $\mapsto$ quaternion column
     - `from_spinor_quaternion`: quaternion column $\mapsto$ even multivector
 
-    The older names `to_spinor_matrix` and `from_spinor_matrix` are still
-    available as compatibility aliases, but the mathematical object returned is
-    a **column vector**, not an operator matrix.
+    The returned object is a **column vector**, rather than an operator matrix.
     """)
     return
 
@@ -436,27 +428,17 @@ def _(
     cl3_e1,
     cl3_e2,
     from_spinor_column,
-    from_spinor_matrix,
     gm,
     np,
     to_spinor_column,
-    to_spinor_matrix,
 ):
     _alias_spinor = cl3.scalar(2.0) + 0.25 * (cl3_e1 * cl3_e2)
-    _column_new = to_spinor_column(_alias_spinor)
-    _column_old = to_spinor_matrix(_alias_spinor)
-    _from_new = from_spinor_column(cl3, _column_new)
-    _from_old = from_spinor_matrix(cl3, _column_old)
-    _alias_columns_equal = np.allclose(_column_new, _column_old)
-    _alias_inverse_equal = np.allclose(_from_new.data, _from_old.data)
+    _column = to_spinor_column(_alias_spinor)
+    _recovered = from_spinor_column(cl3, _column)
+    _roundtrip_ok = np.allclose(_recovered.data, _alias_spinor.data)
 
     gm.md(rt"""
-    The old names are aliases:
-
-    | Check | Result |
-    |---|---|
-    | `to_spinor_column(ψ) == to_spinor_matrix(ψ)` | {_alias_columns_equal} |
-    | `from_spinor_column(...) == from_spinor_matrix(...)` | {_alias_inverse_equal} |
+    The spinor column roundtrips to its even multivector: {_roundtrip_ok}.
     """)
     return
 
@@ -1004,7 +986,7 @@ def _(mo):
 
 @app.cell
 def _(
-    QuatMatrixRepr,
+    MatrixRepr,
     exp,
     from_spinor_quaternion,
     gm,
@@ -1029,11 +1011,11 @@ def _(
     gm.md(rt"""
     Quaternion block matrix for $\\gamma^1$:
 
-    {QuatMatrixRepr(_gamma1_quat_matrix).name(latex=r"\gamma^1_{\mathbb{H}}"):block}
+    {MatrixRepr(_gamma1_quat_matrix).name(latex=r"\gamma^1_{\mathbb{H}}"):block}
 
     Quaternion spinor column:
 
-    {QuatMatrixRepr(_quat_column_matrix).name(latex=r"\operatorname{qcol}(Q)"):block}
+    {MatrixRepr(_quat_column_matrix).name(latex=r"\operatorname{qcol}(Q)"):block}
 
     Recovered even multivector:
 

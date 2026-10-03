@@ -18,8 +18,7 @@ def _():
         antiwedge,
         exp,
         geometric_antiproduct,
-        p_pga,
-        p_rga,
+        presets,
         sandwich,
     )
     from galaga.rga import RigidModel
@@ -36,8 +35,7 @@ def _():
         gm,
         mo,
         np,
-        p_pga,
-        p_rga,
+        presets,
         sandwich,
     )
 
@@ -64,10 +62,10 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, Notation, RigidModel, p_pga, p_rga):
-    point_algebra = Algebra(config=p_rga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
+def _(Algebra, DisplayPolicy, Notation, RigidModel, presets):
+    point_algebra = Algebra(config=presets.rga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
     point_model = RigidModel(point_algebra, expr=True)
-    plane_algebra = Algebra(config=p_pga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
+    plane_algebra = Algebra(config=presets.pga(), display=DisplayPolicy(content="full"), notation=Notation.lengyel())
     return plane_algebra, point_model
 
 

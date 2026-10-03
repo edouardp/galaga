@@ -19,7 +19,7 @@ def _():
         geometric_product,
         hestenes_inner,
         metric_inner_product,
-        p_euclidean,
+        presets,
         reverse,
         scalar_product,
         transwedge,
@@ -39,7 +39,7 @@ def _():
         hestenes_inner,
         metric_inner_product,
         mo,
-        p_euclidean,
+        presets,
         reverse,
         scalar_product,
         transwedge,
@@ -146,9 +146,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, custom_notation, p_euclidean):
+def _(Algebra, DisplayPolicy, custom_notation, presets):
     custom_algebra = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         notation=custom_notation,
         display=DisplayPolicy(content="full"),
     )

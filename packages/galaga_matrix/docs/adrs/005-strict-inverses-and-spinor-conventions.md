@@ -47,7 +47,9 @@ Use strict inverse checks and explicit spinor conventions.
   reference-column system. Dimension counts are explanatory only.
 - `from_spinor_column` uses the same system as `to_spinor_column` and rejects
   spinor columns outside the image.
-- `to_spinor_matrix` and `from_spinor_matrix` remain as compatibility aliases.
+- The `to_spinor_matrix` and `from_spinor_matrix` compatibility spellings were
+  subsequently removed before stable Galaga 2 under
+  [ADR-170](../../../../docs/adrs/170-retire-migration-scaffolding-before-stable-2.md).
 - The Cl(1,3) public compact/spinor default remains the current standard Dirac
   basis.
 - Weyl and Majorana basis views are layered on top by explicit unitary

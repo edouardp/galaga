@@ -11,10 +11,10 @@ that metric to Eric's blade orientation, display order, notation, and semantic
 model roles:
 
 ```python
-from galaga import Algebra, p_rga
+from galaga import Algebra, presets
 from galaga.rga import RigidModel
 
-alg = Algebra(config=p_rga())
+alg = Algebra(config=presets.rga())
 rga = RigidModel(alg, expr=True)
 e1, e2, e3 = rga.euclidean_basis_vectors()
 e4 = rga.projective
@@ -36,9 +36,9 @@ for example, `e31 == e3 ^ e1 == -(e1 ^ e3)`.
 The Galaga 2 facade expresses the same fact with immutable signed references:
 
 ```python
-from galaga import Algebra, p_rga
+from galaga import Algebra, presets
 
-rga = Algebra(config=p_rga())
+rga = Algebra(config=presets.rga())
 assert rga.blade("e31").coefficient(0b0101) == -1
 assert rga.blade("e13").coefficient(0b0101) == 1
 ```
@@ -141,16 +141,16 @@ inverse-pseudoscalar `dual()` is undefined there.
 ## Validated Rigid Model
 
 `galaga.rga.RigidModel` owns only operations whose meaning depends on the
-point-based RGA model. Construction requires `Algebra(config=p_rga())` and
+point-based RGA model. Construction requires `Algebra(config=presets.rga())` and
 validates the declared Euclidean and projective roles against the actual Gram
 matrix. A bare algebra with the same signature is deliberately insufficient:
 the metric alone does not say whether vectors represent points or planes.
 
 ```python
-from galaga import Algebra, p_rga
+from galaga import Algebra, presets
 from galaga.rga import RigidModel
 
-algebra = Algebra(config=p_rga())
+algebra = Algebra(config=presets.rga())
 rga = RigidModel(algebra, expr=True)
 
 p = rga.point((3, 4, 0)).named("P")
@@ -216,7 +216,7 @@ $\mathrm{Cl}(3,0,1)$ metric in dual ways:
 | point joins use `outer_product` | point joins use `antiwedge` |
 | motions use geometric antiproduct sandwiches | motions use geometric-product sandwiches |
 
-Galaga represents these as `p_rga()` and `p_pga()` rather than an implicit
+Galaga represents these as `presets.rga()` and `presets.pga()` rather than an implicit
 mode flag. The notebook
 [`dual_approaches_to_pga.py`](../examples/rga/dual_approaches_to_pga.py)
 constructs the same translated coordinates through both products.

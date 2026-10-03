@@ -17,7 +17,7 @@ def _():
         grade,
         norm,
         outer_product,
-        p_euclidean,
+        presets,
         reverse,
         unit,
     )
@@ -32,7 +32,7 @@ def _():
         mo,
         norm,
         outer_product,
-        p_euclidean,
+        presets,
         reverse,
         unit,
     )
@@ -51,9 +51,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_euclidean):
+def _(Algebra, DisplayPolicy, presets):
     algebra = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         display=DisplayPolicy(content="full"),
     )
     e1, e2, e3 = algebra.basis_vectors(expr=True)

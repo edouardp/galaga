@@ -55,7 +55,7 @@
   post-2.0 numeric capabilities and release-blocking migration work
   separately.
 - [Native-null conformal geometric algebra](../cga/README.md) documents the
-  `p_cga` Gram model, `ConformalModel`, direct objects, semantic CGA operations,
+  `presets.cga` Gram model, `ConformalModel`, direct objects, semantic CGA operations,
   and transformations.
 - [Rigid geometric algebra](../rga-convention-layer.md) documents Eric
   Lengyel's algebraic convention, the validated `RigidModel`, measurements,
@@ -108,8 +108,10 @@ performance baseline pass.
 Phase 9 is the stable `2.0.0` release gate. The legacy engine is removed and
 W9.2 API retirement is complete after `2.0.0a4`: the bridge paths, six temporary
 operation spellings and unused adapter infrastructure are gone. See
-[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Permanent aliases
-and `p_*` presets remain. Full supported-version and clean-artifact validation,
+[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Permanent
+operation aliases remain; the prefixed preset factories were retired under
+[ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+Full supported-version and clean-artifact validation,
 release metadata, release-candidate review and publication remain separate
 gates; completion of API cleanup does not declare stable 2.0 ready. The
 [post-a4 preparation checkpoint](legacy-engine-deletion-gate.md#post-a4-stable-release-preparation-checkpoint)
@@ -214,9 +216,9 @@ without rounding the operand. Core and facade regressions cover dictionary
 and set behavior without introducing a tolerance. Existing cross-algebra
 scalar semantics and their mixed-numeric limitation are documented in
 [ADR-095](../adrs/095-exact-numeric-equality-and-compatible-hashes.md).
-The construction-only legacy ledger is empty. `test_redesign.py` and
-`test_coverage.py` are import-free ownership records. All 279 redesign identities
-have an explicit public-owner crosswalk; unique state/workflow/display tests
+The construction-only legacy ledger is empty. The completed ownership records
+have been retired. All 279 redesign identities had an explicit public-owner
+crosswalk; unique state/workflow/display tests
 complement the existing operation contracts. Division now preserves denominator
 provenance and tiny stored grades, including finite subnormal quotients.
 Namespace/construction guards are complete: no guard needs live v1 classes,
@@ -231,7 +233,7 @@ See [ADR-120](../adrs/120-complete-redesign-contract-migration.md),
 and the [cutover plan](core-cutover-plan.md#w91-delete-legacy-numeric-storage-and-tables).
 
 The post-cutover native CGA model layer is also implemented. It validates the
-actual `eo`/`einf` Gram basis supplied by `p_cga`, embeds and extracts round
+actual `eo`/`einf` Gram basis supplied by `presets.cga`, embeds and extracts round
 points for arbitrary null-pair scaling, and provides the established CGA
 attitude/carrier/center/container vocabulary, four-way component projections,
 conformal conjugation, and weighted/normalized norms as model-specific

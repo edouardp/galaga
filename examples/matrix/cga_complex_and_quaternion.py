@@ -17,7 +17,7 @@ def _():
         exp,
         grade,
         inverse,
-        p_cga,
+        presets,
         scalar_product,
         squared,
     )
@@ -35,7 +35,7 @@ def _():
         inverse,
         mo,
         np,
-        p_cga,
+        presets,
         scalar_product,
         squared,
         to_matrix,
@@ -78,10 +78,10 @@ def _(
     DisplayPolicy,
     MatrixRepr,
     null_pair_scale,
-    p_cga,
+    presets,
 ):
     cga_algebra = Algebra(
-        config=p_cga(3, frame="null", null_pair=null_pair_scale),
+        config=presets.cga(3, frame="null", null_pair=null_pair_scale),
         display=DisplayPolicy(content="full"),
     )
     cga = ConformalModel(cga_algebra, expr=True)

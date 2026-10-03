@@ -4,8 +4,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
-
 TEST_ROOT = Path(__file__).parents[1]
 CONTRACT_FILES = ("test_latex_symbols.py", "presentation/test_name_conversion.py")
 IMPORT_GUARD = """
@@ -80,7 +78,3 @@ assert not any(forbidden(name) for name in sys.modules)
         timeout=60,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
-
-
-def test_symbol_conversion_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not (set(CONTRACT_FILES) & set(LEGACY_ORACLE_TESTS))

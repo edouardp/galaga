@@ -9,7 +9,7 @@ from galaga import (
     antireverse,
     exp,
     geometric_antiproduct,
-    p_cga,
+    presets,
     sandwich,
     squared,
 )
@@ -17,7 +17,7 @@ from galaga.cga import ConformalModel
 
 
 def _model() -> ConformalModel:
-    return ConformalModel(Algebra(config=p_cga()))
+    return ConformalModel(Algebra(config=presets.cga()))
 
 
 def test_translation_is_an_existing_geometric_product_versor_action() -> None:
@@ -34,7 +34,7 @@ def test_translation_is_an_existing_geometric_product_versor_action() -> None:
 
 def test_wiki_translation_operator_uses_existing_sandwich_antiproduct_primitives() -> None:
     # This coordinate formula uses the wiki's Euclidean-first orientation.
-    cga = ConformalModel(Algebra(config=p_cga(basis_order="euclidean-first")))
+    cga = ConformalModel(Algebra(config=presets.cga(basis_order="euclidean-first")))
     _, e2, e3 = cga.euclidean_basis_vectors()
     point = cga.round_point((1.0, 2.0, 3.0))
     operator = cga.algebra.I + 0.5 * (e2 ^ e3 ^ cga.infinity)

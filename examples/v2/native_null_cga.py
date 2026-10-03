@@ -4,12 +4,13 @@ from __future__ import annotations
 
 import numpy as np
 
+from galaga import presets
 from galaga.cga import ConformalModel
-from galaga.facade import Algebra, exp, outer_product, p_cga, sandwich, scalar_product
+from galaga.facade import Algebra, exp, outer_product, sandwich, scalar_product
 
 
 def run() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=3))
+    algebra = Algebra(config=presets.cga(spatial_dim=3))
     cga = ConformalModel(algebra)
 
     assert cga.null_pair == -1

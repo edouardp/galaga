@@ -12,7 +12,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -85,10 +84,6 @@ def test_every_seeded_case_remains_nonvacuous_and_old_rotor_errors_are_archived(
             assert np.linalg.det(columns.T @ columns) > 1e-10
         if "normal" in row:
             assert np.dot(row["normal"], row["normal"]) > 1e-10
-
-
-def test_transformation_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_transformation_suites_run_with_legacy_imports_blocked():

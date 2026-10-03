@@ -33,7 +33,7 @@ def test_default_locals_filtering_and_expression_mode(cl3):
 
 
 def test_gamma_convention_and_explicit_prefix_have_python_safe_keys():
-    algebra = ga.Algebra(config=ga.p_sta())
+    algebra = ga.Algebra(config=ga.presets.sta())
     compact = ga.indexed_blade_convention(4, prefix="g", start=0)
     policy = ga.LocalNamePolicy(
         4, ((label.name.ascii, label.ref) for label in compact.labels if label.ref.mask.bit_count() in (1, 2))
@@ -49,7 +49,7 @@ def test_gamma_convention_and_explicit_prefix_have_python_safe_keys():
 
 
 def test_prefix_override_is_uniform_but_preserves_variable_hints():
-    algebra = ga.Algebra(config=ga.p_sta(sigmas=True))
+    algebra = ga.Algebra(config=ga.presets.sta(sigmas=True))
     compact = ga.indexed_blade_convention(4, prefix="g", start=0, overrides={15: "i"})
     policy = ga.LocalNamePolicy(
         4, ((label.name.ascii, algebra.blade_label(mask).ref) for mask, label in enumerate(compact.labels) if mask)
@@ -81,7 +81,7 @@ def test_prefix_must_be_a_string():
     # Prefix rewriting is retired; reject it even when well typed. Policies
     # validate actual identifiers instead of coercing arbitrary objects.
     with pytest.raises(TypeError, match="prefix"):
-        ga.Algebra(config=ga.p_sta(sigmas=True)).locals(prefix=123)
+        ga.Algebra(config=ga.presets.sta(sigmas=True)).locals(prefix=123)
     with pytest.raises(ValueError, match="non-empty strings"):
         ga.LocalNamePolicy(4, [(123, 3)])
 
@@ -118,7 +118,7 @@ def test_variable_hints_and_display_overrides_have_separate_local_policy():
 
 
 def test_signed_sta_factories_preserve_the_defining_order():
-    algebra = ga.Algebra(config=ga.p_sta(sigmas=True))
+    algebra = ga.Algebra(config=ga.presets.sta(sigmas=True))
     g0, g1, g2, g3 = algebra.basis_vectors()
     expected = (g1 * g0, g2 * g0, g3 * g0)
     values = algebra.locals()

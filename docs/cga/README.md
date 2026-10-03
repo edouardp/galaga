@@ -3,7 +3,7 @@
 Galaga's conformal model is a semantic layer over the same general Gram-matrix
 engine used by every other algebra. It does not diagonalize the metric and it
 does not disguise an orthogonal pair as null vectors. With
-`p_cga(spatial_dim=3)`, the stored basis is exactly
+`presets.cga(spatial_dim=3)`, the stored basis is exactly
 
 $$
 (e_o,e_1,e_2,e_3,e_\infty)
@@ -80,11 +80,11 @@ See [ADR-134](../adrs/134-origin-first-native-null-cga.md).
 `spatial_dim` always counts Euclidean dimensions. The conformal preset and its
 model-aware blade-convention builders add the two null vectors themselves:
 
-| Call | Euclidean vectors | Total algebra dimension |
-|---|---:|---:|
-| `p_cga(spatial_dim=2)` | 2 | 4 |
-| `p_cga(spatial_dim=3)` | 3 | 5 |
-| `null_cga_blade_convention(3)` | 3 | 5 |
+| Call                           | Euclidean vectors | Total algebra dimension |
+| ------------------------------ | ----------------: | ----------------------: |
+| `presets.cga(spatial_dim=2)`   |                 2 |                       4 |
+| `presets.cga(spatial_dim=3)`   |                 3 |                       5 |
+| `null_cga_blade_convention(3)` |                 3 |                       5 |
 
 Passing `5` to `null_cga_blade_convention` would therefore request five
 Euclidean vectors plus $e_o$ and $e_\infty$: a seven-dimensional convention,
@@ -143,11 +143,11 @@ from galaga import (
     Algebra,
     DisplayPolicy,
     null_cga_blade_convention,
-    p_cga,
+    presets,
 )
 
 algebra = Algebra(
-    config=p_cga(spatial_dim=3),
+    config=presets.cga(spatial_dim=3),
     blades=null_cga_blade_convention(3, style="juxtapose"),
     display=DisplayPolicy(content="full"),
 )
@@ -166,7 +166,7 @@ and `infinity` roles and the same Gram matrix.
 
 ```mermaid
 flowchart TD
-    P[p_cga preset] --> C[AlgebraConfig]
+    P[presets.cga preset] --> C[AlgebraConfig]
     C --> G[galaga.core Gram algebra]
     C --> M[ModelConfig roles]
     C --> V[PresentationConfig]
@@ -184,7 +184,7 @@ The responsibilities are deliberately separate:
 
 - `galaga.core` evaluates the Clifford and exterior algebra from the Gram
   matrix. It knows nothing about conformal geometry.
-- `p_cga` supplies the numeric definition, native basis roles, and default
+- `presets.cga` supplies the numeric definition, native basis roles, and default
   presentation as independently replaceable configuration components.
 - the facade owns eager multivectors, optional expression provenance, and
   rendering.
@@ -195,16 +195,16 @@ The responsibilities are deliberately separate:
 
 An arbitrary `Algebra(4, 1)` is not accepted. Neither inertia nor basis names
 identify which directions mean origin, infinity, and Euclidean space. The
-orthogonal `p_cga(frame="orthogonal")` model is also rejected because its last
+orthogonal `presets.cga(frame="orthogonal")` model is also rejected because its last
 two basis vectors really are $e_+$ and $e_-$, not $e_o$ and $e_\infty$.
 
 ## Constructing the model
 
 ```python
-from galaga import Algebra, p_cga
+from galaga import Algebra, presets
 from galaga.cga import ConformalModel
 
-algebra = Algebra(config=p_cga(spatial_dim=3))
+algebra = Algebra(config=presets.cga(spatial_dim=3))
 cga = ConformalModel(algebra, expr=True)
 
 e1, e2, e3 = cga.euclidean_basis_vectors()
@@ -214,15 +214,15 @@ einf = cga.infinity
 
 ### Eric Lengyel's complete CGA presentation
 
-`p_lengyel_cga()` composes the same standard native-null Gram matrix and CGA
+`presets.lengyel_cga()` composes the same standard native-null Gram matrix and CGA
 model roles with `Notation.lengyel()`, compact bold blade labels, and Eric's
 five-dimensional basis-table order:
 
 ```python
-from galaga import Algebra, p_lengyel_cga
+from galaga import Algebra, presets
 from galaga.cga import ConformalModel
 
-algebra = Algebra(config=p_lengyel_cga())
+algebra = Algebra(config=presets.lengyel_cga())
 cga = ConformalModel(algebra, expr=True)
 ```
 
@@ -235,7 +235,7 @@ $$
 
 and renders canonically as Lengyel's unit antiscalar $\text{𝟙}$; `e12345`
 remains an accepted blade alias. This preset is intentionally separate from
-ordinary `p_cga()`: blade convention, display order, and operation notation
+ordinary `presets.cga()`: blade convention, display order, and operation notation
 can still be overridden independently on `Algebra`.
 
 Presentation is still independent. Passing `display=`, `notation=`, or a
@@ -397,15 +397,15 @@ The model does not add wrapper classes for point, line, circle, or sphere.
 Those objects are ordinary homogeneous multivectors, and their direct
 representations use `outer_product`:
 
-| Wiki object | Direct representation | Grade |
-|---|---:|---:|
-| [round point](https://conformalgeometricalgebra.org/wiki/index.php?title=Round_point) | $A$ | 1 |
-| [flat point](https://conformalgeometricalgebra.org/wiki/index.php?title=Flat_point) | $A\wedge e_\infty$ | 2 |
-| [dipole](https://conformalgeometricalgebra.org/wiki/index.php?title=Dipole) | $A\wedge B$ | 2 |
-| [line](https://conformalgeometricalgebra.org/wiki/index.php?title=Line) | $A\wedge B\wedge e_\infty$ | 3 |
-| [circle](https://conformalgeometricalgebra.org/wiki/index.php?title=Circle) | $A\wedge B\wedge C$ | 3 |
-| [plane](https://conformalgeometricalgebra.org/wiki/index.php?title=Plane) | $A\wedge B\wedge C\wedge e_\infty$ | 4 |
-| [sphere](https://conformalgeometricalgebra.org/wiki/index.php?title=Sphere) | $A\wedge B\wedge C\wedge D$ | 4 |
+| Wiki object                                                                           |              Direct representation | Grade |
+| ------------------------------------------------------------------------------------- | ---------------------------------: | ----: |
+| [round point](https://conformalgeometricalgebra.org/wiki/index.php?title=Round_point) |                                $A$ |     1 |
+| [flat point](https://conformalgeometricalgebra.org/wiki/index.php?title=Flat_point)   |                 $A\wedge e_\infty$ |     2 |
+| [dipole](https://conformalgeometricalgebra.org/wiki/index.php?title=Dipole)           |                        $A\wedge B$ |     2 |
+| [line](https://conformalgeometricalgebra.org/wiki/index.php?title=Line)               |         $A\wedge B\wedge e_\infty$ |     3 |
+| [circle](https://conformalgeometricalgebra.org/wiki/index.php?title=Circle)           |                $A\wedge B\wedge C$ |     3 |
+| [plane](https://conformalgeometricalgebra.org/wiki/index.php?title=Plane)             | $A\wedge B\wedge C\wedge e_\infty$ |     4 |
+| [sphere](https://conformalgeometricalgebra.org/wiki/index.php?title=Sphere)           |        $A\wedge B\wedge C\wedge D$ |     4 |
 
 For example:
 
@@ -459,19 +459,19 @@ The wiki defines a compact vocabulary built from join, meet, complement, and
 the metric maps. Galaga provides descriptive names on `ConformalModel`, with
 the wiki abbreviations as exact aliases:
 
-| Primary name | Short form | Definition |
-|---|---|---|
-| `dual(u)` | — | `right_hodge_dual(u)` $=\overline{Gu}$ |
-| `antidual(u)` | — | `right_weight_dual(u)` $=\overline{\mathbb G u}$ |
-| `attitude(u)` | `att(u)` | $u\vee\overline{e_o}$ |
-| `carrier(u)` | `car(u)` | $u\wedge e_\infty$ |
-| `cocarrier(u)` | `ccr(u)` | $u^\star\wedge e_\infty$, using the antidual |
-| `center(u)` | `cen(u)` | $\operatorname{ccr}(u)\vee u$ |
-| `flat_center(u)` | — | $\operatorname{ccr}(u)\vee\operatorname{car}(u)$ |
-| `container(u)` | `con(u)` | $u\wedge\operatorname{car}(u)^\star$ |
-| `partner(u)` | `par(u)` | $(-1)^{\operatorname{gr}(u)+1}\operatorname{con}(u^\star)\vee\operatorname{car}(u)$, for $\kappa=-1$ |
-| `expansion(a, b)` | — | $a\wedge b^\star$, where $\operatorname{gr}(a)<\operatorname{gr}(b)$ |
-| `projection(a, b)` | `project(a, b)` | $b\vee(a\wedge b^\star)$ |
+| Primary name       | Short form      | Definition                                                                                           |
+| ------------------ | --------------- | ---------------------------------------------------------------------------------------------------- |
+| `dual(u)`          | —               | `right_hodge_dual(u)` $=\overline{Gu}$                                                               |
+| `antidual(u)`      | —               | `right_weight_dual(u)` $=\overline{\mathbb G u}$                                                     |
+| `attitude(u)`      | `att(u)`        | $u\vee\overline{e_o}$                                                                                |
+| `carrier(u)`       | `car(u)`        | $u\wedge e_\infty$                                                                                   |
+| `cocarrier(u)`     | `ccr(u)`        | $u^\star\wedge e_\infty$, using the antidual                                                         |
+| `center(u)`        | `cen(u)`        | $\operatorname{ccr}(u)\vee u$                                                                        |
+| `flat_center(u)`   | —               | $\operatorname{ccr}(u)\vee\operatorname{car}(u)$                                                     |
+| `container(u)`     | `con(u)`        | $u\wedge\operatorname{car}(u)^\star$                                                                 |
+| `partner(u)`       | `par(u)`        | $(-1)^{\operatorname{gr}(u)+1}\operatorname{con}(u^\star)\vee\operatorname{car}(u)$, for $\kappa=-1$ |
+| `expansion(a, b)`  | —               | $a\wedge b^\star$, where $\operatorname{gr}(a)<\operatorname{gr}(b)$                                 |
+| `projection(a, b)` | `project(a, b)` | $b\vee(a\wedge b^\star)$                                                                             |
 
 These correspond to the wiki pages for
 [duals](https://conformalgeometricalgebra.org/wiki/index.php?title=Duals),
@@ -505,12 +505,12 @@ Eric's conformal Mathematica package decomposes every homogeneous geometry
 according to whether each basis term contains $e_o$, $e_\infty$, both, or
 neither. `ConformalModel` exposes the same four projections:
 
-| Primary name | Lengyel notation | Contains $e_o$ | Contains $e_\infty$ |
-|---|---:|:---:|:---:|
-| `round_bulk_part(u)` | $u_{\text{●}}$ | no | no |
-| `round_weight_part(u)` | $u_{\text{○}}$ | yes | no |
-| `flat_bulk_part(u)` | $u_{\text{■}}$ | no | yes |
-| `flat_weight_part(u)` | $u_{\text{□}}$ | yes | yes |
+| Primary name           | Lengyel notation | Contains $e_o$ | Contains $e_\infty$ |
+| ---------------------- | ---------------: | :------------: | :-----------------: |
+| `round_bulk_part(u)`   |   $u_{\text{●}}$ |       no       |         no          |
+| `round_weight_part(u)` |   $u_{\text{○}}$ |      yes       |         no          |
+| `flat_bulk_part(u)`    |   $u_{\text{■}}$ |       no       |         yes         |
+| `flat_weight_part(u)`  |   $u_{\text{□}}$ |      yes       |         yes         |
 
 These four disjoint values sum exactly to the input. The overlapping
 two-family views follow directly:
@@ -550,14 +550,14 @@ and
 The corresponding model methods implement the Mathematica package's six
 weighted norms:
 
-| Method | Lengyel notation | Result subspace |
-|---|---:|---|
-| `weighted_center_norm(u)` | $\lVert u\rVert_{\text{ⓒ}}$ | scalar |
-| `weighted_radius_norm(u)` | $\lVert u\rVert_{\text{ⓡ}}$ | antiscalar |
-| `round_bulk_norm(u)` | $\lVert u\rVert_{\text{●}}$ | scalar |
-| `round_weight_norm(u)` | $\lVert u\rVert_{\text{○}}$ | complement of $e_\infty$ |
-| `flat_bulk_norm(u)` | $\lVert u\rVert_{\text{■}}$ | span of $e_\infty$ |
-| `flat_weight_norm(u)` | $\lVert u\rVert_{\text{□}}$ | antiscalar |
+| Method                    |            Lengyel notation | Result subspace          |
+| ------------------------- | --------------------------: | ------------------------ |
+| `weighted_center_norm(u)` | $\lVert u\rVert_{\text{ⓒ}}$ | scalar                   |
+| `weighted_radius_norm(u)` | $\lVert u\rVert_{\text{ⓡ}}$ | antiscalar               |
+| `round_bulk_norm(u)`      | $\lVert u\rVert_{\text{●}}$ | scalar                   |
+| `round_weight_norm(u)`    | $\lVert u\rVert_{\text{○}}$ | complement of $e_\infty$ |
+| `flat_bulk_norm(u)`       | $\lVert u\rVert_{\text{■}}$ | span of $e_\infty$       |
+| `flat_weight_norm(u)`     | $\lVert u\rVert_{\text{□}}$ | antiscalar               |
 
 In particular, Eric defines
 
@@ -605,7 +605,7 @@ fractions above. `center_distance(u)` is an explicit geometric alias for
 `radius_norm(u)` and renders as $\operatorname{rad}(u)$.
 
 Both ratios reject flat objects having zero round weight. `center_norm` is
-valid for every nonzero null-pair scale accepted by `p_cga`. Eric's antidot
+valid for every nonzero null-pair scale accepted by `presets.cga`. Eric's antidot
 radius formula assumes the package metric $e_o\mathbin{\cdot}e_\infty=-1$, so
 `weighted_radius_norm`, `radius_norm`, and `radius` explicitly require that
 standard normalization.
@@ -627,7 +627,7 @@ the negative of the metric exomorphism, so the wiki dual and antidual differ
 by a sign.
 
 Embedding, center, container, expansion, and projection are valid for every
-nonzero null-pair scale accepted by `p_cga`. The wiki's polynomial `partner`
+nonzero null-pair scale accepted by `presets.cga`. The wiki's polynomial `partner`
 identity is specifically normalized to $e_o\mathbin{\cdot}e_\infty=-1$;
 `partner` rejects other scales rather than returning a plausible but incorrect
 signed radius.
@@ -640,14 +640,14 @@ The wiki's
 and [join and meet](https://conformalgeometricalgebra.org/wiki/index.php?title=Join_and_meet)
 map directly to existing Galaga operations:
 
-| Direct/OPNS term | Galaga operation |
-|---|---|
-| join | `outer_product` (`join`, `wedge`, and `op` are aliases) |
-| meet | `regressive_product` (`meet` is an alias) |
-| geometric product | `geometric_product` or `*` |
-| geometric antiproduct | `geometric_antiproduct` |
-| sandwich product | `sandwich` |
-| sandwich antiproduct | two `geometric_antiproduct` calls with `antireverse` |
+| Direct/OPNS term      | Galaga operation                                        |
+| --------------------- | ------------------------------------------------------- |
+| join                  | `outer_product` (`join`, `wedge`, and `op` are aliases) |
+| meet                  | `regressive_product` (`meet` is an alias)               |
+| geometric product     | `geometric_product` or `*`                              |
+| geometric antiproduct | `geometric_antiproduct`                                 |
+| sandwich product      | `sandwich`                                              |
+| sandwich antiproduct  | two `geometric_antiproduct` calls with `antireverse`    |
 
 Keeping these operations generic preserves one numeric implementation and one
 expression operation ID.

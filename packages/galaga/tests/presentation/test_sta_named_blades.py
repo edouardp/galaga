@@ -58,7 +58,7 @@ def test_named_blade_signs_match_actual_products_for_every_unit_diagonal_metric(
 @pytest.mark.parametrize("signature", ("mostly-minus", "mostly-plus"))
 @pytest.mark.parametrize("sigmas, pseudovectors", tuple(product((False, True), repeat=2)))
 def test_preset_derives_names_from_its_own_ordered_metric(signature, sigmas, pseudovectors):
-    preset = ga.p_sta(signature, sigmas=sigmas, pseudovectors=pseudovectors)
+    preset = ga.presets.sta(signature, sigmas=sigmas, pseudovectors=pseudovectors)
     config = preset.build()
     algebra = ga.Algebra(config=preset)
     expected = ga.spacetime_blade_convention(
@@ -120,4 +120,4 @@ def test_options_require_actual_booleans(flag, value):
     with pytest.raises(TypeError, match="boolean"):
         ga.spacetime_blade_convention(signature=(1, -1, -1, -1), **{flag: value})
     with pytest.raises(TypeError, match="boolean"):
-        ga.p_sta(**{flag: value})
+        ga.presets.sta(**{flag: value})

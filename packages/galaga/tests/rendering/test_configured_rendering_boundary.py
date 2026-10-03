@@ -13,7 +13,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 from tools.latex_contract import latex_test, render_test, testcase
 from tools.rendering_contract import (
     ALGEBRA_PROFILES,
@@ -283,10 +282,6 @@ def test_decorator_renders_after_builder_return_and_never_weakens_literal_compar
     execute(case)
     with pytest.raises(AssertionError):
         execute(replace(case, expected=expected + " "))
-
-
-def test_exact_suites_have_left_the_legacy_construction_allowlist() -> None:
-    assert all(f"rendering/{filename}" not in LEGACY_ORACLE_TESTS for filename in CONTRACT_FILES)
 
 
 def test_complete_exact_suites_execute_with_legacy_imports_blocked() -> None:

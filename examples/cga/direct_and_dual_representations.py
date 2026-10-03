@@ -15,7 +15,7 @@ def _():
         geometric_product,
         left_contraction,
         outer_product,
-        p_cga,
+        presets,
         reverse,
         scalar_product,
     )
@@ -30,7 +30,7 @@ def _():
         left_contraction,
         mo,
         outer_product,
-        p_cga,
+        presets,
         reverse,
         scalar_product,
     )
@@ -60,9 +60,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     conformal_algebra = Algebra(
-        config=p_cga(spatial_dim=2),
+        config=presets.cga(spatial_dim=2),
         display=DisplayPolicy(content="full"),
     )
     cga = ConformalModel(conformal_algebra, expr=True)

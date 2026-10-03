@@ -19,8 +19,7 @@ def _():
         Algebra,
         DisplayPolicy,
         exp,
-        p_euclidean,
-        p_sta,
+        presets,
         reverse,
     )
 
@@ -32,8 +31,7 @@ def _():
         gm,
         mo,
         np,
-        p_euclidean,
-        p_sta,
+        presets,
         reverse,
         to_matrix,
         to_spinor_column,
@@ -74,9 +72,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, exp, np, p_euclidean):
+def _(Algebra, DisplayPolicy, exp, np, presets):
     pauli_algebra = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         display=DisplayPolicy(content="full"),
     )
     e1, e2, e3 = pauli_algebra.basis_vectors(expr=True)
@@ -203,9 +201,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, exp, np, p_sta):
+def _(Algebra, DisplayPolicy, exp, np, presets):
     spacetime_algebra = Algebra(
-        config=p_sta("mostly-minus"),
+        config=presets.sta("mostly-minus"),
         display=DisplayPolicy(content="full"),
     )
     gamma0, gamma1, gamma2, gamma3 = spacetime_algebra.basis_vectors(expr=True)
@@ -398,8 +396,8 @@ def _(mo):
     - `Cl(3,0)` and mostly-minus `Cl(1,3)` are supported faithful examples;
       unsupported signatures raise rather than returning a lossy inverse.
 
-    `to_spinor_matrix` and `from_spinor_matrix` remain compatibility aliases;
-    the canonical names are `to_spinor_column` and `from_spinor_column`.
+    The conversions use `to_spinor_column` and `from_spinor_column` because
+    their results are columns rather than operator matrices.
     """)
     return
 

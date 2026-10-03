@@ -143,8 +143,8 @@ selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
 The complete factories are `euclidean`, `oblique_plane`, `sta`, `pga`, `cga`, `rga`,
 `lengyel_cga`, `complex`, `quaternion` and `exterior`. Complex and quaternion
 presets describe even subalgebras of real Euclidean algebras, not complex
-coefficient storage. The older `p_*` factories remain explicit compatibility
-imports; new code should use `presets`.
+coefficient storage. Import `presets` for the complete factories; the older
+prefixed `p_*` spellings have been removed.
 
 For two unit basis vectors separated by an angle, use
 `Algebra(config=presets.oblique_plane(degrees=60))` or
@@ -665,7 +665,8 @@ The final-API cleanup after `2.0.0a4` also removes `galaga.gram_bridge` and
 the temporary `involute`, `mag2`, `magnitude_squared`, `norm_squared`,
 `normalise` and `normalize` functions. Use `grade_involution`, `norm2` and
 `unit` respectively. Earlier alphas still provide those migration adapters;
-permanent concise aliases and explicit `p_*` preset imports remain supported.
+permanent concise operation aliases remain supported. The prefixed `p_*`
+preset imports were retired before stable 2.0.
 Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation paths
 are replaced by `galaga.expression`, `galaga.presentation`, `galaga.rendering`
 and `galaga.names`. Follow the [migration guide][migration] for explicit

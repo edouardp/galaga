@@ -3,6 +3,7 @@ import math
 import numpy as np
 import pytest
 
+from galaga import presets
 from galaga.blades import default_blade_convention
 from galaga.facade import Algebra
 from galaga.presentation import Notation
@@ -18,20 +19,11 @@ from galaga.presets import (
     QuaternionPreset,
     SpacetimePreset,
     oblique_plane,
-    p_cga,
-    p_complex,
-    p_euclidean,
-    p_exterior,
-    p_lengyel_cga,
-    p_pga,
-    p_quaternion,
-    p_rga,
-    p_sta,
 )
 
 
 def test_native_null_cga_preset_defines_all_five_basis_vectors_and_gram_entries():
-    algebra = Algebra(config=p_cga(spatial_dim=3))
+    algebra = Algebra(config=presets.cga(spatial_dim=3))
 
     expected = np.zeros((5, 5))
     expected[1:4, 1:4] = np.eye(3)
@@ -205,19 +197,19 @@ def test_reusing_a_preset_creates_equal_but_independent_immutable_configs():
 
 
 def test_ergonomic_preset_constructors_return_inspectable_preset_objects():
-    assert p_euclidean(2) == EuclideanPreset(2)
-    assert p_sta("mostly-plus") == SpacetimePreset("mostly-plus")
-    assert p_pga(2) == PGAPreset(2)
-    assert p_cga(2, frame="orthogonal") == CGAPreset(2, "orthogonal")
-    assert p_rga() == LengyelRGAPreset()
-    assert p_lengyel_cga() == LengyelCGAPreset()
-    assert p_complex() == ComplexPreset()
-    assert p_quaternion() == QuaternionPreset()
-    assert p_exterior(2) == ExteriorPreset(2)
+    assert presets.euclidean(2) == EuclideanPreset(2)
+    assert presets.sta("mostly-plus") == SpacetimePreset("mostly-plus")
+    assert presets.pga(2) == PGAPreset(2)
+    assert presets.cga(2, frame="orthogonal") == CGAPreset(2, "orthogonal")
+    assert presets.rga() == LengyelRGAPreset()
+    assert presets.lengyel_cga() == LengyelCGAPreset()
+    assert presets.complex() == ComplexPreset()
+    assert presets.quaternion() == QuaternionPreset()
+    assert presets.exterior(2) == ExteriorPreset(2)
 
 
 def test_lengyel_cga_preset_combines_native_null_roles_blades_order_and_notation() -> None:
-    algebra = Algebra(config=p_lengyel_cga())
+    algebra = Algebra(config=presets.lengyel_cga())
 
     assert algebra.model is not None
     assert algebra.model.id == "cga-null"

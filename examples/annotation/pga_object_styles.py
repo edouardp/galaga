@@ -14,9 +14,9 @@ def _():
 
     import galaga_annotation as ga
     import galaga_marimo as gm
-    from galaga import Algebra, complement, exp, p_pga
+    from galaga import Algebra, complement, exp, presets
 
-    return Algebra, complement, exp, ga, gm, mo, np, p_pga
+    return Algebra, complement, exp, ga, gm, mo, np, presets
 
 
 @app.cell(hide_code=True)
@@ -35,8 +35,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, complement, exp, np, p_pga):
-    algebra = Algebra(config=p_pga(), expr=True)
+def _(Algebra, complement, exp, np, presets):
+    algebra = Algebra(config=presets.pga(), expr=True)
     e1, e2, e3, e0 = algebra.basis_vectors(expr=True)
     e0_bit = int(np.flatnonzero(e0.data)[0])
     e123 = e1 ^ e2 ^ e3

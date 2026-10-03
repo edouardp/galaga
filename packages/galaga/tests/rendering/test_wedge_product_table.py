@@ -13,7 +13,6 @@ from galaga.blades import BladeLabel, BladeRef, DisplayOrder, indexed_blade_conv
 from galaga.display import BilinearFormTable, WedgeProductTable, build_tree, emit, render
 from galaga.names import Name
 from galaga.presentation import DisplayPolicy, default_presentation
-from galaga.presets import p_cga, p_rga, p_sta
 from galaga.rendering import GradeColor, Identifier, Literal, Prefix
 from galaga.rendering._build import wedge_product_tree
 
@@ -29,10 +28,10 @@ from galaga.rendering._build import wedge_product_tree
         Algebra(signature=(1, -1, 0)),
         Algebra(signature=(0, 0, 0)),
         Algebra(gram=[[2, 0.5], [0.5, -1]]),
-        Algebra(config=p_cga(3)),
-        Algebra(config=p_cga(2, null_pair=-2)),
-        Algebra(config=p_sta("mostly-minus")),
-        Algebra(config=p_rga()),
+        Algebra(config=presets.cga(3)),
+        Algebra(config=presets.cga(2, null_pair=-2)),
+        Algebra(config=presets.sta("mostly-minus")),
+        Algebra(config=presets.rga()),
         Algebra(config=presets.lengyel_cga()),
         Algebra(config=presets.quaternion()),
     ),
@@ -58,7 +57,7 @@ def test_table_entries_agree_with_computed_native_wedge_products(algebra, full):
 
 
 def test_cga_vector_table_matches_requested_layout():
-    table = Algebra(config=p_cga(3)).wedge_product_table()
+    table = Algebra(config=presets.cga(3)).wedge_product_table()
     lines = table.latex().splitlines()
     assert lines[0] == r"\begin{array}{c|ccccc}"
     assert lines[1] == r"\wedge & e_{o} & e_{1} & e_{2} & e_{3} & e_{\infty} \\"
@@ -93,7 +92,7 @@ def test_full_table_default_is_grade_then_lexicographic_not_grade_then_mask():
     ]
     for index, heading in enumerate(table.tree.headings):
         assert table.tree.rows[0][index] == table.tree.rows[index][0] == heading
-    assert len(Algebra(config=p_cga(3)).wedge_product_table(full=True).tree.rows) == 32
+    assert len(Algebra(config=presets.cga(3)).wedge_product_table(full=True).tree.rows) == 32
     assert len(Algebra(0).wedge_product_table().tree.rows) == 0
     assert Algebra(0).wedge_product_table(full=True).tree.rows == ((Literal(1),),)
 
@@ -133,7 +132,7 @@ def test_metric_and_zero_tolerance_do_not_change_wedge_entries(full):
 @pytest.mark.parametrize("color", (False, True))
 @pytest.mark.parametrize("masks", (tuple(reversed(range(16))), tuple(range(16))))
 def test_explicit_order_permutes_both_full_axes_and_cells_but_not_vector_tables(masks, color):
-    algebra = Algebra(config=p_rga())
+    algebra = Algebra(config=presets.rga())
     reordered = algebra.with_display_order(DisplayOrder(algebra.n, masks))
     original = algebra.wedge_product_table(full=True, color=color)
     table = reordered.wedge_product_table(full=True, color=color)
@@ -179,7 +178,7 @@ def test_table_captures_scoped_presentation_and_target():
 
 
 @pytest.mark.parametrize("full", (False, True))
-@pytest.mark.parametrize("algebra", (Algebra(4), Algebra(config=p_rga())))
+@pytest.mark.parametrize("algebra", (Algebra(4), Algebra(config=presets.rga())))
 def test_both_colour_spellings_enable_the_same_grade_decoration(full, algebra):
     plain = algebra.wedge_product_table(full)
     coloured = algebra.wedge_product_table(full, color=True)
@@ -207,7 +206,7 @@ def test_both_colour_spellings_enable_the_same_grade_decoration(full, algebra):
 
 def test_colours_are_stable_by_grade_not_dimension_and_include_scalar_and_sign():
     small = Algebra(2).wedge_product_table(True, color=True)
-    large = Algebra(config=p_cga(3)).wedge_product_table(True, colour=True)
+    large = Algebra(config=presets.cga(3)).wedge_product_table(True, colour=True)
     assert emit(small.tree.rows[1][2], "latex") == emit(large.tree.rows[2][3], "latex")
     assert emit(small.tree.rows[0][0], "latex") == r"{\color{#111827}1}"
     assert emit(small.tree.rows[0][1], "latex") == r"{\color{#0072B2}e_{1}}"

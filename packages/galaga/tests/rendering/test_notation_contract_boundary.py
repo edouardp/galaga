@@ -7,7 +7,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -111,10 +110,6 @@ assert not any(forbidden(name) for name in sys.modules)
         timeout=60,
     )
     assert completed.returncode == 0, completed.stdout + completed.stderr
-
-
-def test_notation_contracts_are_not_exempt_from_legacy_construction_guard():
-    assert not (set(CONTRACT_FILES) & set(LEGACY_ORACLE_TESTS))
 
 
 @pytest.mark.parametrize(

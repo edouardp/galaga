@@ -7,6 +7,7 @@ app = marimo.App()
 @app.cell
 def _():
     import marimo as mo
+    from galaga_mermaid import expr_to_mermaid, mv_to_mermaid
 
     import galaga_marimo as gm
     from galaga import (
@@ -14,10 +15,9 @@ def _():
         DisplayPolicy,
         Notation,
         exp,
-        p_euclidean,
+        presets,
         sandwich,
     )
-    from galaga_mermaid import expr_to_mermaid, mv_to_mermaid
 
     return (
         Algebra,
@@ -28,7 +28,7 @@ def _():
         gm,
         mo,
         mv_to_mermaid,
-        p_euclidean,
+        presets,
         sandwich,
     )
 
@@ -67,9 +67,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, exp, p_euclidean, sandwich):
+def _(Algebra, DisplayPolicy, exp, presets, sandwich):
     algebra = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         display=DisplayPolicy(content="full"),
     )
     e1, e2, e3 = algebra.basis_vectors(expr=True)

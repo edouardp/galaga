@@ -13,7 +13,6 @@ from galaga.blades import BladeLabel, BladeRef, DisplayOrder, indexed_blade_conv
 from galaga.display import BilinearFormTable, build_tree, emit, render
 from galaga.names import Name
 from galaga.presentation import DisplayPolicy, Notation, default_presentation
-from galaga.presets import p_cga, p_rga, p_sta
 from galaga.rendering import Identifier, Literal, Precedence, Table
 from galaga.rendering._build import bilinear_form_tree
 
@@ -26,11 +25,11 @@ from galaga.rendering._build import bilinear_form_tree
         Algebra(signature=(1, -1, 0)),
         Algebra(signature=(0, 0)),
         Algebra(gram=[[2, 0.5], [0.5, -1]]),
-        Algebra(config=p_cga(3)),
-        Algebra(config=p_cga(2, null_pair=-2)),
-        Algebra(config=p_sta("mostly-minus")),
-        Algebra(config=p_sta("mostly-plus")),
-        Algebra(config=p_rga()),
+        Algebra(config=presets.cga(3)),
+        Algebra(config=presets.cga(2, null_pair=-2)),
+        Algebra(config=presets.sta("mostly-minus")),
+        Algebra(config=presets.sta("mostly-plus")),
+        Algebra(config=presets.rga()),
     ),
 )
 def test_entries_and_headings_agree_with_computed_native_basis_products(algebra):
@@ -48,7 +47,7 @@ def test_entries_and_headings_agree_with_computed_native_basis_products(algebra)
 
 
 def test_native_null_cga_layout_has_axis_labels_separators_and_scoped_grey_zeros():
-    algebra = Algebra(config=p_cga(3))
+    algebra = Algebra(config=presets.cga(3))
     table = algebra.bilinear_form_table()
     latex = table.latex()
     lines = latex.splitlines()
@@ -200,7 +199,7 @@ def test_invalid_display_table_and_builder_inputs_fail_explicitly():
 def test_marimo_standalone_and_template_rendering_have_one_math_wrapper(full):
     gm = pytest.importorskip("galaga_marimo")
     mo = pytest.importorskip("marimo")
-    table = Algebra(config=p_cga(3)).bilinear_form_table(full=full)
+    table = Algebra(config=presets.cga(3)).bilinear_form_table(full=full)
     for output in (mo.as_html(table), gm.md(eval('t"{table}"')), gm.md(eval('t"{table:block}"'))):
         markup = html.unescape(output.text)
         equations = re.findall(r"<marimo-tex[^>]*>(.*?)</marimo-tex>", markup, flags=re.S)
@@ -226,7 +225,7 @@ def test_semantic_table_can_render_non_numeric_cells_without_zero_styling():
         Algebra(config=presets.cga(2)),
         Algebra(config=presets.cga(3, basis_order="euclidean-first", model_pseudoscalars=True)),
         Algebra(config=presets.cga(1, null_pair=-2, pseudoscalar_null=True)),
-        Algebra(config=p_rga()),
+        Algebra(config=presets.rga()),
     ),
 )
 def test_full_entries_and_signed_headings_agree_with_computed_metric_products(algebra):

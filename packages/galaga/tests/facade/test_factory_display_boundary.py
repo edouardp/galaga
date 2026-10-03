@@ -11,7 +11,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -62,10 +61,6 @@ def test_archive_retains_complete_values_tables_and_intentional_v2_differences()
     assert ARCHIVE["displays"][1]["wrapped"] == "$v$"
     assert "2.12" in ARCHIVE["displays"][4]["display_fixed"]
     assert "3.79" in ARCHIVE["displays"][4]["display_fixed"]
-
-
-def test_migrated_edge_suites_leave_the_legacy_construction_ledger():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_factory_display_edges_run_with_legacy_imports_blocked():
@@ -153,22 +148,3 @@ def test_pseudoscalar_table_replay_rejects_changed_labels():
     table["basis"][-1]["latex"] = "wrong"
     with pytest.raises(AssertionError):
         CONTRACT["test_complete_named_pseudoscalar_basis_tables_preserve_exterior_coefficients"](table, True, "latex")
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="presentation notebook uses Python 3.14 t-strings")
-def test_notebook_executes_snapshot_scope_and_numeric_identity_checks():
-    notebook = TEST_ROOT.parents[2] / "examples/galaga_v2/presentation_contexts.py"
-    outputs, definitions = runpy.run_path(str(notebook))["app"].run()
-    before = definitions["default_expression_latex"]
-    during = definitions["functional_expression_latex"]
-    assert definitions["saved_expression_latex"] == before == definitions["restored_expression_latex"]
-    assert type(before) is type(during) is str
-    assert before != during and r"geometric\_product" in during
-    product = definitions["product"]
-    gram = product.algebra.gram
-    x, y = np.array([1, 2]), np.array([3, -1])
-    expected = [float(x @ gram @ y), 0, 0, float(np.linalg.det(np.column_stack((x, y))))]
-    np.testing.assert_allclose(product.data, expected, rtol=0, atol=1e-12)
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    assert before in html and during in html
-    assert "saved string" in html

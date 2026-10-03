@@ -9,10 +9,10 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, p_rga, transwedge_antiproduct
+    from galaga import Algebra, DisplayPolicy, presets, transwedge_antiproduct
     from galaga.rga import RigidModel
 
-    return Algebra, DisplayPolicy, RigidModel, gm, mo, p_rga, transwedge_antiproduct
+    return Algebra, DisplayPolicy, RigidModel, gm, mo, presets, transwedge_antiproduct
 
 
 @app.cell(hide_code=True)
@@ -33,8 +33,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, RigidModel, p_rga):
-    algebra = Algebra(config=p_rga(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, RigidModel, presets):
+    algebra = Algebra(config=presets.rga(), display=DisplayPolicy(content="full"))
     rga = RigidModel(algebra, expr=True)
     e1, e2, e3 = rga.euclidean_basis_vectors()
     e4 = rga.projective

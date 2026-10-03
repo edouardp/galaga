@@ -289,10 +289,10 @@ roles must be retained. For example, a native-null CGA can juxtapose its basis
 vectors while preserving `origin` and `infinity` lookup:
 
 ```python
-from galaga import Algebra, null_cga_blade_convention, p_cga
+from galaga import Algebra, null_cga_blade_convention, presets
 
 cga = Algebra(
-    config=p_cga(spatial_dim=3),
+    config=presets.cga(spatial_dim=3),
     blades=null_cga_blade_convention(3, style="juxtapose"),
 )
 ```
@@ -305,17 +305,17 @@ The `3` in both calls is the Euclidean spatial dimension. Each native-null CGA
 builder adds $e_o$ and $e_\infty$, so the resulting algebra and convention
 both have total dimension five. Passing `5` to the blade builder would create
 a seven-dimensional convention and correctly fail the facade's dimension
-validation when combined with `p_cga(spatial_dim=3)`.
+validation when combined with `presets.cga(spatial_dim=3)`.
 
 ### STA product names are derived, not unsigned synonyms
 
-`p_sta(sigmas=True, pseudovectors=True)` computes conventional names from
+`presets.sta(sigmas=True, pseudovectors=True)` computes conventional names from
 its own ordered metric. Defaults remain plain gamma words and pseudoscalar
 `i`. With $I=\gamma_0\gamma_1\gamma_2\gamma_3$, `s1` … `s3` name
 $\gamma_k\gamma_0$, `is1` … `is3` name $I\gamma_k\gamma_0$, and
 `ig0` … `ig3` name $I\gamma_k$.
 
-`p_sta("mostly-plus", ...)` uses $(-,+,+,+)$; it is not the same ordered
+`presets.sta("mostly-plus", ...)` uses $(-,+,+,+)$; it is not the same ordered
 frame as `Algebra(3, 1)`, whose squares are $(+,+,+,-)$.
 The standalone `spacetime_blade_convention` accepts these flags only with an
 explicit ordered four-entry ±1 `signature`. Its bounded word reduction works
@@ -503,9 +503,8 @@ notation slot. See the [notation override notebook](../../examples/galaga_v2/not
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |
 | `ExteriorPreset(n)` | All-zero Gram matrix | Explicit wedge labels |
 
-The concise `presets.*` functions are preferred for new code; the ergonomic
-`p_*` functions remain compatibility spellings and return the same preset
-objects. They do not construct a second kind of configuration.
+The `presets.*` functions construct these configurations. The former
+prefixed `p_*` factory spellings have been retired.
 
 `presets.oblique_plane(angle=math.pi / 3)` takes radians, while
 `presets.oblique_plane(degrees=60)` takes degrees. Specify exactly one. Both

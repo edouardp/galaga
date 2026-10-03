@@ -20,7 +20,7 @@ def _():
         geometric_product,
         metric_inner_product,
         outer_product,
-        p_lengyel_cga,
+        presets,
         sandwich,
     )
     from galaga.cga import ConformalModel
@@ -38,7 +38,7 @@ def _():
         metric_inner_product,
         mo,
         outer_product,
-        p_lengyel_cga,
+        presets,
         sandwich,
     )
 
@@ -49,7 +49,7 @@ def _(mo):
     # Native-null CGA with Eric Lengyel's notation
 
     **Claim:** the metric model, blade convention, and operation notation are
-    independent presentation choices. The `p_lengyel_cga()` preset composes
+    independent presentation choices. The `presets.lengyel_cga()` preset composes
     Galaga's native null Gram matrix with Eric's
     $(\mathbf e_1,\ldots,\mathbf e_5)$ blade convention, basis order, and
     operation symbols. The model roles still identify $\mathbf e_4$ as the
@@ -62,9 +62,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_lengyel_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     algebra = Algebra(
-        config=p_lengyel_cga(),
+        config=presets.lengyel_cga(),
         display=DisplayPolicy(content="full"),
     )
     cga = ConformalModel(algebra, expr=True)

@@ -51,11 +51,11 @@ class ConformalModel:
     Construct the algebra independently so its numeric and presentation
     configuration remain replaceable, then attach these model semantics::
 
-        algebra = Algebra(config=p_cga(spatial_dim=3))
+        algebra = Algebra(config=presets.cga(spatial_dim=3))
         cga = ConformalModel(algebra, expr=True)
 
     The model accepts the standard normalization ``eo·einf == -1`` and any
-    other finite nonzero null-pair scaling declared by :func:`p_cga`.
+    other finite nonzero null-pair scaling declared by :func:`presets.cga`.
     """
 
     __slots__ = (
@@ -84,7 +84,7 @@ class ConformalModel:
         model = algebra.model
         if model is None or model.id != "cga-null":
             raise ValueError(
-                "ConformalModel requires Algebra(config=p_cga(..., frame='null')) or Algebra(config=p_lengyel_cga())"
+                "ConformalModel requires Algebra(config=presets.cga(..., frame='null')) or Algebra(config=presets.lengyel_cga())"
             )
 
         roles = MappingProxyType(dict(model.roles))

@@ -96,8 +96,13 @@ exports are gone too. `unit(a)` still normalizes by the metric-derived
 magnitude; it is not an inverse. The canonical mathematical functions and
 their expression operation IDs have not changed.
 
-Permanent aliases and the explicit `p_*` preset compatibility imports remain.
-See the [compatibility policy](compatibility-shims.md) for the complete boundary.
+The old prefixed preset factories are removed: use `presets.cga()`,
+`presets.sta()`, and their concise peers from `galaga.presets`. In
+`galaga-matrix`, use `to_spinor_column` and `from_spinor_column` for spinor
+columns, and `MatrixRepr` for quaternion matrices. The former
+`to_spinor_matrix`, `from_spinor_matrix`, and `QuatMatrixRepr` spellings are
+removed. See the [compatibility policy](compatibility-shims.md) for the
+remaining aliases.
 
 ### Choose an explicit inner product
 
@@ -606,9 +611,9 @@ and the executable
 Replace mutable under-accent rules with a target-specific immutable override:
 
 ```python
-from galaga import Algebra, Name, Notation, RenderRule, antireverse, p_rga
+from galaga import Algebra, Name, Notation, RenderRule, antireverse, presets
 
-algebra = Algebra(config=p_rga())
+algebra = Algebra(config=presets.rga())
 value = algebra.blade(1).named("A")
 notation = Notation.lengyel().with_rule(
     "antireverse",
@@ -649,22 +654,22 @@ Use `gram=` for a general real symmetric metric and `config=` for a complete
 preset:
 
 ```python
-from galaga import Algebra, p_cga, p_pga, p_rga, p_sta
+from galaga import Algebra, presets
 
-sta = Algebra(config=p_sta("mostly-minus"))
-pga = Algebra(config=p_pga(spatial_dim=3))
-cga = Algebra(config=p_cga(spatial_dim=3))
-rga = Algebra(config=p_rga(spatial_dim=3))
+sta = Algebra(config=presets.sta("mostly-minus"))
+pga = Algebra(config=presets.pga(spatial_dim=3))
+cga = Algebra(config=presets.cga(spatial_dim=3))
+rga = Algebra(config=presets.rga(spatial_dim=3))
 ```
 
 `spatial_dim` counts the Euclidean model dimensions, not the algebra's total
-number of basis vectors. Thus `p_cga(spatial_dim=3)` and
+number of basis vectors. Thus `presets.cga(spatial_dim=3)` and
 `null_cga_blade_convention(3)` both describe a five-dimensional algebra:
 $e_o,e_1,e_2,e_3,e_\infty$.
 
 The native-null default is now origin-first. To interpret coefficient arrays
 from the earlier Euclidean-first preset, select
-`presets.cga(n, basis_order="euclidean-first")` (also accepted by `p_cga`).
+`presets.cga(n, basis_order="euclidean-first")`.
 Do not load those arrays into the new default unchanged: vector positions
 move and the induced exterior map changes higher-grade coefficients and signs.
 The new definition ID has an `-origin-first` suffix; the old order keeps its
@@ -699,10 +704,10 @@ references and `prefix=` or `variable_hints` by explicitly choosing keys. For
 example:
 
 ```python
-from galaga import Algebra, LocalNamePolicy, p_sta
+from galaga import Algebra, LocalNamePolicy, presets
 from galaga.expression import evaluate
 
-sta = Algebra(config=p_sta(sigmas=True))
+sta = Algebra(config=presets.sta(sigmas=True))
 g0, g1, g2, g3 = sta.basis_vectors()
 expected = g1 * g0
 bivectors = LocalNamePolicy(
@@ -771,9 +776,9 @@ See [ADR-106](../adrs/106-independent-public-local-name-contracts.md).
 Replace v1's `b_sta(sigmas=True, pseudovectors=True)` with a complete preset:
 
 ```python
-from galaga import Algebra, p_sta
+from galaga import Algebra, presets
 
-sta = Algebra(config=p_sta("mostly-minus", sigmas=True, pseudovectors=True))
+sta = Algebra(config=presets.sta("mostly-minus", sigmas=True, pseudovectors=True))
 g0, g1, g2, g3 = sta.basis_vectors()
 assert sta.blade("s1") == g1 * g0
 assert sta.blade("g0g1") == g0 * g1 == -sta.blade("s1")
@@ -786,7 +791,7 @@ ASCII pseudovectors are now `ig0` … `ig3`, not `iy0` … `iy3`.
 Lookup returns the signed product rather than the old unsigned storage slot.
 The default preset still keeps gamma words. Both preset options are opt-in.
 
-`p_sta("mostly-plus")` uses the time-first $(-,+,+,+)$ metric.
+`presets.sta("mostly-plus")` uses the time-first $(-,+,+,+)$ metric.
 `Algebra(3, 1)` uses $(+,+,+,-)$; these orders cannot share a sign table.
 For presentation-only configuration, pass the actual ordered squares to
 `spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
@@ -816,7 +821,7 @@ Other blade-convention changes:
   `E = eo ^ einf`. An explicit
   `pss=` overrides the native top label. Indexed blade spellings remain aliases.
   See [CGA naming and locals](../cga/README.md#blade-product-spelling).
-- Use `p_cga(frame="null")` for actual null origin/infinity vectors.
+- Use `presets.cga(frame="null")` for actual null origin/infinity vectors.
   Merely renaming an orthogonal basis does not change its Gram matrix.
 
 The [construction notebook](../../examples/galaga_v2/algebra_construction.py)
@@ -894,16 +899,16 @@ matrix. See [ADR-117](../adrs/117-public-naming-presets-and-exterior-word-contra
 
 ## Migrate complex and quaternion conventions
 
-Use `Algebra(config=p_complex())` or `Algebra(config=p_quaternion())` in
+Use `Algebra(config=presets.complex())` or `Algebra(config=presets.quaternion())` in
 place of `b_complex` or `b_quaternion`. Their Euclidean even subalgebras
 include the scalar part. In the quaternion convention,
 `i=e23`, `j=e13`, `k=e12` satisfy Hamilton's identities; `j` is not `e31`.
 Select semantic units by roles rather than unpacking native bivector order:
 
 ```python
-from galaga import Algebra, p_quaternion
+from galaga import Algebra, presets
 
-algebra = Algebra(config=p_quaternion())
+algebra = Algebra(config=presets.quaternion())
 e1, e2, e3 = algebra.basis_vectors()
 expected = (e2 ^ e3, e1 ^ e3, e1 ^ e2)
 i, j, k = algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")
@@ -923,9 +928,9 @@ and explicitly choose any compound labels, retaining aliases and roles:
 
 ```python
 from dataclasses import replace
-from galaga import Algebra, BladeConvention, Name, p_quaternion
+from galaga import Algebra, BladeConvention, Name, presets
 
-algebra = Algebra(config=p_quaternion())
+algebra = Algebra(config=presets.quaternion())
 original = algebra.presentation.blades
 labels = list(original.labels)
 for index, name in enumerate(("x", "y", "z")):
@@ -1201,7 +1206,7 @@ presentation component:
 from galaga import DisplayPolicy, null_cga_blade_convention
 
 cga = Algebra(
-    config=p_cga(spatial_dim=3),
+    config=presets.cga(spatial_dim=3),
     blades=null_cga_blade_convention(3, style="juxtapose"),
     display=DisplayPolicy(content="full"),
 )
@@ -1238,9 +1243,9 @@ quaternion bivectors enumerate as `k, j, i`; use semantic roles for conventional
 unpacking:
 
 ```python
-from galaga import Algebra, DisplayPolicy, p_quaternion
+from galaga import Algebra, DisplayPolicy, presets
 
-quaternions = Algebra(config=p_quaternion())
+quaternions = Algebra(config=presets.quaternion())
 i, j, k = (quaternions.blade(role) for role in
            ("quaternion_i", "quaternion_j", "quaternion_k"))
 value = 1 + 2.3456 * i + 3.4567 * j + 4.5678 * k

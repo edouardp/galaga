@@ -40,7 +40,7 @@ def hamilton_product(left, right):
 
 
 def xyz_view():
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     original = algebra.presentation.blades
     labels = list(original.labels)
     for mask, name in ((1, ga.Name("x")), (2, ga.Name("y")), (4, ga.Name("z")), (7, ga.Name("xyz", "xyz", "x y z"))):
@@ -49,10 +49,10 @@ def xyz_view():
 
 
 def observed_values():
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     e1, e2, e3 = algebra.basis_vectors()
     i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
-    complex_algebra = ga.Algebra(config=ga.p_complex())
+    complex_algebra = ga.Algebra(config=ga.presets.complex())
     c1, c2 = complex_algebra.basis_vectors()
     imaginary = c1 ^ c2
     return {
@@ -97,8 +97,8 @@ def test_archived_observations_preserve_coefficients_and_rendering(row, target):
 @pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
 def test_complete_archived_basis_tables_preserve_values_and_names(table, target):
     algebra = {
-        "quaternion": ga.Algebra(config=ga.p_quaternion()),
-        "complex": ga.Algebra(config=ga.p_complex()),
+        "quaternion": ga.Algebra(config=ga.presets.quaternion()),
+        "complex": ga.Algebra(config=ga.presets.complex()),
         "xyz": xyz_view(),
     }[table["id"]]
     assert tuple(table["signature"]) == algebra.signature
@@ -111,7 +111,7 @@ def test_complete_archived_basis_tables_preserve_values_and_names(table, target)
 
 
 def test_hamilton_coordinates_are_derived_from_actual_exterior_products():
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     e1, e2, e3 = algebra.basis_vectors()
     actual = (algebra.scalar(1), e2 ^ e3, e1 ^ e3, e1 ^ e2)
     np.testing.assert_array_equal([value.data for value in actual], np.eye(8)[list(Q_MASKS)])
@@ -138,7 +138,7 @@ def test_quaternion_arithmetic_matches_independent_hamilton_coordinates(pair, ex
         "inverse": inverse_right,
         "division": hamilton_product(left, inverse_right),
     }
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     q = algebra.multivector(coefficients(left), expr=expr)
     r = algebra.multivector(coefficients(right), expr=expr)
     results = {
@@ -171,7 +171,7 @@ def test_quaternion_arithmetic_matches_independent_hamilton_coordinates(pair, ex
 def test_complex_arithmetic_matches_python_complex_numbers(pair, expr, target):
     left, right = pair
     expected = (left + right, left * right, left / right, left.conjugate(), 1 / right)
-    algebra = ga.Algebra(config=ga.p_complex())
+    algebra = ga.Algebra(config=ga.presets.complex())
     q = algebra.multivector([left.real, 0, 0, left.imag], expr=expr)
     r = algebra.multivector([right.real, 0, 0, right.imag], expr=expr)
     for value, number in zip((q + r, q * r, q / r, ga.reverse(q), ga.inverse(r)), expected, strict=True):
@@ -210,7 +210,7 @@ def test_quaternion_labels_do_not_override_gram_derived_blade_squares(gram, targ
 
 @pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
 def test_reverse_and_conjugate_agree_only_on_the_even_subalgebra(target):
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     e1, e2, e3 = algebra.basis_vectors(expr=True)
     q = 1 + 2 * (e2 ^ e3) + 3 * (e1 ^ e3) + 4 * (e1 ^ e2)
     assert ga.reverse(q) == ga.conjugate(q)
@@ -228,7 +228,7 @@ def test_reverse_and_conjugate_agree_only_on_the_even_subalgebra(target):
 
 def test_custom_names_preserve_roles_aliases_order_and_numeric_identity():
     view = xyz_view()
-    original = ga.Algebra.from_numeric(view.numeric, presentation=ga.p_quaternion().build().presentation)
+    original = ga.Algebra.from_numeric(view.numeric, presentation=ga.presets.quaternion().build().presentation)
     assert view.numeric is original.numeric
     assert view.display_order == original.display_order
     for role, alias, expected in zip(

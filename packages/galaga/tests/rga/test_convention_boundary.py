@@ -10,7 +10,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 from galaga.expression import Call
@@ -53,7 +52,7 @@ def test_original_rga_identities_and_archive_provenance_are_preserved():
 
 
 def test_archive_retains_all_oriented_blades_and_exposes_vacuous_old_operation_samples():
-    algebra = ga.Algebra(config=ga.p_rga())
+    algebra = ga.Algebra(config=ga.presets.rga())
     assert len(ARCHIVE["basis"]) == 16
     for row, mask in zip(ARCHIVE["basis"], algebra.presentation.display_order.masks, strict=True):
         value = algebra.blade(algebra.blade_label(mask).ref)
@@ -65,10 +64,6 @@ def test_archive_retains_all_oriented_blades_and_exposes_vacuous_old_operation_s
     assert len(rows) == 16
     assert sum(not any(row["coefficients"]) for row in rows) == 11
     assert any(row["ascii"] != row["latex"] and "e₁" in row["ascii"] for row in rows)
-
-
-def test_rga_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_rga_suites_run_with_legacy_imports_blocked():

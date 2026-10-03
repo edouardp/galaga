@@ -14,7 +14,6 @@ from typing import Any
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga.core as core
 import galaga.facade as facade
@@ -385,10 +384,6 @@ def test_singular_duality_errors_remain_explicit_instead_of_disappearing_with_v1
     for operation in ("dual", "undual"):
         with pytest.raises(ValueError, match="degenerate"):
             getattr(facade, operation)(value)
-
-
-def test_numeric_contract_has_left_the_legacy_construction_allowlist() -> None:
-    assert "facade/test_numeric_contract.py" not in LEGACY_ORACLE_TESTS
 
 
 def test_every_cataloged_numeric_operation_has_a_public_facade_callable() -> None:

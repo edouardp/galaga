@@ -3,12 +3,12 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, AlgebraConfig, AlgebraDefinition, p_cga, squared
+from galaga import Algebra, AlgebraConfig, AlgebraDefinition, presets, squared
 from galaga.cga import ConformalModel
 
 
 def test_model_exposes_actual_native_null_basis_vectors_and_euclidean_roles() -> None:
-    algebra = Algebra(config=p_cga(spatial_dim=3))
+    algebra = Algebra(config=presets.cga(spatial_dim=3))
     cga = ConformalModel(algebra)
     e1, e2, e3 = cga.euclidean_basis_vectors()
 
@@ -24,7 +24,7 @@ def test_model_exposes_actual_native_null_basis_vectors_and_euclidean_roles() ->
 
 @pytest.mark.parametrize("null_pair", (-2.0, -1.0, -0.5, 0.75))
 def test_round_point_formula_respects_any_nonzero_null_pair_scaling(null_pair: float) -> None:
-    cga = ConformalModel(Algebra(config=p_cga(3, null_pair=null_pair)))
+    cga = ConformalModel(Algebra(config=presets.cga(3, null_pair=null_pair)))
 
     point = cga.round_point((1.0, -2.0, 0.5))
     round_point = cga.round_point((1.0, -2.0, 0.5), radius_squared=2.25)
@@ -37,7 +37,7 @@ def test_round_point_formula_respects_any_nonzero_null_pair_scaling(null_pair: f
 
 
 def test_point_factories_accept_equivalent_coordinate_grammars() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     position = cga.euclidean_vector((1.0, -2.0, 0.5))
 
     assert cga.up(1.0, -2.0, 0.5) == cga.up((1.0, -2.0, 0.5)) == cga.up(position)
@@ -49,7 +49,7 @@ def test_point_factories_accept_equivalent_coordinate_grammars() -> None:
 
 
 def test_one_dimensional_model_accepts_one_positional_coordinate() -> None:
-    cga = ConformalModel(Algebra(config=p_cga(spatial_dim=1)))
+    cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=1)))
 
     point = cga.up(2.5)
 
@@ -57,7 +57,7 @@ def test_one_dimensional_model_accepts_one_positional_coordinate() -> None:
 
 
 def test_point_factories_reject_wrong_counts_mixed_forms_and_booleans() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     e1, e2, e3 = cga.euclidean_basis_vectors()
 
     with pytest.raises(ValueError, match="expected 3 Euclidean coordinates, got 1"):
@@ -71,7 +71,7 @@ def test_point_factories_reject_wrong_counts_mixed_forms_and_booleans() -> None:
 
 
 def test_homogenize_down_and_coordinates_are_projectively_invariant() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     point = cga.round_point((2.0, -3.0, 4.0), radius_squared=-1.5)
 
     normalized = cga.homogenize(-7.0 * point)
@@ -84,7 +84,7 @@ def test_homogenize_down_and_coordinates_are_projectively_invariant() -> None:
 
 
 def test_model_construction_and_embedding_retain_optional_expression_provenance() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     radius_squared = cga.algebra.scalar(4.0).named("r^2")
 
     position = cga.euclidean_vector((1.0, 2.0, 3.0), expr=True)
@@ -96,7 +96,7 @@ def test_model_construction_and_embedding_retain_optional_expression_provenance(
 
 
 def test_model_expression_default_applies_to_every_model_owned_factory() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()), expr=True)
+    cga = ConformalModel(Algebra(config=presets.cga()), expr=True)
 
     assert cga.expr is True
     assert cga.origin.expr is not None
@@ -113,8 +113,8 @@ def test_model_expression_default_applies_to_every_model_owned_factory() -> None
 
 
 def test_factory_expression_override_takes_precedence_over_the_model_default() -> None:
-    tracked = ConformalModel(Algebra(config=p_cga()), expr=True)
-    untracked = ConformalModel(Algebra(config=p_cga()))
+    tracked = ConformalModel(Algebra(config=presets.cga()), expr=True)
+    untracked = ConformalModel(Algebra(config=presets.cga()))
 
     assert tracked.expr is True
     assert tracked.euclidean_vector((1.0, 2.0, 3.0), expr=False).expr is None
@@ -129,17 +129,17 @@ def test_factory_expression_override_takes_precedence_over_the_model_default() -
 
 def test_model_rejects_orthogonal_and_untyped_cl41_algebras() -> None:
     with pytest.raises(ValueError, match="frame='null'"):
-        ConformalModel(Algebra(config=p_cga(frame="orthogonal")))
+        ConformalModel(Algebra(config=presets.cga(frame="orthogonal")))
     with pytest.raises(ValueError, match="frame='null'"):
         ConformalModel(Algebra(4, 1))
     with pytest.raises(TypeError, match="galaga Algebra"):
         ConformalModel(object())  # type: ignore[arg-type]
     with pytest.raises(TypeError, match="expr must be a boolean"):
-        ConformalModel(Algebra(config=p_cga()), expr=1)  # type: ignore[arg-type]
+        ConformalModel(Algebra(config=presets.cga()), expr=1)  # type: ignore[arg-type]
 
 
 def test_model_validates_the_metric_behind_declared_semantic_roles() -> None:
-    config = p_cga(2).build()
+    config = presets.cga(2).build()
     malformed = [list(row) for row in config.definition.gram]
     malformed[1][1] = 2.0
     algebra = Algebra(
@@ -155,8 +155,8 @@ def test_model_validates_the_metric_behind_declared_semantic_roles() -> None:
 
 
 def test_euclidean_vector_rejects_invalid_coordinates_subspaces_and_ownership() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
-    other = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
+    other = ConformalModel(Algebra(config=presets.cga()))
 
     with pytest.raises(ValueError, match="expected 3"):
         cga.euclidean_vector((1.0, 2.0))
@@ -171,7 +171,7 @@ def test_euclidean_vector_rejects_invalid_coordinates_subspaces_and_ownership() 
 
 
 def test_point_operations_reject_nonvectors_zero_weight_and_invalid_radius() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     e1, e2, _ = cga.euclidean_basis_vectors()
 
     with pytest.raises(ValueError, match="homogeneous conformal vector"):
@@ -187,7 +187,7 @@ def test_point_operations_reject_nonvectors_zero_weight_and_invalid_radius() -> 
 
 
 def test_partner_rejects_a_nonstandard_null_pair_whose_wiki_polynomial_would_change() -> None:
-    cga = ConformalModel(Algebra(config=p_cga(null_pair=-0.5)))
+    cga = ConformalModel(Algebra(config=presets.cga(null_pair=-0.5)))
 
     with pytest.raises(ValueError, match="standard eo·einf"):
         cga.partner(cga.round_point((0.0, 0.0, 0.0), radius_squared=1.0))

@@ -484,7 +484,6 @@ class TestRgaIntegration:
             complement,
             geometric_antiproduct,
             geometric_product,
-            p_rga,
             rga_blade_convention,
             right_hodge_dual,
             right_weight_dual,
@@ -493,7 +492,7 @@ class TestRgaIntegration:
         )
 
         algebra = Algebra(
-            config=p_rga(),
+            config=presets.rga(),
             display=DisplayPolicy(content="expr", target="latex"),
         )
         assert algebra.presentation.blades == rga_blade_convention()

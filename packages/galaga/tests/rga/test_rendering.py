@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import pytest
 
-from galaga import Algebra, DisplayPolicy, Notation, p_rga
+from galaga import Algebra, DisplayPolicy, Notation, presets
 from galaga.expression import Call, evaluate
 from galaga.rga import RigidModel
 
@@ -10,7 +10,7 @@ from galaga.rga import RigidModel
 @pytest.fixture
 def model() -> RigidModel:
     algebra = Algebra(
-        config=p_rga(),
+        config=presets.rga(),
         notation=Notation.lengyel(),
         display=DisplayPolicy(content="full"),
     )

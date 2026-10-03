@@ -9,7 +9,7 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, outer_product, p_cga, null_cga_blade_convention
+    from galaga import Algebra, DisplayPolicy, null_cga_blade_convention, outer_product, presets
     from galaga.cga import ConformalModel
 
     return (
@@ -20,7 +20,7 @@ def _():
         mo,
         null_cga_blade_convention,
         outer_product,
-        p_cga,
+        presets,
     )
 
 
@@ -43,10 +43,10 @@ def _(
     ConformalModel,
     DisplayPolicy,
     null_cga_blade_convention,
-    p_cga,
+    presets,
 ):
     algebra = Algebra(
-        config=p_cga(spatial_dim=3),
+        config=presets.cga(spatial_dim=3),
         display=DisplayPolicy(content="full"),
         blades=null_cga_blade_convention(3, style="juxtapose"),
     )

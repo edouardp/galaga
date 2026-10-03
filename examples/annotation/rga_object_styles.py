@@ -14,10 +14,10 @@ def _():
 
     import galaga_annotation as ga
     import galaga_marimo as gm
-    from galaga import Algebra, bulk_part, exp, op, p_rga, weight_part
+    from galaga import Algebra, bulk_part, exp, op, presets, weight_part
     from galaga.rga import RigidModel
 
-    return Algebra, RigidModel, bulk_part, exp, ga, gm, mo, np, op, p_rga, weight_part
+    return Algebra, RigidModel, bulk_part, exp, ga, gm, mo, np, op, presets, weight_part
 
 
 @app.cell(hide_code=True)
@@ -35,8 +35,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, RigidModel, bulk_part, exp, ga, np, op, p_rga, weight_part):
-    rga = RigidModel(Algebra(config=p_rga(), expr=True), expr=True)
+def _(Algebra, RigidModel, bulk_part, exp, ga, np, op, presets, weight_part):
+    rga = RigidModel(Algebra(config=presets.rga(), expr=True), expr=True)
     e1, e2, _e3 = rga.euclidean_basis_vectors(expr=True)
     e4 = rga.projective
     objects = {

@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-from galaga.facade import Algebra, geometric_product, p_euclidean
+from galaga import presets
+from galaga.facade import Algebra, geometric_product
 
 
 def run() -> None:
-    algebra = Algebra(config=p_euclidean(spatial_dim=3))
+    algebra = Algebra(config=presets.euclidean(spatial_dim=3))
     e1, e2, _ = algebra.basis_vectors(expr=True)
     bivector = geometric_product(e1, e2).named("B", latex=r"\mathbf{B}")
 

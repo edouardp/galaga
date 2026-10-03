@@ -5,7 +5,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayPolicy, exp, p_cga, p_sta, presets
+from galaga import Algebra, DisplayPolicy, exp, presets
 
 
 @pytest.mark.parametrize(
@@ -97,7 +97,7 @@ def test_algebra_rich_repr_preserves_signature_order_and_view_metric() -> None:
 
 
 def test_cga_reports_its_non_diagonal_stored_gram_without_claiming_degeneracy() -> None:
-    algebra = Algebra(config=p_cga())
+    algebra = Algebra(config=presets.cga())
 
     assert not algebra.is_degenerate
     assert not algebra.is_orthogonal_basis
@@ -113,7 +113,7 @@ def test_multivector_repr_is_ascii_while_str_uses_unicode() -> None:
     assert repr(value) == value.ascii() == "3 + 2e1 - e2"
     assert str(value) == value.unicode() == "3 + 2e₁ - e₂"
     assert repr(algebra.scalar(0)) == str(algebra.scalar(0)) == "0"
-    g0, g1, _, _ = Algebra(config=p_sta()).basis_vectors()
+    g0, g1, _, _ = Algebra(config=presets.sta()).basis_vectors()
     assert repr(g0 * g1) == "g0g1"
     assert str(g0 * g1) == "γ₀γ₁"
 

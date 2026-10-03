@@ -48,7 +48,7 @@ def assert_coefficients(actual, expected):
 
 
 def archived_case(row):
-    algebra = ga.Algebra(config=ga.p_rga(), display=ga.DisplayPolicy(content="expr"))
+    algebra = ga.Algebra(config=ga.presets.rga(), display=ga.DisplayPolicy(content="expr"))
     x, y, _, _ = algebra.basis_vectors(expr=True)
     if row["kind"] == "operation":
         arguments = (x,) if row["arity"] == 1 else ((x, y, row["order"]) if row["arity"] == 3 else (x, y))

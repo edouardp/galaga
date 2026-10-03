@@ -1,9 +1,6 @@
 """Historical ownership, corruption checks and naming lesson execution."""
 
-import ast
 import copy
-import hashlib
-import inspect
 import runpy
 import subprocess
 import sys
@@ -11,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -19,35 +15,6 @@ TEST_ROOT = Path(__file__).parents[1]
 PUBLIC_FILE = "presentation/test_naming_preset_contracts.py"
 CONTRACT = runpy.run_path(str(TEST_ROOT / PUBLIC_FILE))
 ARCHIVE = CONTRACT["ARCHIVE"]
-
-
-def test_all_nine_naming_identities_have_complete_source_evidence_and_public_owners():
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "f75d7954da77350fc856e4003459f6f36e1882b1"
-    assert ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    assert ARCHIVE["source_path"] == "packages/galaga/tests/test_coverage.py"
-    assert ARCHIVE["public_owner"] == PUBLIC_FILE
-    assert ARCHIVE["sha256"] == "d53ec10b2e5360954bf9cc3803ba54db8350a8efdddc708172aa9452e8a11dbb"
-    assert hashlib.sha256(ARCHIVE["source"].encode()).hexdigest() == ARCHIVE["sha256"]
-    identifiers = [
-        f"{cls.name}.{method.name}"
-        for cls in ast.parse(ARCHIVE["source"]).body
-        if isinstance(cls, ast.ClassDef)
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    ]
-    assert identifiers == ARCHIVE["all_source_test_ids"] and len(set(identifiers)) == 29
-    owners = {
-        f"TestNamingPresets.{method}"
-        for method, function in inspect.getmembers(CONTRACT["TestNamingPresets"], inspect.isfunction)
-        if method.startswith("test_")
-    }
-    assert owners == set(ARCHIVE["test_ids"]) and len(owners) == 9
-    assert owners <= set(identifiers)
-    current = ast.parse((TEST_ROOT / "test_coverage.py").read_text())
-    assert "TestNamingPresets" not in {node.name for node in current.body if isinstance(node, ast.ClassDef)}
-    assert PUBLIC_FILE not in LEGACY_ORACLE_TESTS
 
 
 def test_archive_preserves_complete_vocabularies_and_actual_errors():
@@ -164,40 +131,3 @@ assert not any(forbidden(name) for name in sys.modules)
         timeout=60,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="notebook uses Python 3.14 t-strings")
-def test_notebook_teaches_blade_words_without_hiding_oblique_metric_terms():
-    path = TEST_ROOT.parents[2] / "examples/galaga_v2/algebra_construction.py"
-    outputs, definitions = runpy.run_path(str(path))["app"].run()
-    base, view = definitions["naming_algebra"], definitions["naming_view"]
-    assert view.numeric is base.numeric
-    np.testing.assert_array_equal(definitions["naming_gram"].mat, view.gram)
-    gram = view.gram
-    expected_pair = CONTRACT["exterior_coefficients"](3, 3)
-    expected_pair[0] = gram[0, 1]
-    expected_triple = CONTRACT["exterior_coefficients"](3, 7)
-    expected_triple[1], expected_triple[2], expected_triple[4] = gram[1, 2], -gram[0, 2], gram[0, 1]
-    for key, data in (("gp", expected_pair), ("triple", expected_triple)):
-        value = definitions["naming_" + key]
-        CONTRACT["assert_data"](value.data, data)
-        CONTRACT["assert_data"](ga.evaluate(value.expr, algebra=view).data, data)
-    a, b, c = (definitions["naming_" + key] for key in ("a", "b", "c"))
-    assert definitions["naming_plane"] == view.blade("ab") == a ^ b
-    assert definitions["naming_volume"] == view.blade("abc") == a ^ b ^ c
-    assert definitions["naming_gp"] != definitions["naming_plane"]
-    assert definitions["naming_triple"] != definitions["naming_volume"]
-    assert "a" not in view.locals()
-    assert definitions["naming_local_view"].locals()["a"] == a
-    assert definitions["naming_local_view"].numeric is base.numeric
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    for text in (
-        "A blade word is a label, not a product parser",
-        "Native exterior plane",
-        "Geometric word",
-        "False",
-        "True",
-    ):
-        assert text in html
-    for key in ("plane", "volume", "gp", "triple"):
-        assert definitions["naming_" + key].latex(content="value") in html

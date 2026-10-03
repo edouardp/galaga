@@ -22,6 +22,7 @@ from typing import Any, Literal
 import numpy as np
 
 import galaga.facade as facade
+from galaga import presets
 from galaga.facade.catalog import OPERATIONS
 
 ImplementationId = Literal["legacy-v1", "core-facade-v2"]
@@ -173,7 +174,7 @@ class RenderingContext:
             )
         elif profile.id == "lengyel-rga":
             self.algebra = facade.Algebra(
-                config=facade.p_rga(),
+                config=presets.rga(),
                 display=facade.DisplayPolicy("full"),
             )
         else:

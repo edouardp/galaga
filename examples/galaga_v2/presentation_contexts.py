@@ -18,7 +18,7 @@ def _():
         geometric_product,
         indexed_blade_convention,
         norm,
-        p_euclidean,
+        presets,
     )
     from galaga.expression import evaluate
 
@@ -34,7 +34,7 @@ def _():
         indexed_blade_convention,
         mo,
         norm,
-        p_euclidean,
+        presets,
     )
 
 
@@ -51,9 +51,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, geometric_product, p_euclidean):
+def _(Algebra, DisplayPolicy, geometric_product, presets):
     algebra = Algebra(
-        config=p_euclidean(2),
+        config=presets.euclidean(2),
         display=DisplayPolicy(content="full"),
     )
     e1, e2 = algebra.basis_vectors(expr=True)

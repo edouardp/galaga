@@ -502,50 +502,40 @@ class TestQuaternionMatrix:
 # ── Spinor (column vector) representation ──
 
 
-class TestSpinorMatrix:
-    """Tests for to_spinor_matrix and from_spinor_matrix."""
+@pytest.mark.parametrize("name", ("to_spinor_matrix", "from_spinor_matrix", "QuatMatrixRepr"))
+def test_retired_matrix_aliases_are_absent(name):
+    import galaga_matrix
+
+    assert not hasattr(galaga_matrix, name)
+    assert name not in galaga_matrix.__all__
+
+
+class TestSpinorColumn:
+    """Tests for to_spinor_column and from_spinor_column."""
 
     def test_cl30_returns_2x1(self):
         """Cl(3,0) spinor is a 2-component column."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         alg = Algebra(3)
         # scalar 1 is the simplest even MV (identity rotor)
         s = alg.scalar(1.0)
-        spinor = to_spinor_matrix(s)
+        spinor = to_spinor_column(s)
         assert spinor.shape == (2, 1)
-
-    def test_column_api_is_canonical_and_matrix_api_aliases_it(self):
-        from galaga_matrix import (
-            from_spinor_column,
-            from_spinor_matrix,
-            to_spinor_column,
-            to_spinor_matrix,
-        )
-
-        alg = Algebra(3)
-        e1, e2, e3 = alg.basis_vectors()
-        psi = alg.scalar(1.5) + 0.25 * (e1 * e2) - 0.75 * (e2 * e3)
-
-        col = to_spinor_column(psi)
-        old_col = to_spinor_matrix(psi)
-        assert np.allclose(col, old_col)
-        assert np.allclose(from_spinor_column(alg, col).data, psi.data)
-        assert np.allclose(from_spinor_matrix(alg, col).data, psi.data)
 
     def test_cl30_identity_rotor(self):
         """Identity rotor maps to spin-up (1, 0)^T."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         alg = Algebra(3)
         s = alg.scalar(1.0)
-        spinor = to_spinor_matrix(s)
+        spinor = to_spinor_column(s)
         expected = np.array([[1], [0]], dtype=complex)
         assert np.allclose(spinor, expected)
 
     def test_cl30_rotor_roundtrip(self):
         """Even MV roundtrips through spinor representation."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import exp
 
@@ -553,20 +543,20 @@ class TestSpinorMatrix:
         e1, e2, e3 = alg.basis_vectors()
         # Rotor: 45° rotation in e12 plane
         R = exp(-0.25 * np.pi * (e1 * e2))
-        spinor = to_spinor_matrix(R)
-        R2 = from_spinor_matrix(alg, spinor)
+        spinor = to_spinor_column(R)
+        R2 = from_spinor_column(alg, spinor)
         assert np.allclose(R.data, R2.data, atol=1e-10)
 
     def test_cl30_arbitrary_even_roundtrip(self):
         """Non-unit even MV roundtrips."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         # General even element (not normalized)
         psi = alg.scalar(2.0) + 0.5 * (e1 * e2) - 0.3 * (e2 * e3) + 0.7 * (e3 * e1)
-        spinor = to_spinor_matrix(psi)
-        psi2 = from_spinor_matrix(alg, spinor)
+        spinor = to_spinor_column(psi)
+        psi2 = from_spinor_column(alg, spinor)
         assert np.allclose(psi.data, psi2.data, atol=1e-10)
 
     def test_cl30_z_rotation_spinor(self):
@@ -580,7 +570,7 @@ class TestSpinorMatrix:
                    = diag(e^{-iφ/2}, e^{iφ/2}).
         Projected onto p = diag(1,0): spinor = [[e^{-iφ/2}], [0]].
         """
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         from galaga import exp
 
@@ -588,13 +578,13 @@ class TestSpinorMatrix:
         e1, e2, e3 = alg.basis_vectors()
         phi = 1.2  # arbitrary angle
         R = exp((-phi / 2) * (e1 * e2))
-        spinor = to_spinor_matrix(R)
+        spinor = to_spinor_column(R)
         expected = np.array([[np.exp(-1j * phi / 2)], [0]], dtype=complex)
         assert np.allclose(spinor, expected, atol=1e-12)
 
     def test_cl30_bloch_state(self):
         """Standard Bloch sphere state θ, φ gives known spinor."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         from galaga import exp
 
@@ -604,7 +594,7 @@ class TestSpinorMatrix:
         phi = np.pi / 4
         # Standard rotor for Bloch state
         R = exp((-phi / 2) * (e1 * e2)) * exp((-theta / 2) * (e3 * e1))
-        spinor = to_spinor_matrix(R)
+        spinor = to_spinor_column(R)
         # Standard quantum spinor: [cos(θ/2), e^{iφ} sin(θ/2)]
         # But our convention uses p = ½(1 + σ₃), so we get:
         # The first column of R's matrix representation
@@ -616,27 +606,27 @@ class TestSpinorMatrix:
 
     def test_cl13_returns_4x1(self):
         """Cl(1,3) spinor is a 4-component Dirac spinor."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         sta = Algebra(1, 3)
         s = sta.scalar(1.0)
-        spinor = to_spinor_matrix(s)
+        spinor = to_spinor_column(s)
         assert spinor.shape == (4, 1)
 
     def test_cl13_identity_spinor(self):
         """Identity in STA maps to (1,0,0,0)^T."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         sta = Algebra(1, 3)
         s = sta.scalar(1.0)
-        spinor = to_spinor_matrix(s)
+        spinor = to_spinor_column(s)
         expected = np.zeros((4, 1), dtype=complex)
         expected[0, 0] = 1.0
         assert np.allclose(spinor, expected)
 
     def test_cl13_majorana_basis_convention(self):
         """The documented Majorana basis makes charge conjugation real."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         sta = Algebra(1, 3)
         gammas = compact_basis(sta)
@@ -679,12 +669,12 @@ class TestSpinorMatrix:
             + 0.25 * sta.pseudoscalar()
             + 0.12 * (g2 * g3)
         )
-        dirac_column = to_spinor_matrix(psi)
+        dirac_column = to_spinor_column(psi)
         majorana_column = majorana_from_dirac @ dirac_column
 
         assert np.allclose(dirac_from_majorana @ majorana_column, dirac_column)
         assert np.allclose(
-            from_spinor_matrix(sta, dirac_from_majorana @ majorana_column).data,
+            from_spinor_column(sta, dirac_from_majorana @ majorana_column).data,
             psi.data,
             atol=1e-10,
         )
@@ -701,16 +691,16 @@ class TestSpinorMatrix:
             real_majorana_as_dirac,
             atol=1e-10,
         )
-        real_majorana_mv = from_spinor_matrix(sta, real_majorana_as_dirac)
+        real_majorana_mv = from_spinor_column(sta, real_majorana_as_dirac)
         assert np.allclose(
-            majorana_from_dirac @ to_spinor_matrix(real_majorana_mv),
+            majorana_from_dirac @ to_spinor_column(real_majorana_mv),
             real_majorana_column,
             atol=1e-10,
         )
 
     def test_cl13_roundtrip(self):
         """Even MV in Cl(1,3) roundtrips."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import exp
 
@@ -719,8 +709,8 @@ class TestSpinorMatrix:
         # Boost in γ₀γ₁ plane
         B = 0.3 * (g[0] * g[1])
         R = exp(B)
-        spinor = to_spinor_matrix(R)
-        R2 = from_spinor_matrix(sta, spinor)
+        spinor = to_spinor_column(R)
+        R2 = from_spinor_column(sta, spinor)
         assert np.allclose(R.data, R2.data, atol=1e-10)
 
     def test_cl13_regular_spinor_contains_density_and_yvon_takabayasi_angle(self):
@@ -763,47 +753,47 @@ class TestSpinorMatrix:
 
     def test_odd_grade_raises(self):
         """Odd-grade MV raises ValueError."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         alg = Algebra(3)
         e1 = alg.basis_vectors()[0]
         with pytest.raises(ValueError, match="even-grade"):
-            to_spinor_matrix(e1)
+            to_spinor_column(e1)
 
     def test_mixed_grade_raises(self):
         """Mixed even+odd MV raises ValueError."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         mv = alg.scalar(1.0) + e1  # scalar + vector
         with pytest.raises(ValueError, match="even-grade"):
-            to_spinor_matrix(mv)
+            to_spinor_column(mv)
 
     def test_zero_even_mv(self):
         """Zero even MV gives zero spinor."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         alg = Algebra(3)
         z = alg.scalar(0.0)
-        spinor = to_spinor_matrix(z)
+        spinor = to_spinor_column(z)
         assert np.allclose(spinor, 0)
 
     def test_from_spinor_wrong_shape_raises(self):
         """Wrong-shape spinor raises ValueError."""
-        from galaga_matrix import from_spinor_matrix
+        from galaga_matrix import from_spinor_column
 
         alg = Algebra(3)
         with pytest.raises(ValueError, match="Expected"):
-            from_spinor_matrix(alg, np.ones((3, 1), dtype=complex))
+            from_spinor_column(alg, np.ones((3, 1), dtype=complex))
 
     def test_from_spinor_outside_image_raises(self):
         """Overdetermined spinor systems reject columns outside the image."""
-        from galaga_matrix import from_spinor_matrix
+        from galaga_matrix import from_spinor_column
 
         alg = Algebra(0, 2)
         with pytest.raises(ValueError, match="not in the image"):
-            from_spinor_matrix(alg, np.array([[0], [1]], dtype=complex))
+            from_spinor_column(alg, np.array([[0], [1]], dtype=complex))
 
     @pytest.mark.parametrize(
         "signature",
@@ -851,27 +841,27 @@ class TestSpinorMatrix:
 
     def test_from_spinor_flat_vector(self):
         """Flat (k,) array is accepted."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import exp
 
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         R = exp(-0.5 * (e1 * e2))
-        spinor = to_spinor_matrix(R)
-        R2 = from_spinor_matrix(alg, spinor.mat.flatten())
+        spinor = to_spinor_column(R)
+        R2 = from_spinor_column(alg, spinor.mat.flatten())
         assert np.allclose(R.data, R2.data, atol=1e-10)
 
     def test_spinor_norm_equals_mv_norm(self):
         """‖spinor‖² = ψ scalar_part(ψ~ψ) for normalized rotor."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         from galaga import exp
 
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         R = exp(-0.7 * (e2 * e3))
-        spinor = to_spinor_matrix(R)
+        spinor = to_spinor_column(R)
         spinor_norm_sq = float(np.real((spinor.conj().T @ spinor)[0, 0]))
         # For a rotor, R~R = 1, so spinor should be normalized
         assert np.isclose(spinor_norm_sq, 1.0, atol=1e-12)
@@ -1059,7 +1049,7 @@ class TestSpinorFullRoundtrip:
     @pytest.mark.parametrize("seed", range(5))
     def test_cl30_complex_spinor_roundtrip(self, seed):
         """Random even Cl(3,0) MV roundtrips via complex spinor."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import even_grades
 
@@ -1067,14 +1057,14 @@ class TestSpinorFullRoundtrip:
         np.random.seed(seed)
         data = np.random.randn(alg.dim)
         mv = even_grades(alg.multivector(data))
-        spinor = to_spinor_matrix(mv)
-        mv2 = from_spinor_matrix(alg, spinor)
+        spinor = to_spinor_column(mv)
+        mv2 = from_spinor_column(alg, spinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(3,0) complex spinor roundtrip failed (seed={seed})"
 
     @pytest.mark.parametrize("seed", range(5))
     def test_cl13_complex_spinor_roundtrip(self, seed):
         """Random even Cl(1,3) MV roundtrips via complex spinor."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import even_grades
 
@@ -1082,8 +1072,8 @@ class TestSpinorFullRoundtrip:
         np.random.seed(seed + 100)
         data = np.random.randn(sta.dim)
         mv = even_grades(sta.multivector(data))
-        spinor = to_spinor_matrix(mv)
-        mv2 = from_spinor_matrix(sta, spinor)
+        spinor = to_spinor_column(mv)
+        mv2 = from_spinor_column(sta, spinor)
         assert np.allclose(mv.data, mv2.data, atol=1e-10), f"Cl(1,3) complex spinor roundtrip failed (seed={seed})"
 
     @pytest.mark.parametrize("seed", range(5))
@@ -1104,7 +1094,7 @@ class TestSpinorFullRoundtrip:
     @pytest.mark.parametrize("seed", range(5))
     def test_cl31_complex_spinor_raises(self, seed):
         """Cl(3,1) is real-type and cannot faithfully roundtrip through spinor."""
-        from galaga_matrix import to_spinor_matrix
+        from galaga_matrix import to_spinor_column
 
         from galaga import even_grades
 
@@ -1113,7 +1103,7 @@ class TestSpinorFullRoundtrip:
         data = np.random.randn(alg.dim)
         mv = even_grades(alg.multivector(data))
         with pytest.raises(TypeError, match="does not support faithful spinor roundtrip"):
-            to_spinor_matrix(mv)
+            to_spinor_column(mv)
 
     @pytest.mark.parametrize("seed", range(5))
     def test_cl13_quaternion_spinor_roundtrip(self, seed):
@@ -1148,9 +1138,9 @@ class TestSpinorFullRoundtrip:
     def test_cl13_complex_and_quaternion_spinor_consistent(self):
         """Complex and quaternion spinors encode the same information."""
         from galaga_matrix import (
-            from_spinor_matrix,
+            from_spinor_column,
             from_spinor_quaternion,
-            to_spinor_matrix,
+            to_spinor_column,
             to_spinor_quaternion,
         )
 
@@ -1162,24 +1152,24 @@ class TestSpinorFullRoundtrip:
         R = exp(B)
 
         # Both forms should recover the same MV
-        spinor_c = to_spinor_matrix(R)
+        spinor_c = to_spinor_column(R)
         spinor_q = to_spinor_quaternion(R)
-        mv_from_c = from_spinor_matrix(sta, spinor_c)
+        mv_from_c = from_spinor_column(sta, spinor_c)
         mv_from_q = from_spinor_quaternion(sta, spinor_q)
         assert np.allclose(mv_from_c.data, mv_from_q.data, atol=1e-10)
         assert np.allclose(R.data, mv_from_c.data, atol=1e-10)
 
     def test_cl30_spinor_preserves_rotor_structure(self):
         """A rotor roundtripped through spinor form is still a rotor."""
-        from galaga_matrix import from_spinor_matrix, to_spinor_matrix
+        from galaga_matrix import from_spinor_column, to_spinor_column
 
         from galaga import exp, reverse
 
         alg = Algebra(3)
         e1, e2, e3 = alg.basis_vectors()
         R = exp(-0.8 * (e1 * e3))
-        spinor = to_spinor_matrix(R)
-        R2 = from_spinor_matrix(alg, spinor)
+        spinor = to_spinor_column(R)
+        R2 = from_spinor_column(alg, spinor)
         # Check R2 is still a rotor: R2 * ~R2 = 1
         product = (R2 * reverse(R2)).data
         expected = np.zeros(alg.dim)
@@ -1187,21 +1177,21 @@ class TestSpinorFullRoundtrip:
         assert np.allclose(product, expected, atol=1e-10)
 
 
-class TestQuatMatrixRepr:
+class TestQuaternionMatrixRendering:
     def test_latex_rendering(self):
-        from galaga_matrix import QuatMatrixRepr
+        from galaga_matrix import MatrixRepr
 
         qm = [[Quat(1, 0, 0, 0), Quat(0, 0, 1, 0)], [Quat(0, 0, -1, 0), Quat(-1, 0, 0, 0)]]
-        qr = QuatMatrixRepr(qm).name(latex=r"\gamma_1")
+        qr = MatrixRepr(qm).name(latex=r"\gamma_1")
         latex = qr.latex()
         assert r"\begin{pmatrix}" in latex
         assert r"\gamma_1" in latex
 
     def test_repr_latex(self):
-        from galaga_matrix import QuatMatrixRepr
+        from galaga_matrix import MatrixRepr
 
         qm = [[Quat(1)]]
-        qr = QuatMatrixRepr(qm)
+        qr = MatrixRepr(qm)
         assert qr._repr_latex_().startswith("$")
 
 

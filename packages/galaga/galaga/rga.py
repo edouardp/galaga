@@ -35,7 +35,7 @@ from .facade import (
 
 
 class RigidModel:
-    """Validated point-based 3D RGA semantics over ``Algebra(config=p_rga())``."""
+    """Validated point-based 3D RGA semantics over ``Algebra(config=presets.rga())``."""
 
     __slots__ = (
         "_algebra",
@@ -53,7 +53,7 @@ class RigidModel:
         _require_expr_flag(expr)
         model = algebra.model
         if model is None or model.id != "lengyel-rga":
-            raise ValueError("RigidModel requires Algebra(config=p_rga())")
+            raise ValueError("RigidModel requires Algebra(config=presets.rga())")
 
         roles = MappingProxyType(dict(model.roles))
         euclidean_refs = _ordered_euclidean_roles(roles)

@@ -7,7 +7,7 @@ from galaga import Algebra, DisplayOrder, LocalNamePolicy, Name, dual, outer_pro
 from galaga.blades import null_cga_blade_convention, orthogonal_cga_blade_convention
 from galaga.cga import ConformalModel
 from galaga.display import emit
-from galaga.presets import CGAPreset, p_cga
+from galaga.presets import CGAPreset
 from galaga.rendering import GradeColor
 
 FRAMES = (("null", "origin-first"), ("null", "euclidean-first"), ("orthogonal", None))
@@ -76,7 +76,7 @@ def test_sign_consistency_names_aliases_and_locals(spatial_dim, frame, basis_ord
         blades=presets.blades.cga(spatial_dim, frame=frame, basis_order=basis_order, model_pseudoscalars=named),
     )
     assert blade_only.presentation.blades == algebra.presentation.blades
-    assert recipe == p_cga(spatial_dim, frame=frame, basis_order=basis_order, model_pseudoscalars=named)
+    assert recipe == presets.cga(spatial_dim, frame=frame, basis_order=basis_order, model_pseudoscalars=named)
     assert recipe.build() == recipe.build()
 
 

@@ -10,7 +10,7 @@ def _():
     import numpy as np
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, outer_product, p_cga, scalar_product, squared
+    from galaga import Algebra, DisplayPolicy, outer_product, presets, scalar_product, squared
     from galaga.cga import ConformalModel
 
     return (
@@ -21,7 +21,7 @@ def _():
         mo,
         np,
         outer_product,
-        p_cga,
+        presets,
         scalar_product,
         squared,
     )
@@ -46,9 +46,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     algebra = Algebra(
-        config=p_cga(spatial_dim=3, frame="null"),
+        config=presets.cga(spatial_dim=3, frame="null"),
         display=DisplayPolicy(content="full"),
     )
     cga = ConformalModel(algebra, expr=True)
@@ -105,7 +105,7 @@ def _(mo):
     the nonorthogonal null pair would introduce an unwanted lower-grade term.
 
     The explicit compatibility choice is
-    `p_cga(3, basis_order="euclidean-first")`.
+    `presets.cga(3, basis_order="euclidean-first")`.
     Moving $e_o$ past three Euclidean axes reverses orientation. In spatial
     dimension $n$, that permutation has sign $(-1)^n$.
     `DisplayOrder` only rearranges printed terms; it cannot make this sign vanish.
@@ -114,12 +114,12 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, algebra, cga, gm, mo, outer_product, p_cga):
+def _(Algebra, ConformalModel, algebra, cga, gm, mo, outer_product, presets):
     euclidean_volume = outer_product(*cga.euclidean_basis_vectors())
     null_plane = cga.origin ^ cga.infinity
     conformal_volume = cga.origin ^ euclidean_volume ^ cga.infinity
     assert conformal_volume == algebra.I
-    compatibility_algebra = Algebra(config=p_cga(3, basis_order="euclidean-first"))
+    compatibility_algebra = Algebra(config=presets.cga(3, basis_order="euclidean-first"))
     _compatibility_model = ConformalModel(compatibility_algebra)
     _ie_old = outer_product(*_compatibility_model.euclidean_basis_vectors())
     _ic_old = _compatibility_model.origin ^ _ie_old ^ _compatibility_model.infinity
@@ -170,8 +170,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, gm, outer_product, p_cga, scalar_product):
-    orthogonal_algebra = Algebra(config=p_cga(3, frame="orthogonal"))
+def _(Algebra, gm, outer_product, presets, scalar_product):
+    orthogonal_algebra = Algebra(config=presets.cga(3, frame="orthogonal"))
     *_spatial, _plus, _minus = orthogonal_algebra.basis_vectors()
     _origin = (_minus - _plus) / 2
     _infinity = _minus + _plus

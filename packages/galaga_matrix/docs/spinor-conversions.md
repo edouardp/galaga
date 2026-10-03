@@ -312,5 +312,4 @@ the Dirac adjoint or the corresponding GA scalar bilinears.
 | `to_spinor_quaternion(mv)`            | even MV -> quaternion column | explicit quaternion-block basis |
 | `from_spinor_quaternion(alg, spinor)` | quaternion column -> even MV | explicit quaternion-block basis |
 
-`to_spinor_matrix` and `from_spinor_matrix` are compatibility aliases for the
-column-named APIs.
+Use `to_spinor_column` and `from_spinor_column` for complex spinor columns.

@@ -17,12 +17,12 @@ from galaga.expression import BladeLiteral, evaluate
 
 
 def _make_quaternion_algebra(expr=False):
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     return algebra, algebra.basis_vectors(expr=expr)
 
 
 def _make_xyz_algebra():
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     original = algebra.presentation.blades
     labels = list(original.labels)
     for mask, name in ((1, "x"), (2, "y"), (4, "z"), (7, ga.Name("xyz", "xyz", "x y z"))):
@@ -144,7 +144,7 @@ class TestQuaternionVectorNames(unittest.TestCase):
 
 class TestComplexFactory(unittest.TestCase):
     def setUp(self):
-        self.alg = ga.Algebra(config=ga.p_complex())
+        self.alg = ga.Algebra(config=ga.presets.complex())
         e1, e2 = self.alg.basis_vectors()
         self.i = e1 ^ e2
 

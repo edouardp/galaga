@@ -48,7 +48,7 @@ class TestBladeLazyPaths:
         np.testing.assert_array_equal(value.data, (e1 ^ e2).data)
 
     def test_display_name_lazy(self):
-        algebra = ga.Algebra(config=ga.p_sta(sigmas=True))
+        algebra = ga.Algebra(config=ga.presets.sta(sigmas=True))
         g0, g1, _, _ = algebra.basis_vectors()
         value = algebra.blade("σ₁", expr=True)
         np.testing.assert_array_equal(value.data, (g1 * g0).data)

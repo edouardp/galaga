@@ -1,8 +1,12 @@
 # Galaga 2 Core Cutover Plan
 
+This plan records the completed cutover. The one-time codemods, migration
+ledgers, and historical ownership records described below were retired under
+[ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+
 ## Status and authority
 
-This is the normative execution plan for replacing Galaga's legacy numeric
+This was the execution plan for replacing Galaga's legacy numeric
 `Algebra` and `Multivector` with the composition facade over `galaga.core`, and
 for completing the Galaga 2.0 changes above that numeric boundary.
 

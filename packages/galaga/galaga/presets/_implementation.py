@@ -437,7 +437,7 @@ class ExteriorPreset:
         )
 
 
-def p_euclidean(spatial_dim: int = 3) -> EuclideanPreset:
+def euclidean(spatial_dim: int = 3) -> EuclideanPreset:
     """Return an inspectable Euclidean preset."""
     return EuclideanPreset(spatial_dim)
 
@@ -447,7 +447,7 @@ def oblique_plane(*, angle: float | None = None, degrees: float | None = None) -
     return ObliquePlanePreset(angle=angle, degrees=degrees)
 
 
-def p_sta(
+def sta(
     signature: Literal["mostly-minus", "mostly-plus"] = "mostly-minus",
     *,
     sigmas: bool = False,
@@ -457,12 +457,12 @@ def p_sta(
     return SpacetimePreset(signature, sigmas=sigmas, pseudovectors=pseudovectors)
 
 
-def p_pga(spatial_dim: int = 3) -> PGAPreset:
+def pga(spatial_dim: int = 3) -> PGAPreset:
     """Return a ``spatial_dim + 1`` projective-algebra preset."""
     return PGAPreset(spatial_dim)
 
 
-def p_cga(
+def cga(
     spatial_dim: int = 3,
     *,
     frame: Literal["null", "orthogonal"] = "null",
@@ -483,42 +483,29 @@ def p_cga(
     return CGAPreset(spatial_dim, frame, null_pair, basis_order, model_pseudoscalars, pss, pseudoscalar_null)
 
 
-def p_rga(spatial_dim: int = 3) -> LengyelRGAPreset:
+def rga(spatial_dim: int = 3) -> LengyelRGAPreset:
     """Return an inspectable Lengyel RGA preset."""
     return LengyelRGAPreset(spatial_dim)
 
 
-def p_lengyel_cga(spatial_dim: int = 3) -> LengyelCGAPreset:
+def lengyel_cga(spatial_dim: int = 3) -> LengyelCGAPreset:
     """Return Eric Lengyel's complete native-null CGA preset."""
     return LengyelCGAPreset(spatial_dim)
 
 
-def p_complex() -> ComplexPreset:
+def complex() -> ComplexPreset:
     """Return an inspectable complex-number preset."""
     return ComplexPreset()
 
 
-def p_quaternion() -> QuaternionPreset:
+def quaternion() -> QuaternionPreset:
     """Return an inspectable quaternion preset."""
     return QuaternionPreset()
 
 
-def p_exterior(dimension: int = 3) -> ExteriorPreset:
+def exterior(dimension: int = 3) -> ExteriorPreset:
     """Return an inspectable metric-free exterior-algebra preset."""
     return ExteriorPreset(dimension)
-
-
-# Short names are the canonical spelling for new code. The p_* functions stay
-# available for compatibility with the a3 API.
-euclidean = p_euclidean
-sta = p_sta
-pga = p_pga
-cga = p_cga
-rga = p_rga
-lengyel_cga = p_lengyel_cga
-complex = p_complex
-quaternion = p_quaternion
-exterior = p_exterior
 
 
 def _presentation(

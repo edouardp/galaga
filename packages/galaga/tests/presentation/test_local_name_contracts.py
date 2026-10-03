@@ -23,8 +23,8 @@ GRAMS = (
 def historical_binding_views():
     """Explicit v2 policies retaining the archived Python keys and values."""
     euclidean = ga.Algebra(3)
-    gamma = ga.Algebra(config=ga.p_sta())
-    sta = ga.Algebra(config=ga.p_sta(sigmas=True))
+    gamma = ga.Algebra(config=ga.presets.sta())
+    sta = ga.Algebra(config=ga.presets.sta(sigmas=True))
     compact = ga.indexed_blade_convention(4, prefix="g", start=0, overrides={15: "i"})
     sta_policy = ga.LocalNamePolicy(
         4, ((label.name.ascii, sta.blade_label(mask).ref) for mask, label in enumerate(compact.labels) if mask)

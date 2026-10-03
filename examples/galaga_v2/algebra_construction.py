@@ -12,16 +12,11 @@ def _():
     import galaga_marimo as gm
     from galaga import (
         Algebra,
-        DisplayPolicy, PresentationConfig,
+        DisplayPolicy,
         Notation,
         geometric_product,
         metric_inner_product,
-        p_cga,
-        p_euclidean,
-        p_pga,
-        p_rga,
-        p_sta,
-        presets
+        presets,
     )
 
     return (
@@ -33,11 +28,6 @@ def _():
         metric_inner_product,
         mo,
         np,
-        p_cga,
-        p_euclidean,
-        p_pga,
-        p_rga,
-        p_sta,
         presets,
     )
 
@@ -172,13 +162,13 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_cga, p_euclidean, p_pga, p_rga, p_sta):
+def _(Algebra, DisplayPolicy, presets):
     _full = DisplayPolicy(content="full")
-    _euclidean_model = Algebra(config=p_euclidean(spatial_dim=3), display=_full)
-    spacetime_model = Algebra(config=p_sta("mostly-minus"), display=_full)
-    projective_model = Algebra(config=p_pga(spatial_dim=3), display=_full)
-    conformal_model = Algebra(config=p_cga(spatial_dim=3, frame="null"), display=_full)
-    rga_model = Algebra(config=p_rga(), display=_full)
+    _euclidean_model = Algebra(config=presets.euclidean(spatial_dim=3), display=_full)
+    spacetime_model = Algebra(config=presets.sta("mostly-minus"), display=_full)
+    projective_model = Algebra(config=presets.pga(spatial_dim=3), display=_full)
+    conformal_model = Algebra(config=presets.cga(spatial_dim=3, frame="null"), display=_full)
+    rga_model = Algebra(config=presets.rga(), display=_full)
     return conformal_model, projective_model, rga_model, spacetime_model
 
 
@@ -221,13 +211,13 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, gm, p_sta):
+def _(Algebra, DisplayPolicy, gm, presets):
     _minus = Algebra(
-        config=p_sta("mostly-minus", sigmas=True, pseudovectors=True),
+        config=presets.sta("mostly-minus", sigmas=True, pseudovectors=True),
         display=DisplayPolicy(content="full"),
     )
     _plus = Algebra(
-        config=p_sta("mostly-plus", sigmas=True, pseudovectors=True),
+        config=presets.sta("mostly-plus", sigmas=True, pseudovectors=True),
         display=DisplayPolicy(content="full"),
     )
     _m0, _m1, _m2, _m3 = _minus.basis_vectors(expr=True)
@@ -266,7 +256,7 @@ def _(Algebra, DisplayPolicy, gm, p_sta):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    `p_sta` derives the signs from its own time-first metric. If configuring
+    `presets.sta()` derives the signs from its own time-first metric. If configuring
     only presentation, use
     `spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
     **only for an orthogonal frame whose basis squares are all ±1**.
@@ -293,9 +283,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, Notation, geometric_product, gm, p_euclidean):
+def _(Algebra, DisplayPolicy, Notation, geometric_product, gm, presets):
     teaching_algebra = Algebra(
-        config=p_euclidean(2),
+        config=presets.euclidean(2),
         notation=Notation.functional(short=True),
         display=DisplayPolicy(content="full", coefficient_precision=4),
     )

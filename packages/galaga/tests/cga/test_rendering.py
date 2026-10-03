@@ -3,7 +3,7 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-from galaga import Algebra, DisplayPolicy, Multivector, Notation, outer_product, p_cga
+from galaga import Algebra, DisplayPolicy, Multivector, Notation, outer_product, presets
 from galaga.cga import ConformalModel
 from galaga.expression import Call, evaluate
 
@@ -11,7 +11,7 @@ from galaga.expression import Call, evaluate
 @pytest.fixture
 def circle() -> tuple[ConformalModel, Multivector]:
     algebra = Algebra(
-        config=p_cga(),
+        config=presets.cga(),
         notation=Notation.lengyel(),
         display=DisplayPolicy(content="full"),
     )

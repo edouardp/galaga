@@ -1,9 +1,6 @@
 """Historical ownership, mutation controls and executable provenance teaching."""
 
-import ast
 import copy
-import hashlib
-import inspect
 import runpy
 import subprocess
 import sys
@@ -11,7 +8,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -19,43 +15,6 @@ TEST_ROOT = Path(__file__).parents[1]
 PUBLIC_FILE = "facade/test_eager_operation_contracts.py"
 CONTRACT = runpy.run_path(str(TEST_ROOT / PUBLIC_FILE))
 ARCHIVE = CONTRACT["ARCHIVE"]
-
-
-def test_all_forty_two_identities_retain_source_evidence_and_public_owners():
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "2735fe8cd9928eed93a6b726959ead3644a616d8"
-    assert ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    assert ARCHIVE["source_path"] == "packages/galaga/tests/test_coverage.py"
-    assert ARCHIVE["public_owner"] == PUBLIC_FILE
-    assert ARCHIVE["sha256"] == "c61a5eac5d6dc930e6c4f5b5fab4b0bfbfdee36ef3474f737145e949d0705f2d"
-    assert hashlib.sha256(ARCHIVE["source"].encode()).hexdigest() == ARCHIVE["sha256"]
-    classes = {cls.name: cls for cls in ast.parse(ARCHIVE["source"]).body if isinstance(cls, ast.ClassDef)}
-    all_ids = [
-        f"{cls.name}.{method.name}"
-        for cls in classes.values()
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    ]
-    assert ARCHIVE["all_source_test_ids"] == all_ids
-    assert len(all_ids) == len(set(all_ids)) == 179
-    owners = set(ARCHIVE["owners"])
-    assert len(owners) == 10
-    ids = {name for name in all_ids if name.split(".")[0] in owners}
-    assert len(ids) == len(ARCHIVE["test_ids"]) == 42
-    assert (
-        ids
-        == set(ARCHIVE["test_ids"])
-        == {
-            f"{name}.{method}"
-            for name in owners
-            for method, _function in inspect.getmembers(CONTRACT[name], inspect.isfunction)
-            if method.startswith("test_")
-        }
-    )
-    assert PUBLIC_FILE not in LEGACY_ORACLE_TESTS
-    current = ast.parse((TEST_ROOT / "test_coverage.py").read_text())
-    assert not owners & {node.name for node in current.body if isinstance(node, ast.ClassDef)}
 
 
 def test_archive_retains_all_values_nodes_and_actual_old_display_boundaries():
@@ -239,52 +198,3 @@ assert not any(forbidden(name) for name in sys.modules)
         timeout=60,
     )
     assert result.returncode == 0, result.stdout + result.stderr
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="notebook uses Python 3.14 t-strings")
-def test_notebook_teaches_literal_snapshots_changed_bindings_and_node_rendering():
-    notebook = TEST_ROOT.parents[2] / "examples/galaga_v2/eager_values_and_expressions.py"
-    outputs, definitions = runpy.run_path(str(notebook))["app"].run()
-    algebra = definitions["algebra"]
-    literal, named = definitions["literal_history"], definitions["named_history"]
-    assert literal == named
-    assert literal.expr == ga.Call(
-        "geometric_product",
-        (
-            ga.BladeLiteral(3),
-            ga.MultivectorLiteral(definitions["history_source"].data),
-        ),
-    )
-    assert named.expr == ga.Call(
-        "geometric_product",
-        (
-            ga.BladeLiteral(3),
-            ga.Symbol("a"),
-        ),
-    )
-    gram = tuple(map(tuple, algebra.gram))
-    for key, source in (
-        ("literal_history", "history_source"),
-        ("literal_replay", "history_source"),
-        ("named_history", "history_source"),
-        ("named_replay", "history_replacement"),
-    ):
-        expected = CONTRACT["expected_coefficients"](
-            "geometric_product",
-            gram,
-            algebra.blade(3).data,
-            definitions[source].data,
-        )
-        CONTRACT["assert_coefficients"](definitions[key], expected)
-    assert definitions["named_replay"] != named
-    assert ga.evaluate(literal.expr, algebra=algebra, environment={"a": definitions["history_replacement"]}) == literal
-    assert definitions["scalar_node"] == ga.ScalarLiteral(3)
-    assert definitions["scalar_node_value"] == 3
-    assert definitions["reflected_node"] == ga.Call("subtract", (ga.ScalarLiteral(3), ga.Symbol("a")))
-    assert definitions["reflected_replay"] == 3 - definitions["history_replacement"]
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    for phrase in ("Literal snapshots", "literal_replay", "Call(operation_id=", "3 - a", "nonzero null"):
-        assert phrase in html
-    for value in (literal, definitions["named_replay"]):
-        assert value.display("value/latex") in html
-    assert "{_original_value" not in html and "{_math" not in html

@@ -5,19 +5,23 @@ import pytest
 
 from galaga import Algebra, presets
 from galaga.blades import spacetime_blade_convention
-from galaga.presets import p_cga, p_complex, p_euclidean, p_exterior, p_lengyel_cga, p_pga, p_quaternion, p_rga, p_sta
+from galaga.presets import CGAPreset
 
 
-def test_concise_complete_presets_match_the_existing_factories():
-    assert presets.euclidean(2) == p_euclidean(2)
-    assert presets.sta("mostly-plus") == p_sta("mostly-plus")
-    assert presets.pga(2) == p_pga(2)
-    assert presets.cga(2, frame="orthogonal") == p_cga(2, frame="orthogonal")
-    assert presets.rga() == p_rga()
-    assert presets.complex() == p_complex()
-    assert presets.quaternion() == p_quaternion()
-    assert presets.exterior(2) == p_exterior(2)
-    assert presets.lengyel_cga() == p_lengyel_cga()
+def test_complete_presets_construct_expected_types():
+    for factory in (
+        presets.euclidean,
+        presets.sta,
+        presets.pga,
+        presets.cga,
+        presets.rga,
+        presets.complex,
+        presets.quaternion,
+        presets.exterior,
+        presets.lengyel_cga,
+    ):
+        recipe = factory()
+        assert recipe.build().definition is not None
 
 
 def test_package_preset_namespace_contains_only_public_recipe_factories():
@@ -40,18 +44,29 @@ def test_package_preset_namespace_contains_only_public_recipe_factories():
     assert dir(presets) == expected
     assert presets.__all__ == expected
     assert hasattr(presets, "CGAPreset")
-    assert hasattr(presets, "p_cga")
+    assert not hasattr(presets, "p_cga")
     assert presets.oblique_plane(angle=np.pi / 3) == presets.ObliquePlanePreset(np.pi / 3)
 
 
-def test_compatibility_imports_work_without_polluting_public_namespace():
+def test_preset_types_remain_available_without_polluting_factory_namespace():
     import galaga.presets as imported
-    from galaga.presets import CGAPreset, p_cga
 
     assert imported is presets
-    assert p_cga is imported.p_cga
     assert CGAPreset is imported.CGAPreset
-    assert "p_cga" not in dir(imported)
+    assert "CGAPreset" not in dir(imported)
+
+
+@pytest.mark.parametrize(
+    "name",
+    ("p_cga", "p_complex", "p_euclidean", "p_exterior", "p_lengyel_cga", "p_pga", "p_quaternion", "p_rga", "p_sta"),
+)
+def test_old_prefixed_factories_are_absent(name):
+    import galaga
+
+    assert not hasattr(galaga, name)
+    assert not hasattr(galaga.facade, name)
+    assert not hasattr(presets, name)
+    assert name not in presets.__all__
 
 
 def test_notation_namespace_exposes_named_immutable_notation_recipes():
@@ -71,21 +86,14 @@ def test_notation_namespace_exposes_named_immutable_notation_recipes():
     assert Algebra(2, notation=functional).presentation.notation == functional
 
 
-@pytest.mark.parametrize(
-    ("new", "old"),
-    (
-        (presets.euclidean(3), p_euclidean(3)),
-        (presets.sta(), p_sta()),
-        (presets.cga(), p_cga()),
-        (presets.pga(), p_pga()),
-    ),
-)
-def test_concise_complete_presets_build_identical_algebras(new, old):
-    left = Algebra(config=new)
-    right = Algebra(config=old)
-    np.testing.assert_array_equal(left.gram, right.gram)
-    assert left.default_presentation == right.default_presentation
-    assert left.model == right.model
+@pytest.mark.parametrize("factory", (presets.euclidean, presets.sta, presets.cga, presets.pga))
+def test_complete_preset_build_matches_constructed_algebra(factory):
+    recipe = factory()
+    algebra = Algebra(config=recipe)
+    configuration = recipe.build()
+    np.testing.assert_array_equal(algebra.gram, configuration.definition.gram)
+    assert algebra.default_presentation == configuration.presentation
+    assert algebra.model == configuration.model
 
 
 def test_blade_namespace_can_name_an_explicit_algebra_without_changing_its_metric():

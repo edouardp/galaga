@@ -10,7 +10,7 @@ def _():
 
     import galaga_anywidget.viz as viz
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, outer_product, p_cga
+    from galaga import Algebra, DisplayPolicy, outer_product, presets
     from galaga.cga import ConformalModel
 
     return (
@@ -20,7 +20,7 @@ def _():
         gm,
         mo,
         outer_product,
-        p_cga,
+        presets,
         viz,
     )
 
@@ -39,9 +39,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     plane_algebra = Algebra(
-        config=p_cga(spatial_dim=2),
+        config=presets.cga(spatial_dim=2),
         display=DisplayPolicy(content="full"),
     )
     plane_cga = ConformalModel(plane_algebra, expr=True)

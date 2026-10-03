@@ -50,11 +50,12 @@ exports and private adapter module are removed too. The development-only
 a new runtime API. Attribute lookup fails and explicit imports raise
 `ImportError` instead of warning and forwarding.
 
-The `p_*` complete preset factories and concrete preset classes remain
-available through explicit imports under their separate
+The prefixed `p_*` complete preset factories have been retired. Import
+`presets` from `galaga` and call the concise factory names. Concrete preset
+classes remain available under the
 [preset policy](../adrs/129-concise-complete-and-resolvable-blade-presets.md).
-Prefer `from galaga import presets` in new code. No additional removals are
-implied for permanent aliases or model-specific methods.
+No additional removals are implied for permanent aliases or model-specific
+methods.
 
 ## No ambiguous inner-product adapter
 

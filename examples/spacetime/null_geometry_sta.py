@@ -7,16 +7,16 @@ app = marimo.App()
 @app.cell
 def _():
     import marimo as mo
-    import numpy as np
-    import matplotlib.pyplot as plt
     import matplotlib
+    import matplotlib.pyplot as plt
+    import numpy as np
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    from galaga import Algebra, DisplayPolicy, grade, p_sta
     import galaga_marimo as gm
+    from galaga import Algebra, DisplayPolicy, presets
 
-    return Algebra, DisplayPolicy, gm, mo, np, p_sta, plt
+    return Algebra, DisplayPolicy, gm, mo, np, presets, plt
 
 
 @app.cell(hide_code=True)
@@ -32,8 +32,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_sta):
-    sta = Algebra(config=p_sta(),display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, presets):
+    sta = Algebra(config=presets.sta(),display=DisplayPolicy(content="full"))
     g0, g1, g2, g3 = sta.basis_vectors(expr=True)
     return g0, g1
 

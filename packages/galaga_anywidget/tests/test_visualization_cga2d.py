@@ -6,7 +6,7 @@ import pytest
 from marimo._runtime import state as marimo_state
 from marimo._runtime.state import State
 
-from galaga import Algebra, Multivector, meet, outer_product, p_cga
+from galaga import Algebra, Multivector, meet, outer_product, presets
 from galaga.cga import ConformalModel
 from galaga_anywidget import DEFAULT_COLOR_CYCLE, viz
 from galaga_anywidget.cga2d import CGA2DPlot, cga2d
@@ -14,7 +14,7 @@ from galaga_anywidget.cga2d import CGA2DPlot, cga2d
 
 @pytest.fixture
 def cga() -> ConformalModel:
-    return ConformalModel(Algebra(config=p_cga(spatial_dim=2)), expr=True)
+    return ConformalModel(Algebra(config=presets.cga(spatial_dim=2)), expr=True)
 
 
 def _objects(cga: ConformalModel):
@@ -248,7 +248,7 @@ def test_mutable_multivector_rejects_invalid_replacements(cga: ConformalModel) -
     with pytest.raises(TypeError, match="must be galaga Multivectors"):
         P.set(object())  # type: ignore[arg-type]
 
-    other_cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    other_cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     with pytest.raises(ValueError, match="same algebra"):
         P.set(other_cga.up(1.0, 2.0))
 
@@ -480,7 +480,7 @@ def test_update_validates_the_persistent_display_contract(cga: ConformalModel) -
         line = outer_product(p, q, cga.infinity)
         viz.update(view, [line, q])
 
-    other_cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    other_cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     with pytest.raises(ValueError, match="plot's conformal algebra"):
         viz.update(view, [other_cga.up(0.0, 0.0), q])
 
@@ -544,7 +544,7 @@ def test_display_labels_can_use_defaults_or_hide_individual_labels(cga: Conforma
 
 
 def test_plot_rejects_non_planar_model() -> None:
-    model = ConformalModel(Algebra(config=p_cga(spatial_dim=3)))
+    model = ConformalModel(Algebra(config=presets.cga(spatial_dim=3)))
 
     with pytest.raises(ValueError, match="spatial_dim == 2"):
         CGA2DPlot(model)
@@ -711,7 +711,7 @@ def test_plot_rejects_values_with_the_wrong_geometric_kind(cga: ConformalModel) 
     with pytest.raises(ValueError, match="imaginary conformal circle"):
         plot.add_circle("imaginary", imaginary_circle)
 
-    other_cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    other_cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     with pytest.raises(ValueError, match="conformal model's algebra"):
         viz.display([other_cga.up(0.0, 0.0)], model=cga)
 
@@ -732,7 +732,7 @@ def test_plot_set_and_remove_preserve_scene_structure(cga: ConformalModel) -> No
     with pytest.raises(TypeError, match="plot values must be"):
         plot.set_value("P", object())  # type: ignore[arg-type]
 
-    other_cga = ConformalModel(Algebra(config=p_cga(spatial_dim=2)))
+    other_cga = ConformalModel(Algebra(config=presets.cga(spatial_dim=2)))
     with pytest.raises(ValueError, match="plot's conformal algebra"):
         plot.set_value("P", other_cga.up(0.0, 0.0))
     with pytest.raises(ValueError, match="cannot replace a point with a line"):

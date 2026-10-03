@@ -19,10 +19,8 @@ from galaga import (
     indexed_blade_convention,
     null_cga_blade_convention,
     orthogonal_cga_blade_convention,
-    p_cga,
-    p_pga,
-    p_sta,
     pga_blade_convention,
+    presets,
     spacetime_blade_convention,
 )
 from galaga import (
@@ -296,7 +294,7 @@ class TestFactoryDefaults:
         assert str(g1 * g2 * g3) == "-iγ₀"
 
     def test_b_cga(self):
-        alg = Algebra(config=p_cga(frame="orthogonal"))
+        alg = Algebra(config=presets.cga(frame="orthogonal"))
         _, _, _, ep, em = alg.basis_vectors()
         assert str(ep) == "e₊" and str(em) == "e₋"
         assert ep * ep == alg.scalar(alg.basis_squares[3])
@@ -309,14 +307,14 @@ class TestFactoryDefaults:
 
     def test_b_cga_origin_infinity_is_explicit_display_only(self):
         # Labels alone never change an orthogonal metric into a native-null frame.
-        alg = Algebra(config=p_cga(frame="orthogonal"))
+        alg = Algebra(config=presets.cga(frame="orthogonal"))
         renamed = alg.with_blades(null_cga_blade_convention(3, basis_order="euclidean-first"))
         np.testing.assert_array_equal(renamed.gram, alg.gram)
         _, _, _, eo, einf = renamed.basis_vectors()
         assert str(eo) == "eₒ" and str(einf) == "e∞"
         assert eo * eo == renamed.scalar(alg.basis_squares[3])
         assert einf * einf == renamed.scalar(alg.basis_squares[4])
-        native = Algebra(config=p_cga(frame="null"))
+        native = Algebra(config=presets.cga(frame="null"))
         origin, _, _, _, infinity = native.basis_vectors()
         assert origin * origin == infinity * infinity == native.scalar(0)
         assert origin | infinity == native.scalar(native.gram[0, 4])
@@ -679,7 +677,7 @@ class TestErrors:
 
 class TestBladeLookup:
     def test_metric_role_string(self):
-        alg = Algebra(config=p_sta(sigmas=True))
+        alg = Algebra(config=presets.sta(sigmas=True))
         g0, g1, _, _ = alg.basis_vectors()
         assert alg.blade("time") == g0
         assert alg.blade(BladeRef(3)) == g0 ^ g1
@@ -687,7 +685,7 @@ class TestBladeLookup:
             alg.blade("+1-1")
 
     def test_display_name_match(self):
-        alg = Algebra(config=p_sta(sigmas=True))
+        alg = Algebra(config=presets.sta(sigmas=True))
         g0, g1, _, _ = alg.basis_vectors()
         # Fix the old test's native-mask lookup: the name means the signed product.
         assert alg.blade("σ₁") == g1 * g0
@@ -724,14 +722,14 @@ class TestBladeLookup:
 
 class TestGetBasisBlade:
     def test_metric_role_string(self):
-        alg = Algebra(config=p_sta())
+        alg = Algebra(config=presets.sta())
         ref = alg.presentation.blades.resolve("g0g1")
         assert ref == BladeRef(3)
         assert alg.blade_label(ref.mask) is alg.presentation.blades.label(ref.mask)
         assert alg.blade(ref) == alg.blade(1) ^ alg.blade(2)
 
     def test_bitmask_int(self):
-        alg = Algebra(config=p_sta())
+        alg = Algebra(config=presets.sta())
         label = alg.blade_label(3)
         assert label is alg.blade_label(3)
         assert label.ref == BladeRef(3)
@@ -879,11 +877,11 @@ class TestFactoryKeywords:
         assert custom.label(1) == plain.label(1)
 
     def test_cga_pss_none(self):
-        alg = Algebra(config=p_cga(frame="orthogonal"))
+        alg = Algebra(config=presets.cga(frame="orthogonal"))
         assert str(alg.I) == "I"
 
     def test_pga_pss_none(self):
-        alg = Algebra(config=p_pga(2))
+        alg = Algebra(config=presets.pga(2))
         assert str(alg.I) == "e₁₂₀"
 
     def test_style_override_on_factory(self):
@@ -944,7 +942,7 @@ class TestCoverageGaps:
             indexed_blade_convention(3, overrides={-1: "X"})
 
     def test_b_sta_with_user_overrides(self):
-        alg = Algebra(config=p_sta())
+        alg = Algebra(config=presets.sta())
         custom = replace_labels(alg.presentation.blades, {3: Name("MyBlade")})
         view = alg.with_blades(custom)
         assert str(view.blade(1) * view.blade(2)) == "MyBlade"
@@ -952,7 +950,7 @@ class TestCoverageGaps:
         assert view.numeric is alg.numeric
 
     def test_b_cga_with_user_overrides(self):
-        alg = Algebra(config=p_cga(frame="orthogonal"))
+        alg = Algebra(config=presets.cga(frame="orthogonal"))
         custom = replace_labels(alg.presentation.blades, {3: Name("MyBlade")})
         view = alg.with_blades(custom)
         assert str(view.blade(1) * view.blade(2)) == "MyBlade"
@@ -961,7 +959,7 @@ class TestCoverageGaps:
 
     def test_b_cga_invalid_null_basis(self):
         with pytest.raises(ValueError, match="frame"):
-            p_cga(frame="bogus")
+            presets.cga(frame="bogus")
 
     def test_rename_2tuple(self):
         alg = Algebra(3)

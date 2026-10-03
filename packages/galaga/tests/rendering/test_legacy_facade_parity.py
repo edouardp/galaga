@@ -12,7 +12,6 @@ from math import isfinite
 from pathlib import Path
 
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 from tools.rendering_parity import (
     BASELINE,
     CASES,
@@ -60,10 +59,6 @@ def test_baseline_retains_capture_provenance_and_immutable_observations() -> Non
         assert all(isfinite(value) for value in reference.reviewed_facade.coefficients)
     with pytest.raises(TypeError):
         BASELINE.cases[CASES[0].key] = BASELINE.cases[CASES[0].key]  # type: ignore[index]
-
-
-def test_parity_suite_no_longer_opts_into_legacy_construction() -> None:
-    assert "rendering/test_legacy_facade_parity.py" not in LEGACY_ORACLE_TESTS
 
 
 def test_baseline_loader_rejects_unknown_schema(tmp_path: Path) -> None:

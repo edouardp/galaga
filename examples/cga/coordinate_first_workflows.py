@@ -9,10 +9,10 @@ def _():
     import marimo as mo
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, outer_product, p_cga
+    from galaga import Algebra, DisplayPolicy, outer_product, presets
     from galaga.cga import ConformalModel
 
-    return Algebra, ConformalModel, DisplayPolicy, gm, mo, outer_product, p_cga
+    return Algebra, ConformalModel, DisplayPolicy, gm, mo, outer_product, presets
 
 
 @app.cell(hide_code=True)
@@ -35,9 +35,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, ConformalModel, DisplayPolicy, p_cga):
+def _(Algebra, ConformalModel, DisplayPolicy, presets):
     algebra = Algebra(
-        config=p_cga(spatial_dim=3),
+        config=presets.cga(spatial_dim=3),
         display=DisplayPolicy(content="full"),
     )
     cga = ConformalModel(algebra, expr=True)

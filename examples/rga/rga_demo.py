@@ -30,7 +30,7 @@ def _():
         metric_apply,
         metric_inner_product,
         op,
-        p_rga,
+        presets,
         reverse,
         right_complement,
         right_hodge_dual,
@@ -64,7 +64,7 @@ def _():
         metric_inner_product,
         mo,
         op,
-        p_rga,
+        presets,
         reverse,
         right_complement,
         right_hodge_dual,
@@ -104,7 +104,7 @@ def _(mo):
     The explicit signature matters: Galaga's `(p, q, r)` convenience form puts
     null vectors first, while the RGA convention puts the null vector last.
 
-    - `p_rga()` supplies the signature, Lengyel's factored blade labels (such
+    - `presets.rga()` supplies the signature, Lengyel's factored blade labels (such
       as $e_{31}$ and $e_{423}$), and the matching operation notation.
     - `expr=True` records immutable expression provenance while numeric
       coefficients remain eagerly available.
@@ -115,8 +115,8 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_rga):
-    rga = Algebra(config=p_rga(), display=DisplayPolicy("full"))
+def _(Algebra, DisplayPolicy, presets):
+    rga = Algebra(config=presets.rga(), display=DisplayPolicy("full"))
     return (rga,)
 
 

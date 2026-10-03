@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-083: Maintained Notebooks Are Executable Integration Contracts
 
+The migration ledger, codemod, and source-assertion portions of this decision
+are superseded by [ADR-170](170-retire-migration-scaffolding-before-stable-2.md).
+The gallery is now discovered dynamically and checked as executable examples.
+
 ## Context and problem statement
 
 The older Marimo gallery was written for Galaga 1's mutable names, lazy or

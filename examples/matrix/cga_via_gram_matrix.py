@@ -17,7 +17,7 @@ def _():
         AlgebraDefinition,
         DisplayPolicy,
         exp,
-        p_cga,
+        presets,
         reverse,
         sandwich,
         scalar_product,
@@ -37,7 +37,7 @@ def _():
         gm,
         mo,
         np,
-        p_cga,
+        presets,
         reverse,
         sandwich,
         scalar_product,
@@ -81,7 +81,7 @@ def _(
     DisplayPolicy,
     MatrixRepr,
     np,
-    p_cga,
+    presets,
 ):
     spatial_dimension = 3
     null_pair_scale = -1.0
@@ -90,7 +90,7 @@ def _(
     cga_gram[0, spatial_dimension + 1] = null_pair_scale
     cga_gram[spatial_dimension + 1, 0] = null_pair_scale
 
-    cga_template = p_cga(spatial_dimension, frame="null", null_pair=null_pair_scale).build()
+    cga_template = presets.cga(spatial_dimension, frame="null", null_pair=null_pair_scale).build()
     cga_definition = AlgebraDefinition(cga_gram, id="cga-3d-explicit-gram")
     cga_config = AlgebraConfig(
         definition=cga_definition,

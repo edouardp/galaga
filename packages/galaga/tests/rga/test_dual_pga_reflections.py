@@ -9,8 +9,7 @@ from galaga import (
     antiwedge,
     geometric_antiproduct,
     gp,
-    p_pga,
-    p_rga,
+    presets,
     sandwich,
 )
 from galaga.rga import RigidModel
@@ -60,7 +59,7 @@ def _plane_coordinates(algebra: Algebra, point) -> np.ndarray:
 def test_parallel_plane_reflections_translate_by_twice_the_separation(
     separation: float,
 ) -> None:
-    point_model = RigidModel(Algebra(config=p_rga()))
+    point_model = RigidModel(Algebra(config=presets.rga()))
     point = point_model.point((-1.0, 0.75, 0.0))
     e1, e2, e3 = point_model.euclidean_basis_vectors()
     e4 = point_model.projective
@@ -71,7 +70,7 @@ def test_parallel_plane_reflections_translate_by_twice_the_separation(
     )
     point_operator = geometric_antiproduct(e423 - separation * e321, e423)
 
-    plane_algebra = Algebra(config=p_pga())
+    plane_algebra = Algebra(config=presets.pga())
     plane = _plane_point(plane_algebra, (-1.0, 0.75, 0.0))
     plane_e1, _, _, plane_e0 = plane_algebra.basis_vectors()
     plane_operator = gp(plane_e1 + separation * plane_e0, plane_e1)
@@ -96,7 +95,7 @@ def test_parallel_plane_reflections_translate_by_twice_the_separation(
 
 def test_both_pga_sandwiches_preserve_their_line_join() -> None:
     separation = 0.75
-    point_model = RigidModel(Algebra(config=p_rga()))
+    point_model = RigidModel(Algebra(config=presets.rga()))
     point_p = point_model.point((-1.0, 0.75, 0.0))
     point_q = point_model.point((0.5, -0.25, 0.0))
     e1, e2, e3 = point_model.euclidean_basis_vectors()
@@ -111,7 +110,7 @@ def test_both_pga_sandwiches_preserve_their_line_join() -> None:
     assert moved_point_line.almost_equal(moved_point_p ^ moved_point_q)
     assert np.allclose((moved_point_p ^ moved_point_line).data, 0)
 
-    plane_algebra = Algebra(config=p_pga())
+    plane_algebra = Algebra(config=presets.pga())
     plane_p = _plane_point(plane_algebra, (-1.0, 0.75, 0.0))
     plane_q = _plane_point(plane_algebra, (0.5, -0.25, 0.0))
     plane_e1, _, _, plane_e0 = plane_algebra.basis_vectors()

@@ -53,16 +53,16 @@ python -m pip install galaga galaga-anywidget galaga-marimo
 marimo edit notebook.py
 ```
 
-Repository tests scan every Marimo notebook under `examples`, reject
-repository-path cells, validate the launch command, and continue to execute the
-maintained gallery headlessly.
+Repository tests discover Marimo notebooks under `examples`, validate their
+cell dependencies, and execute the gallery headlessly. Per-cell source rules
+and launcher-command assertions were retired under
+[ADR-170](170-retire-migration-scaffolding-before-stable-2.md); the launcher
+remains the local development entry point.
 
 The notebook's nonempty `__generated_with` string records its generator; it is
 not a repository-wide version pin. Preserve that metadata rather than rewriting
 otherwise unchanged notebooks to one version. Dependency and headless-execution
-checks establish compatibility with the installed Marimo runtime. Launcher
-tests inspect shell arguments, including both `--watch` and `--no-token`, rather
-than requiring those flags to occur in one exact textual order.
+checks establish compatibility with the installed Marimo runtime.
 
 ## Consequences
 

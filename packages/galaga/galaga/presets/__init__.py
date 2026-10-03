@@ -51,15 +51,6 @@ _COMPATIBILITY_NAMES = {
     "Preset",
     "QuaternionPreset",
     "SpacetimePreset",
-    "p_cga",
-    "p_complex",
-    "p_euclidean",
-    "p_exterior",
-    "p_lengyel_cga",
-    "p_pga",
-    "p_quaternion",
-    "p_rga",
-    "p_sta",
 }
 
 

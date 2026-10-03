@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-129: Concise Complete and Resolvable Blade Presets
 
+The compatibility-import portion of this decision is superseded by
+[ADR-170](170-retire-migration-scaffolding-before-stable-2.md): the prefixed
+`p_*` factory spellings were removed before stable Galaga 2.
+
 ## Context
 
 The existing public preset factories use a redundant `p_` prefix:

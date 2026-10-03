@@ -9,7 +9,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -20,12 +19,12 @@ ARCHIVE = json.loads((TEST_ROOT.parent / "tools/baselines/concrete-display-v1.js
 
 def _sample(sample_id: str):
     if sample_id in {"quaternion-positive", "quaternion-negative"}:
-        algebra = ga.Algebra(config=ga.p_quaternion())
+        algebra = ga.Algebra(config=ga.presets.quaternion())
         e1, e2, e3 = algebra.basis_vectors()
         i, j, k = e2 ^ e3, e1 ^ e3, e1 ^ e2
         return 1 + 2 * i + 3 * j + 4 * k if sample_id == "quaternion-positive" else 1 - 2 * i + 3 * j - 4 * k
     if sample_id == "sta-bivector":
-        g0, g1, _, _ = ga.Algebra(config=ga.p_sta()).basis_vectors()
+        g0, g1, _, _ = ga.Algebra(config=ga.presets.sta()).basis_vectors()
         return g0 * g1
     algebra = ga.Algebra(3)
     e1, e2, e3 = algebra.basis_vectors()
@@ -101,7 +100,7 @@ def test_concrete_display_matches_history_with_explicit_legacy_order(row, target
 
 @pytest.mark.parametrize("grade", (0, 1, 2, 3))
 def test_historical_quaternion_basis_values_survive_native_enumeration(grade: int) -> None:
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     observed = ARCHIVE["quaternion_basis"][str(grade)]
     assert list(algebra.display_order) == ARCHIVE["orders"]["quaternion"]
     for row in observed:
@@ -114,7 +113,7 @@ def test_historical_quaternion_basis_values_survive_native_enumeration(grade: in
 
 @pytest.mark.parametrize("word", ("ij", "jk", "ki", "ii", "jj", "kk", "ijk"))
 def test_quaternion_products_match_history_and_independent_left_actions(word: str) -> None:
-    algebra = ga.Algebra(config=ga.p_quaternion())
+    algebra = ga.Algebra(config=ga.presets.quaternion())
     e1, e2, e3 = algebra.basis_vectors()
     units = dict(zip("ijk", (e2 ^ e3, e1 ^ e3, e1 ^ e2), strict=True))
     product, reference = algebra.identity, algebra.identity.data
@@ -213,7 +212,3 @@ assert not any(forbidden(name) for name in sys.modules)
     )
 
     assert completed.returncode == 0, completed.stdout + completed.stderr
-
-
-def test_concrete_display_contracts_are_not_exempt_from_the_legacy_construction_guard() -> None:
-    assert not (set(CONTRACT_FILES) & set(LEGACY_ORACLE_TESTS))

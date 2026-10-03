@@ -85,9 +85,8 @@ The symbolic adjoint expression renders ket notation as a bra:
 Kets render as a column pmatrix (existing), optionally with ket decoration in
 the symbolic name. Bras render as a row pmatrix.
 
-### Rule 9: Backward compatibility
+### Rule 9: NumPy interoperability
 
-`to_spinor_matrix` / `from_spinor_matrix` remain as aliases.
 Code doing `np.allclose(to_spinor_column(R), ...)` still works via
 `__array__`.
 

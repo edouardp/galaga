@@ -11,7 +11,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -56,10 +55,6 @@ def test_archive_retains_values_and_intentionally_retired_rendering_modes():
     assert ARCHIVE["fractions"][0]["latex"] == r"\frac{1}{2}"
     assert ARCHIVE["constants"][3]["names"] == dict.fromkeys(("ascii", "unicode", "latex"))
     assert all(row["symbolic"] for row in ARCHIVE["fractions"] + ARCHIVE["constants"])
-
-
-def test_scalar_contracts_are_not_exempt_from_legacy_construction_guards():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_scalar_contracts_execute_without_importing_legacy_modules():
@@ -125,19 +120,3 @@ def test_archive_replay_rejects_a_named_constant_with_changed_magnitude(monkeypa
         CONTRACT["test_archived_constants_keep_nonzero_values_and_explicit_names"](
             ARCHIVE["constants"][4], True, "ascii"
         )
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="teaching notebook uses Python 3.14 t-strings")
-def test_teaching_notebook_executes_scalar_provenance_and_precision_examples():
-    notebook = TEST_ROOT.parents[2] / "examples/galaga_v2/eager_values_and_expressions.py"
-    app = runpy.run_path(str(notebook))["app"]
-    outputs, definitions = app.run()
-    small = definitions["small_scalar"]
-    assert float(small) == 1.2e-34
-    assert definitions["small_default_latex"] == "0"
-    assert definitions["small_visible_latex"] == r"1.2 \times 10^{-34}"
-    assert definitions["third_literal"].latex(content="expr") == "0.333333"
-    assert definitions["third_named"].latex(content="expr") == r"\frac{a}{3}"
-    np.testing.assert_array_equal(definitions["third_replayed"].data, definitions["third_named"].data)
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    assert r"\frac{a}{3}" in html and r"1.2 \times 10^{-34}" in html

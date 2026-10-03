@@ -20,8 +20,7 @@ conversions for supported even subalgebras, quaternion-block output for
 selected quaternionic signatures, and a `MatrixRepr` wrapper with LaTeX
 rendering for use in marimo notebooks and Jupyter.
 
-The canonical spinor-column API is `to_spinor_column` / `from_spinor_column`.
-`to_spinor_matrix` / `from_spinor_matrix` are compatibility aliases.
+The spinor-column API is `to_spinor_column` / `from_spinor_column`.
 
 ## Two modes
 

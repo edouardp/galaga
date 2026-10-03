@@ -14,8 +14,7 @@ def _():
     from galaga import (
         Algebra,
         DisplayPolicy,
-        p_euclidean,
-        p_sta,
+        presets,
     )
 
     return (
@@ -25,8 +24,7 @@ def _():
         gm,
         mo,
         np,
-        p_euclidean,
-        p_sta,
+        presets,
         to_matrix,
     )
 
@@ -55,9 +53,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_euclidean, to_matrix):
+def _(Algebra, DisplayPolicy, presets, to_matrix):
     pauli_algebra = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         display=DisplayPolicy(content="full"),
     )
     pauli_e1, pauli_e2, pauli_e3 = pauli_algebra.basis_vectors(expr=True)
@@ -148,7 +146,7 @@ def _(mo):
     mo.md(r"""
     ## Dirac matrices from spacetime algebra
 
-    The mostly-minus `p_sta()` preset has signature $(+---)`. `mode="dirac"`
+    The mostly-minus `presets.sta()` preset has signature $(+---)`. `mode="dirac"`
     produces the standard $4\times4$ complex gamma representation in the
     package's Dirac basis.
     """)
@@ -156,9 +154,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_sta, to_matrix):
+def _(Algebra, DisplayPolicy, presets, to_matrix):
     spacetime_algebra = Algebra(
-        config=p_sta("mostly-minus"),
+        config=presets.sta("mostly-minus"),
         display=DisplayPolicy(content="full"),
     )
     gamma0, gamma1, gamma2, gamma3 = spacetime_algebra.basis_vectors(expr=True)

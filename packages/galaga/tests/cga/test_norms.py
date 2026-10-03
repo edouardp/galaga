@@ -5,7 +5,7 @@ from collections.abc import Callable
 import numpy as np
 import pytest
 
-from galaga import Algebra, Multivector, complement, outer_product, p_cga
+from galaga import Algebra, Multivector, complement, outer_product, presets
 from galaga.cga import ConformalModel
 from galaga.expression import Call, evaluate
 
@@ -41,7 +41,7 @@ def _blade_scale(value: Multivector, basis: Multivector) -> float:
 
 
 def test_component_families_are_exact_overlapping_decompositions() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     circle = _round_geometries(cga)[2]
     round_bulk = cga.round_bulk_part(circle)
     round_weight = cga.round_weight_part(circle)
@@ -59,7 +59,7 @@ def test_component_families_are_exact_overlapping_decompositions() -> None:
 
 @pytest.mark.parametrize("grade", (1, 2, 3, 4))
 def test_weighted_norms_match_erics_round_object_formulas(grade: int) -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     geometry = _round_geometries(cga)[grade - 1]
     weight_basis = complement(cga.infinity)
 
@@ -76,7 +76,7 @@ def test_weighted_norms_match_erics_round_object_formulas(grade: int) -> None:
 
 
 def test_four_component_norms_have_erics_values_and_codomain_blades() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     circle = _round_geometries(cga)[2]
     parts_and_norms = (
         (cga.round_bulk_part, cga.round_bulk_norm, cga.algebra.identity),
@@ -91,7 +91,7 @@ def test_four_component_norms_have_erics_values_and_codomain_blades() -> None:
 
 
 def test_weighted_norms_scale_but_normalized_norms_and_aliases_are_projective() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     circle = _round_geometries(cga)[2]
     scaled = -7.0 * circle
 
@@ -110,7 +110,7 @@ def test_weighted_norms_scale_but_normalized_norms_and_aliases_are_projective() 
 
 
 def test_real_radius_norm_has_explicit_real_core_and_normalization_boundaries() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()))
+    cga = ConformalModel(Algebra(config=presets.cga()))
     imaginary = cga.round_point((3.0, 4.0, 0.0), radius_squared=-4.0)
     p = cga.round_point((0.0, 0.0, 0.0))
     q = cga.round_point((1.0, 0.0, 0.0))
@@ -130,7 +130,7 @@ def test_real_radius_norm_has_explicit_real_core_and_normalization_boundaries() 
     with pytest.raises(ValueError, match="nonzero round weight"):
         cga.center_distance(line)
 
-    scaled_model = ConformalModel(Algebra(config=p_cga(null_pair=-0.5)))
+    scaled_model = ConformalModel(Algebra(config=presets.cga(null_pair=-0.5)))
     scaled_point = scaled_model.round_point((3.0, 4.0, 0.0), radius_squared=4.0)
     assert float(scaled_model.center_norm(scaled_point)) == pytest.approx(5.0)
     assert float(scaled_model.center_distance(scaled_point)) == pytest.approx(5.0)
@@ -141,7 +141,7 @@ def test_real_radius_norm_has_explicit_real_core_and_normalization_boundaries() 
 
 
 def test_all_component_and_norm_semantics_remain_executable() -> None:
-    cga = ConformalModel(Algebra(config=p_cga()), expr=True)
+    cga = ConformalModel(Algebra(config=presets.cga()), expr=True)
     circle = _round_geometries(cga)[2].named("C")
     operations: tuple[Callable[[Multivector], Multivector], ...] = (
         cga.round_bulk_part,

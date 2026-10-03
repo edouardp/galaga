@@ -46,7 +46,7 @@ def exterior_basis(algebra, mask, expr=False):
 @pytest.mark.parametrize("target", TARGETS)
 def test_archived_lookup_values_have_explicit_public_replacements(row, expr, target):
     if row["id"] == "display_name":
-        algebra = ga.Algebra(config=ga.p_sta(sigmas=True))
+        algebra = ga.Algebra(config=ga.presets.sta(sigmas=True))
         g0, g1, _, _ = algebra.basis_vectors()
         value = algebra.blade("σ₁", expr=expr)
         expected = (g1 * g0).data

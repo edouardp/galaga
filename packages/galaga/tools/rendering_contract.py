@@ -8,6 +8,7 @@ from types import MappingProxyType
 from typing import Any, Literal
 
 import galaga.facade as facade
+from galaga import presets
 
 ImplementationId = Literal["core-facade-v2"]
 FacadeFactory = Callable[[facade.DisplayPolicy], facade.Algebra]
@@ -116,15 +117,15 @@ def _facade_cl3(display: facade.DisplayPolicy) -> facade.Algebra:
 
 
 def _facade_sta(display: facade.DisplayPolicy) -> facade.Algebra:
-    return facade.Algebra(config=facade.p_sta(), display=display)
+    return facade.Algebra(config=presets.sta(), display=display)
 
 
 def _facade_pga(display: facade.DisplayPolicy) -> facade.Algebra:
-    return facade.Algebra(config=facade.p_pga(), display=display)
+    return facade.Algebra(config=presets.pga(), display=display)
 
 
 def _facade_rga(display: facade.DisplayPolicy) -> facade.Algebra:
-    return facade.Algebra(config=facade.p_rga(), display=display)
+    return facade.Algebra(config=presets.rga(), display=display)
 
 
 ALGEBRA_PROFILES: Mapping[str, AlgebraProfile] = MappingProxyType(

@@ -11,7 +11,6 @@ from pathlib import Path
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -53,19 +52,15 @@ def test_all_historical_quaternion_identities_and_source_are_preserved():
 
 
 def test_archive_retains_presentation_ordered_bivectors_without_restoring_it():
-    quaternion = ga.Algebra(config=ga.p_quaternion())
+    quaternion = ga.Algebra(config=ga.presets.quaternion())
     semantic = quaternion.blades("quaternion_i", "quaternion_j", "quaternion_k")
     for table in (ARCHIVE["tables"][0], ARCHIVE["tables"][2]):
         np.testing.assert_array_equal(table["basis_bivectors"], [value.data for value in semantic])
         assert not np.array_equal(table["basis_bivectors"], [value.data for value in quaternion.basis_blades(2)])
-    complex_algebra = ga.Algebra(config=ga.p_complex())
+    complex_algebra = ga.Algebra(config=ga.presets.complex())
     np.testing.assert_array_equal(
         ARCHIVE["tables"][1]["basis_bivectors"], [value.data for value in complex_algebra.basis_blades(2)]
     )
-
-
-def test_quaternion_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_quaternion_suites_run_with_legacy_imports_blocked():

@@ -34,7 +34,7 @@ BINARY = (
 
 
 def test_rga_basis_metric_orientation_names_and_display_order():
-    algebra = ga.Algebra(config=ga.p_rga())
+    algebra = ga.Algebra(config=ga.presets.rga())
     e1, e2, e3, e4 = algebra.basis_vectors()
     # Derive the values before looking up names or stored orientations.
     products = {
@@ -92,7 +92,7 @@ def test_rga_basis_metric_orientation_names_and_display_order():
 
 
 def test_rga_projective_roles_have_the_source_grades():
-    algebra = ga.Algebra(config=ga.p_rga())
+    algebra = ga.Algebra(config=ga.presets.rga())
     values = algebra.locals()
     assert {name: values[name].homogeneous_grade() for name in ("e1", "e23", "e423", "I")} == {
         "e1": 1,
@@ -105,7 +105,7 @@ def test_rga_projective_roles_have_the_source_grades():
 
 
 def test_rga_operations_preserve_symbolic_trees_values_and_grades():
-    algebra = ga.Algebra(config=ga.p_rga())
+    algebra = ga.Algebra(config=ga.presets.rga())
     e1, e2, _, _ = algebra.basis_vectors(expr=True)
     for name in (*UNARY, *BINARY):
         operation = getattr(ga, name)
@@ -133,7 +133,7 @@ def test_rga_operations_preserve_symbolic_trees_values_and_grades():
 
 
 def test_lengyel_notation_rendering_snapshot():
-    algebra = ga.Algebra(config=ga.p_rga(), display=ga.DisplayPolicy(content="expr"))
+    algebra = ga.Algebra(config=ga.presets.rga(), display=ga.DisplayPolicy(content="expr"))
     e1, e2, _, _ = algebra.basis_vectors(expr=True)
     assert str(ga.geometric_product(e1, e2)) == "e₁ ⟑ e₂"
     assert str(ga.geometric_antiproduct(e1, e2)) == "e₁ ⟇ e₂"

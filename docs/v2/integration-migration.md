@@ -76,51 +76,19 @@ visible:
 | `presentation_scope.py` | `galaga.facade` | Context-local notation override |
 | `general_gram_left_action.py` | `galaga.facade` | Native-null public linear action |
 
-A smoke test executes every file in that directory and rejects ambiguous
-top-level imports or private attribute access.
+A smoke test executes every file in that directory.
 
-## Maintained notebook gallery
+## Editable notebook gallery
 
-The 68 maintained topic notebooks are listed once in
-`tools.migrate_v2_notebooks.MIGRATED_NOTEBOOKS`. That tuple is both the
-migration ledger and the codemod write allowlist. Files outside it are neither
-silently claimed as maintained nor eligible for automated mutation.
+The Marimo notebooks under `examples` are human-editable demonstrations.
+The local `make run-marimo` launcher installs the companion packages in
+editable mode and opens the gallery for ad-hoc exploration.
 
-The LibCST transformation owns only structural changes:
-
-- v1 `galaga` and transitional `galaga.facade` imports move to the promoted
-  top-level `galaga` API;
-- symbolic or lazy factory flags become `expr=True` provenance;
-- multivector `.name()` becomes immutable `.named()`, including an explicit
-  semantic spelling for legacy latex-only names;
-- `.eval()` disappears because facade values are already eager, while Marimo
-  interpolation uses `:value`;
-- `.reveal()` becomes `:expr` at the display site;
-- legacy member scalar extraction becomes either the Python scalar already
-  returned by `norm` or an explicit coefficient query; and
-- Markdown t-strings use raw `rt` literals so LaTeX backslashes survive Python
-  3.14 parsing.
-
-The codemod deliberately preserves `MatrixRepr.name()`,
-`QuatMatrixRepr.name()`, and `to_matrix(...).name()`. Tests cover that negative
-space and require a second codemod pass to be clean.
-
-Semantic review then chooses presets, rewrites removed geometry helpers as
-their defining compositions, replaces mutable notation changes with immutable
-presentation configuration, and makes cross-cell data public where Marimo
-needs a dependency edge.
-
-The permanent gate has four levels:
-
-1. Python 3.11 checks the ledger, write guard, architecture, and codemod.
-2. Python 3.14 compiles every notebook and rejects stale v1 vocabulary.
-3. `marimo check` validates the complete cell dependency graph.
-4. Headless Marimo export executes all 68 notebooks and fails if any cell
-   raises.
-
-This makes the gallery an integration contract, not a collection that merely
-parses. See
-[ADR-083](../adrs/083-maintained-notebooks-are-executable-integration-contracts.md).
+The repository discovers notebooks from their Marimo app declarations rather
+than maintaining a migration list. Python 3.14 compilation, `marimo check`,
+and headless HTML export catch syntax, cell-dependency, and execution errors.
+Tests do not freeze lesson text or implementation choices inside cells. See
+[ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
 
 ## Matrix provenance consumer
 

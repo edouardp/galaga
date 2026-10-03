@@ -1,18 +1,13 @@
 """Archive ownership, mutation controls and executable grade/simplification teaching."""
 
-import ast
 import copy
-import hashlib
-import inspect
 import runpy
 import subprocess
 import sys
 from pathlib import Path
-from types import SimpleNamespace
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -20,43 +15,6 @@ TEST_ROOT = Path(__file__).parents[1]
 PUBLIC_FILE = "facade/test_grade_simplification_contracts.py"
 CONTRACT = runpy.run_path(str(TEST_ROOT / PUBLIC_FILE))
 ARCHIVE = CONTRACT["ARCHIVE"]
-
-
-def test_all_forty_eight_identities_retain_source_evidence_and_live_owners():
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "334133b7987b359929df7f76c7c397e6cbf6765e"
-    assert ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    assert ARCHIVE["source_path"] == "packages/galaga/tests/test_coverage.py"
-    assert ARCHIVE["public_owner"] == PUBLIC_FILE
-    assert ARCHIVE["sha256"] == "2983d2f42b6032fe238ea3b4f6251411f2779b2fd541f93b78045a1af0ec0333"
-    assert hashlib.sha256(ARCHIVE["source"].encode()).hexdigest() == ARCHIVE["sha256"]
-    classes = {cls.name: cls for cls in ast.parse(ARCHIVE["source"]).body if isinstance(cls, ast.ClassDef)}
-    all_ids = [
-        f"{cls.name}.{method.name}"
-        for cls in classes.values()
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    ]
-    assert all_ids == ARCHIVE["all_source_test_ids"]
-    assert len(all_ids) == len(set(all_ids)) == 137
-    owners = {"TestSymbolicGradeEvenOdd", "TestGradePropagation", "TestSimplify"}
-    assert set(ARCHIVE["owners"]) == owners
-    ids = {name for name in all_ids if name.split(".")[0] in owners}
-    assert len(ids) == len(ARCHIVE["test_ids"]) == 48
-    assert (
-        ids
-        == set(ARCHIVE["test_ids"])
-        == {
-            f"{name}.{method}"
-            for name in owners
-            for method, _function in inspect.getmembers(CONTRACT[name], inspect.isfunction)
-            if method.startswith("test_")
-        }
-    )
-    assert PUBLIC_FILE not in LEGACY_ORACLE_TESTS
-    current = ast.parse((TEST_ROOT / "test_coverage.py").read_text())
-    assert not owners & {node.name for node in current.body if isinstance(node, ast.ClassDef)}
 
 
 def test_archive_keeps_grade_cache_differences_scalar_errors_and_the_invalid_wedge_rewrite():
@@ -207,49 +165,3 @@ NOTEBOOK_GRAMS = (
     ((2, 0.5, 0, 0), (0.5, -1, 0, 0), (0, 0, 1, 0.25), (0, 0, 0.25, 3)),
     ((1, 1, 0, 0), (1, 1, 0, 0), (0, 0, 1, 0), (0, 0, 0, 0)),
 )
-
-
-@pytest.mark.skipif(sys.version_info < (3, 14), reason="notebook uses Python 3.14 t-strings")
-@pytest.mark.parametrize("gram", NOTEBOOK_GRAMS)
-def test_notebook_teaches_computed_grades_rebinding_and_nonzero_wedge_squares(gram):
-    notebook = TEST_ROOT.parents[2] / "examples/algebra/involutions_and_grade_ops.py"
-    app = runpy.run_path(str(notebook))["app"]
-    overrides = {} if gram == NOTEBOOK_GRAMS[0] else {"metric_selector": SimpleNamespace(value=gram)}
-    outputs, definitions = app.run(defs=overrides)
-    np.testing.assert_array_equal(definitions["gram_matrix"].mat, gram)
-    algebra, x = definitions["algebra"], definitions["x"]
-    for degree, part in enumerate(definitions["grade_parts"]):
-        expected = CONTRACT["oracle"]("grade", gram, (x.data,), {"target": degree})
-        CONTRACT["assert_value"](part, expected)
-    assert sum(definitions["grade_parts"], algebra.scalar(0)) == x
-    assert definitions["even_part"] + definitions["odd_part"] == x
-    for title, operation in (
-        ("Grade involution", "grade_involution"),
-        ("Reverse", "reverse"),
-        ("Clifford conjugation", "conjugate"),
-    ):
-        value = definitions["involution_results"][title]
-        CONTRACT["assert_value"](value, CONTRACT["oracle"](operation, gram, (x.data,)))
-        assert getattr(ga, operation)(value) == x
-    assert definitions["selected_parts"] == definitions["even_part"]
-    assert (
-        definitions["projection_node"]
-        == definitions["simplified_projection"]
-        == ga.Call("grade", (ga.Symbol("v"),), {"target": 1})
-    )
-    assert definitions["vector_projection"] == definitions["e1"]
-    assert definitions["bivector_projection"] == 0
-    assert definitions["bivector_projection"].homogeneous_grade() is None
-    assert definitions["structural_reduction"] == ga.Symbol("v")
-    B = definitions["nonsimple_bivector"]
-    expected = CONTRACT["oracle"]("outer_product", gram, (B.data, B.data))
-    assert np.count_nonzero(expected) == 1 and expected[-1] != 0
-    for key in ("wedge_square", "wedge_replay"):
-        CONTRACT["assert_value"](definitions[key], expected)
-    assert definitions["vector_wedge_replay"] == 0
-    assert definitions["wedge_node"] == ga.Call("outer_product", (ga.Symbol("B"), ga.Symbol("B")))
-    html = "\n".join(getattr(output, "text", "") for output in outputs)
-    for text in (r"\begin{pmatrix}", "Project first", "A name does not promise a grade", "2 e_{1234}", "None"):
-        assert text in html
-    for value in (x, B, definitions["wedge_square"], *definitions["grade_parts"]):
-        assert value.display("value/latex") in html

@@ -12,7 +12,6 @@ from types import MappingProxyType
 
 import numpy as np
 import pytest
-from tools.isolate_phase8_legacy_tests import LEGACY_ORACLE_TESTS
 
 import galaga as ga
 
@@ -47,7 +46,7 @@ def test_every_historical_locals_identity_and_source_is_preserved():
 
 
 def test_archive_preserves_retired_scalar_errors_and_signed_basis_enumeration():
-    algebra = ga.Algebra(config=ga.p_sta(sigmas=True))
+    algebra = ga.Algebra(config=ga.presets.sta(sigmas=True))
     expected = [algebra.blade(algebra.blade_label(mask).ref).data for mask in (3, 5, 6, 9, 10, 12)]
     np.testing.assert_array_equal(ARCHIVE["sta_basis_bivectors"], expected)
     assert not np.array_equal(ARCHIVE["sta_basis_bivectors"][0], algebra.basis_blades(2)[0].data)
@@ -63,10 +62,6 @@ def test_archive_preserves_retired_scalar_errors_and_signed_basis_enumeration():
             "message": "Basis index 5 out of range for 3D algebra (index_base=1)",
         },
     ]
-
-
-def test_locals_suites_are_not_exempt_from_legacy_construction_guard():
-    assert not set(PUBLIC_FILES) & set(LEGACY_ORACLE_TESTS)
 
 
 def test_locals_suites_run_with_legacy_imports_blocked():

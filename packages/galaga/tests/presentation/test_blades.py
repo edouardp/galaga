@@ -1,6 +1,6 @@
 import pytest
 
-from galaga import Algebra, p_cga
+from galaga import Algebra, presets
 from galaga.blades import (
     BladeConvention,
     BladeLabel,
@@ -166,7 +166,7 @@ def test_indexed_convention_styles_and_custom_subscripts_are_semantic_configurat
 
 def test_native_null_cga_can_juxtapose_blades_without_losing_semantic_roles():
     convention = null_cga_blade_convention(3, style="juxtapose")
-    algebra = Algebra(config=p_cga(spatial_dim=3), blades=convention)
+    algebra = Algebra(config=presets.cga(spatial_dim=3), blades=convention)
 
     assert convention.dimension == 5
     assert convention.label(0b11111).name.variants == (

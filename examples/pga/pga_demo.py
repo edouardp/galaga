@@ -18,11 +18,11 @@ def _():
     import numpy as np
 
     import galaga_marimo as gm
-    from galaga import Algebra, DisplayPolicy, exp, log, p_pga, sandwich
+    from galaga import Algebra, DisplayPolicy, exp, log, presets, sandwich
 
     matplotlib.rcParams.update({"figure.facecolor": "white"})
 
-    return Algebra, DisplayPolicy, exp, gm, log, np, p_pga, plt, sandwich
+    return Algebra, DisplayPolicy, exp, gm, log, np, presets, plt, sandwich
 
 
 @app.cell(hide_code=True)
@@ -45,8 +45,8 @@ def _(gm):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, gm, p_pga):
-    alg = Algebra(config=p_pga(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, gm, presets):
+    alg = Algebra(config=presets.pga(), display=DisplayPolicy(content="full"))
     e1, e2, e3, e0 = alg.basis_vectors(expr=True)
 
     gm.md(t"""**Basis vectors:**

@@ -6,8 +6,8 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
-    import matplotlib.pyplot as plt
     import marimo as mo
+    import matplotlib.pyplot as plt
     import numpy as np
 
     import galaga_marimo as gm
@@ -18,8 +18,7 @@ def _():
         antiwedge,
         geometric_antiproduct,
         gp,
-        p_pga,
-        p_rga,
+        presets,
         sandwich,
         squared,
     )
@@ -36,8 +35,7 @@ def _():
         gp,
         mo,
         np,
-        p_pga,
-        p_rga,
+        presets,
         plt,
         sandwich,
         squared,
@@ -79,10 +77,10 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, RigidModel, p_pga, p_rga):
-    point_algebra = Algebra(config=p_rga(), display=DisplayPolicy(content="full"))
+def _(Algebra, DisplayPolicy, RigidModel, presets):
+    point_algebra = Algebra(config=presets.rga(), display=DisplayPolicy(content="full"))
     point_model = RigidModel(point_algebra, expr=True)
-    plane_algebra = Algebra(config=p_pga(), display=DisplayPolicy(content="full"))
+    plane_algebra = Algebra(config=presets.pga(), display=DisplayPolicy(content="full"))
     return plane_algebra, point_algebra, point_model
 
 

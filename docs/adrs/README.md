@@ -49,7 +49,6 @@ classes are no longer production alternatives.
 | [027](027-gp-spacing.md) | Geometric Product Spacing for Multi-Character Names | Accepted |
 | [028](028-mutating-configuration-methods.md) | Mutating Symbolic Configuration Methods | Superseded by 076 for Galaga 2 |
 | [029](029-configurable-notation.md) | Configurable Notation System | Accepted |
-| [030](030-topic-focused-example-notebooks.md) | Topic-Focused Example Notebooks | Accepted |
 | [031](031-complement-based-regressive-product.md) | Complement-Based Regressive Product | Accepted |
 | [032](032-dynamic-basis-blade-renaming.md) | Dynamic BasisBlade Renaming | Superseded by 057 |
 | [033](033-unicode-repr-default.md) | Unicode repr() by Default | Accepted |
@@ -188,8 +187,8 @@ classes are no longer production alternatives.
 | [165](165-real-powers-in-all-null-algebras.md) | Real Powers in All-Null Algebras | Accepted; extends 164 |
 | [166](166-composed-presenter-recipes.md) | Composed Presenter Recipes | Accepted; extends 161 |
 | [167](167-one-pair-witt-plane-lesson.md) | One-Pair Witt Plane Lesson | Accepted; extends 136 |
-| [168](168-conformal-spacetime-lessons.md) | Conformal Spacetime Teaching Notebooks | Accepted |
 | [169](169-sparse-display-overrides.md) | Sparse Display Overrides | Accepted; extends 076 and 161 |
+| [170](170-retire-migration-scaffolding-before-stable-2.md) | Retire Migration Scaffolding Before Stable Galaga 2 | Accepted; updates 083, 090, 129 and matrix 005 |
 
 ## Creating New ADRs
 

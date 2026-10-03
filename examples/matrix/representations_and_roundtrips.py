@@ -15,7 +15,7 @@ def _():
         Algebra,
         DisplayPolicy,
         geometric_product,
-        p_euclidean,
+        presets,
     )
 
     return (
@@ -26,7 +26,7 @@ def _():
         gm,
         mo,
         np,
-        p_euclidean,
+        presets,
         to_matrix,
     )
 
@@ -63,9 +63,9 @@ def _(mo):
 
 
 @app.cell
-def _(Algebra, DisplayPolicy, p_euclidean):
+def _(Algebra, DisplayPolicy, presets):
     cl3 = Algebra(
-        config=p_euclidean(3),
+        config=presets.euclidean(3),
         display=DisplayPolicy(content="full"),
     )
     e1, e2, e3 = cl3.basis_vectors(expr=True)
