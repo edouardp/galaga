@@ -13,9 +13,12 @@ MARIMO_EDITABLES := --with-editable ./packages/galaga \
 ANNOTATION_SOURCE := ./packages/galaga_annotation
 
 .PHONY: help
-help: ## Show this help message
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | \
-		awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-24s\033[0m %s\n", $$1, $$2}'
+help: ## Show this help message, grouped by section
+	@if [ -t 1 ]; then color=1; else color=0; fi; \
+		awk -v color="$$color" 'BEGIN{FS=":.*?## "; t="General"; max=0; c=(color=="1")?"\033[36m":""; b=(color=="1")?"\033[1m":""; r=(color=="1")?"\033[0m":""} \
+		/^# =+$$/{s=1; next} s==1{if($$0 ~ /^# [^=]/){t=substr($$0,3); sub(/[ \t]+$$/,"",t); next} s=0} \
+		/^[a-zA-Z0-9_-]+:.*## /{n++; name[n]=$$1; desc[n]=$$2; sect[n]=t; if(length($$1)>max)max=length($$1)} \
+		END{last=""; for(i=1;i<=n;i++){if(sect[i]!=last){printf "\n  %s%s%s\n",b,sect[i],r; last=sect[i]} printf "  %s%-*s%s %s\n",c,max+2,name[i],r,desc[i]}}' $(MAKEFILE_LIST)
 
 # ============================================================================
 # Setup and Installation
