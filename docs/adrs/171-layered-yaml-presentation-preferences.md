@@ -35,6 +35,9 @@ YAML aliases, duplicate keys, unknown fields, Python object tags, and files
 over 1 MiB are rejected. No configuration is read at import time. Files are
 read when a new facade algebra or an explicit settings snapshot is created,
 so notebook edits affect new algebras without changing existing ones.
+The facade imports the configuration adapter normally; only file discovery
+and parsing are deferred. The adapter does not import the facade's numeric
+implementation during module initialization.
 
 Extend sparse notation patches from `reverse` alone to target-specific
 `RenderRule` replacements. A notation patch retains the base notation's

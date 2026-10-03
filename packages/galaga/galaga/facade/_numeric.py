@@ -21,6 +21,7 @@ import numpy as np
 from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
 from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe
+from ..config import apply_defaults
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
 from ..names import Name
 from ..presentation import (
@@ -82,8 +83,6 @@ class Algebra:
             if isinstance(config, ConfiguredPreset):
                 expanded = _expand_config(config.base)
                 if not isinstance(config.base, AlgebraConfig):
-                    from ..config import apply_defaults
-
                     expanded = expanded.with_presentation(
                         apply_defaults(expanded.presentation, expanded.definition.gram)
                     )
@@ -91,8 +90,6 @@ class Algebra:
             else:
                 expanded = _expand_config(config)
                 if not isinstance(config, AlgebraConfig):
-                    from ..config import apply_defaults
-
                     expanded = expanded.with_presentation(
                         apply_defaults(expanded.presentation, expanded.definition.gram)
                     )
@@ -115,8 +112,6 @@ class Algebra:
                     args = ()
             self._numeric = core.Algebra(*args, **kwargs)
             base_presentation = default_presentation(self._numeric.n)
-            from ..config import apply_defaults
-
             base_presentation = apply_defaults(base_presentation, self._numeric.gram)
             self._model = None
 
@@ -157,8 +152,6 @@ class Algebra:
             raise TypeError("numeric must be a core.Algebra")
         _require_expr_flag(expr)
         if presentation is None:
-            from ..config import apply_defaults
-
             selected = apply_defaults(default_presentation(numeric.n), numeric.gram)
         else:
             selected = _require_presentation(presentation)
