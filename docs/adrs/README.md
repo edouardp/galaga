@@ -188,6 +188,7 @@ classes are no longer production alternatives.
 | [165](165-real-powers-in-all-null-algebras.md) | Real Powers in All-Null Algebras | Accepted; extends 164 |
 | [166](166-composed-presenter-recipes.md) | Composed Presenter Recipes | Accepted; extends 161 |
 | [167](167-one-pair-witt-plane-lesson.md) | One-Pair Witt Plane Lesson | Accepted; extends 136 |
+| [168](168-conformal-spacetime-lessons.md) | Conformal Spacetime Teaching Notebooks | Accepted |
 
 ## Creating New ADRs
 

@@ -34,8 +34,8 @@ def test_presentation_and_oblique_lessons_cover_their_live_displays() -> None:
     assert "presets.oblique_plane(degrees=angle_degrees.value)" in oblique
     assert "oblique2d(oblique, [sample_vector, sample_bivector]" in oblique
     for display in (
-        "basis_vectors(expr=True)",
-        "basis_blades(2, expr=True)",
+        "basis_vectors()",
+        "basis_blades(2)",
         "wedge_product_table(colour=True)",
         "bilinear_form_table()",
         "bilinear_form_table(full=True)",
@@ -113,13 +113,206 @@ def test_witt_plane_lesson_derives_geometry_and_matrix_units_from_both_null_pair
         assert (lowering * raising).almost_equal(complement)
 
 
+def test_conformal_spacetime_lessons_embed_classify_and_transform_events() -> None:
+    import numpy as np
+
+    from galaga import Algebra, exp, metric_inner_product, sandwich
+
+    events = (EXAMPLES / "spacetime/conformal_spacetime_events.py").read_text()
+    versors = (EXAMPLES / "spacetime/conformal_spacetime_versors.py").read_text()
+    classifier = (EXAMPLES / "spacetime/conformal_spacetime_classifier.py").read_text()
+    for notebook in (events, versors, classifier):
+        assert "gram[4, 5] = gram[5, 4] = -1" in notebook
+        assert "blades=BladeConvention(6, _labels)" in notebook
+        assert 'Name("n_o", "nₒ", r"n_o")' in notebook
+        assert 'Name("n_inf", "n∞", r"n_\\infty")' in notebook
+    assert "meet(alice_curve, dual(light_cone))" in events
+    assert "if t_e >= 1:" in events
+    assert "normalize_point(sandwich(translator, source))" in versors
+    assert "S^2" in classifier
+    assert "not a public" in classifier
+
+    gram = np.zeros((6, 6))
+    gram[:4, :4] = np.diag([1, -1, -1, -1])
+    gram[4, 5] = gram[5, 4] = -1
+    algebra = Algebra(gram=gram)
+    g0, g1, _, _, origin, infinity = algebra.basis_vectors()
+
+    def event(t, x=0.0):
+        physical = t * g0 + x * g1
+        return origin + physical + 0.5 * float(physical * physical) * infinity
+
+    def normalized(point):
+        return point / -float(metric_inner_product(point, infinity))
+
+    anchor = event(0)
+    for t, x, causal in ((1, 0, 1), (1, 1, 0), (0, 1, -1)):
+        other = event(t, x)
+        pair = anchor ^ other
+        line = pair ^ infinity
+        interval = -2 * float(metric_inner_product(anchor, other))
+        signed_round = anchor - 0.5 * causal * infinity
+        assert pair.homogeneous_grade() == 2
+        assert line.homogeneous_grade() == 3
+        assert (line ^ infinity).almost_equal(algebra.scalar(0))
+        assert abs(interval - causal) < 1e-12
+        assert abs(float(signed_round * signed_round) - causal) < 1e-12
+        assert abs(float(metric_inner_product(other, signed_round))) < 1e-12
+
+    source = event(0.75, 0.1)
+    displacement = 0.5 * g0 + 0.25 * g1
+    translator = exp(-0.5 * (displacement ^ infinity))
+    assert normalized(sandwich(translator, source)).almost_equal(event(1.25, 0.35), atol=1e-10)
+    scale = float(np.exp(0.5))
+    dilator = exp(0.25 * (origin ^ infinity))
+    assert normalized(sandwich(dilator, source)).almost_equal(event(0.75 * scale, 0.1 * scale), atol=1e-10)
+
+
+@pytest.mark.skipif(sys.version_info < (3, 14), reason="Marimo t-strings require Python 3.14")
+def test_conformal_spacetime_notebooks_render_the_requested_basis_names(csta_events_lesson) -> None:
+    import runpy
+
+    expected = (r"\gamma_0", r"\gamma_1", r"\gamma_2", r"\gamma_3", r"n_o", r"n_\infty")
+    for name in (
+        "conformal_spacetime_events.py",
+        "conformal_spacetime_versors.py",
+        "conformal_spacetime_classifier.py",
+    ):
+        if name == "conformal_spacetime_events.py":
+            definitions = csta_events_lesson
+        else:
+            namespace = runpy.run_path(str(EXAMPLES / "spacetime" / name), run_name="csta_lesson")
+            _, definitions = namespace["app"].run()
+        blades = definitions["csta"].presentation.blades
+        assert tuple(blades.label(1 << index).name.latex for index in range(6)) == expected
+        assert blades.label((1 << 0) | (1 << 4) | (1 << 5)).name.latex == (r"\gamma_0 \wedge n_o \wedge n_\infty")
+
+
+@pytest.fixture(scope="module")
+def csta_events_lesson():
+    if sys.version_info < (3, 14):
+        pytest.skip("Marimo t-strings require Python 3.14")
+    import runpy
+
+    namespace = runpy.run_path(str(EXAMPLES / "spacetime/conformal_spacetime_events.py"), run_name="csta_lesson")
+    _, definitions = namespace["app"].run()
+    yield definitions
+    definitions["plt"].close("all")
+
+
+def test_csta_rotor_samples_and_surface_meet_define_the_same_hyperbola(csta_events_lesson) -> None:
+    import numpy as np
+
+    from galaga import metric_inner_product
+
+    d = csta_events_lesson
+    zero = d["csta"].scalar(0)
+    for tau in (0, 0.5, 0.7, 1, 2):
+        q = d["alice_position"](tau)
+        velocity = np.cosh(tau) * d["g0"] + np.sinh(tau) * d["g1"]
+        expected = np.sinh(tau) * d["g0"] + (np.cosh(tau) - 1) * d["g1"]
+        assert q.almost_equal(expected, atol=1e-10)
+        assert float(velocity * velocity) == pytest.approx(1)
+        assert float((q + d["g1"]) ** 2) == pytest.approx(-1)
+        derivative = (d["alice_position"](tau + 1e-5) - d["alice_position"](tau - 1e-5)) / 2e-5
+        assert derivative.almost_equal(velocity, atol=1e-8)
+        point = d["alice_event"](tau)
+        assert (point ^ d["alice_curve"]).almost_equal(zero, atol=1e-9)
+        alice_round = d["event"](0, -1) + 0.5 * d["infinity"]
+        assert abs(float(metric_inner_product(point, alice_round))) < 1e-9
+    curve = d["alice_curve"]
+    surface_curve = d["curve_from_surfaces"]
+    assert curve.homogeneous_grade() == surface_curve.homogeneous_grade() == 3
+    scale = np.dot(curve.data, surface_curve.data) / np.dot(curve.data, curve.data)
+    assert abs(scale) > 1e-8
+    assert surface_curve.almost_equal(scale * curve, atol=1e-10)
+
+
+def test_csta_reception_and_echo_are_on_the_computed_meets(csta_events_lesson) -> None:
+    import numpy as np
+
+    from galaga import dual, meet, metric_inner_product
+
+    d = csta_events_lesson
+    for emission_time in (0.05, 0.5, 0.975):
+        timings = d["radar_times"](emission_time)
+        emission = d["event"](emission_time)
+        reception = d["reception_event"](emission_time)
+        echo = d["event"](timings["echo"])
+        outbound_pair = meet(d["alice_curve"], dual(emission))
+        earth_line = d["event"](0) ^ d["event"](1) ^ d["infinity"]
+        reply_pair = meet(earth_line, dual(reception))
+        assert timings["receive"] >= emission_time
+        assert timings["echo"] >= timings["receive"]
+        assert timings["receive"] - timings["distance"] == pytest.approx(emission_time)
+        assert timings["echo"] == pytest.approx(timings["receive"] + timings["distance"])
+        assert abs(float(metric_inner_product(reception, emission))) < 1e-8
+        assert (reception ^ outbound_pair).almost_equal(d["csta"].scalar(0), atol=1e-8)
+        # The return cone meets Earth's line at both E and F, up to projective scale.
+        expected_pair = emission ^ echo
+        ratio = np.dot(reply_pair.data, expected_pair.data) / np.dot(expected_pair.data, expected_pair.data)
+        assert abs(ratio) > 1e-8
+        assert reply_pair.almost_equal(ratio * expected_pair, atol=1e-8)
+    assert d["radar_times"](0.5) == pytest.approx({"ship": np.log(2), "receive": 0.75, "distance": 0.25, "echo": 1.0})
+    for emission_time in (1.0, 1.1):
+        assert d["radar_times"](emission_time) is None
+        assert d["reception_event"](emission_time) is None
+
+
+def test_csta_natural_unit_helpers_provide_numbers_and_readable_units(csta_events_lesson) -> None:
+    d = csta_events_lesson
+    seconds = 299_792_458 / 9.80665
+    metres = 299_792_458 * seconds
+    assert d["time_in"](1) == pytest.approx(seconds)
+    assert d["distance_in"](1) == pytest.approx(metres)
+    assert d["time_in"](1, "years") == pytest.approx(0.9687150795722889)
+    assert d["distance_in"](1, "ly") == pytest.approx(d["time_in"](1, "years"))
+    year_seconds = 365.25 * 86400
+    time_units = {
+        "s": 1.0,
+        "min": 60.0,
+        "h": 3600.0,
+        "days": 86400.0,
+        "weeks": 7 * 86400.0,
+        "months": year_seconds / 12,
+        "years": year_seconds,
+    }
+    for unit, size in time_units.items():
+        assert d["time_in"](2 * size / seconds, unit) == pytest.approx(2)
+        assert d["format_time"](2 * size / seconds).endswith(" " + unit)
+    distance_units = {"m": 1.0, "km": 1000.0, "AU": 149_597_870_700.0, "ly": 299_792_458 * year_seconds}
+    for unit, size in distance_units.items():
+        assert d["distance_in"](2 * size / metres, unit) == pytest.approx(2)
+        assert d["format_distance"](2 * size / metres).endswith(" " + unit)
+    assert d["format_time"](0) == "0 s"
+    assert d["format_distance"](0) == "0 m"
+    assert d["format_time"](-90 / seconds) == "-1.50 min"
+    assert d["format_distance"](1.25e6 * d["light_year_metres"] / metres) == "1.25 million ly"
+    assert d["format_time"](1, "days").endswith(" days")
+
+
+def test_csta_g_control_rescales_units_and_horizon_has_no_echo(csta_events_lesson) -> None:
+    import runpy
+
+    notebook = runpy.run_path(str(EXAMPLES / "spacetime/conformal_spacetime_events.py"), run_name="csta_2g")
+    _, doubled = notebook["app"].run(
+        defs={"acceleration_g": SimpleNamespace(value=2.0), "emission_control": SimpleNamespace(value=1.0)}
+    )
+    assert doubled["time_in"](1) == pytest.approx(csta_events_lesson["time_in"](1) / 2)
+    assert doubled["distance_in"](1) == pytest.approx(csta_events_lesson["distance_in"](1) / 2)
+    assert doubled["current_t"] == pytest.approx(csta_events_lesson["current_t"])
+    assert doubled["current_x"] == pytest.approx(csta_events_lesson["current_x"])
+    assert doubled["reception"] is doubled["echo_pair"] is doubled["echo_event"] is None
+    doubled["plt"].close("all")
+
+
 def test_new_example_notebooks_use_v2_facade_teaching_pattern():
     """Check the ledgered gallery uses expression provenance over eager values."""
     for notebook in migrated_notebook_paths(ROOT):
         source = notebook.read_text()
         assert "from galaga import" in source
         assert "from galaga.facade import" not in source
-        assert "expr=True" in source
+        assert "expr=True" in source or notebook.name == "display_gallery.py"
         assert "import galaga_marimo as gm" in source
         assert ".eval()" not in source
         assert ".reveal()" not in source

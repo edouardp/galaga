@@ -11,6 +11,8 @@ wheels/
 .coverage
 .DS_Store
 __marimo__/
+# Local Marimo layout for the CSTA lesson (no authored cell positions)
+examples/spacetime/layouts/conformal_spacetime_events.grid.json
 # Vim
 *.swp
 *.swo

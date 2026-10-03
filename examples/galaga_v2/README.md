@@ -82,6 +82,17 @@ These lessons also use the v2 facade and participate in headless validation:
 - [The Witt plane in null coordinates](../algebra/witt_plane_from_null_coordinates.py):
   compare signed null-pair metrics with Euclidean 2D, recover an orthogonal
   frame, and derive split-complex projectors and real matrix units.
+- [Conformal spacetime events](../spacetime/conformal_spacetime_events.py):
+  connect three-point circles to Alice's hyperbolic worldline, construct
+  motion with a boost rotor, and meet light cones with a curve and a line
+  to trace a radio message and its echo. Natural units have g-dependent
+  conversions to human times, distances, and astronomical comparisons.
+- [Conformal spacetime versors](../spacetime/conformal_spacetime_versors.py):
+  translate and dilate events using the null pair, then compare their
+  conformal pairings and direct spacetime coordinates.
+- [CSTA object classifier worksheet](../spacetime/conformal_spacetime_classifier.py):
+  use grade, infinity incidence, and induced metric signs to describe
+  witnessed point pairs, flat lines, and signed rounds.
 - [Four-dimensional rotor planes](../algebra/four_dimensional_rotor_planes.py):
   two-plane rotations and plots, principal logarithms, simple-plane extraction,
   self-dual versus simple bivectors, isoclinic ambiguity, and higher dimensions.
