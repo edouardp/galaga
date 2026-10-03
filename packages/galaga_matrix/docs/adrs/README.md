@@ -16,3 +16,4 @@ ADRs for the `galaga_matrix` package.
 | [010](010-replace-labels-with-names.md) | Replace MatrixRepr Labels with Symbolic Names | Accepted |
 | [011](011-cached-immutable-representation-plans.md) | Cached Immutable Representation Plans | Accepted |
 | [012](012-general-gram-compact-exterior-lift.md) | General-Gram Compact Representations Use an Exterior Lift | Accepted |
+| [013](013-validate-matrix-representation-boundaries.md) | Validate Matrix Representation Boundaries | Accepted |

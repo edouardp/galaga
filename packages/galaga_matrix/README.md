@@ -73,7 +73,7 @@ oblique = Algebra(gram=[[2.0, 0.5], [0.5, -1.0]])
 x = oblique.multivector([1.0, 2.0, 3.0, 4.0])
 from_matrix(to_matrix(x))  # exact coefficient roundtrip in the native basis
 
-# Automatic mode stays left-regular for compatibility; compact is explicit
+# Automatic mode uses left-regular for this nonorthogonal metric; compact is explicit
 compact_x = to_matrix(x, mode="compact")  # 2×2 instead of 4×4
 from_matrix(compact_x)  # native exterior-basis coefficients are preserved
 ```
@@ -111,12 +111,18 @@ example test ledger.
 - **Numpy interop** — `np.add(M, N)`, `np.conj(M)` etc. return `MatrixRepr` via `__array_ufunc__`
 - **Symbolic naming** — `.name()` assigns an immutable, target-aware `symbolic_name`
 - **Immutable provenance** — `.expr` records frozen matrix-domain operations; `.as_expression()` exposes an operand
-- **Metadata propagation** — `algebra`, `mode`, `domain`, `basis`, and `kind` pass through operations
+- **Metadata propagation** — Bound `MatrixRepr` operands must share an algebra
+  and compatible representation context. With one bound operand, its algebra
+  link follows the result in either operand order, including multiplication by
+  a NumPy array. The link is a candidate interpretation: `.mv` checks
+  representation membership. Operator actions retain the spinor column's
+  context. A tensor product has no inherited algebra link.
 - **Indexing** — `M[i,j]` for elements, `M[0:2, 0:2]` for submatrices
 - **Rendering** — `.latex()`, `._repr_latex_()` for notebooks
 - **Escape hatch** — `.mat` gives the raw numpy array
-- **Roundtrip** — `.mv` converts back to a `Multivector` (requires `algebra=`)
+- **Roundtrip** — `.mv` converts back to a `Multivector` (requires `algebra=`). Conversion checks that the entire matrix is in the selected representation's image; a matching shape alone is insufficient.
 - **Factories** — `MatrixRepr.identity(k)`, `MatrixRepr.zeros((m,n))`, `.kron(other)`
+- **Tensor products across algebras** — use `np.kron(A.mat, B.mat)` to work with raw matrix data. The result needs its own algebra and representation interpretation before conversion to a multivector.
 
 ### Auto-naming
 

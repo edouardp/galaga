@@ -80,6 +80,11 @@ def _is_scalar(x) -> bool:
     return isinstance(x, (Number, np.number))
 
 
+def _algebra_identity(algebra):
+    """Presentation views of the same numeric algebra share a representation."""
+    return getattr(algebra, "numeric", algebra)
+
+
 def _quat_grid_to_complex(qmat: list[list]) -> np.ndarray:
     """Convert a list-of-lists of Quat to a complex numpy matrix.
 
@@ -304,29 +309,38 @@ class MatrixRepr:
         basis: str | None = None,
         domain: str | None = None,
         kind: str | None = None,
+        context: MatrixRepr | None = None,
     ) -> MatrixRepr:
+        source = self if context is None else context
         wrapped = MatrixRepr(
             result,
-            algebra=self.algebra if algebra is None else algebra,
-            mode=self.mode if mode is None else mode,
-            basis=self.basis if basis is None else basis,
-            domain=self.domain if domain is None else domain,
-            kind=self.kind if kind is None else kind,
+            algebra=source.algebra if algebra is None else algebra,
+            mode=source.mode if mode is None else mode,
+            basis=source.basis if basis is None else basis,
+            domain=source.domain if domain is None else domain,
+            kind=source.kind if kind is None else kind,
         )
         wrapped._tracking = True
         wrapped._expression = expr
         return wrapped
 
-    def _wrap(self, result: np.ndarray) -> MatrixRepr:
-        """Wrap a result while inheriting algebra, representation, and kind metadata."""
+    def _wrap(self, result: np.ndarray, *, context: MatrixRepr | None = None) -> MatrixRepr:
+        """Wrap a result with the selected operand's algebra context."""
+        source = self if context is None else context
         return MatrixRepr(
             result,
-            algebra=self.algebra,
-            mode=self.mode,
-            basis=self.basis,
-            domain=self.domain,
-            kind=self.kind,
+            algebra=source.algebra,
+            mode=source.mode,
+            basis=source.basis,
+            domain=source.domain,
+            kind=source.kind,
         )
+
+    def _context_source(self, other) -> MatrixRepr:
+        """Use the one bound operand, regardless of its position."""
+        if self.algebra is None and isinstance(other, MatrixRepr) and other.algebra is not None:
+            return other
+        return self
 
     def _require_mat(self) -> np.ndarray:
         """Get the numpy array."""
@@ -415,9 +429,29 @@ class MatrixRepr:
     def _is_symbolic_with(self, other=None) -> bool:
         return self._tracking or (isinstance(other, MatrixRepr) and other._tracking)
 
+    def _check_operand_context(self, other, *, matrix_product: bool = False) -> None:
+        """Reject conflicting representation metadata before inheriting this wrapper's context."""
+        if not isinstance(other, MatrixRepr):
+            return
+        if self.algebra is None or other.algebra is None:
+            return  # An unbound wrapper is an ordinary matrix operand.
+        if _algebra_identity(self.algebra) is not _algebra_identity(other.algebra):
+            raise ValueError("MatrixRepr operands belong to different algebras")
+        left_mode = "compact" if self.mode in {"compact", "dirac", "pauli"} else self.mode
+        right_mode = "compact" if other.mode in {"compact", "dirac", "pauli"} else other.mode
+        if left_mode != right_mode:
+            raise ValueError("MatrixRepr operands have different mode metadata")
+        if self.basis != other.basis:
+            raise ValueError("MatrixRepr operands have different basis metadata")
+        # A full-domain operator can act on an even-domain spinor column.
+        spinor_action = matrix_product and (self.kind != "operator" or other.kind != "operator")
+        if self.domain != other.domain and not spinor_action:
+            raise ValueError("MatrixRepr operands have different domain metadata")
+
     # ── Arithmetic operators ──
 
     def __matmul__(self, other) -> MatrixRepr:
+        self._check_operand_context(other, matrix_product=True)
         other_mat = _unwrap(other)
         result = self._require_mat() @ other_mat
         # Type propagation: operator @ ket → ket, bra @ ket → scalar
@@ -429,81 +463,105 @@ class MatrixRepr:
             result_kind = "ket"
         elif self.kind == "ket" and other_kind == "bra":
             result_kind = "operator"
+        context = (
+            other
+            if result_kind == "ket" and isinstance(other, MatrixRepr) and other.algebra is not None
+            else self._context_source(other)
+        )
         if self._is_symbolic_with(other):
             return self._symbolic_result(
                 result,
                 MatMul(self.as_expression(), self._operand_expr(other)),
                 kind=result_kind,
+                context=context,
             )
         return MatrixRepr(
             result,
-            algebra=self.algebra,
-            mode=self.mode,
-            basis=self.basis,
-            domain=self.domain,
+            algebra=context.algebra,
+            mode=context.mode,
+            basis=context.basis,
+            domain=context.domain,
             kind=result_kind,
         )
 
     def __rmatmul__(self, other) -> MatrixRepr:
+        self._check_operand_context(other, matrix_product=True)
+        context = self._context_source(other)
         if self._tracking:
             return self._symbolic_result(
-                _unwrap(other) @ self._require_mat(), MatMul(self._operand_expr(other), self.as_expression())
+                _unwrap(other) @ self._require_mat(),
+                MatMul(self._operand_expr(other), self.as_expression()),
+                context=context,
             )
-        return self._wrap(_unwrap(other) @ self._require_mat())
+        return self._wrap(_unwrap(other) @ self._require_mat(), context=context)
 
     def __add__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = self._require_mat() + _unwrap(other)
+        context = self._context_source(other)
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, Add(self.as_expression(), self._operand_expr(other)))
-        return self._wrap(result)
+            return self._symbolic_result(result, Add(self.as_expression(), self._operand_expr(other)), context=context)
+        return self._wrap(result, context=context)
 
     def __radd__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = _unwrap(other) + self._require_mat()
+        context = self._context_source(other)
         if self._tracking:
-            return self._symbolic_result(result, Add(self._operand_expr(other), self.as_expression()))
-        return self._wrap(result)
+            return self._symbolic_result(result, Add(self._operand_expr(other), self.as_expression()), context=context)
+        return self._wrap(result, context=context)
 
     def __sub__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = self._require_mat() - _unwrap(other)
+        context = self._context_source(other)
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, Sub(self.as_expression(), self._operand_expr(other)))
-        return self._wrap(result)
+            return self._symbolic_result(result, Sub(self.as_expression(), self._operand_expr(other)), context=context)
+        return self._wrap(result, context=context)
 
     def __rsub__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = _unwrap(other) - self._require_mat()
+        context = self._context_source(other)
         if self._tracking:
-            return self._symbolic_result(result, Sub(self._operand_expr(other), self.as_expression()))
-        return self._wrap(result)
+            return self._symbolic_result(result, Sub(self._operand_expr(other), self.as_expression()), context=context)
+        return self._wrap(result, context=context)
 
     def __mul__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = self._require_mat() * _unwrap(other)
+        context = self._context_source(other)
         if self._is_symbolic_with(other):
             if _is_scalar(other):
                 expr = ScalarMul(other, self.as_expression())
             else:
                 expr = MatrixElementwiseMul(self.as_expression(), self._operand_expr(other))
-            return self._symbolic_result(result, expr)
-        return self._wrap(result)
+            return self._symbolic_result(result, expr, context=context)
+        return self._wrap(result, context=context)
 
     def __rmul__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = _unwrap(other) * self._require_mat()
+        context = self._context_source(other)
         if self._tracking:
             if _is_scalar(other):
                 expr = ScalarMul(other, self.as_expression())
             else:
                 expr = MatrixElementwiseMul(self._operand_expr(other), self.as_expression())
-            return self._symbolic_result(result, expr)
-        return self._wrap(result)
+            return self._symbolic_result(result, expr, context=context)
+        return self._wrap(result, context=context)
 
     def __truediv__(self, other) -> MatrixRepr:
+        self._check_operand_context(other)
         result = self._require_mat() / _unwrap(other)
+        context = self._context_source(other)
         if self._tracking:
             if _is_scalar(other):
                 expr = ScalarDiv(self.as_expression(), other)
             else:
                 expr = MatrixElementwiseMul(self.as_expression(), self._operand_expr(1 / _unwrap(other)))
-            return self._symbolic_result(result, expr)
-        return self._wrap(result)
+            return self._symbolic_result(result, expr, context=context)
+        return self._wrap(result, context=context)
 
     def __neg__(self) -> MatrixRepr:
         result = -self._require_mat()
@@ -681,11 +739,13 @@ class MatrixRepr:
         return cls(np.zeros(shape, dtype=dtype), algebra=algebra, mode=mode, domain=domain)
 
     def kron(self, other: MatrixRepr) -> MatrixRepr:
-        """Kronecker (tensor) product."""
+        """Kronecker product, without an inherited algebra interpretation."""
+        self._check_operand_context(other)
         result = np.kron(self._require_mat(), _unwrap(other))
+        wrapped = MatrixRepr(result)
         if self._is_symbolic_with(other):
-            return self._symbolic_result(result, KroneckerProduct(self.as_expression(), self._operand_expr(other)))
-        return self._wrap(result)
+            wrapped._attach_expression(KroneckerProduct(self.as_expression(), self._operand_expr(other)))
+        return wrapped
 
     # ── Numpy interop ──
 
@@ -703,15 +763,18 @@ class MatrixRepr:
         if method != "__call__":
             return NotImplemented
 
+        wrappers = [x for x in inputs if isinstance(x, MatrixRepr)]
+        source = next((x for x in wrappers if x.algebra is not None), None)
+        if source is None and wrappers:
+            source = wrappers[0]
+        if source is not None:
+            for operand in inputs:
+                source._check_operand_context(operand, matrix_product=ufunc is np.matmul)
+            for output in kwargs.get("out") or ():
+                source._check_operand_context(output)
+
         # Unwrap all MatrixRepr inputs
         unwrapped = [_unwrap(x) for x in inputs]
-
-        # Find the first MatrixRepr for metadata inheritance
-        source = None
-        for x in inputs:
-            if isinstance(x, MatrixRepr):
-                source = x
-                break
 
         # Handle 'out' keyword
         out = kwargs.get("out")
@@ -722,6 +785,11 @@ class MatrixRepr:
 
         # Wrap result if it's a matrix-shaped array
         if isinstance(result, np.ndarray) and result.ndim == 2 and source is not None:
+            if ufunc is np.matmul and len(inputs) == 2:
+                left, right = inputs
+                if isinstance(left, MatrixRepr) and isinstance(right, MatrixRepr):
+                    if left.kind == "operator" and right.kind == "ket":
+                        return right._wrap(result)
             return source._wrap(result)
         return result
 

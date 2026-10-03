@@ -65,6 +65,20 @@ class TestLeftRegular:
         with pytest.raises(ValueError, match="Expected"):
             from_matrix(alg, np.eye(3))
 
+    def test_rejects_matrix_with_correct_first_column_but_wrong_action(self):
+        alg = Algebra(2)
+        matrix = to_matrix(alg.basis_vectors()[0], mode="left-regular").mat.copy()
+        matrix[0, 1] += 1
+        with pytest.raises(ValueError, match="not in the image"):
+            from_matrix(alg, matrix)
+
+    def test_rejects_nonreal_left_regular_matrix(self):
+        alg = Algebra(1)
+        matrix = to_matrix(alg.identity, mode="left-regular").mat.astype(complex)
+        matrix[0, 0] += 1j
+        with pytest.raises(ValueError, match="real Clifford representation"):
+            from_matrix(alg, matrix)
+
     def test_sta(self):
         sta = Algebra(1, 3)
         sta.basis_vectors()
@@ -1482,11 +1496,103 @@ class TestMatrixReprMetadata:
         assert C.algebra is alg
         assert C.mode == "compact"
 
+    @pytest.mark.parametrize("mode", ["left-regular", "compact"])
+    @pytest.mark.parametrize("operator", [lambda a, b: a @ b, np.matmul])
+    def test_compatible_matrix_product_roundtrips_geometric_product(self, mode, operator):
+        alg = Algebra(2)
+        e1, e2 = alg.basis_vectors()
+        a = 1 + 2 * e1 + e2
+        b = 2 - e1 + 3 * e2
+        result = operator(to_matrix(a, mode=mode), to_matrix(b, mode=mode))
+        expected = a * b
+        assert result.algebra is alg
+        assert np.allclose(result.mat, to_matrix(expected, mode=mode).mat)
+        assert np.allclose(result.mv.data, expected.data)
+
+    @pytest.mark.parametrize("operator", ["matmul", "ufunc_matmul", "add", "ufunc_add"])
+    @pytest.mark.parametrize("bound_on_left", [True, False])
+    def test_single_bound_operand_supplies_result_context(self, operator, bound_on_left):
+        alg = Algebra(1)
+        vector = alg.basis_vectors()[0]
+        bound = to_matrix(vector, mode="left-regular")
+        unbound = MatrixRepr(np.eye(2))
+        left, right = (bound, unbound) if bound_on_left else (unbound, bound)
+
+        result = {
+            "matmul": lambda: left @ right,
+            "ufunc_matmul": lambda: np.matmul(left, right),
+            "add": lambda: left + right,
+            "ufunc_add": lambda: np.add(left, right),
+        }[operator]()
+
+        assert result.algebra is bound.algebra
+        assert result.mode == "left-regular"
+        expected = vector if "matmul" in operator else vector + alg.identity
+        assert np.allclose(result.mv.data, expected.data)
+
+    @pytest.mark.parametrize("bound_on_left", [True, False])
+    def test_raw_array_preserves_bound_context(self, bound_on_left):
+        alg = Algebra(1)
+        vector = alg.basis_vectors()[0]
+        bound = to_matrix(vector, mode="left-regular")
+        identity = np.eye(2)
+        result = bound @ identity if bound_on_left else identity @ bound
+        assert result.algebra is bound.algebra
+        assert np.allclose(result.mv.data, vector.data)
+
+    def test_context_does_not_certify_raw_matrix_membership(self):
+        alg = Algebra(1)
+        bound = to_matrix(alg.identity, mode="left-regular")
+        raw = np.eye(2)
+        raw[0, 1] = 1
+        result = bound @ raw
+        assert result.algebra is bound.algebra
+        with pytest.raises(ValueError, match="not in the image"):
+            _ = result.mv
+
+    def test_tensor_product_has_no_inherited_algebra(self):
+        alg = Algebra(1)
+        bound = to_matrix(alg.identity, mode="left-regular")
+        result = bound.kron(MatrixRepr(np.eye(2)))
+        assert result.algebra is None
+        with pytest.raises(ValueError, match="No algebra reference"):
+            _ = result.mv
+
     def test_mode_propagates_through_add(self):
         A = MatrixRepr(np.eye(2, dtype=complex), mode="compact")
         B = MatrixRepr(np.eye(2, dtype=complex))
         C = A + B
         assert C.mode == "compact"
+
+    @pytest.mark.parametrize("operator", [lambda a, b: a + b, lambda a, b: a @ b, np.add, np.matmul])
+    def test_rejects_different_algebra_contexts(self, operator):
+        left = MatrixRepr(np.eye(2), algebra=Algebra(1), mode="left-regular")
+        right = MatrixRepr(np.eye(2), algebra=Algebra(1), mode="left-regular")
+        with pytest.raises(ValueError, match="different algebras"):
+            operator(left, right)
+
+    @pytest.mark.parametrize("field,value", [("mode", "compact"), ("basis", "weyl"), ("domain", "even")])
+    def test_rejects_different_representation_contexts(self, field, value):
+        alg = Algebra(1)
+        left = MatrixRepr(np.eye(2), algebra=alg, mode="left-regular")
+        options = {"mode": "left-regular", "basis": None, "domain": "full"}
+        options[field] = value
+        right = MatrixRepr(np.eye(2), algebra=alg, **options)
+        with pytest.raises(ValueError, match=f"different {field}"):
+            np.add(left, right)
+
+    def test_from_matrix_rejects_conflicting_explicit_algebra(self):
+        left = Algebra(1)
+        right = Algebra(1)
+        matrix = to_matrix(left.identity, mode="left-regular")
+        with pytest.raises(ValueError, match="does not match"):
+            from_matrix(right, matrix)
+
+    def test_ufunc_rejects_output_bound_to_another_algebra(self):
+        left = MatrixRepr(np.eye(2), algebra=Algebra(1), mode="left-regular")
+        output = MatrixRepr(np.zeros((2, 2)), algebra=Algebra(1), mode="left-regular")
+        with pytest.raises(ValueError, match="different algebras"):
+            np.add(left, left, out=output)
 
     def test_name_not_blindly_propagated(self):
         """Derived matrices carry expression trees, not copied display names."""
@@ -2104,7 +2210,8 @@ class TestSpinorKetBra:
         # For a rotor, ⟨ψ|ψ⟩ = 1
         assert np.isclose(abs(overlap), 1.0, atol=1e-10)
 
-    def test_operator_matmul_ket_gives_ket(self):
+    @pytest.mark.parametrize("operator", [lambda a, b: a @ b, np.matmul])
+    def test_operator_matmul_ket_gives_ket(self, operator):
         """operator @ ket returns ket."""
         from galaga_matrix import to_matrix, to_spinor_column
 
@@ -2112,10 +2219,13 @@ class TestSpinorKetBra:
         g = sta.basis_vectors()
         M = to_matrix(g[0], mode="dirac")
         ket = to_spinor_column(sta.scalar(1.0))
-        result = M @ ket
+        result = operator(M, ket)
         assert isinstance(result, MatrixRepr)
         assert result.kind == "ket"
         assert result.shape == (4, 1)
+        assert result.algebra is ket.algebra
+        assert result.domain == ket.domain
+        assert result.basis == ket.basis
 
     def test_from_spinor_column_single_arg(self):
         """from_spinor_column(MatrixRepr) works without explicit algebra."""
@@ -2349,6 +2459,13 @@ class TestQuaternionUnifiedStorage:
         M = to_matrix(v, mode="quaternion")
         v2 = from_matrix(M)
         assert np.allclose(v.data, v2.data, atol=1e-10)
+
+    def test_quat_rejects_matrix_outside_representation_image(self):
+        alg = Algebra(0, 2)
+        matrix = to_matrix(alg.basis_vectors()[0], mode="quaternion").mat.copy()
+        matrix[0, 0] += 0.5
+        with pytest.raises(ValueError, match="not in the image"):
+            from_matrix(alg, matrix, mode="quaternion")
 
     def test_quat_cl02_is_1x1(self):
         """Cl(0,2) quaternion matrix is 1×1 (2×2 complex backing)."""

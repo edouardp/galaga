@@ -53,6 +53,27 @@ lost information. A small matrix residual therefore need not imply a small
 native coefficient error. Choose reasonable metric units and inspect recovery
 errors, or use left-regular matrices for direct native coefficient recovery.
 
+### Left-regular inverse validates the entire matrix
+
+The first column of a left-regular matrix gives the candidate multivector's
+coefficients, but the remaining columns must equal its left action. A correctly
+shaped arbitrary matrix is not necessarily a Clifford representation.
+`from_matrix(..., mode="left-regular")` reconstructs the action and raises
+`ValueError` if it does not match. It also rejects nonreal coefficients.
+
+Bound `MatrixRepr` operands must share numeric algebra identity, mode, basis,
+and domain. A wrapper without an algebra, or a bare array, acts as an ordinary
+matrix operand. When one wrapper is bound, the result inherits that context
+regardless of operand order. Metadata on a result describes its intended context; it does
+not by itself certify membership in a Clifford representation. Conversion back
+to a multivector performs that check. `.kron()` returns an unbound wrapper
+because its result needs a separate tensor representation.
+
+For a tensor product of matrices from different algebras, operate on their
+`.mat` arrays with `np.kron(A.mat, B.mat)`. The resulting array has no inherited
+Galaga algebra context; attach one only after choosing a representation of the
+tensor-product algebra.
+
 ### General Gram matrices use an equivalent compact basis
 
 Explicit `mode="compact"` supports scaled diagonal and dense nonorthogonal

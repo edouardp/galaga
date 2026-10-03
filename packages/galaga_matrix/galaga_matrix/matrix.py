@@ -256,7 +256,8 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
     Args:
         alg_or_mat: The Clifford algebra, OR a MatrixRepr (if it carries an algebra).
         mat: A MatrixRepr or numpy array. Optional if first arg is a MatrixRepr.
-        mode: ``"left-regular"`` or ``"compact"``. Overridden by MatrixRepr.mode if present.
+        mode: ``"left-regular"``, ``"compact"``, ``"quaternion"``, ``"pauli"``, or
+            ``"dirac"``. Overridden by MatrixRepr.mode if present.
 
     Returns:
         The corresponding multivector. If the input MatrixRepr has a symbolic
@@ -284,6 +285,11 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
     mat_name: Name | None = None
     mat_basis = None
     if isinstance(mat, MatrixRepr):
+        if mat.algebra is not None and alg is not None:
+            source_numeric = getattr(mat.algebra, "numeric", mat.algebra)
+            target_numeric = getattr(alg, "numeric", alg)
+            if source_numeric is not target_numeric:
+                raise ValueError("MatrixRepr algebra does not match the requested algebra")
         if mat.mode:
             mode = mat.mode
         if mat.algebra is not None and alg is None:
@@ -319,6 +325,9 @@ def from_matrix(alg_or_mat, mat=None, mode: str = "left-regular") -> Multivector
         flat_mat = mat.reshape(k * k)
         b = np.concatenate([flat_mat.real, flat_mat.imag])
         coeffs, _, _, _ = np.linalg.lstsq(plan.reconstruction_system, b, rcond=None)
+        residual = np.linalg.norm(plan.reconstruction_system @ coeffs - b)
+        if residual > plan.inverse_tolerance * max(1.0, float(np.linalg.norm(b))):
+            raise ValueError("Matrix is not in the image of this quaternion representation.")
         mv = _new_multivector(alg, coeffs)
     else:
         raise ValueError(f"Unknown mode {mode!r}; use 'compact', 'left-regular', 'quaternion', 'pauli', or 'dirac'.")
@@ -343,9 +352,16 @@ def _from_left_regular(alg: Algebra, mat: np.ndarray) -> Multivector:
     dim = alg.dim
     if mat.shape != (dim, dim):
         raise ValueError(f"Expected ({dim}, {dim}) matrix, got {mat.shape}")
-    # The first column of L(M) is M * e_0 = M * 1 = M's coefficients
+    # The first column of L(M) is M * e_0 = M * 1 = M's coefficients.
+    # Other columns must agree with that candidate; shape alone proves nothing.
     data = mat[:, 0].copy()
-    return _new_multivector(alg, data)
+    if np.iscomplexobj(data) and not np.allclose(data.imag, 0, atol=1e-10, rtol=1e-10):
+        raise ValueError("Matrix is not in the image of this real Clifford representation.")
+    mv = _new_multivector(alg, data.real if np.iscomplexobj(data) else data)
+    reconstructed = _to_left_regular(mv)
+    if not np.allclose(mat, reconstructed, atol=1e-10, rtol=1e-10):
+        raise ValueError("Matrix is not in the image of this Clifford representation.")
+    return mv
 
 
 # ── Compact representation ──
