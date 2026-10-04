@@ -26,7 +26,7 @@ the point of use because the preset package exposes notation factories that
 also import composition. Type-only imports remain under `TYPE_CHECKING`.
 
 Keep the operator semantics and public component types from ADR-161. The
-facade, presenter, and YAML configuration continue to use the same recipes
+facade, presenter, and TOML configuration continue to use the same recipes
 and `compose` function.
 
 ## Consequences

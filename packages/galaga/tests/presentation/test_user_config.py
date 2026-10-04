@@ -1,4 +1,4 @@
-"""YAML preferences resolve into the existing immutable presentation types."""
+"""TOML preferences resolve into the existing immutable presentation types."""
 
 from __future__ import annotations
 
@@ -19,22 +19,26 @@ def _write(path: Path, source: str) -> Path:
     return path
 
 
+def _local_config(tmp_path, monkeypatch, source: str) -> Path:
+    monkeypatch.chdir(tmp_path)
+    return _write(tmp_path / ".galaga_python.toml", source)
+
+
 def test_discovery_layers_global_and_ancestor_presentation_defaults(tmp_path, monkeypatch):
     global_file = _write(
-        tmp_path / "xdg/galaga_python/config.yaml",
-        "version: 1\ndefaults:\n  presentation:\n    display: {coefficient_precision: 4}\n",
+        tmp_path / "xdg/galaga_python/config.toml",
+        "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 4\n",
     )
     project = tmp_path / "project"
-    _write(project / ".galaga_python", "version: 1\ndefaults:\n  presentation:\n    display: {content: full}\n")
+    _write(project / ".galaga_python.toml", 'version = 1\n[defaults.presentation.display]\ncontent = "full"\n')
     leaf = project / "notebooks"
     local_file = _write(
-        leaf / ".galaga_python", "version: 1\ndefaults:\n  presentation:\n    display: {coefficient_precision: 3}\n"
+        leaf / ".galaga_python.toml", "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 3\n"
     )
-    monkeypatch.delenv("GALAGA_CONFIG")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
 
     settings = config.load(start=leaf)
-    assert settings.sources == (global_file, project / ".galaga_python", local_file)
+    assert settings.sources == (global_file, project / ".galaga_python.toml", local_file)
     monkeypatch.chdir(leaf)
     algebra = Algebra(2)
     assert algebra.presentation.display.content == "full"
@@ -43,23 +47,22 @@ def test_discovery_layers_global_and_ancestor_presentation_defaults(tmp_path, mo
 
 
 def test_named_notation_hodge_latex_preserves_other_rules_and_numeric_value(tmp_path, monkeypatch):
-    path = _write(
-        tmp_path / "config.yaml",
-        """version: 1
-defaults:
-  presentation:
-    notation: {ref: textbook}
-notations:
-  textbook:
-    reverse: dagger
-    rules:
-      right_hodge_dual:
-        latex: {kind: superscript, symbol: '\\star'}
-      left_hodge_dual:
-        latex: {kind: subscript, symbol: '\\star'}
+    _local_config(
+        tmp_path,
+        monkeypatch,
+        """version = 1
+[defaults.presentation]
+notation = { ref = "textbook" }
+[notations.textbook]
+reverse = "dagger"
+[notations.textbook.rules.right_hodge_dual.latex]
+kind = "superscript"
+symbol = '\\star'
+[notations.textbook.rules.left_hodge_dual.latex]
+kind = "subscript"
+symbol = '\\star'
 """,
     )
-    monkeypatch.setenv("GALAGA_CONFIG", str(path))
     ordinary = Algebra(2, expr=True, notation=presets.notation.default())
     algebra = Algebra(2, expr=True)
     e1 = algebra.basis_vectors()[0]
@@ -76,30 +79,36 @@ notations:
     assert algebra.presentation.notation.rule("reverse", "latex") == presets.notation.hestenes().rule(
         "reverse", "latex"
     )
+    python_patch = presets.notation.override(
+        reverse="dagger",
+        latex={
+            "right_hodge_dual": RenderRule("superscript", symbol=r"\star"),
+            "left_hodge_dual": RenderRule("subscript", symbol=r"\star"),
+        },
+    )
+    assert python_patch.apply(presets.notation.default()) == config.load().notation("textbook").apply(
+        presets.notation.default()
+    )
 
 
 def test_named_objects_resolve_to_existing_types_and_compose(tmp_path):
     path = _write(
-        tmp_path / "config.yaml",
-        """version: 1
-defaults:
-  presentation:
-    display: {coefficient_precision: 5}
-notations:
-  textbook: {reverse: dagger}
-presentations:
-  article:
-    notation: {ref: textbook}
-    display: {target: latex}
-presenters:
-  values:
-    presentation: {ref: article}
-    content: value
-algebras:
-  spacetime:
-    preset: sta
-    args: {signature: mostly-minus, sigmas: true}
-    presentation: {ref: article}
+        tmp_path / "config.toml",
+        """version = 1
+[defaults.presentation.display]
+coefficient_precision = 5
+[notations.textbook]
+reverse = "dagger"
+[presentations.article]
+notation = { ref = "textbook" }
+display = { target = "latex" }
+[presenters.values]
+presentation = { ref = "article" }
+content = "value"
+[algebras.spacetime]
+preset = "sta"
+args = { signature = "mostly-minus", sigmas = true }
+presentation = { ref = "article" }
 """,
     )
     settings = config.load(files=[path])
@@ -119,11 +128,11 @@ algebras:
 
 
 def test_explicit_snapshots_and_overrides_outrank_files(tmp_path, monkeypatch):
-    path = _write(
-        tmp_path / "config.yaml",
-        "version: 1\ndefaults:\n  presentation:\n    display: {coefficient_precision: 3}\n",
+    _local_config(
+        tmp_path,
+        monkeypatch,
+        "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 3\n",
     )
-    monkeypatch.setenv("GALAGA_CONFIG", str(path))
     explicit = presets.euclidean(2).build()
     assert Algebra(config=explicit).presentation.display.coefficient_precision == 6
     assert Algebra(config=presets.euclidean(2)).presentation.display.coefficient_precision == 3
@@ -142,13 +151,43 @@ def test_explicit_snapshots_and_overrides_outrank_files(tmp_path, monkeypatch):
     )
 
 
-def test_file_changes_affect_new_algebras_not_existing_ones(tmp_path, monkeypatch):
-    path = _write(
-        tmp_path / "config.yaml", "version: 1\ndefaults:\n  presentation:\n    display: {coefficient_precision: 3}\n"
+def test_user_config_files_false_skips_defaults_for_every_facade_construction_path(tmp_path, monkeypatch):
+    _local_config(
+        tmp_path,
+        monkeypatch,
+        "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 3\n",
     )
-    monkeypatch.setenv("GALAGA_CONFIG", str(path))
+    numeric = Algebra(2).numeric
+    configured = presets.euclidean(2) | presets.display.override(content="full")
+
+    assert Algebra(2).presentation.display.coefficient_precision == 3
+    assert Algebra(2, user_config_files=False).presentation.display.coefficient_precision == 6
+    assert Algebra(config=presets.euclidean(2), user_config_files=False).presentation.display.coefficient_precision == 6
+    assert Algebra(config=configured, user_config_files=False).presentation.display.coefficient_precision == 6
+    assert Algebra(config=configured, user_config_files=False).presentation.display.content == "full"
+    assert Algebra.from_numeric(numeric, user_config_files=False).presentation.display.coefficient_precision == 6
+
+
+def test_user_config_files_false_does_not_read_a_malformed_local_file(tmp_path, monkeypatch):
+    _local_config(tmp_path, monkeypatch, "[malformed\n")
+    assert Algebra(2, user_config_files=False).n == 2
+    assert Algebra.from_numeric(Algebra(2, user_config_files=False).numeric, user_config_files=False).n == 2
+    with pytest.raises(config.ConfigError, match=".galaga_python.toml"):
+        Algebra(2)
+
+
+@pytest.mark.parametrize("value", [None, 0, "false"])
+def test_user_config_files_requires_boolean(value):
+    with pytest.raises(TypeError, match="user_config_files must be a boolean"):
+        Algebra(2, user_config_files=value)
+
+
+def test_file_changes_affect_new_algebras_not_existing_ones(tmp_path, monkeypatch):
+    path = _local_config(
+        tmp_path, monkeypatch, "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 3\n"
+    )
     first = Algebra(2)
-    _write(path, "version: 1\ndefaults:\n  presentation:\n    display: {coefficient_precision: 8}\n")
+    _write(path, "version = 1\n[defaults.presentation.display]\ncoefficient_precision = 8\n")
     assert first.presentation.display.coefficient_precision == 3
     assert Algebra(2).presentation.display.coefficient_precision == 8
     assert config.reload().sources == (path,)
@@ -171,23 +210,24 @@ def test_later_reverse_choice_clears_an_earlier_reverse_specific_rule():
 
 def test_local_profile_replaces_global_profile_while_defaults_merge(tmp_path, monkeypatch):
     _write(
-        tmp_path / "xdg/galaga_python/config.yaml",
-        """version: 1
-defaults: {presentation: {display: {coefficient_precision: 3}}}
-presentations:
-  report: {display: {target: latex}}
+        tmp_path / "xdg/galaga_python/config.toml",
+        """version = 1
+[defaults.presentation.display]
+coefficient_precision = 3
+[presentations.report.display]
+target = "latex"
 """,
     )
     project = tmp_path / "project"
     _write(
-        project / ".galaga_python",
-        """version: 1
-defaults: {presentation: {display: {content: full}}}
-presentations:
-  report: {display: {target: ascii}}
+        project / ".galaga_python.toml",
+        """version = 1
+[defaults.presentation.display]
+content = "full"
+[presentations.report.display]
+target = "ascii"
 """,
     )
-    monkeypatch.delenv("GALAGA_CONFIG")
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
     settings = config.load(start=project)
     monkeypatch.chdir(project)
@@ -199,16 +239,14 @@ presentations:
 
 def test_blades_names_and_order_resolve_against_target_dimension(tmp_path):
     path = _write(
-        tmp_path / "config.yaml",
-        """version: 1
-defaults:
-  presentation:
-    blades: {preset: indexed, args: {prefix: v}}
-    local_names: from_blades
-    display_order: bitmap
-algebras:
-  plane:
-    gram: [[1, 0.5], [0.5, 1]]
+        tmp_path / "config.toml",
+        """version = 1
+[defaults.presentation]
+blades = { preset = "indexed", args = { prefix = "v" } }
+local_names = "from_blades"
+display_order = "bitmap"
+[algebras.plane]
+gram = [[1, 0.5], [0.5, 1]]
 """,
     )
     settings = config.load(files=[path])
@@ -221,35 +259,38 @@ algebras:
 @pytest.mark.parametrize(
     "source, fragment",
     [
-        ("version: 1\nversion: 1\n", "duplicate key"),
-        ("version: 1\nfoo: bar\n", "unknown field"),
-        ("version: 2\n", "version"),
-        ("version: 1\nalgebras:\n  a: {preset: nope}\n", "unknown algebra preset"),
-        ("version: 1\nnotations:\n  a: {base: {ref: b}}\n  b: {base: {ref: a}}\n", "cycle"),
+        ("version = 1\nversion = 1\n", "config.toml"),
+        ("version = 1\n[unexpected]\nvalue = 1\n", "unknown field"),
+        ("version = 2\n", "version"),
+        ('version = 1\n[algebras.a]\npreset = "nope"\n', "unknown algebra preset"),
+        ('version = 1\n[notations.a]\nbase = { ref = "b" }\n[notations.b]\nbase = { ref = "a" }\n', "cycle"),
         (
-            "version: 1\nnotations:\n  a: {rules: {not_an_operation: {latex: {kind: function, symbol: x}}}}\n",
+            'version = 1\n[notations.a.rules.not_an_operation.latex]\nkind = "function"\nsymbol = "x"\n',
             "operation ID",
         ),
-        ("version: 1\nx: &x {a: 1}\ndefaults: *x\n", "aliases"),
-        ("version: 1\ndefaults: !!python/object/apply:os.system ['echo bad']\n", "constructor"),
-        ("version: 1\nalgebras:\n  a: {pqr: {p: 2}, gram: [[1]]}\n", "exactly one"),
-        ("version: 1\npresentations:\n  a: {extends: {ref: b}}\n  b: {extends: {ref: a}}\n", "cycle"),
+        ("version = 1\n[defaults\n", "config.toml"),
+        ("version = 1\n[algebras.a]\npqr = { p = 2 }\ngram = [[1]]\n", "exactly one"),
+        (
+            'version = 1\n[presentations.a]\nextends = { ref = "b" }\n[presentations.b]\nextends = { ref = "a" }\n',
+            "cycle",
+        ),
     ],
 )
 def test_bad_configuration_fails_at_load_time(tmp_path, source, fragment):
-    path = _write(tmp_path / "config.yaml", source)
+    path = _write(tmp_path / "config.toml", source)
     with pytest.raises(config.ConfigError, match=fragment):
         config.load(files=[path])
 
 
-def test_environment_switches_discovery_off_or_to_one_file(tmp_path, monkeypatch):
-    path = _write(tmp_path / "config.yaml", "version: 1\n")
-    monkeypatch.setenv("GALAGA_CONFIG", "none")
-    assert config.load().sources == ()
+def test_explicit_file_selection_and_retired_environment_variable(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    path = _write(tmp_path / "example.toml", "version = 1\n")
     monkeypatch.setenv("GALAGA_CONFIG", str(path))
-    assert config.load().sources == (path,)
-    monkeypatch.setenv("GALAGA_CONFIG", "relative.yaml")
-    with pytest.raises(config.ConfigError, match="absolute"):
-        config.load()
+    assert config.load().sources == ()
+    assert config.load(files=[path]).sources == (path,)
+
+    local = _write(tmp_path / ".galaga_python.toml", "version = 1\n")
+    monkeypatch.setenv("GALAGA_CONFIG", "none")
+    assert config.load().sources == (local,)
     with pytest.raises(config.ConfigError, match="existing file"):
-        config.load(files=[tmp_path / "missing.yaml"])
+        config.load(files=[tmp_path / "missing.toml"])

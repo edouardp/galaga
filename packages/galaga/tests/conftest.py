@@ -24,9 +24,9 @@ def reject_cached_legacy_modules():
 
 
 @pytest.fixture(autouse=True)
-def isolate_user_configuration(monkeypatch: pytest.MonkeyPatch) -> None:
-    """Keep repository tests independent of a developer's personal YAML file."""
-    monkeypatch.setenv("GALAGA_CONFIG", "none")
+def isolate_user_configuration(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    """Keep repository tests independent of a developer's global TOML file."""
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
 
 
 def pytest_sessionfinish(session: pytest.Session, exitstatus: int) -> None:

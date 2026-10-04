@@ -1,7 +1,7 @@
 # User Configuration Files for Galaga 2
 
 **Status:** Implemented on the Galaga 2 development branch. See
-[ADR-171](../adrs/171-layered-yaml-presentation-preferences.md).
+[ADR-171](../adrs/171-layered-toml-presentation-preferences.md).
 
 ## Purpose
 
@@ -9,7 +9,7 @@ A user should be able to set recurring presentation preferences once, such as
 coefficient precision, blade labels, or the LaTeX glyph for a Hodge dual. A
 project should be able to override those preferences. Named notations,
 presentation recipes, presenters, and algebra configurations should be
-reusable from Python without embedding Python code in YAML.
+reusable from Python without embedding Python code in TOML.
 
 The numeric meaning of an algebra must remain explicit. A default preference
 can change how a result is shown; it must not silently change a Gram matrix,
@@ -17,9 +17,9 @@ product backend, expression tracking, or the mathematical operation called.
 
 ## Files and discovery
 
-The global file is `~/.config/galaga_python/config.yaml`. If
-`XDG_CONFIG_HOME` is set, use `$XDG_CONFIG_HOME/galaga_python/config.yaml`
-instead. A local override is a YAML file named `.galaga_python` in the current
+The global file is `~/.config/galaga_python/config.toml`. If
+`XDG_CONFIG_HOME` is set, use `$XDG_CONFIG_HOME/galaga_python/config.toml`
+instead. A local override is a TOML file named `.galaga_python.toml` in the current
 working directory or any of its ancestors. The local name is a file, rather
 than a directory.
 
@@ -27,66 +27,70 @@ For a working directory `/work/project/notebooks`, read existing files in this
 order:
 
 1. The global file.
-2. `/.galaga_python`, `/work/.galaga_python`,
-   `/work/project/.galaga_python`, then
-   `/work/project/notebooks/.galaga_python`.
+2. `/.galaga_python.toml`, `/work/.galaga_python.toml`,
+   `/work/project/.galaga_python.toml`, then
+   `/work/project/notebooks/.galaga_python.toml`.
 
 The closest file has the last word. Discovery uses the process working
 directory at the time a configuration snapshot is loaded, not the location of
 an imported module or notebook. A missing file contributes nothing. Do not
 read or write configuration during `import galaga`.
 
-`GALAGA_CONFIG=none` disables discovery and uses built-in defaults.
-`GALAGA_CONFIG=/absolute/path/to/config.yaml` loads only that file, which makes
-scripts and tests independent of a developer's home and working directory.
-Relative paths, a missing explicit path, and other special values are errors.
 An explicit `load(start=..., files=...)` Python call can select sources without
-changing the process environment.
+changing the process environment. `files` loads exactly the paths supplied;
+the `GALAGA_CONFIG` environment variable has no effect on discovery.
 
-Each file must be a mapping with `version: 1`. Use a safe YAML parser: no
-Python object tags, executable constructors, or arbitrary imports. Reject
-duplicate keys and unknown fields with the file path and field path or parser
-location in the error. The loader rejects files larger than 1 MiB and YAML
-aliases. A malformed file fails when loaded; it must not be silently ignored.
+For one algebra, pass `user_config_files=False` to `Algebra(...)` or
+`Algebra.from_numeric(...)`. This skips file discovery for that construction;
+the default is `True`. Explicit presentation arguments still apply.
+
+Each file must be a TOML document with `version = 1`. Python's standard
+library `tomllib` parser rejects malformed TOML and duplicate keys. Galaga
+rejects unknown fields and files larger than 1 MiB. Errors include the file
+path and field path or parser location. A malformed file fails when loaded;
+it is never silently ignored.
 
 ## File shape
 
-```yaml
-version: 1
+See the [copyable example](../../examples/galaga-user-config.toml) for a
+complete user configuration file.
 
-defaults:
-  presentation:
-    notation: {ref: textbook}
-    display:
-      coefficient_precision: 5
+```toml
+version = 1
 
-notations:
-  textbook:
-    reverse: dagger
-    rules:
-      right_hodge_dual:
-        latex: {kind: superscript, symbol: '\star'}
-      left_hodge_dual:
-        latex: {kind: subscript, symbol: '\star'}
+[defaults.presentation]
+notation = { ref = "textbook" }
 
-presentations:
-  article:
-    notation: {ref: textbook}
-    display:
-      target: latex
-      content: full
-      coefficient_precision: 7
+[defaults.presentation.display]
+coefficient_precision = 5
 
-presenters:
-  article_value:
-    presentation: {ref: article}
-    display: {content: value}
+[notations.textbook]
+reverse = "dagger"
 
-algebras:
-  spacetime_article:
-    preset: sta
-    args: {signature: mostly-minus, sigmas: true}
-    presentation: {ref: article}
+[notations.textbook.rules.right_hodge_dual.latex]
+kind = "superscript"
+symbol = '\star'
+
+[notations.textbook.rules.left_hodge_dual.latex]
+kind = "subscript"
+symbol = '\star'
+
+[presentations.article]
+notation = { ref = "textbook" }
+
+[presentations.article.display]
+target = "latex"
+content = "full"
+coefficient_precision = 7
+
+[presenters.article_value]
+presentation = { ref = "article" }
+display = { content = "value" }
+
+[algebras.spacetime_article]
+preset = "sta"
+args = { signature = "mostly-minus", sigmas = true }
+presentation = { ref = "article" }
 ```
 
 The Hodge example changes only LaTeX rendering of the two named Hodge
@@ -106,20 +110,19 @@ other preset rules. Blade recipes resolve after the Gram matrix is known.
 
 For example, an indexed blade preference can omit the dimension:
 
-```yaml
-defaults:
-  presentation:
-    blades:
-      preset: indexed
-      args: {prefix: v}
-    display_order: grade-lexicographic
+```toml
+version = 1
+
+[defaults.presentation]
+blades = { preset = "indexed", args = { prefix = "v" } }
+display_order = "grade-lexicographic"
 ```
 
 The loader supplies the algebra dimension to a dimension-dependent blade
 factory and validates the resulting convention against the actual Gram
 matrix. Fixed-dimension or metric-specific blade recipes raise a clear error
 if applied to an incompatible algebra. A blade override does not silently
-change Python local names. Use `local_names: from_blades` to derive them from
+change Python local names. Use `local_names = "from_blades"` to derive them from
 the selected convention, or supply a complete `entries` mapping from Python
 identifiers to `{mask, sign}` blade references. The loader supplies and
 validates the algebra dimension. `display_order` accepts
@@ -134,12 +137,12 @@ a `RenderRule` description. `symbol` may be a string or a mapping with
 `ascii`, `unicode`, and `latex` fields; strings apply to the selected target.
 Rule kinds and their fields use the existing `RenderRule` validation. A
 notation may instead start from a built-in preset with
-`base: {preset: hestenes}` (or another named notation with
-`base: {ref: name}`). Its own rules apply last. Reference cycles are errors.
+`base = { preset = "hestenes" }` (or another named notation with
+`base = { ref = "name" }`). Its own rules apply last. Reference cycles are errors.
 
 `presentations` entries are dimension-independent `PresentationRecipe`
 values. They accept the same slots as `defaults.presentation`, plus
-`extends: {ref: other_presentation}`. The base recipe applies first; supplied
+`extends = { ref = "other_presentation" }`. The base recipe applies first; supplied
 fields apply second. They do not contain a metric.
 
 `presenters` entries resolve to `Presenter` values. They may refer to a named
@@ -151,13 +154,13 @@ it does not mutate the algebra.
 an explicit `pqr`, `signature`, or `gram` definition. Exactly one numeric
 source is required. A named algebra may attach a named or inline presentation
 recipe. It resolves to an `AlgebraConfig` whose metric and model come from
-the selected numeric source. YAML does not create Python classes or invoke
+the selected numeric source. TOML does not create Python classes or invoke
 factories outside an explicit Galaga allowlist. Preset arguments are validated
 against the actual factory signature. Named algebras cannot change the metric
 through a presentation reference.
 
 Names are unique within each section; the same name may occur in different
-sections because references are typed. `{ref: ...}` always refers to the
+sections because references are typed. `{ ref = "..." }` always refers to the
 section expected by its field. A missing or cyclic reference is an error.
 
 ## Layering and precedence
@@ -194,6 +197,9 @@ from galaga import Algebra, config, presets
 # File defaults apply automatically to new facade algebras.
 space = Algebra(config=presets.euclidean(3))
 
+# Use built-in presentation defaults for just this construction.
+plain_space = Algebra(3, user_config_files=False)
+
 # Explicitly load a snapshot and select named objects.
 settings = config.load()
 sta = Algebra(config=settings.algebra("spacetime_article"))
@@ -219,20 +225,20 @@ resolved presentation it had at construction time.
 
 The file loader is an adapter over `AlgebraConfig`, `PresentationRecipe`,
 `Presenter`, `DisplayPolicy`, `Notation`, and `RenderRule`. `NotationPatch`
-supports rule-level overrides, so a sparse YAML setting preserves a preset's
-other rules. The YAML parser is a direct dependency of `galaga` because
-default loading is automatic, but parsing is deferred until a configuration
-source is needed. `galaga.core` remains free of file and YAML dependencies.
+supports rule-level overrides, so a sparse TOML setting preserves a preset's
+other rules. TOML parsing uses Python 3.11+'s standard library `tomllib`;
+the parser adds no runtime dependency. Parsing is deferred until a
+configuration source is needed. `galaga.core` remains free of file dependencies.
 
 Version 1 does not support executable expressions, imports, environment
-interpolation inside YAML, arbitrary factory calls, or automatic numeric
+interpolation inside TOML, arbitrary factory calls, or automatic numeric
 defaults. Later schema changes require a new `version` value rather than
 guessing how to interpret an older file.
 
 ## Acceptance criteria
 
 - Global and every ancestor file apply in documented order; the nearest
-  override wins. The environment controls provide hermetic behavior.
+  override wins. Explicit `files` selection provides a controlled snapshot.
 - `Algebra(3)`, `Algebra(config=presets.sta())`, and
   `Algebra.from_numeric(...)` receive sparse defaults as specified, while
   explicit snapshots, `galaga.core`, and existing algebras remain unchanged.
@@ -241,7 +247,7 @@ guessing how to interpret an older file.
 - Named notation, presentation, presenter, and algebra profiles resolve to the
   existing Python types and compose with the current `|`, `with_*`, and
   `use_*` APIs.
-- Invalid YAML, unknown factories/operation IDs, incompatible dimensions,
+- Invalid TOML, unknown factories/operation IDs, incompatible dimensions,
   ambiguous numeric sources, and reference cycles fail with actionable paths.
 - Unit tests cover precedence, explicit overrides, cwd changes, file edits,
   safe parsing, and parallel or scoped use. Documentation examples execute.

@@ -1,9 +1,10 @@
-"""Safe, layered YAML preferences for facade presentation and named recipes."""
+"""Layered TOML preferences for facade presentation and named recipes."""
 
 from __future__ import annotations
 
 import inspect
 import os
+import tomllib
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from pathlib import Path
@@ -71,7 +72,7 @@ def _name(value: Any, source: Path, where: str) -> str:
 def _reference(value: Any, source: Path, where: str) -> str:
     mapping = _mapping(value, source, where, frozenset({"ref"}))
     if set(mapping) != {"ref"}:
-        raise _error(source, where, "expected {ref: name}")
+        raise _error(source, where, "expected {ref = 'name'}")
     return _name(mapping["ref"], source, where + ".ref")
 
 
@@ -83,37 +84,12 @@ def _parse(path: Path) -> Mapping[str, Any]:
     if size > _MAX_BYTES:
         raise _error(path, "root", "configuration file exceeds 1 MiB")
     try:
-        import yaml
-    except ImportError as error:  # pragma: no cover - declared runtime dependency
-        raise ConfigError("YAML configuration requires PyYAML") from error
-
-    class StrictLoader(yaml.SafeLoader):
-        def compose_node(self, parent: Any, index: Any) -> Any:
-            if self.check_event(yaml.AliasEvent):
-                event = self.peek_event()
-                raise yaml.constructor.ConstructorError(None, None, "YAML aliases are not supported", event.start_mark)
-            return super().compose_node(parent, index)
-
-        def construct_mapping(self, node: Any, deep: bool = False) -> dict[str, Any]:
-            if not isinstance(node, yaml.MappingNode):
-                raise yaml.constructor.ConstructorError(None, None, "expected a mapping", node.start_mark)
-            result: dict[str, Any] = {}
-            for key_node, value_node in node.value:
-                key = self.construct_object(key_node, deep=deep)
-                if not isinstance(key, str):
-                    raise yaml.constructor.ConstructorError(None, None, "keys must be strings", key_node.start_mark)
-                if key in result:
-                    raise yaml.constructor.ConstructorError(None, None, f"duplicate key {key!r}", key_node.start_mark)
-                result[key] = self.construct_object(value_node, deep=deep)
-            return result
-
-    try:
-        value = yaml.load(path.read_text(encoding="utf-8"), Loader=StrictLoader)  # nosec B506 - SafeLoader subclass
-    except (OSError, UnicodeError, yaml.YAMLError) as error:
+        value = tomllib.loads(path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
         raise ConfigError(f"{path}: {error}") from error
     mapping = _mapping(value, path, "root", frozenset({"version", "defaults", *_SECTIONS}))
     if type(mapping.get("version")) is not int or mapping["version"] != 1:
-        raise _error(path, "version", "expected version: 1")
+        raise _error(path, "version", "expected version = 1")
     return mapping
 
 
@@ -124,22 +100,14 @@ def _discover(start: Path | None, files: Sequence[Path] | None) -> tuple[Path, .
             if not path.is_file():
                 raise ConfigError(f"{path}: configuration source must be an existing file")
         return tuple(path.resolve() for path in selected)
-    setting = os.environ.get("GALAGA_CONFIG")
-    if setting is not None:
-        if setting == "none":
-            return ()
-        path = Path(setting)
-        if not path.is_absolute() or not path.is_file():
-            raise ConfigError("GALAGA_CONFIG must be 'none' or an existing absolute file path")
-        return (path.resolve(),)
     xdg = os.environ.get("XDG_CONFIG_HOME")
     if xdg is not None and not Path(xdg).is_absolute():
         raise ConfigError("XDG_CONFIG_HOME must be an absolute path")
-    global_file = (Path(xdg) if xdg else Path.home() / ".config") / "galaga_python" / "config.yaml"
+    global_file = (Path(xdg) if xdg else Path.home() / ".config") / "galaga_python" / "config.toml"
     current = (Path.cwd() if start is None else Path(start)).resolve()
     if not current.is_dir():
         raise ConfigError(f"{current}: configuration start must be a directory")
-    local = tuple(parent / ".galaga_python" for parent in reversed((current, *current.parents)))
+    local = tuple(parent / ".galaga_python.toml" for parent in reversed((current, *current.parents)))
     for path in (global_file, *local):
         if path.exists() and not path.is_file():
             raise ConfigError(f"{path}: configuration source must be a file")
@@ -417,7 +385,7 @@ class Settings:
 
 
 def load(*, start: Path | None = None, files: Sequence[Path] | None = None) -> Settings:
-    """Read and validate global and ancestor YAML configuration files."""
+    """Read and validate global and ancestor TOML configuration files."""
     sources = _discover(start, files)
     defaults: list[_Entry] = []
     names: dict[str, dict[str, _Entry]] = {section: {} for section in _SECTIONS}

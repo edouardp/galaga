@@ -47,6 +47,8 @@ class Algebra:
     ``expr=True`` makes public value factories infer expression provenance by
     default. Per-factory ``expr=False`` opts out; omitted or ``None`` inherits.
     This facade policy does not alter numeric evaluation or operation dispatch.
+    ``user_config_files=False`` skips ambient presentation preferences for
+    this algebra; the default is to load them.
     """
 
     __slots__ = (
@@ -64,6 +66,7 @@ class Algebra:
         *args: Any,
         config: AlgebraConfig | Preset | None = None,
         expr: bool = False,
+        user_config_files: bool = True,
         presentation: PresentationConfig | None = None,
         blades: BladeConvention | BladePreset | None = None,
         notation: Notation | None = None,
@@ -73,6 +76,8 @@ class Algebra:
         **kwargs: Any,
     ) -> None:
         _require_expr_flag(expr)
+        if not isinstance(user_config_files, bool):
+            raise TypeError("user_config_files must be a boolean")
         self._expr = expr
         if config is not None:
             if args or kwargs:
@@ -82,14 +87,14 @@ class Algebra:
                 raise TypeError(f"config= defines the numeric algebra and cannot be combined with {details}")
             if isinstance(config, ConfiguredPreset):
                 expanded = _expand_config(config.base)
-                if not isinstance(config.base, AlgebraConfig):
+                if user_config_files and not isinstance(config.base, AlgebraConfig):
                     expanded = expanded.with_presentation(
                         apply_defaults(expanded.presentation, expanded.definition.gram)
                     )
                 expanded = config.presentation.apply(expanded)
             else:
                 expanded = _expand_config(config)
-                if not isinstance(config, AlgebraConfig):
+                if user_config_files and not isinstance(config, AlgebraConfig):
                     expanded = expanded.with_presentation(
                         apply_defaults(expanded.presentation, expanded.definition.gram)
                     )
@@ -112,7 +117,8 @@ class Algebra:
                     args = ()
             self._numeric = core.Algebra(*args, **kwargs)
             base_presentation = default_presentation(self._numeric.n)
-            base_presentation = apply_defaults(base_presentation, self._numeric.gram)
+            if user_config_files:
+                base_presentation = apply_defaults(base_presentation, self._numeric.gram)
             self._model = None
 
         if presentation is not None:
@@ -146,13 +152,18 @@ class Algebra:
         presentation: PresentationConfig | None = None,
         model: ModelConfig | None = None,
         expr: bool = False,
+        user_config_files: bool = True,
     ) -> Algebra:
         """Create a facade over an existing numeric algebra."""
         if not isinstance(numeric, core.Algebra):
             raise TypeError("numeric must be a core.Algebra")
         _require_expr_flag(expr)
+        if not isinstance(user_config_files, bool):
+            raise TypeError("user_config_files must be a boolean")
         if presentation is None:
-            selected = apply_defaults(default_presentation(numeric.n), numeric.gram)
+            selected = default_presentation(numeric.n)
+            if user_config_files:
+                selected = apply_defaults(selected, numeric.gram)
         else:
             selected = _require_presentation(presentation)
         if selected.dimension != numeric.n:

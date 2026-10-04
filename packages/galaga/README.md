@@ -189,7 +189,21 @@ direct `display=` arguments and has the same sparse override behavior.
 To change only the reverse symbol of a complete preset, use
 `presets.notation.override(reverse="dagger")` or `reverse="tilde"`. For example,
 `Algebra(config=presets.sta() | presets.notation.override(reverse="dagger"))`
-keeps the preset's other notation rules. See the
+keeps the preset's other notation rules. For any other operation, pass a
+`RenderRule` in a target map:
+
+```python
+from galaga import RenderRule, presets
+
+notation = presets.notation.override(
+    reverse="dagger",
+    latex={"right_hodge_dual": RenderRule("superscript", symbol=r"\star")},
+)
+```
+
+`rules={"dual": RenderRule("function", symbol="my_dual")}` changes a generic
+rule; tuple keys such as `("dual", "latex")` select one target. The factory
+also accepts `ascii=` and `unicode=` mappings. See the
 [notation override notebook](../../examples/galaga_v2/notation_overrides.py).
 
 Select only blade names or operation notation when the metric is already known:
@@ -228,31 +242,44 @@ These change
 rendering, not the operation called. See the [preset lesson][preset-lesson]
 and [presentation guide][presentation] for lower-level customization.
 
-## Save presentation preferences in YAML
+## Save presentation preferences in TOML
 
-Galaga reads `~/.config/galaga_python/config.yaml` and any `.galaga_python`
+Galaga reads `~/.config/galaga_python/config.toml` and any `.galaga_python.toml`
 files from the filesystem root through the working directory when it creates
 a facade `Algebra`. Closer files override earlier preferences. For example:
 
-```yaml
-version: 1
-defaults:
-  presentation:
-    display: {coefficient_precision: 4}
-    notation: {ref: textbook}
-notations:
-  textbook:
-    rules:
-      right_hodge_dual:
-        latex: {kind: superscript, symbol: '\star'}
+```toml
+version = 1
+
+[defaults.presentation]
+notation = { ref = "textbook" }
+
+[defaults.presentation.display]
+coefficient_precision = 4
+
+[notations.textbook.rules.right_hodge_dual.latex]
+kind = "superscript"
+symbol = '\star'
 ```
 
-Named presentations, presenters, and algebras are available through
-`from galaga import config` and `settings = config.load()`. A complete
-`AlgebraConfig` is an exact snapshot and bypasses file defaults. Set
-`GALAGA_CONFIG=none` to use built-in defaults. See the
+No explicit load call is needed for the default preferences:
+
+```python
+from galaga import Algebra
+
+space = Algebra(3)  # reads the current TOML preferences automatically
+```
+
+Each new facade algebra reads the current files, so edits affect new algebras
+without changing existing ones. Use `from galaga import config` and
+`settings = config.load()` when selecting named presentations, presenters, or
+algebras, or when inspecting the resolved files. A complete
+`AlgebraConfig` is an exact snapshot and bypasses file defaults. See the
 [user configuration guide](../../docs/v2/user-configuration-spec.md) for the
 file schema and precedence rules.
+
+Pass `user_config_files=False` to `Algebra(...)` or `Algebra.from_numeric(...)`
+to skip user configuration files for one construction. The default is `True`.
 
 ## Values, blades, names and expressions
 
