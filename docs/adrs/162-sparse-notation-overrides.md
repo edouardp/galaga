@@ -33,5 +33,27 @@ still replaces a preceding patch or notation slot.
 
 `Algebra(config=presets.sta() |
 presets.notation.override(reverse="dagger"))` preserves the STA metric, blade
-names, model, and all unrelated notation. The patch is deliberately small;
-more keyword overrides can be added when a common teaching need is clear.
+names, model, and all unrelated notation. The initial factory covered only
+the reverse style.
+
+## Amendment: operation and target rules
+
+TOML presentation preferences can replace a rule for one operation and
+output target without replacing the rest of the notation. Give the Python
+factory the same expressive range. Keep `reverse=` as the common shorthand,
+and accept `rules=` with the key forms used by `Notation`: an operation ID
+for a generic rule, or `(operation_id, target)` for a target-specific rule.
+Add `ascii=`, `unicode=`, and `latex=` mappings as concise target-grouped
+spellings. Every value is an explicit `RenderRule`, so the rule kind remains
+clear. Repeated keys across arguments are errors. An explicit reverse rule
+applies after the `reverse=` shorthand.
+
+```python
+presets.notation.override(
+    reverse="dagger",
+    latex={"right_hodge_dual": RenderRule("superscript", symbol=r"\star")},
+)
+```
+
+The factory returns the existing `NotationPatch`; the composition and
+inheritance rules above are unchanged.

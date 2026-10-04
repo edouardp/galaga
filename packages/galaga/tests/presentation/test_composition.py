@@ -96,6 +96,34 @@ def test_sparse_reverse_patch_validates_style_and_type():
         NotationPatch(reverse="dagger").apply("not notation")  # type: ignore[arg-type]
 
 
+def test_notation_override_factory_accepts_generic_and_target_rules():
+    generic = RenderRule("function", symbol="my_dual")
+    latex = RenderRule("superscript", symbol=r"\star")
+    unicode = RenderRule("superscript", symbol="★")
+    patch = presets.notation.override(
+        reverse="dagger",
+        rules={"dual": generic},
+        unicode={"right_hodge_dual": unicode},
+        latex={"right_hodge_dual": latex},
+    )
+    base = presets.notation.default()
+    selected = patch.apply(base)
+
+    assert selected.rule("dual", "ascii") is generic
+    assert selected.rule("right_hodge_dual", "unicode") is unicode
+    assert selected.rule("right_hodge_dual", "latex") is latex
+    assert selected.rule("reverse", "latex") == presets.notation.hestenes().rule("reverse", "latex")
+    assert selected.rule("geometric_product", "latex") == base.rule("geometric_product", "latex")
+
+
+def test_notation_override_rejects_conflicting_target_keys():
+    rule = RenderRule("function", symbol="dual")
+    with pytest.raises(ValueError, match="duplicate notation rule"):
+        presets.notation.override(rules={("dual", "latex"): rule}, latex={"dual": rule})
+    with pytest.raises(TypeError, match="latex must be a mapping"):
+        presets.notation.override(latex=rule)  # type: ignore[arg-type]
+
+
 def test_different_component_classes_promote_to_an_immutable_right_biased_recipe():
     notation = presets.notation.hestenes()
     first_display = DisplayPolicy(coefficient_precision=4)

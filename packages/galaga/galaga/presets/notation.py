@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from typing import Literal
 
 from ..composition import NotationPatch as _NotationPatch
 from ..presentation import Notation as _Notation
+from ..presentation import RenderRule as _RenderRule
+from ..presentation import _normalize_rules
 
 __all__ = [
     "default",
@@ -54,9 +57,32 @@ def lengyel_rga() -> _Notation:
     return _Notation.lengyel_rga()
 
 
-def override(*, reverse: Literal["tilde", "dagger"]) -> _NotationPatch:
-    """Change a common operation style while retaining the base notation."""
-    return _NotationPatch(reverse=reverse)
+def override(
+    *,
+    reverse: Literal["tilde", "dagger"] | None = None,
+    rules: Mapping[str | tuple[str, str], _RenderRule] | None = None,
+    ascii: Mapping[str, _RenderRule] | None = None,
+    unicode: Mapping[str, _RenderRule] | None = None,
+    latex: Mapping[str, _RenderRule] | None = None,
+) -> _NotationPatch:
+    """Override selected operation rules while inheriting every other rule.
+
+    ``rules`` uses the same keys as ``Notation``: an operation ID for a
+    target-neutral rule, or ``(operation_id, target)`` for one output target.
+    The target maps are convenient spellings for target-specific changes.
+    """
+    entries: list[tuple[str | tuple[str, str], _RenderRule]] = []
+    if rules is not None:
+        if not isinstance(rules, Mapping):
+            raise TypeError("notation override rules must be a mapping")
+        entries.extend(rules.items())
+    for target, selected in (("ascii", ascii), ("unicode", unicode), ("latex", latex)):
+        if selected is None:
+            continue
+        if not isinstance(selected, Mapping):
+            raise TypeError(f"notation override {target} must be a mapping")
+        entries.extend(((operation_id, target), rule) for operation_id, rule in selected.items())
+    return _NotationPatch(reverse=reverse, rules=_normalize_rules(entries))
 
 
 def __dir__() -> list[str]:

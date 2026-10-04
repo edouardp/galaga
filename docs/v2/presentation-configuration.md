@@ -487,7 +487,11 @@ sta = Algebra(config=presets.sta() | presets.notation.override(reverse="dagger")
 The patch keeps the preset's other notation rules and presentation settings.
 `reverse="tilde"` restores the conventional reverse symbol. A later patch
 wins when both set `reverse`; a complete notation on the right replaces the
-notation slot. See the [notation override notebook](../../examples/galaga_v2/notation_overrides.py).
+notation slot. `presets.notation.override(latex={"right_hodge_dual":
+RenderRule("superscript", symbol=r"\star")})` replaces only one target rule.
+The factory also accepts `ascii=`, `unicode=`, and a `rules=` map with generic
+operation IDs or `(operation_id, target)` keys. See the
+[notation override notebook](../../examples/galaga_v2/notation_overrides.py).
 
 | Preset | Numeric definition | Presentation highlights |
 |---|---|---|
