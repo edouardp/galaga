@@ -17,10 +17,11 @@ version = 1
 # presentation; an algebra's metric and operations still come from its
 # constructor arguments or explicit algebra configuration.
 #
-# A presentation is sparse: omit any setting you want to inherit. The ref
-# below selects the named notation defined later in this file.
+# A presentation is sparse: omit any setting you want to inherit. The @ prefix
+# selects a named profile in reference fields. Here it selects the notation
+# defined later in this file; a literal notation rule would use a TOML table.
 [defaults.presentation]
-notation = { ref = "textbook" }
+notation = "@textbook"
 
 # This is the default number of decimal places shown for coefficients.
 # A presentation chosen explicitly in Python can override it.
@@ -52,18 +53,23 @@ symbol = '\star'
 # presentation= argument or with algebra.with_presentation(...).
 # This profile requests LaTeX output and a fuller expression display.
 [presentations.article]
-notation = { ref = "textbook" }
+notation = "@textbook"
 display = { target = "latex", content = "full", coefficient_precision = 6 }
 
 # A named presenter can build on a presentation and specialize one setting.
 # Here it displays values rather than the full expression. Use it as
 # settings.presenter("article_value")(multivector).
 [presenters.article_value]
-presentation = { ref = "article" }
+presentation = "@article"
 content = "value"
 
 # Named algebras contain an explicit numeric definition. They do not replace
 # the constructor's metric by default. To use this one:
+#
+#     spacetime = Algebra(config="@spacetime_article")
+#
+# This name is resolved from the discovered files on each construction. To
+# hold a fixed configuration, use a resolved snapshot instead:
 #
 #     settings = config.load()
 #     spacetime = Algebra(config=settings.algebra("spacetime_article"))
@@ -73,4 +79,4 @@ content = "value"
 [algebras.spacetime_article]
 preset = "sta"
 args = { signature = "mostly-minus", sigmas = true }
-presentation = { ref = "article" }
+presentation = "@article"

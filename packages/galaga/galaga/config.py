@@ -66,14 +66,15 @@ def _mapping(value: Any, source: Path, where: str, allowed: frozenset[str] | Non
 def _name(value: Any, source: Path, where: str) -> str:
     if not isinstance(value, str) or not value:
         raise _error(source, where, "expected a non-empty string")
+    if value.startswith("@"):
+        raise _error(source, where, "names starting with '@' are reserved for references")
     return value
 
 
 def _reference(value: Any, source: Path, where: str) -> str:
-    mapping = _mapping(value, source, where, frozenset({"ref"}))
-    if set(mapping) != {"ref"}:
-        raise _error(source, where, "expected {ref = 'name'}")
-    return _name(mapping["ref"], source, where + ".ref")
+    if not isinstance(value, str) or not value.startswith("@"):
+        raise _error(source, where, "expected a reference string such as '@name'")
+    return _name(value[1:], source, where)
 
 
 def _parse(path: Path) -> Mapping[str, Any]:
@@ -149,18 +150,19 @@ class Settings:
         data = _mapping(entry.value, entry.source, f"notations.{name}", frozenset({"base", "reverse", "rules"}))
         base: Notation | NotationPatch = NotationPatch()
         if "base" in data:
-            source = _mapping(data["base"], entry.source, f"notations.{name}.base", frozenset({"ref", "preset"}))
-            if set(source) == {"ref"}:
-                base = self._notation(_name(source["ref"], entry.source, "base.ref"), (*stack, name))
-            elif set(source) == {"preset"}:
-                preset_name = _name(source["preset"], entry.source, "base.preset")
+            selection = data["base"]
+            if isinstance(selection, str):
+                base = self._notation(_reference(selection, entry.source, f"notations.{name}.base"), (*stack, name))
+            else:
+                source = _mapping(selection, entry.source, f"notations.{name}.base", frozenset({"preset"}))
+                if set(source) != {"preset"}:
+                    raise _error(entry.source, f"notations.{name}.base", "expected '@name' or {preset = 'name'}")
+                preset_name = _name(source["preset"], entry.source, f"notations.{name}.base.preset")
                 if preset_name not in _NOTATION_PRESETS:
                     raise _error(entry.source, f"notations.{name}.base", f"unknown notation preset {preset_name!r}")
                 from . import presets
 
                 base = getattr(presets.notation, preset_name)()
-            else:
-                raise _error(entry.source, f"notations.{name}.base", "expected ref or preset")
         reverse = data.get("reverse")
         rules = self._rules(data.get("rules", {}), entry.source, f"notations.{name}.rules")
         try:
@@ -240,7 +242,7 @@ class Settings:
         notation: Notation | NotationPatch | None = None
         if "notation" in data:
             selection = data["notation"]
-            if isinstance(selection, Mapping) and set(selection) == {"ref"}:
+            if isinstance(selection, str):
                 notation = self.notation(_reference(selection, source, "presentation.notation"))
             else:
                 inline = _mapping(selection, source, "presentation.notation", frozenset({"reverse", "rules", "base"}))
@@ -377,7 +379,7 @@ class Settings:
             selection = data["presentation"]
             recipe = (
                 self.presentation(_reference(selection, entry.source, f"algebras.{name}.presentation"))
-                if isinstance(selection, Mapping) and set(selection) == {"ref"}
+                if isinstance(selection, str)
                 else self._recipe(selection, entry.source)
             )
             selected = recipe.apply(selected)

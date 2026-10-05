@@ -22,6 +22,7 @@ from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
 from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe
 from ..config import apply_defaults
+from ..config import load as load_user_config
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
 from ..names import Name
 from ..presentation import (
@@ -48,7 +49,8 @@ class Algebra:
     default. Per-factory ``expr=False`` opts out; omitted or ``None`` inherits.
     This facade policy does not alter numeric evaluation or operation dispatch.
     ``user_config_files=False`` skips ambient presentation preferences for
-    this algebra; the default is to load them.
+    this algebra; the default is to load them. ``config="@name"`` explicitly
+    selects a named algebra from those files.
     """
 
     __slots__ = (
@@ -64,7 +66,7 @@ class Algebra:
     def __init__(
         self,
         *args: Any,
-        config: AlgebraConfig | Preset | None = None,
+        config: AlgebraConfig | Preset | str | None = None,
         expr: bool = False,
         user_config_files: bool = True,
         presentation: PresentationConfig | None = None,
@@ -85,6 +87,12 @@ class Algebra:
                 conflicting.extend(f"{name}=" for name in sorted(kwargs))
                 details = ", ".join(conflicting)
                 raise TypeError(f"config= defines the numeric algebra and cannot be combined with {details}")
+            if isinstance(config, str):
+                if not config.startswith("@") or len(config) == 1 or config[1] == "@":
+                    raise ValueError("config string must be a named algebra reference such as '@name'")
+                if not user_config_files:
+                    raise ValueError("config='@name' requires user_config_files=True")
+                config = load_user_config().algebra(config[1:])
             if isinstance(config, ConfiguredPreset):
                 expanded = _expand_config(config.base)
                 if user_config_files and not isinstance(config.base, AlgebraConfig):

@@ -52,7 +52,7 @@ def test_named_notation_hodge_latex_preserves_other_rules_and_numeric_value(tmp_
         monkeypatch,
         """version = 1
 [defaults.presentation]
-notation = { ref = "textbook" }
+notation = "@textbook"
 [notations.textbook]
 reverse = "dagger"
 [notations.textbook.rules.right_hodge_dual.latex]
@@ -100,15 +100,15 @@ coefficient_precision = 5
 [notations.textbook]
 reverse = "dagger"
 [presentations.article]
-notation = { ref = "textbook" }
+notation = "@textbook"
 display = { target = "latex" }
 [presenters.values]
-presentation = { ref = "article" }
+presentation = "@article"
 content = "value"
 [algebras.spacetime]
 preset = "sta"
 args = { signature = "mostly-minus", sigmas = true }
-presentation = { ref = "article" }
+presentation = "@article"
 """,
     )
     settings = config.load(files=[path])
@@ -125,6 +125,96 @@ presentation = { ref = "article" }
     assert algebra.with_notation(settings.notation("textbook")).presentation.notation.rule("reverse", "latex") == (
         presets.notation.hestenes().rule("reverse", "latex")
     )
+
+
+def test_named_references_resolve_through_notation_and_presentation_inheritance(tmp_path):
+    path = _write(
+        tmp_path / "config.toml",
+        """version = 1
+[notations.foundation]
+base = { preset = "hestenes" }
+[notations.derived]
+base = "@foundation"
+[presentations.foundation]
+notation = "@derived"
+[presentations.article]
+extends = "@foundation"
+display = { target = "latex" }
+[presenters.article_value]
+presentation = "@article"
+content = "value"
+[algebras.plane]
+pqr = { p = 2, q = 0, r = 0 }
+presentation = "@article"
+""",
+    )
+    settings = config.load(files=[path])
+    algebra = Algebra(config=settings.algebra("plane"))
+    assert algebra.presentation.notation.rule("reverse", "latex") == presets.notation.hestenes().rule(
+        "reverse", "latex"
+    )
+    assert algebra.presentation.display.target == "latex"
+    assert settings.presenter("article_value")(algebra.basis_vectors()[0]).presentation.display.content == "value"
+
+
+def test_inline_settings_remain_tables_next_to_named_references(tmp_path):
+    path = _write(
+        tmp_path / "config.toml",
+        """version = 1
+[defaults.presentation.notation]
+reverse = "dagger"
+[algebras.plane]
+pqr = { p = 2, q = 0, r = 0 }
+presentation = { display = { target = "ascii" } }
+""",
+    )
+    algebra = Algebra(config=config.load(files=[path]).algebra("plane"))
+    assert algebra.presentation.notation.rule("reverse", "latex") == presets.notation.hestenes().rule(
+        "reverse", "latex"
+    )
+    assert algebra.presentation.display.target == "ascii"
+
+
+def test_algebra_constructor_resolves_named_config_from_discovered_files(tmp_path, monkeypatch):
+    _local_config(
+        tmp_path,
+        monkeypatch,
+        """version = 1
+[defaults.presentation.display]
+coefficient_precision = 4
+[algebras.plane]
+pqr = { p = 2, q = 0, r = 0 }
+presentation = { display = { target = "ascii" } }
+""",
+    )
+    algebra = Algebra(config="@plane")
+    np.testing.assert_array_equal(algebra.gram, Algebra(2, user_config_files=False).gram)
+    assert algebra.presentation.display.coefficient_precision == 4
+    assert algebra.presentation.display.target == "ascii"
+    assert (
+        Algebra(
+            config="@plane", display=DisplayPolicy(coefficient_precision=9)
+        ).presentation.display.coefficient_precision
+        == 9
+    )
+
+
+def test_named_algebra_constructor_rejects_opt_out_before_reading_files(tmp_path, monkeypatch):
+    _local_config(tmp_path, monkeypatch, "[malformed\n")
+    with pytest.raises(ValueError, match="requires user_config_files=True"):
+        Algebra(config="@plane", user_config_files=False)
+
+
+@pytest.mark.parametrize("reference", ["plane", "@", "@@plane"])
+def test_algebra_constructor_rejects_invalid_named_config_reference(reference):
+    with pytest.raises(ValueError, match="named algebra reference"):
+        Algebra(config=reference)
+
+
+def test_algebra_constructor_reports_missing_named_config(tmp_path, monkeypatch):
+    _local_config(tmp_path, monkeypatch, "version = 1\n")
+    with pytest.raises(config.ConfigError, match="unknown algebras name 'missing'"):
+        Algebra(config="@missing")
 
 
 def test_explicit_snapshots_and_overrides_outrank_files(tmp_path, monkeypatch):
@@ -263,15 +353,22 @@ gram = [[1, 0.5], [0.5, 1]]
         ("version = 1\n[unexpected]\nvalue = 1\n", "unknown field"),
         ("version = 2\n", "version"),
         ('version = 1\n[algebras.a]\npreset = "nope"\n', "unknown algebra preset"),
-        ('version = 1\n[notations.a]\nbase = { ref = "b" }\n[notations.b]\nbase = { ref = "a" }\n', "cycle"),
+        ('version = 1\n[notations.a]\nbase = "@b"\n[notations.b]\nbase = "@a"\n', "cycle"),
         (
             'version = 1\n[notations.a.rules.not_an_operation.latex]\nkind = "function"\nsymbol = "x"\n',
             "operation ID",
         ),
         ("version = 1\n[defaults\n", "config.toml"),
+        ('version = 1\n[defaults.presentation]\nnotation = "textbook"\n', "@name"),
+        ('version = 1\n[defaults.presentation]\nnotation = "@"\n', "non-empty string"),
+        ('version = 1\n[defaults.presentation]\nnotation = "@@textbook"\n', "reserved"),
+        ('version = 1\n[notations."@bad"]\nreverse = "dagger"\n', "reserved"),
+        ('version = 1\n[notations.a]\nbase = { ref = "b" }\n', "unknown field"),
+        ('version = 1\n[presentations.a]\nextends = "base"\n', "@name"),
+        ('version = 1\n[presenters.a]\npresentation = { ref = "b" }\n', "@name"),
         ("version = 1\n[algebras.a]\npqr = { p = 2 }\ngram = [[1]]\n", "exactly one"),
         (
-            'version = 1\n[presentations.a]\nextends = { ref = "b" }\n[presentations.b]\nextends = { ref = "a" }\n',
+            'version = 1\n[presentations.a]\nextends = "@b"\n[presentations.b]\nextends = "@a"\n',
             "cycle",
         ),
     ],

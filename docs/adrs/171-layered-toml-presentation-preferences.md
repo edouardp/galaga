@@ -36,6 +36,20 @@ file replaces a same-named profile in full; its sparse presentation defaults
 compose with earlier defaults. Named algebra profiles choose their numeric
 definition explicitly and resolve to ordinary `AlgebraConfig` values.
 
+Named references use an `@`-prefixed TOML string in fields that expect a
+reference, for example `notation = "@textbook"` and
+`extends = "@base"`. The field determines the referenced section. Profile
+names may not begin with `@`, and an empty reference is invalid. Inline
+presentation and notation settings remain tables; a built-in notation base
+uses `{ preset = "hestenes" }`. This keeps references distinct from literal
+strings and removes the extra `{ ref = "name" }` wrapper.
+
+The facade constructor also accepts `Algebra(config="@name")`. It resolves
+that name from the discovered `algebras` profiles and uses the resulting
+complete `AlgebraConfig` snapshot, including file defaults. The `@` marks an
+explicit file lookup that can determine the metric. Bare names are invalid,
+and `user_config_files=False` rejects this form before reading files.
+
 The file format uses a versioned, allowlisted schema and Python's standard
 library `tomllib` parser. Duplicate keys, unknown fields, malformed TOML,
 and files over 1 MiB are rejected. No configuration is read at import time.

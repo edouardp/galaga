@@ -252,7 +252,7 @@ a facade `Algebra`. Closer files override earlier preferences. For example:
 version = 1
 
 [defaults.presentation]
-notation = { ref = "textbook" }
+notation = "@textbook"
 
 [defaults.presentation.display]
 coefficient_precision = 4
@@ -280,6 +280,10 @@ file schema and precedence rules.
 
 Pass `user_config_files=False` to `Algebra(...)` or `Algebra.from_numeric(...)`
 to skip user configuration files for one construction. The default is `True`.
+To select a named algebra from the discovered files, use
+`Algebra(config="@spacetime_article")`. The name must refer to an `algebras`
+profile; this form requires `user_config_files=True` and reads the profile's
+numeric definition.
 
 ## Values, blades, names and expressions
 

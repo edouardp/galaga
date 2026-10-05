@@ -42,7 +42,9 @@ the `GALAGA_CONFIG` environment variable has no effect on discovery.
 
 For one algebra, pass `user_config_files=False` to `Algebra(...)` or
 `Algebra.from_numeric(...)`. This skips file discovery for that construction;
-the default is `True`. Explicit presentation arguments still apply.
+the default is `True`. Explicit presentation arguments still apply. A named
+algebra reference in `config="@name"` requires file loading and cannot be
+combined with `user_config_files=False`.
 
 Each file must be a TOML document with `version = 1`. Python's standard
 library `tomllib` parser rejects malformed TOML and duplicate keys. Galaga
@@ -59,7 +61,7 @@ complete user configuration file.
 version = 1
 
 [defaults.presentation]
-notation = { ref = "textbook" }
+notation = "@textbook"
 
 [defaults.presentation.display]
 coefficient_precision = 5
@@ -76,7 +78,7 @@ kind = "subscript"
 symbol = '\star'
 
 [presentations.article]
-notation = { ref = "textbook" }
+notation = "@textbook"
 
 [presentations.article.display]
 target = "latex"
@@ -84,13 +86,13 @@ content = "full"
 coefficient_precision = 7
 
 [presenters.article_value]
-presentation = { ref = "article" }
+presentation = "@article"
 display = { content = "value" }
 
 [algebras.spacetime_article]
 preset = "sta"
 args = { signature = "mostly-minus", sigmas = true }
-presentation = { ref = "article" }
+presentation = "@article"
 ```
 
 The Hodge example changes only LaTeX rendering of the two named Hodge
@@ -138,11 +140,11 @@ a `RenderRule` description. `symbol` may be a string or a mapping with
 Rule kinds and their fields use the existing `RenderRule` validation. A
 notation may instead start from a built-in preset with
 `base = { preset = "hestenes" }` (or another named notation with
-`base = { ref = "name" }`). Its own rules apply last. Reference cycles are errors.
+`base = "@name"`). Its own rules apply last. Reference cycles are errors.
 
 `presentations` entries are dimension-independent `PresentationRecipe`
 values. They accept the same slots as `defaults.presentation`, plus
-`extends = { ref = "other_presentation" }`. The base recipe applies first; supplied
+`extends = "@other_presentation"`. The base recipe applies first; supplied
 fields apply second. They do not contain a metric.
 
 `presenters` entries resolve to `Presenter` values. They may refer to a named
@@ -160,8 +162,12 @@ against the actual factory signature. Named algebras cannot change the metric
 through a presentation reference.
 
 Names are unique within each section; the same name may occur in different
-sections because references are typed. `{ ref = "..." }` always refers to the
-section expected by its field. A missing or cyclic reference is an error.
+sections because references are typed. A string beginning with `@` refers to
+the section expected by its field, such as `notation = "@textbook"` or
+`presentation = "@article"`. The prefix is reserved in profile names; an
+empty `@`, an unmarked name, or a missing or cyclic reference is an error.
+The marker has meaning only in reference fields, so ordinary strings such as
+`local_names = "from_blades"` remain literal values.
 
 ## Layering and precedence
 
@@ -203,6 +209,8 @@ plain_space = Algebra(3, user_config_files=False)
 # Explicitly load a snapshot and select named objects.
 settings = config.load()
 sta = Algebra(config=settings.algebra("spacetime_article"))
+# Or select a named algebra directly from the discovered files.
+sta_from_files = Algebra(config="@spacetime_article")
 article_value = settings.presenter("article_value")
 rendered = article_value(sta.basis_vectors()[0])
 
@@ -220,6 +228,10 @@ Automatic construction rereads configuration, so changes to a file are
 visible on the next new algebra without restarting a notebook.
 `config.reload()` explicitly reads a fresh snapshot. Each algebra keeps the
 resolved presentation it had at construction time.
+`Algebra(config="@name")` rereads discovered files and selects the named
+`algebras` profile. This can change the metric if the selected profile changes
+with the working directory or file contents. Passing a previously resolved
+`AlgebraConfig` instead uses that exact snapshot.
 
 ## Implementation boundary
 
@@ -246,7 +258,8 @@ guessing how to interpret an older file.
   its products and other notation rules are unchanged.
 - Named notation, presentation, presenter, and algebra profiles resolve to the
   existing Python types and compose with the current `|`, `with_*`, and
-  `use_*` APIs.
+  `use_*` APIs. `Algebra(config="@name")` resolves a discovered named algebra,
+  while `user_config_files=False` rejects that form before file access.
 - Invalid TOML, unknown factories/operation IDs, incompatible dimensions,
   ambiguous numeric sources, and reference cycles fail with actionable paths.
 - Unit tests cover precedence, explicit overrides, cwd changes, file edits,
