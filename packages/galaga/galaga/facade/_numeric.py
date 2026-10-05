@@ -20,7 +20,7 @@ import numpy as np
 
 from .. import core
 from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
-from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe
+from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe, _as_recipe
 from ..config import apply_defaults
 from ..config import load as load_user_config
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
@@ -38,7 +38,7 @@ from ..rendering._emit import _number
 from .catalog import LeftFoldCall, get_operation
 
 if TYPE_CHECKING:
-    from ..display import BilinearFormTable, WedgeProductTable
+    from ..display import BilinearFormTable, PresentationTable, WedgeProductTable
     from ..presets import BladePreset, Preset
 
 
@@ -69,9 +69,20 @@ class Algebra:
         config: AlgebraConfig | Preset | str | None = None,
         expr: bool = False,
         user_config_files: bool = True,
-        presentation: PresentationConfig | None = None,
+        presentation: (
+            PresentationConfig
+            | PresentationRecipe
+            | BladeConvention
+            | BladePreset
+            | Notation
+            | NotationPatch
+            | LocalNamePolicy
+            | DisplayOrder
+            | DisplayPolicy
+            | None
+        ) = None,
         blades: BladeConvention | BladePreset | None = None,
-        notation: Notation | None = None,
+        notation: Notation | NotationPatch | None = None,
         local_names: LocalNamePolicy | None = None,
         display_order: DisplayOrder | None = None,
         display: DisplayPolicy | None = None,
@@ -130,7 +141,13 @@ class Algebra:
             self._model = None
 
         if presentation is not None:
-            base_presentation = _require_presentation(presentation)
+            if isinstance(presentation, PresentationConfig):
+                base_presentation = presentation
+            else:
+                recipe = _as_recipe(presentation)
+                if recipe is None:
+                    raise TypeError("presentation must be a PresentationConfig or presentation recipe component")
+                base_presentation = recipe.apply_to(base_presentation, self._numeric.gram)
         blades = _resolve_blades(blades, self._numeric.gram)
         self._default_presentation = _override_presentation(
             base_presentation,
@@ -355,6 +372,27 @@ class Algebra:
         rows = tuple(tuple(int(factors[left, right]) for right in masks) for left in masks)
         tree = wedge_product_tree(masks, rows, selected, color=color or colour)
         return WedgeProductTable(tree, target=selected.display.target)
+
+    def show_presentation(self, all: bool = False, *, basis: bool = True) -> PresentationTable:
+        """Show operation notation with examples made from this algebra's basis.
+
+        The compact view compares the active notation with the standard
+        notation. ``all=True`` includes every expression-producing operation.
+        ``basis=False`` uses symbolic A, B, and C instead of basis blades.
+        """
+        from ..display import _presentation_table
+
+        if not isinstance(all, bool):
+            raise TypeError("all must be a boolean")
+        if not isinstance(basis, bool):
+            raise TypeError("basis must be a boolean")
+        return _presentation_table(
+            self.presentation,
+            Notation.default(),
+            self.n,
+            show_all=all,
+            basis=basis,
+        )
 
     @property
     def basis_squares(self) -> np.ndarray:
@@ -720,8 +758,10 @@ def _override_presentation(
             raise TypeError("blades must be a BladeConvention")
         result = result.with_blades(blades)
     if notation is not None:
+        if isinstance(notation, NotationPatch):
+            notation = notation.apply(result.notation)
         if not isinstance(notation, Notation):
-            raise TypeError("notation must be a Notation")
+            raise TypeError("notation must be a Notation or NotationPatch")
         result = result.with_notation(notation)
     if local_names is not None:
         if not isinstance(local_names, LocalNamePolicy):

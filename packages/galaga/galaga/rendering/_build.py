@@ -34,6 +34,7 @@ from .tree import (
     Node,
     Postfix,
     Power,
+    Precedence,
     Prefix,
     Product,
     Subscript,
@@ -429,11 +430,14 @@ def _operation_tree(
         if decoration is not None or len(arguments) != 2:
             return _functional_tree(operation_id, operands, parameters)
         rotor, value = arguments
+        reversed_rotor: Node = Accent(rotor, Name("~", "\u0303", r"\widetilde"))
+        if rotor.precedence <= Precedence.PRODUCT:
+            reversed_rotor = Group(reversed_rotor)
         return Product(
             (
                 grouped_child(rotor, parent_precedence=30),
                 grouped_child(value, parent_precedence=30),
-                Accent(rotor, Name("~", "\u0303", r"\widetilde")),
+                reversed_rotor,
             ),
             precedence=30,
             operation_id=operation_id,

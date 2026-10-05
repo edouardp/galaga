@@ -64,3 +64,15 @@ one `PresentationRecipe`. That recipe has no `content` slot, and flattening a
 presenter's direct keywords into one recipe would lose their override order.
 The final view still captures one validated `PresentationConfig`; no stage
 mutates the algebra or numeric value.
+
+## Amendment: constructor presentation inputs
+
+The algebra constructor also resolves presentation inputs against the selected
+algebra preset and user defaults. Accept a `PresentationRecipe` or a single
+recipe-compatible component in `Algebra(presentation=...)`, applying it to that
+base. A complete `PresentationConfig` continues to replace the base snapshot.
+Accept `NotationPatch` in `Algebra(notation=...)`, applying it to the notation
+after `presentation=` has been resolved. Individual component keywords retain
+their final override precedence. This matches the existing `with_presentation`,
+`with_notation`, and `Presenter` behavior and lets a sparse patch preserve a
+preset's other presentation choices.

@@ -492,6 +492,30 @@ RenderRule("superscript", symbol=r"\star")})` replaces only one target rule.
 The factory also accepts `ascii=`, `unicode=`, and a `rules=` map with generic
 operation IDs or `(operation_id, target)` keys. See the
 [notation override notebook](../../examples/galaga_v2/notation_overrides.py).
+For common layouts, strings such as `left_hodge_dual="prefix:star"` and
+`half_commutator="wrapper:1/2[,]"` can be passed as operation keywords.
+These replace the operation's rules in all three output targets; put a string
+in `latex=`, `unicode=`, or `ascii=` to select only one. Complete `RenderRule`
+values remain available for precedence and other detailed options.
+The symbol part accepts a curated set of single KaTeX commands, with Unicode
+and ASCII spellings derived automatically. For example,
+`left_hodge_dual="prefix:bigstar"` gives `\bigstar` in LaTeX, `★` in Unicode,
+and `*` in ASCII. Other supported spellings include `star`, `diamond`,
+`bullet`, `odot`, `cap`, `cup`, `curlywedge`, `perp`, and `parallel`. Use a
+complete `RenderRule` with an explicit `Name` for a symbol outside this set.
+
+An `Algebra` constructor applies a sparse notation patch directly in
+`notation=`. Its `presentation=` argument accepts a complete
+`PresentationConfig`, a `PresentationRecipe`, or a single presentation
+component. A complete config replaces the base presentation; a recipe or
+component changes only its selected slots. Individual keywords such as
+`notation=` apply last:
+
+```python
+star = presets.notation.override(left_hodge_dual=r"prefix:\bigstar")
+alg = Algebra(config=presets.euclidean(3), expr=True, notation=star)
+same_notation = Algebra(config=presets.euclidean(3), expr=True, presentation=star)
+```
 
 | Preset | Numeric definition | Presentation highlights |
 |---|---|---|
@@ -793,6 +817,36 @@ An explicit `presentation=` argument to `view.display(...)` overrides the
 captured snapshot for that one render, following normal render precedence.
 Applying another presenter to a view starts from the view's captured
 presentation, which makes deliberate comparison pipelines composable.
+
+## Inspecting operation notation
+
+`algebra.show_presentation()` returns a renderable table of operation rules
+that differ from the standard notation. `all=True` includes every catalog
+operation that can retain an equation expression; boolean predicates such as
+`is_bivector` are omitted. Examples vary by operation: unary rules
+usually show a vector and its wedge with another vector, while contractions
+use operands of different grades. They use the algebra's active blade labels.
+The expressions show notation only; this method does not evaluate the
+operations. The LaTeX table has separate columns for the operation name and
+each example, with a vertical separator after the name.
+
+```python
+star = presets.notation.override(left_hodge_dual=r"prefix:\star")
+alg = Algebra(config=presets.euclidean(3), presentation=star)
+alg.show_presentation()          # changed operation rules
+alg.show_presentation(all=True)  # all equation-producing operations
+alg.show_presentation(basis=False)  # examples with A, B, C
+```
+
+`basis=True` is the default. With `basis=False`, the same example patterns use
+symbolic variables instead of the algebra's basis labels.
+If the compact view has no changed rules, it explains that `all=False` shows
+only overrides and points to `alg.show_presentation(all=True)`.
+
+The compact comparison is a best-effort comparison with `Notation.default()`;
+named preset conventions may therefore appear as differences. The returned
+`galaga.display.PresentationTable` captures the active presentation when it is
+created and provides `.latex()`, `.unicode()`, and `.ascii()` methods.
 
 ## Labelled bilinear form tables
 

@@ -74,6 +74,16 @@ No production code or display policy changes in this work unit:
 These continue ADR-078, ADR-098, ADR-099, and ADR-101 rather than selecting
 new defaults.
 
+### Group reversed compound operands in sandwiches
+
+The dedicated sandwich rendering rule encloses the reversed right operand in
+parentheses when its source operand has product precedence or lower. For
+example, a rotor displayed as $A \wedge B$ renders on the right as
+$\left(\widetilde{A \wedge B}\right)$. This makes the three factors visible
+without relying on the accent alone to signal their boundary. A single symbol
+keeps the usual compact form $R v \widetilde{R}$. The grouping changes only
+presentation; the reverse still applies to the entire rotor.
+
 ### Add independent, non-vacuous composition checks
 
 The original orthogonal-vector Jordan example evaluates to zero, so it cannot

@@ -14,6 +14,8 @@ from galaga import (
     PresentationRecipe,
     Presenter,
     RenderRule,
+    half_commutator,
+    left_hodge_dual,
     presets,
 )
 from galaga._composition_base import PresentationComposable
@@ -122,6 +124,95 @@ def test_notation_override_rejects_conflicting_target_keys():
         presets.notation.override(rules={("dual", "latex"): rule}, latex={"dual": rule})
     with pytest.raises(TypeError, match="latex must be a mapping"):
         presets.notation.override(latex=rule)  # type: ignore[arg-type]
+
+
+def test_notation_override_shorthand_uses_latex_symbol_spellings_and_wrapper_delimiters():
+    patch = presets.notation.override(
+        left_hodge_dual="prefix:star",
+        half_commutator="wrapper:1/2[,]",
+    )
+    selected = patch.apply(presets.notation.default())
+    prefix = selected.rule("left_hodge_dual", "latex")
+    wrapper = selected.rule("half_commutator", "latex")
+
+    assert prefix.kind == "prefix"
+    assert prefix.symbol.variants == ("*", "⋆", r"\star")
+    assert wrapper.kind == "wrapper"
+    assert wrapper.opening.variants == ("1/2[", "½[", r"\tfrac{1}{2}[")
+    assert wrapper.closing.variants == ("]", "]", "]")
+    assert wrapper.scalable is False
+
+    algebra = Algebra(2, expr=True, notation=selected)
+    e1, e2 = algebra.basis_vectors()
+    assert r"\star" in left_hodge_dual(e1).latex(content="expr")
+    assert r"\tfrac{1}{2}[" in half_commutator(e1, e2).latex(content="expr")
+
+
+def test_notation_override_accepts_bigstar_from_the_katex_symbol_set():
+    selected = presets.notation.override(left_hodge_dual="prefix:bigstar").apply(presets.notation.default())
+    rule = selected.rule("left_hodge_dual", "latex")
+
+    assert rule.symbol.variants == ("*", "★", r"\bigstar")
+    algebra = Algebra(2, expr=True, notation=selected)
+    e1, _ = algebra.basis_vectors()
+    assert r"\bigstar" in left_hodge_dual(e1).latex(content="expr")
+
+
+def test_algebra_constructor_applies_sparse_notation_to_preset_notation():
+    patch = presets.notation.override(left_hodge_dual=r"prefix:\bigstar")
+    preset = presets.euclidean(3)
+    base = Algebra(config=preset, expr=True, user_config_files=False)
+
+    direct = Algebra(config=preset, expr=True, notation=patch, user_config_files=False)
+    composed = Algebra(config=preset | patch, expr=True, user_config_files=False)
+
+    expected = patch.apply(base.presentation.notation)
+    assert direct.presentation.notation == expected == composed.presentation.notation
+    assert direct.presentation.blades == base.presentation.blades
+    assert direct.presentation.notation.rule("left_hodge_dual", "unicode").symbol.unicode == "★"
+    e1, _, _ = direct.basis_vectors()
+    assert r"\bigstar" in left_hodge_dual(e1).latex(content="expr")
+
+
+def test_algebra_constructor_widens_presentation_components_and_keeps_keyword_precedence():
+    base = Algebra(config=presets.euclidean(3), user_config_files=False)
+    star = presets.notation.override(left_hodge_dual="prefix:bigstar")
+    dagger = presets.notation.override(reverse="dagger")
+    display = presets.display.override(coefficient_precision=3)
+
+    direct_leaf = Algebra(config=presets.euclidean(3), presentation=star, user_config_files=False)
+    recipe = Algebra(config=presets.euclidean(3), presentation=star | display, user_config_files=False)
+    overridden = Algebra(
+        config=presets.euclidean(3),
+        presentation=star | display,
+        notation=dagger,
+        user_config_files=False,
+    )
+
+    assert direct_leaf.presentation.notation == star.apply(base.presentation.notation)
+    assert recipe.presentation.notation == direct_leaf.presentation.notation
+    assert recipe.presentation.display.coefficient_precision == 3
+    assert overridden.presentation.notation == dagger.apply(direct_leaf.presentation.notation)
+    assert overridden.presentation.display.coefficient_precision == 3
+    with pytest.raises(TypeError, match="presentation must be"):
+        Algebra(3, presentation=object(), user_config_files=False)
+
+
+def test_notation_override_accepts_shorthand_and_complete_rules_together():
+    complete = RenderRule("infix", symbol="~", precedence=25)
+    patch = presets.notation.override(
+        rules={"geometric_product": complete},
+        latex={"right_hodge_dual": "superscript:star"},
+    )
+    selected = patch.apply(presets.notation.default())
+    assert selected.rule("geometric_product", "ascii") is complete
+    assert selected.rule("right_hodge_dual", "latex").symbol.latex == r"\star"
+
+
+@pytest.mark.parametrize("shorthand", ["prefix:", "prefix:\\unknownsymbol", "wrapper:[", "nonesuch:x"])
+def test_notation_override_rejects_bad_shorthand(shorthand):
+    with pytest.raises(ValueError, match="shorthand|symbol"):
+        presets.notation.override(left_hodge_dual=shorthand)
 
 
 def test_different_component_classes_promote_to_an_immutable_right_biased_recipe():

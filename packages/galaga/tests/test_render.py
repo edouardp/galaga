@@ -466,6 +466,17 @@ class TestLatex:
         expr = Call("geometric_product", (Call("geometric_product", (R, v)), Call("reverse", (R,))))
         assert _latex(expr) == "R v \\widetilde{R}"
 
+    def test_sandwich_with_compound_rotor_groups_reversed_term(self):
+        a, b, c = Symbol("A"), Symbol("B"), Symbol("C")
+        rotor = Call("outer_product", (a, b))
+        expr = Call("sandwich", (rotor, c))
+
+        assert _unicode(expr) == "(A ∧ B)C(A ∧ B̃)"
+        assert _latex(expr) == (
+            r"\left(A \wedge B\right) C "
+            r"\left(\widetilde{A \wedge B}\right)"
+        )
+
 
 class TestMixedInfixPostfix:
     def test_reverse_in_gp_left(self, syms):

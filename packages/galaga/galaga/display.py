@@ -15,6 +15,16 @@ from .rendering.tree import Node, Table
 
 _CONTENTS = {"name", "expr", "value", "full"}
 _TARGETS = {"ascii", "unicode", "latex"}
+_EMPTY_PRESENTATION_TEXT = (
+    "No presentation overrides are shown because all=False. "
+    "Use alg.show_presentation(all=True) to show all presentation forms."
+)
+_EMPTY_PRESENTATION_LATEX = (
+    r"\begin{array}{l}"
+    r"\text{No presentation overrides are shown because all=False.} \\ "
+    r"\text{Use }\texttt{alg.show\_presentation(all=True)}\text{ to show all presentation forms.}"
+    r"\end{array}"
+)
 
 
 @dataclass(frozen=True, slots=True)
@@ -82,6 +92,136 @@ class WedgeProductTable(_DisplayTable):
     is called. Full tables follow the algebra's display order; vector-only
     tables retain native basis-vector order.
     """
+
+
+@dataclass(frozen=True, slots=True)
+class PresentationTable:
+    """Captured operation notation with basis-blade examples for each target."""
+
+    rows: tuple[tuple[str, tuple[str, str], tuple[str, str], tuple[str, str]], ...]
+    target: str = "unicode"
+    _galaga_block: ClassVar[bool] = True
+
+    def __post_init__(self) -> None:
+        if self.target not in _TARGETS:
+            raise ValueError("table target must be 'ascii', 'unicode', or 'latex'")
+
+    def display(self, *, target: str | None = None) -> str:
+        selected = self.target if target is None else target
+        if selected not in _TARGETS:
+            raise ValueError("table target must be 'ascii', 'unicode', or 'latex'")
+        if selected == "latex":
+            return self.latex()
+        index = 0 if selected == "ascii" else 1
+        lines = ["Operation | Example 1 | Example 2"]
+        lines.extend(f"{name} | {examples[index][0]} | {examples[index][1]}" for name, *examples in self.rows)
+        return "\n".join(lines) if self.rows else _EMPTY_PRESENTATION_TEXT
+
+    def latex(self) -> str:
+        """Return three aligned columns with a separator after the name."""
+        if not self.rows:
+            return _EMPTY_PRESENTATION_LATEX
+        lines = []
+        for name, _ascii, _unicode, examples in self.rows:
+            label = name.replace("_", r"\_")
+            lines.append(rf"\texttt{{{label}}} & {examples[0]} & {examples[1]}")
+        header = r"\text{Operation} & \text{Example 1} & \text{Example 2}"
+        return r"\begin{array}{l|ll}" + header + r" \\ \hline " + r" \\ ".join(lines) + r"\end{array}"
+
+    def unicode(self) -> str:
+        return self.display(target="unicode")
+
+    def ascii(self) -> str:
+        return self.display(target="ascii")
+
+    def _repr_latex_(self) -> str:
+        return f"$${self.latex()}$$"
+
+    def _repr_pretty_(self, printer: Any, cycle: bool) -> None:
+        printer.text("..." if cycle else self.display())
+
+    def __str__(self) -> str:
+        return self.display()
+
+    def __repr__(self) -> str:
+        return self.ascii()
+
+
+def _presentation_table(
+    presentation: PresentationConfig,
+    baseline: Notation,
+    dimension: int,
+    *,
+    show_all: bool,
+    basis: bool,
+) -> PresentationTable:
+    """Render catalog call shapes without evaluating metric-dependent values."""
+    from .expression import BladeLiteral, Call, ScalarLiteral, Symbol
+    from .facade.catalog import OPERATIONS
+
+    first = BladeLiteral(1) if basis and dimension else Symbol("A")
+    second = BladeLiteral(2) if basis and dimension > 1 else Symbol("B")
+    third = (BladeLiteral(4) if dimension > 2 else first) if basis else Symbol("C")
+    bivector = Call("outer_product", (first, second)) if not basis or dimension > 1 else second
+    versor = Call("geometric_product", (first, second)) if not basis or dimension > 1 else first
+    parameter_samples = {
+        "scalar": 2,
+        "exponent": 2,
+        "target": min(1, dimension),
+        "targets": (0, 1) if dimension else (0,),
+        "order": 1,
+    }
+    rows = []
+    for operation_id, operation in OPERATIONS.items():
+        if operation.result_kind == "predicate":
+            continue
+        if not show_all and (
+            presentation.notation.token(operation_id) == baseline.token(operation_id)
+            and all(
+                presentation.notation.rule(operation_id, target) == baseline.rule(operation_id, target)
+                for target in _TARGETS
+            )
+        ):
+            continue
+        parameters = {
+            parameter.name: parameter_samples[parameter.name]
+            for parameter in operation.parameters
+            if parameter.required
+        }
+        if operation.expression_arity == 1:
+            samples = (
+                ((ScalarLiteral(2),), (ScalarLiteral(3),))
+                if operation_id == "scalar_sqrt" and basis
+                else ((first,), (second if operation_id == "scalar_sqrt" else bivector,))
+            )
+            if operation_id == "rotor_generator":
+                samples = (
+                    (Call("exp", (bivector,)),),
+                    (Call("exp", (Call("negate", (bivector,)),)),),
+                )
+        elif operation_id in {"left_contraction", "left_interior_product"}:
+            samples = ((first, bivector), (third, bivector))
+        elif operation_id in {"right_contraction", "right_interior_product"}:
+            samples = ((bivector, first), (bivector, third))
+        elif operation_id == "sandwich":
+            samples = ((Symbol("R"), first), (versor, third))
+        elif operation_id in {"scalar_product", "metric_inner_product"}:
+            samples = ((first, second), (bivector, bivector))
+        else:
+            samples = ((first, second), (bivector, third))
+        calls = []
+        for sample_index, operands in enumerate(samples):
+            sample_parameters = parameters.copy()
+            if sample_index == 1 and operation_id in {"transwedge", "transwedge_antiproduct"}:
+                sample_parameters["order"] = 2
+            elif sample_index == 1 and operation_id == "power":
+                sample_parameters["exponent"] = 3
+            calls.append(Call(operation_id, operands, sample_parameters))
+        variants = []
+        for target in ("ascii", "unicode", "latex"):
+            variants.append(tuple(emit(expression_tree(call, presentation, target=target), target) for call in calls))
+        rows.append((operation_id, *variants))
+    return PresentationTable(tuple(rows), target=presentation.display.target)
 
 
 def build_tree(
@@ -226,4 +366,4 @@ def _notation(value: Any) -> Notation:
     return value
 
 
-__all__ = ["BilinearFormTable", "WedgeProductTable", "build_tree", "emit", "render"]
+__all__ = ["BilinearFormTable", "PresentationTable", "WedgeProductTable", "build_tree", "emit", "render"]
