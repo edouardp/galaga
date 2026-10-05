@@ -822,24 +822,31 @@ presentation, which makes deliberate comparison pipelines composable.
 
 `algebra.show_presentation()` returns a renderable table of operation rules
 that differ from the standard notation. `all=True` includes every catalog
-operation that can retain an equation expression; boolean predicates such as
-`is_bivector` are omitted. Examples vary by operation: unary rules
+operation that can retain an equation expression, with one row per complement
+alias pair; boolean predicates such as `is_bivector` are omitted. Lengyel
+notation uses `right_complement` and `left_complement` as the row names. Other
+presets use `complement` and `uncomplement`, unless only a directional alias has
+an explicit notation override. Examples vary by operation: unary rules
 usually show a vector and its wedge with another vector, while contractions
-use operands of different grades. They use the algebra's active blade labels.
+use operands of different grades. With `basis=True`, they use the algebra's
+active blade labels.
 The expressions show notation only; this method does not evaluate the
-operations. The LaTeX table has separate columns for the operation name and
+operations. By default, examples use symbolic variables $A$, $B$, and $C$.
+`scalar_sqrt` uses numeric examples to show its scalar-only domain; it shares
+the radical with `sqrt` because both give the same result on scalar inputs.
+The LaTeX table has separate columns for the operation name and
 each example, with a vertical separator after the name.
 
 ```python
 star = presets.notation.override(left_hodge_dual=r"prefix:\star")
 alg = Algebra(config=presets.euclidean(3), presentation=star)
-alg.show_presentation()          # changed operation rules
-alg.show_presentation(all=True)  # all equation-producing operations
-alg.show_presentation(basis=False)  # examples with A, B, C
+alg.show_presentation()             # changed operation rules
+alg.show_presentation(all=True)     # all equation-producing operations
+alg.show_presentation(basis=True)   # examples with this algebra's basis blades
 ```
 
-`basis=True` is the default. With `basis=False`, the same example patterns use
-symbolic variables instead of the algebra's basis labels.
+With `basis=True`, the same example patterns use the algebra's basis labels
+instead of symbolic variables.
 If the compact view has no changed rules, it explains that `all=False` shows
 only overrides and points to `alg.show_presentation(all=True)`.
 

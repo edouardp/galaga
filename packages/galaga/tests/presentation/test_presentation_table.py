@@ -4,7 +4,17 @@ import inspect
 
 import pytest
 
-from galaga import Algebra, Name, RenderRule, presets, right_hodge_dual
+from galaga import (
+    Algebra,
+    Name,
+    RenderRule,
+    complement,
+    left_complement,
+    presets,
+    right_complement,
+    right_hodge_dual,
+    uncomplement,
+)
 from galaga.facade.catalog import OPERATIONS
 
 
@@ -23,7 +33,7 @@ def test_show_presentation_compact_view_uses_actual_basis_and_custom_rules():
         user_config_files=False,
     )
 
-    table = algebra.show_presentation()
+    table = algebra.show_presentation(basis=True)
 
     assert tuple(row[0] for row in table.rows) == ("left_hodge_dual", "right_hodge_dual")
     assert r"\begin{array}{l|ll}" in table.latex()
@@ -41,7 +51,7 @@ def test_show_presentation_compact_view_uses_actual_basis_and_custom_rules():
 
 def test_show_presentation_selects_grade_and_scalar_examples_for_catalog_operations():
     algebra = Algebra(config=presets.euclidean(3), user_config_files=False)
-    rows = {name: latex for name, _ascii, _unicode, latex in algebra.show_presentation(all=True).rows}
+    rows = {name: latex for name, _ascii, _unicode, latex in algebra.show_presentation(all=True, basis=True).rows}
 
     assert r"e_{1} \wedge e_{2}" in rows["left_hodge_dual"][1]
     assert r"e_{1} \wedge e_{2}" in rows["left_contraction"][0]
@@ -72,8 +82,9 @@ def test_show_presentation_can_use_symbolic_abc_examples_instead_of_basis_blades
         user_config_files=False,
     )
 
-    compact = algebra.show_presentation(basis=False)
-    rows = {name: latex for name, _ascii, _unicode, latex in algebra.show_presentation(all=True, basis=False).rows}
+    compact = algebra.show_presentation()
+    assert compact == algebra.show_presentation(basis=False)
+    rows = {name: latex for name, _ascii, _unicode, latex in algebra.show_presentation(all=True).rows}
 
     assert r"\texttt{left\_hodge\_dual} & \star A & \star \left(A \wedge B\right)" in compact.latex()
     assert "e_{1}" not in compact.latex()
@@ -83,7 +94,7 @@ def test_show_presentation_can_use_symbolic_abc_examples_instead_of_basis_blades
         r"R A \widetilde{R}",
         r"\left(A B\right) C \left(\widetilde{A B}\right)",
     )
-    assert rows["scalar_sqrt"] == (r"\sqrt{A}", r"\sqrt{B}")
+    assert rows["scalar_sqrt"] == (r"\sqrt{2}", r"\sqrt{3}")
     with pytest.raises(TypeError, match="basis must be a boolean"):
         algebra.show_presentation(basis=1)  # type: ignore[arg-type]
 
@@ -97,7 +108,9 @@ def test_show_presentation_all_covers_every_catalog_operation_and_validates_flag
     assert "alg.show_presentation(all=True)" in empty.ascii()
     assert r"\texttt{alg.show\_presentation(all=True)}" in empty.latex()
     assert tuple(row[0] for row in algebra.show_presentation(all=True).rows) == tuple(
-        name for name, operation in OPERATIONS.items() if operation.result_kind != "predicate"
+        name
+        for name, operation in OPERATIONS.items()
+        if operation.result_kind != "predicate" and name not in {"left_complement", "right_complement"}
     )
     with pytest.raises(TypeError, match="all must be a boolean"):
         algebra.show_presentation(all=1)  # type: ignore[arg-type]
@@ -108,3 +121,39 @@ def test_notation_override_signature_lists_every_catalog_operation_for_autocompl
     controls = {"rules", "ascii", "unicode", "latex", "operations"}
 
     assert parameters - controls == set(OPERATIONS)
+
+
+@pytest.mark.parametrize("gram", ([[1, 0], [0, 1]], [[0, 0], [0, 0]], [[0, 1], [1, 0]]))
+def test_complement_aliases_share_values_for_every_metric_family(gram):
+    algebra = Algebra(gram=gram, user_config_files=False)
+    e1, e2 = algebra.basis_vectors()
+    value = algebra.scalar(2) + e1 + e1 * e2
+
+    assert complement(value) == right_complement(value)
+    assert uncomplement(value) == left_complement(value)
+    assert uncomplement(complement(value)) == value
+
+
+def test_show_presentation_uses_one_complement_name_per_alias_pair():
+    ordinary = Algebra(config=presets.euclidean(3), user_config_files=False)
+    lengyel = Algebra(config=presets.rga(), user_config_files=False)
+
+    ordinary_names = {row[0] for row in ordinary.show_presentation(all=True).rows}
+    lengyel_names = {row[0] for row in lengyel.show_presentation(all=True).rows}
+    assert ordinary_names & {"complement", "right_complement", "uncomplement", "left_complement"} == {
+        "complement",
+        "uncomplement",
+    }
+    assert lengyel_names & {"complement", "right_complement", "uncomplement", "left_complement"} == {
+        "right_complement",
+        "left_complement",
+    }
+
+    custom = Algebra(
+        config=presets.euclidean(3),
+        notation=presets.notation.override(right_complement="prefix:star"),
+        user_config_files=False,
+    )
+    changed_names = {row[0] for row in custom.show_presentation().rows}
+    assert "right_complement" in changed_names
+    assert "complement" not in {row[0] for row in custom.show_presentation(all=True).rows}

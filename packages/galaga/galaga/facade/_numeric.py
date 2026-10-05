@@ -373,12 +373,13 @@ class Algebra:
         tree = wedge_product_tree(masks, rows, selected, color=color or colour)
         return WedgeProductTable(tree, target=selected.display.target)
 
-    def show_presentation(self, all: bool = False, *, basis: bool = True) -> PresentationTable:
-        """Show operation notation with examples made from this algebra's basis.
+    def show_presentation(self, all: bool = False, *, basis: bool = False) -> PresentationTable:
+        """Show operation notation with symbolic or basis-blade examples.
 
         The compact view compares the active notation with the standard
         notation. ``all=True`` includes every expression-producing operation.
-        ``basis=False`` uses symbolic A, B, and C instead of basis blades.
+        Symbolic A, B, and C are the default; ``basis=True`` uses this
+        algebra's basis blades.
         """
         from ..display import _presentation_table
 

@@ -171,17 +171,27 @@ def _presentation_table(
         "targets": (0, 1) if dimension else (0,),
         "order": 1,
     }
+
+    def differs_from_baseline(operation_id: str) -> bool:
+        return presentation.notation.token(operation_id) != baseline.token(operation_id) or any(
+            presentation.notation.rule(operation_id, target) != baseline.rule(operation_id, target)
+            for target in _TARGETS
+        )
+
+    hidden_aliases = set()
+    for generic, directional in (("complement", "right_complement"), ("uncomplement", "left_complement")):
+        preferred, alternate = (
+            (directional, generic) if presentation.notation.id == "lengyel-rga" else (generic, directional)
+        )
+        if not differs_from_baseline(preferred) and differs_from_baseline(alternate):
+            preferred, alternate = alternate, preferred
+        hidden_aliases.add(alternate)
+
     rows = []
     for operation_id, operation in OPERATIONS.items():
-        if operation.result_kind == "predicate":
+        if operation.result_kind == "predicate" or operation_id in hidden_aliases:
             continue
-        if not show_all and (
-            presentation.notation.token(operation_id) == baseline.token(operation_id)
-            and all(
-                presentation.notation.rule(operation_id, target) == baseline.rule(operation_id, target)
-                for target in _TARGETS
-            )
-        ):
+        if not show_all and not differs_from_baseline(operation_id):
             continue
         parameters = {
             parameter.name: parameter_samples[parameter.name]
@@ -190,9 +200,7 @@ def _presentation_table(
         }
         if operation.expression_arity == 1:
             samples = (
-                ((ScalarLiteral(2),), (ScalarLiteral(3),))
-                if operation_id == "scalar_sqrt" and basis
-                else ((first,), (second if operation_id == "scalar_sqrt" else bivector,))
+                ((ScalarLiteral(2),), (ScalarLiteral(3),)) if operation_id == "scalar_sqrt" else ((first,), (bivector,))
             )
             if operation_id == "rotor_generator":
                 samples = (
