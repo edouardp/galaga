@@ -27,6 +27,7 @@ from .presentation import (
     DisplayPolicy,
     Notation,
     RenderRule,
+    _parse_rule_shorthand,
     default_presentation,
 )
 from .presenter import Presenter
@@ -75,6 +76,31 @@ def _reference(value: Any, source: Path, where: str) -> str:
     if not isinstance(value, str) or not value.startswith("@"):
         raise _error(source, where, "expected a reference string such as '@name'")
     return _name(value[1:], source, where)
+
+
+def _render_rule(value: Any, source: Path, where: str, fields: frozenset[str]) -> RenderRule:
+    if isinstance(value, str):
+        try:
+            return _parse_rule_shorthand(value)
+        except (TypeError, ValueError) as error:
+            raise _error(source, where, str(error)) from error
+    rule_map = _mapping(value, source, where, fields | {"kind"})
+    if "kind" not in rule_map:
+        raise _error(source, where, "render rule requires kind")
+    kwargs = dict(rule_map)
+    for key in ("symbol", "opening", "closing", "numerator_closing", "denominator_closing"):
+        if isinstance(kwargs.get(key), Mapping):
+            spelling = _mapping(kwargs[key], source, f"{where}.{key}", frozenset({"ascii", "unicode", "latex"}))
+            if "ascii" not in spelling:
+                raise _error(source, where, f"{key} requires an ascii spelling")
+            try:
+                kwargs[key] = Name(**spelling)
+            except (TypeError, ValueError) as error:
+                raise _error(source, f"{where}.{key}", str(error)) from error
+    try:
+        return RenderRule(**kwargs)
+    except (TypeError, ValueError) as error:
+        raise _error(source, where, str(error)) from error
 
 
 def _parse(path: Path) -> Mapping[str, Any]:
@@ -181,29 +207,17 @@ class Settings:
         for operation_id, targets in data.items():
             if operation_id not in OPERATIONS:
                 raise _error(source, where, f"unknown operation ID {operation_id!r}")
+            if isinstance(targets, str):
+                rule = _render_rule(targets, source, f"{where}.{operation_id}", fields)
+                if rule.kind == "unit_fraction" and operation_id != "unit":
+                    raise _error(source, f"{where}.{operation_id}", "unit_fraction is only valid for unit")
+                result.extend((operation_id, target, rule) for target in ("ascii", "unicode", "latex"))
+                continue
             target_map = _mapping(
                 targets, source, f"{where}.{operation_id}", frozenset({"default", "ascii", "unicode", "latex"})
             )
             for target, specification in target_map.items():
-                rule_map = _mapping(specification, source, f"{where}.{operation_id}.{target}", fields | {"kind"})
-                if "kind" not in rule_map:
-                    raise _error(source, where, "render rule requires kind")
-                kwargs = dict(rule_map)
-                for key in ("symbol", "opening", "closing", "numerator_closing", "denominator_closing"):
-                    if isinstance(kwargs.get(key), Mapping):
-                        spelling = _mapping(
-                            kwargs[key], source, f"{where}.{key}", frozenset({"ascii", "unicode", "latex"})
-                        )
-                        if "ascii" not in spelling:
-                            raise _error(source, where, f"{key} requires an ascii spelling")
-                        try:
-                            kwargs[key] = Name(**spelling)
-                        except (TypeError, ValueError) as error:
-                            raise _error(source, f"{where}.{operation_id}.{target}.{key}", str(error)) from error
-                try:
-                    rule = RenderRule(**kwargs)
-                except (TypeError, ValueError) as error:
-                    raise _error(source, f"{where}.{operation_id}.{target}", str(error)) from error
+                rule = _render_rule(specification, source, f"{where}.{operation_id}.{target}", fields)
                 if rule.kind == "unit_fraction" and operation_id != "unit":
                     raise _error(source, f"{where}.{operation_id}.{target}", "unit_fraction is only valid for unit")
                 result.append((operation_id, None if target == "default" else target, rule))
@@ -233,12 +247,18 @@ class Settings:
         data = _mapping(value, source, "presentation", _PRESENTATION_FIELDS)
         blades: BladeRecipe | None = None
         if "blades" in data:
-            setting = _mapping(data["blades"], source, "presentation.blades", frozenset({"preset", "args"}))
+            setting = _mapping(data["blades"], source, "presentation.blades")
             preset = _name(setting.get("preset"), source, "presentation.blades.preset")
             if preset not in _BLADE_PRESETS:
                 raise _error(source, "presentation.blades", f"unknown blade preset {preset!r}")
-            args = _mapping(setting.get("args", {}), source, "presentation.blades.args")
-            blades = BladeRecipe(preset, tuple(args.items()))
+            nested = _mapping(setting.get("args", {}), source, "presentation.blades.args")
+            inline = {key: value for key, value in setting.items() if key not in {"preset", "args"}}
+            duplicates = set(nested) & set(inline)
+            if duplicates:
+                raise _error(
+                    source, "presentation.blades", f"duplicate preset argument(s): {', '.join(sorted(duplicates))}"
+                )
+            blades = BladeRecipe(preset, tuple({**nested, **inline}.items()))
         notation: Notation | NotationPatch | None = None
         if "notation" in data:
             selection = data["notation"]

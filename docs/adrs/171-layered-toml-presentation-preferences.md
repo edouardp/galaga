@@ -70,6 +70,17 @@ other rules and changes only the listed operation IDs and targets. File
 recipes resolve blades, local names, and display ordering against the actual
 algebra dimension and Gram matrix.
 
+Blade preset arguments may appear beside `preset`, as in
+`blades = { preset = "indexed", prefix = "v" }`. The original nested `args`
+table remains valid for existing files. Duplicate arguments across the two
+forms are rejected.
+
+Notation rules in TOML accept both complete `RenderRule` tables and concise
+strings. An operation-level string applies to ASCII, Unicode, and LaTeX;
+one under an `ascii`, `unicode`, or `latex` key applies only to that target.
+The complete table form remains available for precedence, argument order,
+and other options outside the shorthand.
+
 ## Consequences
 
 The base `galaga` package retains NumPy as its only direct runtime dependency.

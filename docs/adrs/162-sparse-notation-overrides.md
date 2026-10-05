@@ -44,7 +44,7 @@ factory the same expressive range. Keep `reverse=` as the common shorthand,
 and accept `rules=` with the key forms used by `Notation`: an operation ID
 for a generic rule, or `(operation_id, target)` for a target-specific rule.
 Add `ascii=`, `unicode=`, and `latex=` mappings as concise target-grouped
-spellings. Every value is an explicit `RenderRule`, so the rule kind remains
+spellings. Complete values use an explicit `RenderRule`, so the rule kind remains
 clear. Repeated keys across arguments are errors. An explicit reverse rule
 applies after the `reverse=` shorthand.
 
@@ -57,3 +57,25 @@ presets.notation.override(
 
 The factory returns the existing `NotationPatch`; the composition and
 inheritance rules above are unchanged.
+
+## Amendment: concise render rules
+
+Accept compact `kind:symbol` strings for common layouts and
+`wrapper:opening,closing` for fixed delimiters. Operation keyword arguments,
+such as `left_hodge_dual="prefix:star"`, are concise rules for all three
+targets. Strings in `rules=` without a target have the same all-target
+meaning; strings in `ascii=`, `unicode=`, or `latex=` affect only that target.
+The parser uses `Name.from_latex` for recognized symbol names, so `star`
+resolves to `*`, `⋆`, and `\star`. The `1/2` wrapper prefix resolves to
+`1/2`, `½`, and `\tfrac{1}{2}`. Full `RenderRule` values remain available
+for every layout option and retain their existing generic-rule behavior.
+
+## Amendment: discoverable operation keywords
+
+Declare the public expression-catalog operation names explicitly in the
+`presets.notation.override` signature so editors can complete them. Keep the
+implementation's shared rule normalization and the `rules=`, target-map, and
+keyword forms. A contract test compares the manual signature with the catalog
+to expose omissions as operations are added. The special `reverse=` style
+argument retains its existing `"tilde"` and `"dagger"` choices; arbitrary
+reverse rules remain available through `rules=`.

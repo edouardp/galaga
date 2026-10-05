@@ -418,7 +418,9 @@ $$
 $$
 
 Galaga exposes them as `left_interior_product()` and
-`right_interior_product()`.
+`right_interior_product()`. In the Lengyel presentation preset, these retain
+their function names in rendered expressions. The floor glyphs render the
+distinct Clifford contraction operations.
 
 Their defining equal-grade property is
 

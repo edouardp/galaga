@@ -171,6 +171,21 @@ def test_lengyel_preset_uses_target_specific_semantic_rules() -> None:
     assert render(metric_apply, target="latex", presentation=presentation) == r"\mathbf{G}a"
 
 
+@pytest.mark.parametrize("side", ("left", "right"))
+@pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
+def test_lengyel_interior_and_clifford_contraction_keep_distinct_notation(side: str, target: str) -> None:
+    presentation = default_presentation(3).with_notation(Notation.lengyel())
+    operands = (Symbol("a"), Symbol("b"))
+    contraction = render(Call(f"{side}_contraction", operands), target=target, presentation=presentation)
+    interior = render(Call(f"{side}_interior_product", operands), target=target, presentation=presentation)
+
+    assert contraction != interior
+    if target == "latex":
+        assert interior.startswith(rf"\operatorname{{{side}\_interior\_product}}(")
+    else:
+        assert interior.startswith(f"{side}_interior_product(")
+
+
 def test_lengyel_associative_antiproduct_elides_left_nested_parentheses() -> None:
     presentation = default_presentation(5).with_notation(Notation.lengyel())
     expression = Call(

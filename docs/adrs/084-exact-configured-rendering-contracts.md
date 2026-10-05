@@ -91,6 +91,12 @@ mirrored LaTeX floor symbols `\mathbin{\rfloor}` and
 historical corner symbol, making this reviewed presentation change explicit
 rather than weakening the exact comparison.
 
+The Lengyel preset retains those contraction symbols and renders
+`left_interior_product()` and `right_interior_product()` by function name.
+These operations can return different values for the same operands, so their
+default displays must distinguish them. Users may still select alternate
+symbols through notation overrides.
+
 The golden contract and differential audit have distinct authority:
 
 - the golden contract decides the exact output for one complete configuration;

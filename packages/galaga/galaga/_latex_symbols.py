@@ -81,16 +81,35 @@ _COMMON = [
 
 _OPERATORS = [
     ("cdot", "·", "."),
+    ("bullet", "∙", "."),
     ("times", "×", "x"),
     ("wedge", "∧", "^"),
+    ("land", "∧", "^"),
     ("vee", "∨", "v"),
+    ("lor", "∨", "v"),
     ("star", "⋆", "*"),
+    ("bigstar", "★", "*"),
+    ("ast", "∗", "*"),
+    ("diamond", "⋄", "diamond"),
     ("dagger", "†", "dag"),
+    ("ddagger", "‡", "ddag"),
     ("pm", "±", "+/-"),
     ("mp", "∓", "-/+"),
     ("circ", "∘", "o"),
+    ("circledast", "⊛", "circledast"),
+    ("odot", "⊙", "odot"),
+    ("oslash", "⊘", "oslash"),
+    ("ominus", "⊖", "(-)"),
     ("otimes", "⊗", "(x)"),
     ("oplus", "⊕", "(+)"),
+    ("cap", "∩", "cap"),
+    ("cup", "∪", "cup"),
+    ("sqcap", "⊓", "sqcap"),
+    ("sqcup", "⊔", "sqcup"),
+    ("barwedge", "⊼", "barwedge"),
+    ("curlywedge", "⋏", "curlywedge"),
+    ("curlyvee", "⋎", "curlyvee"),
+    ("veebar", "⊻", "veebar"),
 ]
 
 _RELATIONS = [
@@ -103,7 +122,11 @@ _RELATIONS = [
     ("propto", "∝", "propto"),
     ("in", "∈", "in"),
     ("subset", "⊂", "subset"),
+    ("subseteq", "⊆", "subseteq"),
     ("supset", "⊃", "supset"),
+    ("supseteq", "⊇", "supseteq"),
+    ("perp", "⊥", "perp"),
+    ("parallel", "∥", "parallel"),
 ]
 
 _ARROWS = [

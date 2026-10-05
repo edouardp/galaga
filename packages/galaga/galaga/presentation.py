@@ -9,6 +9,7 @@ from numbers import Integral, Real
 from typing import cast
 
 from ._composition_base import PresentationComposable
+from ._latex_symbols import LatexSymbols
 from .blades import BladeConvention, BladeRef, DisplayOrder, LocalNamePolicy
 from .names import Name
 
@@ -219,6 +220,37 @@ class RenderRule:
         object.__setattr__(self, "script_style", script_style)
         object.__setattr__(self, "group_operand", group_operand)
         object.__setattr__(self, "parameter_position", parameter_position)
+
+
+def _shorthand_name(token: str) -> Name:
+    if not token:
+        raise ValueError("render-rule shorthand requires a non-empty symbol")
+    if token.startswith("1/2"):
+        suffix = token[3:]
+        return Name("1/2" + suffix, "½" + suffix, r"\tfrac{1}{2}" + suffix)
+    latex = token if token.startswith("\\") else "\\" + token
+    if LatexSymbols().lookup(latex) is not None:
+        return Name.from_latex(latex)
+    if token.startswith("\\"):
+        raise ValueError(f"unsupported LaTeX symbol {token!r}; use an explicit RenderRule")
+    return Name(token)
+
+
+def _parse_rule_shorthand(value: str) -> RenderRule:
+    """Parse the small layout shorthand shared by presets and file config."""
+    kind, separator, body = value.partition(":")
+    if not separator:
+        if kind in {"fraction", "juxtaposition", "sandwich", "metric_regressive", "unit_fraction"}:
+            return RenderRule(kind)
+        raise ValueError("render-rule shorthand must be 'kind:symbol' or a symbol-free rule kind")
+    if kind == "wrapper":
+        opening, comma, closing = body.partition(",")
+        if not comma or not opening or not closing:
+            raise ValueError("wrapper shorthand must be 'wrapper:opening,closing'")
+        return RenderRule("wrapper", opening=_shorthand_name(opening), closing=_shorthand_name(closing), scalable=False)
+    if kind in {"prefix", "postfix", "infix", "function", "superscript", "subscript", "accent", "underaccent"}:
+        return RenderRule(kind, symbol=_shorthand_name(body))
+    raise ValueError(f"unsupported render-rule shorthand kind {kind!r}; use an explicit RenderRule")
 
 
 def _normalize_tokens(
@@ -728,14 +760,6 @@ def _add_lengyel_binary_rules(rules: dict[str | tuple[str, str], RenderRule]) ->
         "antidot_product": (
             "antidot_product",
             Name("antidot_product", "∘", r"\mathbin{\circ}"),
-        ),
-        "left_interior_product": (
-            "left_interior_product",
-            Name("left_interior_product", "⌋", r"\mathbin{\rfloor}"),
-        ),
-        "right_interior_product": (
-            "right_interior_product",
-            Name("right_interior_product", "⌊", r"\mathbin{\lfloor}"),
         ),
         "antiwedge": ("antiwedge", Name("antiwedge", "∨", r"\vee")),
     }

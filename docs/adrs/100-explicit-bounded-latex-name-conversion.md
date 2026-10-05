@@ -88,3 +88,16 @@ ledger, reducing it from fourteen to thirteen files. It neither changes
 numeric semantics nor adds automatic naming to renderers or the core.
 Remaining notation/mixed tests, engine deletion, and final release gates are
 separate work.
+
+## Amendment: curated KaTeX operator spellings
+
+The notation shorthand introduced after this decision makes single-symbol
+conversion useful for operation labels as well as blade names. Extend the
+explicit lookup tables with a bounded selection from the
+[KaTeX supported symbols](https://katex.org/docs/supported): `\bigstar`,
+`\ast`, `\bullet`, `\diamond`, `\ddagger`, circled products, lattice and
+wedge variants, and common orthogonality and containment relations. Include
+`\land` and `\lor` as aliases for wedge and vee. Each entry has an explicit
+Unicode character and ASCII fallback. In particular, `\bigstar` maps to
+`★`, distinct from `\star`'s `⋆`. Conversion remains an exact, single-symbol
+lookup; support for a KaTeX command alone does not imply support here.

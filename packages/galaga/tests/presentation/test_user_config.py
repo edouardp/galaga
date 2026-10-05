@@ -91,6 +91,29 @@ symbol = '\\star'
     )
 
 
+def test_toml_shorthand_and_complete_render_rule_tables_coexist(tmp_path):
+    path = _write(
+        tmp_path / "config.toml",
+        """version = 1
+[notations.textbook.rules]
+left_hodge_dual = "prefix:star"
+half_commutator = "wrapper:1/2[,]"
+[notations.textbook.rules.right_hodge_dual]
+latex = "superscript:star"
+[notations.textbook.rules.dual.latex]
+kind = "function"
+symbol = "my_dual"
+scalable = false
+""",
+    )
+    notation = config.load(files=[path]).notation("textbook").apply(presets.notation.default())
+    assert notation.rule("left_hodge_dual", "ascii").symbol.ascii == "*"
+    assert notation.rule("left_hodge_dual", "unicode").symbol.unicode == "⋆"
+    assert notation.rule("half_commutator", "latex").opening.latex == r"\tfrac{1}{2}["
+    assert notation.rule("right_hodge_dual", "latex").symbol.latex == r"\star"
+    assert notation.rule("dual", "latex") == RenderRule("function", symbol="my_dual", scalable=False)
+
+
 def test_named_objects_resolve_to_existing_types_and_compose(tmp_path):
     path = _write(
         tmp_path / "config.toml",
@@ -346,6 +369,36 @@ gram = [[1, 0.5], [0.5, 1]]
     assert algebra.gram[0, 1] == 0.5
 
 
+def test_flat_blade_preset_arguments_resolve_against_algebra_dimension(tmp_path):
+    path = _write(
+        tmp_path / "config.toml",
+        """version = 1
+[defaults.presentation]
+blades = { preset = "indexed", prefix = "v", start = 0 }
+local_names = "from_blades"
+[algebras.plane]
+pqr = { p = 2, q = 0, r = 0 }
+""",
+    )
+    algebra = Algebra(config=config.load(files=[path]).algebra("plane"))
+    assert tuple(algebra.locals())[:2] == ("v0", "v1")
+
+
+def test_flat_blade_options_can_extend_nested_arguments(tmp_path):
+    path = _write(
+        tmp_path / "config.toml",
+        """version = 1
+[defaults.presentation]
+blades = { preset = "indexed", start = 0, args = { prefix = "v" } }
+local_names = "from_blades"
+[algebras.plane]
+pqr = { p = 2, q = 0, r = 0 }
+""",
+    )
+    algebra = Algebra(config=config.load(files=[path]).algebra("plane"))
+    assert tuple(algebra.locals())[:2] == ("v0", "v1")
+
+
 @pytest.mark.parametrize(
     "source, fragment",
     [
@@ -366,6 +419,13 @@ gram = [[1, 0.5], [0.5, 1]]
         ('version = 1\n[notations.a]\nbase = { ref = "b" }\n', "unknown field"),
         ('version = 1\n[presentations.a]\nextends = "base"\n', "@name"),
         ('version = 1\n[presenters.a]\npresentation = { ref = "b" }\n', "@name"),
+        (
+            'version = 1\n[defaults.presentation]\nblades = { preset = "indexed", prefix = "v", '
+            'args = { prefix = "w" } }\n',
+            "duplicate preset argument",
+        ),
+        ('version = 1\n[notations.a.rules]\nleft_hodge_dual = "prefix:"\n', "non-empty symbol"),
+        ('version = 1\n[notations.a.rules]\nleft_hodge_dual = "wrapper:["\n', "wrapper shorthand"),
         ("version = 1\n[algebras.a]\npqr = { p = 2 }\ngram = [[1]]\n", "exactly one"),
         (
             'version = 1\n[presentations.a]\nextends = "@b"\n[presentations.b]\nextends = "@a"\n',

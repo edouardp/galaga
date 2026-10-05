@@ -70,6 +70,40 @@ def test_lowercase_script_and_double_struck_regressions(latex, expected):
     assert LatexSymbols().unicode(latex) == expected
 
 
+@pytest.mark.parametrize(
+    "command, unicode, ascii",
+    (
+        ("bullet", "∙", "."),
+        ("land", "∧", "^"),
+        ("lor", "∨", "v"),
+        ("bigstar", "★", "*"),
+        ("ast", "∗", "*"),
+        ("diamond", "⋄", "diamond"),
+        ("ddagger", "‡", "ddag"),
+        ("circledast", "⊛", "circledast"),
+        ("odot", "⊙", "odot"),
+        ("oslash", "⊘", "oslash"),
+        ("ominus", "⊖", "(-)"),
+        ("cap", "∩", "cap"),
+        ("cup", "∪", "cup"),
+        ("sqcap", "⊓", "sqcap"),
+        ("sqcup", "⊔", "sqcup"),
+        ("barwedge", "⊼", "barwedge"),
+        ("curlywedge", "⋏", "curlywedge"),
+        ("curlyvee", "⋎", "curlyvee"),
+        ("veebar", "⊻", "veebar"),
+        ("subseteq", "⊆", "subseteq"),
+        ("supseteq", "⊇", "supseteq"),
+        ("perp", "⊥", "perp"),
+        ("parallel", "∥", "parallel"),
+    ),
+)
+def test_curated_katex_symbols_have_exact_target_spellings(command, unicode, ascii):
+    latex = "\\" + command
+    assert LatexSymbols().lookup(latex) == (unicode, ascii)
+    assert Name.from_latex(latex).variants == (ascii, unicode, latex)
+
+
 @pytest.mark.parametrize("font", FONTS)
 @pytest.mark.parametrize("char", ("_", "θ", "ℍ", "é", "９", "𐐀", "\U0010ffff"))
 def test_font_offsets_never_accept_non_latin_letters_or_non_ascii_digits(font, char):

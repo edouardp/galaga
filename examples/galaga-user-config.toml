@@ -22,6 +22,8 @@ version = 1
 # defined later in this file; a literal notation rule would use a TOML table.
 [defaults.presentation]
 notation = "@textbook"
+# Optional: use dimension-independent indexed blade labels in every algebra.
+# blades = { preset = "indexed", prefix = "v" }
 
 # This is the default number of decimal places shown for coefficients.
 # A presentation chosen explicitly in Python can override it.
@@ -35,15 +37,21 @@ coefficient_precision = 4
 [notations.textbook]
 reverse = "dagger"
 
-# Rules are keyed by operation ID, then output target. These two rules affect
-# only LaTeX output for Hodge duals; ASCII and Unicode keep their usual forms.
-# Single-quoted TOML strings keep the LaTeX backslash literal.
-[notations.textbook.rules.right_hodge_dual.latex]
-kind = "superscript"
-symbol = '\star'
+# An operation-level shorthand applies to all three output targets. This
+# reproduces the familiar half-commutator layout, using 1/2, ½, or \tfrac{1}{2}
+# as appropriate. The comma separates the opening and closing delimiters.
+[notations.textbook.rules]
+half_commutator = "wrapper:1/2[,]"
+
+# A target-level shorthand changes only LaTeX. The symbol name "star"
+# resolves through Galaga's LaTeX-to-Unicode symbol map.
+[notations.textbook.rules.right_hodge_dual]
+latex = "superscript:star"
 
 # Left and right Hodge duals have separate operation IDs and positions.
-# The ordinary dual operation also has its own rule, if you wish to change it.
+# The full rule table remains available for every option. Single-quoted TOML
+# strings keep LaTeX backslashes literal. The ordinary dual operation also
+# has its own rule, if you wish to change it.
 [notations.textbook.rules.left_hodge_dual.latex]
 kind = "subscript"
 symbol = '\star'

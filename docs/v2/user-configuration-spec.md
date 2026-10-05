@@ -116,15 +116,18 @@ For example, an indexed blade preference can omit the dimension:
 version = 1
 
 [defaults.presentation]
-blades = { preset = "indexed", args = { prefix = "v" } }
+blades = { preset = "indexed", prefix = "v" }
 display_order = "grade-lexicographic"
 ```
 
-The loader supplies the algebra dimension to a dimension-dependent blade
-factory and validates the resulting convention against the actual Gram
-matrix. Fixed-dimension or metric-specific blade recipes raise a clear error
-if applied to an incompatible algebra. A blade override does not silently
-change Python local names. Use `local_names = "from_blades"` to derive them from
+Preset options may sit beside `preset` as above. The earlier
+`args = { prefix = "v" }` form remains valid; arguments repeated in both
+places are rejected. The loader supplies the algebra dimension to a
+dimension-dependent blade factory and validates the resulting convention
+against the actual Gram matrix. Fixed-dimension or metric-specific blade
+recipes raise a clear error if applied to an incompatible algebra. A blade
+override does not silently change Python local names. Use
+`local_names = "from_blades"` to derive them from
 the selected convention, or supply a complete `entries` mapping from Python
 identifiers to `{mask, sign}` blade references. The loader supplies and
 validates the algebra dimension. `display_order` accepts
@@ -141,6 +144,34 @@ Rule kinds and their fields use the existing `RenderRule` validation. A
 notation may instead start from a built-in preset with
 `base = { preset = "hestenes" }` (or another named notation with
 `base = "@name"`). Its own rules apply last. Reference cycles are errors.
+
+Common rules can use a compact string. An operation-level string applies to
+ASCII, Unicode, and LaTeX, replacing any target-specific preset rules for
+that operation. A string under a target key affects only that target:
+
+```toml
+[notations.textbook.rules]
+half_commutator = "wrapper:1/2[,]"
+
+[notations.textbook.rules.right_hodge_dual]
+latex = "superscript:star"
+
+[notations.textbook.rules.left_hodge_dual.latex]
+kind = "subscript"
+symbol = '\star'
+```
+
+The last entry demonstrates the complete rule table, which remains available
+for fields such as `precedence`, `argument_order`, and `scalable`. Compact
+forms use `kind:symbol` for `prefix`, `postfix`, `infix`, `function`,
+`superscript`, `subscript`, `accent`, and `underaccent`; use
+`wrapper:opening,closing` for fixed delimiters. Recognized symbol names such
+as `star` derive all three spellings through `Name.from_latex`. The `1/2`
+wrapper prefix yields `1/2`, `½`, and `\tfrac{1}{2}`. Full rules are needed
+for delimiters containing a comma or other specialized settings. Symbol-free
+layouts `fraction`, `juxtaposition`, `sandwich`, `metric_regressive`, and
+`unit_fraction` can be written as bare strings; `unit_fraction` applies only
+to the `unit` operation.
 
 `presentations` entries are dimension-independent `PresentationRecipe`
 values. They accept the same slots as `defaults.presentation`, plus

@@ -206,6 +206,18 @@ rule; tuple keys such as `("dual", "latex")` select one target. The factory
 also accepts `ascii=` and `unicode=` mappings. See the
 [notation override notebook](../../examples/galaga_v2/notation_overrides.py).
 
+Common layouts also accept compact strings as operation keywords:
+
+```python
+presets.notation.override(
+    left_hodge_dual="prefix:star",
+    half_commutator="wrapper:1/2[,]",
+)
+```
+
+These set all three output targets. The same strings work in TOML notation
+rules; full `RenderRule` values remain available for every layout option.
+
 Select only blade names or operation notation when the metric is already known:
 
 ```python
