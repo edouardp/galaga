@@ -76,13 +76,14 @@ new defaults.
 
 ### Group reversed compound operands in sandwiches
 
-The dedicated sandwich rendering rule encloses the reversed right operand in
-parentheses when its source operand has product precedence or lower. For
-example, a rotor displayed as $A \wedge B$ renders on the right as
-$\left(\widetilde{A \wedge B}\right)$. This makes the three factors visible
-without relying on the accent alone to signal their boundary. A single symbol
-keeps the usual compact form $R v \widetilde{R}$. The grouping changes only
-presentation; the reverse still applies to the entire rotor.
+The dedicated sandwich rendering rule groups a compound rotor before applying
+reverse, matching a standalone reverse expression. For a rotor displayed as
+$A \wedge B$, the right factor renders as $\sim(A \wedge B)$ in ASCII,
+with a combining tilde after $(A \wedge B)$ in Unicode, and as
+$\widetilde{\left(A \wedge B\right)}$ in LaTeX. A single symbol keeps the
+compact $R v \widetilde{R}$ form. LaTeX now groups compound operands under the
+wide tilde in both standalone reverses and sandwiches; the grouping changes
+presentation only.
 
 ### Add independent, non-vacuous composition checks
 

@@ -102,7 +102,7 @@ def test_grouping_archive_changes_are_limited_to_reviewed_spelling_choices() -> 
     # V2 has real ASCII fallbacks, combining Unicode accents, target-specific
     # stars, conservative negated-product grouping, and spaces around infixes.
     ascii_only = {"inverse-sum", "inverse-product", "inverse-name", "squared-product", "squared-name"}
-    unicode_only = {"reverse-sum", "reverse-product", "reverse-left", "reverse-right", "sum-sandwich"}
+    unicode_latex = {"reverse-sum", "reverse-product", "reverse-left", "reverse-right", "sum-sandwich"}
     ascii_unicode = {
         "involute-sum",
         "conjugate-sum",
@@ -116,7 +116,7 @@ def test_grouping_archive_changes_are_limited_to_reviewed_spelling_choices() -> 
     }
     assert changed == (
         {(case_id, "ascii") for case_id in ascii_only}
-        | {(case_id, "unicode") for case_id in unicode_only}
+        | {(case_id, target) for case_id in unicode_latex for target in ("unicode", "latex")}
         | {(case_id, target) for case_id in ascii_unicode for target in ("ascii", "unicode")}
         | {("reverse-name", target) for target in ("ascii", "latex")}
         | {

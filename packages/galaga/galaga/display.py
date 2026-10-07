@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, ClassVar
 
@@ -187,7 +188,13 @@ def _presentation_table(
             preferred, alternate = alternate, preferred
         hidden_aliases.add(alternate)
 
-    rows = []
+    def rendered_pair(calls: Sequence[Expr], target: str) -> tuple[str, str]:
+        return (
+            emit(expression_tree(calls[0], presentation, target=target), target),
+            emit(expression_tree(calls[1], presentation, target=target), target),
+        )
+
+    rows: list[tuple[str, tuple[str, str], tuple[str, str], tuple[str, str]]] = []
     for operation_id, operation in OPERATIONS.items():
         if operation.result_kind == "predicate" or operation_id in hidden_aliases:
             continue
@@ -225,10 +232,14 @@ def _presentation_table(
             elif sample_index == 1 and operation_id == "power":
                 sample_parameters["exponent"] = 3
             calls.append(Call(operation_id, operands, sample_parameters))
-        variants = []
-        for target in ("ascii", "unicode", "latex"):
-            variants.append(tuple(emit(expression_tree(call, presentation, target=target), target) for call in calls))
-        rows.append((operation_id, *variants))
+        rows.append(
+            (
+                operation_id,
+                rendered_pair(calls, "ascii"),
+                rendered_pair(calls, "unicode"),
+                rendered_pair(calls, "latex"),
+            )
+        )
     return PresentationTable(tuple(rows), target=presentation.display.target)
 
 

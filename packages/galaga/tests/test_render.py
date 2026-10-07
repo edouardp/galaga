@@ -17,6 +17,13 @@ def _unicode(expr, notation=None):
     return ga.render(expr, target="unicode", presentation=presentation)
 
 
+def _ascii(expr, notation=None):
+    presentation = ga.Algebra(3).presentation
+    if notation is not None:
+        presentation = presentation.with_notation(notation)
+    return ga.render(expr, target="ascii", presentation=presentation)
+
+
 def _latex(expr, notation=None):
     presentation = ga.Algebra(3).presentation
     if notation is not None:
@@ -430,7 +437,7 @@ class TestLatex:
 
     def test_reverse_sum(self, syms):
         a, b, _ = syms
-        assert _latex(Call("reverse", (Call("add", (a, b)),))) == "\\widetilde{a + b}"
+        assert _latex(Call("reverse", (Call("add", (a, b)),))) == "\\widetilde{\\left(a + b\\right)}"
 
     def test_grade(self, syms):
         a, _, _ = syms
@@ -466,16 +473,18 @@ class TestLatex:
         expr = Call("geometric_product", (Call("geometric_product", (R, v)), Call("reverse", (R,))))
         assert _latex(expr) == "R v \\widetilde{R}"
 
-    def test_sandwich_with_compound_rotor_groups_reversed_term(self):
-        a, b, c = Symbol("A"), Symbol("B"), Symbol("C")
-        rotor = Call("outer_product", (a, b))
-        expr = Call("sandwich", (rotor, c))
 
-        assert _unicode(expr) == "(A ∧ B)C(A ∧ B̃)"
-        assert _latex(expr) == (
-            r"\left(A \wedge B\right) C "
-            r"\left(\widetilde{A \wedge B}\right)"
-        )
+def test_sandwich_with_compound_rotor_groups_reversed_term():
+    a, b, c = Symbol("A"), Symbol("B"), Symbol("C")
+    rotor = Call("outer_product", (a, b))
+    expr = Call("sandwich", (rotor, c))
+
+    assert _ascii(expr) == "(A ^ B)C~(A ^ B)"
+    assert _unicode(expr) == "(A ∧ B)C(A ∧ B)̃"
+    assert _latex(expr) == (
+        r"\left(A \wedge B\right) C "
+        r"\widetilde{\left(A \wedge B\right)}"
+    )
 
 
 class TestMixedInfixPostfix:
@@ -597,7 +606,7 @@ class TestMixedInfixPostfixLatex:
     def test_reverse_of_gp_latex(self, syms):
         a, b, _ = syms
         expr = Call("reverse", (Call("geometric_product", (a, b)),))
-        assert _latex(expr) == "\\widetilde{a b}"
+        assert _latex(expr) == "\\widetilde{\\left(a b\\right)}"
 
     def test_inverse_of_gp_latex(self, syms):
         a, b, _ = syms

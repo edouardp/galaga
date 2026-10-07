@@ -89,13 +89,21 @@ def test_unary_layout(operation, expected):
     assert latex(call(operation, A)) == expected
 
 
-@pytest.mark.parametrize("operation, command", (("reverse", r"\widetilde"), ("conjugate", r"\overline")))
 @pytest.mark.parametrize(
-    "operand, body",
-    ((A, "a"), (THETA, r"\theta"), (Symbol("AB"), "AB"), (call("add", A, B), "a + b")),
+    "operation, operand, expected",
+    (
+        ("reverse", A, r"\widetilde{a}"),
+        ("reverse", THETA, r"\widetilde{\theta}"),
+        ("reverse", Symbol("AB"), r"\widetilde{AB}"),
+        ("reverse", call("add", A, B), r"\widetilde{\left(a + b\right)}"),
+        ("conjugate", A, r"\overline{a}"),
+        ("conjugate", THETA, r"\overline{\theta}"),
+        ("conjugate", Symbol("AB"), r"\overline{AB}"),
+        ("conjugate", call("add", A, B), r"\overline{a + b}"),
+    ),
 )
-def test_accent_policy_is_consistently_wide(operation, command, operand, body):
-    assert latex(call(operation, operand)) == command + "{" + body + "}"
+def test_accent_policy_is_consistently_wide(operation, operand, expected):
+    assert latex(call(operation, operand)) == expected
 
 
 @pytest.mark.parametrize(

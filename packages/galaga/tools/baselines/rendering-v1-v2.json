@@ -1384,10 +1384,10 @@
       },
       "reviewed_facade": {
         "implementation": "core-facade-v2",
-        "expression": "\\widetilde{a + b}",
+        "expression": "\\widetilde{\\left(a + b\\right)}",
         "value": "e_{1} + e_{2}",
-        "full": "x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}",
-        "rich": "$x \\quad = \\quad \\widetilde{a + b} \\quad = \\quad e_{1} + e_{2}$",
+        "full": "x \\quad = \\quad \\widetilde{\\left(a + b\\right)} \\quad = \\quad e_{1} + e_{2}",
+        "rich": "$x \\quad = \\quad \\widetilde{\\left(a + b\\right)} \\quad = \\quad e_{1} + e_{2}$",
         "coefficients": [
           0.0,
           1.0,

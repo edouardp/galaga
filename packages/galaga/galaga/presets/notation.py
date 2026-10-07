@@ -154,7 +154,7 @@ def override(  # noqa: PLR0913 - explicit operation keywords support editor auto
         for name, value in locals().items()
         if name not in {"reverse", "rules", "ascii", "unicode", "latex", "operations"} and value is not None
     }
-    entries: list[tuple[str | tuple[str, str], _RenderRule]] = []
+    entries: list[tuple[str | tuple[str, str], _RuleChoice]] = []
     if rules is not None:
         if not isinstance(rules, Mapping):
             raise TypeError("notation override rules must be a mapping")

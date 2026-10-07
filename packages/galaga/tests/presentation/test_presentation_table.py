@@ -92,7 +92,7 @@ def test_show_presentation_can_use_symbolic_abc_examples_instead_of_basis_blades
     assert rows["power"] == ("A^2", r"\left(A \wedge B\right)^3")
     assert rows["sandwich"] == (
         r"R A \widetilde{R}",
-        r"\left(A B\right) C \left(\widetilde{A B}\right)",
+        r"\left(A B\right) C \widetilde{\left(A B\right)}",
     )
     assert rows["scalar_sqrt"] == (r"\sqrt{2}", r"\sqrt{3}")
     with pytest.raises(TypeError, match="basis must be a boolean"):

@@ -101,6 +101,8 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
     if target == "unicode":
         if row.get("operation") == "antiwedge":
             expected = "e₁ ∨ e₂"
+        if row.get("operation") in {"left_interior_product", "right_interior_product"}:
+            expected = f"{row['operation']}(e₁, e₂)"
         if row["kind"] == "nested":
             expected = "(e₁̅ ∨ e₂̅)̰"
         if row.get("operation") == "conjugate":
@@ -110,9 +112,9 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
         if row.get("operation") == "reverse":
             expected = r"\widetilde{\mathbf{e}_{1}}"
         if row.get("operation") == "left_interior_product":
-            expected = r"\mathbf{e}_{1} \mathbin{\rfloor} \mathbf{e}_{2}"
+            expected = r"\operatorname{left\_interior\_product}(\mathbf{e}_{1},\, \mathbf{e}_{2})"
         if row.get("operation") == "right_interior_product":
-            expected = r"\mathbf{e}_{1} \mathbin{\lfloor} \mathbf{e}_{2}"
+            expected = r"\operatorname{right\_interior\_product}(\mathbf{e}_{1},\, \mathbf{e}_{2})"
         if row.get("operation") == "conjugate":
             expected = r"\operatorname{clifford\_conjugate}(\mathbf{e}_{1})"
     assert result.display(f"expr/{target}") == expected

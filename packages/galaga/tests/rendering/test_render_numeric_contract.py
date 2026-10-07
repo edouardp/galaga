@@ -71,8 +71,8 @@ COMPOSITIONS = {
     # ADR-119 preserves division as a two-operand call, including its scope.
     "division": ("a / (b + c)", "a / (b + c)", r"\frac{a}{b + c}"),
     "negative_product": ("-(ab)", "-(ab)", r"-\left(a b\right)"),
-    "reverse_product": ("~(ab)", "(ab)̃", r"\widetilde{a b}"),
-    "reverse_sum_left": ("~(a + b)c", "(a + b)̃c", r"\widetilde{a + b} c"),
+    "reverse_product": ("~(ab)", "(ab)̃", r"\widetilde{\left(a b\right)}"),
+    "reverse_sum_left": ("~(a + b)c", "(a + b)̃c", r"\widetilde{\left(a + b\right)} c"),
     "sandwich": ("ab~a", "abã", r"a b \widetilde{a}"),
     "grade_sandwich": ("<ab~a>[1]", "⟨abã⟩₁", r"\langle a b \widetilde{a} \rangle_{1}"),
     "square_sum": ("(a + b)^2", "(a + b)²", r"\left(a + b\right)^2"),

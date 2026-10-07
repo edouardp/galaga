@@ -397,7 +397,7 @@ SPELLINGS = {
     "right": ("B |_ a", "B ⌊ a", r"B \mathbin{\lfloor} a"),
     "inner": ("hestenes_inner(a, b)", "hestenes_inner(a, b)", r"a \cdot b"),
     "scalar": ("B * B", "B * B", "B * B"),
-    "reverse": ("~(ab)", "(ab)̃", r"\widetilde{a b}"),
+    "reverse": ("~(ab)", "(ab)̃", r"\widetilde{\left(a b\right)}"),
     "involution": ("hat(a)", "â", r"\widehat{a}"),
     "conjugate": ("bar((ab))", "(ab)̅", r"\overline{a b}"),
     "dual": ("a^*", "a^★", "a^*"),

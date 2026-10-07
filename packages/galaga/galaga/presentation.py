@@ -272,10 +272,11 @@ def _normalize_tokens(
 def _normalize_rules(
     rules: Mapping[str | tuple[str, str], RenderRule] | Iterable[tuple[str | tuple[str, str], RenderRule]] | None,
 ) -> tuple[tuple[str, str | None, RenderRule], ...]:
+    items: Iterable[tuple[str | tuple[str, str], RenderRule]]
     if rules is None:
         items = _conventional_rules().items()
     elif isinstance(rules, Mapping):
-        items = rules.items()
+        items = cast(Mapping[str | tuple[str, str], RenderRule], rules).items()
     else:
         items = rules
     seen: set[tuple[str, str | None]] = set()
@@ -570,7 +571,7 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         ("reverse", "latex"): RenderRule(
             "accent",
             symbol=Name("~", "\u0303", r"\widetilde"),
-            group_operand=False,
+            group_operand=True,
         ),
         "grade_involution": RenderRule("accent", symbol=Name("hat", "\u0302", r"\widehat")),
         "clifford_conjugate": RenderRule("accent", symbol=Name("bar", "\u0305", r"\overline")),

@@ -430,9 +430,10 @@ def _operation_tree(
         if decoration is not None or len(arguments) != 2:
             return _functional_tree(operation_id, operands, parameters)
         rotor, value = arguments
-        reversed_rotor: Node = Accent(rotor, Name("~", "\u0303", r"\widetilde"))
-        if rotor.precedence <= Precedence.PRODUCT:
-            reversed_rotor = Group(reversed_rotor)
+        reversed_rotor = Accent(
+            grouped_child(rotor, parent_precedence=Precedence.POSTFIX),
+            Name("~", "\u0303", r"\widetilde"),
+        )
         return Product(
             (
                 grouped_child(rotor, parent_precedence=30),

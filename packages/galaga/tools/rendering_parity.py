@@ -536,6 +536,9 @@ DIFFERENCE_LEDGER: Mapping[str, str] = {
         "Accepted Galaga 2 correction: jordan_product is the unscaled anticommutator and uses the same brace notation."
     ),
     "default-cl3/reverse-atom": "Accepted Galaga 2 typography: use the consistently wide \\widetilde accent.",
+    "default-cl3/reverse-sum": (
+        "Accepted Galaga 2 typography: explicitly group a compound reverse operand beneath the wide tilde."
+    ),
     "default-cl3/outerexp": "Accepted Galaga 2 rendering; legacy v1 raises RecursionError.",
     "default-cl3/outersin": "Accepted Galaga 2 rendering; legacy v1 raises RecursionError.",
     "default-cl3/outercos": "Accepted Galaga 2 rendering; legacy v1 raises RecursionError.",

@@ -191,6 +191,7 @@ classes are no longer production alternatives.
 | [170](170-retire-migration-scaffolding-before-stable-2.md) | Retire Migration Scaffolding Before Stable Galaga 2 | Accepted; updates 083, 090, 129 and matrix 005 |
 | [171](171-layered-toml-presentation-preferences.md) | Layered TOML Presentation Preferences | Accepted; extends 076, 161, 162 and 169 |
 | [172](172-leaf-composition-dispatch.md) | Leaf Composition Dispatch | Accepted; refactors 161 |
+| [173](173-operation-notation-overview.md) | Renderable Operation Notation Overview | Accepted |
 
 ## Creating New ADRs
 
