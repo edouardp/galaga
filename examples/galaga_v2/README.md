@@ -93,6 +93,9 @@ These lessons also use the v2 facade and participate in headless validation:
 - [CSTA object classifier worksheet](../spacetime/conformal_spacetime_classifier.py):
   use grade, infinity incidence, and induced metric signs to describe
   witnessed point pairs, flat lines, and signed rounds.
+- [CSTA model and classifiers](../spacetime/csta_model_and_classifiers.py):
+  tour `presets.csta()`, event coordinates, signed intervals, direct and dual
+  classifier hints, event pairs, causal flat lines, and signed rounds.
 - [Four-dimensional rotor planes](../algebra/four_dimensional_rotor_planes.py):
   two-plane rotations and plots, principal logarithms, simple-plane extraction,
   self-dual versus simple bivectors, isoclinic ambiguity, and higher dimensions.

@@ -12,6 +12,13 @@ Lengyel CGA retains its original coordinates; it no longer has the identical
 coordinate Gram matrix as the ordinary default. Model and dual contracts
 below remain unchanged.
 
+Runtime-model update:
+[ADR-174](174-runtime-geometry-model-hierarchy-and-classifiers.md) places the
+canonical `ConformalModel` import under `galaga.models`, shares only
+signature-independent conformal mechanics with CSTA, and retires the generic
+free bulk/weight aliases. The role-dependent CGA component methods described
+below remain on `ConformalModel`.
+
 ## Context and problem statement
 
 The Gram-matrix core can already represent conformal geometric algebra in the
@@ -151,8 +158,10 @@ formula.
 The model owns the role-dependent round-bulk, round-weight, flat-bulk, and
 flat-weight projections. It derives round/flat and CGA bulk/weight families
 from them and defines conformal conjugation as round minus flat. These remain
-model methods: the free `galaga.bulk_part` and `galaga.weight_part` retain
-their general RGA meanings as metric and antimetric application.
+model methods. ADR-174 retires the free `galaga.bulk_part` and
+`galaga.weight_part` aliases because bulk/weight is not a valid decomposition
+for every algebra; general metric and antimetric application retain their
+explicit names.
 
 The model also implements Eric's center, radius, and four component norms.
 The homogeneous numerator codomains are preserved rather than coerced

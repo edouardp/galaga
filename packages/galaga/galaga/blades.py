@@ -344,6 +344,36 @@ def spacetime_blade_convention(
     return BladeConvention(4, labels, aliases=aliases, roles=roles)
 
 
+def conformal_spacetime_blade_convention() -> BladeConvention:
+    """Time-first ``(+---)`` spacetime vectors followed by a native null pair."""
+
+    basis = (
+        Name("g0", "γ₀", r"\gamma_0"),
+        Name("g1", "γ₁", r"\gamma_1"),
+        Name("g2", "γ₂", r"\gamma_2"),
+        Name("g3", "γ₃", r"\gamma_3"),
+        Name("n_o", "nₒ", r"n_o"),
+        Name("n_inf", "n∞", r"n_\infty"),
+    )
+    labels: dict[int, Name] = {}
+    for mask in range(1 << len(basis)):
+        factors = tuple(name for index, name in enumerate(basis) if mask & (1 << index))
+        labels[mask] = Name(
+            "".join(name.ascii for name in factors) or "1",
+            "∧".join(name.for_target("unicode") for name in factors) or "1",
+            r" \wedge ".join(name.for_target("latex") for name in factors) or "1",
+        )
+    roles = {
+        "time": BladeRef(0b000001),
+        "space_1": BladeRef(0b000010),
+        "space_2": BladeRef(0b000100),
+        "space_3": BladeRef(0b001000),
+        "origin": BladeRef(0b010000),
+        "infinity": BladeRef(0b100000),
+    }
+    return BladeConvention(6, labels, roles=roles)
+
+
 def _sta_signature(signature: Sequence[int]) -> tuple[int, ...]:
     """Validate the bounded metric grammar used by signed STA word labels."""
     message = "STA signature must contain four real unit diagonal entries (+1 or -1)"
@@ -839,6 +869,7 @@ __all__ = [
     "DisplayOrder",
     "LocalNamePolicy",
     "complex_blade_convention",
+    "conformal_spacetime_blade_convention",
     "default_blade_convention",
     "euclidean_blade_convention",
     "exterior_blade_convention",

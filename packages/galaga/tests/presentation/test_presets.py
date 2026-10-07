@@ -10,6 +10,7 @@ from galaga.presentation import Notation
 from galaga.presets import (
     CGAPreset,
     ComplexPreset,
+    CSTAPreset,
     EuclideanPreset,
     ExteriorPreset,
     LengyelCGAPreset,
@@ -201,6 +202,7 @@ def test_ergonomic_preset_constructors_return_inspectable_preset_objects():
     assert presets.sta("mostly-plus") == SpacetimePreset("mostly-plus")
     assert presets.pga(2) == PGAPreset(2)
     assert presets.cga(2, frame="orthogonal") == CGAPreset(2, "orthogonal")
+    assert presets.csta() == CSTAPreset()
     assert presets.rga() == LengyelRGAPreset()
     assert presets.lengyel_cga() == LengyelCGAPreset()
     assert presets.complex() == ComplexPreset()

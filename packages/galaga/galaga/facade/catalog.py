@@ -676,6 +676,85 @@ def _cga_semantic_operations() -> tuple[OperationSpec, ...]:
     )
 
 
+def _csta_semantic_operations() -> tuple[OperationSpec, ...]:
+    """Executable provenance for CSTA constructions, separate from the numeric facade."""
+
+    roles = tuple(
+        ParameterSpec(name, positional=True, required=True, normalize=_normalize_blade_role, render=False)
+        for name in ("origin", "infinity")
+    )
+    basis = ParameterSpec("basis", positional=True, required=True, normalize=_normalize_csta_basis, render=False)
+    coordinate_scale = ParameterSpec("coordinate_scale", normalize=_normalize_coordinate_scale, render=False)
+    units = ParameterSpec("units", normalize=_normalize_unit_labels)
+    return (
+        OperationSpec("event", 7, _csta_event, expression_arity=4, parameters=(basis, *roles, coordinate_scale, units)),
+        OperationSpec("event_vector", 3, _cga_up, expression_arity=1, parameters=roles),
+        OperationSpec("event_pair", 2, core.outer_product),
+        OperationSpec("flat_line", 3, _csta_flat_line, expression_arity=2, parameters=(roles[1],)),
+        OperationSpec("signed_round", 4, _csta_signed_round, expression_arity=2, parameters=roles),
+    )
+
+
+def _normalize_csta_basis(value: Any) -> tuple[tuple[int, int], ...]:
+    roles = tuple(_normalize_blade_role(role) for role in value)
+    if len(roles) != 4 or len({mask for mask, _ in roles}) != 4:
+        raise ValueError("event basis must contain four distinct vector roles")
+    return roles
+
+
+def _normalize_coordinate_scale(value: Any) -> tuple[float, float]:
+    scales = tuple(_normalize_tolerance(item) for item in value)
+    if len(scales) != 2 or any(item <= 0 for item in scales):
+        raise ValueError("coordinate_scale must contain positive time and distance factors")
+    return cast(tuple[float, float], scales)
+
+
+def _normalize_unit_labels(value: Any) -> tuple[str, str]:
+    labels = tuple(value)
+    if len(labels) != 2 or any(not isinstance(item, str) or not item for item in labels):
+        raise ValueError("units must contain time and distance labels")
+    return cast(tuple[str, str], labels)
+
+
+def _csta_event(
+    t: core.Multivector,
+    x: core.Multivector,
+    y: core.Multivector,
+    z: core.Multivector,
+    basis: tuple[tuple[int, int], ...],
+    origin: tuple[int, int],
+    infinity: tuple[int, int],
+    *,
+    coordinate_scale: tuple[float, float] = (1.0, 1.0),
+    units: tuple[str, str] | None = None,
+) -> core.Multivector:
+    position = t.algebra.scalar(0)
+    time_factor, length_factor = coordinate_scale
+    factors = (time_factor, length_factor, length_factor, length_factor)
+    for coordinate, role, factor in zip((t, x, y, z), basis, factors, strict=True):
+        if not core.is_scalar(coordinate):
+            raise ValueError("event coordinates must be scalars")
+        position = position + factor * coordinate * _role_blade(t, role)
+    return _cga_up(position, origin, infinity)
+
+
+def _csta_flat_line(
+    left: core.Multivector,
+    right: core.Multivector,
+    infinity: tuple[int, int],
+) -> core.Multivector:
+    return core.outer_product(core.outer_product(left, right), _role_blade(left, infinity))
+
+
+def _csta_signed_round(
+    position: core.Multivector,
+    radius_squared: core.Multivector,
+    origin: tuple[int, int],
+    infinity: tuple[int, int],
+) -> core.Multivector:
+    return _cga_round_point(position, -radius_squared, origin, infinity)
+
+
 def _cga_up(
     position: core.Multivector,
     origin: tuple[int, int],
@@ -1461,6 +1540,7 @@ if len(_operation_dict) != len(_operation_items):
 _expression_operation_items = (
     *_operation_items,
     *_cga_semantic_operations(),
+    *_csta_semantic_operations(),
     *_rga_semantic_operations(),
 )
 _expression_operation_dict = {operation.id: operation for operation in _expression_operation_items}

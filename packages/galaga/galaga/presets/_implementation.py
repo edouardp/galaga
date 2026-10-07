@@ -15,6 +15,7 @@ from ..blades import (
     _cga_pseudoscalar_labels,
     _validate_cga_pseudoscalar_options,
     complex_blade_convention,
+    conformal_spacetime_blade_convention,
     euclidean_blade_convention,
     exterior_blade_convention,
     indexed_blade_convention,
@@ -341,6 +342,27 @@ class CGAPreset:
 
 
 @dataclass(frozen=True, slots=True)
+class CSTAPreset:
+    """Four-dimensional ``(+---)`` spacetime with a native conformal null pair."""
+
+    def build(self) -> AlgebraConfig:
+        blades = conformal_spacetime_blade_convention()
+        gram = (
+            (1.0, 0.0, 0.0, 0.0, 0.0, 0.0),
+            (0.0, -1.0, 0.0, 0.0, 0.0, 0.0),
+            (0.0, 0.0, -1.0, 0.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0, -1.0, 0.0, 0.0),
+            (0.0, 0.0, 0.0, 0.0, 0.0, -1.0),
+            (0.0, 0.0, 0.0, 0.0, -1.0, 0.0),
+        )
+        return AlgebraConfig(
+            definition=AlgebraDefinition(gram, id="csta-4d-mostly-minus"),
+            presentation=_presentation(blades, notation=Notation("csta")),
+            model=_model("csta-mostly-minus", blades),
+        )
+
+
+@dataclass(frozen=True, slots=True)
 class LengyelRGAPreset:
     """Eric Lengyel's four-basis-vector RGA presentation of 3D PGA."""
 
@@ -481,6 +503,11 @@ def cga(
     native top label; None keeps automatic naming. In 1D, e1 stays e1.
     """
     return CGAPreset(spatial_dim, frame, null_pair, basis_order, model_pseudoscalars, pss, pseudoscalar_null)
+
+
+def csta() -> CSTAPreset:
+    """Return four-dimensional conformal spacetime with signature ``(+---)``."""
+    return CSTAPreset()
 
 
 def rga(spatial_dim: int = 3) -> LengyelRGAPreset:

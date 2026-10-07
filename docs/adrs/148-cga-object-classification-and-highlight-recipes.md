@@ -6,6 +6,14 @@ deciders: edouard
 
 # ADR-148: CGA Object Classification and Highlight Recipes
 
+Ownership update:
+[ADR-174](174-runtime-geometry-model-hierarchy-and-classifiers.md) moves the
+metric and incidence classifier into the runtime `ConformalModel` under
+`galaga.models`. `galaga_annotation` continues to own highlighting, labels,
+targets, and rendering recipes and consumes the model's immutable
+classification result. The classification behavior and validation below
+remain the initial 3D CGA contract.
+
 ## Context
 
 Teaching a conformal calculation needs more than term selection: a dipole,

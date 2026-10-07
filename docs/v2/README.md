@@ -23,6 +23,9 @@
   lookup, facade factories, and context-local override behavior.
 - [User configuration files](user-configuration-spec.md) specify
   global and project TOML preferences and reusable named profiles.
+- [Runtime geometry model architecture](runtime-geometry-models.md) proposes
+  the shared model lifecycle, projective and conformal branches, capability
+  protocols, and operation ownership for RGA, PGA, CGA, and CSTA.
 - [Expression provenance implementation](expression-provenance.md) explains
   the immutable nodes, independent value state, catalog-driven propagation and
   evaluation, variadic lowering, and conservative simplifier.

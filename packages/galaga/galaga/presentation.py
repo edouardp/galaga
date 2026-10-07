@@ -694,6 +694,9 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         "flat_weight_norm",
         "flat_weight_part",
         "down",
+        "event",
+        "event_pair",
+        "flat_line",
         "expansion",
         "geometric_norm",
         "homogeneous_angle",
@@ -713,6 +716,7 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         "round_weight_part",
         "support",
         "round_point",
+        "signed_round",
         "unitize",
         "up",
         "weight_contraction",
@@ -723,6 +727,7 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         "weight",
     ):
         rules[operation_id] = compact_function(operation_id)
+    rules["event_vector"] = compact_function("event")
     for operation_id in (
         "antidot_product",
         "antimetric_apply",

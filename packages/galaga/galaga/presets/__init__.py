@@ -11,6 +11,7 @@ from ._implementation import (
     blades,
     cga,
     complex,
+    csta,
     euclidean,
     exterior,
     lengyel_cga,
@@ -25,6 +26,7 @@ __all__ = [
     "blades",
     "cga",
     "complex",
+    "csta",
     "display",
     "euclidean",
     "exterior",
@@ -41,6 +43,7 @@ __all__ = [
 _COMPATIBILITY_NAMES = {
     "BladePreset",
     "CGAPreset",
+    "CSTAPreset",
     "ComplexPreset",
     "EuclideanPreset",
     "ExteriorPreset",
