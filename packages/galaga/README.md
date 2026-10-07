@@ -209,6 +209,8 @@ also accepts `ascii=` and `unicode=` mappings. See the
 Common layouts also accept compact strings as operation keywords:
 
 ```python
+from galaga import presets
+
 presets.notation.override(
     left_hodge_dual="prefix:star",
     half_commutator="wrapper:1/2[,]",
