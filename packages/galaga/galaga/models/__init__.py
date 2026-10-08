@@ -2,12 +2,14 @@
 
 from ..cga import ConformalModel
 from ..rga import RigidModel
-from .csta import CausalKind, ConformalSpacetimeModel, CSTAClassification, CSTAExpressionForm
+from .classification import CausalKind, CSTAClassification, CSTAOperatorClassification
+from .csta import ConformalSpacetimeModel, CSTAExpressionForm
 from .units import CoordinateUnits, SpacetimeUnits
 
 __all__ = [
     "CSTAClassification",
     "CSTAExpressionForm",
+    "CSTAOperatorClassification",
     "CausalKind",
     "ConformalModel",
     "ConformalSpacetimeModel",

@@ -189,7 +189,7 @@ def test_event_pair_and_direct_or_dual_line_causal_classes_match_the_computed_in
     pair = first ^ second
     line = pair ^ csta.infinity
 
-    assert csta.classify(pair).kind == "event pair"
+    assert csta.classify(pair).kind == ("lightlike line" if expected_causal == "null" else "event pair")
     assert csta.classify(pair).causal == expected_causal
     for value, representation in ((line, "direct"), (right_hodge_dual(line), "dual")):
         classified = csta.classify(value, representation=representation)
@@ -246,12 +246,13 @@ def test_round_curve_shape_and_causal_tangents_are_derived_from_its_metric(csta,
         assert properties["signed_radius_squared"] == pytest.approx(radius_squared, abs=1e-10)
 
 
-def test_null_carrier_round_curve_keeps_structural_label_when_center_is_not_unique(csta):
+def test_null_carrier_round_curve_recognizes_a_parabola_without_inventing_a_center(csta):
     samples = tuple(csta.event(position, expr=False) for position in ((0, 0, 0, 0), (1, 1, 1, 0), (2, 2, -1, 0)))
     curve = outer_product(*samples)
     result = csta.classify(curve)
-    assert result.kind == "round 2-object"
-    assert result.causal is None
+    assert result.kind == "parabola"
+    assert result.causal == "spacelike"
+    assert "center" not in dict(result.properties)
     assert dict(result.properties)["carrier_inertia"] == (0, 1, 1)
 
 

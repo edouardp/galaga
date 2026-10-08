@@ -194,6 +194,7 @@ classes are no longer production alternatives.
 | [173](173-operation-notation-overview.md) | Renderable Operation Notation Overview | Accepted |
 | [174](174-runtime-geometry-model-hierarchy-and-classifiers.md) | Runtime Geometry Model Hierarchy and Classifiers | Accepted; extends 086 and 148 |
 | [175](175-csta-physical-units-and-coordinate-scale.md) | CSTA Physical Units and Coordinate Scale | Accepted; extends 174 |
+| [176](176-csta-object-and-operator-classification.md) | CSTA Object and Operator Classification | Accepted; extends 174 |
 
 ## Creating New ADRs
 

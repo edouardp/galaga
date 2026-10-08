@@ -175,9 +175,10 @@ The null condition for $W+U\lambda$ becomes
 $\lambda^TM\lambda=\rho^2$. A negative-definite carrier and negative
 $\rho^2$ give a circle. A carrier of inertia $(1,1,0)$ gives a hyperbola
 when $\rho^2\ne0$ and a null line pair when $\rho^2=0$. Hyperbola tangents
-have the opposite squared-norm sign to the radius vector. Singular carriers
-retain a structural label rather than selecting a centre or shape through
-an arbitrary inverse.
+have the opposite squared-norm sign to the radius vector.
+[ADR-176](176-csta-object-and-operator-classification.md) extends this
+construction to surfaces and distinguishes parabolic and cylindrical
+sections in singular carriers without choosing an arbitrary centre.
 
 For curves, the returned causal field describes tangents. For signed-round
 hypersurfaces, it describes the interval from the centre. Include carrier

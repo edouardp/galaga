@@ -523,13 +523,60 @@ quadratic form distinguish a circle, a hyperbola, or a null line pair.
 For example, samples of a uniformly accelerated trajectory produce
 `kind="hyperbola"` and `causal="timelike"`. The latter describes the curve's
 tangents; the causal field on a signed-round hypersurface describes its
-radial interval. A singular carrier retains the structural `round 2-object`
-label, without a chosen centre. Classification does not select a trajectory
-branch or its proper-time parametrization.
+radial interval. Null carriers distinguish parabolas and parallel null line
+pairs without choosing a unique centre. Four-dimensional blades describe
+surface sections, including spheres, one-sheet and two-sheet hyperboloids,
+cones, paraboloids and null cylinders. Their tangent signatures
+can be mixed or degenerate and are reported as `tangent_inertia` rather than
+forcing a single causal label. Flats report `carrier_inertia`; their causal
+field describes the carrier's signature. Null-separated pairs are named
+`lightlike line` because their incidence locus contains the whole null line.
+Classification does not select a trajectory branch or parametrization.
 
-Geometric-object classification is the initial scope. Translators, Lorentz
-rotors, dilators, motors, and other transformation multivectors use a separate
-versor classifier because they are generally not homogeneous blades.
+### CSTA operator classification
+
+`classify_operator()` answers a separate question about an algebra element:
+
+```python
+from galaga import Algebra, exp, presets
+from galaga.models import ConformalSpacetimeModel
+
+model = ConformalSpacetimeModel(Algebra(config=presets.csta()))
+g0, g1, g2, g3 = model.spacetime_basis_vectors()
+E = model.origin ^ model.infinity
+P = (1 + E) / 2
+model.classify_operator(P).traits       # ('idempotent',)
+model.classify_operator(2 * P).traits   # ()
+model.classify_operator(2 * P - 1).traits  # includes involution
+
+boost = exp(0.4 * g1 * g0)
+model.classify_operator(boost).transformation  # 'boost'
+```
+
+The immutable `CSTAOperatorClassification` contains overlapping `traits`,
+an optional `transformation`, a bounded `nilpotency_index`, and properties.
+Traits include zero, identity, idempotent, involution, nilpotent, versor and
+rotor. Idempotency and involution checks preserve the supplied scale. A rotor
+trait additionally requires even parity and unit reverse norm at that scale.
+Nilpotency is searched through `max_power` (default 8, maximum 64); no found
+index is inconclusive. Intermediate powers are rescaled to prevent overflow
+or decay from creating a false nilpotency result.
+
+Versor recognition checks parity, inverse/reverse norm, vector-valued action
+on all six basis vectors, and preservation of the actual Gram matrix. The
+normalized twisted adjoint is used for odd and scaled versors. Names are
+relative to the model's frame and origin/infinity: identity, boost, rotation,
+translation, dilation, spatial reflection, special conformal transformation,
+conformal inversion, or a more general affine/conformal transformation.
+Composed affine maps expose `components`, a natural-coordinate `translation`,
+`dilation_factor`, and `lorentz_action`; all recognized versors expose their
+six-dimensional `action` matrix and parity. These properties do not depend on
+the model's physical unit policy.
+
+Both classifiers and their numerical limits are specified in
+[ADR-176](../adrs/176-csta-object-and-operator-classification.md). The
+[zoo notebook](../../examples/spacetime/csta_zoo_and_operators.py) demonstrates
+the geometric families, overlapping traits, spectral projectors and actions.
 
 ### Existing annotation classifier
 

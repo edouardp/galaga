@@ -381,6 +381,9 @@ def _(mo):
     P=X(a)\wedge X(b).
     $$
 
+    If the events are null-separated, the grade-2 object already describes
+    their lightlike line and is classified as `lightlike line`.
+
     Adding infinity produces the complete flat line through them:
 
     $$
@@ -630,8 +633,10 @@ def _(mo):
     The lower-dimensional round labels describe structure. In an indefinite
     metric, grade three alone does not imply an ordinary Euclidean circle.
     The classifier examines the carrier metric and restricted quadratic form
-    to distinguish circles, hyperbolas, and null line pairs. A degenerate
-    carrier retains the structural label `round 2-object`.
+    to distinguish circles, hyperbolas, null line pairs and parabolas.
+    Surface sections can be spheres, hyperboloids, cones or paraboloids.
+    Null carriers have no unique centre. See the dedicated
+    [zoo and operators notebook](./csta_zoo_and_operators.py) for the full tour.
     """)
     return
 

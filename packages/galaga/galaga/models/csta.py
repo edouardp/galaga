@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import math
 from collections.abc import Iterable
-from dataclasses import dataclass, replace
+from dataclasses import replace
 from numbers import Real
 from types import MappingProxyType
 from typing import Literal, cast
@@ -14,24 +14,13 @@ import numpy as np
 from ..blades import BladeRef
 from ..expression import Call, Expr, Symbol
 from ..facade import Algebra, Multivector, outer_product, right_hodge_dual, scalar_product, squared
+from ._csta_geometry import classify_flat, classify_round_section
+from ._csta_operators import classify_operator
+from .classification import CausalKind, CSTAClassification, CSTAOperatorClassification
 from .units import CoordinateUnits, SpacetimeUnits, normalize_coordinate_units
 
-CausalKind = Literal["timelike", "null", "spacelike"]
 Representation = Literal["auto", "direct", "dual"]
 CSTAExpressionForm = Literal["operator", "expanded"]
-
-
-@dataclass(frozen=True, slots=True)
-class CSTAClassification:
-    """Structural and causal classification of one CSTA multivector."""
-
-    kind: str
-    grade: int | None
-    representation: str | None
-    simple: bool | None
-    finite: bool | None
-    causal: CausalKind | None = None
-    properties: tuple[tuple[str, object], ...] = ()
 
 
 class ConformalSpacetimeModel:
@@ -490,22 +479,45 @@ class ConformalSpacetimeModel:
         if grade == 1:
             return self._classify_vector(normalized, representation, flat, tolerance)
         if flat:
-            kinds = {2: "flat point", 3: "flat line", 4: "flat 2-plane", 5: "flat hyperplane"}
-            causal = self._flat_line_causal(normalized, tolerance) if grade == 3 else None
-            return CSTAClassification(kinds[grade], grade, "direct", True, grade != 1, causal)
+            return classify_flat(normalized, self._role_vectors(), grade, tolerance)
 
         if grade == 5:
             dual_vector = right_hodge_dual(normalized)
             classified = self._classify_vector(dual_vector, "dual", False, tolerance)
             return replace(classified, grade=5, representation="direct")
 
-        if grade == 3:
-            return self._classify_round_curve(normalized, tolerance)
+        if grade in {3, 4}:
+            return classify_round_section(normalized, self._role_vectors(), grade, tolerance)
 
-        direct_kinds = {2: "event pair", 3: "round 2-object", 4: "round 3-object"}
         carrier = outer_product(normalized, self.infinity.without_expr())
-        causal = self._flat_line_causal(carrier, tolerance) if grade == 2 else None
-        return CSTAClassification(direct_kinds[grade], grade, "direct", True, True, causal)
+        carrier_class = classify_flat(carrier, self._role_vectors(), 3, tolerance)
+        causal = carrier_class.causal
+        kind = "lightlike line" if causal == "null" else "event pair"
+        return CSTAClassification(kind, grade, "direct", True, carrier_class.finite, causal, carrier_class.properties)
+
+    def classify_operator(
+        self,
+        value: Multivector,
+        *,
+        atol: float = 1e-12,
+        rtol: float = 1e-9,
+        max_power: int = 8,
+    ) -> CSTAOperatorClassification:
+        """Classify algebraic traits and verified versor actions separately from objects.
+
+        Idempotency and involution tests retain the input scale. Nilpotency is
+        searched through ``max_power`` (1..64), with intermediate rescaling
+        to avoid overflow or artificial decay. No result within the bound is
+        inconclusive. Versor recognition requires parity, a scalar reverse
+        norm, and a vector-valued, metric-preserving twisted adjoint action.
+        Transformation descriptions use natural coordinates in this frame.
+        """
+        self._check_value(value)
+        absolute = _tolerance(atol)
+        relative = _tolerance(rtol, name="rtol")
+        if not isinstance(max_power, int) or isinstance(max_power, bool) or not 1 <= max_power <= 64:
+            raise ValueError("max_power must be an integer from 1 to 64")
+        return classify_operator(value, self._role_vectors(), atol=absolute, rtol=relative, max_power=max_power)
 
     def _classify_vector(
         self,
@@ -518,7 +530,8 @@ class ConformalSpacetimeModel:
             return CSTAClassification("point at infinity", 1, "direct", True, False)
         weight = self.weight(value)
         if abs(weight) <= atol:
-            return CSTAClassification("dual hyperplane", 1, "dual", True, None)
+            direct = classify_flat(right_hodge_dual(value), self._role_vectors(), 5, atol)
+            return replace(direct, grade=1, representation="dual")
         signed_radius = float(squared(value)) / (weight * weight)
         causal = self.causal_kind(signed_radius, atol=atol)
         properties = (("signed_radius_squared", signed_radius),)
@@ -546,70 +559,6 @@ class ConformalSpacetimeModel:
 
     def _wedge_matrix(self, value: Multivector) -> np.ndarray:
         return np.column_stack([outer_product(vector, value).data for vector in self._role_vectors()])
-
-    def _classify_round_curve(self, value: Multivector, atol: float) -> CSTAClassification:
-        # The kernel of v -> v∧B is the three-dimensional vector span of B.
-        _, _, blade_vh = np.linalg.svd(self._wedge_matrix(value), full_matrices=False)
-        span = blade_vh[-3:].T
-        weights = span[len(self._base_refs)]
-        weight_squared = float(weights @ weights)
-        if weight_squared <= atol * atol:
-            return CSTAClassification("round 2-object", 3, "direct", True, False)
-
-        # Weight-zero vectors span the affine carrier directions. Their metric
-        # determines whether the section is elliptic, hyperbolic, or degenerate.
-        _, _, weight_vh = np.linalg.svd(weights.reshape(1, -1), full_matrices=True)
-        directions = span @ weight_vh[1:].T
-        vectors = self._role_vectors()
-        gram = np.array([[float(scalar_product(left, right)) for right in vectors] for left in vectors])
-        induced = directions.T @ gram @ directions
-        eigenvalues = np.linalg.eigvalsh(induced)
-        inertia = (
-            int(np.count_nonzero(eigenvalues > atol)),
-            int(np.count_nonzero(eigenvalues < -atol)),
-            int(np.count_nonzero(np.abs(eigenvalues) <= atol)),
-        )
-        properties: tuple[tuple[str, object], ...] = (("carrier_inertia", inertia),)
-        if inertia[2]:
-            return CSTAClassification("round 2-object", 3, "direct", True, True, properties=properties)
-
-        # Complete the restricted quadratic form by locating its stationary
-        # weight-one vector. Its negative square is the signed radius squared.
-        anchor = span @ weights / weight_squared
-        center = anchor - directions @ np.linalg.solve(induced, directions.T @ gram @ anchor)
-        radius_squared = float(-center @ gram @ center)
-        radius_kind = self.causal_kind(radius_squared, atol=atol)
-        properties += (
-            ("center", tuple(float(coordinate) for coordinate in center[: len(self._base_refs)])),
-            ("signed_radius_squared", radius_squared),
-        )
-        if inertia == (1, 1, 0):
-            kind = "null line pair" if radius_kind == "null" else "hyperbola"
-            tangent_kinds: dict[CausalKind, CausalKind] = {
-                "timelike": "spacelike",
-                "spacelike": "timelike",
-                "null": "null",
-            }
-            return CSTAClassification(kind, 3, "direct", True, True, tangent_kinds[radius_kind], properties)
-        if inertia == (0, 2, 0):
-            kinds = {"spacelike": "circle", "timelike": "imaginary circle", "null": "point circle"}
-            causal: CausalKind | None = "spacelike" if radius_kind == "spacelike" else None
-            return CSTAClassification(kinds[radius_kind], 3, "direct", True, True, causal, properties)
-        return CSTAClassification("round 2-object", 3, "direct", True, True, properties=properties)
-
-    def _flat_line_causal(self, value: Multivector, atol: float) -> CausalKind | None:
-        direction = []
-        origin = self.origin.without_expr()
-        infinity = self.infinity.without_expr()
-        for vector in self.spacetime_basis_vectors(expr=False):
-            template = outer_product(origin, vector, infinity)
-            masks = np.flatnonzero(np.abs(template.data) > atol)
-            if len(masks) != 1:
-                return None
-            mask = int(masks[0])
-            direction.append(value.data[mask] / template.data[mask])
-        vector = self.spacetime_vector(direction, expr=False, units="natural")
-        return self.causal_kind(float(squared(vector)), atol=atol)
 
     def _validate_metric(self) -> float:
         indices = tuple(_vector_index(ref) for ref in (*self._base_refs, self._origin_ref, self._infinity_ref))
@@ -731,12 +680,12 @@ def _position_input(
     return position
 
 
-def _tolerance(value: object) -> float:
+def _tolerance(value: object, *, name: str = "atol") -> float:
     if not isinstance(value, Real) or isinstance(value, bool):
-        raise TypeError("atol must be a real number")
+        raise TypeError(f"{name} must be a real number")
     tolerance = float(value)
     if not math.isfinite(tolerance) or tolerance < 0:
-        raise ValueError("atol must be finite and non-negative")
+        raise ValueError(f"{name} must be finite and non-negative")
     return tolerance
 
 
@@ -749,4 +698,10 @@ def _normalized(value: Multivector) -> Multivector:
     return value if scale == 0.0 else value.algebra.multivector(value.data / scale, expr=False)
 
 
-__all__ = ["CSTAClassification", "CSTAExpressionForm", "CausalKind", "ConformalSpacetimeModel"]
+__all__ = [
+    "CSTAOperatorClassification",
+    "CSTAClassification",
+    "CSTAExpressionForm",
+    "CausalKind",
+    "ConformalSpacetimeModel",
+]
