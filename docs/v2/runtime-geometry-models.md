@@ -578,6 +578,27 @@ Both classifiers and their numerical limits are specified in
 [zoo notebook](../../examples/spacetime/csta_zoo_and_operators.py) demonstrates
 the geometric families, overlapping traits, spectral projectors and actions.
 
+### Conformal spinors and twistors
+
+The [spinor and twistor notebook](../../examples/spacetime/csta_spinors_and_twistors.py)
+constructs an eight-real-dimensional even left ideal, supplies four complex
+coordinates and derives its Hermitian pairing of signature $(2,2)$. It
+demonstrates event incidence through $X\psi=0$, light-ray recovery from a
+projective null twistor, event recovery from two incident twistors, and
+single-sided conformal rotor action.
+
+The common event is recovered using an alternating geometric product and
+grade extraction in the chosen frame. Conformal-weight normalization removes
+the spinor pair's complex phase; nullity and incidence checks establish that
+the result describes a shared real event.
+
+Spinor interpretation depends on a chosen module and frame. The notebook's
+null/positive/negative labels belong to that pairing. Geometric classification
+continues to describe blades, while operator classification describes algebraic
+traits and verified vector actions. The explicit matrix views use the
+notebook frame; they are separate from the package's general matrix conversion
+conventions.
+
 ### Existing annotation classifier
 
 The existing CGA classifier in `galaga_annotation` supplies useful object and

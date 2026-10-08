@@ -99,6 +99,10 @@ These lessons also use the v2 facade and participate in headless validation:
 - [CSTA zoo and operators](../spacetime/csta_zoo_and_operators.py):
   classify rounds and causal flats, explore projectors and nilpotents,
   and verify boost, rotation, translation, dilation and conformal actions.
+- [CSTA spinors and twistors](../spacetime/csta_spinors_and_twistors.py):
+  build an even spinor ideal, derive complex coordinates and the twistor
+  pairing, recover light rays and events through incidence, and compare
+  single-sided spinor action with geometric sandwiches.
 - [Four-dimensional rotor planes](../algebra/four_dimensional_rotor_planes.py):
   two-plane rotations and plots, principal logarithms, simple-plane extraction,
   self-dual versus simple bivectors, isoclinic ambiguity, and higher dimensions.

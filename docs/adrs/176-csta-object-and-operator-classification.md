@@ -126,6 +126,111 @@ does not select a logarithm, factor a general versor into unique elementary
 motions, interpret an idempotent as a spacetime region, or classify physical
 fields. Numeric action properties remain natural regardless of input units.
 
+### Spinor and twistor representations
+
+Spinor interpretation requires a chosen module and frame. Keep the geometric
+and operator classifiers independent of those choices. Explore twistor
+pairing labels in an explicit notebook frame, rather than adding a `spinor`
+or `twistor` trait to arbitrary multivectors.
+
+For the stored CSTA metric, let
+
+$$
+K=\gamma_1\gamma_0,\quad E=n_o\wedge n_\infty,\quad
+P=\frac14(1+K)(1+E),\quad S=\mathrm{Cl}^{+}(2,4)P.
+$$
+
+Products give $P^2=P$. The full ideal $\mathrm{Cl}(2,4)P$ has real dimension
+16; the even ideal $S$ has real dimension 8. The six-dimensional pseudoscalar
+$I$ squares to $-1$ and commutes with the even algebra, providing a complex
+structure on $S$. Use the complex frame
+
+$$
+f_0=P,\quad f_1=\gamma_0\gamma_2P,\quad
+f_2=I\gamma_0n_oP,\quad f_3=I\gamma_2n_oP.
+$$
+
+The real columns $(f_0,If_0,\ldots,f_3,If_3)$ have rank 8. Coordinate
+conversion is bijective on this ideal, not on the 32-real-dimensional even
+algebra. An even conformal rotor acts on a spinor by left multiplication.
+Odd versors exchange parity sectors and are outside this four-complex
+representation.
+
+Derive the Hermitian pairing from geometric products:
+
+$$
+C=I\gamma_0(n_o-\tfrac12n_\infty),\qquad
+b(\psi,\phi)=4\langle\widetilde\psi\,\phi C\rangle_0,\qquad
+h(\psi,\phi)=b(\psi,\phi)-i\,b(\psi,I\phi).
+$$
+
+Its computed frame matrix is
+
+$$
+H=\begin{pmatrix}0&\mathbf1_2\\\mathbf1_2&0\end{pmatrix},
+$$
+
+with signature $(2,2)$ [3, 4]. For normalized
+even rotors, $\widetilde R R=1$ preserves $b$; commutation with $I$ preserves
+the imaginary part too. The induced matrices satisfy
+$M(R)^\dagger HM(R)=H$. Exponentials of the 15 bivector generators also have
+determinant one, giving the conformal $SU(2,2)$ representation.
+
+For $Z=(\omega,\pi)$ in this convention, the event equation
+$X(q)\psi(Z)=0$ is equivalent to
+
+$$
+\omega=-iQ(q)\pi,\qquad
+Q(t,x,y,z)=\begin{pmatrix}t+x&-y+iz\\-y-iz&t-x\end{pmatrix},\qquad
+\det Q=q^2.
+$$
+
+Derive $Q$ from the translator's geometric action, rather than assigning
+matrix signs separately. With $\pi\ne0$, a nonzero null twistor has a
+consistent rank-three real incidence system: its solutions form a null
+line. Two complex-independent incident twistors determine a finite event.
+Non-null twistors have no real finite event incidence. Null twistors with
+$\pi=0$, $\omega\ne0$ lie on the conformal boundary; zero is not projective.
+These interpretations use the Lorentzian real slice [3].
+
+Recover the common event directly by an alternating Clifford bilinear in this
+frame. With $B=\gamma_0\gamma_2(n_o-\tfrac12n_\infty)$, define
+
+$$
+A(\psi,\phi)=\psi B\widetilde\phi-\phi B\widetilde\psi.
+$$
+
+Products give $\widetilde B=-B$ and $A(f_2,f_3)=-n_o$. Even rotors transform
+this bilinear by a sandwich:
+$A(R\psi,R\phi)=R A(\psi,\phi)\widetilde R$. For the translator
+$T(q)=1-\frac12q n_\infty$, this yields $A(Tf_2,Tf_3)=-X(q)$.
+
+The bilinear alternates over the complex structure provided by $I$.
+Changing the two incident spinors by an invertible complex basis matrix
+multiplies $A$ by its determinant. This phase mixes the grade-1 vector and
+its grade-5 pseudoscalar multiple. Extract the two real vector parts and their
+finite conformal weights:
+
+$$
+V=\langle A\rangle_1,\quad W=\langle A\rangle_5I,\quad
+a=-V\cdot n_\infty,\quad b=-W\cdot n_\infty,\quad
+X=\frac{aV+bW}{a^2+b^2}.
+$$
+
+For a shared finite real event, $V$ and $W$ are scalar multiples of that same
+normalized null vector. The formula preserves the event under independent
+nonzero complex rescalings, including a pure pseudoscalar phase where $V=0$.
+Dependent pairs give a zero bilinear. Boundary events have zero finite weight.
+Validate nullity and both incidence products to reject a pair without shared
+real incidence. The notebook keeps this construction local to its explicit
+module and frame; it does not add an unrestricted algebra operation.
+
+Null, positive and negative twistor labels refer to the sign of the chosen
+Hermitian pairing, not to spacetime causal classification. Nonzero complex
+rescaling preserves the label and incidence locus. Keep these checks local
+to the explicit representation until a public spinor module API defines
+its frame, pairing, conversions and parity behavior.
+
 ## Consequences
 
 The classifier distinguishes useful geometric sections and operator traits
@@ -147,3 +252,7 @@ classification, including scaled inputs and false-versor counterexamples.
    conformal embeddings, null-plane dilations, translations and inversions.
    Null-plane orientation conventions must be checked against the stored
    metric and products.
+3. [Tim Adamo, *Lectures on twistor theory*, sections 1.4–2.1](https://arxiv.org/html/1712.02196v2):
+   projective incidence, Lorentzian reality and the signature $(2,2)$ pairing.
+4. [R. da Rocha and J. Vaz, *Revisiting Clifford algebras and spinors III*](https://arxiv.org/abs/math-ph/0412076):
+   conformal spinors and twistors in Clifford-algebra representations.
