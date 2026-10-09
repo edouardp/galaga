@@ -29,6 +29,8 @@ def _local_config(tmp_path, monkeypatch, source: str) -> Path:
     [
         ("complex", "bivector"),
         ("complex", "vector"),
+        ("quaternion", "bivector"),
+        ("quaternion", "direct"),
     ],
 )
 def test_named_number_configs_and_blade_recipes_select_representation(tmp_path, preset, representation):

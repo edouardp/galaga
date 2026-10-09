@@ -102,6 +102,21 @@ def test_complex_representations_preserve_annotation_rules_and_numeric_value(rep
     assert algebra.locals()["i"] == algebra.I
 
 
+@pytest.mark.parametrize("representation", ["bivector", "direct"])
+def test_quaternion_representations_preserve_annotation_rules_and_numeric_value(representation) -> None:
+    algebra = Algebra(config=presets.quaternion(representation=representation), user_config_files=False)
+    i, j, k = algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")
+    value = 1 + 2 * i + 3 * j + 4 * k
+    annotated = ga.annotate(value, label="quaternion")
+    presenter = presets.presenters.values() | presets.blades.quaternion(representation=representation)
+
+    for result in (presenter(annotated), ga.AnnotationPresenter(base=presenter)(annotated)):
+        assert isinstance(result, ga.Annotated)
+        assert result.rules == annotated.rules
+        assert result.plain is value
+        assert result.value.ascii() == "1 + 2i + 3j + 4k"
+
+
 def test_pseudoscalar_patch_preserves_annotation_rules_and_numeric_value() -> None:
     algebra = Algebra(0, 1, user_config_files=False)
     value = 2 + 3 * algebra.I

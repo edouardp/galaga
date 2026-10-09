@@ -127,6 +127,55 @@ are compared with Python complex arithmetic and `cmath` on supported inputs;
 tests also cover aliases, roles, locals, basis display, expression replay,
 presenter and annotation views, invalid options, and unchanged default behavior.
 
+### Select the quaternion representation explicitly
+
+`presets.quaternion(representation="bivector")` remains the default, constructing
+full $\mathrm{Cl}(3,0)$ with quaternion values in its even subalgebra and the
+existing positive native blades $i=e_{23}$, $j=e_{13}$, $k=e_{12}$.
+The additional `representation="direct"` constructs full $\mathrm{Cl}(0,2)$,
+where $i=e_1$, $j=e_2$, and $k=e_1\wedge e_2=e_1e_2$.
+Every multivector of this four-dimensional algebra represents a quaternion.
+The name `direct` describes this full-algebra representation; its imaginary
+units occupy both grades one and two.
+
+Computing the native products before assigning labels confirms in both cases
+
+$$
+i^2=j^2=k^2=ijk=-1,\qquad ij=k,\quad jk=i,\quad ki=j.
+$$
+
+`QuaternionPreset`, `presets.blades.quaternion()`,
+`quaternion_blade_convention()`, and `quaternion_display_order()` accept the
+same representation choices. Complete presets provide the metric, roles,
+local names, and scalar/$i$/$j$/$k$ display order; the existing default order
+continues with the remaining ambient blades. Blade-only recipes preserve the
+target metric and order and validate the selected dimension. In the direct
+representation `basis_vectors()` exposes $i,j$, `locals()` exposes $i,j,k$,
+and the pseudoscalar is $k$. Native aliases remain available in both layouts.
+
+For $q=a+bi+cj+dk$, GA reversion gives
+
+$$
+\widetilde q=
+\begin{cases}
+a-bi-cj-dk & \text{bivector representation},\\
+a+bi+cj-dk & \text{direct representation}.
+\end{cases}
+$$
+
+Consequently $\langle q\widetilde q\rangle_0$ is $a^2+b^2+c^2+d^2$ in
+the bivector representation and $a^2-b^2-c^2+d^2$ in the direct representation.
+Clifford conjugation sends $q$ to $a-bi-cj-dk$ in either representation, and
+its product with $q$ is $a^2+b^2+c^2+d^2$. Operation semantics remain those
+of the ambient geometric algebra; no quaternion-specific dispatch is added.
+
+Regression tests derive named units from actual basis products and compare
+arithmetic, inverse, right division, conjugation, and powers with independent
+Hamilton coordinates. They check supported exponential/logarithm/square-root
+identities, representation-specific involutions and norms, expression replay,
+aliases, roles, default compatibility, presentation composition, annotation
+views, TOML configuration, and invalid representation choices.
+
 ### Historical validation
 
 All 155 focused cases pass with 100% line/branch coverage in the three test

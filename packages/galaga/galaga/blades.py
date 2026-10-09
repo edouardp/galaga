@@ -801,31 +801,37 @@ def complex_blade_convention(*, representation: Literal["bivector", "vector"] = 
     )
 
 
-def quaternion_blade_convention() -> BladeConvention:
-    """Quaternions as the even subalgebra of Euclidean ``Cl(3, 0)``."""
+def _quaternion_dimension(representation: str) -> int:
+    if representation == "bivector":
+        return 3
+    if representation == "direct":
+        return 2
+    raise ValueError("quaternion representation must be 'bivector' or 'direct'")
+
+
+def quaternion_blade_convention(*, representation: Literal["bivector", "direct"] = "bivector") -> BladeConvention:
+    """Name quaternion units as three bivectors or two vectors and their product.
+
+    ``bivector`` names ``e23``, ``e13``, and ``e12`` in dimension three.
+    ``direct`` names ``e1``, ``e2``, and ``e12`` in dimension two. Vocabulary
+    selection leaves the algebra's metric unchanged.
+    """
+    dimension = _quaternion_dimension(representation)
+    masks = (0b110, 0b101, 0b011) if dimension == 3 else (0b01, 0b10, 0b11)
+    native_names = ("e23", "e13", "e12") if dimension == 3 else ("e1", "e2", "e12")
     return indexed_blade_convention(
-        3,
-        overrides={
-            0b110: BladeLabel(Name("i", "i", "i"), BladeRef(0b110)),
-            0b101: BladeLabel(Name("j", "j", "j"), BladeRef(0b101)),
-            0b011: BladeLabel(Name("k", "k", "k"), BladeRef(0b011)),
-        },
-        aliases={
-            "e23": BladeRef(0b110),
-            "e13": BladeRef(0b101),
-            "e12": BladeRef(0b011),
-        },
-        roles={
-            "quaternion_i": BladeRef(0b110),
-            "quaternion_j": BladeRef(0b101),
-            "quaternion_k": BladeRef(0b011),
-        },
+        dimension,
+        overrides={mask: BladeLabel(Name(name, name, name), BladeRef(mask)) for name, mask in zip("ijk", masks)},
+        aliases={name: BladeRef(mask) for name, mask in zip(native_names, masks)},
+        roles={f"quaternion_{name}": BladeRef(mask) for name, mask in zip("ijk", masks)},
     )
 
 
-def quaternion_display_order() -> DisplayOrder:
-    """Scalar, quaternion units, vectors, and pseudoscalar display order."""
-    return DisplayOrder(3, (0b000, 0b110, 0b101, 0b011, 0b001, 0b010, 0b100, 0b111))
+def quaternion_display_order(*, representation: Literal["bivector", "direct"] = "bivector") -> DisplayOrder:
+    """Scalar and quaternion units first, followed by any remaining blades."""
+    dimension = _quaternion_dimension(representation)
+    masks = (0, 6, 5, 3, 1, 2, 4, 7) if dimension == 3 else (0, 1, 2, 3)
+    return DisplayOrder(dimension, masks)
 
 
 def exterior_blade_convention(dimension: int) -> BladeConvention:

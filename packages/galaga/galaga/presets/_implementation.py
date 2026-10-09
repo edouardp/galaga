@@ -15,6 +15,7 @@ from ..blades import (
     LocalNamePolicy,
     _cga_pseudoscalar_labels,
     _complex_dimension,
+    _quaternion_dimension,
     _validate_cga_pseudoscalar_options,
     complex_blade_convention,
     conformal_spacetime_blade_convention,
@@ -96,7 +97,7 @@ class BladePreset(PresentationComposable):
         if self.kind == "complex":
             return complex_blade_convention(**options)
         if self.kind == "quaternion":
-            return quaternion_blade_convention()
+            return quaternion_blade_convention(**options)
         if self.kind == "sta":
             if dimension != 4:
                 raise ValueError(f"blade preset 'sta' requires dimension 4, got {dimension}")
@@ -176,8 +177,10 @@ class _BladePresets:
         dimension = _complex_dimension(representation)
         return BladePreset("complex", dimension, (("representation", representation),))
 
-    def quaternion(self) -> BladePreset:
-        return BladePreset("quaternion", 3)
+    def quaternion(self, *, representation: Literal["bivector", "direct"] = "bivector") -> BladePreset:
+        """Select quaternion unit labels without selecting the algebra's metric."""
+        dimension = _quaternion_dimension(representation)
+        return BladePreset("quaternion", dimension, (("representation", representation),))
 
     def exterior(self, dimension: int = 3) -> BladePreset:
         _validate_spatial_dim(dimension, name="dimension")
@@ -454,16 +457,28 @@ class ComplexPreset:
 
 @dataclass(frozen=True, slots=True)
 class QuaternionPreset:
-    """Quaternions in the even subalgebra of Euclidean ``Cl(3, 0)``."""
+    """Quaternions in the even subalgebra of ``Cl(3, 0)`` or full ``Cl(0, 2)``.
+
+    ``bivector`` keeps all three imaginary units in grade two. ``direct`` uses
+    vectors ``i`` and ``j`` and the pseudoscalar ``k = i * j``. GA operation
+    meanings follow the selected metric and grades.
+    """
+
+    representation: Literal["bivector", "direct"] = "bivector"
+
+    def __post_init__(self) -> None:
+        _quaternion_dimension(self.representation)
 
     def build(self) -> AlgebraConfig:
-        blades = quaternion_blade_convention()
+        blades = quaternion_blade_convention(representation=self.representation)
+        signature = (1, 1, 1) if self.representation == "bivector" else (-1, -1)
+        identifier = "quaternion-cl3" if self.representation == "bivector" else "quaternion-cl02"
         return AlgebraConfig(
-            definition=AlgebraDefinition.from_signature((1, 1, 1), id="quaternion-cl3"),
+            definition=AlgebraDefinition.from_signature(signature, id=identifier),
             presentation=_presentation(
                 blades,
                 notation=Notation("quaternion"),
-                display_order=quaternion_display_order(),
+                display_order=quaternion_display_order(representation=self.representation),
             ),
             model=_model("quaternion", blades),
         )
@@ -559,9 +574,15 @@ def complex(*, representation: Literal["bivector", "vector"] = "bivector") -> Co
     return ComplexPreset(representation=representation)
 
 
-def quaternion() -> QuaternionPreset:
-    """Return an inspectable quaternion preset."""
-    return QuaternionPreset()
+def quaternion(*, representation: Literal["bivector", "direct"] = "bivector") -> QuaternionPreset:
+    """Return quaternion arithmetic in an even subalgebra or a complete algebra.
+
+    ``bivector`` (default) selects full ``Cl(3, 0)`` with quaternion units
+    ``i = e23``, ``j = e13``, ``k = e12``. ``direct`` selects ``Cl(0, 2)``
+    with ``i = e1``, ``j = e2``, ``k = e12``. Reversion and norms keep their
+    usual GA meanings in both representations.
+    """
+    return QuaternionPreset(representation=representation)
 
 
 def exterior(dimension: int = 3) -> ExteriorPreset:

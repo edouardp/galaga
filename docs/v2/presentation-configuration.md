@@ -561,6 +561,7 @@ same_notation = Algebra(config=presets.euclidean(3), expr=True, presentation=sta
 | `ComplexPreset()` | Euclidean `Cl(2, 0)` | Bivector `i` |
 | `ComplexPreset(representation="vector")` | `Cl(0, 1)` | Vector `i` |
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |
+| `QuaternionPreset(representation="direct")` | `Cl(0, 2)` | Vectors `i`, `j`, pseudoscalar `k`, and conventional order |
 | `ExteriorPreset(n)` | All-zero Gram matrix | Explicit wedge labels |
 
 The `presets.*` functions construct these configurations.
@@ -586,6 +587,33 @@ without changing the metric. GA reversion and norms retain their definitions:
 `norm2(a + b*i)` is $a^2+b^2$ for the bivector representation and $a^2-b^2$
 for the vector representation. Use Clifford conjugation for complex
 conjugation in either representation.
+
+`presets.quaternion(representation="bivector")` is the default and constructs
+full `Cl(3,0)`, with quaternion values in its even subalgebra.
+`presets.quaternion(representation="direct")` constructs full `Cl(0,2)`;
+every multivector then has the form $a+bi+cj+dk$:
+
+```python
+algebra = Algebra(config=presets.quaternion(representation="direct"))
+i, j = algebra.basis_vectors()
+k = algebra.I
+assert algebra.locals()["k"] == k
+assert i * j == k
+assert j * k == i
+assert k * i == j
+```
+
+Both presentations name the units `i`, `j`, `k` and retain semantic roles
+`quaternion_i`, `quaternion_j`, `quaternion_k`. In the direct representation
+the basis-vector table contains `i`, `j`, and the grade-two table contains `k`.
+`presets.blades.quaternion(representation=...)` supplies the vocabulary without
+changing the metric or order. `quaternion_display_order(representation=...)`
+supplies the matching explicit order as an independently composable component.
+
+For $q=a+bi+cj+dk$, `norm2(q)` is $a^2+b^2+c^2+d^2$ in the bivector
+representation and $a^2-b^2-c^2+d^2$ in the direct representation. Reversion
+follows the blades' grades; Clifford conjugation negates all three imaginary
+units in either representation. Preset selection preserves these GA definitions.
 
 `presets.oblique_plane(angle=math.pi / 3)` takes radians, while
 `presets.oblique_plane(degrees=60)` takes degrees. Specify exactly one. Both

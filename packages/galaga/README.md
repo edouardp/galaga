@@ -156,8 +156,9 @@ selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
 
 The complete factories are `euclidean`, `oblique_plane`, `sta`, `pga`, `cga`, `rga`,
 `lengyel_cga`, `csta`, `complex`, `quaternion` and `exterior`. The default complex
-preset and the quaternion preset represent numbers in even subalgebras of real
-Euclidean algebras. Complex numbers also have a minimal vector representation:
+and quaternion presets represent numbers in even subalgebras of real
+Euclidean algebras. Both also offer smaller algebras whose entire multivector
+space represents those numbers. Complex numbers have a vector representation:
 
 ```python
 from galaga import Algebra, clifford_conjugate, norm2, presets
@@ -196,6 +197,42 @@ representation.
 The blade-only factory `presets.blades.complex(representation=...)` selects
 matching labels without changing the metric. Import `presets` to use the
 complete factories.
+
+Quaternions offer the same choice between an even subalgebra and a complete
+four-dimensional algebra:
+
+```python
+from galaga import Algebra, presets
+
+spatial = Algebra(config=presets.quaternion())  # representation="bivector"
+direct = Algebra(config=presets.quaternion(representation="direct"))
+i, j = direct.basis_vectors()
+k = direct.I
+assert list(direct.locals()) == ["i", "j", "k"]
+assert i * j == k
+assert j * k == i
+assert k * i == j
+assert i * i == j * j == k * k == -direct.identity
+```
+
+| Quaternion representation | Algebra returned | Imaginary units | Choose it for |
+|---|---|---|---|
+| `"bivector"` (default) | Full `Cl(3,0)` | `i = e23`, `j = e13`, `k = e12` | Quaternion arithmetic alongside spatial vectors and rotors |
+| `"direct"` | Full `Cl(0,2)` | `i = e1`, `j = e2`, `k = e12` | The smallest algebra representing quaternion arithmetic |
+
+Both expose `i`, `j`, `k` through `locals()` and the semantic roles
+`quaternion_i`, `quaternion_j`, `quaternion_k`. In the direct representation
+`k` is the pseudoscalar. The matching blade-only factory is
+`presets.blades.quaternion(representation=...)`; it selects labels while
+preserving the target metric and display order.
+
+For $q=a+bi+cj+dk$, GA reversion negates all three imaginary units in the
+bivector representation, giving `norm2(q)` $=a^2+b^2+c^2+d^2$.
+In the direct representation it fixes the vectors $i,j$ and negates the
+bivector $k$, giving `norm2(q)` $=a^2-b^2-c^2+d^2$.
+Clifford conjugation negates all three units in both representations, and
+`q * clifford_conjugate(q)` gives their ordinary positive squared modulus.
+These differences follow from the grades and metric of the chosen algebra.
 
 For two unit basis vectors separated by an angle, use
 `Algebra(config=presets.oblique_plane(degrees=60))` or
