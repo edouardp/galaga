@@ -59,6 +59,7 @@ flowchart TD
     DO[DisplayOrder] --> PC
     DP[DisplayPolicy] --> PC
     BP[BladePreset<br/>resolved with Gram matrix] --> PR[PresentationRecipe<br/>optional slots]
+    BPatch[BladePatch<br/>sparse blade labels] --> PR
     NP[NotationPatch] --> PR
     BC --> PR
     N --> PR
@@ -89,6 +90,7 @@ The smaller Python inheritance hierarchy is separate:
 ```mermaid
 classDiagram
     PresentationComposable <|-- BladeConvention
+    PresentationComposable <|-- BladePatch
     PresentationComposable <|-- DisplayOrder
     PresentationComposable <|-- LocalNamePolicy
     PresentationComposable <|-- Notation
@@ -119,6 +121,7 @@ scripts, accents, and delimiters.
 | `AlgebraConfig` | Complete algebra setup | Pass to `Algebra(config=...)` |
 | `PresentationConfig` | Complete presentation snapshot | Pass as `presentation=` or obtain from `algebra.presentation` |
 | `PresentationRecipe` | Partial presentation override | Compose independent components with `|` |
+| `BladePatch` | Partial blade-label override | Rename the pseudoscalar with `presets.blades.pss(...)` |
 | `ConfiguredPreset` | Complete preset plus partial override | Pass `presets.sta() | recipe` to `Algebra(config=...)` |
 | `Presenter` | Deferred value display choice | Call on a multivector or compose a presenter factory with `|` |
 | `PresentedMultivector` | Value plus captured presentation | Display later; use `.value` for arithmetic |
@@ -130,6 +133,33 @@ names and resolves signed blades; `Notation` maps operation IDs and targets to
 zero tolerance, and coefficient precision. `BladePreset` is a factory for a
 convention that may need the actual Gram matrix. `NotationPatch` changes part
 of an existing notation, such as its reverse symbol.
+
+`BladePatch` changes the top-grade label of an existing blade convention,
+preserving signed orientation, other labels, aliases, and roles:
+
+```python
+from galaga import Algebra, LocalNamePolicy, Presenter, presets
+
+patch = presets.blades.pss("i")
+algebra = Algebra(0, 1, blades=patch)
+(i,) = algebra.basis_vectors()
+assert (2 + 3 * i).display("value/ascii") == "2 + 3i"
+
+# Python bindings are a separate choice.
+local_names = LocalNamePolicy.from_convention(algebra.presentation.blades)
+assert list(algebra.with_local_names(local_names).locals()) == ["i"]
+
+other = Algebra(3)
+view = (presets.presenters.values() | presets.blades.pss("J"))(other.I)
+assert view.ascii() == "J"
+assert Presenter(blades=presets.blades.pss("J"))(other.I).ascii() == "J"
+```
+
+Compose a patch after a full blade selection, such as
+`presets.blades.indexed(3, prefix="v") | presets.blades.pss("J")`. The
+rightmost patch wins. A later full blade selection replaces the earlier
+selection and its patch. A recipe supplied as `blades=` may contain only
+blade components; use `presentation=` for recipes containing other choices.
 
 Use `presets.display.override(...)` for composable display changes. A policy
 records which fields were supplied, so a precision change does not reset an

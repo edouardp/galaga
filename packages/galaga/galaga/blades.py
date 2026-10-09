@@ -168,6 +168,30 @@ class BladeConvention(PresentationComposable):
             raise ValueError(f"blade mask must be an integer from 0 to {(1 << self.dimension) - 1}")
 
 
+@dataclass(frozen=True, slots=True)
+class BladePatch(PresentationComposable):
+    """Rename the top-grade blade while inheriting the rest of a convention.
+
+    Dimension and signed orientation come from the target convention. Local
+    bindings remain a separate ``LocalNamePolicy`` choice.
+    """
+
+    pss: Name
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.pss, Name):
+            raise TypeError("a pseudoscalar label must be a Name")
+
+    def apply(self, convention: BladeConvention) -> BladeConvention:
+        """Return a renamed convention with its orientation, aliases, and roles."""
+        if not isinstance(convention, BladeConvention):
+            raise TypeError("blade patch requires a BladeConvention")
+        labels = list(convention.labels)
+        mask = (1 << convention.dimension) - 1
+        labels[mask] = BladeLabel(self.pss, labels[mask].ref)
+        return BladeConvention(convention.dimension, labels, aliases=convention.aliases, roles=convention.roles)
+
+
 @dataclass(frozen=True, slots=True, init=False)
 class LocalNamePolicy(PresentationComposable):
     """An immutable mapping from Python identifiers to signed blades."""
@@ -865,6 +889,7 @@ def _orientation(indices: Sequence[int]) -> int:
 __all__ = [
     "BladeConvention",
     "BladeLabel",
+    "BladePatch",
     "BladeRef",
     "DisplayOrder",
     "LocalNamePolicy",

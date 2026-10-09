@@ -842,7 +842,23 @@ computes the signs under both STA metric choices. See
 for the archived contracts and validation boundaries.
 
 For the old `b_gamma(pss="I")`, `b_sigma(pss="I")` and
-`b_sigma_xyz(pss="I")` constructors, override the top-grade label explicitly:
+`b_sigma_xyz(pss="I")` constructors, compose a vocabulary with the sparse
+`presets.blades.pss("I")` patch. It infers the top-grade mask and preserves
+the other labels and signed references:
+
+```python
+from galaga import Algebra, presets
+
+algebra = Algebra(0, 1, blades=presets.blades.pss("i"))
+sta = Algebra(config=presets.sta() | presets.blades.pss("I"))
+custom = presets.blades.indexed(3, prefix="v") | presets.blades.pss("J")
+euclidean = Algebra(3, blades=custom)
+```
+
+The patch is also accepted by `with_blades()` and `Presenter(blades=...)`.
+Python local names remain an independent `LocalNamePolicy` choice.
+
+For explicit low-level construction, override the top-grade label:
 
 ```python
 from galaga import Algebra, Name, indexed_blade_convention

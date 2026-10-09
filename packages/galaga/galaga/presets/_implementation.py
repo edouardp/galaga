@@ -10,6 +10,7 @@ from typing import Any, Literal, Protocol
 from .._composition_base import PresentationComposable
 from ..blades import (
     BladeConvention,
+    BladePatch,
     DisplayOrder,
     LocalNamePolicy,
     _cga_pseudoscalar_labels,
@@ -111,6 +112,17 @@ class _BladePresets:
     def indexed(self, dimension: int, **options: Any) -> BladePreset:
         _validate_spatial_dim(dimension, name="dimension")
         return BladePreset("indexed", dimension, tuple(sorted(options.items())))
+
+    def pss(self, name: Name | str) -> BladePatch:
+        """Rename only the target convention's pseudoscalar, preserving its sign.
+
+        Use ``Algebra(..., blades=presets.blades.pss("i"))`` or compose after
+        another blade preset. A ``Name`` supplies separate display spellings.
+        Local bindings are configured separately.
+        """
+        if not isinstance(name, (Name, str)):
+            raise TypeError("pss expects a Name or string")
+        return BladePatch(name if isinstance(name, Name) else Name(name))
 
     def euclidean(self, dimension: int = 3) -> BladePreset:
         return BladePreset("euclidean", dimension)

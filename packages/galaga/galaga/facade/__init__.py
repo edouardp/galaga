@@ -9,6 +9,7 @@ from types import MappingProxyType
 from ..blades import (
     BladeConvention,
     BladeLabel,
+    BladePatch,
     BladeRef,
     DisplayOrder,
     LocalNamePolicy,
@@ -201,6 +202,7 @@ __all__ = [
     "BladeConvention",
     "BladeLabel",
     "BladeLiteral",
+    "BladePatch",
     "BladeRef",
     "Call",
     "CGAPreset",

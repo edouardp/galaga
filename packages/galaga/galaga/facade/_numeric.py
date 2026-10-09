@@ -19,8 +19,8 @@ from typing import TYPE_CHECKING, Any, cast
 import numpy as np
 
 from .. import core
-from ..blades import BladeConvention, BladeLabel, BladeRef, DisplayOrder, LocalNamePolicy
-from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe, _as_recipe
+from ..blades import BladeConvention, BladeLabel, BladePatch, BladeRef, DisplayOrder, LocalNamePolicy
+from ..composition import ConfiguredPreset, NotationPatch, PresentationRecipe, _as_recipe, resolve_blades
 from ..config import apply_defaults
 from ..config import load as load_user_config
 from ..expression._nodes import BladeLiteral, Call, Expr, MultivectorLiteral, ScalarLiteral, Symbol
@@ -74,6 +74,7 @@ class Algebra:
             | PresentationRecipe
             | BladeConvention
             | BladePreset
+            | BladePatch
             | Notation
             | NotationPatch
             | LocalNamePolicy
@@ -81,7 +82,7 @@ class Algebra:
             | DisplayPolicy
             | None
         ) = None,
-        blades: BladeConvention | BladePreset | None = None,
+        blades: BladeConvention | BladePreset | BladePatch | PresentationRecipe | None = None,
         notation: Notation | NotationPatch | None = None,
         local_names: LocalNamePolicy | None = None,
         display_order: DisplayOrder | None = None,
@@ -148,7 +149,8 @@ class Algebra:
                 if recipe is None:
                     raise TypeError("presentation must be a PresentationConfig or presentation recipe component")
                 base_presentation = recipe.apply_to(base_presentation, self._numeric.gram)
-        blades = _resolve_blades(blades, self._numeric.gram)
+        if blades is not None:
+            blades = resolve_blades(blades, self._numeric.gram, base_presentation.blades)
         self._default_presentation = _override_presentation(
             base_presentation,
             blades=blades,
@@ -267,10 +269,10 @@ class Algebra:
             expr=self._expr,
         )
 
-    def with_blades(self, blades: BladeConvention | BladePreset) -> Algebra:
-        resolved = _resolve_blades(blades, self._numeric.gram)
-        if resolved is None:  # pragma: no cover - _resolve_blades preserves None only for constructor use
-            raise TypeError("blades must be a BladeConvention or a resolvable blade preset")
+    def with_blades(self, blades: BladeConvention | BladePreset | BladePatch | PresentationRecipe) -> Algebra:
+        if blades is None:
+            raise TypeError("blades must be a BladeConvention, BladePatch, or resolvable blade preset")
+        resolved = resolve_blades(blades, self._numeric.gram, self.presentation.blades)
         return self.with_presentation(self.presentation.with_blades(resolved))
 
     def with_notation(self, notation: Notation | NotationPatch) -> Algebra:
@@ -777,18 +779,6 @@ def _override_presentation(
             raise TypeError("display must be a DisplayPolicy")
         result = result.with_display(display)
     return result
-
-
-def _resolve_blades(value: BladeConvention | BladePreset | None, gram: Any) -> BladeConvention | None:
-    if value is None or isinstance(value, BladeConvention):
-        return value
-    resolve = getattr(value, "resolve", None)
-    if callable(resolve):
-        result = resolve(gram)
-        if not isinstance(result, BladeConvention):
-            raise TypeError("blade preset resolve() must return a BladeConvention")
-        return result
-    raise TypeError("blades must be a BladeConvention or a resolvable blade preset")
 
 
 class Multivector:

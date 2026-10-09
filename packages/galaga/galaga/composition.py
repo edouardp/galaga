@@ -6,7 +6,7 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, Any, Literal
 
 from ._composition_base import PresentationComposable
-from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
+from .blades import BladeConvention, BladePatch, DisplayOrder, LocalNamePolicy
 from .presentation import AlgebraConfig, DisplayPolicy, Notation, PresentationConfig, RenderRule
 
 if TYPE_CHECKING:
@@ -120,12 +120,14 @@ class PresentationRecipe(PresentationComposable):
     local_names: LocalNamePolicy | LocalNameRecipe | None = None
     display_order: DisplayOrder | DisplayOrderRecipe | None = None
     display: DisplayPolicy | None = None
+    blade_patch: BladePatch | None = None
 
     def __post_init__(self) -> None:
         from .presets import BladePreset
 
         expected = (
             ("blades", self.blades, (BladeConvention, BladePreset, BladeRecipe)),
+            ("blade_patch", self.blade_patch, (BladePatch,)),
             ("notation", self.notation, (Notation, NotationPatch)),
             ("local_names", self.local_names, (LocalNamePolicy, LocalNameRecipe)),
             ("display_order", self.display_order, (DisplayOrder, DisplayOrderRecipe)),
@@ -146,10 +148,9 @@ class PresentationRecipe(PresentationComposable):
         if not isinstance(presentation, PresentationConfig):
             raise TypeError("presentation recipe requires a PresentationConfig")
         if self.blades is not None:
-            blades = self.blades
-            if not isinstance(blades, BladeConvention):
-                blades = blades.resolve(gram)
-            presentation = presentation.with_blades(blades)
+            presentation = presentation.with_blades(resolve_blades(self.blades, gram, presentation.blades))
+        if self.blade_patch is not None:
+            presentation = presentation.with_blades(self.blade_patch.apply(presentation.blades))
         if self.notation is not None:
             notation = (
                 self.notation.apply(presentation.notation)
@@ -249,6 +250,11 @@ def _merge_recipes(left: PresentationRecipe, right: PresentationRecipe) -> Prese
 
     return PresentationRecipe(
         blades=right.blades if right.blades is not None else left.blades,
+        blade_patch=(
+            right.blade_patch
+            if right.blade_patch is not None
+            else (None if right.blades is not None else left.blade_patch)
+        ),
         notation=notation,
         local_names=right.local_names if right.local_names is not None else left.local_names,
         display_order=right.display_order if right.display_order is not None else left.display_order,
@@ -263,6 +269,8 @@ def _as_recipe(value: object) -> PresentationRecipe | None:
         return value
     if isinstance(value, (BladeConvention, BladePreset)):
         return PresentationRecipe(blades=value)
+    if isinstance(value, BladePatch):
+        return PresentationRecipe(blade_patch=value)
     if isinstance(value, (Notation, NotationPatch)):
         return PresentationRecipe(notation=value)
     if isinstance(value, LocalNamePolicy):
@@ -272,6 +280,35 @@ def _as_recipe(value: object) -> PresentationRecipe | None:
     if isinstance(value, DisplayPolicy):
         return PresentationRecipe(display=value)
     return None
+
+
+def resolve_blades(value: object, gram: Any, base: BladeConvention) -> BladeConvention:
+    """Resolve a complete vocabulary or sparse change against existing blades.
+
+    Shared by algebra constructors, algebra views, and presenters. A recipe
+    passed specifically as ``blades=`` may contain only blade components.
+    """
+    if value is None:
+        return base
+    if isinstance(value, BladeConvention):
+        return value
+    if isinstance(value, BladePatch):
+        return value.apply(base)
+    if isinstance(value, PresentationRecipe):
+        if any(
+            component is not None
+            for component in (value.notation, value.local_names, value.display_order, value.display)
+        ):
+            raise TypeError("blades= accepts only blade components; use presentation= or config= for other components")
+        selected = resolve_blades(value.blades, gram, base)
+        return value.blade_patch.apply(selected) if value.blade_patch is not None else selected
+    resolve = getattr(value, "resolve", None)
+    if callable(resolve):
+        result = resolve(gram)
+        if not isinstance(result, BladeConvention):
+            raise TypeError("blade preset resolve() must return a BladeConvention")
+        return result
+    raise TypeError("blades must be a BladeConvention, BladePatch, or resolvable blade preset")
 
 
 __all__ = ["ConfiguredPreset", "NotationPatch", "PresentationRecipe"]

@@ -87,6 +87,20 @@ def test_composed_presenter_keeps_annotation_rules_and_blade_names() -> None:
         assert result.value.ascii() == "gp(v1, v2) = v12"
 
 
+def test_pseudoscalar_patch_preserves_annotation_rules_and_numeric_value() -> None:
+    algebra = Algebra(0, 1, user_config_files=False)
+    value = 2 + 3 * algebra.I
+    annotated = ga.annotate(value, label="complex number")
+    presenter = presets.presenters.values() | presets.blades.pss("i")
+
+    for result in (presenter(annotated), ga.AnnotationPresenter(base=presenter)(annotated)):
+        assert isinstance(result, ga.Annotated)
+        assert result.rules == annotated.rules
+        assert result.plain is value
+        assert result.value.ascii() == "2 + 3i"
+    assert value.display("value/ascii") == "2 + 3e1"
+
+
 def test_repr_paths_render_one_marimo_math_block() -> None:
     mo = pytest.importorskip("marimo")
     _, mv = _value()

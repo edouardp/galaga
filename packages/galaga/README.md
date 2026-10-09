@@ -194,6 +194,27 @@ component replaces it; display overrides merge supplied fields instead.
 Two complete algebra presets cannot be combined with
 `|` because that would leave the numeric metric ambiguous.
 
+Rename only the pseudoscalar without specifying the algebra dimension:
+
+```python
+from galaga import Algebra, Name, presets
+
+complex_algebra = Algebra(0, 1, blades=presets.blades.pss("i"))
+(i,) = complex_algebra.basis_vectors()
+assert i * i == -complex_algebra.identity
+assert (2 + 3 * i).display("value/ascii") == "2 + 3i"
+
+# Retain the other blade labels in an existing convention.
+sta = Algebra(config=presets.sta() | presets.blades.pss("J"))
+custom = presets.blades.indexed(3, prefix="v") | presets.blades.pss(Name("J", "𝒥", r"\mathcal{J}"))
+algebra = Algebra(3, blades=custom)
+```
+
+`presets.blades.pss(...)` preserves the top blade's orientation and changes
+only its label. Python keys returned by `locals()` remain independently
+configured. The same patch works with `algebra.with_blades(...)`,
+`Presenter(blades=...)`, and presenter composition.
+
 `presets.display.override(content="full", coefficient_precision=4)` changes
 only those two choices. Omitted target and zero tolerance settings inherit from
 the algebra or an earlier recipe. `DisplayPolicy(...)` remains available for

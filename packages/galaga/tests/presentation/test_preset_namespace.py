@@ -153,7 +153,7 @@ def test_metric_aware_blade_recipe_flags_require_booleans(flag):
 def test_blade_recipe_dimension_and_invalid_recipe_errors_are_actionable():
     with pytest.raises(ValueError, match="requires dimension 4"):
         Algebra(3, blades=presets.blades.sta())
-    with pytest.raises(TypeError, match="BladeConvention or a resolvable blade preset"):
+    with pytest.raises(TypeError, match="BladeConvention.*BladePatch.*resolvable blade preset"):
         Algebra(3, blades="sta")
     with pytest.raises(ValueError, match="unknown blade preset kind"):
         Algebra(1, blades=type(presets.blades.euclidean())("unknown"))

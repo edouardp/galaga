@@ -72,6 +72,42 @@ validates the selected coordinate positions; it does not permute the metric.
 
 ## Consequences and verification
 
+### Sparse pseudoscalar labels
+
+`presets.blades.pss(name)` returns an immutable `BladePatch` that renames only
+the existing convention's top-grade blade. It accepts a string or `Name` and
+infers the mask $2^n-1$ from the target dimension. The signed reference,
+other labels, aliases, and semantic roles are preserved. A conflicting label
+is rejected by the existing convention validation.
+
+The patch can be passed as `blades=` to `Algebra` or `Presenter`, used with
+`Algebra.with_blades()`, or composed after a full blade preset or convention.
+`PresentationRecipe` retains a full blade selection and an optional sparse
+patch separately. The rightmost patch wins; a later full blade selection
+replaces an earlier selection and discards its patch. Algebra and presenter
+keyword paths use the same resolution function. A recipe passed as `blades=`
+must contain only blade components.
+
+The patch changes display and canonical blade lookup, while Python local
+bindings remain a separate policy. Use
+`LocalNamePolicy.from_convention(algebra.presentation.blades)` when locals
+should follow the renamed labels. No metric, model, or numerical coefficient
+changes are implied by a pseudoscalar label.
+
+In v1.8.1, `b_default(pss=...)` and other blade factories selected a display
+label; `algebra.locals(pss=...)` independently selected a Python binding.
+For example, a three-dimensional `b_default(pss="i")` displayed the top blade
+as `i` but retained local key `e123`. In one dimension the top blade was also
+the vector, so the default local key followed its vector label. V2 keeps the
+explicit separation between blade labels and local-name policy in every
+dimension.
+
+Regression coverage checks one-dimensional complex arithmetic, preserved
+signed orientations in STA and CGA, the all-null exterior algebra, complete
+and sparse composition, presenter views, and unchanged local-name policy.
+
+### Complete preset verification
+
 Users can write `Algebra(config=presets.cga(3))` and retain a compact,
 discoverable namespace, while `Algebra(1, 3, blades=presets.blades.sta())`
 makes the metric/vocabulary boundary explicit. `from galaga import presets`

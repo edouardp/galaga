@@ -6,8 +6,8 @@ from dataclasses import dataclass, field, replace
 from types import NotImplementedType
 from typing import TYPE_CHECKING, Literal, cast
 
-from .blades import BladeConvention, DisplayOrder, LocalNamePolicy
-from .composition import NotationPatch, PresentationRecipe, _as_recipe
+from .blades import BladeConvention, BladePatch, DisplayOrder, LocalNamePolicy
+from .composition import NotationPatch, PresentationRecipe, _as_recipe, resolve_blades
 from .presentation import DisplayPolicy, Notation, PresentationConfig
 from .presets._implementation import BladePreset
 
@@ -30,7 +30,7 @@ class Presenter:
 
     presentation: PresentationConfig | None = None
     config: PresentationRecipe | None = None
-    blades: BladeConvention | BladePreset | None = None
+    blades: BladeConvention | BladePreset | BladePatch | PresentationRecipe | None = None
     notation: Notation | NotationPatch | None = None
     local_names: LocalNamePolicy | None = None
     display_order: DisplayOrder | Literal["grade-lexicographic", "bitmap"] | None = None
@@ -42,7 +42,7 @@ class Presenter:
         for name, expected in (
             ("presentation", PresentationConfig),
             ("config", PresentationRecipe),
-            ("blades", (BladeConvention, BladePreset)),
+            ("blades", (BladeConvention, BladePreset, BladePatch, PresentationRecipe)),
             ("notation", (Notation, NotationPatch)),
             ("local_names", LocalNamePolicy),
             ("display", DisplayPolicy),
@@ -109,9 +109,7 @@ class Presenter:
             selected = self.config.apply_to(selected, value.algebra.gram)
         # Resolve all components before validating their common dimension so a
         # complete, consistent set of overrides can replace a supplied base.
-        blades = self.blades
-        if isinstance(blades, BladePreset):
-            blades = blades.resolve(value.algebra.gram.tolist())
+        blades = resolve_blades(self.blades, value.algebra.gram, selected.blades)
         order = self.display_order
         if isinstance(order, str):
             n = value.algebra.n
@@ -124,7 +122,7 @@ class Presenter:
             notation = notation.apply(selected.notation)
         selected = replace(
             selected,
-            blades=blades if blades is not None else selected.blades,
+            blades=blades,
             notation=notation if notation is not None else selected.notation,
             local_names=self.local_names if self.local_names is not None else selected.local_names,
             display_order=order if order is not None else selected.display_order,
