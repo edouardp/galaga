@@ -2,37 +2,16 @@
 
 ## Purpose and authority
 
-This document is the human-readable view of the exhaustive replacement
-contract completed in Phase 1. The executable source of truth is
-[`v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/v1_surface_manifest.py),
-and
-[`test_v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/test_v1_surface_manifest.py)
-compares historical names with the independently captured
-[v1 surface archive](../../packages/galaga/tools/baselines/public-surface-v1.json).
-Current v2 behavior is still checked live. See
-[ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
+This historical matrix records the completed Galaga 1 to 2 replacement work.
+The executable disposition manifest and its archive integrity checks were
+retired under [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+They remain available in Git history. Current alias, protocol, call-shape,
+numeric, and namespace contracts are exercised directly in
+`packages/galaga/tests/facade/`, with package integrity checked by
+`scripts/check_galaga_artifact.py`.
 
-The manifest currently classifies:
-
-- all 99 former top-level names captured from `galaga.legacy.__all__`;
-- the complete promoted surface in `galaga.__all__` and `galaga.facade.__all__`
-  (145 names at the post-a4 cleanup checkpoint);
-- all 28 public legacy `Algebra` members;
-- all 20 public legacy `Multivector` members;
-- all 22 special methods declared by the legacy `Multivector`;
-- all six legacy multivector formatting and display hooks, including
-  `_repr_latex_`;
-- all 59 public legacy expression classes;
-- all 27 non-private top-level package modules and nine relied-upon nested
-  entry points;
-- four companion-package or example touch points; and
-- four known dependencies on private legacy structures.
-
-Missing or invented historical dispositions fail the compatibility suite,
-without requiring the old engine to remain importable. A separate identity
-contract keeps the promoted top-level manifest exactly synchronized with the
-facade. Package-file classification remains live: adding or removing a module
-requires an explicit inventory update.
+For source updates, use the [migration guide](migration-guide.md). For the
+current API, use the package guides and configuration documentation.
 
 ## Top-level exports
 
@@ -42,7 +21,7 @@ requires an explicit inventory update.
 owned by `galaga.facade` and re-exported as the exact same objects by `galaga`:
 
 `antidot_product`, `anticommutator`, `antimetric_apply`, `antireverse`,
-`antiwedge`, `bulk_part`, `commutator`, `complement`, `conjugate`,
+`antiwedge`, `commutator`, `complement`, `conjugate`,
 `doran_lasenby_inner`, `dual`, `even_grades`, `exp`,
 `geometric_antiproduct`, `geometric_product`, `grade`, `grade_involution`,
 `grades`, `hestenes_inner`, `inverse`, all `is_*` predicates,
@@ -52,7 +31,11 @@ interior products, both weight duals, `lie_bracket`, `log`, `metric_apply`,
 `odd_grades`, `outer_product`, the four outer transcendentals,
 `regressive_product`, `reverse`, `sandwich`, `scalar_product`, `scalar_sqrt`,
 `sqrt`, `squared`, `transwedge`, `transwedge_antiproduct`, `uncomplement`,
-`undual`, `unit`, and `weight_part`.
+`undual`, and `unit`.
+
+The generic `bulk_part` and `weight_part` aliases are retired under ADR-174;
+use `metric_apply` and `antimetric_apply` for their former numeric maps.
+Model-owned component methods remain separate operations.
 
 The exact list is intentionally machine checked rather than duplicated as an
 independent hand-maintained constant in this document.

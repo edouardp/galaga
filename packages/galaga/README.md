@@ -141,10 +141,9 @@ in Euclidean-first 3D, native `I` displays as $-I_C$ when model names are
 selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
 
 The complete factories are `euclidean`, `oblique_plane`, `sta`, `pga`, `cga`, `rga`,
-`lengyel_cga`, `complex`, `quaternion` and `exterior`. Complex and quaternion
+`lengyel_cga`, `csta`, `complex`, `quaternion` and `exterior`. Complex and quaternion
 presets describe even subalgebras of real Euclidean algebras, not complex
-coefficient storage. Import `presets` for the complete factories; the older
-prefixed `p_*` spellings have been removed.
+coefficient storage. Import `presets` to use these complete factories.
 
 For two unit basis vectors separated by an angle, use
 `Algebra(config=presets.oblique_plane(degrees=60))` or
@@ -189,8 +188,7 @@ direct `display=` arguments and has the same sparse override behavior.
 To change only the reverse symbol of a complete preset, use
 `presets.notation.override(reverse="dagger")` or `reverse="tilde"`. For example,
 `Algebra(config=presets.sta() | presets.notation.override(reverse="dagger"))`
-keeps the preset's other notation rules. For any other operation, pass a
-`RenderRule` in a target map:
+keeps the preset's other notation rules. For target-specific layout choices, pass a `RenderRule` in a target map:
 
 ```python
 from galaga import RenderRule, presets
@@ -634,6 +632,35 @@ underlying geometry, including null vectors versus degenerate metrics.
 
 ## Geometric models
 
+Import runtime geometry models from `galaga.models`. Each model validates the
+preset's semantic roles and metric before interpreting objects. All models
+provide `point()` and immutable `coordinates()`; classifications expose kind,
+grade, simplicity, finiteness, representation, and model-specific properties.
+See the [runtime model guide](../../docs/v2/runtime-geometry-models.md) for the
+hierarchy, capability protocols, and conformal spacetime.
+
+### Plane-based projective geometric algebra (PGA)
+
+```python
+from galaga import Algebra, presets
+from galaga.models import PGAModel
+
+pga = PGAModel(Algebra(config=presets.pga(3)))
+p = pga.point((1, 2, 3))
+q = pga.point((2, 2, 3))
+line = pga.join(p, q)
+plane = pga.plane((1, 0, 0, -1))  # x - 1 = 0
+assert pga.meet(plane, p) == 0
+assert pga.classify(line).kind == "line"
+assert pga.bulk_part(line) + pga.weight_part(line) == line
+```
+
+PGA supports 2D and 3D. Its points have grade equal to the spatial dimension;
+vectors are hyperplanes. `join` uses the antiwedge and `meet` the outer product.
+Ideal points use `weight=0` and have no finite coordinates. PGA and RGA own
+validated bulk/weight projections; these meanings do not apply to arbitrary
+degenerate metrics.
+
 ### Native-null conformal geometric algebra (CGA)
 
 The null-frame preset stores origin and infinity as actual null basis vectors,
@@ -642,7 +669,7 @@ lifting coordinates and working with geometric objects:
 
 ```python
 from galaga import Algebra, outer_product, presets
-from galaga.cga import ConformalModel
+from galaga.models import ConformalModel
 
 alg = Algebra(config=presets.cga(spatial_dim=3, frame="null"))
 cga = ConformalModel(alg, expr=True)
@@ -671,7 +698,7 @@ geometric meanings and conventions:
 
 ```python
 from galaga import Algebra, presets
-from galaga.rga import RigidModel
+from galaga.models import RigidModel
 
 alg = Algebra(config=presets.rga())
 rga = RigidModel(alg, expr=True)
@@ -714,7 +741,7 @@ and [inner products][inner-lesson]. See the [documentation index][docs] for
 the full collection. README Python snippets are executed by the test suite;
 the maintained notebooks also have headless execution coverage.
 
-## Numeric-only use and migration
+## Numeric-only use
 
 Application code normally imports from `galaga`. Use `galaga.core` when names,
 expression provenance and rendering are not needed:
@@ -731,17 +758,12 @@ assert float(result.grade(0)) == alg.gram[0, 1]
 The public facade composes these numeric values with presentation; it is not
 a second engine. See the [numeric core guide][core] for its lower-level API.
 
-The Galaga 1 engine and temporary `galaga.legacy` namespace no longer ship.
-The final-API cleanup after `2.0.0a4` also removes `galaga.gram_bridge` and
-the temporary `involute`, `mag2`, `magnitude_squared`, `norm_squared`,
-`normalise` and `normalize` functions. Use `grade_involution`, `norm2` and
-`unit` respectively. Earlier alphas still provide those migration adapters;
-permanent concise operation aliases remain supported. The prefixed `p_*`
-preset imports were retired before stable 2.0.
-Old `expr`, `symbolic_core`, `notation` and `latex_*` implementation paths
-are replaced by `galaga.expression`, `galaga.presentation`, `galaga.rendering`
-and `galaga.names`. Follow the [migration guide][migration] for explicit
-construction, naming, provenance and operation replacements.
+Use `metric_apply(value)` and `antimetric_apply(value)` for algebra-level
+metric maps. Geometric component decompositions belong to model methods such
+as `cga.bulk_part(value)` or `pga.weight_part(value)`.
+
+For older construction, naming, operation, and import patterns, follow the
+[migration guide][migration].
 
 [migration]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/v2/migration-guide.md
 [presentation]: https://github.com/edouardp/galaga/blob/galaga_v2/docs/v2/presentation-configuration.md

@@ -6,8 +6,8 @@
 > [presentation configuration](presentation-configuration.md),
 > [expression provenance](expression-provenance.md), and
 > [semantic rendering](rendering-implementation.md). The
-> [core cutover plan](core-cutover-plan.md) owns the remaining stable-release
-> gate.
+> [release checklist](../RELEASE_PROCESS.md#quality-gates) defines current
+> release validation.
 
 ## Implemented outcome
 

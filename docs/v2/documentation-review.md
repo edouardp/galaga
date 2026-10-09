@@ -2,7 +2,9 @@
 
 Date: 2026-09-11. Base commit: `17118f2` on `galaga_v2`.
 This records a documentation and regression-test update, not a release or a
-replacement for the [clean-candidate release gate](legacy-engine-deletion-gate.md#remaining-release-actions).
+replacement for the [release checklist](../RELEASE_PROCESS.md#quality-gates).
+For current architecture and user guidance, start with the
+[documentation index](../README.md).
 
 ## Scope and findings
 

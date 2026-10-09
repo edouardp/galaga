@@ -139,7 +139,8 @@ and spelling, not operation identity or numeric meaning.
 
 ## 8. Models add semantics, not duplicate arithmetic
 
-`ConformalModel` and `RigidModel` validate model-specific roles and provide
+`PGAModel`, `RigidModel`, `ConformalModel`, and `ConformalSpacetimeModel`
+from `galaga.models` validate model-specific roles and provide
 operations whose meaning depends on those roles. Direct geometric objects
 remain ordinary multivectors. Generic helpers are not added merely to shorten
 a composition already expressed clearly with `outer_product`, `exp`,
@@ -151,8 +152,8 @@ coordinate convention, or useful semantic expression node.
 ## 9. Conversions are checked and unsurprising
 
 `float(value)` succeeds only when the whole multivector is scalar. Extracting
-grade zero from a mixed-grade value is explicit through `grade(value, 0)` or
-the optional `scalar_part(value)` helper.
+grade zero from a mixed-grade value is explicit through `grade(value, 0)`
+or `scalar_part(value)`.
 
 `value.data` exposes the read-only NumPy coefficient array. Multivectors do not
 pretend to be NumPy arrays and do not implement the array or ufunc protocols.

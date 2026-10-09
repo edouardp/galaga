@@ -9,6 +9,20 @@ ADRs document significant architectural decisions made during the project. They
 capture the context, options considered, decision made, and consequences. This
 helps future contributors understand why certain choices were made.
 
+## Current design entry points
+
+Start with these records when changing the current implementation; the full
+index below preserves the chronology of earlier designs.
+
+| Concern | Records |
+|---|---|
+| Numeric core and public facade | [073](073-move-the-numeric-core-into-galaga.md), [075](075-promote-the-core-backed-facade.md) |
+| Immutable presentation and shared rendering | [076](076-immutable-presentation-configuration.md), [078](078-shared-semantic-rendering-pipeline.md) |
+| Composition and reusable presenters | [161](161-right-biased-presentation-composition.md), [166](166-composed-presenter-recipes.md), [172](172-leaf-composition-dispatch.md) |
+| Sparse display settings and user preferences | [169](169-sparse-display-overrides.md), [171](171-layered-toml-presentation-preferences.md) |
+| Geometry models and CSTA units | [174](174-runtime-geometry-model-hierarchy-and-classifiers.md), [175](175-csta-physical-units-and-coordinate-scale.md) |
+| Migration tooling and example ownership | [170](170-retire-migration-scaffolding-before-stable-2.md) |
+
 ## ADR Index
 
 Statuses record acceptance at the time, not a promise that old modules or API
@@ -102,7 +116,7 @@ classes are no longer production alternatives.
 | [080](080-matrix-representations-use-public-linear-actions.md) | Matrix Representations Use Public Linear Actions | Accepted |
 | [081](081-optional-integrations-consume-public-protocols.md) | Optional Integrations Consume Public Protocols | Accepted |
 | [082](082-matrix-provenance-is-package-owned.md) | Matrix Provenance Is Package-Owned | Accepted |
-| [083](083-maintained-notebooks-are-executable-integration-contracts.md) | Maintained Notebooks Are Executable Integration Contracts | Accepted |
+| [083](083-maintained-notebooks-are-executable-integration-contracts.md) | Maintained Notebooks Are Executable Integration Contracts | Testing policy updated by 170 |
 | [084](084-exact-configured-rendering-contracts.md) | Exact Configured Rendering Contracts | Accepted |
 | [085](085-top-level-api-is-the-facade-with-explicit-legacy-oracle.md) | Top-Level API Is the Facade with an Explicit Legacy Oracle | Accepted |
 | [086](086-native-null-cga-is-a-validated-model-layer.md) | Native-Null CGA Is a Validated Model Layer | Accepted |
@@ -111,11 +125,11 @@ classes are no longer production alternatives.
 | [089](089-releases-use-any-clean-tracked-branch.md) | Releases Use Any Clean Tracked Branch | Accepted |
 | [090](090-portable-notebooks-use-a-local-editable-launcher.md) | Portable Notebooks Use a Local Editable Launcher | Accepted |
 | [091](091-cga-anywidget-synchronizes-semantic-coordinates.md) | CGA AnyWidget Synchronizes Semantic Coordinates | Accepted |
-| [092](092-frozen-historical-rendering-oracles.md) | Frozen Historical Rendering Oracles | Accepted |
-| [093](093-benchmarks-use-core-reference-oracles.md) | Benchmarks Use Core Reference Oracles | Accepted |
+| [092](092-frozen-historical-rendering-oracles.md) | Frozen Historical Rendering Oracles | Historical tooling retired by 170 |
+| [093](093-benchmarks-use-core-reference-oracles.md) | Benchmarks Use Core Reference Oracles | Historical tooling retired by 170 |
 | [094](094-numeric-contracts-outlive-the-legacy-engine.md) | Numeric Contracts Outlive the Legacy Engine | Accepted |
 | [095](095-exact-numeric-equality-and-compatible-hashes.md) | Exact Numeric Equality and Compatible Hashes | Accepted |
-| [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Accepted |
+| [096](096-compatibility-manifests-use-historical-api-evidence.md) | Compatibility Manifests Use Historical API Evidence | Historical tooling retired by 170 |
 | [097](097-concrete-display-contracts-outlive-legacy-rendering.md) | Concrete Display Contracts Outlive Legacy Rendering | Accepted |
 | [098](098-expression-contracts-outlive-legacy-provenance.md) | Expression Contracts Outlive Legacy Provenance | Accepted |
 | [099](099-symbolic-contracts-and-curated-unary-properties.md) | Symbolic Contracts and Curated Unary Properties | Accepted |
@@ -140,7 +154,7 @@ classes are no longer production alternatives.
 | [118](118-public-rotor-recipes-and-sandwich-contracts.md) | Public Rotor Recipes and Sandwich Contracts | Accepted |
 | [119](119-division-provenance-and-exact-scalar-dispatch.md) | Division Provenance and Exact Scalar Dispatch | Accepted |
 | [120](120-complete-redesign-contract-migration.md) | Complete Redesign Contract Migration | Accepted |
-| [121](121-deletion-ready-namespace-and-import-guards.md) | Deletion-Ready Namespace and Import Guards | Accepted |
+| [121](121-deletion-ready-namespace-and-import-guards.md) | Deletion-Ready Namespace and Import Guards | Historical tooling retired by 170 |
 | [122](122-remove-the-legacy-engine-and-verify-artifacts.md) | Remove the Legacy Engine and Verify Artifacts | Accepted |
 | [123](123-migrate-remaining-teaching-notebooks-and-benchmark.md) | Migrate Remaining Teaching Notebooks and Benchmark | Accepted |
 | [124](124-rotor-predicate-requires-vector-preservation.md) | Rotor Predicate Requires Vector Preservation | Accepted |

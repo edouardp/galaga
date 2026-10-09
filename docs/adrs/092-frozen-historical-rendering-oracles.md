@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-092: Frozen Historical Rendering Oracles
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 ## Context and problem statement
 
 Phase 9 removes the temporary Galaga 1 engine retained by

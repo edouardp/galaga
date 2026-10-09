@@ -1,13 +1,20 @@
 # Legacy Engine Deletion and Release Gate
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 Date: 2026-09-08. Worktree based on `995aed6`,
 `feature/remove-legacy-engine`. This is a local validation report, not a
 publication or a declaration that Phase 9 is fully complete.
 
 This report is chronological. The initial checkpoint below still had temporary
-adapters; those were subsequently removed. For the latest artifact evidence see
-[post-a4 stable-release preparation](#post-a4-stable-release-preparation-checkpoint),
-and for the outstanding final gates see [remaining release actions](#remaining-release-actions).
+adapters; those were subsequently removed. The last checkpoint in this report is
+[post-a4 stable-release preparation](#post-a4-stable-release-preparation-checkpoint).
+Use the current [release checklist](../RELEASE_PROCESS.md#quality-gates) for a
+new candidate; the remaining actions below describe this historical checkpoint.
 
 ## Physical deletion
 

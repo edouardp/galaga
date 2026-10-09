@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-096: Compatibility Manifests Use Historical API Evidence
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+>
 > [ADR-130](130-retire-migration-only-api-adapters.md) completes the bridge
 > retirement after `2.0.0a4`: the live/retired partition is now 12/24 rather
 > than 15/21. The frozen historical evidence and completeness checks remain.
@@ -28,7 +34,7 @@ check.
 ## Decision outcome
 
 Preserve Python's observed v1 surface in the development-only
-[public-surface archive](../../packages/galaga/tools/baselines/public-surface-v1.json).
+public-surface archive.
 It was captured at `3dad1cf74be2fa60a9cd6bc3c7e87a005a4fba35`, before
 removing introspection, with Python 3.14.4 and NumPy 2.5.2. It records:
 

@@ -98,8 +98,8 @@ example teaches the pair `Q(E), Q(B)` in `A = E + B J`, with a computed central
 pseudoscalar `J` satisfying `J² = -1`. This pair is a notebook construction,
 not an additional public representation mode.
 
-Each notebook is compiled, dependency-checked, and executed headlessly by the
-example test ledger.
+The editable example gallery has compilation, Marimo dependency, and
+headless execution smoke checks.
 
 ## MatrixRepr
 
@@ -145,9 +145,8 @@ Representation-map provenance records the source coefficient domain:
 Galaga's public expression tree remains a geometric-algebra operation tree.
 When a facade value carries provenance, conversion wraps it in a matrix adapter
 with the active presentation. Rendering continues to honor context-local
-presentation overrides on the facade algebra. `galaga_matrix` does not import
-`galaga.symbolic_core` or inspect private multivector fields. This keeps the
-optional package independent without losing evaluable provenance.
+presentation overrides on the facade algebra. The adapter consumes public value, expression, name, and presentation
+properties, preserving evaluable provenance across package boundaries.
 
 Works in `galaga_marimo` t-strings (Python 3.14+, with that optional package
 installed; continuing the quick start above):

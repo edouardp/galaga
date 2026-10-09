@@ -1,218 +1,95 @@
-# Galaga Numeric-Algebra Replacement Roadmap
+# Galaga Capability Roadmap
 
-> **Planning role:** This is a capability roadmap. The normative replacement
-> sequence, work units, required tests, and exit gates are in the
-> [Galaga 2 core cutover plan](core-cutover-plan.md). Existing numeric tests are
-> classified in the
-> [numeric test migration inventory](numeric-test-migration-inventory.md).
+This roadmap lists possible extensions beyond the implemented Galaga 2
+architecture. It is not a release checklist or a commitment to particular
+versions. Use the [architecture guide](README.md) for current responsibilities
+and the [release process](../RELEASE_PROCESS.md#quality-gates) for candidate
+validation. Completed replacement work is indexed in the [history](history.md).
 
-## Goal
+## Current capabilities
 
-Replace Galaga's diagonal-only numeric `Algebra` with `galaga.core`
-while leaving naming, notation, rendering, and expression trees as consumers
-above the numeric boundary.
+| Area | Implemented capability | Guide |
+|---|---|---|
+| Numeric algebra | Real symmetric Gram matrices; diagonal and general-Gram products in the native exterior basis | [Numeric core](../core/README.md) |
+| Numeric functions | Integer powers, checked inverse, general exponential, principal logarithm, supported square-root branches, and finite real powers in all-null algebras | [Core specifications](../core/specs/README.md) |
+| Presentation | Immutable, composable blade, notation, ordering and display settings; reusable presenters; layered user preferences | [Presentation configuration](presentation-configuration.md) |
+| Expressions | Optional executable provenance, naming, rebinding and semantic rendering | [Expression provenance](expression-provenance.md) |
+| Geometry | PGA, RGA, CGA and CSTA models with role validation and model-owned classifiers | [Runtime geometry models](runtime-geometry-models.md) |
+| Matrix integration | Public linear actions, compact and left-regular representations, general-Gram basis conversion, matrix arithmetic and provenance | [Matrix integration](matrix-migration.md) |
+| Companion integration | Notebook rendering, annotations, interactive views and expression graphs through public APIs | [Integration guide](integration-migration.md) |
 
-The goal is not merely API resemblance. A replacement must preserve diagonal
-behavior, add native nonorthogonal metrics, keep degenerate algebras useful,
-and give companion packages a public integration surface that does not expose
-product-table internals.
+## Linear maps and basis changes
 
-## What is complete
-
-| Area | Current state |
-|---|---|
-| Metric model | Immutable real symmetric Gram matrix; `p,q,r` and signature constructors normalize to it |
-| Exterior representation | Dense immutable `float64` coefficients in bitmask exterior order |
-| Metric metadata | Basis squares, inertia, rank, determinant, degeneracy, orthogonality |
-| Geometric product | Diagonal, packed general-Gram, bounded lazy, and dense-reference backends |
-| Exterior product | Direct metric-independent bitmask implementation |
-| Grade-selected products | Left/right contractions, Hestenes, Doran–Lasenby, scalar product |
-| Metric pairing | Compound-matrix metric inner product and antimetric pairing |
-| Duality | Complements, metric duals, Hodge and weight duals, regressive products |
-| RGA layer | Antiproduct, antidot, bulk/weight, interiors, transwedge families |
-| Core numeric API | Arithmetic, checked scalar conversion, involutions, grades, powers, norm, unit, inverse, predicates, sandwich |
-| Numeric functions | Scalar and Study square roots, general exponential, principal algebra logarithm, checked rotor generators, and outer transcendental functions |
-| Native CGA proof | Exhaustive product equivalence with orthogonal `Cl(4,1)` |
-| Native CGA model | Validated native `eo`/`einf` roles, generalized round-point embedding, semantic operations, and transformation contracts |
-| Eager Galaga facade | Complete construction, immutable wrapping, operator and catalog delegation, variadic product lowering, and direct-core parity in `galaga.facade` |
-| Numeric test migration | Applicable v1 mathematics moved to core and the shared public contract rerun against the facade with a legacy-construction guard |
-| Presentation configuration | Immutable independent components, signed conventions, complete presets, facade lookup/factories, and context-local overrides |
-| Outer layers | Optional expression provenance, semantic rendering, compatibility policy, and companion-package integration |
-| Top-level cutover | `galaga` exactly re-exports the facade; the legacy engine and migration-only API adapters are removed |
-| Release evidence | Guarded full suites, clean Python 3.11 wheel install, Python 3.14 Marimo execution, and a layer-separated performance baseline |
-
-## Stable-release gate and post-2.0 work
-
-The legacy engine and migration-only paths are removed, with API retirement
-completed after `2.0.0a4` in
-[ADR-130](../adrs/130-retire-migration-only-api-adapters.md). Clean-artifact
-validation and release-candidate review still gate stable `2.0.0`.
-The numeric and performance items below are
-post-2.0 improvements unless a release-candidate regression demonstrates that
-one is required for correctness.
-
-### 1. Linear maps and basis changes
-
-Promote the test-only outermorphism helper into a validated public facility:
+A public outermorphism facility could extend the existing test helpers into a
+validated API:
 
 - extend a vector map to every exterior grade;
 - support source and target algebras with different native bases;
-- materialize exterior-map matrices when requested;
-- validate metric-preserving maps;
-- provide inverse basis changes and, later, adjoints and reciprocal frames.
+- materialize exterior-map matrices on request;
+- validate metric-preserving maps; and
+- provide inverse basis changes, followed by adjoints and reciprocal frames.
 
-This removes duplicated change-of-basis code and gives native Gram metrics a
-first-class interoperability story.
+This would give native Gram metrics a reusable interoperability surface and
+support an explicit native/orthogonal-frame CGA comparison. Matrix integration
+already performs its own validated metric congruence and exterior-power lift;
+a general algebra-to-algebra map would serve broader consumers.
 
-### 2. Matrix-package migration: complete
+## Numerical and performance improvements
 
-`galaga_matrix` now uses `Algebra.left_action()` rather than `_mul_index` and
-`_mul_sign`, classifies algebras through basis-independent inertia, and
-round-trips general-Gram values in the native exterior basis. Auto mode chooses
-the left-regular representation for degenerate, nonorthogonal, and scaled
-metrics. Explicit compact mode now supports numerically suitable nondegenerate
-general Gram matrices through a validated metric congruence and exterior-power
-lift; named Pauli, Dirac, and quaternion conventions remain normalized-basis
-operations.
+These are candidates for measurement and design work, rather than outstanding
+migration tasks:
 
-`MatrixRepr` also now owns frozen matrix-domain expression nodes and immutable
-leaf snapshots. Public Galaga names and expressions enter through an explicit
-adapter carrying the active presentation; conversion reads no private
-multivector symbolic state. Numeric representation and matrix provenance are no
-longer companion-package blockers.
-
-### 3. Galaga outer-layer cutover: complete
-
-The architecture and phased implementation are specified in the
-[presentation and expression layer plan](presentation-symbolic-layer-plan.md).
-`galaga.facade` values wrap core values, expression provenance remains an
-optional outer-layer concern, and presentation, semantic rendering,
-compatibility helpers, and companion integrations use public protocols.
-Top-level `galaga` now exactly re-exports the facade. Phase 9 has removed the
-v1 engine, `galaga.legacy`, the bridge and temporary operation aliases.
-
-The completed Phase 1 matrix records the policy for API elements that are
-numeric-adjacent but not part of the core metric engine:
-
-- positional signature tuples and explicit `signature=`, `sig=`, and `gram=`;
-- string blade lookup and `locals()`;
-- blade conventions and display order;
-- scalar constants and named fractions;
-- exact equality plus explicit `almost_equal` rather than legacy approximate
-  `__eq__`;
-- checked `__float__` compatibility versus any future NumPy array/ufunc
-  protocol surface;
-- migration of the current `.scalar_part` member to, at most, an optional
-  standalone helper equivalent to `float(grade(value, 0))`;
-- same-object aliases and their deprecation milestones.
-
-The corrected bracket family is migrated into Galaga. In the current
-core, `lie_bracket` and `commutator` are unscaled, `jordan_product` and
-`anticommutator` are unscaled, and only the two `half_...` functions divide by
-two.
-
-Thin geometry conveniences are not recreated merely because they are short
-compositions. `Algebra.rotor` is `exp` applied to a normalized plane-angle
-generator; `project`, `reject`, and `reflect` compose contractions, products,
-and `inverse`. They belong only in a future model-specific API that supplies
-useful domain meaning or validation. Compatibility aliases such as `wedge`,
-`rev`, and `normalize` likewise add vocabulary rather than numeric capability.
-They are audited rather than recreated mechanically: users can select concise
-local names with ordinary import aliases. Permanent aliases remain; temporary
-spellings such as `normalize` are now removed in favor of `unit`.
-
-An unqualified `ip` or `inner_product` should not become a permanent facade
-choice. If needed for migration, it should be a deprecated adapter. Users who
-want a short local spelling can write, for example,
-`from galaga import doran_lasenby_inner as ip`. The library contract should
-keep competing conventions explicit.
-
-### 4. Native CGA surface: complete
-
-`p_cga` constructs an actual native null Gram basis and declares Euclidean,
-origin, and infinity roles. `galaga.cga.ConformalModel` validates those roles
-against the metric and supplies generalized round-point embedding,
-homogenization, Euclidean extraction, conformal weight, coordinates, and
-signed squared radius. It also implements validated attitude, carrier,
-cocarrier, center, container, partner, expansion, and projection semantics,
-Eric Lengyel's four role-dependent CGA component families, conformal
-conjugation, weighted component/center/radius norms, and normalized center
-distance and radius.
-
-Direct flat points, dipoles, lines, circles, planes, and spheres remain ordinary
-outer products. Translation, rotation, dilation, and transversion remain
-ordinary exponentials and sandwich actions. Plane reflection and sphere
-inversion remain the generic odd-versor action. This deliberately avoids
-helpers that would only duplicate `outer_product`, `exp`, `inverse`, or
-`sandwich`.
-
-An explicit native/orthogonal-frame comparison remains deferred until work
-item 1 supplies a public outermorphism and basis-change object; it is not a
-dependency of the native model.
-
-### 4.1 Point-based RGA surface: complete
-
-`p_rga` declares Eric Lengyel's Euclidean, projective, and antiscalar roles.
-`galaga.rga.RigidModel` validates those roles and supplies homogeneous points,
-coordinates, attitude, paired norms, unitization, homogeneous distance and
-angle, contractions, expansions, orthogonal and central projections, support,
-and antisupport. Its semantic operations retain executable expression
-provenance without enlarging the free numeric facade.
-
-Line, motor, and flector constraints are explicit model operations. A
-transwedge result remains an ambient algebra element until its applicable
-geometry constraint has been checked; finite line correction is deliberately
-model-owned rather than silently applied by the product. Point-based RGA and
-plane-based PGA remain distinct presets because they reverse the point/plane
-grade ladder and use dual transformation products.
-
-### 5. Further production hardening (not stable 2.0 prerequisites)
-
-- Add a versor fast path and Hitzer/Shirokov paths to `inverse`, retaining the
-  left-regular solve as a verification fallback.
-- Replace the dense left-action norm used to scale general exponentials with a
-  cheaper certified bound before targeting large dimensions.
-- The principal algebra logarithm now handles non-Study inputs with native
-  resolvent quadrature; measure difficult conditioning and branch-cut cases
-  before extending its bounded numerical algorithm. Automatic alternative
-  rotor-generator branches and general multivector square roots remain
-  separate work requiring explicit branch contracts and independent oracles.
+- Add a verified versor fast path to `inverse`, retaining the left-regular
+  solve and residual checks for general inputs.
+- Use a cheaper certified bound to scale general exponentials before targeting
+  larger dimensions.
+- Measure difficult conditioning and branch-cut cases for the principal
+  logarithm's native resolvent quadrature.
+- Investigate general multivector square roots and alternative rotor-generator
+  branches under explicit domain and branch contracts. All-null values with
+  positive scalar part already have finite-series roots and real powers.
 - Add memory guards or operator forms for dense compound metric matrices.
-- Measure dense-multivector workloads on the lazy backend and tune caching or
-  packed selection from evidence.
-- Preserve and extend the recorded diagonal-backend performance baseline.
-- Add serialization only after the final facade boundary is settled.
+- Measure dense-multivector workloads on the lazy product backend before
+  changing cache or packed-backend selection.
 
-## Recommended sequence
+New numerical paths need independent algebraic checks and residual tests.
+Historical performance measurements remain useful context, but the retired
+Phase 8 benchmark is not a current release gate.
 
-```mermaid
-flowchart LR
-    X[Phase 8 top-level cutover complete] --> R[Engine and temporary APIs removed]
-    G[Native CGA model complete] --> Q
-    O[Public outermorphisms and basis changes] --> C[Native/orthogonal CGA comparison]
-    R --> Q[Galaga 2 release hardening]
-    Q --> H[Further performance hardening]
-```
+## Model extensions
 
-Numeric function and facade parity, presentation configuration, expression
-provenance, semantic rendering, public linear actions, companion migration,
-the top-level cutover, and the native CGA model are complete. The retained legacy
-engine and migration-only names are now removed. The remaining release work is
-the clean-candidate gate, release-stage metadata and published RC review under
-the [local-only policy](../adrs/131-local-only-stable-release-validation.md).
-See the [current validation report](legacy-engine-deletion-gate.md).
-Linear-map
-promotion, an explicit native/orthogonal CGA comparison, and further
-performance hardening remain independent numeric/model work rather than
-blockers for the public facade.
+Possible extensions include:
 
-## Explicit non-goals for the numeric core
+- factories that return a configured algebra and runtime model together;
+- two-dimensional RGA support, with its point/plane conventions and
+  transformation contracts validated independently;
+- further model-specific transformation classifiers where they add useful
+  semantics beyond the existing CSTA operator traits; and
+- broader classifier dimensions where there is a concrete consumer need.
 
-- Expression-tree construction or simplification
-- Notation and LaTeX rendering
-- Symbolic Gram entries or coefficients
-- Complexified Clifford algebras
-- Nonsymmetric bilinear forms
-- Hidden diagonalization of the user's native basis
-- Implicit NumPy array or ufunc reinterpretation of a multivector
-- Sparse multivector coefficient storage in the initial replacement
+The current `RigidModel` is three-dimensional. PGA and CGA classifiers cover
+2D and 3D; CSTA uses the fixed four-dimensional $(+---)$ spacetime signature.
+Conformal embedding itself supports other positive spatial dimensions.
+
+The native-CGA quaternion/Vahlen proposal is separate matrix work. It must not
+be confused with the existing generic compact representation or the named
+Euclidean quaternion convention; see the
+[native-CGA matrix proposal](../../packages/galaga_matrix/docs/specs/native-null-cga-matrix-representations.md).
+
+## Extension boundaries
+
+The numeric core remains responsible for real arithmetic in the declared
+native basis. Expression construction, notation, rendering, and geometric
+interpretation belong to their respective outer layers.
+
+The following would require separate design decisions:
+
+- symbolic Gram entries or coefficients;
+- complexified Clifford algebras;
+- nonsymmetric bilinear forms;
+- sparse multivector coefficient storage;
+- serialization contracts; and
+- implicit NumPy array or ufunc interpretation of multivectors.
+
+Basis conversion should be explicit: a numeric operation must not silently
+replace the user's native basis with an orthogonal one.

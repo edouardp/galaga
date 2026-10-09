@@ -79,6 +79,18 @@ implementations. Project-local notation can always use an import alias:
 from galaga import doran_lasenby_inner as ip
 ```
 
+### Replace generic bulk and weight aliases
+
+Use `metric_apply(value)` and `antimetric_apply(value)` for the former
+algebra-level `bulk_part(value)` and `weight_part(value)` operations. The
+metric maps remain available in `galaga` and `galaga.core`; the generic aliases
+and their expression operation IDs are removed.
+
+Their sum reconstructs a multivector in the normalized projective metric,
+but not in a general Gram metric or the all-null exterior algebra.
+`ConformalModel.bulk_part(value)` and `ConformalModel.weight_part(value)`
+remain model-specific component projections with their own expression IDs.
+
 ### Replace removed migration spellings
 
 The warning period for these function spellings has ended in the current
@@ -1413,6 +1425,6 @@ Useful migration assertions include:
 - exact rendering contracts for presentation-sensitive notebooks; and
 - clean-environment wheel installation without repository path injection.
 
-The exhaustive implementation ledger remains in the
-[public API migration matrix](public-api-migration-matrix.md). It is a
-maintainer reference; this guide is the user-facing migration path.
+The [public API migration matrix](public-api-migration-matrix.md) preserves
+the original implementation inventory. Use this guide for migration recipes
+and the [architecture index](README.md) for current implementation guidance.

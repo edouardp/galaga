@@ -756,9 +756,9 @@ not from an inverse. This keeps the antidot product meaningful in PGA.
 
 In RGA with $g=\operatorname{diag}(1,1,1,0)$:
 
-- `metric_apply()` or `bulk_part()` preserves the bulk components and removes
+- `metric_apply()` preserves the bulk components and removes
   blades containing the null basis vector;
-- `antimetric_apply()` or `weight_part()` preserves the complementary weight
+- `antimetric_apply()` preserves the complementary weight
   components;
 - `metric_inner_product()` measures the bulk pairing and returns a scalar;
 - `antidot_product()` measures the weight pairing and returns an antiscalar.

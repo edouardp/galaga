@@ -268,8 +268,9 @@ Status: **DONE**
 
 **Implementation:**
 
-- `bulk_part(A) = metric_apply(A)` (semantic alias)
-- `weight_part(A) = antimetric_apply(A)` (semantic alias)
+- `metric_apply(A)` selects bulk terms for the normalized projective metric.
+- `antimetric_apply(A)` selects weight terms for that metric.
+- The former generic `bulk_part` and `weight_part` aliases are retired by ADR-174.
 - `right_weight_dual(A) = complement(antimetric_apply(A))`
 - `left_weight_dual(A) = left_complement(antimetric_apply(A))`
 - All registered via `@ga_op`

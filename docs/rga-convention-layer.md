@@ -12,7 +12,7 @@ model roles:
 
 ```python
 from galaga import Algebra, presets
-from galaga.rga import RigidModel
+from galaga.models import RigidModel
 
 alg = Algebra(config=presets.rga())
 rga = RigidModel(alg, expr=True)
@@ -50,13 +50,13 @@ The Lengyel preset emits KaTeX-compatible LaTeX without `\unicode{...}`
 extensions. In particular, the Unicode antiscalar `𝟙` renders as `\text{𝟙}`.
 Its compact notation also distinguishes the position of related operations:
 right Hodge and weight duals render as `A^★` and `A^☆`, left duals as `A_★`
-and `A_☆`, and the bulk and weight projections as `A_●` and `A_○` in Unicode.
-LaTeX uses the corresponding `\text{★}`, `\text{☆}`, `\text{●}`, and
-`\text{○}` scripts. Both `complement(a)` and `right_complement(a)` use the
+and `A_☆`. LaTeX uses corresponding `\text{★}` and `\text{☆}` scripts.
+The model component methods render as `bulk_part(A)` and `weight_part(A)`
+by default; the metric maps render as `GA` and `𝔾A`. Both `complement(a)` and `right_complement(a)` use the
 RGA overline, while `left_complement(a)` uses the underline; `antiwedge(a, b)`
 uses the same `\vee` meet symbol as `regressive_product(a, b)`.
 
-These are executable presentation contracts, not documentation-only examples.
+The rendering suite checks these presentation choices.
 `tests/rendering/test_rga_latex_contract.py` checks every Lengyel operation in
 the supported expression channels, all sixteen blade labels, signed native
 orientation, and representative compound expressions from the RGA demo and
@@ -70,7 +70,7 @@ numeric source tables.
 | Antidot product | `antidot_product(a, b)` | Antiscalar |
 | Right/left complement | `right_complement(a)`, `left_complement(a)` | Complementary grade |
 | Metric/antimetric application | `metric_apply(a)`, `antimetric_apply(a)` | Same grade |
-| Bulk/weight part | `bulk_part(a)`, `weight_part(a)` | Same grade |
+| Bulk/weight part | `rga.bulk_part(a)`, `rga.weight_part(a)` | Same grade |
 | Right/left bulk dual | `right_hodge_dual(a)`, `left_hodge_dual(a)` | Complementary grade |
 | Right/left weight dual | `right_weight_dual(a)`, `left_weight_dual(a)` | Complementary grade |
 | Antiwedge | `antiwedge(a, b)` | Regressive grade |
@@ -140,7 +140,7 @@ inverse-pseudoscalar `dual()` is undefined there.
 
 ## Validated Rigid Model
 
-`galaga.rga.RigidModel` owns only operations whose meaning depends on the
+`galaga.models.RigidModel` owns operations whose meaning depends on the
 point-based RGA model. Construction requires `Algebra(config=presets.rga())` and
 validates the declared Euclidean and projective roles against the actual Gram
 matrix. A bare algebra with the same signature is deliberately insufficient:
@@ -148,7 +148,7 @@ the metric alone does not say whether vectors represent points or planes.
 
 ```python
 from galaga import Algebra, presets
-from galaga.rga import RigidModel
+from galaga.models import RigidModel
 
 algebra = Algebra(config=presets.rga())
 rga = RigidModel(algebra, expr=True)

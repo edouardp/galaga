@@ -173,7 +173,7 @@ flowchart TD
     G --> A[facade Algebra]
     M --> A
     V --> A
-    A --> CM[galaga.cga.ConformalModel]
+    A --> CM[galaga.models.ConformalModel]
     CM --> E[embedding and extraction]
     CM --> S[CGA semantic operations]
     A --> O[generic products, duals, exp, sandwich]
@@ -202,7 +202,7 @@ two basis vectors really are $e_+$ and $e_-$, not $e_o$ and $e_\infty$.
 
 ```python
 from galaga import Algebra, presets
-from galaga.cga import ConformalModel
+from galaga.models import ConformalModel
 
 algebra = Algebra(config=presets.cga(spatial_dim=3))
 cga = ConformalModel(algebra, expr=True)
@@ -220,7 +220,7 @@ five-dimensional basis-table order:
 
 ```python
 from galaga import Algebra, presets
-from galaga.cga import ConformalModel
+from galaga.models import ConformalModel
 
 algebra = Algebra(config=presets.lengyel_cga())
 cga = ConformalModel(algebra, expr=True)
@@ -526,10 +526,11 @@ $$
 
 They are available as `round_part`, `flat_part`, `bulk_part`, and
 `weight_part` methods on the model. The method namespace matters:
-`cga.bulk_part(u)` is Eric's CGA component projection, whereas the free
-`galaga.bulk_part(u)` is the general RGA metric exomorphism. In degenerate RGA
-the latter is a projection; in native-null, nondegenerate CGA it is not this
-component filter.
+`cga.bulk_part(u)` and `cga.weight_part(u)` are CGA component projections.
+The general algebra maps are `galaga.metric_apply(u)` and
+`galaga.antimetric_apply(u)`. They do not select these CGA components or
+generally form complementary projections; the generic `galaga.bulk_part`
+and `galaga.weight_part` aliases are retired.
 
 Eric's conformal conjugate preserves the round part and negates the flat part:
 
@@ -772,9 +773,8 @@ read-only circle derived from three movable points
 and a circle-circle meet that remains ordinary Python
 ([`circle_circle_meet.py`](../../examples/cga/circle_circle_meet.py)).
 
-These files are entries in the executable notebook migration ledger. CI
-checks their Python syntax, Marimo dependency graphs, Galaga 2 import policy,
-and headless execution.
+The editable gallery has local smoke checks for Python syntax, Marimo
+cell dependencies, and headless execution. Open it with `make run-marimo`.
 
 ## What is deliberately not present
 

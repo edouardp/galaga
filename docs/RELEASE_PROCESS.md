@@ -67,9 +67,9 @@ require the current source version to be stable.
 
 ### Major-Release Alpha, Beta, RC, and Final Train
 
-A breaking major release is a sequence of complete releases. The Galaga 2
-alpha train advanced through `2.0.0a8`. The later stages use these exact
-commands in order:
+A breaking major release is a sequence of complete releases. For Galaga 2,
+the beta, release-candidate and final stages follow this pattern. Choose an
+unused prerelease serial; these commands illustrate the stages:
 
 ```bash
 make release VERSION=2.0.0b1
@@ -79,9 +79,8 @@ make release VERSION=2.0.0
 
 Each command runs the whole release workflow: version and dependency
 synchronization, changelog editing, tests, builds, publication, tagging, and a
-GitHub release. Do not run the five commands back-to-back mechanically. Move to
-the next stage only after the preceding release has been published, installed,
-and evaluated. Additional alphas, betas, or release candidates can be inserted
+GitHub release. Move to the next stage only after the preceding release has
+been published, installed, and evaluated. Additional alphas, betas, or release candidates can be inserted
 when validation finds work that needs another public iteration.
 
 | Stage | Command | Purpose |
@@ -223,7 +222,9 @@ Galaga 2 uses **local validation, with no required CI**, for prereleases and
 stable releases under
 [ADR-131](adrs/131-local-only-stable-release-validation.md). A missing CI result
 is not a pass. Record commands, source revision, environment versions, results
-and reviewed exceptions in the [gate report](v2/legacy-engine-deletion-gate.md).
+and reviewed exceptions in a dated candidate validation report. The
+[historical reports](v2/history.md) illustrate previous checkpoints; their
+results do not establish readiness for a new candidate.
 Working-tree checks are preparation; the candidate gate must be rerun from a
 clean, tracked checkout before release approval.
 
@@ -256,13 +257,12 @@ packages. The release script applies the same artifact gate before fetching
 credentials. To inspect previously built files:
 
 ```shell
-uv run python scripts/check_galaga_artifact.py --project packages/galaga \\
-  dist/galaga-2.0.0a2-py3-none-any.whl dist/galaga-2.0.0a2.tar.gz
+uv run python scripts/check_galaga_artifact.py --project packages/galaga \
+  dist/galaga-2.0.0b1-py3-none-any.whl dist/galaga-2.0.0b1.tar.gz
 ```
 
-Use the filenames for the version actually being checked. The
-[current Phase 9 gate report](v2/legacy-engine-deletion-gate.md) records local
-validation separately from release readiness.
+Use the filenames for the version actually being checked. Record the source
+revision and results alongside the candidate validation described above.
 
 ### Manual Checks (Not Automated)
 
@@ -275,19 +275,13 @@ validation separately from release readiness.
 
 Before `2.0.0rcN` and again before stable `2.0.0`:
 
-- [ ] Phase 9 of the
-  [core cutover plan](v2/core-cutover-plan.md) is complete
 - [ ] The table-backed engine and `galaga.legacy` do not ship in the wheel
-- [x] Migration-only `galaga.gram_bridge` paths and six temporary operation
-  spellings removed after `2.0.0a4` per
-  [ADR-130](adrs/130-retire-migration-only-api-adapters.md); rerun their
-  source/artifact regression checks for each release candidate
 - [ ] The [Galaga 1 to 2 migration guide](v2/migration-guide.md) reflects every
   removal and corrected mathematical convention
-- [ ] Package classifiers no longer describe a stable release as Alpha
-- [ ] Published READMEs lead with the stable install command rather than the
-  prerelease opt-in command
-- [ ] Companion dependency floors resolve to the intended final Galaga version
+- [ ] Final-release package classifiers use `Development Status :: 5 - Production/Stable`
+- [ ] Installation guidance matches the stage; final-release READMEs lead with
+  stable install commands
+- [ ] Companion dependency floors resolve to the intended Galaga version
 - [ ] `make validate` passes from a clean checkout
 - [ ] Built wheels install and pass import/numeric smoke tests in clean Python
   3.11 and 3.14 environments as applicable
@@ -299,8 +293,6 @@ Before `2.0.0rcN` and again before stable `2.0.0`:
 - [ ] Fresh environments pass dependency consistency and vulnerability checks;
   unpublished local packages without advisory records are reported explicitly
 - [ ] Documentation links and copyable README examples pass their checks
-- [ ] Current benchmark results are reviewed against the archived Phase 8
-  baseline; retain the historical measurements unchanged
 - [ ] The release candidate has been installed from PyPI and reviewed before
   invoking `make release VERSION=2.0.0`
 

@@ -30,8 +30,8 @@ make run-marimo
 
 The launcher selects the uncommitted local packages as editable installations;
 the notebook files themselves remain portable and also run against released
-packages outside the checkout. They are included in the executable notebook
-ledger and are run headlessly by the test suite.
+packages outside the checkout. Gallery smoke checks compile the notebooks,
+validate their dependency graphs, and run them headlessly.
 
 When authoring interactive lessons, define controls in an upstream cell without
 displaying them there. Render them in the downstream result cell's layout,

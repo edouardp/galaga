@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-111: Architecture Contracts Use the Public Operation Catalog
 
+> Migration bookkeeping and source archives described here were retired under
+> [ADR-170](170-retire-migration-scaffolding-before-stable-2.md).
+> Ordinary catalog, dependency direction, state, and rendering tests remain.
+
 ## Context and problem statement
 
 The two remaining construction-ledger files contain unrelated legacy
@@ -27,7 +31,7 @@ Extract the seven methods into
 identities. Leave the other 192 methods and all other code in the mixed file
 unchanged. No production package behavior changes.
 
-The [archive](../../packages/galaga/tools/baselines/architecture-contracts-v1.json)
+The archive (retired; available in Git history)
 retains the complete mixed-file source and SHA-256 digest, its 199 method
 identities, the seven migrated identities and new owner, all 45 operation
 and node declarations, and all 57 symbolic-handler names. Capture provenance

@@ -1227,8 +1227,8 @@ transwedge(A, B, k)            # A ⩓_k B
 transwedge_antiproduct(A, B, k)# A ⩔_k B
 metric_apply(A)                # GA
 antimetric_apply(A)            # 𝔾A
-bulk_part(A)                   # A_●
-weight_part(A)                 # A_○
+metric_apply(A)                # A_● in the normalized RGA metric
+antimetric_apply(A)            # A_○ in the normalized RGA metric
 ```
 
 Avoid names like `star(A)` or `overline(A)` in the public API. They describe

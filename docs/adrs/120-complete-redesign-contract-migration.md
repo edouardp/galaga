@@ -6,6 +6,10 @@ deciders: edouard
 
 # ADR-120: Complete Redesign Contract Migration
 
+> Migration bookkeeping and source archives described here were retired under
+> [ADR-170](170-retire-migration-scaffolding-before-stable-2.md).
+> Ordinary catalog, dependency direction, state, and rendering tests remain.
+
 The subsequent namespace/guard unit is complete in
 [ADR-121](121-deletion-ready-namespace-and-import-guards.md): the empty ledger
 is enforced by an import guard that no longer loads the legacy engine.
@@ -31,7 +35,7 @@ on 2026-09-08. Earlier intermediate states remain documented in the complete
 source; the snapshots do not claim to trace every intermediate operation.
 
 Use an explicit
-[ownership crosswalk](../../packages/galaga/tools/baselines/redesign-v2-owners.json):
+ownership crosswalk (retired; available in Git history):
 every historical identity occurs once in one of 27 reviewed responsibility
 groups, each with a decision and exact collected public test owners. Existing
 stronger mixed-grade/Gram, expression, scalar, inner-product, rendering and

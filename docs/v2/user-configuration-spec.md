@@ -1,6 +1,6 @@
 # User Configuration Files for Galaga 2
 
-**Status:** Implemented on the Galaga 2 development branch. See
+The configuration system is implemented in `galaga.config`. See
 [ADR-171](../adrs/171-layered-toml-presentation-preferences.md).
 
 ## Purpose

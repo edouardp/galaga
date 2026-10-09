@@ -30,8 +30,7 @@ when `algebra=` and an `environment={"name": value}` mapping are supplied.
 automatically supplies its own value for a named-symbol leaf.
 
 The implementation traverses only the public immutable `Call`, `Symbol`, and
-literal node fields. It does not import the Galaga 1 expression hierarchy or
-read private multivector expression state.
+literal node fields through the public expression API.
 
 ## Executable example
 

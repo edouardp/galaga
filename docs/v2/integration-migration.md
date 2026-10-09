@@ -1,16 +1,11 @@
-# Galaga 2 Integration Migration
+# Optional Package Integration
 
-## Outcome so far
+## Public boundaries
 
-Optional integrations now consume narrow public protocols rather than Galaga
-1 implementation fields. Mermaid owns graph layout but not expression
-semantics. Marimo owns t-string-to-markdown layout but not mathematical
-rendering. Small executable examples show when to import the numeric core and
-when to use the full facade.
-
-W7.4 is complete. `MatrixRepr` owns a v2-native immutable expression boundary,
-and the maintained Marimo gallery executes entirely against the Galaga 2
-facade.
+Optional packages consume public numeric, expression, presentation, and
+model APIs. Mermaid builds expression diagrams, Marimo lays out interpolated
+Markdown, AnyWidget synchronizes interactive geometry, and the matrix package
+owns matrix representations and their provenance.
 
 ## Mermaid expression consumer
 
@@ -84,8 +79,8 @@ The Marimo notebooks under `examples` are human-editable demonstrations.
 The local `make run-marimo` launcher installs the companion packages in
 editable mode and opens the gallery for ad-hoc exploration.
 
-The repository discovers notebooks from their Marimo app declarations rather
-than maintaining a migration list. Python 3.14 compilation, `marimo check`,
+The repository discovers notebooks from their Marimo app declarations.
+Python 3.14 compilation, `marimo check`,
 and headless HTML export catch syntax, cell-dependency, and execution errors.
 Tests do not freeze lesson text or implementation choices inside cells. See
 [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
@@ -98,15 +93,15 @@ linear-algebra transforms, representation maps, and spinor columns. A public
 adapter accepts `galaga.expression.Expr`, `Name`, and `PresentationConfig`
 objects; conversion code does not inspect private multivector fields.
 
-Matrix leaves snapshot read-only NumPy arrays, expression evaluation reproduces
-the eager result, and source architecture tests prohibit both
-`galaga.symbolic_core` and private facade state. See
+Matrix leaves snapshot read-only NumPy arrays, and expression evaluation
+reproduces the eager result. The adapter uses public facade state. See
 [ADR-082](../adrs/082-matrix-provenance-is-package-owned.md).
 
-## Installed-wheel gate
+## Installed-package validation
 
-The local `galaga-mermaid` 0.2, `galaga-anywidget` 2.0, and `galaga-marimo` 2.0
-wheels are installed with the Galaga 2 wheel into isolated Python 3.11 and
-Python 3.14 environments as appropriate. Import and facade-protocol smoke
-checks run with `python -I` and no repository `PYTHONPATH`, preventing a source
-checkout from hiding missing wheel files or incorrect dependency metadata.
+Release validation installs built wheels in clean Python environments and
+checks their import origins and public protocols. The environment must resolve
+installed packages rather than editable sources or a repository `PYTHONPATH`.
+Use Python 3.14 for the Marimo adapter and t-string notebooks; the other
+libraries support Python 3.11+. Follow the
+[release checklist](../RELEASE_PROCESS.md#quality-gates).

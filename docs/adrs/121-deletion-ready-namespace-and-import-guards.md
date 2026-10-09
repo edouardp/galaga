@@ -6,6 +6,12 @@ deciders: edouard
 
 # ADR-121: Deletion-Ready Namespace and Import Guards
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 Subsequent physical deletion and wheel/sdist gates are recorded in
 [ADR-122](122-remove-the-legacy-engine-and-verify-artifacts.md).
 
@@ -27,7 +33,7 @@ not establish that boundary.
 ### Reject imports without loading the retired implementation
 
 Use the test-only
-[legacy_import_boundary.py](../../packages/galaga/tools/legacy_import_boundary.py)
+legacy_import_boundary.py
 helper. Its fifteen root prefixes cover all twenty-one retired paths in the
 compatibility manifest. Exact roots and descendants are rejected; similarly
 named supported modules are not.
@@ -69,7 +75,7 @@ collected under their historical names with corrected contract descriptions.
 - Public alias identity follows the curated v2 catalog, not the archived v1
   function pairs; `antiwedge` retains its own operation identity.
 
-[latex-tree-v1.json](../../packages/galaga/tools/baselines/latex-tree-v1.json)
+latex-tree-v1.json
 retains the complete source, digest, forty-five historical identities and
 actual tree/output observations, captured after executing every original
 case. Each identity has a collected immutable semantic-tree replacement.

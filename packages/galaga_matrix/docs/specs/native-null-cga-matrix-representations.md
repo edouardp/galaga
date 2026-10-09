@@ -1308,7 +1308,6 @@ Add executable Marimo examples under `examples/matrix/`:
 
 Gate:
 
-- each notebook is in the example ledger;
 - each compiles, passes dependency checks, and executes headlessly;
 - matrix sandwiches agree with `ConformalModel` coordinates; and
 - the prose clearly distinguishes Vahlen and quaternion blocks.

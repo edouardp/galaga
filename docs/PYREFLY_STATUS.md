@@ -14,7 +14,7 @@ is statically checked. `scripts/lint.sh` preserves the checker's diagnostics
 and exits unsuccessfully on type-check failure; it no longer truncates output
 or converts failure to a warning. `make validate` includes that gate.
 
-## Latest recorded checkpoint
+## Historical checkpoint
 
 The 2026-09-11 [post-a4 validation](v2/legacy-engine-deletion-gate.md#post-a4-stable-release-preparation-checkpoint)
 reported **zero errors and 18 non-error warnings**. Counts are observations,

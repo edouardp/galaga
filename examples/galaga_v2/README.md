@@ -42,9 +42,8 @@ notebooks exercise uncommitted source without containing repository-specific
 path setup. The same files run unchanged against installed releases outside
 the checkout.
 
-These notebooks are part of the executable example ledger. The test suite
-compiles them, validates their Marimo dependency graphs, and executes them
-headlessly.
+These are editable teaching examples. The gallery smoke checks compile them,
+validate their Marimo dependency graphs, and execute them headlessly.
 
 The optional [`galaga_matrix` example series](../matrix/README.md) continues
 from the facade into compact, left-regular, Pauli, Dirac, quaternion, and
@@ -61,7 +60,7 @@ elliptic/hyperbolic/null generators, compound grade-four terms, and why an
 even STA phase need not be a rotor. The lesson distinguishes reversion from
 inverse conjugation and explains the current logarithm's narrower domain.
 
-## Further migrated teaching notebooks
+## More teaching notebooks
 
 These lessons also use the v2 facade and participate in headless validation:
 

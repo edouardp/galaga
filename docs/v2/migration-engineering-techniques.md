@@ -1,5 +1,11 @@
 # Migration Engineering Techniques
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 The Galaga 2 work is a replacement of a live implementation, not a greenfield
 rewrite. The old and new systems coexist for several phases, public names move
 at different times, some behavior must remain compatible, and some behavior is
@@ -252,7 +258,7 @@ migrated.
 
 The human-readable
 [public API migration matrix](public-api-migration-matrix.md) is backed by
-[`v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/v1_surface_manifest.py).
+`v1_surface_manifest.py`.
 Each legacy surface has a structured disposition:
 
 ```python
@@ -280,9 +286,9 @@ declared “handled” without saying who owns it or what replaces it.
 
 ### Preserve observed completeness when the old system retires
 
-[`test_v1_surface_manifest.py`](../../packages/galaga/tests/compatibility/test_v1_surface_manifest.py)
+`test_v1_surface_manifest.py`
 originally introspected the legacy package. Phase 9 captured those observations
-in a [development archive](../../packages/galaga/tools/baselines/public-surface-v1.json)
+in a development archive
 before removing the live dependency. Exact historical-name checks cover:
 
 - former top-level exports, captured from `galaga.legacy.__all__`;
@@ -340,7 +346,7 @@ replacement would be unsafe:
 - superficially similar operations can have different mathematical scaling.
 
 The migration therefore uses the LibCST codemod in
-[`canonicalize_core_test_operations.py`](../../packages/galaga/tools/canonicalize_core_test_operations.py).
+`canonicalize_core_test_operations.py`.
 LibCST preserves the concrete syntax while qualified-name metadata identifies
 what a reference resolves to. LibCST is a repository development dependency,
 not a Galaga runtime dependency.
@@ -381,7 +387,7 @@ run over the wrong directory is still destructive.
 
 ### Test the negative space
 
-[`test_operation_name_codemod.py`](../../packages/galaga/tests/test_operation_name_codemod.py)
+`test_operation_name_codemod.py`
 checks not only the intended rewrite but also what must remain unchanged:
 
 - comments;
@@ -448,7 +454,7 @@ through the intended dependency structure.
 
 ### The core cannot import outward
 
-[`test_migration_boundary.py`](../../packages/galaga/tests/core/test_migration_boundary.py)
+`test_migration_boundary.py`
 parses every `galaga.core` source file with Python's AST and rejects imports
 that escape the core package. It also inspects installed distribution metadata
 to prove Galaga no longer depends on an external `gram` package.

@@ -1,5 +1,11 @@
 # Phase 8 Performance Baseline
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 This is an archived measurement from the Phase 8 cutover. The timings below
 are preserved historical observations, not current benchmark results. The live
 benchmark no longer executes Galaga 1; see

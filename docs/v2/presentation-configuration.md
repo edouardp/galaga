@@ -525,14 +525,14 @@ same_notation = Algebra(config=presets.euclidean(3), expr=True, presentation=sta
 | `PGAPreset(n)` | `n` positive vectors plus a final native null vector | Projective role |
 | `CGAPreset(n, frame="null")` | Origin-first native null pair with configurable nonzero mutual product | Actual origin/Euclidean/infinity roles |
 | `CGAPreset(n, frame="orthogonal")` | Positive/negative orthogonal conformal pair | Actual plus/minus roles |
+| `CSTAPreset()` | Four spacetime vectors with signature $(+---)$ plus a native null pair | Spacetime, origin, and infinity roles |
 | `LengyelCGAPreset(3)` | Standard native-null CGA | Bold signed $e_1,\ldots,e_5$ blades, Lengyel order, and unit antiscalar $𝟙$ |
 | `LengyelRGAPreset(3)` | Three positive vectors plus a final null vector | Signed RGA vocabulary and Lengyel order |
 | `ComplexPreset()` | Euclidean `Cl(2, 0)` | Bivector `i` |
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |
 | `ExteriorPreset(n)` | All-zero Gram matrix | Explicit wedge labels |
 
-The `presets.*` functions construct these configurations. The former
-prefixed `p_*` factory spellings have been retired.
+The `presets.*` functions construct these configurations.
 
 `presets.oblique_plane(angle=math.pi / 3)` takes radians, while
 `presets.oblique_plane(degrees=60)` takes degrees. Specify exactly one. Both
@@ -984,7 +984,7 @@ Unnamed, untracked values display only their concrete value. Explicit content
 choices still take precedence; use `content="value"` to hide provenance without
 discarding it.
 Its `zero_tolerance` and `coefficient_precision` fields control visible numeric
-noise and significant digits only. Their compatibility defaults are `1e-12`
+noise and significant digits only. Their defaults are `1e-12`
 and six, respectively; setting the tolerance to zero reveals every nonzero
 stored coefficient.
 

@@ -6,8 +6,7 @@ tree, not three independent interpretations of an expression. Rendering never
 performs a geometric-algebra operation and never changes numeric coefficients
 or expression identity.
 
-This was built in Phase 6 over `galaga.facade` and is now the renderer used by
-the promoted top-level Galaga 2 API and its Phase 7 companion consumers.
+The public Galaga API and companion packages use this rendering pipeline.
 
 ## Component decomposition
 
@@ -313,7 +312,7 @@ That sign is essential for conventions such as Lengyel RGA, where displayed
 `e31` denotes `-E13` in canonical exterior-mask order. Coefficients whose
 absolute value is below `DisplayPolicy.zero_tolerance` are omitted, unit
 coefficients on nonscalar blades are suppressed, and a zero multivector becomes
-`Literal(0)`. The compatibility default is `1e-12`; a policy value of zero
+`Literal(0)`. The default is `1e-12`; a policy value of zero
 retains every exactly nonzero coefficient.
 
 A single negative concrete blade term attaches its sign to the scalar
@@ -324,7 +323,7 @@ grouping where required.
 
 Numeric literals carry the format-neutral
 `DisplayPolicy.coefficient_precision` into the shared tree. All emitters use
-that many significant digits, with a compatibility default of six and a valid
+that many significant digits, with a default of six and a valid
 range of 1 through 17. The same precision applies to expression literals and
 concrete values, allowing a `full` teaching display to deduplicate equal visible
 forms. These controls never round, clamp, or otherwise mutate stored core
@@ -433,8 +432,7 @@ The implemented presets are:
   weight duals, metric maps, bulk/weight parts, and antireverse.
 
 The immutable Galaga 2 `Notation` lives in `galaga.presentation` and is
-exported by both `galaga` and `galaga.facade`. The old `galaga.notation` module
-is a migration-only Galaga 1 path; new code imports `Notation` from `galaga`.
+exported by both `galaga` and `galaga.facade`. Import `Notation` from `galaga`.
 
 ## Emitters
 
@@ -450,8 +448,8 @@ localized target rewrites:
 | Scientific literal | `1.25e+20` | `1.25e+20` | `1.25 \times 10^{20}` |
 | Ordinary text | unchanged | unchanged | LaTeX escaped |
 
-Final glyph selection and escaping occur here. Emitters import neither the
-legacy `Algebra` nor legacy `render`, `latex_build`, or `latex_emit` modules.
+Final glyph selection and escaping occur here. Emitters consume layout nodes
+and target-specific text helpers without depending on numeric values.
 LaTeX script context is structural: `Power` exponents and wrappers marked
 `script_style=True` compact nested fractions to slash form. A compact fraction
 that is only one factor of a larger script is parenthesized, so `e^{a/2}` and
@@ -546,7 +544,7 @@ The implementation and tests enforce these relationships:
 1. `galaga.core` imports no display, rendering, expression, or facade layer.
 2. Semantic-tree construction does not call a numeric evaluator.
 3. Expression operation IDs are validated before emitter selection.
-4. Emitters import no legacy numeric or rendering implementation.
+4. Emitters consume layout nodes independently of the numeric implementation.
 5. Notation changes spelling and layout, never numeric or expression identity.
 6. A target change cannot change coefficients, expression evaluation, or
    display order.
@@ -559,62 +557,38 @@ The implementation and tests enforce these relationships:
 
 ## Validation ownership
 
-The migrated `test_render.py` retains all 141 historical test identities
-while using public expressions and immutable notation. Its companion
-`test_render_numeric_contract.py` replays every case against captured v1
-symbol bindings and coefficients, with explicit unscaled Lie/Jordan semantics.
-Nonzero mixed-grade probes use a forced core-reference backend, grade-derived
-reverse signs, and linear solves to check ten compositions in three targets
-and three Gram metrics. Boundary tests enforce archive ownership, legacy-import
-isolation, and corruption detection. No production behavior changes here;
-see [ADR-103](../adrs/103-mixed-rendering-contracts-with-numeric-ownership.md).
+Rendering regressions check exact strings alongside numeric values and
+expression replay. Independent coefficient oracles cover mixed grades,
+Gram matrices, reverse signs, product order, and linear solves.
 
-Phase 6 tests live under `packages/galaga/tests/rendering`:
+Tests under `packages/galaga/tests/rendering` cover:
 
-- `test_tree.py` owns immutability, validation, precedence, and associativity;
-- `test_build.py` owns expression/value translations, signed blade
-  conventions, no-evaluation construction, and early operation validation;
-- `test_render_notation.py` owns catalog fallback completeness, notation
-  presets, target overrides, and inner-product disambiguation;
-- `test_emitters.py` owns the all-node/all-target matrix, escaping, import
-  boundaries, import order, and golden parenthesization; and
-- `test_display.py` owns every content/target combination, fallback policy,
-  public hooks, explicit/scoped/default precedence, and async isolation; and
-- `test_legacy_facade_parity.py` builds the same operation inventory against
-  captured v1 observations and the public facade, compares numeric and LaTeX
-  channels, and requires every difference to match the executable review
-  ledger; and
-- `test_compound_latex_contract.py`, `test_sta_latex_contract.py`, and
-  `test_rga_latex_contract.py` record exact output for the parameterized
-  implementation/algebra/display/expression matrix with decorated,
-  value-returning test functions and check that results render after their
-  construction scope has exited. The RGA file also owns the exact
-  all-operation notation matrix and complete blade table.
+- semantic-tree immutability, validation, precedence, and associativity;
+- expression and value translation, signed blade conventions, and construction
+  without evaluation;
+- notation completeness, presets, target overrides, and inner-product
+  disambiguation;
+- escaping, command boundaries, script layout, and parenthesization;
+- content/target combinations, display hooks, scoped precedence, and async
+  isolation;
+- [rendering snapshots](rendering-parity.md) for expression, value,
+  full-display, rich-display, and coefficient expectations; and
+- [configured rendering contracts](exact-rendering-contracts.md) for algebra,
+  display, and expression combinations, including STA and Lengyel RGA.
 
-The associated audit command writes a structured Markdown artifact for human
-review. Its adapters, coverage contract, report format, and first findings are
-documented in [Legacy/facade LaTeX rendering parity](rendering-parity.md).
+Run the rendering suite from the repository root:
 
-The post-a4 reviewed differential audit has 63 exact matches and ten explicit
-Galaga 2 decisions, improved from 16 matches and 57 differences in its first
-run. The permanent suite checks the complete 73-case differential inventory,
-58 exact full-display expression scenarios, the exact accepted-difference
-ledger, semantic nodes and emitters, source-order provenance, optional
-parameter handling, a 26-operation Lengyel notation matrix, and the complete
-16-label RGA blade table plus signed-orientation behavior.
+```bash
+uv run pytest packages/galaga/tests/rendering -q
+```
 
-## Deliberate limits and next migration work
+## Scope
 
-- The semantic tree applies only conservative structural display identities;
-  it is not a general algebraic simplifier or expression evaluator.
-- Numeric formatting is display-oriented, not a serialization format.
-- Top-level values use the semantic renderer through the promoted facade.
-- Legacy mutable notation, operation-specific renderer adapters and the
-  `galaga.legacy` oracle are removed. Differential checks read frozen historical
-  observations and compare live results to the reviewed v2 baseline.
-- `galaga_matrix`, `galaga_anywidget`, `galaga_marimo`, `galaga_mermaid`, and
-  the maintained notebooks now consume public facade, model, expression, and
-  display protocols.
+The semantic tree applies conservative structural display identities.
+Algebraic evaluation belongs to the numeric and expression layers.
+Coefficient formatting is intended for display; serialization requires its
+own numeric contract.
 
-Those boundaries allowed the Phase 8 top-level type cutover and Phase 9 oracle
-deletion without changing ownership of the public renderer.
+Companion packages consume public facade, model, expression, and display
+protocols. The [integration guide](integration-migration.md) describes those
+boundaries.

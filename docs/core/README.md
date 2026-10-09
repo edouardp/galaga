@@ -19,9 +19,8 @@ numeric engine and Galaga's facade, presentation, and expression layers.
   oracles and proof ladder used by the test suite.
 - [ADR-073](../adrs/073-move-the-numeric-core-into-galaga.md) records why the
   proven implementation moved into the `galaga.core` namespace.
-- [Galaga 2 architecture and status](../v2/README.md) indexes the normative
-  core cutover plan, current implementation guides, migration records, and
-  release status for the layers above the core.
+- [Galaga 2 architecture](../v2/README.md) maps the public algebra,
+  configuration, expression, rendering, model, and integration layers.
 
 ## Mathematical guides
 

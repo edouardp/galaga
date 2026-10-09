@@ -1,9 +1,8 @@
-# Galaga Matrix Migration
+# Matrix Integration
 
-## Outcome
+## Representation boundary
 
-`galaga_matrix` now consumes the Galaga 2 numeric facade without inspecting a
-multiplication table. Left-regular matrices work in the algebra's stored basis
+`galaga_matrix` consumes public numeric metadata and linear actions. Left-regular matrices work in the algebra's stored basis
 for diagonal, degenerate, oblique, and native-null Gram matrices. Existing
 compact representations remain available for normalized orthogonal metrics,
 and explicit compact mode now supports numerically suitable nondegenerate
@@ -45,15 +44,12 @@ basis element is the scalar identity. `from_matrix` therefore recovers a value
 without solving a system. It constructs through the public algebra factory, so
 the returned value is a facade `Multivector` over the same algebra.
 
-The temporary Phase 8 compatibility path for `galaga.legacy` is now removed.
-Conversion requires the Galaga 2 public metric metadata, left action, and
-multivector factory. It no longer guesses a Gram matrix from a signature,
-materializes fallback columns through products, or discovers an old value
-constructor via a scalar. Use facade values created through `galaga.Algebra`.
+Conversion uses public metric metadata, left actions, and multivector
+factories. Application code supplies values created through `galaga.Algebra`.
 
 The representation cache continues to share a facade's underlying core algebra
 across presentation-only views. Internal core metric, factory, and action
-access remains supported and tested; it is separate from the retired v1 path.
+access remains supported and tested.
 
 ### Compact exterior lift
 
@@ -78,11 +74,10 @@ Pauli, Dirac, and quaternion modes retain their normalized-orthogonal
 conventions. Genuinely degenerate metrics retain their specific unsupported
 compact error.
 
-### Presentation compatibility
+### Names and presentation
 
 Facade values carry immutable public names. Matrix conversion reads that public
-name and applies the representation label without calling legacy multivector
-expression internals. `from_matrix` returns a newly named facade value. The
+name and applies the representation label. `from_matrix` returns a newly named facade value. The
 matrix wrapper now exposes its immutable `symbolic_name`, `is_symbolic`, and
 `expr` state without exposing or inspecting multivector implementation fields.
 
@@ -113,8 +108,7 @@ flowchart LR
 
 `MatrixRepr.as_expression()` is the matrix operand boundary. The conversion
 implementation reads public facade `name`, `expr`, `algebra.presentation`, and
-`data` only; source tests reject the retired private-field vocabulary and any
-`galaga.symbolic_core` import.
+`data` properties.
 
 ## Verification
 
@@ -126,8 +120,8 @@ The facade matrix contract verifies:
   products, including degenerate metrics;
 - public-factory reconstruction and immutable naming in regular, compact, and
   quaternion modes;
-- refusal to guess missing Galaga 2 metadata from old signature-only objects;
-- shared facade/core plan identity and conversion with legacy imports blocked;
+- clear errors when required metric or factory protocols are missing;
+- shared representation plans across facade views and their numeric core;
 - generator anticommutators equal to twice every supplied Gram entry;
 - public basis-blade actions match the materialized representation stack;
 - explicit compact conversion for nonorthogonal and scaled metrics while
@@ -140,8 +134,7 @@ The facade matrix contract verifies:
 - immutable facade naming round trips;
 - frozen matrix expression nodes and read-only leaf snapshots;
 - evaluation parity between matrix provenance and eager results; and
-- absence of private multiplication-table, multivector expression, legacy
-  numeric, and `galaga.symbolic_core` imports.
+- public protocol use across the numeric and expression boundaries.
 
 The matrix package suite remains an independent gate for Pauli, Dirac,
 quaternion, spinor, basis-change, NumPy, provenance, rendering, and immutable

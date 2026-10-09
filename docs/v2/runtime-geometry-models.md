@@ -1,6 +1,6 @@
 # Runtime Geometry Model Architecture
 
-**Status:** Accepted for implementation. See
+**Status:** Implemented. See
 [ADR-174](../adrs/174-runtime-geometry-model-hierarchy-and-classifiers.md).
 
 ## Purpose
@@ -12,7 +12,7 @@ ordinary direction.
 
 Runtime geometry models provide that interpretation. They validate the roles
 declared by an algebra preset and expose operations whose meanings depend on
-those roles. This document proposes a common architecture for:
+those roles. This document describes the common architecture for:
 
 - point-based Rigid Geometric Algebra (RGA);
 - plane-based Projective Geometric Algebra (PGA);
@@ -60,18 +60,19 @@ The runtime model must not replace or wrap the numeric implementation. It
 holds an ordinary facade `Algebra` and delegates algebraic operations to the
 public Galaga API.
 
-## Existing model surface
+## Model surface
 
-The current runtime model classes establish these patterns:
+The runtime model classes provide these operations:
 
 | Model | Preset | Coordinate object | Selected operations |
 |---|---|---|---|
-| `RigidModel` | `presets.rga()` | homogeneous point vector | `point`, `coordinates`, `attitude`, paired norms, projections, support, constraints |
-| `ConformalModel` | `presets.cga()` or `presets.lengyel_cga()` | conformal null-point vector | `up`, `down`, `coordinates`, round/flat and bulk/weight parts, carrier, center, projection |
+| `RigidModel` | `presets.rga()` | homogeneous point vector | `point`, `coordinates`, `join`, `meet`, bulk/weight parts, `transform`, `classify`, measurements, constraints |
+| `PGAModel` | `presets.pga(2)` or `presets.pga(3)` | complementary point blade | `point`, `plane`, `coordinates`, `join`, `meet`, bulk/weight parts, `transform`, `classify` |
+| `ConformalModel` | `presets.cga()` or `presets.lengyel_cga()` | conformal null-point vector | `up`, `down`, `coordinates`, round/flat and bulk/weight parts, carrier, center, projection, `classify` |
 | `ConformalSpacetimeModel` | `presets.csta()` | conformal null-event vector | `event`, `up`, `down`, `coordinates`, signed intervals, event pairs, causal flat lines, signed rounds, `classify` |
 
-`presets.pga()` declares model metadata but has no corresponding behavioral
-model.
+CGA embedding continues to support other positive spatial dimensions; its
+object classifier is limited to 2D and 3D. RGA is limited to 3D.
 
 ## Design principles
 
@@ -118,7 +119,7 @@ They derive those values from `ModelConfig.roles`, the blade convention, and
 the Gram matrix. This permits alternate basis orderings and signed blade
 conventions.
 
-## Proposed hierarchy
+## Model hierarchy
 
 ```mermaid
 classDiagram
@@ -130,7 +131,7 @@ classDiagram
         #check_value(value)
         #check_pair(left, right)
         #resolve_expr(expr)
-        #role(name)
+        #roles: immutable signed references
         #semantic(result, operation, operands)
     }
 
@@ -144,8 +145,8 @@ classDiagram
     class RigidModel {
         +point(coordinates, weight=1)
         +coordinates(point)
-        +join(objects)
-        +meet(objects)
+        +join(left, right)
+        +meet(left, right)
         +attitude(value)
         +support(value)
     }
@@ -154,8 +155,8 @@ classDiagram
         +point(coordinates, weight=1)
         +plane(coefficients)
         +coordinates(point)
-        +join(objects)
-        +meet(objects)
+        +join(left, right)
+        +meet(left, right)
     }
 
     class _ConformalBase {
@@ -163,9 +164,8 @@ classDiagram
         +origin: Multivector
         +infinity: Multivector
         +null_pair: float
-        +up(value)
+        #embed(base_vector)
         +down(point)
-        +point(coordinates)
         +coordinates(point)
         +round_part(value)
         +flat_part(value)
@@ -175,16 +175,22 @@ classDiagram
     }
 
     class ConformalModel {
-        +circle(points)
-        +sphere(points)
-        +euclidean_distance(left, right)
+        +point(coordinates)
+        +up(coordinates)
+        +round_point(coordinates, radius_squared)
+        +center_distance(value)
+        +classify(value, representation)
     }
 
     class ConformalSpacetimeModel {
+        +point(coordinates)
+        +up(coordinates)
         +event(coordinates)
         +causal_kind(value)
-        +proper_time(left, right)
-        +worldline(events)
+        +separation_squared(left, right)
+        +signed_round(center, radius_squared)
+        +classify(value, representation)
+        +classify_operator(value)
     }
 
     _GeometryModel <|-- _ProjectiveBase
@@ -208,6 +214,7 @@ galaga/models/
     __init__.py
     _base.py
     _classification.py
+    classification.py
     _protocols.py
     rga.py
     pga.py
@@ -224,7 +231,7 @@ provides one discoverable import surface.
 
 ## Internal model responsibilities
 
-The root class should remain small. It owns behavior that is independent of a
+The internal root class owns behavior that is independent of a
 particular geometry:
 
 - store the facade `Algebra`;
@@ -235,19 +242,21 @@ particular geometry:
 - attach semantic expression nodes without changing numeric values; and
 - provide the spatial dimension derived by the concrete model.
 
-It must not define placeholder versions of operations such as `carrier`,
-`bulk_part`, or `up`. A missing operation should be absent from the type rather
-than raise `NotImplementedError` at runtime.
+Geometry-specific operations such as `carrier`, `bulk_part`, and `up` belong
+to the bases or concrete models that implement their mathematical meaning.
 
 ## Point construction and coordinate recovery
 
-Every proposed geometric model can construct a point, but the embedding is
-model-specific. The common semantic spelling should be:
+Every geometric model can construct a point, but the embedding is
+model-specific. All models expose `point()` and `coordinates()`:
 
 ```python
 point = model.point((x, y, z))
 coordinates = model.coordinates(point)
 ```
+
+This example uses three spatial coordinates. Use two for 2D PGA/CGA and
+`(t, x, y, z)` for CSTA.
 
 The resulting blade grades differ:
 
@@ -258,9 +267,8 @@ The resulting blade grades differ:
 | CGA | conformal null vector |
 | CSTA | conformal null vector embedding a spacetime event |
 
-`up()` and `down()` retain their established conformal meaning and belong only
-to conformal models. They should not become aliases for homogeneous projective
-embedding. `ConformalModel.point()` may delegate to `up()` while preserving a
+`up()` and `down()` are conformal embedding and recovery operations.
+`ConformalModel.point()` uses the same embedding as `up()` while preserving a
 semantic expression node appropriate to the public operation called.
 
 ## Projective models
@@ -315,6 +323,44 @@ The two models can share coordinate validation and the projective split. They
 must implement `point`, `join`, `meet`, and transformation helpers according
 to their dual interpretations.
 
+### PGA construction, incidence, and motion
+
+```python
+from galaga import Algebra, presets
+from galaga.models import PGAModel
+
+pga = PGAModel(Algebra(config=presets.pga(3)))
+P = pga.point((1, 2, 3))
+Q = pga.point((2, 2, 3))
+line = pga.join(P, Q)
+plane = pga.plane((1, 0, 0, -1))  # x - 1 = 0
+assert pga.meet(plane, P) == 0
+assert pga.classify(P).kind == "point"
+assert pga.classify(line).kind == "line"
+
+ideal = pga.point((1, 0, 0), weight=0)
+assert pga.classify(ideal).kind == "ideal point"
+# coordinates(ideal) raises: an ideal point has no finite coordinates.
+
+bulk, weight = pga.bulk_part(line), pga.weight_part(line)
+assert bulk + weight == line
+
+# A normalized motor for translation along the first coordinate.
+e1, e2, e3 = pga.euclidean_basis_vectors()
+motor = 1 + 0.5 * (e1 ^ pga.projective)
+moved = pga.transform(P, motor)
+```
+
+`plane()` takes normal components followed by the offset. In 2D the same
+method constructs a line from `(a, b, offset)`. PGA `point(x, weight=w)`
+complements the homogeneous vector $x+w e_0$; for nonzero $w$, coordinate
+recovery returns $x/w$. `coordinates()` returns an immutable NumPy array.
+
+`join(left, right)` and `meet(left, right)` are binary; compose them to combine
+more objects. `transform(value, motor)` validates a normalized even motor.
+RGA uses the corresponding antiproduct action and antireverse. These motions
+are dual descriptions with signs set by the role frame and incidence equation.
+
 ## Conformal models
 
 ### Shared conformal embedding
@@ -360,11 +406,20 @@ the base quadratic form and the distinguished origin and infinity roles:
 These operations must be tested over both Euclidean and $(+---)$ base metrics
 before the extraction is complete.
 
-The shared base does not initially own norm names, center distance, unsigned
+Concrete `up()` and `point()` wrappers apply coordinate grammars and physical
+unit policies, then use the shared embedding and provenance machinery.
+
+The shared base does not own norm names, center distance, unsigned
 radius, projection, container, partner, or object classification. Their useful
 interpretation depends on the base signature. They remain on the concrete CGA
 or CSTA model until an identity and return contract have been verified in both
 signatures.
+
+The radius method retains each constructor's convention. CGA `round_point`
+encodes square $-r^2$, whereas CSTA `signed_round` encodes square $+\rho^2$.
+`radius_squared()` returns the constructor parameter in each case. CGA IPNS
+classifier properties use $S^2/w^2$ for the incidence radius; this is the
+opposite sign to the radius parameter of CGA `round_point`.
 
 ### Euclidean CGA
 
@@ -387,23 +442,21 @@ squared Euclidean magnitude in CGA.
 Public protocols allow generic consumers to request the operations they use
 without depending on a concrete hierarchy.
 
+| Protocol | Required operations | Meaning |
+|---|---|---|
+| `PointModel` | `point`, `coordinates` | Construct a model point and recover its coordinates |
+| `BulkWeightModel` | `bulk_part`, `weight_part` | Apply the model's component decomposition |
+| `ConformalEmbeddingModel` | `PointModel`, plus `up`, `down` | Embed and recover a vector in a conformal model |
+
+Import the protocols from `galaga.models` when annotating a generic consumer:
+
 ```python
-from typing import Protocol
+from galaga import Multivector
+from galaga.models import PointModel
 
 
-class PointModel(Protocol):
-    def point(self, coordinates, *, expr: bool | None = None) -> Multivector: ...
-    def coordinates(self, point: Multivector, *, atol: float = 1e-12) -> np.ndarray: ...
-
-
-class BulkWeightModel(Protocol):
-    def bulk_part(self, value: Multivector) -> Multivector: ...
-    def weight_part(self, value: Multivector) -> Multivector: ...
-
-
-class ConformalEmbeddingModel(PointModel, Protocol):
-    def up(self, value, *, expr: bool | None = None) -> Multivector: ...
-    def down(self, point: Multivector, *, atol: float = 1e-12) -> Multivector: ...
+def coordinate_tuple(model: PointModel, point: Multivector) -> tuple[float, ...]:
+    return tuple(float(value) for value in model.coordinates(point))
 ```
 
 Potential consumers include visualization, annotation, classifiers, and
@@ -432,21 +485,22 @@ classification = model.classify(value, atol=1e-9)
 The result is an immutable data object rather than a display string. Its common
 fields are:
 
-```python
-@dataclass(frozen=True, slots=True)
-class ObjectClassification:
-    model: str
-    kind: str
-    grade: int | None
-    representation: str | None
-    simple: bool | None
-    finite: bool | None
-    properties: tuple[tuple[str, object], ...]
-```
+| Attribute | Content |
+|---|---|
+| `model` | Model identifier |
+| `kind` | Geometric object kind |
+| `grade` | Homogeneous grade, or `None` |
+| `representation` | Direct/dual or OPNS/IPNS interpretation, when determined |
+| `simple` | Blade simplicity, when applicable |
+| `finite` | Finiteness, when applicable |
+| `properties` | Immutable pairs containing additional invariants and diagnostics |
 
-Model-specific result types may add typed fields such as causal class, signed
-radius squared, or carrier dimension. Annotation and visualization packages
-consume these results; they do not own the geometric classification.
+PGA and RGA return `ObjectClassification`; CGA returns `CGAClassification`,
+which adds `flat`. CSTA returns `CSTAClassification`, with its causal field
+and fixed `model="csta"` discriminator. These result types share the listed
+attributes; code should consume the attributes rather than require a shared
+nominal result base. Further invariants live in `properties`. Annotation and
+visualization packages consume these results; they do not own the geometric classification.
 
 ### Classification process
 
@@ -465,8 +519,11 @@ A classifier proceeds from structural facts to model-specific names:
 
 Ambiguous or invalid values return `general`, `degenerate`, or `unknown` with
 diagnostic properties. The classifier must not choose a geometric name from
-the closest numerical match. Zero tests use a scale-aware tolerance so that
-classification is projectively invariant under nonzero scalar multiplication.
+the closest numerical match. An exactly zero coefficient array is the zero
+object. Every nonzero input is normalized before grade, simplicity, and incidence tests so classification is
+projectively invariant under nonzero scalar multiplication. Extremely small
+input coefficients retain their meaning unless float64 has already underflowed
+them to zero.
 
 ### Supported dimensions and objects
 
@@ -599,16 +656,18 @@ traits and verified vector actions. The explicit matrix views use the
 notebook frame; they are separate from the package's general matrix conversion
 conventions.
 
-### Existing annotation classifier
+### Annotation integration
 
-The existing CGA classifier in `galaga_annotation` supplies useful object and
-test coverage. Its metric and incidence logic should move into the appropriate
-runtime model classifier. `galaga_annotation` then retains highlighting,
-labels, and rendering recipes built from the returned classification.
+`ConformalModel.classify()` owns CGA classification. The established
+`galaga_annotation.classify_cga(value, model)` delegates to it and adapts the
+result to `CGAObject(kind, grade, flat, simple)`. Highlighting, component targets,
+labels, and rendering recipes remain in the annotation package. Runtime CGA
+classification supports 2D and 3D; the annotation highlighting API retains its
+3D scope.
 
 ## Construction API
 
-Runtime model construction should remain explicit:
+Construct the model explicitly from a configured algebra:
 
 ```python
 from galaga import Algebra, presets
@@ -625,18 +684,9 @@ grades and orientations, Gram matrix relationships, and supported dimension.
 A bare algebra with a matching signature is insufficient because it does not
 declare the intended geometry.
 
-Explicit construction remains the initial API. A later preset factory may
-return a configured pair without adding a registry to `Algebra`:
-
-```python
-algebra, model = presets.models.cga(spatial_dim=3)
-```
-
-This remains deferred until the concrete model APIs are stable.
-
 ## Operation placement
 
-The following table establishes the intended ownership boundary.
+The following table describes operation ownership.
 
 | Operation | Algebra API | Runtime model API |
 |---|---:|---:|
@@ -649,14 +699,14 @@ The following table establishes the intended ownership boundary.
 | `up`, `down` | no | conformal models |
 | join and meet selected by object model | no | yes |
 | carrier and cocarrier | no | conformal models |
-| causal classification and proper time | no | CSTA model |
+| causal classification, signed intervals and units | no | CSTA model |
 | model object constraints | no | corresponding model |
 | geometric object classification | no | corresponding model |
 
-Retire the free algebra-level `bulk_part()` and `weight_part()` aliases. Their
-current numeric definitions are available for every algebra, but their names
-imply a decomposition that does not exist generally. Keep `metric_apply()` and
-`antimetric_apply()` as the universally named algebra operations.
+The free algebra-level `bulk_part()` and `weight_part()` aliases are retired.
+Use `metric_apply()` and `antimetric_apply()` for the metric maps in an
+arbitrary algebra. The model methods define the geometric bulk/weight split
+using the validated roles.
 
 For example, in the all-null exterior algebra
 
@@ -671,14 +721,14 @@ metric the maps need not be projections at all.
 
 ## Expression provenance and presentation
 
-Model methods should continue to compute through public algebra operations and
+Model methods compute through public algebra operations and
 then attach a semantic expression node. The node records the model operation
 and any basis roles needed for replay without changing the numeric result.
 
 Presentation rules remain keyed by stable operation IDs. Model inheritance
 must not determine notation. A `PGAModel.bulk_part()` call and a
-`ConformalModel.bulk_part()` call may use distinct operation IDs when their
-definitions differ, even if both APIs expose the convenient Python method name.
+`ConformalModel.bulk_part()` call use distinct operation IDs because their
+definitions differ, while both APIs expose the same Python method name.
 
 CGA and CSTA select compact construction calls by default. The
 `expression_form` constructor argument sets the model default, and
@@ -701,13 +751,13 @@ compact = expanded.event(2, 1, 0, 0, expression_form="operator")
 Both forms retain executable provenance when tracking is enabled. `expr=False`
 suppresses provenance independently of the selected expression form.
 
-Suggested IDs include:
+Semantic IDs include:
 
 - `projective_bulk_part` and `projective_weight_part`;
 - `conformal_bulk_part` and `conformal_weight_part`;
-- `projective_point`, `conformal_point`, and `conformal_event`; and
-- explicit RGA/PGA join and meet operations when their provenance should
-  preserve the selected geometric interpretation.
+- `projective_point`, `conformal_point`, and `event`; and
+- `rga_join`, `rga_meet`, `pga_join`, and `pga_meet` to preserve the selected
+  geometric interpretation.
 
 ## CSTA physical units
 
@@ -843,7 +893,7 @@ Each model rejects:
 
 - an algebra with the right metric but no matching model metadata;
 - missing, repeated, or incorrectly graded roles;
-- an incompatible basis ordering or signed role declaration;
+- roles whose computed inner products conflict with the declared model metric;
 - values from another algebra;
 - invalid dimensions; and
 - nonfinite coordinates or invalid tolerances.
@@ -851,52 +901,27 @@ Each model rejects:
 The exterior algebra is a regression case for ensuring that projective
 bulk/weight semantics do not leak into arbitrary degenerate algebras.
 
-## Implementation sequence
+## Implementation coverage
 
-1. Extract the shared lifecycle and validation helpers from `RigidModel` and
-   `ConformalModel` into `_GeometryModel` without changing their public APIs.
-2. Introduce capability protocols and contract tests for existing models.
-3. Add projective bulk/weight methods to `RigidModel` and verify them from the
-   metric.
-4. Implement `PGAModel` for `presets.pga()` with point, plane,
-   coordinates, join, meet, and the shared projective split.
-5. Extract conformal embedding mechanics into `_ConformalBase` while retaining
-   `ConformalModel` behavior.
-6. Add a CSTA preset with explicit spacetime, origin, and infinity roles.
-7. Implement `ConformalSpacetimeModel` and port the CSTA examples to it.
-8. Move geometric classification into the concrete runtime models, beginning
-   with the existing 3D CGA classifier contract.
-9. Add 2D and 3D PGA/CGA classification, 3D RGA classification, and fixed 4D
-   $(+---)$ CSTA classification.
-10. Retire the generic bulk/weight aliases and update annotation,
-    visualization, examples, and documentation to consume model methods.
+The implementation includes the internal lifecycle, projective, and conformal
+bases; public capability protocols; 2D/3D PGA; projective component methods;
+CGA and CSTA conformal sharing; all four object classifiers; CSTA operator
+classification and units; annotation delegation; and generic alias retirement.
 
-Each step should preserve numeric behavior and add model-specific unit tests.
-Any accepted public hierarchy, renamed operation, or retired facade alias
-requires an ADR before implementation.
+The model contracts exercise actual products and Gram matrices, coordinate
+round trips, signed and reordered roles, wrong metadata, foreign facade
+owners, malformed roles, finite/ideal objects, non-simple blades, scale
+invariance, PGA/RGA motions, and executable expression provenance.
 
-## Settled decisions
+The canonical imports are `galaga.models`. Established `galaga.cga` and
+`galaga.rga` imports reexport the same classes. `_GeometryModel`,
+`_ProjectiveBase`, `_ConformalBase`, and classifier implementation helpers
+remain private.
 
-- The common model base remains internal. Public polymorphism uses capability
-  protocols.
-- Runtime models live under `galaga.models`.
-- The conventional plane-based class is `PGAModel`.
-- `RigidModel` remains limited to three spatial dimensions initially.
-- No `Algebra.geometry()` registry is added. A later
-  `presets.models.<name>(...)` factory may return an algebra and model pair.
-- The generic free `bulk_part()` and `weight_part()` aliases are retired;
-  model methods own those semantic names.
-- The shared conformal base owns signature-independent embedding, role,
-  decomposition, dual, and incidence operations listed above. Signature-bound
-  measurements and classification remain concrete-model responsibilities.
-- Model-owned classifiers cover 2D and 3D PGA/CGA, initially 3D RGA with 2D
-  reserved for a later generalization, and fixed 4D $(+---)$ CSTA.
+## Design rationale and further work
 
-## Deferred decisions
-
-- The exact return type and versioning policy for future
-  `presets.models.<name>(...)` factories.
-- The point at which two-dimensional RGA support becomes part of
-  `RigidModel`.
-- Which transformation multivectors receive dedicated model-specific versor
-  classifiers after the geometric-object classifiers are complete.
+[ADR-174](../adrs/174-runtime-geometry-model-hierarchy-and-classifiers.md)
+records the model hierarchy, capability boundaries, and classifier ownership.
+[ADR-175](../adrs/175-csta-physical-units-and-coordinate-scale.md) records the
+CSTA coordinate scale and unit conversions. Future model factories and dimension
+extensions are listed in the [capability roadmap](galaga-replacement-roadmap.md).

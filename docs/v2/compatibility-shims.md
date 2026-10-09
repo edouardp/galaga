@@ -1,10 +1,8 @@
-# Galaga 2 Compatibility and Removed Migration Shims
+# Operation Aliases and Removed APIs
 
-Galaga 2 keeps a deliberately small compatibility surface. Long operation
-names are the mathematical contract. A concise spelling is either a permanent
-same-object alias or a local import choice made by the user. The migration-only
-operation adapters and bridge paths are removed in the final-API cleanup after
-`2.0.0a4`; earlier published alphas still contain them.
+Long operation names define the mathematical API. The concise aliases below
+are exact references to those operations. The replacement tables help update
+code written against earlier Galaga APIs.
 
 This policy is now active at both `galaga` and `galaga.facade`: the top-level
 objects are exact facade re-exports.
@@ -16,6 +14,7 @@ catalog entry, wrapper, warning, or independent semantics.
 
 | Alias | Canonical operation |
 |---|---|
+| `conjugate` | `clifford_conjugate` |
 | `dorst_inner` | `doran_lasenby_inner` |
 | `gp` | `geometric_product` |
 | `join` | `outer_product` |
@@ -30,13 +29,15 @@ this group.
 
 ## Removed function spellings
 
-These six v1 names are no longer attributes, imports or wildcard exports of
+These retired names are no longer attributes, imports or wildcard exports of
 `galaga` or `galaga.facade`. The old `galaga.core.involute` alias is also
 removed. Use the canonical operations, which retain the same numerical and
 expression-provenance contracts.
 
 | Removed spelling | Replacement |
 |---|---|
+| `bulk_part` | `metric_apply` for the former metric map |
+| `weight_part` | `antimetric_apply` for the former antimetric map |
 | `involute` | `grade_involution` |
 | `mag2` | `norm2` |
 | `magnitude_squared` | `norm2` |
@@ -44,11 +45,15 @@ expression-provenance contracts.
 | `normalise` | `unit` |
 | `normalize` | `unit` |
 
-The unused `GalagaDeprecationWarning` and `DEPRECATED_OPERATION_ALIASES`
-exports and private adapter module are removed too. The development-only
-`REMOVED_OPERATION_ALIASES` ledger preserves replacement guidance; it is not
-a new runtime API. Attribute lookup fails and explicit imports raise
-`ImportError` instead of warning and forwarding.
+The generic `bulk_part` and `weight_part` names are also absent from
+`galaga.core`, the operation catalog, and built-in notation recipes. Metric
+and antimetric maps are defined for every algebra, but do not generally form
+a complementary decomposition. Model methods such as `cga.bulk_part(value)`
+and `cga.weight_part(value)` retain their validated component semantics. See
+[ADR-174](../adrs/174-runtime-geometry-model-hierarchy-and-classifiers.md).
+
+Attribute lookup for a removed spelling fails. Explicit imports raise
+`ImportError`. Use the replacement operation directly.
 
 The prefixed `p_*` complete preset factories have been retired. Import
 `presets` from `galaga` and call the concise factory names. Concrete preset
@@ -122,24 +127,13 @@ label changes the floating-point numeric domain. See the
 [scalar migration recipes](migration-guide.md#migrate-scalar-helpers) and
 [ADR-109](../adrs/109-public-scalar-compositions-and-small-value-contracts.md).
 
-## Enforcement
+## Current contracts
 
-The executable public-surface ledger owns every alias, target, milestone, and
-warning message. Historical API completeness is checked against captured v1
-observations; current supported v2 imports and behavior are tested with legacy
-imports forbidden. Historical submodule dispositions are not themselves a
-promise of supported v2 entry points. See
-[ADR-096](../adrs/096-compatibility-manifests-use-historical-api-evidence.md).
-Compatibility tests prove:
+Tests in `packages/galaga/tests/facade/` cover alias identity, canonical
+numeric results, expression operation IDs, rejected spellings, and explicit
+inner-product guidance. The public namespace tests verify that `galaga`
+reexports the facade objects. Release artifact checks validate the shipped
+runtime and reject retired modules and dependencies.
 
-- permanent aliases are exact function objects;
-- removed aliases cannot return through attribute lookup, explicit imports,
-  wildcard exports, core aliases or catalog entries;
-- canonical replacements retain their numeric values and expression IDs;
-- ambiguous inner products remain absent and provide explicit choices;
-- bridge imports fail in fresh processes without relying on a test guard;
-- top-level exports are identical to their facade owners;
-- plain `import galaga` leaves legacy engine modules unloaded;
-- unledgered tests cannot construct legacy numeric values; and
-- source and artifact checks reject bridge files and empty directories; and
-- this guide names every removed function and bridge replacement.
+The completed migration manifests and import guards were retired under
+[ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).

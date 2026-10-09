@@ -6,9 +6,8 @@ obtained. It is not a second arithmetic engine, and it does not make
 multivector immediately. Provenance is immutable, optional metadata on the
 facade wrapper.
 
-This document describes the Phase 5 implementation. Phase 6 now translates the
-same expression nodes through the selected presentation without changing their
-identity or evaluation; see the
+The renderer translates these expression nodes through the selected
+presentation while preserving their identity and evaluation. See the
 [Semantic rendering implementation](rendering-implementation.md).
 
 ## Component decomposition
@@ -262,50 +261,30 @@ nonassociative operation. It deliberately does not attempt general
 geometric-algebra simplification. Every rule is tested for evaluation
 preservation and idempotence.
 
-## Validation ownership
+## Validation
 
-The migrated `test_numeric_function_expressions.py` and `test_precedence.py`
-also run only against the public facade. They retain all 29 original
-scenarios as archived v1 observations, with explicit eager-value, replay,
-and three-target rendering checks. Rotor roots additionally use independent
-closed forms derived from the actual Gram matrix in elliptic, nilpotent,
-oblique, and native-null cases. The fresh-process and corruption gates live
-in `tests/expression/test_expression_contract_boundary.py`; see
-[ADR-098](../adrs/098-expression-contracts-outlive-legacy-provenance.md).
+Tests under `packages/galaga/tests/expression` cover:
 
-`test_symbolic.py` now owns the remaining public named-value recipes,
-including sandwich association, replay with new bindings, numeric-only
-fallback, and explicit bracket scaling. It retains v1 observations as data,
-not imports. The curated `bar`, `dag`, `inv`, and `sq` properties pass through
-canonical dispatch, with separate facade tests for values, provenance,
-read-only access, and singular errors. Jordan-product simplification tests
-protect the structural-only boundary against nonzero vector, bivector, and
-mixed-grade examples. See
-[ADR-099](../adrs/099-symbolic-contracts-and-curated-unary-properties.md).
+- node validation, structural equality, hashing, and independence from output
+  formatting;
+- immutable name and expression transitions;
+- catalog dispatch, parameter normalization, variadic lowering, and disabled
+  tracking;
+- evaluation with explicit environments and algebra ownership;
+- metric-family round trips; and
+- conservative simplification, evaluation preservation, and idempotence.
 
-Phase 5 tests live under `packages/galaga/tests/expression`:
+Additional numeric-function and precedence regressions check eager values,
+replay, and all three output targets. Rotor-root cases use independent
+Gram-derived closed forms for elliptic, nilpotent, oblique, and native-null
+metrics. Bracket and mixed-grade examples guard against grade assumptions and
+unintended scaling.
 
-- `test_nodes.py` owns node validation, structural equality, hashing, and
-  format/numeric independence;
-- `test_state.py` owns immutable name/expression transitions;
-- `test_propagation.py` owns every catalog operation, one-call dispatch,
-  parameter normalization, variadic lowering, and the disabled path;
-- `test_evaluation.py` owns leaves, environments, algebra boundaries, and the
-  metric-family round trip; and
-- `test_simplify.py` owns the conservative structural rules.
-
-Rendering, precedence, notation selection, and final ASCII, Unicode, and LaTeX
-strings are now implemented as a consumer of this tree. They do not change its
-numeric evaluation or stable operation identity; the architecture and tests
-are documented in
-[Semantic rendering implementation](rendering-implementation.md).
-
-Run the owned suite from the repository root:
+Run the expression suite from the repository root:
 
 ```bash
 uv run pytest packages/galaga/tests/expression -q
 ```
 
-Exact historic test counts and coverage percentages are intentionally omitted
-from this living implementation guide; the release gate measures the current
-tree.
+The [semantic rendering guide](rendering-implementation.md) describes the
+consumer of these nodes and its output checks.

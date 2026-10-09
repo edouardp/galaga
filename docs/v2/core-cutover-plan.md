@@ -3,6 +3,8 @@
 This plan records the completed cutover. The one-time codemods, migration
 ledgers, and historical ownership records described below were retired under
 [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+Use the [current architecture guide](README.md) and
+[release checklist](../RELEASE_PROCESS.md#quality-gates) for new work.
 
 ## Status and authority
 
@@ -13,8 +15,8 @@ for completing the Galaga 2.0 changes above that numeric boundary.
 The companion [presentation and expression layer plan](presentation-symbolic-layer-plan.md)
 explains the target architecture. The
 [numeric-algebra replacement roadmap](galaga-replacement-roadmap.md) records
-remaining numeric capabilities. This document turns both into ordered,
-testable work units with explicit exit gates.
+future capability candidates. The work units and exit gates below record the
+completed implementation sequence.
 
 The [migration engineering techniques](migration-engineering-techniques.md)
 guide explains how the executable surface ledger, LibCST codemods,

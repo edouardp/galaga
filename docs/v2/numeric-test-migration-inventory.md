@@ -1,5 +1,11 @@
 # Numeric Test Migration Inventory
 
+> Historical record: completed migration tools, ownership ledgers, and import
+> guards described here have been retired under
+> [ADR-170](../adrs/170-retire-migration-scaffolding-before-stable-2.md).
+> Tool commands describe the original checkout; current runtime regressions
+> and artifact checks remain in the ordinary test suites.
+
 This is a historical migration inventory and delivery log. Migration and
 physical engine deletion are complete; references below to files still
 shipping describe intermediate checkpoints. The
@@ -1716,7 +1722,7 @@ Every original test passed before migration. The complete source, SHA-256,
 ordered identities, final local observations and object aliases remain in
 [redesign-v1.json](../../packages/galaga/tools/baselines/redesign-v1.json),
 with 189 deduplicated snapshots. The
-[v2 crosswalk](../../packages/galaga/tools/baselines/redesign-v2-owners.json)
+v2 crosswalk
 assigns each historical identity exactly once to one of 27 responsibility
 groups, documenting retained, replaced and retired behavior.
 
@@ -1824,7 +1830,7 @@ importing the old renderer. Constructor poisoning could not detect that
 dependency because the suite constructs no algebras. All forty-five original
 cases were executed and their source, digest, tree/output observations and
 identities archived in
-[latex-tree-v1.json](../../packages/galaga/tools/baselines/latex-tree-v1.json).
+latex-tree-v1.json.
 Every identity now has an immutable semantic-tree owner. The suite explicitly
 documents existing v2 differences in escaped text versus mathematical names,
 separator spacing, script braces, ordinary/compact fractions and preservation

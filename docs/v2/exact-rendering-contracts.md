@@ -4,13 +4,13 @@ The exact rendering suite treats LaTeX as a function of the complete rendering
 input:
 
 ```text
-named implementation/algebra/display configuration + expression test function
+named algebra/display configuration + expression test function
     -> exact LaTeX
 ```
 
-This complements the historical legacy/facade audit. The golden contract
-records what the current facade is required to emit; captured v1 observations
-preserve the comparison evidence without executing the legacy engine.
+The golden contract records what the current facade is required to emit.
+It complements the [rendering snapshots](rendering-parity.md) and independent
+coefficient oracles.
 
 ## Where the contract lives
 
@@ -28,16 +28,16 @@ preserve the comparison evidence without executing the legacy engine.
   compound expressions.
 - `packages/galaga/tools/baselines/configured-rendering-v1.json` preserves
   computed historical outputs, coefficients, basis order, and capture provenance.
-- `packages/galaga/tests/rendering/test_configured_rendering_boundary.py`
-  verifies the facade boundary, historical numeric samples, and execution of
-  all three exact suites with legacy imports blocked.
+- `packages/galaga/tests/rendering/test_configured_rendering.py`
+  verifies configured contexts, numerical samples, and strict decorator
+  expectations.
 
 One test looks like:
 
 ```python
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"e_{1} \wedge e_{2} \quad = \quad e_{12}",
     ),
 )
@@ -48,14 +48,14 @@ def test_simple_wedge_expression(context):
 
 This makes the mathematical construction, configured algebras, and expected
 LaTeX readable in one place. Pytest expands the decorator into regular
-parameterized cases whose IDs contain the named implementation/algebra/display
+parameterized cases whose IDs contain the named algebra/display
 configuration.
 
 Long expectations can use raw triple-quoted strings:
 
 ```python
 testcase(
-    "core-facade-v2/lengyel-rga/full-default",
+    "lengyel-rga/full-default",
     r"""
     u \wedge v + u \mathbin{\bullet} v \quad = \quad -1
     + 2 \mathbf{e}_{23} - \mathbf{e}_{31} - 3 \mathbf{e}_{12}
@@ -77,8 +77,9 @@ case and supplies a small public vocabulary:
 - canonical operation IDs call the public facade directly; and
 - naming uses the immutable facade operation, preserving shared inputs.
 
-Only `core-facade-v2` configurations execute. Retired `legacy-v1` IDs are
-rejected rather than silently mapped to a different implementation.
+Configuration names describe the algebra and display profile, for example
+`cl3/full-default`. Every context uses the public facade; there is no
+implementation selector.
 
 Test functions otherwise use normal multivector operators and multi-line
 Python. They do not inject values into `locals()`. Facade
@@ -160,7 +161,7 @@ When a notebook or user expression renders incorrectly:
 5. add a literal expected string for each relevant facade configuration;
 6. run the exact suite and inspect the complete string diff;
 7. fix the semantic builder, notation, or emitter at its owning layer; and
-8. run both the golden suite and the historical legacy/facade audit.
+8. run the configured suite and the rendering snapshot tests.
 
 New configurations are facade-only. Preserve their exact expectations without
 weakening them into nominal historical parity cases or adding invented v1 data.

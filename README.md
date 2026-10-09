@@ -3,14 +3,14 @@
 Galaga is a Python geometric-algebra library built around an immutable,
 Gram-matrix numeric core. Galaga 2 adds general symmetric metrics, explicit
 product conventions, optional expression provenance, configurable
-presentation, native-null CGA, RGA semantics, and shared ASCII, Unicode, and
-LaTeX rendering.
+presentation, PGA, RGA, CGA, CSTA, and shared ASCII, Unicode, and LaTeX
+rendering.
 
 This repository is a monorepo:
 
 | Package                                                   | Purpose                                                                 | Python |
 | --------------------------------------------------------- | ----------------------------------------------------------------------- | -----: |
-| [`galaga`](packages/galaga/README.md)                     | Numeric core, public multivectors, expressions, rendering, CGA, and RGA |  3.11+ |
+| [`galaga`](packages/galaga/README.md)                     | Numeric core, public values, expressions, rendering, and geometry models |  3.11+ |
 | [`galaga-anywidget`](packages/galaga_anywidget/README.md) | Interactive synchronized CGA visualizations                             |  3.11+ |
 | [`galaga-annotation`](packages/galaga_annotation/README.md) | Semantic annotations and KaTeX callouts for expressions and matrices   |  3.11+ |
 | [`galaga-matrix`](packages/galaga_matrix/README.md)       | Left-regular, compact, quaternion, and spinor representations           |  3.11+ |
