@@ -19,6 +19,7 @@ checkout recorded in each document. For current usage, see the
 
 | Record | Purpose |
 |---|---|
+| [October 2026 local release validation](validation-2026-10-10.md) | Clean-source and installed-wheel suites, notebook/browser checks, dependencies, and fresh branch coverage |
 | [Legacy engine deletion checkpoints](legacy-engine-deletion-gate.md) | Dated source, wheel, dependency, typing, and coverage observations |
 | [Phase 8 performance baseline](phase8-performance.md) | Historical measurements on the recorded machine and interpreter |
 | [Post-a4 documentation review](documentation-review.md) | September 2026 review scope and measured results |
