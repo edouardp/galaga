@@ -37,10 +37,10 @@ Long, explicit names are the canonical Galaga 2 function and operation
 identifiers. In the first naming work unit:
 
 | Compatibility name | Canonical identifier |
-|---|---|
-| `gp` | `geometric_product` |
-| `op` | `outer_product` |
-| `involute` | `grade_involution` |
+| ------------------ | -------------------- |
+| `gp`               | `geometric_product`  |
+| `op`               | `outer_product`      |
+| `involute`         | `grade_involution`   |
 
 The established explicit names for contractions and competing inner products
 remain canonical. We do not introduce an unqualified `inner_product` or `ip`
@@ -65,6 +65,18 @@ Source-derived test migration uses two stages:
 
 Convention-sensitive names, scalar extraction, and facade-only helpers are
 reviewed manually and are not eligible for the lexical codemod.
+
+### Public operation discovery
+
+Public numeric operations have explicit callable signatures and literal source
+docstrings on their exported facade functions. The docstrings describe the
+mathematical operation and relevant domain restrictions, with facade-specific
+call and return behavior documented where it differs from the core.
+
+Both runtime help and static editor completion must discover this documentation
+through the public imports. Core-only documentation or runtime assignment to
+`__doc__` does not satisfy static discovery. Same-object aliases share their
+canonical function's documentation.
 
 ## Consequences
 

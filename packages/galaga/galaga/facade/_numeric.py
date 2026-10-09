@@ -1336,26 +1336,40 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
 
 
 def geometric_product(*values: Multivector) -> Multivector:
+    """Return the Clifford product computed from the native Gram matrix.
+
+    Accept one or more multivectors from the same algebra. Multiple operands
+    are combined from left to right; a single operand is returned unchanged.
+    """
     return _invoke("geometric_product", *values)
 
 
 def outer_product(*values: Multivector) -> Multivector:
+    """Return the metric-independent exterior product.
+
+    Accept one or more multivectors from the same algebra. Multiple operands
+    are combined from left to right; a single operand is returned unchanged.
+    """
     return _invoke("outer_product", *values)
 
 
 def grade(value: Multivector, target: int | str) -> Multivector:
+    """Project onto one grade or the combined ``"even"``/``"odd"`` grades."""
     return _invoke("grade", value, target)
 
 
 def grades(value: Multivector, targets: Iterable[int]) -> Multivector:
+    """Project a multivector onto several exterior grades."""
     return _invoke("grades", value, targets)
 
 
 def even_grades(value: Multivector) -> Multivector:
+    """Return all even-grade components."""
     return _invoke("even_grades", value)
 
 
 def odd_grades(value: Multivector) -> Multivector:
+    """Return all odd-grade components."""
     return _invoke("odd_grades", value)
 
 
@@ -1365,90 +1379,123 @@ def scalar_part(value: Multivector) -> float:
 
 
 def scalar_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the scalar part of the geometric product as a multivector."""
     return _invoke("scalar_product", left, right)
 
 
 def metric_inner_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return Lengyel's metric-induced pairing ``<left * ~right>_0``."""
     return _invoke("metric_inner_product", left, right)
 
 
 def metric_apply(value: Multivector) -> Multivector:
+    """Apply the compound-matrix exterior extension of the vector metric."""
     return _invoke("metric_apply", value)
 
 
 def antimetric_apply(value: Multivector) -> Multivector:
+    """Apply the complementary-compound antimetric extension."""
     return _invoke("antimetric_apply", value)
 
 
 def antidot_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the antimetric pairing as a pseudoscalar-valued product."""
     return _invoke("antidot_product", left, right)
 
 
 def right_hodge_dual(value: Multivector) -> Multivector:
+    """Return the right Hodge dual by applying the metric and right complement.
+
+    Equivalent to ``right_complement(metric_apply(value))``.
+    """
     return _invoke("right_hodge_dual", value)
 
 
 def left_hodge_dual(value: Multivector) -> Multivector:
+    """Return the left Hodge dual by applying the metric and left complement.
+
+    Equivalent to ``left_complement(metric_apply(value))``.
+    """
     return _invoke("left_hodge_dual", value)
 
 
 def right_weight_dual(value: Multivector) -> Multivector:
+    """Return ``right_complement(antimetric_apply(value))``."""
     return _invoke("right_weight_dual", value)
 
 
 def left_weight_dual(value: Multivector) -> Multivector:
+    """Return ``left_complement(antimetric_apply(value))``."""
     return _invoke("left_weight_dual", value)
 
 
 def left_contraction(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``<A_r B_s>_(s-r)`` for each homogeneous pair with ``r <= s``."""
     return _invoke("left_contraction", left, right)
 
 
 def right_contraction(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``<A_r B_s>_(r-s)`` for each homogeneous pair with ``r >= s``."""
     return _invoke("right_contraction", left, right)
 
 
 def hestenes_inner(left: Multivector, right: Multivector) -> Multivector:
+    """Return the Hestenes grade-difference product, discarding scalar grades."""
     return _invoke("hestenes_inner", left, right)
 
 
 def doran_lasenby_inner(left: Multivector, right: Multivector) -> Multivector:
+    """Return the grade-absolute-difference product, including scalars."""
     return _invoke("doran_lasenby_inner", left, right)
 
 
 def commutator(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``left * right - right * left``."""
     return _invoke("commutator", left, right)
 
 
 def anticommutator(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``left * right + right * left``."""
     return _invoke("anticommutator", left, right)
 
 
 def half_commutator(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``(left * right - right * left) / 2``."""
     return _invoke("half_commutator", left, right)
 
 
 def half_anticommutator(left: Multivector, right: Multivector) -> Multivector:
+    """Return ``(left * right + right * left) / 2``."""
     return _invoke("half_anticommutator", left, right)
 
 
 def lie_bracket(left: Multivector, right: Multivector) -> Multivector:
+    """Return the unscaled Lie bracket ``left * right - right * left``."""
     return _invoke("lie_bracket", left, right)
 
 
 def jordan_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the unscaled symmetric product ``left * right + right * left``.
+
+    Many Jordan-algebra texts include a factor of one half. Galaga reserves all
+    such scaling for :func:`half_anticommutator`, making the function name
+    reveal whether normalization occurs.
+    """
     return _invoke("jordan_product", left, right)
 
 
 def reverse(value: Multivector) -> Multivector:
+    """Reverse every exterior blade in a multivector."""
     return _invoke("reverse", value)
 
 
 def grade_involution(value: Multivector) -> Multivector:
+    """Apply grade involution, negating every odd grade."""
     return _invoke("grade_involution", value)
 
 
 def clifford_conjugate(value: Multivector) -> Multivector:
+    """Apply Clifford conjugation, the composition of reverse and grade involution."""
     return _invoke("clifford_conjugate", value)
 
 
@@ -1456,62 +1503,88 @@ conjugate = clifford_conjugate
 
 
 def complement(value: Multivector) -> Multivector:
+    """Return the metric-independent right complement.
+
+    Every basis blade ``A`` satisfies ``A ^ complement(A) == I``.
+    """
     return _invoke("complement", value)
 
 
 def uncomplement(value: Multivector) -> Multivector:
+    """Return the inverse/left complement.
+
+    Every basis blade ``A`` satisfies ``uncomplement(A) ^ A == I``.
+    """
     return _invoke("uncomplement", value)
 
 
 def right_complement(value: Multivector) -> Multivector:
+    """Return the metric-independent right complement; equivalent to ``complement(value)``."""
     return _invoke("right_complement", value)
 
 
 def left_complement(value: Multivector) -> Multivector:
+    """Return the metric-independent left complement; equivalent to ``uncomplement(value)``."""
     return _invoke("left_complement", value)
 
 
 def antireverse(value: Multivector) -> Multivector:
+    """Apply reversion by antigrade instead of grade."""
     return _invoke("antireverse", value)
 
 
 def dual(value: Multivector) -> Multivector:
+    """Return the conventional metric dual using the inverse pseudoscalar."""
     return _invoke("dual", value)
 
 
 def undual(value: Multivector) -> Multivector:
+    """Return the inverse of :func:`dual` for a nondegenerate metric."""
     return _invoke("undual", value)
 
 
 def regressive_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the metric-independent complement-based regressive product."""
     return _invoke("regressive_product", left, right)
 
 
 def antiwedge(left: Multivector, right: Multivector) -> Multivector:
+    """RGA name for :func:`regressive_product`."""
     return _invoke("antiwedge", left, right)
 
 
 def metric_regressive_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the metric-dual regressive product for nondegenerate metrics."""
     return _invoke("metric_regressive_product", left, right)
 
 
 def geometric_antiproduct(left: Multivector, right: Multivector) -> Multivector:
+    """Return the De Morgan dual of the geometric product."""
     return _invoke("geometric_antiproduct", left, right)
 
 
 def left_interior_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the RGA left interior product from the left Hodge dual."""
     return _invoke("left_interior_product", left, right)
 
 
 def right_interior_product(left: Multivector, right: Multivector) -> Multivector:
+    """Return the RGA right interior product from the right Hodge dual."""
     return _invoke("right_interior_product", left, right)
 
 
 def transwedge(left: Multivector, right: Multivector, order: int) -> Multivector:
+    """Return Lengyel's order-``order`` transwedge product.
+
+    For homogeneous grades ``r`` and ``s``, this selects grade
+    ``r + s - 2*order`` from the geometric product and removes the reversion
+    sign used by its geometric-product decomposition.
+    """
     return _invoke("transwedge", left, right, order)
 
 
 def transwedge_antiproduct(left: Multivector, right: Multivector, order: int) -> Multivector:
+    """Return the De Morgan dual of the order-``order`` transwedge."""
     return _invoke("transwedge_antiproduct", left, right, order)
 
 
@@ -1521,6 +1594,12 @@ def inverse(
     rtol: float = 1e-10,
     atol: float = 1e-12,
 ) -> Multivector:
+    """Return the general inverse using the left-regular representation.
+
+    The solve is followed by both left- and right-inverse residual checks. This
+    makes the implementation basis-neutral and rejects singular or numerically
+    unresolved candidates instead of returning an unchecked pseudoinverse.
+    """
     parameters: dict[str, float] = {}
     if rtol != 1e-10:
         parameters["rtol"] = rtol
@@ -1530,43 +1609,66 @@ def inverse(
 
 
 def squared(value: Multivector) -> Multivector:
+    """Return the geometric square of a multivector."""
     return _invoke("squared", value)
 
 
 def scalar_sqrt(value: Real | Multivector) -> float | Multivector:
+    """Return the nonnegative real square root of a scalar value.
+
+    Plain real numbers produce a ``float``. A scalar multivector produces a
+    scalar in the same algebra. Negative values and nonscalar multivectors do
+    not have a result in this real numeric API and therefore raise.
+    """
     return _invoke("scalar_sqrt", value)
 
 
 def sqrt(value: Real | Multivector, *, atol: float = 1e-12) -> float | Multivector:
+    """Return a principal real square root on the supported algebraic domains.
+
+    A non-scalar multivector must have the form ``a + N`` with scalar ``a``
+    and scalar ``N*N``, or belong to an all-null exterior algebra with positive
+    scalar part. The latter uses the finite binomial polynomial in ``N``.
+    The returned value squares to ``value`` within the numeric tolerance.
+    """
     return _invoke("sqrt", value, **({"atol": atol} if atol != 1e-12 else {}))
 
 
 def norm2(value: Multivector) -> Multivector:
+    """Return the scalar squared norm ``<value * ~value>_0``."""
     return _invoke("norm2", value)
 
 
 def norm(value: Multivector) -> float | Multivector:
-    """Return a float, or a tracked scalar multivector for a semantic input."""
+    """Return ``sqrt(abs(norm2(value)))`` for any real metric.
+
+    Return a float, or a tracked scalar multivector for a semantic input.
+    """
     return _invoke("norm", value)
 
 
 def unit(value: Multivector, *, atol: float = 1e-15) -> Multivector:
+    """Normalize a multivector by :func:`norm`."""
     return _invoke("unit", value, **({"atol": atol} if atol != 1e-15 else {}))
 
 
 def is_scalar(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Whether all nonscalar coefficients are numerically zero."""
     return _invoke("is_scalar", value, atol=atol)
 
 
 def is_vector(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Whether only grade-one coefficients are numerically nonzero."""
     return _invoke("is_vector", value, atol=atol)
 
 
 def is_bivector(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Whether only grade-two coefficients are numerically nonzero."""
     return _invoke("is_bivector", value, atol=atol)
 
 
 def is_even(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Whether every odd-grade coefficient is numerically zero."""
     return _invoke("is_even", value, atol=atol)
 
 
@@ -1591,14 +1693,22 @@ def is_rotor_generator(value: Multivector, *, atol: float = 1e-12) -> bool:
 
 
 def is_basis_blade(value: Multivector, *, atol: float = 1e-12) -> bool:
+    """Whether exactly one exterior-basis coefficient is numerically nonzero."""
     return _invoke("is_basis_blade", value, atol=atol)
 
 
 def sandwich(rotor: Multivector, value: Multivector) -> Multivector:
+    """Return the sandwich product ``rotor * value * ~rotor``."""
     return _invoke("sandwich", rotor, value)
 
 
 def exp(value: Multivector) -> Multivector:
+    """Return the geometric exponential of a multivector.
+
+    Scalar inputs and elements with scalar square use their closed forms.
+    General multivectors use a scaling-and-squaring Taylor evaluation, with
+    scaling determined from the backend-neutral left-regular action.
+    """
     return _invoke("exp", value)
 
 
@@ -1623,18 +1733,22 @@ def rotor_generator(value: Multivector, *, atol: float = 1e-12) -> Multivector:
 
 
 def outerexp(value: Multivector) -> Multivector:
+    """Return the exponential series formed with the exterior product."""
     return _invoke("outerexp", value)
 
 
 def outersin(value: Multivector) -> Multivector:
+    """Return the odd-power part of the outer exponential series."""
     return _invoke("outersin", value)
 
 
 def outercos(value: Multivector) -> Multivector:
+    """Return the even-power part of the outer exponential series."""
     return _invoke("outercos", value)
 
 
 def outertan(value: Multivector) -> Multivector:
+    """Return ``outersin(value) * inverse(outercos(value))``."""
     return _invoke("outertan", value)
 
 
