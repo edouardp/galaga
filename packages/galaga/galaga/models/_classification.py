@@ -99,12 +99,11 @@ def classify_conformal(
     value = value.algebra.multivector(
         [c if mask.bit_count() == grade else 0.0 for mask, c in enumerate(value.data)], expr=False
     )
-    simple = blade_span(value, grade, atol) is not None
-    if not simple:
+    span = blade_span(value, grade, atol)
+    if span is None:
         return CGAClassification("cga", "general", grade, "direct", False, None, flat=flat)
     if grade == 1:
         return _conformal_vector(model, value, flat, representation, atol)
-    span = blade_span(value, grade, atol)
     origin_row = model._origin_ref.mask.bit_length() - 1
     finite = bool(np.linalg.norm(span[origin_row]) > atol)
     if flat:

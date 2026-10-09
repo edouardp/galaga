@@ -6,13 +6,13 @@ import math
 from collections.abc import Iterable
 from dataclasses import replace
 from numbers import Real
-from typing import Literal, cast
+from typing import Literal, TypedDict, cast
 
 import numpy as np
 
 from ..blades import BladeRef
 from ..facade import Algebra, Multivector, outer_product, right_hodge_dual, scalar_product, squared
-from ._base import _ConformalBase
+from ._base import _ConformalBase, _RoleParameters
 from ._classification import blade_span
 from ._classification import is_zero as _is_zero
 from ._classification import normalized as _normalized
@@ -23,6 +23,11 @@ from .units import CoordinateUnits, SpacetimeUnits, normalize_coordinate_units
 
 Representation = Literal["auto", "direct", "dual"]
 CSTAExpressionForm = Literal["operator", "expanded"]
+
+
+class _UnitParameters(TypedDict, total=False):
+    coordinate_scale: tuple[float, float]
+    units: CoordinateUnits
 
 
 class ConformalSpacetimeModel(_ConformalBase):
@@ -234,7 +239,7 @@ class ConformalSpacetimeModel(_ConformalBase):
             raise RuntimeError("event coordinates were not resolved")
         values = tuple(self._algebra.scalar(coordinate, expr=tracking) for coordinate in raw_coordinates)
         selected_units = self._units if units is None else normalize_coordinate_units(units)
-        unit_parameters: dict[str, object] = {}
+        unit_parameters: _UnitParameters = {}
         if selected_units != "natural":
             unit_parameters = {
                 "coordinate_scale": self._unit_scale.coordinate_factors(selected_units),
@@ -256,7 +261,7 @@ class ConformalSpacetimeModel(_ConformalBase):
     def weight(self, value: Multivector, *, expression_form: CSTAExpressionForm | None = None) -> float:
         """Return a conformal vector's homogeneous origin coefficient."""
 
-        return float(super().weight(value, expression_form=expression_form))
+        return float(self._weight_value(value, expression_form=expression_form))
 
     def coordinates(
         self,
@@ -506,7 +511,7 @@ class ConformalSpacetimeModel(_ConformalBase):
     def _validate_metric(self) -> float:
         return self._conformal_metric(np.diag((1.0, -1.0, -1.0, -1.0)), required_pair=-1.0, metric_atol=0.0)
 
-    def _embedding_roles(self) -> dict[str, tuple[int, int]]:
+    def _embedding_roles(self) -> _RoleParameters:
         return {
             "origin": (self._origin_ref.mask, self._origin_ref.orientation),
             "infinity": (self._infinity_ref.mask, self._infinity_ref.orientation),

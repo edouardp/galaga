@@ -236,6 +236,9 @@ embedding, normalization, role validation, and semantic provenance. Shared
 normalization keeps its weight as a tracked scalar multivector, even though the
 CSTA public `weight()` convenience method returns a float. Expanded expressions
 therefore replay correctly when a named input is rebound at another weight.
+The shared base exposes this calculation internally as `_weight_value()`;
+each concrete model defines its public `weight()` return contract. This avoids
+an incompatible override between CGA's tracked scalar and CSTA's float result.
 
 PGA points are defined by the right complement of the homogeneous vector
 $x+w e_0$. Left complement recovers that vector. A plane with coefficients

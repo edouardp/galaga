@@ -85,6 +85,10 @@ class ConformalModel(_ConformalBase):
         self._infinity_ref = infinity_ref
         self._null_pair = self._validate_metric()
 
+    def weight(self, value: Multivector, *, expression_form: CGAExpressionForm | None = None) -> Multivector:
+        """Return a tracked scalar homogeneous origin coefficient."""
+        return self._weight_value(value, expression_form=expression_form)
+
     @property
     def expression_form(self) -> CGAExpressionForm:
         """The default provenance form attached by CGA helper operations."""

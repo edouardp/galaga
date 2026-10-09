@@ -28,6 +28,10 @@ from ..facade import (
 CGAExpressionForm = Literal["operator", "expanded"]
 
 
+class _RadiusParameters(TypedDict, total=False):
+    sign: int
+
+
 class _RoleParameters(TypedDict, total=False):
     origin: tuple[int, int]
     infinity: tuple[int, int]
@@ -161,6 +165,8 @@ class _GeometryModel:
 
 class _ProjectiveBase(_GeometryModel):
     __slots__ = ("_euclidean_refs", "_projective_ref")
+    _euclidean_refs: tuple[BladeRef, ...]
+    _projective_ref: BladeRef
 
     @property
     def projective(self) -> Multivector:
@@ -190,6 +196,11 @@ class _ConformalBase(_GeometryModel):
     _radius_square_sign = -1
 
     __slots__ = ("_base_refs", "_origin_ref", "_infinity_ref", "_null_pair", "_expression_form")
+    _base_refs: tuple[BladeRef, ...]
+    _origin_ref: BladeRef
+    _infinity_ref: BladeRef
+    _null_pair: float
+    _expression_form: CGAExpressionForm
 
     def _conformal_metric(
         self, expected_base: np.ndarray, *, required_pair: float | None = None, metric_atol: float = 1e-12
@@ -231,10 +242,6 @@ class _ConformalBase(_GeometryModel):
     def infinity(self) -> Multivector:
         """The native conformal-infinity basis vector ``einf``."""
         return self._algebra.blade(self._infinity_ref, expr=self._expr)
-
-    def weight(self, value: Multivector, *, expression_form: CGAExpressionForm | None = None) -> Multivector:
-        """Return a conformal vector's homogeneous origin coefficient."""
-        return self._weight_value(value, expression_form=expression_form)
 
     def _weight_value(
         self,
@@ -328,11 +335,14 @@ class _ConformalBase(_GeometryModel):
         if abs(coefficient) <= atol:
             raise ValueError("an infinite conformal vector has no finite round radius")
         result = self._radius_square_sign * squared(value) / (homogeneous_weight * homogeneous_weight)
+        parameters: _RadiusParameters = {}
+        if self._radius_square_sign != -1:
+            parameters["sign"] = self._radius_square_sign
         return self._semantic(
             result,
             "radius_squared",
             value,
-            **({"sign": self._radius_square_sign} if self._radius_square_sign != -1 else {}),
+            **parameters,
             expression_form=selected,
             origin=self._role(self._origin_ref),
             infinity=self._role(self._infinity_ref),

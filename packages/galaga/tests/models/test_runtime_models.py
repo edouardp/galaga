@@ -10,6 +10,7 @@ from galaga import (
     AlgebraDefinition,
     DisplayOrder,
     ModelConfig,
+    Multivector,
     antimetric_apply,
     antireverse,
     antiwedge,
@@ -20,6 +21,7 @@ from galaga import (
     outer_product,
     presets,
     reverse,
+    scalar_product,
     squared,
 )
 from galaga.blades import BladeRef
@@ -46,6 +48,29 @@ CASES = (
 
 def model_for(cls, preset, *, expr=False):
     return cls(Algebra(config=preset, expr=expr, user_config_files=False))
+
+
+@pytest.mark.parametrize("expression_form", ("operator", "expanded"))
+@pytest.mark.parametrize(
+    ("cls", "preset", "coords", "result_type"),
+    (
+        (ConformalModel, presets.cga(2), (1.0, -2.0), Multivector),
+        (ConformalSpacetimeModel, presets.csta(), (2.0, 1.0, 0.0, 0.0), float),
+    ),
+)
+def test_conformal_weight_preserves_public_return_type_and_metric_value(
+    cls, preset, coords, result_type, expression_form
+):
+    model = model_for(cls, preset, expr=True)
+    point = -3 * model.point(coords)
+    weight = model.weight(point, expression_form=expression_form)
+    assert isinstance(weight, result_type)
+    expected = float(scalar_product(point, model.infinity)) / model.null_pair
+    assert float(weight) == expected
+    np.testing.assert_allclose(model.coordinates(model.homogenize(point)), coords)
+    if isinstance(weight, Multivector):
+        assert weight.expr is not None
+        assert evaluate(weight.expr, algebra=model.algebra) == weight
 
 
 @pytest.mark.parametrize(("cls", "preset", "coords"), CASES)

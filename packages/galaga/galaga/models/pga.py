@@ -43,7 +43,7 @@ class PGAModel(_ProjectiveBase):
         tracking = self._resolve_expr(expr)
         return tuple(self.algebra.blade(ref, expr=tracking) for ref in self._euclidean_refs)
 
-    def point(self, position: Iterable[Real], *, weight: Real = 1, expr: bool | None = None) -> Multivector:
+    def point(self, position: Iterable[Real], *, weight: Real | float = 1, expr: bool | None = None) -> Multivector:
         """Construct a finite or ideal point using signed homogeneous coordinates."""
         coords = coordinates(position, expected=self.spatial_dim)
         weight = finite_real(weight, name="weight")
