@@ -469,8 +469,8 @@ class MatrixRegion:
     sequence of indices. The whole matrix is ``MatrixRegion()``.
     """
 
-    rows: MatrixAxis = slice(None)
-    columns: MatrixAxis = slice(None)
+    rows: MatrixAxis = field(default_factory=lambda: slice(None))
+    columns: MatrixAxis = field(default_factory=lambda: slice(None))
 
     def __post_init__(self) -> None:
         object.__setattr__(self, "rows", _normalize_axis(self.rows, field_name="matrix rows"))

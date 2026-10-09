@@ -21,6 +21,16 @@ def test_selector_conveniences_construct_their_target_objects() -> None:
     assert ga.grades(1, 3) == ga.GradeTarget((1, 3))
 
 
+def test_matrix_region_defaults_select_both_complete_axes_independently() -> None:
+    first = ga.MatrixRegion()
+    second = ga.MatrixRegion()
+    assert first.rows == first.columns == slice(None)
+    assert second.rows == second.columns == slice(None)
+    assert first == ga.block()
+    assert first.rows is not second.rows
+    assert first.columns is not second.columns
+
+
 def test_operation_ids_resolve_aliases_and_reject_unknown_ids() -> None:
     assert ga.operator("gp").operation_id == "geometric_product"
     assert ga.operator("op").operation_id == "outer_product"
