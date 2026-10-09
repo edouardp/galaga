@@ -929,28 +929,28 @@ class Multivector:
         converted = self._coerce_additive(other)
         if converted is NotImplemented:
             return NotImplemented
-        return _invoke("add", self, converted)
+        return add(self, converted)
 
     def __radd__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
         if converted is NotImplemented:
             return NotImplemented
-        return _invoke("add", converted, self)
+        return add(converted, self)
 
     def __sub__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
         if converted is NotImplemented:
             return NotImplemented
-        return _invoke("subtract", self, converted)
+        return subtract(self, converted)
 
     def __rsub__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
         if converted is NotImplemented:
             return NotImplemented
-        return _invoke("subtract", converted, self)
+        return subtract(converted, self)
 
     def __neg__(self) -> Multivector:
-        return _invoke("negate", self)
+        return negate(self)
 
     def __pos__(self) -> Multivector:
         return self
@@ -959,26 +959,26 @@ class Multivector:
         if isinstance(other, Multivector):
             return geometric_product(self, other)
         if isinstance(other, Real):
-            return _invoke("scalar_multiply", self, other)
+            return scalar_multiply(self, other)
         return NotImplemented
 
     def __rmul__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return _invoke("scalar_multiply", self, other)
+            return scalar_multiply(self, other)
         if isinstance(other, Multivector):
             return geometric_product(other, self)
         return NotImplemented
 
     def __truediv__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return _invoke("scalar_divide", self, other)
+            return scalar_divide(self, other)
         if isinstance(other, Multivector):
-            return _invoke("divide", self, other)
+            return divide(self, other)
         return NotImplemented
 
     def __rtruediv__(self, other: object) -> Multivector | NotImplementedType:
         if isinstance(other, Real):
-            return _invoke("divide", self._algebra.scalar(other, expr=False), self)
+            return divide(other, self)
         return NotImplemented
 
     def __pow__(self, exponent: object) -> Multivector | NotImplementedType:
@@ -986,7 +986,7 @@ class Multivector:
             return NotImplemented
         if not isinstance(exponent, Integral) and (not isinstance(exponent, Real) or np.any(self._algebra.gram)):
             return NotImplemented
-        return _invoke("power", self, exponent)
+        return power(self, exponent)
 
     def __xor__(self, other: object) -> Multivector | NotImplementedType:
         converted = self._coerce_additive(other)
@@ -1333,6 +1333,99 @@ def _invoke(operation_id: str, *args: Any, **kwargs: Any) -> Any:
             raise RuntimeError(f"{operation_id} declared a scalar result but produced {type(result).__name__}")
         return owner.scalar(result, expr=expression)
     return result
+
+
+def _arithmetic_operands(
+    operation_id: str, left: Multivector | Real, right: Multivector | Real
+) -> tuple[Multivector, Multivector]:
+    owner = next((value.algebra for value in (left, right) if isinstance(value, Multivector)), None)
+    if owner is None:
+        raise TypeError(f"{operation_id} requires at least one Multivector")
+
+    def convert(value: Multivector | Real) -> Multivector:
+        if isinstance(value, Multivector):
+            return value
+        if isinstance(value, Real):
+            return owner.scalar(value, expr=False)
+        raise TypeError(f"{operation_id} expects Multivectors or real scalars")
+
+    return convert(left), convert(right)
+
+
+def add(left: Multivector | Real, right: Multivector | Real) -> Multivector:
+    """Return ``left + right``, preserving operand order and expression tracking.
+
+    At least one operand must be a multivector. A real scalar is promoted into
+    its partner's algebra; multivectors must belong to the same algebra.
+    """
+    return _invoke("add", *_arithmetic_operands("add", left, right))
+
+
+def subtract(left: Multivector | Real, right: Multivector | Real) -> Multivector:
+    """Return ``left - right``, preserving operand order and expression tracking.
+
+    At least one operand must be a multivector. A real scalar is promoted into
+    its partner's algebra; multivectors must belong to the same algebra.
+    """
+    return _invoke("subtract", *_arithmetic_operands("subtract", left, right))
+
+
+def divide(left: Multivector | Real, right: Multivector | Real) -> Multivector:
+    """Return ``left / right``, using right multiplication by the inverse.
+
+    For a multivector denominator this is ``left * inverse(right)``; an exactly
+    scalar denominator uses direct coefficient division. A real denominator
+    uses ``scalar_divide``. Zero scalar denominators raise ``ZeroDivisionError``;
+    noninvertible multivector denominators raise ``ValueError``.
+
+    At least one operand must be a multivector. A real numerator is promoted
+    into the denominator's algebra; multivectors must belong to the same algebra.
+    """
+    if isinstance(left, Multivector) and isinstance(right, Real):
+        return scalar_divide(left, right)
+    return _invoke("divide", *_arithmetic_operands("divide", left, right))
+
+
+def negate(value: Multivector) -> Multivector:
+    """Return ``-value``, negating every multivector coefficient."""
+    if not isinstance(value, Multivector):
+        raise TypeError("negate expects a Multivector")
+    return _invoke("negate", value)
+
+
+def scalar_multiply(value: Multivector, scalar: Real) -> Multivector:
+    """Return ``value * scalar`` for a real scalar, preserving expression tracking."""
+    if not isinstance(value, Multivector) or not isinstance(scalar, Real):
+        raise TypeError("scalar_multiply expects a Multivector and a real scalar")
+    return _invoke("scalar_multiply", value, scalar)
+
+
+def scalar_divide(value: Multivector, scalar: Real) -> Multivector:
+    """Return ``value / scalar`` by dividing every coefficient by a real scalar.
+
+    Preserve expression tracking. A zero divisor raises ``ZeroDivisionError``.
+    """
+    if not isinstance(value, Multivector) or not isinstance(scalar, Real):
+        raise TypeError("scalar_divide expects a Multivector and a real scalar")
+    return _invoke("scalar_divide", value, scalar)
+
+
+def power(value: Multivector, exponent: Real) -> Multivector:
+    """Return the geometric power ``value ** exponent``.
+
+    Integer exponents work for every metric; negative integers require an
+    invertible value. Noninteger real exponents are supported only for an
+    all-zero Gram matrix, on the real branches supported by the exterior
+    algebra. Positive scalar part gives the principal finite binomial branch.
+    Boolean exponents are rejected.
+    """
+    if not isinstance(value, Multivector):
+        raise TypeError("power expects a Multivector")
+    if isinstance(exponent, (bool, np.bool_)):
+        raise TypeError("power does not accept boolean exponents")
+    if not isinstance(exponent, Integral) and (not isinstance(exponent, Real) or np.any(value.algebra.gram)):
+        raise TypeError("power requires an integer exponent, or a real exponent in an all-null algebra")
+    return _invoke("power", value, exponent)
 
 
 def geometric_product(*values: Multivector) -> Multivector:
@@ -1755,6 +1848,7 @@ def outertan(value: Multivector) -> Multivector:
 __all__ = [
     "Algebra",
     "Multivector",
+    "add",
     "anticommutator",
     "antidot_product",
     "antimetric_apply",
@@ -1765,6 +1859,7 @@ __all__ = [
     "clifford_conjugate",
     "conjugate",
     "doran_lasenby_inner",
+    "divide",
     "dual",
     "even_grades",
     "exp",
@@ -1795,6 +1890,7 @@ __all__ = [
     "metric_apply",
     "metric_inner_product",
     "metric_regressive_product",
+    "negate",
     "norm",
     "norm2",
     "odd_grades",
@@ -1803,6 +1899,7 @@ __all__ = [
     "outer_product",
     "outersin",
     "outertan",
+    "power",
     "regressive_product",
     "reverse",
     "right_complement",
@@ -1813,10 +1910,13 @@ __all__ = [
     "rotor_generator",
     "sandwich",
     "scalar_part",
+    "scalar_divide",
+    "scalar_multiply",
     "scalar_product",
     "scalar_sqrt",
     "sqrt",
     "squared",
+    "subtract",
     "transwedge",
     "transwedge_antiproduct",
     "uncomplement",

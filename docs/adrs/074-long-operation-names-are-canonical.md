@@ -68,6 +68,20 @@ reviewed manually and are not eligible for the lexical codemod.
 
 ### Public operation discovery
 
+Every catalog operation has a named public function, including arithmetic:
+`add`, `subtract`, `divide`, `negate`, `power`, `scalar_multiply`, and
+`scalar_divide`. Arithmetic operators delegate to these functions after their
+Python protocol checks. Functions use the same dispatcher, expression IDs,
+and numeric evaluators as operator calls.
+
+`add`, `subtract`, and `divide` accept two multivectors or one multivector
+and one real scalar. Scalar operands are promoted into the partner's algebra;
+calls require at least one multivector. Scalar multiplication and division
+have explicit functions with a multivector followed by a real scalar.
+`divide` denotes right division; a real denominator uses `scalar_divide`,
+including its expression identity. `power` retains the integer domain for
+general metrics and the supported real branches for all-null exterior algebras.
+
 Public numeric operations have explicit callable signatures and literal source
 docstrings on their exported facade functions. The docstrings describe the
 mathematical operation and relevant domain restrictions, with facade-specific

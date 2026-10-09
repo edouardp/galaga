@@ -107,9 +107,10 @@ class TestArchitecturalInvariants:
         assert_catalog_complete(OPERATIONS, EXCLUDED_PUBLIC_NAMES)
 
     def test_handler_map_covers_ga_ops(self):
-        for name in OPERATIONS.keys() - STRUCTURAL:
+        for name in OPERATIONS:
             assert callable(getattr(ga, name))
             assert getattr(ga, name) is getattr(ga.facade, name)
+            assert name in ga.__all__
         assert set(ga.OPERATION_ALIASES).isdisjoint(OPERATIONS)
         for alias, canonical in ga.OPERATION_ALIASES.items():
             assert canonical in OPERATIONS

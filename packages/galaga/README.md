@@ -59,11 +59,25 @@ Common operators are conveniences over named functions:
 
 | Python | Named operation | Meaning |
 |---|---|---|
+| `a + b` | `add(a, b)` | Coefficient addition |
+| `a - b` | `subtract(a, b)` | Coefficient subtraction |
+| `-a` | `negate(a)` | Coefficient negation |
 | `a * b` | `geometric_product(a, b)` | Clifford product |
+| `a * s` | `scalar_multiply(a, s)` | Scaling by a real scalar |
 | `a ^ b` | `outer_product(a, b)` | Exterior product |
 | `a \| b` | `doran_lasenby_inner(a, b)` | Grade-difference inner product, including scalars |
 | `~a` | `reverse(a)` | Reversion, not inversion |
-| `a / b` | `geometric_product(a, inverse(b))` | Right division for multivector `b` |
+| `a / b` | `divide(a, b)` | Right division, equivalent to `a * inverse(b)` |
+| `a / s` | `scalar_divide(a, s)` | Direct coefficient division by a real scalar |
+| `a ** k` | `power(a, k)` | Geometric power |
+
+All named operations can be imported from `galaga`. In this table `a` and `b`
+are multivectors and `s` is a real scalar. `add`, `subtract`, and `divide`
+also accept a real scalar in either position, promoted into the other operand's
+algebra; at least one operand must be a multivector. `divide(a, s)` uses
+`scalar_divide(a, s)`. Multivector operands must belong to the same algebra.
+Integer powers work in every metric; supported real powers in an all-null
+exterior algebra are described below.
 
 Parenthesize wedge expressions when mixing them with other Python operators.
 Long names are the primary API; `gp`, `op`, `rev` and `sw` remain concise aliases.
