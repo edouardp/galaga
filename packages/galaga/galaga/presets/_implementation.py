@@ -14,6 +14,7 @@ from ..blades import (
     DisplayOrder,
     LocalNamePolicy,
     _cga_pseudoscalar_labels,
+    _complex_dimension,
     _validate_cga_pseudoscalar_options,
     complex_blade_convention,
     conformal_spacetime_blade_convention,
@@ -93,7 +94,7 @@ class BladePreset(PresentationComposable):
         if self.kind == "rga":
             return rga_blade_convention()
         if self.kind == "complex":
-            return complex_blade_convention()
+            return complex_blade_convention(**options)
         if self.kind == "quaternion":
             return quaternion_blade_convention()
         if self.kind == "sta":
@@ -170,8 +171,10 @@ class _BladePresets:
     def rga(self) -> BladePreset:
         return BladePreset("rga", 4)
 
-    def complex(self) -> BladePreset:
-        return BladePreset("complex", 2)
+    def complex(self, *, representation: Literal["bivector", "vector"] = "bivector") -> BladePreset:
+        """Name ``i`` as ``e12`` or ``e1`` without selecting the algebra's metric."""
+        dimension = _complex_dimension(representation)
+        return BladePreset("complex", dimension, (("representation", representation),))
 
     def quaternion(self) -> BladePreset:
         return BladePreset("quaternion", 3)
@@ -425,12 +428,25 @@ class LengyelCGAPreset:
 
 @dataclass(frozen=True, slots=True)
 class ComplexPreset:
-    """Complex numbers in the even subalgebra of Euclidean ``Cl(2, 0)``."""
+    """Complex arithmetic with a bivector or vector imaginary unit.
+
+    ``bivector`` constructs full Euclidean ``Cl(2, 0)``, with complex values
+    in its even subalgebra. ``vector`` constructs ``Cl(0, 1)``, whose entire
+    algebra represents complex numbers. GA operation meanings are unchanged.
+    Both presentations expose the pseudoscalar as local ``i``.
+    """
+
+    representation: Literal["bivector", "vector"] = "bivector"
+
+    def __post_init__(self) -> None:
+        _complex_dimension(self.representation)
 
     def build(self) -> AlgebraConfig:
-        blades = complex_blade_convention()
+        blades = complex_blade_convention(representation=self.representation)
+        signature = (1, 1) if self.representation == "bivector" else (-1,)
+        identifier = "complex-cl2" if self.representation == "bivector" else "complex-cl01"
         return AlgebraConfig(
-            definition=AlgebraDefinition.from_signature((1, 1), id="complex-cl2"),
+            definition=AlgebraDefinition.from_signature(signature, id=identifier),
             presentation=_presentation(blades, notation=Notation("complex")),
             model=_model("complex", blades),
         )
@@ -532,9 +548,15 @@ def lengyel_cga(spatial_dim: int = 3) -> LengyelCGAPreset:
     return LengyelCGAPreset(spatial_dim)
 
 
-def complex() -> ComplexPreset:
-    """Return an inspectable complex-number preset."""
-    return ComplexPreset()
+def complex(*, representation: Literal["bivector", "vector"] = "bivector") -> ComplexPreset:
+    """Return complex arithmetic with ``i`` represented as a bivector or vector.
+
+    ``bivector`` (default) selects full ``Cl(2, 0)`` with ``i = e1 ^ e2``.
+    ``vector`` selects full ``Cl(0, 1)`` with ``i = e1``. Both name the
+    pseudoscalar ``i`` in display and ``locals()``. Reversion, norms, and rotor
+    behavior retain the meanings of the selected ambient geometric algebra.
+    """
+    return ComplexPreset(representation=representation)
 
 
 def quaternion() -> QuaternionPreset:

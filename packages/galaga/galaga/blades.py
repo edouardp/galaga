@@ -777,13 +777,27 @@ def rga_display_order() -> DisplayOrder:
     )
 
 
-def complex_blade_convention() -> BladeConvention:
-    """Complex numbers as the even subalgebra of Euclidean ``Cl(2, 0)``."""
+def _complex_dimension(representation: str) -> int:
+    if representation == "bivector":
+        return 2
+    if representation == "vector":
+        return 1
+    raise ValueError("complex representation must be 'bivector' or 'vector'")
+
+
+def complex_blade_convention(*, representation: Literal["bivector", "vector"] = "bivector") -> BladeConvention:
+    """Name the imaginary unit ``i`` as a bivector or a single basis vector.
+
+    The default names ``e12`` in dimension two; ``vector`` names ``e1`` in
+    dimension one. This convention selects vocabulary without changing a metric.
+    """
+    dimension = _complex_dimension(representation)
+    mask = (1 << dimension) - 1
     return indexed_blade_convention(
-        2,
-        overrides={0b11: BladeLabel(Name("i", "i", "i"), BladeRef(0b11))},
-        aliases={"e12": BladeRef(0b11)},
-        roles={"imaginary": BladeRef(0b11)},
+        dimension,
+        overrides={mask: BladeLabel(Name("i", "i", "i"), BladeRef(mask))},
+        aliases={"e12" if dimension == 2 else "e1": BladeRef(mask)},
+        roles={"imaginary": BladeRef(mask)},
     )
 
 

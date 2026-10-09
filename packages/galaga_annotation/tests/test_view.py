@@ -87,6 +87,21 @@ def test_composed_presenter_keeps_annotation_rules_and_blade_names() -> None:
         assert result.value.ascii() == "gp(v1, v2) = v12"
 
 
+@pytest.mark.parametrize("representation", ["bivector", "vector"])
+def test_complex_representations_preserve_annotation_rules_and_numeric_value(representation) -> None:
+    algebra = Algebra(config=presets.complex(representation=representation), user_config_files=False)
+    value = 2 + 3 * algebra.I
+    annotated = ga.annotate(value, label="complex number")
+    presenter = presets.presenters.values()
+
+    for result in (presenter(annotated), ga.AnnotationPresenter(base=presenter)(annotated)):
+        assert isinstance(result, ga.Annotated)
+        assert result.rules == annotated.rules
+        assert result.plain is value
+        assert result.value.ascii() == "2 + 3i"
+    assert algebra.locals()["i"] == algebra.I
+
+
 def test_pseudoscalar_patch_preserves_annotation_rules_and_numeric_value() -> None:
     algebra = Algebra(0, 1, user_config_files=False)
     value = 2 + 3 * algebra.I

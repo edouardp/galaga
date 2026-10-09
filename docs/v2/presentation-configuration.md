@@ -559,10 +559,33 @@ same_notation = Algebra(config=presets.euclidean(3), expr=True, presentation=sta
 | `LengyelCGAPreset(3)` | Standard native-null CGA | Bold signed $e_1,\ldots,e_5$ blades, Lengyel order, and unit antiscalar $𝟙$ |
 | `LengyelRGAPreset(3)` | Three positive vectors plus a final null vector | Signed RGA vocabulary and Lengyel order |
 | `ComplexPreset()` | Euclidean `Cl(2, 0)` | Bivector `i` |
+| `ComplexPreset(representation="vector")` | `Cl(0, 1)` | Vector `i` |
 | `QuaternionPreset()` | Euclidean `Cl(3, 0)` | Bivectors `i`, `j`, `k` and conventional order |
 | `ExteriorPreset(n)` | All-zero Gram matrix | Explicit wedge labels |
 
 The `presets.*` functions construct these configurations.
+
+`presets.complex(representation="bivector")` is the default. It constructs
+full `Cl(2,0)` with complex values in grades zero and two; the surrounding
+plane vectors remain available. `presets.complex(representation="vector")`
+constructs full `Cl(0,1)`, where every multivector has the form $a+bi$.
+Both presets expose the pseudoscalar through `locals()["i"]`. In the vector
+representation it is also the only basis vector:
+
+```python
+from galaga import Algebra, presets
+
+algebra = Algebra(config=presets.complex(representation="vector"))
+(i,) = algebra.basis_vectors()
+assert i == algebra.I == algebra.locals()["i"]
+assert i.latex(content="value") == "i"
+```
+
+`presets.blades.complex(representation=...)` selects the same vocabulary
+without changing the metric. GA reversion and norms retain their definitions:
+`norm2(a + b*i)` is $a^2+b^2$ for the bivector representation and $a^2-b^2$
+for the vector representation. Use Clifford conjugation for complex
+conjugation in either representation.
 
 `presets.oblique_plane(angle=math.pi / 3)` takes radians, while
 `presets.oblique_plane(degrees=60)` takes degrees. Specify exactly one. Both

@@ -155,9 +155,47 @@ in Euclidean-first 3D, native `I` displays as $-I_C$ when model names are
 selected. In 1D, the Euclidean vector remains `e1`, with `IE` lookup-only.
 
 The complete factories are `euclidean`, `oblique_plane`, `sta`, `pga`, `cga`, `rga`,
-`lengyel_cga`, `csta`, `complex`, `quaternion` and `exterior`. Complex and quaternion
-presets describe even subalgebras of real Euclidean algebras, not complex
-coefficient storage. Import `presets` to use these complete factories.
+`lengyel_cga`, `csta`, `complex`, `quaternion` and `exterior`. The default complex
+preset and the quaternion preset represent numbers in even subalgebras of real
+Euclidean algebras. Complex numbers also have a minimal vector representation:
+
+```python
+from galaga import Algebra, clifford_conjugate, norm2, presets
+
+plane = Algebra(config=presets.complex())  # representation="bivector"
+minimal = Algebra(config=presets.complex(representation="vector"))
+
+assert list(plane.locals()) == ["e1", "e2", "i"]
+assert list(minimal.locals()) == ["i"]
+(i,) = minimal.basis_vectors()
+assert i == minimal.I == minimal.locals()["i"]
+assert (2 + 3 * i).display("value/ascii") == "2 + 3i"
+
+z_plane = 2 + 3 * plane.I
+z_minimal = 2 + 3 * minimal.I
+assert norm2(z_plane) == 13
+assert norm2(z_minimal) == -5
+assert float(z_minimal * clifford_conjugate(z_minimal)) == 13
+```
+
+| Complex representation | Algebra returned | Imaginary unit | Choose it for |
+|---|---|---|---|
+| `"bivector"` (default) | Full `Cl(2,0)` | `i = e1 ^ e2` | Complex arithmetic alongside plane vectors and rotor geometry |
+| `"vector"` | Full `Cl(0,1)` | `i = e1` | The smallest algebra representing complex arithmetic |
+
+The bivector option leaves ambient grade-one vectors available; complex values
+occupy only its even grades. In the vector option every multivector is a complex
+value. Both expose local `i`, use real coefficients, and retain GA operation
+semantics: `norm2(z)` takes the scalar part of `z * reverse(z)`, giving
+$a^2+b^2$ for a bivector imaginary unit and $a^2-b^2$ for a vector imaginary
+unit. Clifford conjugation gives complex conjugation in both representations.
+The vector representation's squared norm is indefinite: `norm2(1 + i)` is
+zero even though `1 + i` is nonzero and invertible. Use
+`float(z * clifford_conjugate(z))` for the squared complex modulus in either
+representation.
+The blade-only factory `presets.blades.complex(representation=...)` selects
+matching labels without changing the metric. Import `presets` to use the
+complete factories.
 
 For two unit basis vectors separated by an angle, use
 `Algebra(config=presets.oblique_plane(degrees=60))` or

@@ -24,6 +24,37 @@ def _local_config(tmp_path, monkeypatch, source: str) -> Path:
     return _write(tmp_path / ".galaga_python.toml", source)
 
 
+@pytest.mark.parametrize(
+    "preset,representation",
+    [
+        ("complex", "bivector"),
+        ("complex", "vector"),
+    ],
+)
+def test_named_number_configs_and_blade_recipes_select_representation(tmp_path, preset, representation):
+    path = _write(
+        tmp_path / "config.toml",
+        f'''version = 1
+[algebras.numbers]
+preset = "{preset}"
+[algebras.numbers.args]
+representation = "{representation}"
+[presentations.labels.blades]
+preset = "{preset}"
+representation = "{representation}"
+''',
+    )
+    settings = config.load(files=[path])
+    algebra = Algebra(config=settings.algebra("numbers"), user_config_files=False)
+    expected = Algebra(config=getattr(presets, preset)(representation=representation), user_config_files=False)
+    assert algebra.signature == expected.signature
+    assert algebra.presentation == expected.presentation
+    assert algebra.locals()["i"] == algebra.blade("i")
+    raw = Algebra(algebra.signature, user_config_files=False)
+    selected = settings.presentation("labels").apply_to(raw.presentation, raw.gram)
+    assert selected.blades == expected.presentation.blades
+
+
 def test_discovery_layers_global_and_ancestor_presentation_defaults(tmp_path, monkeypatch):
     global_file = _write(
         tmp_path / "xdg/galaga_python/config.toml",

@@ -87,6 +87,48 @@ Generated HTML/TeX is inspected, alongside the gallery's headless exports.
 
 ## Consequences
 
+### Select the complex representation explicitly
+
+`presets.complex(representation="bivector")` remains the default and
+constructs full Euclidean $\mathrm{Cl}(2,0)$, with complex values occupying
+grades zero and two and $i=e_1\wedge e_2$. The additional
+`representation="vector"` constructs full $\mathrm{Cl}(0,1)$, where $i=e_1$
+and every multivector represents a complex number. The option describes the
+grade of the imaginary unit; it does not restrict construction to a subalgebra.
+
+`ComplexPreset`, `presets.blades.complex()`, and
+`complex_blade_convention()` accept the same two representation names. Blade-only
+selection names the vocabulary and validates its dimension; it continues to
+leave the target metric unchanged. Complete presets supply the appropriate
+metric, native-blade alias (`e12` or `e1`), and `imaginary` role. Both derive
+local names from their convention, expose the pseudoscalar under Python key
+`i`, and display it as `i`. In the vector representation the only basis vector
+is the same blade and therefore also displays as `i`.
+
+Operation semantics remain determined by the ambient metric and grades. For
+$z=a+bi$, the definition
+
+$$
+\operatorname{norm2}(z)=\langle z\widetilde z\rangle_0
+$$
+
+gives $a^2+b^2$ for the bivector representation, because reversion negates
+the bivector, and $a^2-b^2$ for the vector representation, because reversion
+fixes a vector. Clifford conjugation supplies ordinary complex conjugation
+in both cases, so $z\operatorname{clifford\_conjugate}(z)=a^2+b^2$ in either
+representation. No preset-specific norm or reversion dispatch is introduced.
+In the vector representation this squared norm can vanish for a nonzero
+invertible value such as $1+i$; it is not a complex-modulus or invertibility test.
+Existing square-root, logarithm, power, and rotor domain rules remain intact.
+
+Tests derive the top blade from the exterior product of the actual basis
+vectors and check its square against the Gram determinant. Both representations
+are compared with Python complex arithmetic and `cmath` on supported inputs;
+tests also cover aliases, roles, locals, basis display, expression replay,
+presenter and annotation views, invalid options, and unchanged default behavior.
+
+### Historical validation
+
 All 155 focused cases pass with 100% line/branch coverage in the three test
 files. All 143 public cases pass directly from the built wheel with package
 origins verified and legacy imports forbidden. Full package/release suites
