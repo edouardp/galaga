@@ -34,7 +34,6 @@ __all__ = [
     "antimetric_apply",
     "antireverse",
     "antiwedge",
-    "bulk_part",
     "commutator",
     "complement",
     "clifford_conjugate",
@@ -102,7 +101,6 @@ __all__ = [
     "uncomplement",
     "undual",
     "unit",
-    "weight_part",
 ]
 
 _SYMMETRY_RTOL = 1e-12
@@ -513,7 +511,7 @@ class Algebra:
         self._n = normalized.shape[0]
         self._dim = 1 << self._n
         self._is_orthogonal_basis = bool(np.array_equal(normalized, np.diag(basis_squares)))
-        self._has_legacy_signature = self._is_orthogonal_basis and bool(
+        self._has_normalized_signature = self._is_orthogonal_basis and bool(
             np.all(np.isin(basis_squares, (-1.0, 0.0, 1.0)))
         )
         metadata = dimension_metadata(self._n)
@@ -639,7 +637,7 @@ class Algebra:
 
     @property
     def I(self) -> Multivector:  # noqa: E743 - conventional pseudoscalar name
-        """Pseudoscalar compatibility property."""
+        """Return the native pseudoscalar."""
         return self.pseudoscalar()
 
     def blade(self, bitmask: int) -> Multivector:
@@ -707,13 +705,13 @@ class Algebra:
 
     @property
     def signature(self) -> tuple[int, ...]:
-        """Return the legacy ordered signature for normalized diagonal metrics.
+        """Return the ordered signature for normalized diagonal metrics.
 
         A non-orthogonal Gram matrix has no per-basis-vector signature tuple
         that captures its metric. Returning its diagonal or inertia here would
         discard information, so callers must use ``gram`` instead.
         """
-        if not self._has_legacy_signature:
+        if not self._has_normalized_signature:
             raise ValueError("signature is only defined for normalized diagonal metrics; use gram or basis_squares")
         return tuple(int(square) for square in self._basis_squares)
 
@@ -837,16 +835,6 @@ def antidot_product(left: Multivector, right: Multivector) -> Multivector:
     left._check_same(right)
     pairing = float(left.data @ left.algebra.metric_antiexomorphism_matrix() @ right.data)
     return pairing * left.algebra.I
-
-
-def bulk_part(value: Multivector) -> Multivector:
-    """Return the metric-applied bulk part of a multivector."""
-    return metric_apply(value)
-
-
-def weight_part(value: Multivector) -> Multivector:
-    """Return the antimetric-applied weight part of a multivector."""
-    return antimetric_apply(value)
 
 
 def right_hodge_dual(value: Multivector) -> Multivector:

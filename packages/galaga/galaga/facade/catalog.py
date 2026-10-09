@@ -269,7 +269,6 @@ def _core_operations() -> tuple[OperationSpec, ...]:
     unary = (
         "antimetric_apply",
         "antireverse",
-        "bulk_part",
         "complement",
         "clifford_conjugate",
         "dual",
@@ -293,7 +292,6 @@ def _core_operations() -> tuple[OperationSpec, ...]:
         "squared",
         "uncomplement",
         "undual",
-        "weight_part",
     )
 
     specs = [_core_operation(name, 1) for name in unary]
@@ -487,7 +485,11 @@ def _cga_semantic_operations() -> tuple[OperationSpec, ...]:
             3,
             _cga_radius_squared,
             expression_arity=1,
-            parameters=(*origin_and_infinity, tolerance),
+            parameters=(
+                *origin_and_infinity,
+                tolerance,
+                ParameterSpec("sign", normalize=_normalize_integer, render=False),
+            ),
         ),
         OperationSpec(
             "attitude",
@@ -695,6 +697,56 @@ def _csta_semantic_operations() -> tuple[OperationSpec, ...]:
     )
 
 
+def _model_semantic_operations() -> tuple[OperationSpec, ...]:
+    roles = tuple(
+        ParameterSpec(name, positional=True, required=True, normalize=_normalize_blade_role, render=False)
+        for name in ("origin", "infinity")
+    )
+    return (
+        OperationSpec(
+            "projective_point",
+            3,
+            _projective_point,
+            expression_arity=2,
+            parameters=(
+                ParameterSpec(
+                    "projective", positional=True, required=True, normalize=_normalize_blade_role, render=False
+                ),
+                ParameterSpec("dual", normalize=_normalize_bool, render=False),
+            ),
+        ),
+        OperationSpec("rga_join", 2, core.outer_product),
+        OperationSpec("rga_meet", 2, core.antiwedge),
+        OperationSpec("pga_join", 2, core.antiwedge),
+        OperationSpec("pga_meet", 2, core.outer_product),
+        OperationSpec("projective_bulk_part", 1, core.metric_apply),
+        OperationSpec("projective_weight_part", 1, core.antimetric_apply),
+        OperationSpec("conformal_point", 3, _cga_up, expression_arity=1, parameters=roles),
+    )
+
+
+def _normalize_bool(value: Any) -> bool:
+    if not isinstance(value, bool):
+        raise TypeError("dual must be a boolean")
+    return value
+
+
+def _projective_point(
+    position: core.Multivector, weight: core.Multivector, projective: tuple[int, int], *, dual: bool = False
+) -> core.Multivector:
+    if projective[0].bit_count() != 1:
+        raise ValueError("projective role must identify a basis vector")
+    if any(
+        coefficient != 0.0 and (mask.bit_count() != 1 or mask == projective[0])
+        for mask, coefficient in enumerate(position.data)
+    ):
+        raise ValueError("projective point position must be a vector in the Euclidean subspace")
+    if not core.is_scalar(weight):
+        raise ValueError("projective point weight must be scalar")
+    point = position + weight * _role_blade(position, projective)
+    return core.complement(point) if dual else point
+
+
 def _normalize_csta_basis(value: Any) -> tuple[tuple[int, int], ...]:
     roles = tuple(_normalize_blade_role(role) for role in value)
     if len(roles) != 4 or len({mask for mask, _ in roles}) != 4:
@@ -836,12 +888,13 @@ def _cga_radius_squared(
     infinity: tuple[int, int],
     *,
     atol: float = 1e-12,
+    sign: int = -1,
 ) -> core.Multivector:
     weight = _cga_weight(value, origin, infinity)
     coefficient = float(weight.scalar_part)
     if abs(coefficient) <= atol:
         raise ValueError("an infinite conformal vector has no finite round radius")
-    return -core.squared(value) / (coefficient * coefficient)
+    return sign * core.squared(value) / (coefficient * coefficient)
 
 
 def _rga_semantic_operations() -> tuple[OperationSpec, ...]:
@@ -1542,6 +1595,7 @@ _expression_operation_items = (
     *_cga_semantic_operations(),
     *_csta_semantic_operations(),
     *_rga_semantic_operations(),
+    *_model_semantic_operations(),
 )
 _expression_operation_dict = {operation.id: operation for operation in _expression_operation_items}
 if len(_expression_operation_dict) != len(_expression_operation_items):

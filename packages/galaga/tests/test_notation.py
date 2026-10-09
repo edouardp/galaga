@@ -1,4 +1,4 @@
-"""Public notation contracts with captured legacy ownership and observations."""
+"""Public notation, numeric values, and exact rendering observations."""
 
 import json
 from dataclasses import FrozenInstanceError
@@ -56,8 +56,8 @@ OLD_NODE_OPERATIONS = {
     "JordanProduct": "jordan_product",
     "MetricApply": "metric_apply",
     "AntimetricApply": "antimetric_apply",
-    "BulkPart": "bulk_part",
-    "WeightPart": "weight_part",
+    "BulkPart": "metric_apply",
+    "WeightPart": "antimetric_apply",
     "RightHodgeDual": "right_hodge_dual",
     "LeftHodgeDual": "left_hodge_dual",
     "RightWeightDual": "right_weight_dual",
@@ -127,8 +127,8 @@ DEFAULT_RENDERINGS = {
     "JordanProduct": ("{a, b}", "{a, b}", "\\{a,\\, b\\}"),
     "MetricApply": ("metric_apply(a)", "metric_apply(a)", "\\operatorname{metric\\_apply}(a)"),
     "AntimetricApply": ("antimetric_apply(a)", "antimetric_apply(a)", "\\operatorname{antimetric\\_apply}(a)"),
-    "BulkPart": ("bulk_part(a)", "bulk_part(a)", "\\operatorname{bulk\\_part}(a)"),
-    "WeightPart": ("weight_part(a)", "weight_part(a)", "\\operatorname{weight\\_part}(a)"),
+    "BulkPart": ("metric_apply(a)", "metric_apply(a)", "\\operatorname{metric\\_apply}(a)"),
+    "WeightPart": ("antimetric_apply(a)", "antimetric_apply(a)", "\\operatorname{antimetric\\_apply}(a)"),
     "RightHodgeDual": ("right_hodge_dual(a)", "right_hodge_dual(a)", "\\operatorname{right\\_hodge\\_dual}(a)"),
     "LeftHodgeDual": ("left_hodge_dual(a)", "left_hodge_dual(a)", "\\operatorname{left\\_hodge\\_dual}(a)"),
     "RightWeightDual": ("right_weight_dual(a)", "right_weight_dual(a)", "\\operatorname{right\\_weight\\_dual}(a)"),

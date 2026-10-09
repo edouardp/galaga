@@ -12,7 +12,7 @@ from tools.rendering_contract import NAMED_ALGEBRAS, ExpressionContext, context_
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"e_{1} \wedge e_{2} \quad = \quad e_{12}",
     ),
 )
@@ -24,7 +24,7 @@ def test_simple_wedge_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"1 + v \quad = \quad 1 - 0.5 e_{1}",
     ),
 )
@@ -37,7 +37,7 @@ def test_named_negative_vector_is_a_symbolic_boundary(context: ExpressionContext
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"1 - 0.5 v \quad = \quad 1 - 0.5 e_{1}",
     ),
 )
@@ -50,7 +50,7 @@ def test_add_negative_scaled_named_vector(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"1 - v \quad = \quad 1 - e_{1}",
     ),
 )
@@ -63,7 +63,7 @@ def test_add_negative_unit_scaled_named_vector(context: ExpressionContext) -> An
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"""
         x
         \quad = \quad
@@ -81,7 +81,7 @@ def test_mixed_grade_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"u \wedge v \quad = \quad 3.1 e_{12}",
     ),
 )
@@ -95,7 +95,7 @@ def test_exterior_area_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"u \wedge v \wedge w \quad = \quad 3.72 e_{123}",
     ),
 )
@@ -110,7 +110,7 @@ def test_exterior_volume_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"\lVert v \rVert \quad = \quad 5",
     ),
 )
@@ -122,7 +122,7 @@ def test_named_vector_norm_is_a_renderable_scalar(context: ExpressionContext) ->
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"\lVert B \rVert \quad = \quad 1",
     ),
 )
@@ -134,7 +134,7 @@ def test_named_bivector_norm_is_a_renderable_scalar(context: ExpressionContext) 
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"e^{-\theta B/2} \quad = \quad 0.92388 - 0.382683 e_{12}",
     ),
 )
@@ -148,7 +148,7 @@ def test_named_angle_survives_rotor_generator_operations(context: ExpressionCont
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"\log\left(e^{-\theta B/2}\right) \quad = \quad -0.5 e_{12}",
     ),
 )
@@ -165,7 +165,7 @@ def test_rotor_logarithm_elides_parentheses_around_one_negative_blade_term(
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl2/full-default",
+        "cl2/full-default",
         r"""
         r' \quad = \quad R r \widetilde{R}
         \quad = \quad 0.839999 e_{1} + 1.48809 e_{2}
@@ -183,7 +183,7 @@ def test_rotor_sandwich_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"\left(v \mathbin{\rfloor} B\right) B^{-1} \quad = \quad e_{1} + e_{2}",
     ),
 )
@@ -197,7 +197,7 @@ def test_projection_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/pga3/full-default",
+        "pga3/full-default",
         r"""
         A^{\complement} \wedge B^{\complement}
         \quad = \quad
@@ -218,7 +218,7 @@ def test_pga_join_expression(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/pga3/full-default",
+        "pga3/full-default",
         r"""
         C \quad = \quad i - 0.5 E_1 + 1.5 E_2
         \quad = \quad
@@ -237,7 +237,7 @@ def test_pga_point_with_negative_coordinate(context: ExpressionContext) -> Any:
 
 @latex_test(
     testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"""
         x
         \quad = \quad
@@ -247,7 +247,7 @@ def test_pga_point_with_negative_coordinate(context: ExpressionContext) -> Any:
         """,
     ),
     testcase(
-        "core-facade-v2/cl3/full-precision-3",
+        "cl3/full-precision-3",
         r"""
         x
         \quad = \quad
@@ -257,7 +257,7 @@ def test_pga_point_with_negative_coordinate(context: ExpressionContext) -> Any:
         """,
     ),
     testcase(
-        "core-facade-v2/cl3/full-unfiltered-12",
+        "cl3/full-unfiltered-12",
         r"""
         x
         \quad = \quad
@@ -281,7 +281,7 @@ def test_every_named_algebra_configuration_can_be_constructed(configuration: str
 
 def test_multiline_expected_latex_is_dedented_and_joined_for_readability() -> None:
     case = testcase(
-        "core-facade-v2/cl3/full-default",
+        "cl3/full-default",
         r"""
         a \wedge b
         \quad = \quad e_{12}

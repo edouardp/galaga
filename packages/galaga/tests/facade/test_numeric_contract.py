@@ -348,8 +348,9 @@ def test_seeded_diagonal_contract_matches_history_and_core_reference(case_id: st
     assert reference.product_backend == "reference"
     assert expected.shape == (algebra.dim,)
 
-    actual = getattr(facade, operation)(*_sample_arguments(algebra, sample, operation))
-    reference_result = getattr(core, operation)(*_sample_arguments(reference, sample, operation))
+    current_operation = {"bulk_part": "metric_apply", "weight_part": "antimetric_apply"}.get(operation, operation)
+    actual = getattr(facade, current_operation)(*_sample_arguments(algebra, sample, operation))
+    reference_result = getattr(core, current_operation)(*_sample_arguments(reference, sample, operation))
 
     assert isinstance(actual, facade.Multivector) and actual.algebra is algebra
     assert isinstance(reference_result, core.Multivector) and reference_result.algebra is reference

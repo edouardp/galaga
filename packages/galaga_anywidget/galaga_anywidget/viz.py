@@ -10,7 +10,7 @@ import numpy as np
 from marimo._runtime.state import State
 
 from galaga import Multivector
-from galaga.cga import ConformalModel
+from galaga.models import ConformalModel
 
 from .cga2d import CGA2DChange, CGA2DPlot
 

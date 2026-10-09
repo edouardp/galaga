@@ -17,8 +17,8 @@ from typing import Any, Literal
 
 import numpy as np
 
-from galaga import Multivector, outer_product, scalar_product, squared
-from galaga.cga import ConformalModel
+from galaga import Multivector
+from galaga.models import ConformalModel
 
 from .annotator import annotator
 from .model import on
@@ -120,11 +120,6 @@ _LAYERED_LABELS = {
     "dipole": _LayeredLabels("carrier line", "cocarrier normal", "flat point", "cocarrier position"),
     "circle": _LayeredLabels("carrier plane", "cocarrier direction", "flat line", "cocarrier moment"),
 }
-_DIRECT_KINDS = {
-    2: ("flat point", "dipole"),
-    3: ("line", "circle"),
-    4: ("plane", "sphere"),
-}
 
 
 def _checked_inputs(value: Any, model: Any, operation: str) -> tuple[Multivector, ConformalModel]:
@@ -165,61 +160,11 @@ def _masks(value: Multivector, atol: float) -> tuple[int, ...]:
     return tuple(int(mask) for mask in np.flatnonzero(np.abs(value.data) > atol))
 
 
-def _is_simple(value: Multivector, model: ConformalModel, grade: int, atol: float) -> bool:
-    """Test decomposability for homogeneous blades in five-dimensional CGA."""
-
-    if grade in {0, 1, 4, 5}:
-        return True
-    candidate = value if grade == 2 else _normalized(model.dual(value))
-    return _is_zero(outer_product(candidate, candidate), atol)
-
-
-def _grade_one_kind(value: Multivector, infinity: Multivector, flat: bool, atol: float) -> str:
-    if flat:
-        return "point at infinity"
-    if _is_zero(squared(value), atol):
-        return "round point"
-    if _is_zero(scalar_product(value, infinity), atol):
-        return "dual plane"
-    return "dual sphere"
-
-
-def _simple_kind(value: Multivector, infinity: Multivector, grade: int, flat: bool | None, atol: float) -> str:
-    if grade == 0:
-        return "scalar"
-    if grade == 1:
-        return _grade_one_kind(value, infinity, bool(flat), atol)
-    flat_kind, round_kind = _DIRECT_KINDS.get(grade, ("pseudoscalar", "pseudoscalar"))
-    return flat_kind if flat else round_kind
-
-
 def classify_cga(value: Multivector, model: ConformalModel, *, atol: float = 1e-9) -> CGAObject:
-    """Classify one homogeneous conformal multivector by algebraic family.
-
-    Simple OPNS blades use grade and divisibility by infinity to distinguish
-    flat from round families. Grade-one vectors need both common readings:
-    null vectors with conformal weight are direct points, weight-zero non-null
-    vectors are dual planes, and the remaining non-null vectors are dual
-    spheres. The classification is projective above the absolute zero floor.
-    """
-
+    """Adapt the runtime model classification to the annotation result shape."""
     value, model = _checked_inputs(value, model, "classify_cga")
-    atol = _checked_tolerance(atol)
-    if _is_zero(value, atol):
-        return CGAObject("zero", None, None, None)
-
-    normalized = _normalized(value)
-    grade = normalized.homogeneous_grade(atol=atol)
-    if grade is None:
-        return CGAObject("general", None, None, None)
-
-    infinity = _normalized(model.infinity)
-    flat = _is_zero(outer_product(normalized, infinity), atol) if 1 <= grade <= 4 else None
-    simple = _is_simple(normalized, model, grade, atol)
-    if not simple:
-        return CGAObject("general", grade, flat, False)
-    kind = _simple_kind(normalized, infinity, grade, flat, atol)
-    return CGAObject(kind, grade, flat, True)
+    obj = model.classify(value, atol=atol)
+    return CGAObject(obj.kind, obj.grade, obj.flat, obj.simple)
 
 
 def cga_parts(value: Multivector, model: ConformalModel, *, atol: float = 1e-9) -> dict[str, TermTarget]:

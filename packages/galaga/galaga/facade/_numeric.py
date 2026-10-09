@@ -401,7 +401,7 @@ class Algebra:
 
     @property
     def signature(self) -> tuple[int, ...]:
-        """The legacy ordered signature when the stored metric permits one."""
+        """The ordered signature when the stored metric permits one."""
         return self._numeric.signature
 
     @property
@@ -1384,14 +1384,6 @@ def antidot_product(left: Multivector, right: Multivector) -> Multivector:
     return _invoke("antidot_product", left, right)
 
 
-def bulk_part(value: Multivector) -> Multivector:
-    return _invoke("bulk_part", value)
-
-
-def weight_part(value: Multivector) -> Multivector:
-    return _invoke("weight_part", value)
-
-
 def right_hodge_dual(value: Multivector) -> Multivector:
     return _invoke("right_hodge_dual", value)
 
@@ -1654,7 +1646,6 @@ __all__ = [
     "antimetric_apply",
     "antireverse",
     "antiwedge",
-    "bulk_part",
     "commutator",
     "complement",
     "clifford_conjugate",
@@ -1717,5 +1708,4 @@ __all__ = [
     "uncomplement",
     "undual",
     "unit",
-    "weight_part",
 ]

@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import subprocess
-import sys
 from pathlib import Path
 from types import SimpleNamespace
 from typing import Any
@@ -229,7 +227,7 @@ def test_matrix_inverse_uses_the_public_factory_and_immutable_naming(
 
 
 @pytest.mark.parametrize("mode", ("left-regular", "compact"))
-def test_core_plan_identity_and_actions_survive_legacy_fallback_removal(mode: str) -> None:
+def test_core_and_facade_share_representation_plans_and_actions(mode: str) -> None:
     algebra = Algebra(gram=GENERAL_GRAM_METRICS[1])
     core_algebra: Any = algebra.numeric
 
@@ -243,43 +241,7 @@ def test_core_plan_identity_and_actions_survive_legacy_fallback_removal(mode: st
         np.testing.assert_array_equal(action, core_algebra.left_action(core_algebra.blade(mask)))
 
 
-def test_matrix_conversion_runs_with_legacy_imports_blocked() -> None:
-    program = """
-import importlib.abc
-import sys
-
-class RejectLegacy(importlib.abc.MetaPathFinder):
-    def find_spec(self, fullname, path=None, target=None):
-        if fullname in {'galaga.algebra', 'galaga.expr', 'galaga.ops', 'galaga.symbolic_core'} or fullname.startswith('galaga.legacy'):
-            raise AssertionError('matrix package imported legacy module: ' + fullname)
-
-sys.meta_path.insert(0, RejectLegacy())
-import numpy as np
-from galaga import Algebra
-from galaga_matrix import to_matrix, from_matrix
-
-for gram, modes in (
-    (((0.0, -1.0), (-1.0, 0.0)), ('left-regular', 'compact')),
-    (((-1.0, 0.0), (0.0, -1.0)), ('left-regular', 'compact', 'quaternion')),
-):
-    algebra = Algebra(gram=gram)
-    value = algebra.multivector(np.arange(algebra.dim, dtype=float)).named('v')
-    for mode in modes:
-        matrix = to_matrix(value, mode=mode)
-        recovered = from_matrix(matrix)
-        assert recovered.algebra is algebra
-        assert recovered.name is not None
-        np.testing.assert_allclose(recovered.data, value.data, atol=1e-12, rtol=0)
-        np.testing.assert_allclose(matrix.mat @ matrix.mat, to_matrix(value * value, mode=mode).mat, atol=1e-12, rtol=0)
-assert 'galaga.algebra' not in sys.modules
-assert 'galaga.legacy' not in sys.modules
-"""
-    completed = subprocess.run([sys.executable, "-c", program], check=False, capture_output=True, text=True, timeout=60)
-
-    assert completed.returncode == 0, completed.stdout + completed.stderr
-
-
-def test_matrix_implementation_does_not_read_legacy_multiplication_tables() -> None:
+def test_matrix_implementation_uses_public_storage_protocol() -> None:
     source = (Path(__file__).parents[1] / "galaga_matrix/matrix.py").read_text()
 
     assert "_mul_index" not in source

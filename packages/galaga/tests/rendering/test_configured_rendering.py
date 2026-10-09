@@ -1,12 +1,10 @@
-"""Exact rendering survives legacy deletion without losing historical evidence."""
+"""Configured rendering, metric-derived coefficients, and decorator contracts."""
 
 from __future__ import annotations
 
 import inspect
 import json
 import runpy
-import subprocess
-import sys
 from dataclasses import FrozenInstanceError, replace
 from functools import lru_cache
 from pathlib import Path
@@ -24,19 +22,13 @@ from tools.rendering_contract import (
 
 import galaga.facade as facade
 
-CONTRACT_FILES = (
-    "test_compound_latex_contract.py",
-    "test_sta_latex_contract.py",
-    "test_rga_latex_contract.py",
-)
 ARCHIVE_PATH = Path(__file__).parents[2] / "tools/baselines/configured-rendering-v1.json"
 ARCHIVE = json.loads(ARCHIVE_PATH.read_text())
 
 
 @lru_cache
 def _suite(filename: str):
-    # Load ordinary test definitions without collecting the parent conftest's
-    # temporary v1 constructor guard. The suites themselves must not need v1.
+    # Load expression builders and their literal expectations together.
     return runpy.run_path(str(Path(__file__).with_name(filename)))
 
 
@@ -44,47 +36,9 @@ def _rendering_cases(function):
     return next(mark.args[1] for mark in function.pytestmark if mark.args[0] == "_rendering_case")
 
 
-def test_archive_has_capture_provenance_and_complete_live_counterparts() -> None:
-    assert ARCHIVE["schema_version"] == 1
-    assert ARCHIVE["source_commit"] == "af3c167c188f2174fad65948e17d9b2706ee755b"
-    assert ARCHIVE["captured_on"] == "2026-09-06"
-    assert ARCHIVE["python"] == "3.14.4" and ARCHIVE["numpy"] == "2.5.2"
-    historical_tests = {row["test"] for row in ARCHIVE["expressions"]}
-    assert len(historical_tests) == len(ARCHIVE["expressions"]) == 32
-    live_tests = set()
-    case_count = 0
-    for filename in CONTRACT_FILES:
-        for name, function in _suite(filename).items():
-            if not name.startswith("test_") or not callable(function):
-                continue
-            marks = getattr(function, "pytestmark", ())
-            if not any(mark.name == "parametrize" and mark.args[0] == "_rendering_case" for mark in marks):
-                continue
-            live_tests.add(f"{filename}::{name}")
-            cases = _rendering_cases(function)
-            case_count += len(cases)
-            assert all(case.algebra in NAMED_ALGEBRAS for case in cases)
-    assert historical_tests <= live_tests  # New v2-only cases need no invented v1 history.
-    assert case_count >= 34
-    display_test = _suite("test_compound_latex_contract.py")["test_display_sensitive_expression"]
-    assert {
-        "core-facade-v2/cl3/full-default",
-        "core-facade-v2/cl3/full-precision-3",
-        "core-facade-v2/cl3/full-unfiltered-12",
-    } <= {case.algebra for case in _rendering_cases(display_test)}
-    notation = _suite("test_rga_latex_contract.py")["LENGYEL_NOTATION"]
-    aliases = {"conjugate": "clifford_conjugate"}
-    historical_operations = {aliases.get(row["operation"], row["operation"]) for row in ARCHIVE["notation"]}
-    assert historical_operations <= {row.operation for row in notation}
-    assert len(ARCHIVE["notation"]) == 26
-    assert len(_suite("test_rga_latex_contract.py")["RGA_BLADE_TABLE"]) == 16
-    for row in ARCHIVE["expressions"]:
-        assert row["configuration"].startswith("legacy-v1/")
-        assert row["target"] == "latex" and row["content"] == "full"
-        assert isinstance(row["expected"], str) and row["expected"]
-    for row in ARCHIVE["notation"]:
-        assert set(row["renderings"]) == {"unicode", "latex"}
-        assert all(row["renderings"].values())
+def test_unknown_configuration_has_explicit_guidance():
+    with pytest.raises(KeyError, match="unknown configured algebra"):
+        context_for("unknown")
 
 
 @pytest.mark.parametrize("observation", ARCHIVE["expressions"], ids=lambda row: row["test"])
@@ -92,7 +46,7 @@ def test_compound_coefficients_match_history_after_algebraic_basis_transport(obs
     filename, name = observation["test"].split("::")
     function = _suite(filename)[name]
     expression = inspect.getclosurevars(function).nonlocals["expression"]
-    configuration = observation["configuration"].replace("legacy-v1/", "core-facade-v2/")
+    configuration = observation["configuration"].replace("legacy-v1/", "")
     context = context_for(configuration)
 
     # Derive the exterior basis transport from actual wedge products. PGA's
@@ -121,7 +75,7 @@ def test_compound_coefficients_match_history_after_algebraic_basis_transport(obs
 
 @pytest.mark.parametrize("observation", ARCHIVE["notation"], ids=lambda row: row["operation"])
 def test_rga_notation_operations_preserve_the_captured_numeric_results(observation) -> None:
-    configuration = observation["configuration"].replace("legacy-v1/", "core-facade-v2/")
+    configuration = observation["configuration"].replace("legacy-v1/", "")
     context = context_for(configuration)
     a = context.named(context.vector("e1"), "a")
     b = context.named(context.vector("e2"), "b")
@@ -129,7 +83,10 @@ def test_rga_notation_operations_preserve_the_captured_numeric_results(observati
     if observation["order"] is not None:
         arguments += (observation["order"],)
 
-    value = context.call(observation["operation"], *arguments)
+    operation = {"bulk_part": "metric_apply", "weight_part": "antimetric_apply"}.get(
+        observation["operation"], observation["operation"]
+    )
+    value = context.call(operation, *arguments)
 
     # Both RGA implementations use native e1/e2/e3/e4 coefficient order.
     assert tuple(context.vectors) == ("e1", "e2", "e3", "e4")
@@ -142,7 +99,6 @@ def test_rga_notation_operations_preserve_the_captured_numeric_results(observati
 def test_named_contexts_construct_only_tracked_facade_values_with_the_actual_metric(configuration: str) -> None:
     context = context_for(configuration)
 
-    assert context.implementation == "core-facade-v2"
     assert context.api is facade
     assert isinstance(context.algebra, facade.Algebra)
     for i, left in enumerate(context.basis_vectors()):
@@ -156,7 +112,7 @@ def test_named_contexts_construct_only_tracked_facade_values_with_the_actual_met
 
 
 def test_named_contexts_and_profile_registries_are_immutable_and_fresh() -> None:
-    context = context_for("core-facade-v2/cl3/full-default")
+    context = context_for("cl3/full-default")
     other = context_for(context.configuration.id)
 
     assert context is not other and context.algebra is not other.algebra
@@ -168,60 +124,20 @@ def test_named_contexts_and_profile_registries_are_immutable_and_fresh() -> None
         context.configuration.id = "changed"  # type: ignore[misc] - deliberately mutate a frozen record
 
 
-@pytest.mark.parametrize("configuration", ("unknown", "legacy-v1/cl3/full-default"))
-def test_unknown_or_retired_configuration_is_not_silently_mapped_to_v2(configuration: str) -> None:
-    with pytest.raises(KeyError, match="unknown configured algebra"):
-        context_for(configuration)
-
-
-def test_direct_context_construction_also_rejects_a_retired_implementation() -> None:
-    configuration = replace(
-        NAMED_ALGEBRAS["core-facade-v2/cl3/full-default"],
-        implementation="legacy-v1",  # type: ignore[arg-type] - exercise rejection of invalid runtime input
-    )
-    with pytest.raises(ValueError, match="only core-facade-v2"):
-        ExpressionContext(configuration, ALGEBRA_PROFILES["cl3"], DISPLAY_PROFILES["full-default"])
-
-
 @pytest.mark.parametrize("names, error", ((("e1",), "invalid vector-name map"), (("e1", "e1", "e3"), "duplicate")))
 def test_invalid_semantic_vector_maps_are_rejected(names, error) -> None:
     profile = replace(ALGEBRA_PROFILES["cl3"], facade_vectors=names)
     with pytest.raises(ValueError, match=error):
-        ExpressionContext(NAMED_ALGEBRAS["core-facade-v2/cl3/full-default"], profile, DISPLAY_PROFILES["full-default"])
+        ExpressionContext(NAMED_ALGEBRAS["cl3/full-default"], profile, DISPLAY_PROFILES["full-default"])
 
 
 def test_unknown_semantic_vector_has_explicit_guidance() -> None:
     with pytest.raises(KeyError, match="no semantic basis vector 'e0'"):
-        context_for("core-facade-v2/cl3/full-default").vector("e0")
-
-
-@pytest.mark.parametrize(
-    "operation, alias", (("geometric_product", "gp"), ("outer_product", "op"), ("grade_involution", "involute"))
-)
-def test_canonical_calls_do_not_remap_through_legacy_spellings(
-    operation, alias, monkeypatch: pytest.MonkeyPatch
-) -> None:
-    context = context_for("core-facade-v2/cl3/full-default")
-    value = context.vector("e1")
-    observed = []
-
-    def canonical(*args):
-        observed.extend(args)
-        return value
-
-    def reject_alias(*args):
-        raise AssertionError("legacy operation remapping")
-
-    monkeypatch.setattr(facade, operation, canonical)
-    # Include retired spellings as deliberate mutation probes, not live APIs.
-    monkeypatch.setattr(facade, alias, reject_alias, raising=False)
-
-    assert context.call(operation, value) is value
-    assert len(observed) == 1 and observed[0] is value
+        context_for("cl3/full-default").vector("e0")
 
 
 def test_naming_is_immutable_and_preserves_all_public_name_channels() -> None:
-    context = context_for("core-facade-v2/cl3/full-default")
+    context = context_for("cl3/full-default")
     value = context.vector("e1")
     previous_name = value.name
 
@@ -236,7 +152,7 @@ def test_naming_is_immutable_and_preserves_all_public_name_channels() -> None:
 @pytest.mark.parametrize("target", ("ascii", "unicode", "latex"))
 @pytest.mark.parametrize("content", ("value", "expr", "full"))
 def test_context_rendering_delegates_explicit_content_and_target(target: str, content: str) -> None:
-    context = context_for("core-facade-v2/cl3/full-default")
+    context = context_for("cl3/full-default")
     value = context.named(context.vector("e1") ^ context.vector("e2"), "B")
 
     assert context.render(value, target=target, content=content) == value.display(target=target, content=content)
@@ -248,7 +164,7 @@ def test_decorator_requires_an_expectation_and_keeps_latex_alias_strict() -> Non
         render_test()
     for target, content in (("ascii", "full"), ("latex", "expr")):
         with pytest.raises(ValueError, match="target='latex' and content='full'"):
-            latex_test(testcase("core-facade-v2/cl3/full-default", "bad", target=target, content=content))
+            latex_test(testcase("cl3/full-default", "bad", target=target, content=content))
 
 
 @pytest.mark.parametrize(
@@ -272,7 +188,7 @@ def test_decorator_renders_after_builder_return_and_never_weakens_literal_compar
         finished.append(True)
         return result
 
-    case = testcase("core-facade-v2/cl3/full-default", expected, target=target, content=content)
+    case = testcase("cl3/full-default", expected, target=target, content=content)
     execute = render_test(case)(build)
     monkeypatch.setattr(ExpressionContext, "render", after_return)
 
@@ -282,29 +198,3 @@ def test_decorator_renders_after_builder_return_and_never_weakens_literal_compar
     execute(case)
     with pytest.raises(AssertionError):
         execute(replace(case, expected=expected + " "))
-
-
-def test_complete_exact_suites_execute_with_legacy_imports_blocked() -> None:
-    program = """
-import importlib.abc
-import sys
-
-class RejectLegacy(importlib.abc.MetaPathFinder):
-    def find_spec(self, fullname, path=None, target=None):
-        if fullname in {'galaga.algebra', 'galaga.expr', 'galaga.ops', 'galaga.blade_convention', 'galaga.notation', 'galaga.symbolic_core'} or fullname.startswith('galaga.legacy'):
-            raise AssertionError('configured rendering imported legacy module: ' + fullname)
-
-sys.meta_path.insert(0, RejectLegacy())
-import pytest
-# The parent conftest still imports v1 to poison its constructors. This fresh
-# process instead forbids imports entirely; it runs all three suites unchanged.
-result = pytest.main(['--noconftest', '-q', *sys.argv[1:]])
-assert result == 0
-assert 'galaga.algebra' not in sys.modules and 'galaga.legacy' not in sys.modules
-"""
-    paths = [str(Path(__file__).with_name(filename)) for filename in CONTRACT_FILES]
-    completed = subprocess.run(
-        [sys.executable, "-c", program, *paths], capture_output=True, text=True, check=False, timeout=60
-    )
-
-    assert completed.returncode == 0, completed.stdout + completed.stderr

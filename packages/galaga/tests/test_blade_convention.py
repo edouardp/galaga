@@ -1,7 +1,6 @@
-"""Public blade contracts retaining all 102 historical method identities.
+"""Signed blade naming, lookup, factory, and mutation contracts.
 
-Names beginning with b_* identify their archived v1 responsibility, not APIs
-used here. ADR-104 records deliberate changes to lookup, factories and mutation.
+Named conventions are validated against computed blades and metric products.
 """
 
 from dataclasses import FrozenInstanceError, replace

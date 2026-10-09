@@ -5,9 +5,6 @@ the exact objects owned by :mod:`galaga.facade`; no wrapper or parallel public
 implementation is created here.  The presentation-independent numeric engine
 remains available as :mod:`galaga.core`.
 
-The Galaga 1 engine and its temporary legacy namespace have been removed.
-Historical behavior remains in development-only regression data, not in a
-second shipped implementation.
 """
 
 from __future__ import annotations

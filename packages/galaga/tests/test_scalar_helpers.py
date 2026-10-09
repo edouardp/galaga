@@ -1,6 +1,5 @@
-"""Public scalar compositions and explicit v1 formatting boundaries.
+"""Scalar compositions, literal magnitudes, and explicit formatting.
 
-All 51 historical method identities remain; ADR-109 archives their v1 source.
 Tiny numeric values must be checked with zero absolute tolerance.
 """
 

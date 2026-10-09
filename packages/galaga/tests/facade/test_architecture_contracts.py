@@ -1,4 +1,4 @@
-"""Live v2 owners of the architectural identities formerly in test_coverage.
+"""Numeric catalog completeness, dependency direction, and expression replay.
 
 The public numeric catalog owns call shapes, not a second symbolic registry.
 Import guards scan every lexical scope and work with source and wheel resources.
@@ -82,7 +82,7 @@ def assert_catalog_complete(operations, excluded):
 
 
 class TestArchitecturalInvariants:
-    """Retain the seven historical method identities with their v2 owners."""
+    """Check numeric dependencies and catalog routing."""
 
     def test_ops_never_imports_expr(self):
         source = files("galaga.facade").joinpath("catalog.py").read_text(encoding="utf-8")

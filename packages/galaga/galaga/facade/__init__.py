@@ -1,8 +1,7 @@
 """Core-backed numeric and presentation facade for Galaga 2.
 
 Top-level :mod:`galaga` re-exports this manifest with exact object identity.
-This namespace remains the stable implementation owner. The Galaga 1 engine
-and migration-only bridge and operation adapters are no longer shipped.
+This namespace owns numeric wrappers, expression tracking, and presentation.
 """
 
 from types import MappingProxyType
@@ -78,7 +77,6 @@ from ._numeric import (
     antimetric_apply,
     antireverse,
     antiwedge,
-    bulk_part,
     clifford_conjugate,
     commutator,
     complement,
@@ -141,7 +139,6 @@ from ._numeric import (
     uncomplement,
     undual,
     unit,
-    weight_part,
 )
 from .catalog import (
     EXCLUDED_PUBLIC_NAMES,
@@ -241,7 +238,6 @@ __all__ = [
     "antimetric_apply",
     "antireverse",
     "antiwedge",
-    "bulk_part",
     "build_render_tree",
     "commutator",
     "complex_blade_convention",
@@ -333,5 +329,4 @@ __all__ = [
     "undual",
     "unit",
     "wedge",
-    "weight_part",
 ]

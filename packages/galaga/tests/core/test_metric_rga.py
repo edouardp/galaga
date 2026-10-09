@@ -19,7 +19,6 @@ from galaga.core import (
     antimetric_apply,
     antireverse,
     antiwedge,
-    bulk_part,
     complement,
     dual,
     exp,
@@ -44,7 +43,6 @@ from galaga.core import (
     transwedge_antiproduct,
     uncomplement,
     undual,
-    weight_part,
 )
 
 
@@ -262,11 +260,9 @@ def test_pga_bulk_and_weight_parts_are_complementary() -> None:
     algebra = Algebra(signature=[1, 1, 1, 0])
     rng = np.random.default_rng(71)
     value = algebra.multivector(rng.integers(-5, 6, size=algebra.dim))
-    bulk = bulk_part(value)
-    weight = weight_part(value)
+    bulk = metric_apply(value)
+    weight = antimetric_apply(value)
 
-    assert bulk == metric_apply(value)
-    assert weight == antimetric_apply(value)
     assert bulk + weight == value
     for bitmask in range(algebra.dim):
         if bitmask & 0b1000:
@@ -424,8 +420,8 @@ def test_rga_bulk_weight_and_duals_match_source_table() -> None:
     bulk = 2 * e23 - 3 * e31 + 5 * e12
     weight = 7 * e41 + 11 * e42 - 13 * e43
     line = bulk + weight
-    assert bulk_part(line) == bulk
-    assert weight_part(line) == weight
+    assert metric_apply(line) == bulk
+    assert antimetric_apply(line) == weight
 
     point = 2 * e1 - 3 * e2 + 5 * e3 + 7 * e4
     plane = 2 * e423 - 3 * e431 + 5 * e412 + 7 * e321

@@ -5,12 +5,11 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 from types import MappingProxyType
-from typing import Any, Literal
+from typing import Any
 
 import galaga.facade as facade
 from galaga import presets
 
-ImplementationId = Literal["core-facade-v2"]
 FacadeFactory = Callable[[facade.DisplayPolicy], facade.Algebra]
 
 
@@ -35,10 +34,9 @@ class DisplayProfile:
 
 @dataclass(frozen=True, slots=True)
 class NamedAlgebra:
-    """One named implementation + algebra + display configuration."""
+    """One named algebra and display configuration."""
 
     id: str
-    implementation: ImplementationId
     algebra_profile: str
     display_profile: str
 
@@ -54,8 +52,6 @@ class ExpressionContext:
         algebra_profile: AlgebraProfile,
         display_profile: DisplayProfile,
     ) -> None:
-        if configuration.implementation != "core-facade-v2":
-            raise ValueError("configured rendering executes only core-facade-v2; v1 observations are archived")
         self.configuration = configuration
         self.api = facade
         # Keep the recipe adapter's existing dynamic vocabulary: public numeric
@@ -70,10 +66,6 @@ class ExpressionContext:
             raise ValueError(f"algebra profile {algebra_profile.id!r} has duplicate vector names")
         self.vectors = MappingProxyType(dict(zip(names, basis, strict=True)))
 
-    @property
-    def implementation(self) -> ImplementationId:
-        return self.configuration.implementation
-
     def basis_vectors(self) -> tuple[Any, ...]:
         """Return tracked basis vectors in the profile's semantic order."""
         return tuple(self.vectors.values())
@@ -85,7 +77,7 @@ class ExpressionContext:
             raise KeyError(f"the configured algebra has no semantic basis vector {name!r}") from error
 
     def call(self, operation: str, *args: Any) -> Any:
-        """Invoke one operation through the public facade API without v1 remapping."""
+        """Invoke one operation through the public facade API by its canonical name."""
         return getattr(self.api, operation)(*args)
 
     def named(
@@ -186,12 +178,9 @@ DISPLAY_PROFILES: Mapping[str, DisplayProfile] = MappingProxyType(
 
 
 _CONFIGURATIONS = (
-    *(
-        NamedAlgebra(f"core-facade-v2/{algebra}/full-default", "core-facade-v2", algebra, "full-default")
-        for algebra in ALGEBRA_PROFILES
-    ),
-    NamedAlgebra("core-facade-v2/cl3/full-precision-3", "core-facade-v2", "cl3", "full-precision-3"),
-    NamedAlgebra("core-facade-v2/cl3/full-unfiltered-12", "core-facade-v2", "cl3", "full-unfiltered-12"),
+    *(NamedAlgebra(f"{algebra}/full-default", algebra, "full-default") for algebra in ALGEBRA_PROFILES),
+    NamedAlgebra("cl3/full-precision-3", "cl3", "full-precision-3"),
+    NamedAlgebra("cl3/full-unfiltered-12", "cl3", "full-unfiltered-12"),
 )
 
 NAMED_ALGEBRAS: Mapping[str, NamedAlgebra] = MappingProxyType(
@@ -219,7 +208,6 @@ __all__ = [
     "AlgebraProfile",
     "DisplayProfile",
     "ExpressionContext",
-    "ImplementationId",
     "NamedAlgebra",
     "context_for",
 ]

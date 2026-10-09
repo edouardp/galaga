@@ -1,1 +1,1 @@
-"""Repository-only development and migration tools."""
+"""Repository-only rendering test helpers."""

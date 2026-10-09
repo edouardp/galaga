@@ -150,7 +150,7 @@ def test_model_validates_the_metric_behind_declared_semantic_roles() -> None:
         )
     )
 
-    with pytest.raises(ValueError, match="identity Gram block"):
+    with pytest.raises(ValueError, match="Gram block"):
         ConformalModel(algebra)
 
 

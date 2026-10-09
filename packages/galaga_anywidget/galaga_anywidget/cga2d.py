@@ -15,7 +15,7 @@ import numpy as np
 import traitlets
 
 from galaga import Multivector, Name, outer_product, scalar_product
-from galaga.cga import ConformalModel
+from galaga.models import ConformalModel
 
 CGA2DKind = Literal["point", "dipole", "line", "circle"]
 CGA2DLineStyle = Literal["solid", "dashed", "dotted"]

@@ -19,7 +19,7 @@ def _():
         antimetric_apply,
         antireverse,
         antiwedge,
-        bulk_part,
+        metric_apply,
         dual,
         geometric_antiproduct,
         gp,
@@ -27,7 +27,6 @@ def _():
         left_hodge_dual,
         left_interior_product,
         left_weight_dual,
-        metric_apply,
         metric_inner_product,
         op,
         presets,
@@ -38,7 +37,6 @@ def _():
         right_weight_dual,
         transwedge,
         transwedge_antiproduct,
-        weight_part,
     )
 
     return (
@@ -51,7 +49,7 @@ def _():
         antimetric_apply,
         antireverse,
         antiwedge,
-        bulk_part,
+        metric_apply,
         dual,
         geometric_antiproduct,
         gm,
@@ -60,7 +58,6 @@ def _():
         left_hodge_dual,
         left_interior_product,
         left_weight_dual,
-        metric_apply,
         metric_inner_product,
         mo,
         op,
@@ -72,7 +69,6 @@ def _():
         right_weight_dual,
         transwedge,
         transwedge_antiproduct,
-        weight_part,
     )
 
 
@@ -169,7 +165,6 @@ def _(mo):
     | Meet / antiwedge | `antiwedge(a, b)` | regressive grade |
     | Right / left complement | `right_complement(a)`, `left_complement(a)` | complementary grade |
     | Metric / antimetric map | `metric_apply(a)`, `antimetric_apply(a)` | same grade |
-    | Bulk / weight part | `bulk_part(a)`, `weight_part(a)` | same grade |
     | Dot / antidot pairing | `metric_inner_product(a, b)`, `antidot_product(a, b)` | scalar / antiscalar |
     | Right / left bulk dual | `right_hodge_dual(a)`, `left_hodge_dual(a)` | complementary grade |
     | Right / left weight dual | `right_weight_dual(a)`, `left_weight_dual(a)` | complementary grade |
@@ -271,8 +266,9 @@ def _(mo):
     - `metric_apply` removes terms containing null $e_4$;
     - `antimetric_apply` removes terms that do not contain $e_4$.
 
-    These maps are also exposed as `bulk_part` and `weight_part`. Their sum
-    reconstructs the original multivector in this RGA model.
+    In this normalized RGA metric, these maps select bulk and weight terms.
+    Their sum reconstructs the original multivector. This decomposition is
+    specific to the metric; it does not hold for arbitrary algebras.
     """)
     return
 
@@ -280,14 +276,12 @@ def _(mo):
 @app.cell
 def _(
     antimetric_apply,
-    bulk_part,
+    metric_apply,
     e23,
     e31,
     e41,
     e42,
     gm,
-    metric_apply,
-    weight_part,
 ):
     _line = (2 * e23 - e31 + 3 * e41 - e42).named("L", latex="L")
 
@@ -302,15 +296,9 @@ def _(
 
     { antimetric_apply(_line) }
 
-    The named bulk and weight parts agree with those maps:
-
-    { bulk_part(_line) }
-
-    { weight_part(_line) }
-
     Their sum reconstructs the input:
 
-    { bulk_part(_line) + weight_part(_line) }
+    { metric_apply(_line) + antimetric_apply(_line) }
     """)
     return
 

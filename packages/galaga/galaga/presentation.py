@@ -333,7 +333,7 @@ class Notation(PresentationComposable):
         object.__setattr__(self, "rules", _normalize_rules(rules))
 
     def token(self, operation_id: str, default: str | None = None) -> str | None:
-        """Return legacy token metadata without selecting layout semantics."""
+        """Return token metadata without selecting layout semantics."""
         return dict(self.tokens).get(operation_id, default)
 
     def rule(self, operation_id: str, target: str | None = None) -> RenderRule | None:
@@ -728,12 +728,18 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
     ):
         rules[operation_id] = compact_function(operation_id)
     rules["event_vector"] = compact_function("event")
+    rules["conformal_point"] = compact_function("point")
+    rules["projective_point"] = compact_function("point")
+    for family in ("pga", "rga"):
+        rules[f"{family}_join"] = compact_function("join")
+        rules[f"{family}_meet"] = compact_function("meet")
+    rules["projective_bulk_part"] = compact_function("bulk_part")
+    rules["projective_weight_part"] = compact_function("weight_part")
     for operation_id in (
         "antidot_product",
         "antimetric_apply",
         "antireverse",
         "antiwedge",
-        "bulk_part",
         "geometric_antiproduct",
         "left_hodge_dual",
         "left_interior_product",
@@ -745,7 +751,6 @@ def _conventional_rules() -> dict[str | tuple[str, str], RenderRule]:
         "right_weight_dual",
         "transwedge",
         "transwedge_antiproduct",
-        "weight_part",
     ):
         rules[operation_id] = compact_function(operation_id)
     return rules
@@ -841,8 +846,6 @@ def _lengyel_rules() -> dict[str | tuple[str, str], RenderRule]:
         ("left_hodge_dual", "left_hodge_dual", Name("star", "★", r"\text{★}"), "subscript"),
         ("right_weight_dual", "right_weight_dual", Name("white_star", "☆", r"\text{☆}"), "superscript"),
         ("left_weight_dual", "left_weight_dual", Name("white_star", "☆", r"\text{☆}"), "subscript"),
-        ("bulk_part", "bulk_part", Name("bulk", "●", r"\text{●}"), "subscript"),
-        ("weight_part", "weight_part", Name("weight", "○", r"\text{○}"), "subscript"),
         ("round_bulk_part", "round_bulk_part", Name("round_bulk", "●", r"\text{●}"), "subscript"),
         ("round_weight_part", "round_weight_part", Name("round_weight", "○", r"\text{○}"), "subscript"),
         ("flat_bulk_part", "flat_bulk_part", Name("flat_bulk", "■", r"\text{■}"), "subscript"),

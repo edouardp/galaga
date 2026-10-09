@@ -6,14 +6,16 @@ import math
 from collections.abc import Iterable
 from dataclasses import replace
 from numbers import Real
-from types import MappingProxyType
 from typing import Literal, cast
 
 import numpy as np
 
 from ..blades import BladeRef
-from ..expression import Call, Expr, Symbol
 from ..facade import Algebra, Multivector, outer_product, right_hodge_dual, scalar_product, squared
+from ._base import _ConformalBase
+from ._classification import blade_span
+from ._classification import is_zero as _is_zero
+from ._classification import normalized as _normalized
 from ._csta_geometry import classify_flat, classify_round_section
 from ._csta_operators import classify_operator
 from .classification import CausalKind, CSTAClassification, CSTAOperatorClassification
@@ -23,7 +25,7 @@ Representation = Literal["auto", "direct", "dual"]
 CSTAExpressionForm = Literal["operator", "expanded"]
 
 
-class ConformalSpacetimeModel:
+class ConformalSpacetimeModel(_ConformalBase):
     """Conformal spacetime with a normalized ``(+---)`` base metric.
 
     Numeric coordinates default to natural units. ``units="si"`` selects
@@ -33,14 +35,12 @@ class ConformalSpacetimeModel:
     backend, including a scale selected by proper acceleration.
     """
 
+    _radius_square_sign = 1
+
+    _model_id = "csta-mostly-minus"
+    _preset_description = "Algebra(config=presets.csta())"
+
     __slots__ = (
-        "_algebra",
-        "_base_refs",
-        "_expr",
-        "_expression_form",
-        "_infinity_ref",
-        "_null_pair",
-        "_origin_ref",
         "_unit_scale",
         "_units",
     )
@@ -55,12 +55,7 @@ class ConformalSpacetimeModel:
         time_scale_seconds: float | None = None,
         unit_scale: SpacetimeUnits | None = None,
     ) -> None:
-        if not isinstance(algebra, Algebra):
-            raise TypeError("algebra must be a galaga Algebra")
-        if expr is None:
-            expr = algebra.expr
-        if not isinstance(expr, bool):
-            raise TypeError("expr must be a boolean")
+        super().__init__(algebra, expr=expr)
         selected_form = _expression_form(expression_form)
         if unit_scale is not None and time_scale_seconds is not None:
             raise ValueError("choose unit_scale or time_scale_seconds, not both")
@@ -72,11 +67,8 @@ class ConformalSpacetimeModel:
             else SpacetimeUnits(1.0 if time_scale_seconds is None else time_scale_seconds)
         )
         self._units = normalize_coordinate_units(units)
-        model = algebra.model
-        if model is None or model.id != "csta-mostly-minus":
-            raise ValueError("ConformalSpacetimeModel requires Algebra(config=presets.csta())")
 
-        roles = MappingProxyType(dict(model.roles))
+        roles = self._roles
         try:
             base_refs = (roles["time"], *(roles[f"space_{index}"] for index in range(1, 4)))
             origin_ref = roles["origin"]
@@ -87,21 +79,11 @@ class ConformalSpacetimeModel:
         if len({ref.mask for ref in refs}) != 6 or any(not _is_vector_ref(ref) for ref in refs):
             raise ValueError("CSTA roles must identify six distinct basis vectors")
 
-        self._algebra = algebra
         self._base_refs = base_refs
-        self._expr = expr
         self._expression_form = selected_form
         self._origin_ref = origin_ref
         self._infinity_ref = infinity_ref
         self._null_pair = self._validate_metric()
-
-    @property
-    def algebra(self) -> Algebra:
-        return self._algebra
-
-    @property
-    def expr(self) -> bool:
-        return self._expr
 
     @property
     def expression_form(self) -> CSTAExpressionForm:
@@ -164,18 +146,6 @@ class ConformalSpacetimeModel:
     def spacetime_dim(self) -> int:
         return 4
 
-    @property
-    def null_pair(self) -> float:
-        return self._null_pair
-
-    @property
-    def origin(self) -> Multivector:
-        return self._algebra.blade(self._origin_ref, expr=self._expr)
-
-    @property
-    def infinity(self) -> Multivector:
-        return self._algebra.blade(self._infinity_ref, expr=self._expr)
-
     def spacetime_basis_vectors(self, *, expr: bool | None = None) -> tuple[Multivector, ...]:
         tracking = self._resolve_expr(expr)
         return tuple(self._algebra.blade(ref, expr=tracking) for ref in self._base_refs)
@@ -205,10 +175,7 @@ class ConformalSpacetimeModel:
             (coordinates[0] * time_factor, *(coordinate * distance_factor for coordinate in coordinates[1:])),
             expected=4,
         )
-        data = np.zeros(self._algebra.dim)
-        for coordinate, ref in zip(coordinates, self._base_refs, strict=True):
-            data[ref.mask] = ref.orientation * coordinate
-        return self._algebra.multivector(data, expr=tracking)
+        return self._coordinate_vector(coordinates, self._base_refs, tracking=tracking)
 
     def up(
         self,
@@ -222,9 +189,7 @@ class ConformalSpacetimeModel:
 
         tracking = self._resolve_expr(expr)
         x = self.spacetime_vector(_position_input(position, coordinates), expr=tracking, units=units)
-        origin = self._algebra.blade(self._origin_ref, expr=tracking)
-        infinity = self._algebra.blade(self._infinity_ref, expr=tracking)
-        result = origin + x + squared(x) * infinity / (-2.0 * self._null_pair)
+        result = self._embed(x, tracking=tracking)
         return self._semantic(
             result,
             "up",
@@ -288,27 +253,10 @@ class ConformalSpacetimeModel:
 
     point = event
 
-    def weight(self, value: Multivector) -> float:
+    def weight(self, value: Multivector, *, expression_form: CSTAExpressionForm | None = None) -> float:
         """Return a conformal vector's homogeneous origin coefficient."""
 
-        self._require_vector(value)
-        return float(scalar_product(value, self.infinity)) / self._null_pair
-
-    def homogenize(self, value: Multivector, *, atol: float = 1e-12) -> Multivector:
-        tolerance = _tolerance(atol)
-        weight = self.weight(value)
-        if abs(weight) <= tolerance:
-            raise ValueError("cannot homogenize a conformal vector with zero weight")
-        return value / weight
-
-    def down(self, value: Multivector, *, atol: float = 1e-12) -> Multivector:
-        """Extract the spacetime vector from a finite conformal vector."""
-
-        normalized = self.homogenize(value, atol=atol)
-        data = np.zeros(self._algebra.dim)
-        for ref in self._base_refs:
-            data[ref.mask] = normalized.coefficient(ref.mask)
-        return self._algebra.multivector(data, expr=False)
+        return float(super().weight(value, expression_form=expression_form))
 
     def coordinates(
         self,
@@ -321,11 +269,7 @@ class ConformalSpacetimeModel:
 
         ``down()`` and algebraic invariants always retain natural coordinates.
         """
-        center = self.down(value, atol=atol)
-        result = np.array(
-            [ref.orientation * center.coefficient(ref.mask) for ref in self._base_refs],
-            dtype=float,
-        )
+        result = super().coordinates(value, atol=atol).copy()
         time_factor, distance_factor = self._unit_scale.coordinate_factors(self._units if units is None else units)
         with np.errstate(over="ignore", invalid="ignore"):
             result /= np.array((time_factor, distance_factor, distance_factor, distance_factor))
@@ -456,13 +400,16 @@ class ConformalSpacetimeModel:
         tolerance = _tolerance(atol)
         if representation not in {"auto", "direct", "dual"}:
             raise ValueError("representation must be 'auto', 'direct', or 'dual'")
-        if _is_zero(value, tolerance):
+        if not np.any(value.data):
             return CSTAClassification("zero", None, None, None, None)
 
         normalized = _normalized(value)
         grade = normalized.homogeneous_grade(atol=tolerance)
         if grade is None:
             return CSTAClassification("general", None, None, None, None)
+        normalized = self.algebra.multivector(
+            [c if mask.bit_count() == grade else 0.0 for mask, c in enumerate(normalized.data)], expr=False
+        )
         if grade == 0:
             return CSTAClassification("scalar", 0, None, True, None)
         if grade == 6:
@@ -551,74 +498,19 @@ class ConformalSpacetimeModel:
         return CSTAClassification(kind, 1, selected, True, True, selected_causal, properties)
 
     def _is_simple(self, value: Multivector, grade: int, atol: float) -> bool:
-        rank = int(np.linalg.matrix_rank(self._wedge_matrix(value), tol=atol))
-        return rank == self._algebra.n - grade
+        return blade_span(value, grade, atol) is not None
 
     def _role_vectors(self) -> tuple[Multivector, ...]:
         return (*self.spacetime_basis_vectors(expr=False), self.origin.without_expr(), self.infinity.without_expr())
 
-    def _wedge_matrix(self, value: Multivector) -> np.ndarray:
-        return np.column_stack([outer_product(vector, value).data for vector in self._role_vectors()])
-
     def _validate_metric(self) -> float:
-        indices = tuple(_vector_index(ref) for ref in (*self._base_refs, self._origin_ref, self._infinity_ref))
-        gram = self._algebra.gram[np.ix_(indices, indices)]
-        expected = np.zeros((6, 6))
-        expected[:4, :4] = np.diag((1.0, -1.0, -1.0, -1.0))
-        expected[4, 5] = expected[5, 4] = -1.0
-        if not np.array_equal(gram, expected):
-            raise ValueError("CSTA roles require a (+---) base and origin·infinity == -1")
-        return -1.0
-
-    def _resolve_expr(self, value: bool | None) -> bool:
-        if value is None:
-            return self._expr
-        if not isinstance(value, bool):
-            raise TypeError("expr must be a boolean")
-        return value
+        return self._conformal_metric(np.diag((1.0, -1.0, -1.0, -1.0)), required_pair=-1.0, metric_atol=0.0)
 
     def _embedding_roles(self) -> dict[str, tuple[int, int]]:
         return {
             "origin": (self._origin_ref.mask, self._origin_ref.orientation),
             "infinity": (self._infinity_ref.mask, self._infinity_ref.orientation),
         }
-
-    def _semantic(
-        self,
-        result: Multivector,
-        operation_id: str,
-        *values: Multivector,
-        expression_form: CSTAExpressionForm | None = None,
-        tracking: bool | None = None,
-        **parameters: object,
-    ) -> Multivector:
-        selected = self._expression_form if expression_form is None else _expression_form(expression_form)
-        if tracking is False:
-            return result.without_expr()
-        if selected == "expanded":
-            return result
-        if (
-            tracking is not True
-            and not self._expr
-            and all(value.expr is None and value.name is None for value in values)
-        ):
-            return result
-        return result.with_expr(Call(operation_id, tuple(_expression_operand(value) for value in values), parameters))
-
-    def _check_value(self, value: Multivector) -> None:
-        if not isinstance(value, Multivector):
-            raise TypeError("value must be a Galaga Multivector")
-        if value.algebra is not self._algebra:
-            raise ValueError("value must belong to the model algebra")
-
-    def _check_pair(self, left: Multivector, right: Multivector) -> None:
-        self._check_value(left)
-        self._check_value(right)
-
-    def _require_vector(self, value: Multivector) -> None:
-        self._check_value(value)
-        if value.homogeneous_grade() != 1:
-            raise ValueError("value must be a conformal vector")
 
 
 def _is_vector_ref(ref: BladeRef) -> bool:
@@ -631,21 +523,6 @@ def _expression_form(value: object) -> CSTAExpressionForm:
     if value not in {"operator", "expanded"}:
         raise ValueError("expression_form must be 'operator' or 'expanded'")
     return cast(CSTAExpressionForm, value)
-
-
-def _expression_operand(value: Multivector) -> Expr:
-    if value.name is not None:
-        return Symbol(value.name)
-    expression = value.expr if value.expr is not None else value.with_expr().expr
-    if expression is None:  # pragma: no cover - with_expr always supplies provenance
-        raise RuntimeError("failed to construct expression provenance")
-    return expression
-
-
-def _vector_index(ref: BladeRef) -> int:
-    if not _is_vector_ref(ref):
-        raise ValueError("model role must refer to a basis vector")
-    return ref.mask.bit_length() - 1
 
 
 def _coordinates(value: Iterable[Real | float], *, expected: int) -> tuple[float, ...]:
@@ -687,15 +564,6 @@ def _tolerance(value: object, *, name: str = "atol") -> float:
     if not math.isfinite(tolerance) or tolerance < 0:
         raise ValueError(f"{name} must be finite and non-negative")
     return tolerance
-
-
-def _is_zero(value: Multivector, atol: float) -> bool:
-    return not np.any(np.abs(value.data) > atol)
-
-
-def _normalized(value: Multivector) -> Multivector:
-    scale = float(np.max(np.abs(value.data)))
-    return value if scale == 0.0 else value.algebra.multivector(value.data / scale, expr=False)
 
 
 __all__ = [

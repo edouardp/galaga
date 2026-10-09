@@ -1,4 +1,4 @@
-"""Archived bindings and coefficient-first ownership for independent locals."""
+"""Independent local bindings with coefficient and rendering oracles."""
 
 import json
 import re

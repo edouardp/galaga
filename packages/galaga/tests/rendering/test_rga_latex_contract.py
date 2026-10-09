@@ -9,7 +9,7 @@ import pytest
 from tools.latex_contract import latex_test, testcase
 from tools.rendering_contract import ExpressionContext, context_for
 
-FACADE_RGA = "core-facade-v2/lengyel-rga/full-default"
+FACADE_RGA = "lengyel-rga/full-default"
 
 
 @dataclass(frozen=True, slots=True)
@@ -188,20 +188,6 @@ LENGYEL_NOTATION = (
         facade_latex=r"a_{\text{☆}}",
     ),
     notation(
-        "bulk_part",
-        1,
-        facade_ascii="bulk_part(a)",
-        facade_unicode="a_●",
-        facade_latex=r"a_{\text{●}}",
-    ),
-    notation(
-        "weight_part",
-        1,
-        facade_ascii="weight_part(a)",
-        facade_unicode="a_○",
-        facade_latex=r"a_{\text{○}}",
-    ),
-    notation(
         "metric_apply",
         1,
         facade_ascii="metric_apply(a)",
@@ -319,12 +305,12 @@ def test_native_and_named_rga_blade_orientations_render_with_opposite_signs() ->
             r"{\mathbf{e}_{1}}_{\text{☆}} \quad = \quad 0",
         ),
         (
-            "bulk_part",
-            r"{\mathbf{e}_{1}}_{\text{●}} \quad = \quad \mathbf{e}_{1}",
+            "metric_apply",
+            r"\mathbf{G}\mathbf{e}_{1} \quad = \quad \mathbf{e}_{1}",
         ),
         (
-            "weight_part",
-            r"{\mathbf{e}_{1}}_{\text{○}} \quad = \quad 0",
+            "antimetric_apply",
+            r"\mathbb{G}\mathbf{e}_{1} \quad = \quad 0",
         ),
     ),
 )
@@ -382,7 +368,7 @@ def test_rga_coordinate_planes_meet_in_their_common_line(
     testcase(
         FACADE_RGA,
         r"""
-        L_{\text{●}} + L_{\text{○}}
+        \mathbf{G}L + \mathbb{G}L
         \quad = \quad
         2 \mathbf{e}_{23} - \mathbf{e}_{31}
         + 3 \mathbf{e}_{41} - \mathbf{e}_{42}
@@ -398,7 +384,7 @@ def test_rga_bulk_and_weight_parts_reconstruct_a_line(
         2 * (e2 ^ e3) - (e3 ^ e1) + 3 * (e4 ^ e1) - (e4 ^ e2),
         "L",
     )
-    return context.call("bulk_part", line) + context.call("weight_part", line)
+    return context.call("metric_apply", line) + context.call("antimetric_apply", line)
 
 
 @latex_test(

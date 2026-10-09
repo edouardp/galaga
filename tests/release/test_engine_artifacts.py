@@ -1,4 +1,4 @@
-"""Permanent source/artifact deletion gates and corruption controls."""
+"""Distribution contents, source isolation, and artifact integrity."""
 
 from __future__ import annotations
 
@@ -51,13 +51,6 @@ def artifact(project, kind, extra=None):
                 info.size = len(data)
                 archive.addfile(info, io.BytesIO(data))
     return path
-
-
-def test_retirement_list_matches_the_migration_manifest():
-    manifest = runpy.run_path(str(ROOT / "packages/galaga/tests/compatibility/v1_surface_manifest.py"))
-    roots = {"galaga." + name for name in gate.RETIRED_ROOTS}
-    legacy = manifest["LEGACY_ONLY_SUBMODULES"]
-    assert roots == {name for name in legacy if not any(name.startswith(other + ".") for other in legacy)}
 
 
 def test_production_source_contains_no_retired_files_imports_or_product_tables():

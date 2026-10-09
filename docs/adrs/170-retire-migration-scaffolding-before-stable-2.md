@@ -54,3 +54,34 @@ bookkeeping reduces test maintenance without discarding current API contracts.
 This decision updates the compatibility portion of ADR-129, the alias portion
 of galaga-matrix ADR-005, and the notebook testing policy of ADR-083 and
 ADR-090.
+
+## Completion of the cleanup
+
+The completed API disposition manifest, source ownership ledgers, archive
+provenance assertions, and mutation tests of migration checks are retired.
+Tests of current aliases, numeric domains, protocols, imports, and call shapes
+remain ordinary facade and core contracts. The test-wide import hook and
+repeated subprocess runs that install a retired-module finder are removed.
+The release artifact checker still validates source contents, forbidden
+dependencies, runtime files, and distribution metadata.
+
+The remaining operation-name codemod and cutover microbenchmark are retired,
+along with their tests. LibCST is removed from the development dependencies.
+Historical timing reports remain records of their original environment;
+they do not prescribe a current benchmark command.
+
+The differential rendering auditor and accepted-difference ledger are replaced
+by ordinary snapshot tests. All 73 expression recipes retain their reviewed
+expression, value, full-display, rich-display, and coefficient expectations.
+The new fixture contains current expectations rather than a pair of engines.
+Independent coefficient, basis transport, quaternion, and configured-rendering
+tests remain. Unused ownership and source-capture archives are removed; their
+historical versions are available through Git.
+
+Configured rendering contexts also drop the implementation selector and the
+cutover prefix in configuration names. Names identify the algebra and display
+profile, such as `cl3/full-default`; all recipes use the public facade.
+
+This completes retirement of the tools established by ADR-092, ADR-093,
+ADR-096, and ADR-121. Their mathematical and architectural runtime contracts
+continue to be covered without requiring their migration bookkeeping.

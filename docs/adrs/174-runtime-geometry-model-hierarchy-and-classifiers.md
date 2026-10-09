@@ -132,6 +132,26 @@ $$
 Retire the generic algebra-level aliases with those names. Keep
 `metric_apply()` and `antimetric_apply()` as the general algebra operations.
 
+### Generic alias retirement implemented
+
+As of 2026-10-09, remove the generic `bulk_part` and `weight_part` exports
+from `galaga`, `galaga.facade`, and `galaga.core`, their catalog operation IDs,
+and built-in notation rules and autocomplete keywords. Keep `metric_apply`
+and `antimetric_apply` as the explicit algebra operations. Existing CGA model
+component methods and their distinct semantic expression IDs remain available.
+Projective model methods are described below.
+
+Update examples and current contracts to call the explicit metric maps.
+Historical captures retain their original keys and observations; their live
+comparisons use the corresponding metric-map operations and reviewed rendering
+spellings. Do not provide a compatibility wrapper or restore a generic semantic
+operation ID through expression replay.
+
+Regression tests reject the removed imports and expression IDs, verify the
+metric maps against Gram minors, and demonstrate the all-null exterior case
+where their sum omits intermediate grades. CGA component reconstruction and
+expression replay remain covered independently.
+
 ### Model-owned classification
 
 Each concrete model owns `classify(value, atol=...)` and returns immutable
@@ -194,6 +214,70 @@ they need not be homogeneous blades.
 Move the geometric classification logic currently owned by
 `galaga_annotation` into the runtime models. The annotation package consumes
 classification results and retains highlighting and rendering policy.
+
+### Runtime implementation and compatibility
+
+The implementation places concrete models in `galaga.models.rga`,
+`galaga.models.pga`, `galaga.models.cga`, and `galaga.models.csta`.
+`galaga.cga` and `galaga.rga` retain identity-preserving reexports for established
+imports. Numeric products remain owned by the facade and core.
+
+The internal root validates facade ownership, expression defaults, model
+identity, immutable signed roles, and finite coefficients. Model operations
+require the same facade `Algebra` instance, including when another presentation
+view shares its numeric algebra. Projective validation requires an exactly
+normalized Euclidean block and one orthogonal null vector: approximately
+normalized metrics do not give exactly complementary metric-map projections.
+The conformal base validates its base Gram block, orthogonality, null roles, and
+pairing using actual signed role vectors. CSTA retains its normalized pairing
+of $-1$ and physical-unit wrappers. Coordinate grammars and unit policies live
+in concrete `up`/`point` wrappers; they share signed coordinate construction,
+embedding, normalization, role validation, and semantic provenance. Shared
+normalization keeps its weight as a tracked scalar multivector, even though the
+CSTA public `weight()` convenience method returns a float. Expanded expressions
+therefore replay correctly when a named input is rebound at another weight.
+
+PGA points are defined by the right complement of the homogeneous vector
+$x+w e_0$. Left complement recovers that vector. A plane with coefficients
+$(a_1,\ldots,a_d,b)$ has equation $a\cdot x+bw=0$, as verified by exterior
+incidence with the point. This determines signs from the configured roles,
+rather than copying a coefficient layout from another blade convention.
+RGA and PGA `transform(value, motor)` require a normalized even motor and use
+the geometric antiproduct/antireverse and geometric product/reverse respectively.
+
+Projective points, joins, meets, and component splits retain distinct executable
+semantic operation IDs. Hidden role parameters and a dual-representation flag
+make point expressions replayable without importing runtime models into the
+facade catalog. CGA `point` retains its own construction ID; CSTA `point`
+continues to use the event construction and its unit policy.
+
+Preserve CGA's established `round_point` and `radius_squared` convention:
+a vector encoding radius $r$ has square $-r^2$. CSTA's `signed_round` encodes
+square $+\rho^2$. The shared radius implementation therefore takes a concrete
+model sign, recorded in executable provenance. CGA classifier IPNS radius
+properties use $S^2/w^2$, as required by incidence, independently of the
+`round_point` constructor's radius convention.
+
+Object classifiers normalize every nonzero input before tolerance decisions.
+Only an exactly zero coefficient array is the zero object; scaling a blade
+below an absolute tolerance must not erase its projective meaning. Simplicity
+is tested by the dimension of the kernel of $v\mapsto v\wedge B$, which must
+equal the blade grade. The self-wedge of an odd-grade value is not a simplicity
+test. Finite projective geometry has a weight-bearing direction in that span.
+CGA finite rounds expose derived center and signed radius properties; an
+unresolved or singular round returns a diagnostic `degenerate` result.
+
+PGA/RGA return `ObjectClassification`; CGA returns `CGAClassification`, adding
+flat incidence. Existing `CSTAClassification` keeps its construction contract
+and causal fields and gains a fixed `model="csta"` field. All results share
+model, kind, grade, representation, simplicity, finiteness, and properties.
+RGA mixed-grade motor/flector names require verified reciprocal versor actions;
+homogeneous values keep their geometric blade interpretation.
+
+`galaga_annotation.classify_cga` retains its four-field `CGAObject` result as
+an adapter to the runtime classifier. Annotation component targets and styling
+remain in that package. Its established highlighting scope remains 3D; the
+runtime classifier independently supports 2D and 3D.
 
 ## Consequences
 

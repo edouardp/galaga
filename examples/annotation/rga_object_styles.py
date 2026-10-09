@@ -14,10 +14,10 @@ def _():
 
     import galaga_annotation as ga
     import galaga_marimo as gm
-    from galaga import Algebra, bulk_part, exp, op, presets, weight_part
+    from galaga import Algebra, antimetric_apply, exp, metric_apply, op, presets
     from galaga.rga import RigidModel
 
-    return Algebra, RigidModel, bulk_part, exp, ga, gm, mo, np, op, presets, weight_part
+    return Algebra, RigidModel, metric_apply, exp, ga, gm, mo, np, op, presets, antimetric_apply
 
 
 @app.cell(hide_code=True)
@@ -27,15 +27,15 @@ def _(mo):
 
     Lengyel's point-based RGA splits every object into a **bulk** (attitude,
     direction, or rotation) part and a **weight** (moment, position, or
-    translation) part. `bulk_part` and `weight_part` expose those parts from
-    the validated `RigidModel`, and the annotation system labels them with the
-    same marker vocabulary used elsewhere.
+    translation) part. For this normalized RGA metric, `metric_apply` and
+    `antimetric_apply` select these components. The annotation system labels
+    them with the same marker vocabulary used elsewhere.
     """)
     return
 
 
 @app.cell
-def _(Algebra, RigidModel, bulk_part, exp, ga, np, op, presets, weight_part):
+def _(Algebra, RigidModel, metric_apply, exp, ga, np, op, presets, antimetric_apply):
     rga = RigidModel(Algebra(config=presets.rga(), expr=True), expr=True)
     e1, e2, _e3 = rga.euclidean_basis_vectors(expr=True)
     e4 = rga.projective
@@ -54,7 +54,7 @@ def _(Algebra, RigidModel, bulk_part, exp, ga, np, op, presets, weight_part):
 
 
 @app.cell
-def _(bulk_part, ga, np, weight_part):
+def _(metric_apply, ga, np, antimetric_apply):
     def _masks(part):
         return tuple(int(index) for index in np.flatnonzero(part.data))
 
@@ -63,7 +63,7 @@ def _(bulk_part, ga, np, weight_part):
 
     def bulk_weight_rules(value, marker):
         rules = []
-        bulk, weight = bulk_part(value), weight_part(value)
+        bulk, weight = metric_apply(value), antimetric_apply(value)
         if _masks(bulk):
             rules.append(
                 ga.on(
@@ -193,8 +193,8 @@ def _(mo):
     mo.md(r"""
     ## Takeaways
 
-    - The object is split from the validated `RigidModel`, not by hardcoded
-      blade names: `bulk_part` and `weight_part` decide the terms.
+    - The component maps use the metric of the validated `RigidModel`:
+      `metric_apply` and `antimetric_apply` select the terms.
     - `over_marker` defaults to an overbrace for the bulk label; the weight
       label uses an underbrace. Group accents remain explicit alternatives.
     - Motors and flectors satisfy their RGA constraints and are annotated the

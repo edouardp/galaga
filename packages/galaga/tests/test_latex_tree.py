@@ -1,14 +1,9 @@
-"""Public semantic-tree owners of the 45 historical LaTeX layout cases.
+"""Immutable semantic-tree layout and exact LaTeX emission.
 
 V2 escapes Text, uses explicit mathematical identifiers, and performs
 script-fraction layout during emission. It does not mutate/rewrite layout
 trees to hoist signs, erase division by one, or collapse explicit groups.
 """
-
-import ast
-import hashlib
-import json
-from pathlib import Path
 
 import pytest
 
@@ -16,7 +11,6 @@ from galaga import Name
 from galaga.rendering import tree as t
 from galaga.rendering.latex import emit
 
-ARCHIVE = json.loads((Path(__file__).parents[1] / "tools/baselines/latex-tree-v1.json").read_text())
 A, B, C, E, X, Y = (t.Identifier(name) for name in ("a", "b", "c", "e", "x", "y"))
 THETA = t.Identifier(Name.from_latex(r"\theta"))
 AB = t.Sum((t.SumTerm(A), t.SumTerm(B)))
@@ -25,7 +19,7 @@ NEG_A = t.Prefix("-", A)
 TILDE = Name("tilde", "̃", r"\tilde")
 WIDE = Name("tilde", "̃", r"\widetilde")
 
-# Every old identity has a direct, collected semantic-tree replacement.
+# Exact emission examples for atomic and nested layouts.
 CASES = (
     ("TestEmitText.test_plain", t.Text("x"), "x"),
     ("TestEmitText.test_latex_command", t.Identifier(Name.from_latex(r"\alpha")), r"\alpha"),
@@ -112,38 +106,11 @@ CASES = (
 
 
 @pytest.mark.parametrize("identifier, tree, expected", CASES, ids=[row[0] for row in CASES])
-def test_historical_tree_cases_have_immutable_public_layout_owners(identifier, tree, expected):
+def test_tree_layout_is_immutable_and_matches_exact_latex(identifier, tree, expected):
     before = repr(tree), hash(tree)
     assert emit(tree) == expected
     assert emit(tree) == expected
     assert (repr(tree), hash(tree)) == before
-    assert identifier in {row["id"] for row in ARCHIVE["tests"]}
-
-
-def test_complete_source_and_every_old_layout_identity_remain_archived():
-    assert ARCHIVE["schema_version"] == 1 and ARCHIVE["captured_on"] == "2026-09-08"
-    assert ARCHIVE["python"] == "3.14.4"
-    assert ARCHIVE["source_commit"] == "0499fa49800950503467cac60eb9d199231458c0"
-    assert ARCHIVE["source_path"] == "packages/galaga/tests/test_latex_tree.py"
-    assert ARCHIVE["sha256"] == "34d40e0869e956a18c7ffb4d423a5cb724b02a4d077002c3f3323696ed6877ff"
-    assert hashlib.sha256(ARCHIVE["source"].encode()).hexdigest() == ARCHIVE["sha256"]
-    identifiers = [
-        f"{cls.name}.{method.name}"
-        for cls in ast.parse(ARCHIVE["source"]).body
-        if isinstance(cls, ast.ClassDef)
-        for method in cls.body
-        if isinstance(method, ast.FunctionDef) and method.name.startswith("test_")
-    ]
-    assert identifiers == [row["id"] for row in ARCHIVE["tests"]] == [row[0] for row in CASES]
-    assert len(identifiers) == len(set(identifiers)) == 45
-    observations = {row["id"]: row["emissions"] for row in ARCHIVE["tests"]}
-    assert all(
-        rows and all(isinstance(row["latex"], str) and row["tree"] for row in rows) for rows in observations.values()
-    )
-    assert observations["TestEmitFrac.test_small"][0]["latex"] == r"\tfrac{a}{b}"
-    assert observations["TestRewriteNestedParens.test_double_parens"][0]["latex"] == r"\left(a\right)"
-    assert observations["TestRewriteHoistNeg.test_neg_num_hoisted"][0]["latex"] == r"-\frac{a}{b}"
-    assert observations["TestRewriteFracOne.test_frac_over_1"][0]["latex"] == "a"
 
 
 def test_empty_sequences_and_small_fraction_flags_are_not_implicit_legacy_adapters():

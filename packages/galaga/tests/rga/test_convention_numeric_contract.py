@@ -14,8 +14,6 @@ ARCHIVE = json.loads((Path(__file__).parents[2] / "tools/baselines/rga-conventio
 UNARY = (
     "metric_apply",
     "antimetric_apply",
-    "bulk_part",
-    "weight_part",
     "right_hodge_dual",
     "left_hodge_dual",
     "right_weight_dual",
@@ -52,7 +50,9 @@ def archived_case(row):
     x, y, _, _ = algebra.basis_vectors(expr=True)
     if row["kind"] == "operation":
         arguments = (x,) if row["arity"] == 1 else ((x, y, row["order"]) if row["arity"] == 3 else (x, y))
-        result = getattr(ga, row["operation"])(*arguments)
+        result = getattr(
+            ga, {"bulk_part": "metric_apply", "weight_part": "antimetric_apply"}.get(row["operation"], row["operation"])
+        )(*arguments)
     elif row["kind"] == "nested":
         result = ga.antireverse(ga.antiwedge(ga.complement(x), ga.complement(y)))
     elif row["kind"] == "pseudoscalar":
@@ -82,7 +82,9 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
     if target == "ascii":
         # V1's format(value, "a") silently kept Unicode for symbolic values.
         if row["kind"] == "operation":
-            operation = row["operation"]
+            operation = {"bulk_part": "metric_apply", "weight_part": "antimetric_apply"}.get(
+                row["operation"], row["operation"]
+            )
             arguments = "e1" if row["arity"] == 1 else ("e1, e2, 1" if row["arity"] == 3 else "e1, e2")
             expected = (
                 "~e1"
@@ -117,6 +119,9 @@ def test_original_rga_observations_keep_numeric_values_and_reviewed_spelling(row
             expected = r"\operatorname{right\_interior\_product}(\mathbf{e}_{1},\, \mathbf{e}_{2})"
         if row.get("operation") == "conjugate":
             expected = r"\operatorname{clifford\_conjugate}(\mathbf{e}_{1})"
+    if row.get("operation") in {"bulk_part", "weight_part"} and target != "ascii":
+        prefix = ("G", r"\mathbf{G}") if row["operation"] == "bulk_part" else ("𝔾", r"\mathbb{G}")
+        expected = prefix[0] + "e₁" if target == "unicode" else prefix[1] + r"\mathbf{e}_{1}"
     assert result.display(f"expr/{target}") == expected
 
 
@@ -167,8 +172,6 @@ class CoefficientOracle:
         return {
             "metric_apply": metric_left,
             "antimetric_apply": antimetric_left,
-            "bulk_part": metric_left,
-            "weight_part": antimetric_left,
             "right_hodge_dual": self.right @ metric_left,
             "left_hodge_dual": self.left @ metric_left,
             "right_weight_dual": self.right @ antimetric_left,
@@ -243,7 +246,7 @@ def test_ordered_transwedge_sums_reconstruct_both_products_and_pga_projection_bo
         expected = oracle.gp(LEFT, RIGHT) if product == "geometric_product" else oracle.operations(LEFT, RIGHT)[product]
         assert_coefficients(total.data, expected)
         assert_coefficients(getattr(ga, product)(a, b).data, expected)
-    combined = ga.bulk_part(a) + ga.weight_part(a)
+    combined = ga.metric_apply(a) + ga.antimetric_apply(a)
     if np.array_equal(oracle.gram, GRAMS[0]):
         assert combined == a
     else:

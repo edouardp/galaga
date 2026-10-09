@@ -16,14 +16,14 @@ def _():
     from galaga import (
         Algebra,
         Presenter,
-        bulk_part,
+        metric_apply,
         commutator,
         complement,
         grade,
         grade_involution,
         outer_product,
         presets,
-        weight_part,
+        antimetric_apply,
     )
     from galaga.rga import RigidModel
 
@@ -32,7 +32,7 @@ def _():
         Presenter,
         RigidModel,
         ann,
-        bulk_part,
+        metric_apply,
         commutator,
         complement,
         gm,
@@ -42,7 +42,7 @@ def _():
         np,
         outer_product,
         presets,
-        weight_part,
+        antimetric_apply,
     )
 
 
@@ -323,7 +323,7 @@ def _(mo):
 
 @app.cell
 def _(
-    bulk_part,
+    metric_apply,
     grade_involution,
     partition_view,
     plane_algebra,
@@ -332,7 +332,7 @@ def _(
     plane_e12,
     plane_e2,
     plane_e23,
-    weight_part,
+    antimetric_apply,
 ):
     playfair_A = 1 + 2 * plane_e1 + 0.5 * plane_e12
     playfair_B = 3 - plane_e2 + 0.25 * plane_e23
@@ -350,7 +350,7 @@ def _(
         weight_label="ideal: Cl(W)e0",
     )
     playfair_parts_reconstruct = (
-        bulk_part(playfair_value) + weight_part(playfair_value)
+        metric_apply(playfair_value) + antimetric_apply(playfair_value)
     ).almost_equal(playfair_value)
     playfair_ideal_is_square_zero = (playfair_ideal * second_playfair_ideal).almost_equal(
         plane_algebra.scalar(0)
@@ -360,7 +360,7 @@ def _(
         playfair_A * playfair_D + playfair_B * grade_involution(playfair_C)
     ) * plane_e0
     twisted_product_holds = twisted_product_actual.almost_equal(twisted_product_expected)
-    twisted_bulk_product_holds = bulk_part(twisted_product_actual).almost_equal(
+    twisted_bulk_product_holds = metric_apply(twisted_product_actual).almost_equal(
         playfair_A * playfair_C
     )
     return (
@@ -536,7 +536,7 @@ def _(mo):
 
 @app.cell
 def _(
-    bulk_part,
+    metric_apply,
     partition_view,
     plane_e0,
     plane_e1,
@@ -547,7 +547,7 @@ def _(
     point_e3,
     point_e4,
     point_model,
-    weight_part,
+    antimetric_apply,
 ):
     plane_e123 = plane_e1 ^ plane_e2 ^ plane_e3
     plane_e230 = plane_e2 ^ plane_e3 ^ plane_e0
@@ -594,7 +594,7 @@ def _(
         weight_label="normal",
     )
     object_bulk_weight_reconstructions = tuple(
-        (bulk_part(value) + weight_part(value)).almost_equal(value)
+        (metric_apply(value) + antimetric_apply(value)).almost_equal(value)
         for value in (
             plane_based_point,
             point_based_point,
@@ -644,8 +644,8 @@ def _(
 
     {value_presenter(point_plane_view):block}
 
-    Every displayed pair reconstructs its object from `bulk_part` plus
-    `weight_part`: **{object_bulk_weight_reconstructions}**.
+    Every displayed pair reconstructs its object from `metric_apply` plus
+    `antimetric_apply`: **{object_bulk_weight_reconstructions}**.
 
     “Bulk” does not universally mean position or direction. It names a
     coefficient projection; the model supplies the geometric interpretation.
@@ -790,7 +790,7 @@ def _(mo):
 
 @app.cell
 def _(
-    bulk_part,
+    metric_apply,
     commutator,
     partition_view,
     plane_algebra,
@@ -799,7 +799,7 @@ def _(
     plane_e12,
     plane_e2,
     plane_e23,
-    weight_part,
+    antimetric_apply,
 ):
     rotation_generator_a = plane_e12
     rotation_generator_b = plane_e23
@@ -822,10 +822,10 @@ def _(
     translation_translation_bracket = commutator(
         translation_generator_a, translation_generator_b
     )
-    rotation_bracket_stays_bulk = weight_part(rotation_rotation_bracket).almost_equal(
+    rotation_bracket_stays_bulk = antimetric_apply(rotation_rotation_bracket).almost_equal(
         plane_algebra.scalar(0)
     )
-    mixed_bracket_stays_ideal = bulk_part(rotation_translation_bracket).almost_equal(
+    mixed_bracket_stays_ideal = metric_apply(rotation_translation_bracket).almost_equal(
         plane_algebra.scalar(0)
     )
     translations_commute = translation_translation_bracket.almost_equal(

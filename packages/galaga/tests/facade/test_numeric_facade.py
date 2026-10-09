@@ -7,7 +7,6 @@ from fractions import Fraction
 
 import numpy as np
 import pytest
-from tools.legacy_import_boundary import assert_no_legacy_modules
 
 import galaga.facade as facade
 from galaga import core
@@ -26,13 +25,12 @@ from galaga.facade import (
 )
 
 
-def test_numeric_values_use_core_storage_without_importing_legacy() -> None:
+def test_numeric_values_use_core_storage() -> None:
     algebra = Algebra(gram=((2, 0.5), (0.5, -1)))
     a, b = algebra.basis_vectors()
     assert type(a.numeric) is core.Multivector
     assert (a * b).numeric.algebra is algebra.numeric
     np.testing.assert_array_equal((a * b).data, [0.5, 0, 0, 1])
-    assert_no_legacy_modules()
 
 
 def native_cga_gram() -> np.ndarray:
@@ -61,14 +59,14 @@ class TestConstructionAndValues:
             Algebra(2).scalar(value)
 
     @pytest.mark.parametrize("signature", ((1, -1, 0), [1, -1, 0]))
-    def test_accepts_the_legacy_positional_signature_form(self, signature) -> None:
+    def test_accepts_the_positional_signature_form(self, signature) -> None:
         algebra = Algebra(signature)
 
         assert algebra.basis_squares.tolist() == [1.0, -1.0, 0.0]
         assert algebra.inertia == (1, 1, 1)
 
     @pytest.mark.parametrize("signature", ((), []), ids=("tuple", "list"))
-    def test_accepts_the_legacy_empty_positional_signature(self, signature) -> None:
+    def test_accepts_the_empty_positional_signature(self, signature) -> None:
         algebra = Algebra(signature)
 
         assert algebra.signature == ()
@@ -442,7 +440,6 @@ class TestCatalogAndParity:
         (
             "antimetric_apply",
             "antireverse",
-            "bulk_part",
             "complement",
             "conjugate",
             "dual",
@@ -475,7 +472,6 @@ class TestCatalogAndParity:
             "uncomplement",
             "undual",
             "unit",
-            "weight_part",
         ),
     )
     def test_unary_operation_matches_direct_oblique_gram_evaluation(self, operation_name: str) -> None:

@@ -1,9 +1,29 @@
 """Immutable results for geometric and operator classification."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Literal
 
 CausalKind = Literal["timelike", "null", "spacelike"]
+
+
+@dataclass(frozen=True, slots=True)
+class ObjectClassification:
+    """Geometric interpretation established by a validated runtime model."""
+
+    model: str
+    kind: str
+    grade: int | None
+    representation: str | None
+    simple: bool | None
+    finite: bool | None
+    properties: tuple[tuple[str, object], ...] = ()
+
+
+@dataclass(frozen=True, slots=True)
+class CGAClassification(ObjectClassification):
+    """Euclidean conformal classification, including direct flat incidence."""
+
+    flat: bool | None = None
 
 
 @dataclass(frozen=True, slots=True)
@@ -20,8 +40,10 @@ class CSTAClassification:
     representation: str | None
     simple: bool | None
     finite: bool | None
+
     causal: CausalKind | None = None
     properties: tuple[tuple[str, object], ...] = ()
+    model: str = field(default="csta", init=False)
 
 
 @dataclass(frozen=True, slots=True)
@@ -40,4 +62,10 @@ class CSTAOperatorClassification:
     properties: tuple[tuple[str, object], ...] = ()
 
 
-__all__ = ["CSTAClassification", "CSTAOperatorClassification", "CausalKind"]
+__all__ = [
+    "ObjectClassification",
+    "CGAClassification",
+    "CSTAClassification",
+    "CSTAOperatorClassification",
+    "CausalKind",
+]

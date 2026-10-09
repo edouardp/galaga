@@ -14,8 +14,6 @@ from galaga.expression import BladeLiteral, Call, evaluate, simplify
 UNARY = (
     "metric_apply",
     "antimetric_apply",
-    "bulk_part",
-    "weight_part",
     "right_hodge_dual",
     "left_hodge_dual",
     "right_weight_dual",
