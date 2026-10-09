@@ -1,5 +1,169 @@
 # Changelog
 
+## 2.0.0b2 (2026-10-10)
+
+This second Galaga 2 beta adds persistent presentation preferences, a shared
+runtime geometry model API, conformal-spacetime classifiers and physical units,
+and alternative complex and quaternion representations. It also strengthens
+matrix interoperability and removes completed migration APIs and tooling.
+
+### Added
+
+- **Layered TOML preferences** — Load presentation defaults from
+  `~/.config/galaga_python/config.toml` (or the XDG config directory), followed
+  by `.galaga_python.toml` files along the path to the working directory.
+  New algebras load preferences automatically; `user_config_files=False`
+  opts out. `galaga.config.load(...)` provides explicit settings snapshots,
+  named notations, presentations, presenters, and algebra configurations.
+  Named references use `"@name"`, including `Algebra(config="@name")`.
+  Parsing uses the standard library, keeping NumPy as Galaga's only direct
+  runtime dependency. A commented example lives in
+  `examples/galaga-user-config.toml`.
+- **Complete notation overrides** — `presets.notation.override(...)` accepts
+  explicit operation keywords for editor completion, target-specific rules,
+  and concise strings such as `"prefix:star"` and `"wrapper:1/2[,]"`.
+  Complete `RenderRule` objects and tables remain available in Python and TOML.
+  Blade recipe arguments can also be written directly beside `preset` in TOML.
+- **Presentation inspection** — `alg.show_presentation()` returns a renderable
+  three-column table of operation names and two notation examples. The default
+  shows changed forms with symbolic variables; `all=True` includes all
+  expression-producing forms and `basis=True` uses the algebra's blades.
+  Complement aliases are deduplicated, and an empty view explains how to show
+  the complete table.
+- **Sparse display and blade factories** —
+  `presets.display.override(...)` changes selected display fields.
+  `presets.blades.pss(...)` returns a composable `BladePatch` that renames the
+  pseudoscalar while preserving its signed orientation, other labels, aliases,
+  and roles. It works in algebra constructors, algebra views, and presenters;
+  Python local names remain a separate policy.
+- **Public named arithmetic** — Exports `add`, `subtract`, `divide`, `negate`,
+  `power`, `scalar_multiply`, and `scalar_divide` from `galaga`. Operators
+  delegate to the same named functions and retain expression tracking.
+  Addition, subtraction, and division accept a real scalar alongside a
+  multivector; division retains its right-inverse convention.
+- **Alternative number representations** —
+  `presets.complex(representation="vector")` constructs full `Cl(0,1)` with
+  basis vector and pseudoscalar `i`.
+  `presets.quaternion(representation="direct")` constructs full `Cl(0,2)`
+  with vectors `i`, `j` and pseudoscalar `k = i*j`. Existing bivector
+  representations remain the defaults. Both alternatives expose conventional
+  local names and matching blade-only factories, work with presenters,
+  annotations, and TOML profiles, and retain GA reversion and norm semantics.
+- **Runtime geometry models** — `galaga.models` provides `PGAModel`,
+  `RigidModel`, `ConformalModel`, and `ConformalSpacetimeModel`, with shared
+  validation and expression infrastructure and public capability protocols.
+  Models own point construction, coordinate recovery, geometric operations,
+  and object classification. PGA supports two and three spatial dimensions;
+  RGA remains three-dimensional. Existing CGA and RGA import paths continue
+  to expose their models.
+- **Conformal-spacetime construction and classification** — The CSTA model
+  adds events, event pairs, flat lines, signed rounds, causal intervals, and
+  operator or expanded construction expressions, with per-call choices and
+  `with_expression_form(...)` model views. Geometric classification covers
+  supported direct and dual objects, light cones, lightlike lines, circles,
+  hyperbolas, parabola/paraboloid sections, hyperboloids, and degenerate cases,
+  reporting carrier and tangent signatures where applicable.
+  `classify_operator()` separately identifies algebraic traits such as
+  projectors, involutions, nilpotents, versors, and rotors, and recognizes
+  supported conformal actions from their effect on the actual basis.
+- **Spacetime units** — `SpacetimeUnits` and CSTA coordinate policies support
+  natural units, seconds/metres, and explicit time/distance unit pairs.
+  Conversion methods return numbers or readable strings for time, distance,
+  speed, and acceleration, including astronomical units, light-years,
+  percentages of light speed, and standard gravities. Physical conversion
+  preserves the algebra's normalized metric and expression replay.
+- **CSTA example notebooks** — Adds API and classifier demonstrations, a
+  dedicated object/operator zoo, and a spinor/twistor lesson. Examples include
+  rotor-generated acceleration, physical unit conversions, minimal left
+  ideals, conformal spinor action, twistor incidence, and geometric recovery
+  of an event from two independent incident twistors, with optional matrix
+  and annotation views.
+
+### Changed
+
+- **Presenter composition** — Presenter factories compose with blade recipes,
+  notation, local names, display ordering, and display overrides using the
+  same recipe resolution as algebra configuration. Algebra constructors accept
+  sparse presentation components; `with_notation()` and `use_notation()` accept
+  notation patches, and `use_presentation()` applies composed recipes.
+- **Sparse `DisplayPolicy`** — Only explicitly supplied fields override an
+  existing policy. Composition merges fields with the right-hand value winning;
+  explicit defaults reset a field, while `DisplayPolicy()` is an empty override.
+  Stored presentation snapshots remain complete resolved policies.
+- **Matrix/NumPy interoperability** — Bound `MatrixRepr` values can operate
+  with raw arrays and unbound wrappers in either operand order. Compatible
+  operations retain an algebra context, while `.mv` validates representation
+  membership. Conflicting bound algebra, mode, basis, or source-domain contexts
+  are rejected. `.kron()` accepts different contexts and returns an unbound
+  `MatrixRepr`; compatible represented products retain geometric-product
+  roundtrips.
+- **Model-owned classification and decomposition** — CGA classification is
+  owned by the runtime model and reused by annotation recipes. Bulk/weight
+  decomposition lives on the appropriate geometry models; general algebra
+  operations remain available as `metric_apply()` and `antimetric_apply()`.
+- **Editable example ownership** — Notebook tests now discover examples and
+  check compilation, Marimo dependencies, and headless execution without
+  prescribing lesson text or cell structure. Unported Galaga 1 examples move
+  to `examples/legacy`; the editable gallery launcher remains available.
+  Current rendering snapshots replace the migration parity auditor.
+- **Composition internals** — Refactors presentation merging, component
+  resolution, validation, and import boundaries into shared code used by
+  algebras and presenters.
+
+### Fixed
+
+- **Static operation help** — Public numeric functions carry literal source
+  docstrings so runtime help and editor completion can display their meaning,
+  signatures, and domain restrictions, including `right_hodge_dual`.
+- **Expression grouping and distinct operations** — Sandwich expressions
+  explicitly bracket the reversed operand. Compound Unicode reverse uses the
+  established postfix form, while ASCII retains `~(...)`. Interior products
+  have distinct rendering from contractions, with the left interior product
+  retaining a functional spelling. Presentation examples show rotor `R`,
+  compound operands, powers two and three, and both transwedge orders.
+- **LaTeX symbol conversion** — Expands supported Unicode/ASCII mappings for
+  useful KaTeX symbols, including `\bigstar`, `\ast`, `\ddagger`, set and
+  lattice operators, and perpendicular/parallel relations.
+- **Matrix inverse validation** — Conversion back to multivectors checks the
+  complete representation image, including left-regular action and quaternion
+  residuals, rejecting arbitrary matrices that merely have the expected shape
+  or first column. Compatible operator actions preserve spinor context.
+- **Python 3.11 annotations** — Matrix-region slice defaults use independent
+  default factories, fixing annotation imports on Python 3.11. Model typing and
+  weight contracts are also corrected: CGA retains a tracked scalar multivector,
+  while CSTA returns a float.
+
+### Removed
+
+- **Prefixed preset spellings** — Removes `p_cga`, `p_sta`, and the other
+  `p_*` complete-preset aliases. Use the concise `presets.*` factories.
+- **Redundant matrix aliases** — Removes `to_spinor_matrix`,
+  `from_spinor_matrix`, and `QuatMatrixRepr`. Use `to_spinor_column`,
+  `from_spinor_column`, and `MatrixRepr` in quaternion mode.
+- **Generic bulk/weight aliases** — Removes algebra-level `bulk_part()` and
+  `weight_part()`, their catalog IDs, and their notation rules. Use explicit
+  metric maps for general algebras or the relevant model's decomposition.
+- **Completed migration scaffolding** — Retires one-time codemods, historical
+  ownership and compatibility ledgers, migration-only tests, the cutover
+  microbenchmark and parity auditor, and notebook-specific ADRs. Removes the
+  unused LibCST development dependency while retaining current numeric,
+  presentation, rendering, import, artifact, and notebook execution contracts.
+
+### Documentation and validation
+
+- Documents configuration classes, presenter relationships, composition, TOML
+  preferences, runtime model capabilities, physical units, and classifier
+  boundaries, with Mermaid diagrams and practical examples. Refreshes API,
+  migration, matrix/spinor, and installation guidance and separates historical
+  development records from current documentation.
+- Adds regression coverage for the new public APIs, configuration and
+  representation choices, model geometry, classifiers, spinor identities,
+  annotation integration, and matrix context/image validation.
+- Records the October 10 local source and installed-wheel validation checkpoint
+  on Python 3.11 and 3.14, including browser/notebook checks, dependency audits,
+  documentation links, and refreshed branch coverage. The report identifies
+  its validated revision and remaining coverage gaps.
+
 ## 2.0.0b1 (2026-10-03)
 
 This first Galaga 2 beta extends the public presentation API, adds real powers
