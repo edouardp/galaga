@@ -13,6 +13,10 @@ which explain why a design was selected.
 | [SPEC-003](SPEC-003-product-and-duality-conventions.md) | Implemented | Clifford, exterior, inner, bracket, duality, and RGA conventions |
 | [SPEC-004](SPEC-004-product-backends.md) | Implemented | Backend contract, automatic selection, caching, and diagnostics |
 | [SPEC-005](SPEC-005-numeric-functions.md) | Implemented | Square roots, exponential, principal algebra logarithm, rotor generators, and outer transcendental functions |
+| [SPEC-006](SPEC-006-low-dimensional-multivector-inverse.md) | Proposed | Jones polynomial inverse through dimension six, numerical guards, solve fallback, and implementation validation |
+
+Proposed specifications describe future implementation work. They do not
+change the behavior of the installed numeric core.
 
 ## Language
 

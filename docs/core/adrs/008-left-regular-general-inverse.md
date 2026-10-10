@@ -54,3 +54,16 @@ integration point for a left-regular matrix representation.
 - Cost, because it materializes and solves a dense `dim` by `dim` system.
 - Future, because a versor fast path and audited Hitzer/Shirokov paths should
   precede the solve while retaining it as a fallback or test oracle.
+
+## Proposed polynomial path
+
+[SPEC-006](../specs/SPEC-006-low-dimensional-multivector-inverse.md) specifies
+a possible Jones inverse path for dimensions up to six, with coefficient
+scaling, scalar-denominator validation, two-sided residual checks, and the
+existing solve retained as fallback. It includes the mathematical derivation,
+reference Python, sources, and acceptance requirements.
+
+The specification is proposed; this ADR's current runtime decision remains
+the left-regular solve. Activating a polynomial path requires measured
+validation and a recorded update to the dispatch decision. Six-dimensional
+inversion is already supported by the baseline.

@@ -41,6 +41,9 @@ migration tasks:
 
 - Add a verified versor fast path to `inverse`, retaining the left-regular
   solve and residual checks for general inputs.
+- Evaluate the [Jones polynomial inverse specification](../core/specs/SPEC-006-low-dimensional-multivector-inverse.md)
+  through dimension six, including native-null CSTA, with checked candidates
+  and the existing solve as fallback.
 - Use a cheaper certified bound to scale general exponentials before targeting
   larger dimensions.
 - Measure difficult conditioning and branch-cut cases for the principal
