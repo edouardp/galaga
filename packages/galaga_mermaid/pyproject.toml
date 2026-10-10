@@ -15,7 +15,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
-    "galaga>=2.0.0b2",
+    "galaga>=2.0.0b3",
 ]
 
 [project.urls]

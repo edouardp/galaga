@@ -1,5 +1,61 @@
 # Changelog
 
+## 2.0.0b3 (2026-10-10)
+
+This third Galaga 2 beta makes public basis collections follow presentation
+order, improves presenter ordering defaults, and clarifies the metric API and
+implemented documentation contracts.
+
+### Changed
+
+- **Basis collection order** — Public `basis_vectors()` and `basis_blades()`
+  sequences now follow the captured presentation's display order, filtered to
+  the requested grade. Iteration, indexing, unpacking, and notebook table rows
+  agree. Under the quaternion preset,
+  `i, j, k = alg.basis_blades(grade=2)` returns the conventional units in that
+  order. Explicit custom orders are preserved; numeric coefficient storage and
+  core basis enumeration retain native bitmask order.
+- **Explicit grade keyword** — Renames the first parameter of `basis_blades()`
+  from `value` to `grade` in both the facade and numeric core. Positional calls
+  remain valid; update `basis_blades(value=2)` to `basis_blades(grade=2)`.
+- **Presenter ordering defaults** — `Presenter()` and presenter factories use
+  grade-lexicographic ordering by default, including when replacing a preset's
+  blade vocabulary. Explicit orders in keywords, complete presentations, and
+  composed recipes take precedence. Use `Presenter(display_order=None)` to
+  inherit the source presentation's order. Other unspecified components remain
+  inherited, and annotation rules are preserved when a presenter changes blade
+  names or ordering.
+
+### Fixed
+
+- **Basis table indices** — LaTeX and plain-text basis tables show consecutive
+  zero-based sequence positions rather than indices from the original native
+  enumeration. A displayed `[0]` now identifies the object returned by `[0]`.
+
+### Removed
+
+- **Public `basis_squares` property** — Removes the redundant property from
+  facade and core algebras. Use `gram` for the stored metric, or
+  `np.diag(alg.gram)` for the basis-vector squares. `signature` remains available
+  for normalized diagonal metrics; its error message now directs other metrics
+  to `gram`.
+
+### Documentation and validation
+
+- Corrects basis-enumeration guidance, replaces removed `p_cga` examples with
+  `presets.cga()` and the public `galaga.models` import, and documents supported
+  annotation/presenter composition in either order. Annotation specifications
+  distinguish implemented APIs from deferred features. Marks the earlier
+  blade/local-naming proposal as historical and links its implemented replacements.
+- Adds [SPEC-006: Polynomial Multivector Inverse](docs/core/specs/SPEC-006-low-dimensional-multivector-inverse.md)
+  for a future Jones inverse optimization through dimension six, with the
+  mathematics, executable reference Python, numerical safeguards, solve fallback,
+  validation requirements, and links to the papers, source repository, and
+  recorded talk. The runtime inverse continues to use the existing checked solve.
+- Adds regression coverage for grade-keyword calls, retired metric properties,
+  basis sequence/table agreement, quaternion identities, custom and captured
+  ordering, presenter composition, and annotation preservation.
+
 ## 2.0.0b2 (2026-10-10)
 
 This second Galaga 2 beta adds persistent presentation preferences, a shared
