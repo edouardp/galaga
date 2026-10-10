@@ -68,13 +68,14 @@ def test_concrete_display_matches_snapshots_with_explicit_grade_mask_order(row, 
 
 
 @pytest.mark.parametrize("grade", (0, 1, 2, 3))
-def test_quaternion_basis_values_use_native_enumeration(grade: int) -> None:
+def test_quaternion_basis_values_use_presentation_enumeration(grade: int) -> None:
     algebra = ga.Algebra(config=ga.presets.quaternion())
     observed = ARCHIVE["quaternion_basis"][str(grade)]
     assert list(algebra.display_order) == ARCHIVE["orders"]["quaternion"]
     for row in observed:
         assert str(algebra.multivector(row["coefficients"])) == row["unicode"]
-    ordered = sorted(observed, key=lambda row: int(np.flatnonzero(row["coefficients"])[0]))
+    positions = {mask: index for index, mask in enumerate(algebra.display_order)}
+    ordered = sorted(observed, key=lambda row: positions[int(np.flatnonzero(row["coefficients"])[0])])
     _assert_coefficients(
         [blade.data for blade in algebra.basis_blades(grade)], [row["coefficients"] for row in ordered]
     )

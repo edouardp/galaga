@@ -106,7 +106,7 @@ def factory_values(algebra, factory, expr):
 def test_archived_symbolic_factories_migrate_to_explicit_expr_flags(row, target):
     algebra = ga.Algebra(3)
     values = factory_values(algebra, row["id"], row["symbolic"])
-    # V1 iterated in presentation order; v2 uses native masks. Match by value.
+    # Compare values independently of the configured presentation order.
     archived = {tuple(value["data"]): value for value in row["values"]}
     assert len(values) == len(archived)
     for value in values:

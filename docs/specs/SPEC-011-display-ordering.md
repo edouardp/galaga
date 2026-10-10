@@ -11,9 +11,10 @@ The late-v1 implementation captured during migration used grade-sorted default
 display, despite Rule 2's original bitmask-order description. V2 now defaults to
 grade-then-lexicographic order per
 [ADR-133](../adrs/133-grade-lexicographic-default-display-order.md), preserves
-explicit preset/user orders, and never
-reorders `basis_blades()` according to presentation. Quaternion names should
-be selected by semantic roles rather than assumed from enumeration order.
+explicit preset/user orders, and orders public basis collections by the active
+presentation, per [ADR-158](../adrs/158-renderable-basis-factory-sequences.md).
+Quaternion bivectors therefore unpack as `i, j, k` under the quaternion preset.
+The numeric core retains native enumeration and coefficient storage.
 
 ## Problem
 

@@ -2,7 +2,7 @@
 
 The scalar-plus-bivector even subalgebra of Euclidean Cl(3,0) is quaternionic:
 i=e23, j=e13, k=e12. Compute those products before inspecting names or signs.
-Native basis enumeration and semantic unit lookup are intentionally distinct.
+Presentation-ordered basis enumeration agrees with conventional unit lookup.
 See ADR-107 and tools/baselines/quaternion-conventions-v1.json.
 """
 
@@ -127,7 +127,7 @@ class TestQuaternionVectorNames(unittest.TestCase):
     def test_custom_vector_names(self):
         algebra = _make_xyz_algebra()
         assert [str(value) for value in algebra.basis_vectors()] == ["x", "y", "z"]
-        assert [str(value) for value in algebra.basis_blades(2)] == ["k", "j", "i"]
+        assert [str(value) for value in algebra.basis_blades(2)] == ["i", "j", "k"]
         assert [str(value) for value in algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")] == [
             "i",
             "j",

@@ -12,8 +12,10 @@ user overrides are retained; the bitmask-default rationale below is historical.
 
 For Galaga 2, the immutable presentation model in
 [ADR-076](076-immutable-presentation-configuration.md) supersedes the storage
-and enumeration details below. `DisplayOrder` affects rendering only;
-`basis_blades()` remains in native bitmask order. The concrete-display test
+and enumeration details below. As revised in
+[ADR-158](158-renderable-basis-factory-sequences.md), `DisplayOrder` controls
+both rendering and public basis collection iteration. Core basis factories
+and coefficient storage remain in native bitmask order. The concrete-display test
 migration and captured late-v1 behavior are documented in
 [ADR-097](097-concrete-display-contracts-outlive-legacy-rendering.md).
 

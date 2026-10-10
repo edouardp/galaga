@@ -931,7 +931,8 @@ Use `Algebra(config=presets.complex())` or `Algebra(config=presets.quaternion())
 place of `b_complex` or `b_quaternion`. Their Euclidean even subalgebras
 include the scalar part. In the quaternion convention,
 `i=e23`, `j=e13`, `k=e12` satisfy Hamilton's identities; `j` is not `e31`.
-Select semantic units by roles rather than unpacking native bivector order:
+Unpack the preset's conventional bivector order, or select semantic units by
+their roles independently of presentation order:
 
 ```python
 from galaga import Algebra, presets
@@ -939,10 +940,10 @@ from galaga import Algebra, presets
 algebra = Algebra(config=presets.quaternion())
 e1, e2, e3 = algebra.basis_vectors()
 expected = (e2 ^ e3, e1 ^ e3, e1 ^ e2)
-i, j, k = algebra.blades("quaternion_i", "quaternion_j", "quaternion_k")
+i, j, k = algebra.basis_blades(grade=2)
 assert (i, j, k) == expected
 assert i * j == k and j * k == i and k * i == j
-assert algebra.basis_blades(2) == (k, j, i)
+assert algebra.blades("quaternion_i", "quaternion_j", "quaternion_k") == (i, j, k)
 assert algebra.blade("e23") == i
 ```
 
@@ -1266,16 +1267,15 @@ V2 uses grade-then-lexicographic display order by default, unless a preset or
 user supplies an explicit order. Lexicographic means numeric basis-index tuples,
 so `e14` precedes `e23`, not grade-then-bitmask sorting. Native storage order can
 be requested with `DisplayOrder(algebra.n, range(algebra.dim))`. This changes
-rendered terms, not `data` or `basis_blades()` enumeration. In particular,
-quaternion bivectors enumerate as `k, j, i`; use semantic roles for conventional
-unpacking:
+rendered terms and public basis collection enumeration, while `data` retains
+native storage order. Quaternion bivectors unpack as `i, j, k` under the
+preset's conventional order:
 
 ```python
 from galaga import Algebra, DisplayPolicy, presets
 
 quaternions = Algebra(config=presets.quaternion())
-i, j, k = (quaternions.blade(role) for role in
-           ("quaternion_i", "quaternion_j", "quaternion_k"))
+i, j, k = quaternions.basis_blades(grade=2)
 value = 1 + 2.3456 * i + 3.4567 * j + 4.5678 * k
 precision = quaternions.presentation.with_display(DisplayPolicy(coefficient_precision=3))
 assert value.display("value/unicode", presentation=precision) == "1 + 2.35i + 3.46j + 4.57k"

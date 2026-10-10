@@ -13,24 +13,35 @@ deciders: edouard
 useful for unpacking and indexing but render as raw Python collections in
 notebooks. A table should show only the blades selected by the factory.
 
-`DisplayOrder` controls presentation, while factory enumeration remains in
-native bitmask order under [ADR-059](059-display-ordering.md). In STA, the
-grade-two sequence has masks `3, 5, 6, 9, 10, 12`, whereas the default display
-order places mask `9` before mask `6`. CGA has a larger difference across its
-ten bivectors. Reordering the sequence would change indexing and unpacking.
+Native coefficient storage and conventional presentation can differ. For
+example, quaternion bivectors occupy native masks `3, 5, 6`, labeled `k, j, i`,
+while their conventional presentation is `i, j, k`. Showing one order and
+iterating in another makes indexing and unpacking difficult to predict.
 
 ## Decision
 
 `basis_vectors()` and `basis_blades(k)` return `BasisMultivectors`, a tuple
-subclass containing exactly the same multivectors in the same native order.
-Tuple indexing, slicing, unpacking, iteration, and equality remain available.
+subclass containing the requested native multivectors in the captured
+`DisplayOrder`, filtered to the requested grade. Tuple indexing, slicing,
+unpacking, iteration, and equality remain available.
 
 The collection captures the active presentation and renders a two-column
-LaTeX table of sequence index and basis blade. Table rows follow the captured
-`DisplayOrder`, as for `locals()`. Each row keeps its native sequence index so
-the display still identifies the value obtained with `[index]`. Blade values
+LaTeX table of sequence index and basis blade. Table rows follow iteration
+order, with consecutive zero-based indices identifying the values obtained
+with `[index]`. Blade values
 render through their multivectors, retaining preset signs and labels. The
 factory's grade selection limits the table to the requested blades.
+
+### Enumeration revision (2026-10-10)
+
+The public collection's iteration order follows its presentation rather than
+native bitmask order. This revises the initial decision to reorder only table
+rows: `i, j, k = Algebra(config=presets.quaternion()).basis_blades(grade=2)`
+now agrees with the table and the preset's conventional unit order. Both basis
+factories use the same collection policy, including custom vector orders.
+The numeric core's basis factories and multivector coefficient storage remain
+in native order. To request native order publicly, select
+`DisplayOrder(algebra.n, range(algebra.dim))` on the algebra.
 
 ## Consequences
 

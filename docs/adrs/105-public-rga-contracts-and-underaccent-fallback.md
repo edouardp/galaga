@@ -45,8 +45,10 @@ the archive preserves that behavior, rather than misrepresenting it as ASCII.
 Keep established v2 differences explicit:
 
 - Signed names and locals represent actual ordered wedge products.
-  Positive integer-mask lookup and `basis_blades` enumeration remain native;
-  `DisplayOrder` controls presentation, not coefficient storage.
+  Positive integer-mask lookup and basis collection coefficients remain
+  native. `DisplayOrder` controls rendering and public collection iteration,
+  as revised in [ADR-158](158-renderable-basis-factory-sequences.md), without
+  changing coefficient storage.
 - Point, line, plane, projective, and antiscalar roles remain discoverable.
 - Numeric zero has no unique homogeneous grade, so `homogeneous_grade()`
   returns `None` rather than an inferred grade from expression shape.

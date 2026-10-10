@@ -120,7 +120,7 @@ def test_hamilton_coordinates_are_derived_from_actual_exterior_products():
     assert actual[3] * actual[1] == actual[2]
     assert actual[1] * actual[2] * actual[3] == -1
     assert algebra.blades("quaternion_i", "quaternion_j", "quaternion_k") == actual[1:]
-    assert algebra.basis_blades(2) == tuple(reversed(actual[1:]))
+    assert algebra.basis_blades(2) == actual[1:]
 
 
 @pytest.mark.parametrize("pair", Q_PAIRS)

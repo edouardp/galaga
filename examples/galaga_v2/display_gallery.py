@@ -69,8 +69,8 @@ def _(mo):
     ## Basis vectors and grade-two blades
 
     `basis_vectors()` and `basis_blades(2)` return unpackable sequences in
-    native mask order. Their rich tables show basis blades in the algebra's
-    display order, with the original sequence index beside each blade.
+    the algebra's display order. Their rich tables follow that same order,
+    with each blade's zero-based sequence index beside it.
     """)
     return
 

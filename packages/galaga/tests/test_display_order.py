@@ -1,4 +1,4 @@
-"""Display order changes presentation, never native basis enumeration or data."""
+"""Display order controls public basis enumeration while preserving native data."""
 
 from __future__ import annotations
 
@@ -63,9 +63,13 @@ def test_four_dimensional_rendering_follows_wedge_derived_grade_lexicographic_or
     assert value == other and hash(value) == hash(other)
     np.testing.assert_array_equal(value.data, other.data)
     np.testing.assert_array_equal((value * value).data, (other * other).data)
+    bivector_masks = [mask for mask in algebra.display_order if mask.bit_count() == 2]
+    np.testing.assert_array_equal(
+        [blade.data for blade in algebra.basis_blades(2)], np.eye(algebra.dim)[bivector_masks]
+    )
     native_bivector_masks = [mask for mask in range(algebra.dim) if mask.bit_count() == 2]
     np.testing.assert_array_equal(
-        [blade.data for blade in algebra.basis_blades(2)], np.eye(algebra.dim)[native_bivector_masks]
+        [blade.data for blade in native.basis_blades(2)], np.eye(algebra.dim)[native_bivector_masks]
     )
 
 
@@ -176,14 +180,14 @@ def test_precision_policy_keeps_quaternion_term_order() -> None:
 
 @pytest.mark.parametrize("grade", (0, 1, 2, 3))
 @pytest.mark.parametrize("tracked", (False, True))
-def test_basis_blades_remain_native_masks_despite_display_order(grade: int, tracked: bool) -> None:
+def test_basis_blades_follow_display_order_with_native_coefficients(grade: int, tracked: bool) -> None:
     algebra = Algebra(config=presets.quaternion())
     blades = algebra.basis_blades(grade, expr=tracked)
-    masks = [mask for mask in range(algebra.dim) if mask.bit_count() == grade]
+    masks = [mask for mask in algebra.display_order if mask.bit_count() == grade]
     np.testing.assert_array_equal([blade.data for blade in blades], np.eye(algebra.dim)[masks])
     assert all((blade.expr is not None) == tracked for blade in blades)
     if grade == 2:
-        assert [str(blade) for blade in blades] == ["k", "j", "i"]
+        assert [str(blade) for blade in blades] == ["i", "j", "k"]
         assert [str(algebra.blade(role)) for role in ("quaternion_i", "quaternion_j", "quaternion_k")] == [
             "i",
             "j",
@@ -219,7 +223,7 @@ def test_quaternion_data_and_products_are_independent_of_display_order() -> None
 @pytest.mark.parametrize(
     "gram", (np.eye(2), np.diag([1.0, 0.0]), [[2.0, 0.5], [0.5, -1.0]], [[0.0, -1.0], [-1.0, 0.0]])
 )
-def test_scoped_order_changes_only_rendering_for_general_metrics(gram) -> None:
+def test_scoped_order_changes_rendering_and_basis_iteration_without_changing_numeric_values(gram) -> None:
     algebra = Algebra(gram=gram)
     value = algebra.multivector([1.0, 2.0, 3.0, 4.0]).with_expr()
     original_data, original_expression, original_hash = value.data.copy(), value.expr, hash(value)
@@ -227,8 +231,8 @@ def test_scoped_order_changes_only_rendering_for_general_metrics(gram) -> None:
     scoped = algebra.presentation.with_display_order(DisplayOrder(algebra.n, reversed(range(algebra.dim))))
     with algebra.use_presentation(scoped):
         assert str(value) == "4e₁₂ + 3e₂ + 2e₁ + 1"
-        assert [str(vector) for vector in algebra.basis_vectors()] == ["e₁", "e₂"]
-        np.testing.assert_array_equal([vector.data for vector in algebra.basis_vectors()], np.eye(algebra.dim)[[1, 2]])
+        assert [str(vector) for vector in algebra.basis_vectors()] == ["e₂", "e₁"]
+        np.testing.assert_array_equal([vector.data for vector in algebra.basis_vectors()], np.eye(algebra.dim)[[2, 1]])
         assert value * value == product
     assert str(value) == "1 + 2e₁ + 3e₂ + 4e₁₂"
     assert value.expr is original_expression and hash(value) == original_hash

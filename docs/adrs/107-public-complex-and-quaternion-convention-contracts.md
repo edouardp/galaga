@@ -60,7 +60,10 @@ actual ordered signature, native coefficients and legacy bivector enumeration.
 These follow [ADR-076](076-immutable-presentation-configuration.md),
 [ADR-097](097-concrete-display-contracts-outlive-legacy-rendering.md), and
 [ADR-106](106-independent-public-local-name-contracts.md). No legacy parsing
-or presentation-oriented numeric factories are restored.
+is restored. Core numeric factories retain native mask order; public basis
+collections follow presentation order as revised in
+[ADR-158](158-renderable-basis-factory-sequences.md). In particular, quaternion
+bivectors unpack as `i, j, k` under the preset's conventional order.
 
 ### Add independent numeric and deletion evidence
 

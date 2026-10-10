@@ -102,6 +102,10 @@ must use the property matching their question:
 
 ## Value factories
 
+These factories describe the numeric core. The public facade orders its
+renderable basis collections by the active presentation; see
+[ADR-158](../../adrs/158-renderable-basis-factory-sequences.md).
+
 | Factory | Required behavior |
 |---|---|
 | `multivector(data)` | Require exactly `dim` real finite coefficients |

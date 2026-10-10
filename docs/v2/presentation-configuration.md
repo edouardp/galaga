@@ -391,9 +391,9 @@ See the [locals migration recipes](migration-guide.md#migrate-local-bindings)
 and [presentation notebook](../../examples/galaga_v2/presentation_contexts.py).
 
 `DisplayOrder` is a complete permutation of bitmasks. It affects rendering
-order only; coefficient storage, basis enumeration, and numeric equality
-remain native. Its default groups by grade, then lexicographically by numeric
-basis-index tuples: in four dimensions, bivectors display as
+and public basis collection order; coefficient storage, core basis enumeration,
+and numeric equality remain native. Its default groups by grade, then
+lexicographically by numeric basis-index tuples: in four dimensions, bivectors display as
 `e12, e13, e14, e23, e24, e34`. It does not sort rendered labels or use bitmask
 order within a grade. Existing explicit preset orders (quaternion, RGA and
 Lengyel CGA) take precedence. To request native coefficient order explicitly:
@@ -410,16 +410,22 @@ grade-then-lexicographic order even for a preset with its own convention, use
 `algebra.with_display_order(DisplayOrder(algebra.n))`. See
 [ADR-133](../adrs/133-grade-lexicographic-default-display-order.md).
 
-Quaternion presets select conventional `1, i, j, k` display order, but
-`basis_blades(2)` still returns the native masks, labeled `k, j, i`. Obtain
-semantic units with `blade("quaternion_i")`, `blade("quaternion_j")`, and
-`blade("quaternion_k")`. This differs from v1's presentation-ordered
-enumeration; the underlying quaternion values and products are unchanged.
+Quaternion presets select conventional `1, i, j, k` presentation order:
 
-`basis_vectors()` and `basis_blades(k)` are unpackable, indexable sequences.
+```python
+quaternions = Algebra(config=presets.quaternion())
+i, j, k = quaternions.basis_blades(grade=2)
+assert i * j == k and j * k == i and k * i == j
+```
+
+Semantic roles such as `blade("quaternion_i")` also select individual units
+independently of the configured order.
+
+`basis_vectors()` and `basis_blades(grade=2)` are unpackable, indexable sequences.
 In notebooks they render a table of sequence indices and blade values. The
-table rows follow `display_order`, while sequence indices retain native mask
-order. Only the grade requested by `basis_blades(k)` appears in its table.
+sequence and table rows both follow the captured `display_order`, filtered
+to the requested grade. Table indices are consecutive zero-based sequence
+positions. Native coefficient storage and core factory order are unchanged.
 Terminal IPython shows the same sequence as a plain-text table in the selected
 ASCII or Unicode display target.
 
@@ -710,7 +716,9 @@ The result is a tuple in argument order. It intentionally has no batch
 call `named()` on those values when names are wanted.
 
 `basis_vectors()`, `basis_blades()`, and `pseudoscalar()` remain native numeric
-factories. `blade_label()` exposes the active canonical label. `locals()`
+factories; the two basis collections iterate in presentation order without
+changing their native coefficients. `blade_label()` exposes the active
+canonical label. `locals()`
 builds a read-only mapping using the independent local-name policy. Its
 notebook representation lists each Python name beside the corresponding
 rendered basis blade in the captured presentation.

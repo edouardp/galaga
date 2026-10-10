@@ -78,9 +78,9 @@ def test_rga_basis_metric_orientation_names_and_display_order():
         "e₃₂₁",
         "𝟙",
     ]
-    # Enumeration is numeric, unlike v1's oriented presentation ordering.
+    # Enumeration follows presentation order while coefficients stay native.
     for grade in range(5):
-        expected_masks = [mask for mask in range(16) if mask.bit_count() == grade]
+        expected_masks = [mask for mask in algebra.display_order if mask.bit_count() == grade]
         actual = tuple(algebra.basis_blades(grade))
         assert [np.flatnonzero(blade.data).item() for blade in actual] == expected_masks
         assert all(blade.data[mask] == 1 for mask, blade in zip(expected_masks, actual, strict=True))

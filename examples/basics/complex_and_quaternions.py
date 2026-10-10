@@ -228,12 +228,7 @@ def _(Algebra, DisplayPolicy, presets):
     alg_q = Algebra(config=presets.quaternion(), display=DisplayPolicy(content="full"))
     _e1, _e2, _e3 = alg_q.basis_vectors()
     _expected_units = (_e2 ^ _e3, _e1 ^ _e3, _e1 ^ _e2)
-    i, j, k = alg_q.blades(
-        "quaternion_i",
-        "quaternion_j",
-        "quaternion_k",
-        expr=True,
-    )
+    i, j, k = alg_q.basis_blades(grade=2, expr=True)
     assert (i, j, k) == _expected_units
     assert i * j == k and j * k == i and k * i == j
     assert i * j * k == -1
@@ -245,25 +240,28 @@ def _(mo):
     mo.md(r"""
     ### Native order is not quaternion order
 
-    Coefficients and `basis_blades(2)` use ascending exterior bitmasks.
-    Semantic roles select $i,j,k$ in the requested order; the preset's display
-    order controls how a sum is printed. These are three separate choices.
-    No coefficient permutation occurs when a value is rendered.
+    The coefficient array uses ascending exterior bitmasks.
+    `basis_blades(grade=2)` follows the preset's presentation order, so it
+    unpacks as $i,j,k$. Its table follows the same order and shows sequence
+    indices. Semantic roles can also select individual units independently
+    of that order. No coefficient permutation occurs when a value is rendered.
     """)
     return
 
 
 @app.cell
 def _(alg_q, gm, i, j, k):
-    _native = alg_q.basis_blades(2)
-    assert _native == (k, j, i)
-    _native_names = ", ".join(_value.display("value/ascii") for _value in _native)
+    _ordered = alg_q.basis_blades(grade=2)
+    assert _ordered == (i, j, k)
+    _ordered_names = ", ".join(_value.display("value/ascii") for _value in _ordered)
     _masks = tuple(alg_q.presentation.blades.resolve(_name).mask for _name in ("i", "j", "k"))
+    _native_names = ", ".join(alg_q.blade(_mask).display("value/ascii") for _mask in sorted(_masks))
     _q = 1 + 2 * i + 3 * j + 4 * k
     assert tuple(_q.coefficient(_mask) for _mask in _masks) == (2, 3, 4)
 
     gm.md(rt"""
-    Native bivector enumeration: `{_native_names!s}`.
+    Public bivector collection: `{_ordered_names!s}`.
+    Native coefficient slots, in ascending mask order: `{_native_names!s}`.
 
     | Quaternion unit | Native mask |
     |---|---|

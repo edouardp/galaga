@@ -593,6 +593,7 @@ class Algebra:
         return ref
 
     def basis_vectors(self, *, expr: bool | None = None) -> BasisMultivectors:
+        """Return basis vectors in the active presentation's order."""
         expr = self._resolve_expr(expr)
         if self._basis_vectors is None:
             self._basis_vectors = tuple(self._wrap(value) for value in self._numeric.basis_vectors())
@@ -614,7 +615,7 @@ class Algebra:
         )
 
     def basis_blades(self, grade: int, *, expr: bool | None = None) -> BasisMultivectors:
-        """Return the requested grade's native basis blades as a renderable sequence."""
+        """Return basis blades of the requested grade in presentation order."""
         expr = self._resolve_expr(expr)
         result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(grade))
         values = tuple(blade.with_expr() for blade in result) if expr else result
@@ -1184,9 +1185,8 @@ class LocalMultivectors(Mapping[str, Multivector]):
 
 
 class BasisMultivectors(tuple[Multivector, ...]):
-    """Tuple-compatible basis values with a presentation-aware notebook table."""
+    """Tuple-compatible basis values in captured presentation order."""
 
-    _masks: tuple[int, ...]
     _presentation: PresentationConfig
 
     def __new__(
@@ -1196,22 +1196,21 @@ class BasisMultivectors(tuple[Multivector, ...]):
         masks: Iterable[int],
         presentation: PresentationConfig,
     ) -> BasisMultivectors:
-        result = super().__new__(cls, values)
-        result._masks = tuple(masks)
-        if len(result) != len(result._masks):
+        values = tuple(values)
+        masks = tuple(masks)
+        if len(values) != len(masks):
             raise ValueError("basis values and masks must have equal lengths")
+        positions = {mask: index for index, mask in enumerate(presentation.display_order.masks)}
+        ordered = sorted(zip(masks, values, strict=True), key=lambda item: positions[item[0]])
+        result = super().__new__(cls, (value for _, value in ordered))
         result._presentation = presentation
         return result
 
-    def _ordered_indices(self) -> list[int]:
-        positions = {mask: index for index, mask in enumerate(self._presentation.display_order.masks)}
-        return sorted(range(len(self)), key=lambda item: positions[self._masks[item]])
-
     def latex(self) -> str:
-        """Show native sequence indices and blades in captured display order."""
+        """Show sequence indices and blades in iteration order."""
         rows = [r"\text{Index} & \text{basis blade}"]
-        for index in self._ordered_indices():
-            blade = self[index].latex(content="value", presentation=self._presentation)
+        for index, value in enumerate(self):
+            blade = value.latex(content="value", presentation=self._presentation)
             rows.append(rf"\texttt{{[{index}]}} & {blade}")
         body = r" \\ ".join(rows)
         return rf"\begin{{array}}{{c|l}}{body}\end{{array}}"
@@ -1223,13 +1222,11 @@ class BasisMultivectors(tuple[Multivector, ...]):
         if cycle:
             printer.text("...")
             return
-        indices = self._ordered_indices()
-        width = max((len(f"[{index}]") for index in indices), default=0)
-        width = max(width, len("Index"))
+        width = max(len(f"[{len(self) - 1}]"), len("Index"))
         rows = [f"{'Index':<{width}} | basis blade"]
         target = self._presentation.display.target
-        for index in indices:
-            blade = self[index].display(content="value", target=target, presentation=self._presentation)
+        for index, value in enumerate(self):
+            blade = value.display(content="value", target=target, presentation=self._presentation)
             rows.append(f"{f'[{index}]':<{width}} | {blade}")
         printer.text("\n".join(rows))
 
