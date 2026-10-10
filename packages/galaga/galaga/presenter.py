@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field, replace
+from enum import Enum
 from types import NotImplementedType
 from typing import TYPE_CHECKING, Literal, cast
 
@@ -16,12 +17,21 @@ if TYPE_CHECKING:
     from .rendering import RenderDocument
 
 
+class _DefaultDisplayOrder(Enum):
+    GRADE_LEXICOGRAPHIC = "grade-lexicographic"
+
+    def __repr__(self) -> str:
+        return repr(self.value)
+
+
 @dataclass(frozen=True, slots=True, kw_only=True)
 class Presenter:
     """Override selected presentation components when applied to a value.
 
-    Unspecified components come from the value's current presentation. Recipes
-    in ``config`` are resolved against its actual algebra before explicit
+    Ordering defaults to grade-lexicographic unless explicitly selected by a
+    recipe or keyword. ``display_order=None`` inherits the source order.
+    Other unspecified components come from the value's current presentation.
+    Recipes in ``config`` are resolved against its actual algebra before explicit
     component keywords, then captured in the returned view. No setting
     propagates through arithmetic or mutates the algebra. ``content`` overrides
     the content in ``display`` when both are supplied. The ``|`` operator
@@ -33,7 +43,9 @@ class Presenter:
     blades: BladeConvention | BladePreset | BladePatch | PresentationRecipe | None = None
     notation: Notation | NotationPatch | None = None
     local_names: LocalNamePolicy | None = None
-    display_order: DisplayOrder | Literal["grade-lexicographic", "bitmap"] | None = None
+    display_order: DisplayOrder | Literal["grade-lexicographic", "bitmap"] | None | _DefaultDisplayOrder = (
+        _DefaultDisplayOrder.GRADE_LEXICOGRAPHIC
+    )
     display: DisplayPolicy | None = None
     content: str | None = None
     _stages: tuple[Presenter | PresentationRecipe, ...] = field(default=(), repr=False)
@@ -54,7 +66,7 @@ class Presenter:
         if isinstance(order, str):
             if order not in {"grade-lexicographic", "bitmap"}:
                 raise ValueError("display_order must be 'grade-lexicographic', 'bitmap', or a DisplayOrder")
-        elif order is not None and not isinstance(order, DisplayOrder):
+        elif order is not None and not isinstance(order, (DisplayOrder, _DefaultDisplayOrder)):
             raise TypeError("display_order must be a DisplayOrder or an ordering recipe")
         if self.content is not None:
             DisplayPolicy(content=self.content)
@@ -76,6 +88,14 @@ class Presenter:
     def _flatten(self) -> tuple[Presenter | PresentationRecipe, ...]:
         return self._stages if self._stages else (self,)
 
+    def _selects_order(self) -> bool:
+        """Whether an explicit choice replaces the portable default."""
+        return (
+            self.display_order is not _DefaultDisplayOrder.GRADE_LEXICOGRAPHIC
+            or self.presentation is not None
+            or (self.config is not None and self.config.display_order is not None)
+        )
+
     def __call__(self, value: Multivector | PresentedMultivector) -> PresentedMultivector:
         from .facade._numeric import Multivector
 
@@ -91,16 +111,18 @@ class Presenter:
                 # annotation view); the presenter contract stays unchanged.
                 return cast("PresentedMultivector", adapter(self))
             raise TypeError("Presenter expects a Galaga Multivector or PresentedMultivector")
-        if self._stages:
-            selected = base
-            for stage in self._stages:
-                selected = (
-                    stage._apply_to(selected, value)
-                    if isinstance(stage, Presenter)
-                    else stage.apply_to(selected, value.algebra.gram)
-                )
-        else:
-            selected = self._apply_to(base, value)
+        stages = self._flatten()
+        explicit_order = any(
+            stage._selects_order() if isinstance(stage, Presenter) else stage.display_order is not None
+            for stage in stages
+        )
+        selected = base if explicit_order else base.with_display_order(DisplayOrder(value.algebra.n))
+        for stage in stages:
+            selected = (
+                stage._apply_to(selected, value)
+                if isinstance(stage, Presenter)
+                else stage.apply_to(selected, value.algebra.gram)
+            )
         return PresentedMultivector(value, selected)
 
     def _apply_to(self, base: PresentationConfig, value: Multivector) -> PresentationConfig:
@@ -111,6 +133,8 @@ class Presenter:
         # complete, consistent set of overrides can replace a supplied base.
         blades = resolve_blades(self.blades, value.algebra.gram, selected.blades)
         order = self.display_order
+        if isinstance(order, _DefaultDisplayOrder):
+            order = None
         if isinstance(order, str):
             n = value.algebra.n
             order = DisplayOrder(n, range(1 << n)) if order == "bitmap" else DisplayOrder(n)

@@ -1,4 +1,4 @@
-"""One-line reusable presenters; unspecified settings always remain inherited."""
+"""Reusable presenters with grade-lexicographic ordering and inherited components."""
 
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ __all__ = [
 
 
 def default() -> _Presenter:
-    """Inherit the value's current presentation and capture it on application."""
+    """Capture the current presentation with default grade-lexicographic ordering."""
     from ..presenter import Presenter
 
     return Presenter()
@@ -43,14 +43,14 @@ def full() -> _Presenter:
 
 
 def functional(*, short: bool = False) -> _Presenter:
-    """Use functional operation names, preserving blade names and ordering."""
+    """Use functional operation names, preserving blade names."""
     from ..presenter import Presenter
 
     return Presenter(notation=_notation.functional(short=short))
 
 
 def short_functional() -> _Presenter:
-    """Use abbreviated functional operation names, preserving blade names and ordering."""
+    """Use abbreviated functional operation names, preserving blade names."""
     from ..presenter import Presenter
 
     return Presenter(notation=_notation.functional_short())

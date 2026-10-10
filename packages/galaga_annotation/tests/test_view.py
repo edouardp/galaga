@@ -6,7 +6,7 @@ import numpy as np
 import pytest
 
 import galaga_annotation as ga
-from galaga import Algebra, PresentedMultivector, metric_inner_product, presets
+from galaga import Algebra, DisplayOrder, PresentedMultivector, Presenter, metric_inner_product, presets
 
 
 def _value():
@@ -114,7 +114,26 @@ def test_quaternion_representations_preserve_annotation_rules_and_numeric_value(
         assert isinstance(result, ga.Annotated)
         assert result.rules == annotated.rules
         assert result.plain is value
-        assert result.value.ascii() == "1 + 2i + 3j + 4k"
+        expected = "1 + 4k + 3j + 2i" if representation == "bivector" else "1 + 2i + 3j + 4k"
+        assert result.value.ascii() == expected
+
+
+def test_presenter_default_order_preserves_annotations_when_relabeling_quaternion_terms():
+    algebra = Algebra(config=presets.quaternion(), user_config_files=False)
+    i, j, _ = algebra.basis_blades(2)
+    value = (1 + 3 * i + 2 * j) ** 2
+    annotated = ga.annotator(
+        ga.on(ga.term(i), label="i component"),
+        ga.on(ga.term(j), label="j component"),
+    )(value)
+    presenter = Presenter(blades=presets.blades.indexed(3), content="value")
+
+    for result in (presenter(annotated), ga.AnnotationPresenter(base=presenter)(annotated)):
+        assert result.plain is value
+        assert result.rules == annotated.rules
+        assert result.value.presentation.display_order == DisplayOrder(3)
+        assert result.value.latex() == r"-12 + 4 e_{13} + 6 e_{23}"
+        assert "i component" in result.latex() and "j component" in result.latex()
 
 
 def test_pseudoscalar_patch_preserves_annotation_rules_and_numeric_value() -> None:

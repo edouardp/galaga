@@ -25,10 +25,28 @@ Add public immutable `Presenter` recipes and `PresentedMultivector` views.
 
 `Presenter(...)` accepts independent presentation components: `presentation`,
 `blades`, `notation`, `local_names`, `display_order`, `display`, and convenience
-`content`. Calling a presenter on a multivector resolves omitted settings from
-that value's effective presentation, resolves blade/order recipes against its
-actual algebra, then returns a view capturing the result. Calling a presenter
-on a view starts from the view's captured presentation.
+`content`. Calling a presenter on a multivector resolves omitted components
+other than ordering from that value's effective presentation, resolves
+blade/order recipes against its actual algebra, then returns a view capturing
+the result. Calling a presenter on a view starts from the view's captured
+presentation.
+
+### Default ordering revision (2026-10-10)
+
+Presenters default to grade-lexicographic blade order, resolved against the
+value's actual dimension. This applies to the constructor and presenter
+factories. Explicit order selections in `config=`, `presentation=`, direct
+keywords, or composed stages take precedence over this fallback. In
+particular, an implicit default on a later factory does not overwrite an
+earlier explicit ordering selection. Explicit component arguments still
+override matching recipe slots, and later explicit stages win.
+
+`display_order=None` retains the inherited order rather than selecting the
+default. Other components continue to inherit as before. The implementation
+distinguishes an omitted argument from explicit `None`, and resolves the
+default once for the complete composed presenter. This lets a presenter that
+replaces quaternion names with indexed blades use ordinary $e_{12},e_{13},e_{23}$
+ordering without carrying across the quaternion $i,j,k$ permutation.
 
 Views implement the ordinary rendering protocol (`display`, `ascii`, `unicode`,
 `latex`, rich LaTeX and format hooks) but intentionally no arithmetic. Their

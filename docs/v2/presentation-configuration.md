@@ -190,7 +190,8 @@ may be on the left of a recipe, but two complete presets cannot be joined.
 
 For presenters, `|` creates a `Presenter` whose stages apply left to right
 when it sees a value. The value's current presentation supplies unspecified
-components. The later stage wins on overlap, including `content`:
+components other than ordering, which defaults to grade-lexicographic.
+The later explicit stage wins on overlap, including `content`:
 
 ```python
 named = presets.presenters.short_functional() | presets.blades.indexed(3, prefix="v")
@@ -831,13 +832,14 @@ another presenter for the next display.
 
 | Recipe | Presentation change |
 | --- | --- |
-| `default()` | Capture the value's currently effective presentation |
+| `default()` | Capture the current presentation with grade-lexicographic ordering |
 | `values()` / `full()` | Select value-only / explanatory full content |
 | `functional()` / `short_functional()` / `lengyel()` | Select operation notation |
 | `grade_order()` / `bitmap_order()` | Select a display-order recipe per value dimension |
 
-For a custom recipe, pass any independent presentation component. Unspecified
-components inherit from the value at application time. `content=` takes
+For a custom recipe, pass any independent presentation component. Ordering
+defaults to `"grade-lexicographic"`; other unspecified components inherit
+from the value at application time. `content=` takes
 precedence over the content inside `display=`:
 
 ```python
@@ -854,6 +856,19 @@ teaching = Presenter(
 view = teaching(result)
 ```
 
+The default order also applies when replacing a preset's blade vocabulary:
+
+```python
+ordinary = Presenter(blades=presets.blades.indexed(3), content="value")
+ordinary(v)  # indexed bivectors in grade-lexicographic order
+```
+
+Use `Presenter(display_order=None)` to retain the inherited order, including
+a quaternion preset's conventional `i, j, k` permutation. Explicit orders in
+`config=`, `presentation=`, or composed recipes take precedence over the
+default. An implicit default from a later presenter factory preserves those
+explicit choices. `display_order="bitmap"` selects native coefficient order.
+
 The short forms `Presenter(blades=presets.blades.sta())` and
 `Presenter(notation=presets.notation.functional())` work on their own. To
 reuse a composed set of components, pass a `PresentationRecipe` as `config=`:
@@ -868,7 +883,7 @@ teaching = Presenter(config=recipe)
 view = teaching(spatial * time)
 ```
 
-The recipe inherits unspecified settings from the value's current
+The recipe inherits other unspecified settings from the value's current
 presentation and resolves blade presets against its Gram matrix when called.
 Presenter factories can be composed directly as well:
 

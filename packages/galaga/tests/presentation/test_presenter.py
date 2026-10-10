@@ -153,15 +153,83 @@ def test_presenter_binds_on_application_view_ignores_later_scopes():
 
 
 @pytest.mark.parametrize("preset", [presets.euclidean(3), presets.cga(2), presets.rga(), presets.sta()])
-def test_portable_recipe_inherits_each_algebras_blades_and_order(preset):
+def test_portable_recipe_inherits_blades_and_defaults_to_grade_lexicographic_order(preset):
     algebra = Algebra(config=preset, expr=True)
     a, b, *_ = algebra.basis_vectors()
     value = a ^ b
     view = presets.presenters.functional()(value)
     assert view.presentation.blades is algebra.presentation.blades
-    assert view.presentation.display_order is algebra.presentation.display_order
+    expected = algebra.presentation.with_display_order(DisplayOrder(algebra.n))
+    assert view.presentation.display_order == expected.display_order
     assert view.presentation.local_names is algebra.presentation.local_names
-    assert view.latex() == value.latex(notation=presets.notation.functional())
+    assert view.latex() == value.latex(presentation=expected, notation=presets.notation.functional())
+
+
+@pytest.mark.parametrize("factory", (Presenter, presets.presenters.default, presets.presenters.values))
+def test_presenter_default_orders_quaternion_values_by_grade_lexicographic_blades(factory):
+    algebra = Algebra(config=presets.quaternion(), user_config_files=False)
+    i, j, k = algebra.basis_blades(grade=2)
+    value = (1 + 3 * i + 2 * j) ** 2
+    original = value.data.copy()
+    view = factory()(value)
+
+    assert value == -12 + 6 * i + 4 * j
+    assert view.presentation.display_order == DisplayOrder(algebra.n)
+    assert view.ascii(content="value") == "-12 + 4j + 6i"
+    assert value.ascii(content="value") == "-12 + 6i + 4j"
+    assert view.value is value
+    np.testing.assert_array_equal(value.data, original)
+    assert (i, j, k) == algebra.basis_blades(2)
+
+
+def test_presenter_default_indexed_blades_render_in_grade_lexicographic_order():
+    algebra = Algebra(config=presets.quaternion(), user_config_files=False)
+    i, j, _ = algebra.basis_blades(2)
+    value = (1 + 3 * i + 2 * j) ** 2
+    view = Presenter(blades=presets.blades.indexed(3), content="value")(value)
+
+    assert view.latex() == r"-12 + 4 e_{13} + 6 e_{23}"
+
+
+def test_presenter_explicit_none_inherits_source_order_and_captures_it():
+    algebra = Algebra(config=presets.quaternion(), user_config_files=False)
+    i, j, k = algebra.basis_blades(2)
+    value = 1 + 2 * i + 3 * j + 4 * k
+    view = Presenter(display_order=None, content="value")(value)
+
+    assert view.presentation.display_order is algebra.presentation.display_order
+    assert view.ascii() == "1 + 2i + 3j + 4k"
+    assert Presenter(display_order=None)(view).presentation.display_order is view.presentation.display_order
+
+
+@pytest.mark.parametrize("placement", ("keyword", "config", "before-factory", "after-factory", "snapshot"))
+def test_presenter_explicit_order_survives_default_factory_composition(placement):
+    algebra = Algebra(3, user_config_files=False)
+    value = algebra.multivector(range(1, algebra.dim + 1))
+    order = DisplayOrder(3, reversed(range(algebra.dim)))
+    choices = {
+        "keyword": Presenter(display_order=order),
+        "config": Presenter(config=order | presets.display.override(content="value")),
+        "before-factory": order | presets.presenters.values(),
+        "after-factory": presets.presenters.values() | order,
+        "snapshot": Presenter(presentation=algebra.presentation.with_display_order(order)),
+    }
+    view = choices[placement](value)
+
+    assert view.presentation.display_order is order
+    assert view.ascii(content="value") == value.ascii(presentation=algebra.presentation.with_display_order(order))
+
+
+def test_presenter_explicit_grade_order_overrides_recipe_order_in_either_composition_direction():
+    algebra = Algebra(3, user_config_files=False)
+    order = DisplayOrder(3, reversed(range(algebra.dim)))
+    value = algebra.multivector(range(1, algebra.dim + 1))
+    recipe = order | presets.display.override(content="value")
+
+    view = Presenter(config=recipe, display_order="grade-lexicographic")(value)
+    assert view.presentation.display_order == DisplayOrder(3)
+    assert (order | presets.presenters.grade_order())(value).presentation.display_order == DisplayOrder(3)
+    assert (presets.presenters.grade_order() | order)(value).presentation.display_order is order
 
 
 @pytest.mark.parametrize("n", [0, 1, 3, 4])

@@ -31,6 +31,11 @@ complete `Notation` or a sparse `NotationPatch`, applied after the recipe.
 Reject a complete algebra
 preset in `config=` because a presenter cannot change the value's metric.
 
+Ordering defaults to grade-lexicographic when no stage selects an order, per
+the [ADR-139 revision](139-reusable-presentation-views.md). Explicit recipe,
+snapshot, and keyword orders retain precedence; an implicit factory default
+does not overwrite them. `display_order=None` opts into inherited ordering.
+
 ## Consequences
 
 One presentation recipe can be used to configure an algebra or to render a
