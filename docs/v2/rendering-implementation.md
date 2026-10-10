@@ -201,8 +201,26 @@ Visibility depends on the output target, captured in `document.target`.
 Rebuild the document when changing targets. Presenter document building uses
 captured settings regardless of later scopes, with explicit presentation and
 notation overrides retaining ordinary precedence. This provides an entry
-point for extension adapters; core presenters do not yet accept annotation
-wrappers. See
+point for extension adapters. `Presenter` accepts `galaga_annotation.Annotated`
+views through their `__galaga_present__` adapter, preserving the annotation
+rules and capturing the selected presentation. An annotator can also wrap an
+already presented multivector:
+
+```python
+from galaga import presets
+
+import galaga_annotation as ga
+
+lesson = ga.annotator(ga.on(ga.grade(2), background="#fff3cd"))
+presenter = presets.presenters.lengyel()
+annotated = presenter(lesson(A))
+presented_then_annotated = lesson(presenter(A))
+annotated.latex(content="full")
+```
+
+Both orders resolve semantic targets against the final presentation rather
+than previously emitted strings. The optional annotation package owns the
+view and its adapter; Galaga does not import it. See
 [ADR-145](../adrs/145-teaching-render-documents-and-presenter-capture.md).
 
 The node set represents mathematical layout rather than strings:

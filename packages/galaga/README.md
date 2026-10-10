@@ -411,8 +411,11 @@ numeric definition.
 
 Multivector values display by grade, then lexicographically by numeric basis
 indices (`e12, e13, e14, e23, ...`). Explicit preset conventions, including RGA
-and quaternion order, are preserved. `DisplayOrder` controls presentation only;
-coefficient storage and basis enumeration remain in native bitmask order.
+and quaternion order, are preserved. `DisplayOrder` determines rendering,
+iteration, and table-row order for the public
+`basis_vectors()` and `basis_blades(grade=...)` collections. Their table indices
+are consecutive zero-based sequence positions. Coefficient storage and numeric
+core basis enumeration remain in native bitmask order.
 
 ```python
 from galaga import Algebra, Name, exp

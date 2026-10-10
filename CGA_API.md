@@ -42,11 +42,15 @@ $$
 N=n+2
 $$
 
-with basis
+The construction example selects `basis_order="euclidean-first"`, with basis
 
 $$
 (e_1,\ldots,e_n,e_o,e_\infty).
 $$
+
+The default `presets.cga()` basis order is origin-first:
+$(e_o,e_1,\ldots,e_n,e_\infty)$. The model obtains each vector's role from
+its configuration rather than assuming a coefficient position.
 
 The Gram matrix is numeric truth. The standard normalization is
 
@@ -56,7 +60,7 @@ e_o^2=e_\infty^2=0,
 e_o\mathbin{\cdot}e_\infty=-1,
 $$
 
-but `p_cga()` may declare any finite nonzero null-pair scale
+but `presets.cga()` may declare any finite nonzero null-pair scale
 
 $$
 \kappa=e_o\mathbin{\cdot}e_\infty.
@@ -92,10 +96,10 @@ real algebraic operation.
 The public construction is:
 
 ```python
-from galaga import Algebra, p_cga
-from galaga.cga import ConformalModel
+from galaga import Algebra, presets
+from galaga.models import ConformalModel
 
-algebra = Algebra(config=p_cga(spatial_dim=3))
+algebra = Algebra(config=presets.cga(spatial_dim=3, basis_order="euclidean-first"))
 cga = ConformalModel(
     algebra,
     expr=False,

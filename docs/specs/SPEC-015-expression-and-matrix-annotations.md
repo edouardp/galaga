@@ -70,10 +70,12 @@ consume the same annotation plan.
 
 ## Part I — Annotation capabilities
 
-This section defines what users should be able to show. The examples are
-capability sketches, not yet a final Python API. They use the existing Galaga
-operations and presentation vocabulary so that the intended result remains
-clear while the target model is still being designed.
+This section describes annotation capabilities, including deferred features.
+Its examples are capability sketches rather than public API recipes. Use the
+implemented factories and composition patterns in
+[Integration with Galaga values](#integration-with-galaga-values) and
+[Integration with Presenter](#integration-with-presenter) for executable API
+examples. The status section identifies the features that remain deferred.
 
 ### 1. Label a complete value or expression
 
@@ -995,7 +997,8 @@ convenience above binds the two).
 An annotation recipe is independent of the value it will annotate. The public
 factory `annotator(*rules)` returns an immutable, callable `Annotator`.
 Calling it with a multivector or supported matrix returns an annotated view,
-not rendered markup. All APIs below are proposed, not currently implemented.
+not rendered markup. The rule factories, reusable annotators, functional and
+fluent builders, and rendering-only views described below are implemented.
 
 Three distinct objects make up this model:
 
@@ -1203,7 +1206,7 @@ ga.annotator(
 )(A)
 ```
 
-The first implementation should use an immutable annotation wrapper or view:
+`annotate(...)` returns an immutable rendering-only view:
 
 ```python
 annotated = annotate(
@@ -1225,8 +1228,9 @@ Arithmetic on an annotated value requires an explicit propagation policy:
 - an explicit `map_annotations(...)` operation may be provided for advanced
   propagation.
 
-The first release provides rendering-only views, with no arithmetic methods.
-Their `value` property exposes the original object for explicit computation.
+Annotated views have no arithmetic methods. Their `value` property exposes
+the wrapped multivector or presented view; `plain` exposes the original
+multivector for explicit computation.
 Applying the same annotator to another result is explicit, not propagation.
 Automatic arithmetic propagation is a separate, deferred feature.
 
@@ -1234,28 +1238,29 @@ Automatic arithmetic propagation is a separate, deferred feature.
 
 Annotators parallel presenters but do not replace them: annotators attach
 semantic rules; presenters choose notation, blade names, ordering, and
-formatting. The intended composition is:
+formatting. Both orders of composition are supported:
 
 ```python
 lengyel = presets.presenters.lengyel()
 highlight_bivectors = highlight_grade(2)
 
 lengyel(highlight_bivectors(A))
+highlight_bivectors(lengyel(A))
 ```
 
-This is a proposed integration contract, not a claim that the existing
-`Presenter` already accepts annotation views. The adapter must retain both
-the annotation plan and the presenter's captured settings. Semantic anchors
+`Presenter` accepts `Annotated` views through the extension-owned
+`__galaga_present__` adapter. The result is an `Annotated` view containing the
+presented multivector and the original rules. It retains both the annotation
+plan and the presenter's captured settings. Semantic anchors
 are resolved using those final settings, rather than attaching annotations
-to previously rendered strings. Presenting an annotated view must not drop
-its rules. An annotator may also wrap an already presented supported value,
-preserving its captured settings.
+to previously rendered strings. Applying an annotator to an already presented
+multivector also preserves its captured settings.
 
-No dedicated callable-composition operator is required initially. A Python
-function can reuse both recipes. Matrix views use a matrix-specific adapter;
-this does not broaden the existing multivector presenter contract implicitly.
+No dedicated callable-composition operator is required. A Python
+function can reuse both recipes. Matrix annotations use their own view;
+`Presenter` does not accept annotated matrices.
 
-The extension should integrate through the existing presenter abstraction:
+The extension also provides an explicit `AnnotationPresenter` adapter:
 
 ```python
 from galaga_annotation import AnnotationPresenter
@@ -1267,9 +1272,10 @@ presenter = AnnotationPresenter(
 presenter(annotated_value)
 ```
 
-The ordinary Galaga `Presenter` must remain usable without installing the
-extension. The adapter may consume a lightweight optional annotation protocol
-or an annotation-aware view.
+`AnnotationPresenter(base=...)` offers the same rule-preserving behavior for
+annotated multivectors. The ordinary Galaga `Presenter` remains usable without
+installing the extension; its adapter hook introduces no dependency on
+`galaga_annotation`.
 
 ### Integration with `MatrixRepresentation`
 
@@ -1407,7 +1413,7 @@ Arbitrary Python callbacks are not part of the portable annotation format.
 
 ### Initial scope
 
-The first implementation milestone includes:
+The implemented baseline includes:
 
 1. immutable `Annotation`, `AnnotationStyle`, target objects, and callable
    `Annotator` recipes with equivalent functional/fluent builders;
@@ -1420,8 +1426,10 @@ The first implementation milestone includes:
 8. a pedagogical notebook annotating metric products, wedge products, and rotor
    sandwiches.
 
-Matrix-region annotations, expression-to-matrix provenance, interactive
-selection, and annotation propagation through arithmetic are later milestones.
+Matrix cell and region annotations are also implemented. Region block
+callouts, separate row/column header labels, expression-to-matrix provenance,
+interactive selection, and annotation propagation through arithmetic remain
+deferred.
 
 ### Non-goals
 

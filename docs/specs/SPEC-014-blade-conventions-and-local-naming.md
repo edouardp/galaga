@@ -2,7 +2,18 @@
 
 ## Status
 
-Proposed — design document for discussion.
+Historical proposal, superseded by the implemented immutable presentation
+and local-naming design. The API sketches below are preserved as design
+history and do not describe the current public API.
+
+For the implemented replacements, see:
+
+- [Presentation configuration](../v2/presentation-configuration.md), including
+  `BladeConvention`, signed `BladeRef` identities, independent `LocalNamePolicy`
+  bindings, and `DisplayOrder`.
+- [ADR-076: Immutable Presentation Configuration](../adrs/076-immutable-presentation-configuration.md).
+- [ADR-104: Metric-Derived STA Names and Public Blade Contracts](../adrs/104-metric-derived-sta-names-and-public-blade-contracts.md).
+- [ADR-106: Independent Public Local-Name Contracts](../adrs/106-independent-public-local-name-contracts.md).
 
 ## Problem
 
@@ -279,6 +290,7 @@ alg.locals(prefix="g", pss="i")  # both at once
 ```
 
 The rule is simple:
+
 1. Blades with variable hints (from convention or call-site `pss=`) use
    their hinted name.
 2. All other blades use `prefix` + canonical subscript.
@@ -319,6 +331,7 @@ an idiomatic Python name". They differ from display overrides:
 | Example | σ₁ for γ₁γ₀ | `"I"` for pseudoscalar |
 
 This separation means:
+
 - `b_sta(sigmas=True)` can render σₖ beautifully in notebooks
 - `locals(prefix="g")` still gives you `g01, g02, g03` for typing
 - Only explicitly hinted blades (like `pss="i"`) deviate from the prefix pattern
@@ -347,12 +360,14 @@ This separation means:
 ## Migration Path
 
 ### 1.x (now)
+
 - `variable_hints` available on `BladeConvention`
 - `locals(prefix=...)` applies to all non-hinted blades
 - `locals(pss=...)` as call-site hint override
 - gamma ASCII prefix defaults to `"g"`
 
 ### 2.0
+
 - `prefix=` is the only mechanism for local naming (no more deriving from
   display overrides)
 - Remove `vector_names` (replaced by `subscripts`)
