@@ -9,6 +9,21 @@ import pytest
 from galaga import Algebra, BasisMultivectors, DisplayOrder, DisplayPolicy, presets
 
 
+@pytest.mark.parametrize("grade", range(4))
+@pytest.mark.parametrize("expr", (False, True))
+def test_basis_blades_grade_keyword_preserves_values_expressions_and_table(grade, expr):
+    algebra = Algebra(3)
+    values = algebra.basis_blades(grade=grade, expr=expr)
+    positional = algebra.basis_blades(grade, expr=expr)
+    expected = tuple(algebra.blade(mask) for mask in range(algebra.dim) if mask.bit_count() == grade)
+
+    assert isinstance(values, BasisMultivectors)
+    assert values == expected
+    assert values == positional
+    assert values.latex() == positional.latex()
+    assert all((value.expr is not None) == expr for value in values)
+
+
 @pytest.mark.parametrize("preset", (presets.sta(), presets.sta(sigmas=True, pseudovectors=True), presets.cga()))
 @pytest.mark.parametrize("grade", (1, 2))
 def test_basis_factory_table_follows_display_order_without_changing_sequence(preset, grade):

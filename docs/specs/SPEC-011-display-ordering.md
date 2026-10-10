@@ -73,9 +73,9 @@ not the coefficient array.
 
 ### Rule 5: basis_blades()
 
-`Algebra.basis_blades(k=...)` returns blades in `display_order` sequence
+`Algebra.basis_blades(grade=...)` returns blades in `display_order` sequence
 (filtered to the requested grade), not bitmask order. This means
-unpacking like `i, j, k = alg.basis_blades(k=2)` follows the convention.
+unpacking like `i, j, k = alg.basis_blades(grade=2)` follows the convention.
 
 ### Rule 6: Unaffected Methods
 

@@ -613,13 +613,14 @@ class Algebra:
             presentation=selected,
         )
 
-    def basis_blades(self, value: int, *, expr: bool | None = None) -> BasisMultivectors:
+    def basis_blades(self, grade: int, *, expr: bool | None = None) -> BasisMultivectors:
+        """Return the requested grade's native basis blades as a renderable sequence."""
         expr = self._resolve_expr(expr)
-        result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(value))
+        result = tuple(self._wrap(blade) for blade in self._numeric.basis_blades(grade))
         values = tuple(blade.with_expr() for blade in result) if expr else result
         return BasisMultivectors(
             values,
-            masks=(mask for mask in range(self.dim) if mask.bit_count() == value),
+            masks=(mask for mask in range(self.dim) if mask.bit_count() == grade),
             presentation=self.presentation,
         )
 

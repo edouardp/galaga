@@ -48,6 +48,6 @@ See SPEC-011 for the full specification.
 ### Consequences
 
 * Good, because `1 + 2i + 3j + 4k` displays correctly
-* Good, because `i, j, k = alg.basis_blades(k=2)` unpacks in conventional order
+* Good, because `i, j, k = alg.basis_blades(grade=2)` unpacks in conventional order
 * Good, because no computation is affected
 * Neutral, because only `b_quaternion()` uses it currently

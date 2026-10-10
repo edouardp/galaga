@@ -25,6 +25,15 @@ import pytest
 from galaga.core import Algebra, Multivector, scalar_product
 
 
+@pytest.mark.parametrize("grade", range(4))
+def test_basis_blades_accepts_grade_keyword_in_native_order(grade) -> None:
+    algebra = Algebra(3)
+    expected = tuple(algebra.blade(mask) for mask in range(algebra.dim) if mask.bit_count() == grade)
+
+    assert algebra.basis_blades(grade=grade) == expected
+    assert algebra.basis_blades(grade) == expected
+
+
 def native_cga_gram() -> np.ndarray:
     """Return the desired native origin/infinity metric for 3D CGA.
 

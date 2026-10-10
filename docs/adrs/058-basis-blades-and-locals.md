@@ -68,5 +68,13 @@ functions. This is acceptable because GA notebook code lives in cells.
   `"k"`). These are respected by `locals()` and override the prefix pattern.
 - `locals(pss="I")` is syntactic sugar for the most common variable hint
   override — naming the pseudoscalar at call time.
-- `basis_blades(k)` parameter is named `k` to match the standard GA
-  variable for grade and the existing `grade(x, k)` function.
+- The grade parameter describes which exterior degree to enumerate.
+
+## Parameter naming revision (2026-10-10)
+
+Both the numeric core and public facade name the first parameter `grade`.
+This makes keyword calls such as `alg.basis_blades(grade=2)` describe the
+selection directly and makes the signature agree with its validation errors.
+Positional calls remain unchanged. The former `value=` spelling is removed;
+no compatibility alias is retained. The facade's keyword-only `expr` option,
+return type, and native enumeration order are unchanged.

@@ -109,7 +109,7 @@ must use the property matching their question:
 | `vector(values)` | Require exactly `n` coefficients and place them at one-bit masks |
 | `blade(mask)` | Return a unit exterior basis blade for `0 <= mask < dim` |
 | `basis_vectors()` | Return the canonical one-hot vectors in Gram-matrix order |
-| `basis_blades(k)` | Return all unit masks of grade `k` in increasing mask order |
+| `basis_blades(grade)` | Return all unit masks of the requested grade in increasing mask order; accept `grade=` |
 | `pseudoscalar()` and `I` | Return the full-mask exterior blade |
 | `identity` | Return scalar one |
 

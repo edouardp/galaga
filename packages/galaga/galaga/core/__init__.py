@@ -650,14 +650,14 @@ class Algebra:
         """Return native one-hot grade-1 multivectors in Gram-matrix order."""
         return self._basis_vectors
 
-    def basis_blades(self, value: int) -> tuple[Multivector, ...]:
+    def basis_blades(self, grade: int) -> tuple[Multivector, ...]:
         """Return all native exterior basis blades of one grade."""
-        if not isinstance(value, Integral) or isinstance(value, (bool, np.bool_)):
+        if not isinstance(grade, Integral) or isinstance(grade, (bool, np.bool_)):
             raise TypeError("grade must be an integer")
-        value = int(value)
-        if value < 0 or value > self._n:
+        grade = int(grade)
+        if grade < 0 or grade > self._n:
             raise ValueError(f"grade must be in [0, {self._n}]")
-        return tuple(self.blade(bitmask) for bitmask in range(self._dim) if self._blade_grades[bitmask] == value)
+        return tuple(self.blade(bitmask) for bitmask in range(self._dim) if self._blade_grades[bitmask] == grade)
 
     def pseudoscalar(self) -> Multivector:
         """Return the top-grade exterior basis blade."""
