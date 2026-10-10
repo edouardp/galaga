@@ -52,9 +52,9 @@ Construction proceeds in four stages.
 matrix. Small accepted asymmetry is canonicalized with `(G + G.T) / 2`.
 No product coefficient is thresholded or rounded after that step.
 
-The stored diagonal becomes `basis_squares`. Exact equality with the diagonal
-matrix determines whether the current basis is orthogonal. A nonzero cross term
-is never ignored merely because it is small.
+The stored diagonal is cached privately as `_basis_squares`. Exact equality
+with the diagonal matrix determines whether the current basis is orthogonal.
+A nonzero cross term is never ignored merely because it is small.
 
 ### 2. Attach dimension metadata
 
@@ -277,8 +277,8 @@ Galaga's facade and companion packages should depend on public numeric concepts:
 - call named operations;
 - call numeric functions without inspecting their product backend;
 - use `left_action` for regular matrix representations;
-- use `inertia`, `gram`, and `basis_squares` for the metric property actually
-  needed.
+- use `inertia` or `gram` for the metric property actually needed;
+- read native basis-vector squares from the diagonal of `gram`.
 
 It should not assume monomial products, access backend arrays, or infer a
 general metric from `signature`. Rendering and expression tracking belong

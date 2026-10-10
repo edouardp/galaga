@@ -352,12 +352,12 @@ explicit ordered four-entry ±1 `signature`. Its bounded word reduction works
 for all sixteen unit-diagonal sign patterns, without assigning physical time
 from inertia. This is not a general-Gram product interface.
 
-Pass `algebra.basis_squares` only when the algebra's frame is orthogonal and
-unit diagonal. A convention does not carry a metric-binding restriction:
-applying labels to a different frame does not re-derive their signs. Prefer
-the complete preset when constructing STA. For oblique, scaled, or degenerate
-frames, name actual computed multivectors instead of treating products as
-signed unit-blade references.
+Pass `algebra.signature` for an orthogonal frame with unit diagonal.
+Accessing it rejects other metrics. A convention does not carry a
+metric-binding restriction: applying labels to a different frame does not
+re-derive their signs. Prefer the complete preset when constructing STA.
+For oblique, scaled, or degenerate frames, name actual computed multivectors
+instead of treating products as signed unit-blade references.
 
 All canonical target spellings resolve to the signed product.
 `blade("s1")` is $\gamma_1\gamma_0$, while the retained alias

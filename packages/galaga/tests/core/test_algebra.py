@@ -193,15 +193,15 @@ class TestGramConstruction:
         """Store cross terms exactly instead of diagonalizing them away.
 
         The zeros on the last two diagonal entries make both CGA vectors null;
-        their -1 cross term makes them a reciprocal pair. ``basis_squares`` is
-        intentionally only the diagonal and cannot replace ``gram``. The
-        orthogonality flag must therefore inspect off-diagonal entries.
+        their -1 cross term makes them a reciprocal pair. The Gram diagonal
+        alone cannot describe that pairing. The orthogonality flag must
+        therefore inspect off-diagonal entries.
         """
         expected = native_cga_gram()
         algebra = Algebra(gram=expected)
 
         assert np.array_equal(algebra.gram, expected)
-        assert np.array_equal(algebra.basis_squares, (1, 1, 1, 0, 0))
+        assert np.array_equal(np.diag(algebra.gram), (1, 1, 1, 0, 0))
         assert not algebra.is_orthogonal_basis
 
     def test_input_is_copied_and_result_is_read_only(self) -> None:
@@ -210,7 +210,7 @@ class TestGramConstruction:
         Galaga will precompute products from the Gram matrix. If the caller
         could mutate either the original input or a returned view afterward,
         ``algebra.gram`` and those cached products would contradict each other.
-        The diagonal view is frozen for the same reason.
+        The private diagonal cache is frozen for the same reason.
         """
         source = np.array([[1.0, 0.25], [0.25, -1.0]])
         algebra = Algebra(gram=source)
@@ -220,7 +220,21 @@ class TestGramConstruction:
         with pytest.raises(ValueError, match="read-only"):
             algebra.gram[0, 0] = 2.0
         with pytest.raises(ValueError, match="read-only"):
-            algebra.basis_squares[0] = 2.0
+            algebra._basis_squares[0] = 2.0
+
+    @pytest.mark.parametrize(
+        "gram",
+        (((1, 0), (0, -1)), ((0, 0), (0, 0)), ((2, 0.5), (0.5, -1))),
+        ids=("normalized", "exterior", "oblique-scaled"),
+    )
+    def test_basis_squares_are_private_and_match_vector_products(self, gram) -> None:
+        algebra = Algebra(gram=gram)
+
+        for index, vector in enumerate(algebra.basis_vectors()):
+            square = scalar_product(vector, vector).data[0]
+            assert square == algebra.gram[index, index]
+            assert square == algebra._basis_squares[index]
+        assert not hasattr(algebra, "basis_squares")
 
     def test_numerical_asymmetry_within_tolerance_is_canonicalized(self) -> None:
         """Tolerate floating-point noise while storing one symmetric form.
@@ -243,7 +257,7 @@ class TestGramConstruction:
 
         Returning only ``diag(G)`` would lose metric information; returning an
         eigenvalue signature would describe a different basis. Raising forces
-        callers to ask for ``gram``, ``basis_squares``, or eventually inertia,
+        callers to ask for ``gram`` or ``inertia``,
         according to the mathematical fact they actually require.
         """
         algebra = Algebra(gram=np.array([[1.0, 0.25], [0.25, -1.0]]))

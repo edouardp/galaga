@@ -258,7 +258,7 @@ def _(mo):
     mo.md(r"""
     `presets.sta()` derives the signs from its own time-first metric. If configuring
     only presentation, use
-    `spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
+    `spacetime_blade_convention(signature=algebra.signature, sigmas=True)`
     **only for an orthogonal frame whose basis squares are all ±1**.
     The plain gamma convention needs no metric; the signed options require
     the actual ordered signature.

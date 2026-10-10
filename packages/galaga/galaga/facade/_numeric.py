@@ -398,10 +398,6 @@ class Algebra:
         )
 
     @property
-    def basis_squares(self) -> np.ndarray:
-        return cast(np.ndarray, self._numeric.basis_squares)
-
-    @property
     def signature(self) -> tuple[int, ...]:
         """The ordered signature when the stored metric permits one."""
         return self._numeric.signature

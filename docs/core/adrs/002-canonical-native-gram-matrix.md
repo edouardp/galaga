@@ -42,8 +42,19 @@ basis is diagonal. Metric classification tolerances affect inertia only; they
 do not alter matrix entries or product coefficients.
 
 `signature` is a compatibility property only for normalized diagonal metrics.
-General callers use `gram`, `basis_squares`, or `inertia` according to the
-property they actually need.
+General callers use `gram` or `inertia` according to the property they actually
+need.
+
+### Public metric API revision (2026-10-10)
+
+Keep the cached Gram diagonal as private `_basis_squares` in the numeric core.
+Remove the public `basis_squares` property from both the core and the facade:
+it duplicates information already available in `gram` and has no production
+consumers beyond facade forwarding. Read a native basis-vector square with
+`algebra.gram[i, i]`, or obtain all such squares with `np.diag(algebra.gram)`.
+Use `algebra.signature` when an ordered normalized diagonal signature is
+required. This keeps one public representation of the complete metric while
+retaining the immutable internal cache.
 
 ## Consequences
 

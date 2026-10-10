@@ -4,6 +4,10 @@
 
 Implemented by `galaga.core` under ADR-073. This proposal remains as the
 original problem statement and design analysis for native Gram matrices.
+The public `basis_squares` API proposed below was retired in the
+[ADR-002 revision](../core/adrs/002-canonical-native-gram-matrix.md):
+read basis-vector squares from the Gram diagonal instead. The internal
+`_basis_squares` cache remains.
 
 ## Summary
 

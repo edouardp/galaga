@@ -296,8 +296,8 @@ class TestFactoryDefaults:
         alg = Algebra(config=presets.cga(frame="orthogonal"))
         _, _, _, ep, em = alg.basis_vectors()
         assert str(ep) == "e₊" and str(em) == "e₋"
-        assert ep * ep == alg.scalar(alg.basis_squares[3])
-        assert em * em == alg.scalar(alg.basis_squares[4])
+        assert ep * ep == alg.scalar(alg.gram[3, 3])
+        assert em * em == alg.scalar(alg.gram[4, 4])
         assert alg.locals()["ep"] == ep and alg.locals()["em"] == em
         assert str(alg.I) == "I"
         custom = alg.with_blades(replace_labels(alg.presentation.blades, {31: Name("I")}))
@@ -311,8 +311,8 @@ class TestFactoryDefaults:
         np.testing.assert_array_equal(renamed.gram, alg.gram)
         _, _, _, eo, einf = renamed.basis_vectors()
         assert str(eo) == "eₒ" and str(einf) == "e∞"
-        assert eo * eo == renamed.scalar(alg.basis_squares[3])
-        assert einf * einf == renamed.scalar(alg.basis_squares[4])
+        assert eo * eo == renamed.scalar(alg.gram[3, 3])
+        assert einf * einf == renamed.scalar(alg.gram[4, 4])
         native = Algebra(config=presets.cga(frame="null"))
         origin, _, _, _, infinity = native.basis_vectors()
         assert origin * origin == infinity * infinity == native.scalar(0)
@@ -1072,6 +1072,6 @@ class TestSubscriptsParameter:
         alg = Algebra(3, blades=indexed_blade_convention(3, prefix="e", subscripts=["x", "y", "z"]))
         e = alg.basis_vectors()
         # e_x * e_x = 1 (Euclidean)
-        assert e[0] * e[0] == alg.scalar(alg.basis_squares[0])
+        assert e[0] * e[0] == alg.scalar(alg.gram[0, 0])
         # e_x * e_y = -e_y * e_x
         assert np.allclose((e[0] * e[1]).data, -(e[1] * e[0]).data)

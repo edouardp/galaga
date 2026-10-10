@@ -25,9 +25,7 @@ def test_named_blade_signs_match_actual_products_for_every_unit_diagonal_metric(
         for index in range(4):
             products[f"ig{index}"] = pseudoscalar * vectors[index]
 
-    convention = ga.spacetime_blade_convention(
-        signature=algebra.basis_squares, sigmas=sigmas, pseudovectors=pseudovectors
-    )
+    convention = ga.spacetime_blade_convention(signature=algebra.signature, sigmas=sigmas, pseudovectors=pseudovectors)
     view = algebra.with_blades(convention)
     plain = ga.spacetime_blade_convention()
     for name, actual in products.items():
@@ -61,9 +59,7 @@ def test_preset_derives_names_from_its_own_ordered_metric(signature, sigmas, pse
     preset = ga.presets.sta(signature, sigmas=sigmas, pseudovectors=pseudovectors)
     config = preset.build()
     algebra = ga.Algebra(config=preset)
-    expected = ga.spacetime_blade_convention(
-        signature=algebra.basis_squares, sigmas=sigmas, pseudovectors=pseudovectors
-    )
+    expected = ga.spacetime_blade_convention(signature=algebra.signature, sigmas=sigmas, pseudovectors=pseudovectors)
     assert config.presentation.blades == expected
     assert preset == ga.SpacetimePreset(signature, sigmas=sigmas, pseudovectors=pseudovectors)
     assert config.presentation.local_names == ga.LocalNamePolicy.from_convention(expected)

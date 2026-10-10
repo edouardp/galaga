@@ -806,7 +806,7 @@ The default preset still keeps gamma words. Both preset options are opt-in.
 `presets.sta("mostly-plus")` uses the time-first $(-,+,+,+)$ metric.
 `Algebra(3, 1)` uses $(+,+,+,-)$; these orders cannot share a sign table.
 For presentation-only configuration, pass the actual ordered squares to
-`spacetime_blade_convention(signature=algebra.basis_squares, sigmas=True)`
+`spacetime_blade_convention(signature=algebra.signature, sigmas=True)`
 only for an orthogonal unit-diagonal frame. Labels do not change or validate
 the metric of an algebra to which they are later applied. In a general Gram
 frame, name computed multivectors instead.

@@ -551,11 +551,6 @@ class Algebra:
         return self._id
 
     @property
-    def basis_squares(self) -> NDArray[np.float64]:
-        """The immutable diagonal ``G[i, i] = e_i²`` in the stored basis."""
-        return self._basis_squares
-
-    @property
     def n(self) -> int:
         """Number of basis vectors."""
         return self._n
@@ -712,7 +707,7 @@ class Algebra:
         discard information, so callers must use ``gram`` instead.
         """
         if not self._has_normalized_signature:
-            raise ValueError("signature is only defined for normalized diagonal metrics; use gram or basis_squares")
+            raise ValueError("signature is only defined for normalized diagonal metrics; use gram")
         return tuple(int(square) for square in self._basis_squares)
 
 

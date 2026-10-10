@@ -17,7 +17,7 @@ ASCII_CHANGES = {"iy0": "ig0", "iy1": "ig1", "iy2": "ig2", "iy3": "ig3"}
 def test_archived_sta_table_preserves_labels_signs_and_numeric_lookup(table, target):
     algebra = ga.Algebra(signature=table["signature"], product_backend="reference")
     convention = ga.spacetime_blade_convention(
-        signature=algebra.basis_squares, sigmas=table["sigmas"], pseudovectors=table["pseudovectors"]
+        signature=algebra.signature, sigmas=table["sigmas"], pseudovectors=table["pseudovectors"]
     )
     view = algebra.with_blades(convention)
     for old in table["labels"]:

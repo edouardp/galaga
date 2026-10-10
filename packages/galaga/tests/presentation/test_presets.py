@@ -230,7 +230,7 @@ def test_spacetime_preset_and_custom_null_pair_change_the_numeric_definition():
     custom_null = Algebra(config=CGAPreset(1, null_pair=-0.5))
 
     assert mostly_minus.blade("i") == mostly_minus.I
-    np.testing.assert_array_equal(mostly_plus.basis_squares, (-1, 1, 1, 1))
+    np.testing.assert_array_equal(mostly_plus.signature, (-1, 1, 1, 1))
     assert custom_null.gram[0, 2] == custom_null.gram[2, 0] == -0.5
 
     with pytest.raises(ValueError, match="finite"):

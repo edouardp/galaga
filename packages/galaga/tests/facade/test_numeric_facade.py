@@ -33,6 +33,19 @@ def test_numeric_values_use_core_storage() -> None:
     np.testing.assert_array_equal((a * b).data, [0.5, 0, 0, 1])
 
 
+@pytest.mark.parametrize(
+    "gram",
+    (((1, 0), (0, -1)), ((0, 0), (0, 0)), ((2, 0.5), (0.5, -1))),
+    ids=("normalized", "exterior", "oblique-scaled"),
+)
+def test_basis_vector_squares_use_gram_without_public_diagonal_property(gram) -> None:
+    algebra = Algebra(gram=gram)
+
+    for index, vector in enumerate(algebra.basis_vectors()):
+        assert float(vector * vector) == algebra.gram[index, index]
+    assert not hasattr(algebra, "basis_squares")
+
+
 def native_cga_gram() -> np.ndarray:
     metric = np.eye(5)
     metric[3:, 3:] = np.array([[0.0, -1.0], [-1.0, 0.0]])
@@ -62,7 +75,7 @@ class TestConstructionAndValues:
     def test_accepts_the_positional_signature_form(self, signature) -> None:
         algebra = Algebra(signature)
 
-        assert algebra.basis_squares.tolist() == [1.0, -1.0, 0.0]
+        assert algebra.signature == (1, -1, 0)
         assert algebra.inertia == (1, 1, 1)
 
     @pytest.mark.parametrize("signature", ((), []), ids=("tuple", "list"))
@@ -180,7 +193,7 @@ class TestConstructionAndValues:
 
         assert algebra.id == "cl21"
         assert algebra.signature == (1, 1, -1)
-        assert algebra.basis_squares.tolist() == [1.0, 1.0, -1.0]
+        assert np.diag(algebra.gram).tolist() == [1.0, 1.0, -1.0]
         assert algebra.metric_rank == 3
         assert algebra.metric_determinant == -1.0
         assert not algebra.is_degenerate

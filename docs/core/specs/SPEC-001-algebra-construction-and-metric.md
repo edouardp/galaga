@@ -68,10 +68,9 @@ not change metric or product behavior.
 | Property | Required behavior |
 |---|---|
 | `gram` | Return the canonical read-only `float64[n,n]` matrix |
-| `basis_squares` | Return the read-only diagonal of `gram` in native basis order |
 | `n` | Number of basis vectors |
 | `dim` | Exterior/Clifford coefficient dimension `2**n` |
-| `is_orthogonal_basis` | Exact equality of `gram` and `diag(basis_squares)` |
+| `is_orthogonal_basis` | Exact equality of `gram` and `diag(diag(gram))` |
 | `inertia` | `(positive, negative, null)` eigenvalue counts |
 | `metric_rank` | `positive + negative` from the same classification |
 | `metric_determinant` | Unthresholded numeric determinant |
@@ -98,7 +97,7 @@ than return a lossy diagonal or a basis-independent inertia signature. Callers
 must use the property matching their question:
 
 - `gram` for all pairings;
-- `basis_squares` for native basis-vector squares;
+- `gram[i, i]` for native basis-vector squares;
 - `inertia` for the abstract real Clifford-algebra class.
 
 ## Value factories
